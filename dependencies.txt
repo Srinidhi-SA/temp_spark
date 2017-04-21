@@ -1,0 +1,9 @@
+
+== Python
+
+1) numpy        - for numeric calculations
+2) scipy        - for statistical functions
+3) pandas       - for data frame functions
+4) py4j         - required for pyspark
+5) statsmodels  - for conducting statistical tests
+6) pattern      - for generating plurals

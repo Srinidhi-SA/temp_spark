@@ -1,0 +1,36 @@
+The dataset contains {{measure}} figures for a period of {{durationString}}.
+
+{% if overall_growth > 0 %}
+    {% if overall_growth < 10 %}
+      The values of {{measure}} have <b>grown marginally by
+    {% elif overall_growth > 10  %}
+      The values of {{measure}} have <b>grown by
+    {% endif %}
+
+    {{overall_growth|abs}}% over the last {{durationString}}</b>, from {{start_value}} in {{start_time}} to {{end_value}} in {{end_time}}.
+    The <b>total</b> {{measure}} <b>was {{total}}</b>, with the <b>average value per {{dateLevel}} being {{average_value}}</b>.
+    #LINESEPARATOR#
+    The <b>largest increase</b> in {{measure}} happened in <b>{{max_increase_time}}</b>, when it sharply rose by <b>{{max_increase_percentage}}%</b>
+    (from {{maxIncreaseValues[0]}} to {{maxIncreaseValues[1]}}).
+    #LINESEPARATOR#
+    While there were many ups and downs, the <b>longest streak of continuous increase</b> (by absolute value) was experienced between <b>{{streak_start_month}} and
+    {{streak_end_month}}</b>, when it increased <b>from {{start_streak_value}} to {{end_streak_value}}</b>.
+
+{% elif overall_growth < 0 %}
+    {% if overall_growth > -10 %}
+      The values of {{measure}} have <b>marginally decreased by
+    {% elif overall_growth < -10  %}
+      The values of {{measure}} have <b>decreased by
+    {% endif %}
+
+    {{overall_growth|abs}}% over the last {{durationString}}</b>, from {{start_value}} in {{start_time}} to {{end_value}} in {{end_time}}.
+    The <b>total</b> {{measure}} <b>was {{total}}</b>. with the <b>average value per {{dateLevel}} being {{average_value}}</b>.
+    #LINESEPARATOR#
+    The <b>largest decrease</b> in {{measure}} happened in <b>{{max_decrease_time}}</b>, when it sharply decreased by <b>{{max_decrease_percentage}}%</b>
+    (from {{maxDecreaseValues[0]}} to {{maxDecreaseValues[1]}}).
+    #LINESEPARATOR#
+    While there were many ups and downs, the <b>longest streak of continuous decrease</b> (by absolute value) was experienced between <b>{{streak_start_month}} and
+    {{streak_end_month}}</b>, when it decreased <b>from {{start_streak_value}} to {{end_streak_value}}</b>.
+{% endif %}
+
+Driven by the strong {{trend}} growth, {{measure}} seem to be on <b>{{trend}} trend</b>.
