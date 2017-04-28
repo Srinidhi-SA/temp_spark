@@ -1,6 +1,8 @@
 import os
 import jinja2
 import re
+from collections import OrderedDict
+
 #from nltk import tokenize
 from bi.common.utils import accepts
 from bi.common.results.regression import RegressionResult
@@ -89,12 +91,17 @@ class LinearRegressionNarrative:
         # print input_columns
         most_significant_col = ''
         highest_regression_coeff = 0
+        input_cols_coeff_list = []
         for cols in input_columns:
-            temp = abs(self._regression_result.get_coeff(cols))
+            coef = self._regression_result.get_coeff(cols)
+            temp = abs(coef)
+            input_cols_coeff_list.append((cols,temp))
             if temp > highest_regression_coeff:
                 highest_regression_coeff=temp
                 most_significant_col = cols
-        for cols in reversed(input_columns):
+        sorted_input_cols = sorted(input_cols_coeff_list,key=lambda x:x[1],reverse=True)
+
+        for cols,coeff in sorted_input_cols:
             corelation_coeff = round(self._column_correlations.get_correlation(cols).get_correlation(),2)
             regression_coeff = round(self._regression_result.get_coeff(cols),3)
             #mvd_result = MVD_analysis[cols]
@@ -154,8 +161,17 @@ class LinearRegressionNarrative:
                 output = re.sub('\( ','()',output)
                 lines2 = output
             '''
+            # column_narrative = {}
+            # column_narrative[cols] = {}
+            # column_narrative[cols]['title'] = 'Relationship between ' + cols + ' and ' + output_column
+            # column_narrative[cols]['analysis'] = lines
+            # temp = re.split('\. ',lines)
+            # column_narrative[cols]['sub_heading'] = temp[-2]
+            # column_narrative[cols]['data'] = self._dataframe_helper.get_sample_data(cols, output_column, self._sample_size)
+            # self.narratives.append(column_narrative)
 
             self.narratives[cols] = {}
+            self.narratives[cols]["coeff"] = coeff
             self.narratives[cols]['title'] = 'Relationship between ' + cols + ' and ' + output_column
             self.narratives[cols]['analysis'] = lines
             '''
