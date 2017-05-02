@@ -6,10 +6,16 @@ from scipy import stats
 class DFTwoWayAnovaResult:
     def __init__(self):
         self.result = {}
+    def get_anova_result(self,measure,dimension):
+        return self.result[measure].get_anova_result(dimension)
     def add_measure_result(self,measure,Measure_Anova_Result):
         self.result[measure] = Measure_Anova_Result
     def get_measure_result(self, measure):
         return self.result[measure]
+    def get_measure_columns(self):
+        return self.result.keys()
+    def get_dimensions_analyzed(self,measure):
+        return self.result[measure].get_dimensions_analyzed()
 
 class MeasureAnovaResult:
     def __init__(self, var, sst):
@@ -17,7 +23,13 @@ class MeasureAnovaResult:
         self.df = var[0] - 1
         self.sst = float(sst)
         self.OneWayAnovaResult = {}
-        self.TwoWayAnovaResult = {}
+        #self.TwoWayAnovaResult = {}
+
+    def get_anova_result(self,dimension):
+        return self.OneWayAnovaResult[dimension]
+
+    def get_dimensions_analyzed(self):
+        return self.OneWayAnovaResult.keys()
 
     def set_OneWayAnovaResult(self, dimension, var, sse):
         self.OneWayAnovaResult[dimension] = OneWayAnovaResult(var, self.global_mean, sse, self.sst)
@@ -112,11 +124,11 @@ class OneWayAnovaResult:
         self.set_dim_table(var)
 
     def set_dim_table(self, var):
-        self._dim_table = {}
-        self._dim_table['levels']=var.levels.tolist()
-        self._dim_table['counts']=var.counts.tolist()
-        self._dim_table['means']=var.means.tolist()
-        self._dim_table['total']=var.total.tolist()
+        self.dim_table = {}
+        self.dim_table['levels']=var.levels.tolist()
+        self.dim_table['counts']=var.counts.tolist()
+        self.dim_table['means']=var.means.tolist()
+        self.dim_table['total']=var.total.tolist()
 
     def set_results(self):
         #self.ss_total = var2 - var1
@@ -131,6 +143,15 @@ class OneWayAnovaResult:
         self.f_stat = self.ms_between/self.ms_within
         self.p_value = 1 - stats.f.cdf(self.f_stat, self.df_between, self.df_within)
 
+    def get_df_total(self):
+        return self.df_total
+
+    def get_mean_sum_of_squares_error(self):
+        return self.ms_within
+
+    def get_dim_table(self):
+        return self.dim_table
+
     def get_ss_total(self):
         return self.ss_total
 
@@ -142,3 +163,9 @@ class OneWayAnovaResult:
 
     def get_df_total(self):
         return self.df_total
+
+    def get_effect_size(self):
+        return self.effect_size
+
+    def is_statistically_significant(self,alpha):
+        return self.p_value <= alpha

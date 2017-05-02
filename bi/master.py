@@ -18,6 +18,7 @@ from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
 from bi.scripts.histogram import HistogramsScript
 from bi.scripts.one_way_anova import OneWayAnovaScript
+from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
 
@@ -228,7 +229,14 @@ def main(confFilePath):
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
 
-
+        #TWO WAY ANOVA
+        #try:
+        fs = time.time()
+        two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
+        two_way_obj.Run()
+        print "Two Way Anova Done in ",time.time()-fs," seconds"
+        #except:
+        print "TWO WAY ANOVA FAILED"
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."
