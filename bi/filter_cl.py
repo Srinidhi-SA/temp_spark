@@ -45,6 +45,7 @@ def get_argument_parser():
     parser.add_argument('--measure_filter', type=str, help='Dictionary with measure filter criteria')
     parser.add_argument('--dimension_filter', type=str, help='Dictionary with dimension filter criteria')
     parser.add_argument('--result', type=str, help='HDFS output location to store descriptive stats')
+    parser.add_argument('--measure_suggestions', type=str, help='Dictionary with measure_suggestions as key')
     return parser
 
 if __name__ == '__main__':
@@ -58,6 +59,7 @@ if __name__ == '__main__':
     ip = arguments.input
     dummy_ip = ip+str(random.random())
     result = arguments.result
+    ms = arguments.measure_suggestions
     cc = arguments.consider_columns
     mf = arguments.measure_filter
     df = arguments.dimension_filter
@@ -66,6 +68,7 @@ if __name__ == '__main__':
     cc = json.loads(cc)['consider_columns']
     df = json.loads(df)
     mf = json.loads(mf)
+    ms = json.loads(ms)['measure_suggestions']
     #config_file = sys.argv[1]
     #config = ConfigParser.ConfigParser()
     #config.optionxform=str
@@ -75,6 +78,7 @@ if __name__ == '__main__':
 
     dff_context = FilterContextSetter('')
     dff_context.set_params_cl(ip,result,cc,df,mf)
+    #dff_context.set_params_cl(ip,result,cc,df,mf,ms)
 
     df = DataLoader.load_csv_file(spark, dff_context.get_input_file())
     print "FILE LOADED: ", dff_context.get_input_file()
@@ -104,9 +108,8 @@ if __name__ == '__main__':
     print "File loaded: ", CSV_FILE
     meta_data = utils.as_dict(meta_helper)
     print "Metadata: ", meta_data
-    print '-'*20
     RESULT_FILE = dff_context.get_result_file()
-    DataWriter.write_dict_as_json(spark, meta_data, RESULT_FILE)
+    DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)
     #df.write.csv('hdfs://localhost:9000/input/created_by_spark.csv')
     df.coalesce(1).write.format('csv').save(dummy_ip, header = True)
     files = commands.getoutput('hadoop fs -ls '+dummy_ip).splitlines()[-1]

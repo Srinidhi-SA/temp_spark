@@ -51,9 +51,12 @@ if __name__ == '__main__':
     print "File loaded: ", CSV_FILE
     meta_data = utils.as_dict(meta_helper)
     print "Metadata: ", meta_data
+    meta_data = json.dumps(meta_data)
+    # print  meta_data
     print '-'*20
     RESULT_FILE = dff_context.get_result_file()
-    DataWriter.write_dict_as_json(spark, meta_data, RESULT_FILE)
+    DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)
+
     #df.write.csv('hdfs://localhost:9000/input/created_by_spark.csv')
     df.coalesce(1).write.format('csv').save(dummy_ip, header = True)
     files = commands.getoutput('hadoop fs -ls '+dummy_ip).splitlines()[-1]
