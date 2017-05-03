@@ -16,13 +16,13 @@ class DataFrameFilterer:
 
     def values_between(self,colname,start_value, end_value, greater_than_equal = 0, less_than_equal=1):
         if (greater_than_equal == 0) and (less_than_equal==1):
-            self._data_frame = self._data_frame.filter((col(colname) > start_value) & (col(colname) <= end_value))
+            self._data_frame = self._data_frame.filter(col(colname) > start_value).filter(col(colname) <= end_value)
         elif (greater_than_equal == 0) and (less_than_equal==0):
-            self._data_frame = self._data_frame.filter((col(colname) > start_value) & (col(colname) < end_value))
+            self._data_frame = self._data_frame.filter(col(colname) > start_value).filter(col(colname) < end_value)
         elif (greater_than_equal == 1) and (less_than_equal==1):
-            self._data_frame = self._data_frame.filter((col(colname) >= start_value) & (col(colname) <= end_value))
+            self._data_frame = self._data_frame.filter(col(colname) >= start_value).filter(col(colname) <= end_value)
         elif (greater_than_equal == 1) and (less_than_equal==0):
-            self._data_frame = self._data_frame.filter((col(colname) >= start_value) & (col(colname) < end_value))
+            self._data_frame = self._data_frame.filter(col(colname) >= start_value).filter(col(colname) < end_value)
 
     def dates_between(self,colname,start_value, end_value, greater_than_equal = 1, less_than_equal=1):
         if (greater_than_equal == 0) and (less_than_equal==1):
