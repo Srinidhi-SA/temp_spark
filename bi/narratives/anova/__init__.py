@@ -1,6 +1,7 @@
 import os
 import jinja2
 import re
+import time
 
 from bi.common.utils import accepts
 from bi.common.results.anova import DFAnovaResult
@@ -61,7 +62,7 @@ class AnovaNarratives:
                                                        AnovaNarratives.KEY_NARRATIVES: {}}
                 narrative = OneWayAnovaNarratives(measure_column, dimension_column, anova_result)
                 self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column] = narrative
-
+            fs = time.time()
             try:
                 anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
                 drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self.df_helper, anova_narrative)
@@ -70,7 +71,7 @@ class AnovaNarratives:
             except:
                 print "Drill Down Narrative Failed"
                 self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
-
+            print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
 
             #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
             #self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),

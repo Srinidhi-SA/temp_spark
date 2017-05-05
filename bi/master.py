@@ -169,8 +169,11 @@ def main(confFilePath):
         if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
             try:
                 fs = time.time()
-                one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                one_way_anova_obj.Run()
+                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+                # one_way_anova_obj.Run()
+
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
+                two_way_obj.Run()
                 print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
             except:
@@ -184,10 +187,10 @@ def main(confFilePath):
             send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Analysis Not Required", False, 0)
 
         #TWO WAY ANOVA
-        fs = time.time()
-        two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
-        two_way_obj.Run()
-        print "Two Way Anova Done in ",time.time()-fs," seconds"
+        # fs = time.time()
+        # two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
+        # two_way_obj.Run()
+        # print "Two Way Anova Done in ",time.time()-fs," seconds"
 
         if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
             try:

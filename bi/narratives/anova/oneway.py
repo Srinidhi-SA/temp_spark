@@ -108,6 +108,7 @@ class OneWayAnovaNarratives:
             cat_bool = 1
         else:
             cat_bool = 0
+
         data_dict = {
             'cat_bool':cat_bool,
             'cat_75_list' : cat_75_list,
