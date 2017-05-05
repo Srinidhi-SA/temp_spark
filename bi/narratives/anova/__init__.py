@@ -5,10 +5,12 @@ import re
 from bi.common.utils import accepts
 from bi.common.results.anova import DFAnovaResult
 from bi.common.results.anova import AnovaResult
+from bi.common import DataFrameHelper
 
 from collections import OrderedDict
 
 from oneway import OneWayAnovaNarratives
+from anova_drilldown import AnovaDrilldownNarratives
 
 
 class AnovaNarratives:
@@ -17,9 +19,11 @@ class AnovaNarratives:
     KEY_SUMMARY = 'summary'
     KEY_NARRATIVES = 'narratives'
     KEY_TAKEAWAY = 'key_takeaway'
+    DRILL_DOWN = 'drill_down_narrative'
 
-    @accepts(object, int, DFAnovaResult)
-    def __init__(self, num_dimension_columns, df_anova_result):
+    @accepts(object, int, DFAnovaResult, DataFrameHelper)
+    def __init__(self, num_dimension_columns, df_anova_result, df_helper):
+        self.df_helper = df_helper
         self._num_dimension_columns = num_dimension_columns
         self._df_anova_result = df_anova_result
         self.measures = []
@@ -27,7 +31,7 @@ class AnovaNarratives:
         #self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
         self._generate_narratives()
-        #self._generate_take_away()
+
 
     def _generate_narratives(self):
         for measure_column in self._df_anova_result.get_measure_columns():
@@ -48,7 +52,7 @@ class AnovaNarratives:
                     num_insignificant_dimensions+=1
                     continue
                 significant_dimensions.append(dimension_column)
-                effect_sizes[dimension_column]=anova_result.get_effect_size()
+                effect_sizes[dimension_column] = anova_result.get_effect_size()
                 num_significant_dimensions += 1
                 if measure_column not in self.measures:
                     self.measures.append(measure_column)
@@ -58,9 +62,20 @@ class AnovaNarratives:
                 narrative = OneWayAnovaNarratives(measure_column, dimension_column, anova_result)
                 self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column] = narrative
 
-                #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
+            try:
+                anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
+                drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self.df_helper, anova_narrative)
+                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
+                print "Drill Down Narrative Success"
+            except:
+                print "Drill Down Narrative Failed"
+                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
+
+
+            #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
             #self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
             #                            key = lambda kv: kv[1]['effect_size'], reverse=True))
+
             sorted_dim=[]
             for key,value in sorted(effect_sizes.iteritems(),key = lambda (k,v):(v,k)):
                 sorted_dim.append(key)
