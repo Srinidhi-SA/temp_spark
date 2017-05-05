@@ -179,7 +179,7 @@ def dateTimeFormatsSupported():
             '%d-%B','%d-%b', '%b,%y','%B,%y','%b,%Y','%B,%Y',
             '%b %Y', '%b %y','%B %Y','%B %y','%b-%y','%b/%Y','%b-%Y')
 
-    data["dual_checks"] = ('%m/%d/%Y %H:%M','%m/%d/%y %H:%M','%m/%d/%Y','%m/%d/%y','%m-%d-%Y %r','%m-%d-%Y %R','%m-%d-%Y','%m-%d-%Y','%m/%d/%Y %r','%m/%d/%Y %R')
+    data["dual_checks"] = ('%m/%d/%Y %H:%M','%m/%d/%y %H:%M','%m-%d-%Y %H:%M','%m-%d-%y %H:%M','%m-%d-%Y %r','%m-%d-%Y %R', '%m-%d-%y %r','%m-%d-%y %R','%m/%d/%Y %r','%m/%d/%Y %R', '%m/%d/%y %r','%m/%d/%y %R','%m/%d/%Y','%m/%d/%y','%m-%d-%Y','%m-%d-%y','%m.%d.%Y','%m.%d.%y','%m - %d - %Y','%m - %d - %y')
     return data
 
 if __name__ == '__main__':

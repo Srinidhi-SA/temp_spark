@@ -14,13 +14,15 @@ class FilterContextSetter:
         self.considercolumns = self._config_obj.get_column_settings().get('consider_columns')
         self.dimension_filter = self._config_obj.get_dimension_filters()
         self.measure_filter = self._config_obj.get_measure_filters()
+        self.measure_suggestions = self._config_obj.get_file_settings().get('measure_suggestions')
 
-    def set_params_cl(self,ip,result, cc, df, mf):
+    def set_params_cl(self,ip,result,cc,df,mf,ms=[]):
         self.CSV_FILE = ip
         self.RESULT_FILE = result
         self.considercolumns = cc
         self.dimension_filter = df
         self.measure_filter = mf
+        self.measure_suggestions = ms
 
     def get_input_file(self):
         return self.CSV_FILE
@@ -36,3 +38,6 @@ class FilterContextSetter:
 
     def get_column_subset(self):
         return self.considercolumns
+
+    def get_measure_suggestions(self):
+        return self.measure_suggestions

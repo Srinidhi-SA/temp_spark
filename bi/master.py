@@ -18,6 +18,7 @@ from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
 from bi.scripts.histogram import HistogramsScript
 from bi.scripts.one_way_anova import OneWayAnovaScript
+from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
 
@@ -51,6 +52,8 @@ def main(confFilePath):
     dataframe_context = ContextSetter(config_obj)
     dataframe_context.set_params()
     scripts_to_run = dataframe_context.get_scripts_to_run()
+    if scripts_to_run==None:
+        scripts_to_run = []
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
 
     print "FILE LOADED: ", dataframe_context.get_input_file()
@@ -180,6 +183,11 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
             send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Analysis Not Required", False, 0)
 
+        #TWO WAY ANOVA
+        fs = time.time()
+        two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
+        two_way_obj.Run()
+        print "Two Way Anova Done in ",time.time()-fs," seconds"
 
         if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
             try:
@@ -227,8 +235,6 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
-
-
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."

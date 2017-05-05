@@ -36,17 +36,17 @@ class TwoWayAnova:
         self._data_frame_helper = df_helper
         self._measure_columns = self._data_frame_helper.get_numeric_columns()
         self._dimension_columns = self._data_frame_helper.get_string_columns()
-        self._df = self._data_frame_helper.get_num_rows()
+        self._df_rows = self._data_frame_helper.get_num_rows()
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
-    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=40):
+    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=200):
         measures = measure_columns
         if measure_columns is None:
             measures = self._measure_columns
         dimensions = dimension_columns
         if dimension_columns is None:
             dimensions = self._dimension_columns
-        max_num_levels = min(max_num_levels, round(self._data_frame_helper.get_num_rows()**0.35))
+        max_num_levels = min(max_num_levels, round(self._data_frame_helper.get_num_rows()**0.5))
         DF_Anova_Result = DFTwoWayAnovaResult()
         dimensions_to_test = [dim for dim in dimensions if self._data_frame_helper.get_num_unique_values(dim) <= max_num_levels]
 
@@ -61,7 +61,7 @@ class TwoWayAnova:
         return DF_Anova_Result
 
     def test_anova(self,measure,dimension):
-        var = self._data_frame.groupby(dimension).agg(*[count(col(measure)),mean(col(measure))]).collect()
+        var = self._data_frame.na.drop(subset=dimension).groupby(dimension).agg(*[count(col(measure)),mean(col(measure))]).collect()
         var = pd.DataFrame(var,columns=['levels', 'counts', 'means'])
         var['total'] = var.means*var.counts
         #var['var3'] = var.counts*var.means*var.means
@@ -76,9 +76,9 @@ class TwoWayAnova:
     def test_against(self,measure, dimensions):
         for dimension in dimensions:
             self.test_anova(measure,dimension)
-        for i in range(0,len(dimensions)-1):
+        '''for i in range(0,len(dimensions)-1):
             for j in range(i+1,len(dimensions)):
-                self.test_anova_interaction(measure,dimensions[i],dimensions[j])
+                self.test_anova_interaction(measure,dimensions[i],dimensions[j])'''
 
     def test_anova_interaction(self,measure,dimension1,dimension2):
         var = self._data_frame.groupby(dimension1,dimension2).agg(*[count(col(measure)),mean(col(measure))]).collect()

@@ -133,7 +133,7 @@ class AnovaResult:
              mean_sum_of_squares_between=(int, long, float), sum_of_squares_error=(int, long, float),
              mean_sum_of_squares_error=(int, long, float), f_value=(int, long, float), p_value=(int, float),
              total_number_of_records=(int, long))
-    def set_params(self, df1=10, df2=140, sum_of_squares_between=0.0, mean_sum_of_squares_between=0.0,
+    def set_params(self, df1, df2, sum_of_squares_between=0.0, mean_sum_of_squares_between=0.0,
                    sum_of_squares_error=0.0, mean_sum_of_squares_error=0.0, f_value=0.0, p_value=0.0,
                    total_number_of_records=140):
         self.df1 = df1

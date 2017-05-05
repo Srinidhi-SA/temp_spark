@@ -37,8 +37,9 @@ class ContextSetter:
             self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
         self.considercolumns = self._config_obj.get_column_settings().get('consider_columns')
         if not self.considercolumns == None:
-            self.considercolumns.append(self.resultcolumn)
-            self.considercolumns = list(set(self.considercolumns))
+            if not self.resultcolumn == None:
+                self.considercolumns.append(self.resultcolumn)
+                self.considercolumns = list(set(self.considercolumns))
         self.dimension_filter = self._config_obj.get_dimension_filters()
         self.measure_filter = self._config_obj.get_measure_filters()
         self.date_filter = self._config_obj.get_date_filters()
