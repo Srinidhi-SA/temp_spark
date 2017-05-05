@@ -171,7 +171,6 @@ def main(confFilePath):
                 fs = time.time()
                 # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
                 # one_way_anova_obj.Run()
-
                 two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
                 two_way_obj.Run()
                 print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
@@ -185,12 +184,6 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
             send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Analysis Not Required", False, 0)
-
-        #TWO WAY ANOVA
-        # fs = time.time()
-        # two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
-        # two_way_obj.Run()
-        # print "Two Way Anova Done in ",time.time()-fs," seconds"
 
         if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
             try:
