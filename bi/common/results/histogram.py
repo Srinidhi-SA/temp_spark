@@ -15,7 +15,7 @@ class Histogram:
         self.bins = []
         self._un_ordered_bins = []
 
-    @accepts(object, int, (int, long, float), (int, long, float), (int, long))
+    @accepts(object, int, (int, long, float), (int, long, float), (int, long, float))
     def add_bin(self, bin_number, start_value, end_value, num_records):
         bin_data = {
             Histogram.BIN_NUMBER: str(bin_number),

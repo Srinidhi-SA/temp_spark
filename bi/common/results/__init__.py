@@ -38,8 +38,9 @@ __all__ = [
     'DFAnovaResult',
     # correlation
     'ColumnCorrelations', 'CorrelationStats', 'Correlations',
+    # descriptive_stats
     'DataFrameDescriptiveStats', 'FivePointSummary',
-        'MeasureDescriptiveStats', 'DimensionDescriptiveStats', 'TimeDimensionDescriptiveStats',
+    'MeasureDescriptiveStats', 'DimensionDescriptiveStats', 'TimeDimensionDescriptiveStats',
     # histogram
     'Histogram', 'DataFrameHistogram',
     # regression

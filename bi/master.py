@@ -16,6 +16,7 @@ from bi.scripts.chisquare import ChiSquareScript
 from bi.scripts.decision_tree import DecisionTreeScript
 from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
+from bi.scripts.density_histogram import Density_HistogramsScript
 from bi.scripts.histogram import HistogramsScript
 from bi.scripts.one_way_anova import OneWayAnovaScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
@@ -151,7 +152,17 @@ def main(confFilePath):
             except:
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
                 send_message_API(monitor_api, "Histogram", "Histogram Failed", False, 0)
-                print 'Histogram Failed'
+
+            try:
+                fs = time.time()
+                d_histogram_obj = Density_HistogramsScript(df, df_helper, dataframe_context, spark)
+                d_histogram_obj.Run()
+                print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
+                send_message_API(monitor_api, "Density Histogram", "Density Histogram Done", True, 100)
+            except:
+                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Density_Histogram/')
+                send_message_API(monitor_api, "Density Histogram", "Density Histogram Failed", False, 0)
+                print 'Density Histogram Failed'
 
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
