@@ -98,5 +98,3 @@ class Stats:
     @staticmethod
     def kurtosis(data_frame, measure_column_name):
         return data_frame.select(FN.kurtosis(measure_column_name)).collect()[0][0]
-
-

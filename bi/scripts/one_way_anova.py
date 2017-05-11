@@ -3,7 +3,7 @@ import json
 from bi.common import utils
 from bi.common import DataWriter
 from bi.common import BIException
-from bi.stats.anova import OneWayAnova
+from bi.stats import OneWayAnova
 from bi.narratives.anova import AnovaNarratives
 
 class OneWayAnovaScript:

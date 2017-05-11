@@ -4,7 +4,7 @@ import json
 from bi.common import utils
 from bi.common import DataWriter
 from bi.common import BIException
-from bi.stats.decision_tree import DecisionTrees
+from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree import DecisionNarrative
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 

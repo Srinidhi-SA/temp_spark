@@ -1,8 +1,7 @@
 
 from bi.common import utils
 from bi.common import DataWriter
-#from bi.stats.regression.new_regression import LinearRegression
-from bi.stats.regression import LinearRegression
+from bi.algorithms import LinearRegression
 from bi.narratives.regression import RegressionNarrative
 from bi.narratives.regression import LinearRegressionNarrative
 import json

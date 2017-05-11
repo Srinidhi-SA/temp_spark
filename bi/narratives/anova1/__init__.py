@@ -84,7 +84,6 @@ class AnovaNarratives:
                 'd' : significant_dimensions+insignificant_dimensions,
                 'dims' : sorted_dim
             }
-
             templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
             templateEnv = jinja2.Environment( loader=templateLoader )
             template = templateEnv.get_template('anova_template_1.temp')

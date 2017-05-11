@@ -6,7 +6,7 @@ import re
 from bi.common.utils import accepts
 from bi.common.results.anova import AnovaResult
 
-from bi.stats.anova.posthoctests import TuckeyHSD
+from bi.stats.posthoctests import TuckeyHSD
 
 from bi.narratives import utils as NarrativesUtils
 

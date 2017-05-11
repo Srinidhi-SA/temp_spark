@@ -1,7 +1,7 @@
 import math
 
 from bi.common.decorators import accepts
-from ..util import Stats
+from util import Stats
 
 """
 Tuckey Range test (Ref: https://en.wikipedia.org/wiki/Tukey%27s_range_test)

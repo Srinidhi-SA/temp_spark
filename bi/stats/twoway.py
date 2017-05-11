@@ -7,7 +7,6 @@ from bi.common.decorators import accepts
 from bi.common import BIException
 from bi.common import DataFrameHelper
 import pandas as pd
-from ..util import Stats
 
 from bi.common.results import DFTwoWayAnovaResult
 from bi.common.results import MeasureAnovaResult

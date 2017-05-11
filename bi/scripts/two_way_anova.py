@@ -7,7 +7,7 @@ from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import BIException
 
-from bi.stats.anova import TwoWayAnova
+from bi.stats import TwoWayAnova
 from bi.narratives.anova1 import AnovaNarratives
 
 class TwoWayAnovaScript:

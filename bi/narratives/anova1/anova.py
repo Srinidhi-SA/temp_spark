@@ -6,7 +6,7 @@ import re
 from bi.common.utils import accepts
 from bi.common.results.two_way_anova import OneWayAnovaResult
 
-from bi.stats.anova.posthoctests import TuckeyHSD
+from bi.stats import TuckeyHSD
 
 
 from bi.narratives import utils as NarrativesUtils
@@ -106,7 +106,6 @@ class OneWayAnovaNarratives:
             cat_bool = 1
         else:
             cat_bool = 0
-
         data_dict = {
             'cat_bool':cat_bool,
             'cat_75_list' : cat_75_list,

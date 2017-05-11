@@ -7,7 +7,7 @@ from bi.common.utils import accepts
 from bi.common import utils
 from bi.narratives import utils as NarrativesUtils
 from bi.common.results.anova import AnovaResult
-from bi.stats.anova.posthoctests import TuckeyHSD
+from bi.stats.posthoctests import TuckeyHSD
 from bi.narratives import utils as NarrativesUtils
 
 from pyspark.sql import functions as FN
