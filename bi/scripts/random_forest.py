@@ -19,6 +19,7 @@ class RandomForestScript:
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._spark = spark
+        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
 
     def Train(self):
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -36,9 +37,16 @@ class RandomForestScript:
         x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
         objs = MLUtils.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
-        trained_model_string = pickle.dumps(objs["trained_model"])
+
         model_filepath = model_path+"RandomForest/trained_models/rf.pkl"
+        summary_filepath = model_path+"RandomForest/trained_models/rf.pkl"
+        trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
+
+        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_json()
+        self._model_summary["precision_recall_stats"] = MLUtils.calculate_precision_recall(objs["actual"],objs["predicted"])
+        DataWriter.write_dict_as_json(self._spark, self._model_summary, summary_filepath)
+
 
     def Predict(self):
         test_data_path = self._dataframe_context.get_result_column()

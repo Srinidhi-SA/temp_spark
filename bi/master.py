@@ -253,7 +253,7 @@ def main(confFilePath):
         df = df.dropna()
         st = time.time()
         rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-        rf_obj.Train()
+        rf_obj.Predict()
         print "Random Foreset Analysis Done in ", time.time() - st,  " seconds."
 
 

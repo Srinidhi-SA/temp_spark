@@ -133,4 +133,25 @@ def train_and_predict(x_train, x_test, y_train, y_test,clf,plot_flag,print_flag,
 
     # return {"y_prob":y_prob,"results":results,"feature_importance":feature_importance,
             # "feature_weight":importances,"auc":roc_auc["response"],"trained_model":clf}
-    return {"trained_model":clf}
+    return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob}
+
+def calculate_confusion_matrix(actual,predicted):
+    out = pd.crosstab(pd.Series(actual),pd.Series(predicted), rownames=['Known Class'], colnames=['Predicted Class'])
+    return out
+
+def calculate_precision_recall(actual,predicted):
+    df = pd.DataFrame({"actual":actual,"predicted":predicted})
+    classes = df["actual"].unique()
+    output = {}
+    for val in classes:
+        class_summary = {}
+        count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
+        count_dict["tp"] = df[(df["actual"]==val) & (df["predicted"]==val)].shape[0]
+        count_dict["fp"] = df[(df["actual"]!=val) & (df["predicted"]==val)].shape[0]
+        count_dict["tn"] = df[(df["actual"]!=val) & (df["predicted"]!=val)].shape[0]
+        count_dict["fn"] = df[(df["actual"]==val) & (df["predicted"]!=val)].shape[0]
+        class_summary["counts"] = count_dict
+        class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
+        class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
+        output[str(val)] = class_summary
+    return output
