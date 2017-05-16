@@ -55,9 +55,9 @@ class RandomForestScript:
 
     def Predict(self):
         test_data_path = self._dataframe_context.get_input_file()
-        score_data_path = self._dataframe_context.get_score_path()
+        score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
         trained_model_path = self._dataframe_context.get_model_path()
-        score_summary_path = self._dataframe_context.get_score_path()
+        score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
 
         trained_model = joblib.load(trained_model_path)
         pandas_df = self._data_frame.toPandas()
