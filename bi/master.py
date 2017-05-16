@@ -21,6 +21,8 @@ from bi.scripts.one_way_anova import OneWayAnovaScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
+from bi.scripts.random_forest import RandomForestScript
+from bi.scripts.xgboost import XgboostScript
 
 from parser import configparser
 
@@ -231,6 +233,30 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
+
+    elif analysistype == 'Prediction':
+        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df.toPandas()
+        df = df.dropna()
+        st = time.time()
+        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+        rf_obj.Train()
+        print "Random Foreset Analysis Done in ", time.time() - st,  " seconds."
+        # st = time.time()
+        # xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
+        # xgb_obj.Train()
+        # print "XGBoost Analysis Done in ", time.time() - st,  " seconds."
+
+    elif analysistype == 'Scoring':
+        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df.toPandas()
+        df = df.dropna()
+        st = time.time()
+        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+        rf_obj.Train()
+        print "Random Foreset Analysis Done in ", time.time() - st,  " seconds."
+
+
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."
