@@ -1,3 +1,4 @@
+import subprocess
 
 from pyspark.sql import SparkSession
 from pyspark.sql import Row
@@ -24,6 +25,19 @@ class DataWriter:
         rdd_rows = spark.sparkContext.parallelize([data])
         result_df = DataWriter.df_from_rdd(rdd_rows, data, spark)
         result_df.write.json(target_file, mode=write_mode)
+
+    # @staticmethod
+    # @accepts(SparkSession, basestring, basestring, write_mode=type(WriteMode.OVERWRITE))
+    # def write_pickle_as_text(spark, data, target_file, write_mode=WriteMode.OVERWRITE):
+    #     """
+    #     """
+    #     print target_file
+    #     try:
+    #         subprocess.call(["hadoop", "fs", "-rm", "-r", target_file])
+    #         rdd_rows = spark.sparkContext.parallelize([data])
+    #         rdd_rows.saveAsPickleFile(target_file)
+    #     except:
+    #         print "Can Not Delete"
 
     @staticmethod
     def infer_schema(rec):

@@ -24,21 +24,32 @@ class ContextSetter:
         self.ignorecolumns = []
 
     def set_params(self):
+        self.FILE_SETTING_KEYS = self._config_obj.get_file_settings()
         self.CSV_FILE = self._config_obj.get_file_settings()['inputfile'][0]
         self.NARRATIVES_FILE = self._config_obj.get_file_settings()['narratives_file'][0]
         self.RESULT_FILE = self._config_obj.get_file_settings()['result_file'][0]
         self.MONITOR_API = self._config_obj.get_file_settings()['monitor_api'][0]
+
+        if "train_test_split" in self.FILE_SETTING_KEYS:
+            self.train_test_split = self._config_obj.get_file_settings()['train_test_split'][0]
+        if "model_path" in self.FILE_SETTING_KEYS:
+            self.MODEL_PATH = self._config_obj.get_file_settings()['model_path'][0]
+        if "score_path" in self.FILE_SETTING_KEYS:
+            self.SCORE_PATH = self._config_obj.get_file_settings()['score_path'][0]
+
         self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
         self.analysistype = self._config_obj.get_column_settings()['analysis_type'][0].strip()
-
         self.ignorecolumns = self._config_obj.get_column_settings().get('ignore_column_suggestions')
         self.utf8columns = self._config_obj.get_column_settings().get('utf8_columns')
+
         if self.ignorecolumns!=None:
             self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
         self.considercolumns = self._config_obj.get_column_settings().get('consider_columns')
         if not self.considercolumns == None:
-            self.considercolumns.append(self.resultcolumn)
-            self.considercolumns = list(set(self.considercolumns))
+            if not self.resultcolumn == None:
+                self.considercolumns.append(self.resultcolumn)
+                self.considercolumns = list(set(self.considercolumns))
+
         self.dimension_filter = self._config_obj.get_dimension_filters()
         self.measure_filter = self._config_obj.get_measure_filters()
         self.date_filter = self._config_obj.get_date_filters()
@@ -105,3 +116,12 @@ class ContextSetter:
 
     def get_requested_date_format(self):
         return self.date_format
+
+    def get_train_test_split(self):
+        return self.train_test_split
+
+    def get_model_path(self):
+        return self.MODEL_PATH
+
+    def get_score_path(self):
+        return self.SCORE_PATH

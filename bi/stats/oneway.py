@@ -4,7 +4,6 @@ import math
 
 from bi.common.decorators import accepts
 from bi.common import BIException
-from ..util import Stats
 
 from bi.common.results import ColumnValueGroup
 from bi.common.results import AnovaColumnValueGroupStats

@@ -18,8 +18,11 @@ from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
 from bi.scripts.histogram import HistogramsScript
 from bi.scripts.one_way_anova import OneWayAnovaScript
+from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
+from bi.scripts.random_forest import RandomForestScript
+from bi.scripts.xgboost import XgboostScript
 
 from parser import configparser
 
@@ -51,6 +54,8 @@ def main(confFilePath):
     dataframe_context = ContextSetter(config_obj)
     dataframe_context.set_params()
     scripts_to_run = dataframe_context.get_scripts_to_run()
+    if scripts_to_run==None:
+        scripts_to_run = []
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
 
     print "FILE LOADED: ", dataframe_context.get_input_file()
@@ -166,8 +171,10 @@ def main(confFilePath):
         if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
             try:
                 fs = time.time()
-                one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                one_way_anova_obj.Run()
+                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+                # one_way_anova_obj.Run()
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
+                two_way_obj.Run()
                 print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
             except:
@@ -179,7 +186,6 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
             send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Analysis Not Required", False, 0)
-
 
         if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
             try:
@@ -227,6 +233,46 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
+
+    elif analysistype == 'Prediction':
+        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df_helper.get_data_frame()
+        df = df.toPandas()
+        df = df.dropna()
+        st = time.time()
+        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+        rf_obj.Train()
+        print "Random Foreset Analysis Done in ", time.time() - st,  " seconds."
+        # st = time.time()
+        # xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
+        # xgb_obj.Train()
+        # print "XGBoost Analysis Done in ", time.time() - st,  " seconds."
+
+    elif analysistype == 'Scoring':
+        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df_helper.get_data_frame()
+        df = df.toPandas()
+        df = df.dropna()
+
+        model_path = dataframe_context.get_model_path()
+        if "RandomForest" in model_path:
+            st = time.time()
+            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            trainedModel.Predict()
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "Xgboost" in model_path:
+            st = time.time()
+            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
+            trainedModel.Predict()
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "LogisticRegression" in model_path:
+            st = time.time()
+            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
+            trainedModel.Predict()
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        else:
+            print "Could Not Load the Model for Scoring"
+            
 
 
 

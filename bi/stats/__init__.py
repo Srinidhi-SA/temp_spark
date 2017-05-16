@@ -1,6 +1,7 @@
 
-from anova import OneWayAnova
-from anova import TwoWayAnova
+from oneway import OneWayAnova
+from twoway import TwoWayAnova
+from posthoctests import TuckeyHSD
 from corr import Correlation
 from descr import DescriptiveStats
 from ttest import DependentSampleTTest
@@ -13,7 +14,9 @@ __all__ = [
     'TwoWayAnova',
     'Correlation',
     'DescriptiveStats',
-    'IndependentSampleTTest', 'DependentSampleTTest',
+    'IndependentSampleTTest',
+    'DependentSampleTTest',
     'ChiSquare',
-    'Stats'
+    'Stats',
+    'TuckeyHSD'
 ]
