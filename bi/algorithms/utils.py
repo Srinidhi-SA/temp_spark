@@ -107,6 +107,8 @@ def train_and_predict(x_train, x_test, y_train, y_test,clf,plot_flag,print_flag,
     results = pd.DataFrame({"actual":y_test,"predicted":y_score,"prob":list(y_prob)})
     importances = clf.feature_importances_
     feature_importance = clf.feature_importances_.argsort()[::-1]
+    imp_cols = [x_train.columns[x] for x in feature_importance]
+    feature_importance = dict(zip(imp_cols,importances))
     # if print_flag:
     #     print("Classification Table")
     #     print(pd.crosstab(results.actual, results.predicted, rownames=['actual'], colnames=['preds']))
@@ -133,7 +135,7 @@ def train_and_predict(x_train, x_test, y_train, y_test,clf,plot_flag,print_flag,
 
     # return {"y_prob":y_prob,"results":results,"feature_importance":feature_importance,
             # "feature_weight":importances,"auc":roc_auc["response"],"trained_model":clf}
-    return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob}
+    return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance}
 
 def calculate_confusion_matrix(actual,predicted):
     out = pd.crosstab(pd.Series(actual),pd.Series(predicted), rownames=['Known Class'], colnames=['Predicted Class'])

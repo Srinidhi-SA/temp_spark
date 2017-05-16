@@ -236,6 +236,7 @@ def main(confFilePath):
 
     elif analysistype == 'Prediction':
         df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df_helper.get_data_frame()
         df = df.toPandas()
         df = df.dropna()
         st = time.time()
@@ -249,12 +250,29 @@ def main(confFilePath):
 
     elif analysistype == 'Scoring':
         df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df_helper.get_data_frame()
         df = df.toPandas()
         df = df.dropna()
-        st = time.time()
-        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-        rf_obj.Predict()
-        print "Random Foreset Analysis Done in ", time.time() - st,  " seconds."
+
+        model_path = dataframe_context.get_model_path()
+        if "RandomForest" in model_path:
+            st = time.time()
+            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            trainedModel.Predict()
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "Xgboost" in model_path:
+            st = time.time()
+            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
+            trainedModel.Predict()
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "LogisticRegression" in model_path:
+            st = time.time()
+            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
+            trainedModel.Predict()
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        else:
+            print "Could Not Load the Model for Scoring"
+            
 
 
 
