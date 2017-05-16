@@ -66,7 +66,6 @@ class DescriptiveStats:
                                       total=total_value,
                                       mean=mean, variance=variance, std_dev=std_dev,
                                       skew=skewness, kurtosis=kurtosis)
-
         descr_stats.set_five_point_summary_stats(self.five_point_summary(measure_column))
         descr_stats.set_histogram(Binner(self._data_frame, self._dataframe_helper).get_bins(measure_column))
 
