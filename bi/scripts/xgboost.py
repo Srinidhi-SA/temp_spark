@@ -40,8 +40,8 @@ class XgboostScript:
         clf_xgb = xgboost_obj.initiate_xgboost_classifier()
         objs = MLUtils.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,False,True,[])
 
-        model_filepath = model_path+"Xgboost/trained_models/rf.pkl"
-        summary_filepath = model_path+"Xgboost/model_summary/summary.json"
+        model_filepath = model_path+"/XGBoost/TrainedModels/model.pkl"
+        summary_filepath = model_path+"/XGBoost/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
 

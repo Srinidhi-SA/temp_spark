@@ -38,8 +38,8 @@ class RandomForestScript:
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
         objs = MLUtils.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
 
-        model_filepath = model_path+"RandomForest/trained_models/rf.pkl"
-        summary_filepath = model_path+"RandomForest/model_summary/summary.json"
+        model_filepath = model_path+"/RandomForest/TrainedModels/model.pkl"
+        summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
 
