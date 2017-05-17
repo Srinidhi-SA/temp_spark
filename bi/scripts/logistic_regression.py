@@ -15,6 +15,7 @@ from bi.common import BIException
 from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 
+
 class LogisticRegressionScript:
     def __init__(self, data_frame, df_helper,df_context, spark):
         self._data_frame = data_frame
@@ -36,13 +37,13 @@ class LogisticRegressionScript:
         drop_column_list = []
         self._data_frame = self._data_frame.loc[:,[col for col in self._data_frame.columns if col not in drop_column_list]]
         levels = self._data_frame[result_column].unique()
-        logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark,levels)
-        # logistic_regression_obj.set_number_of_levels(levels)
+        logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
+        logistic_regression_obj.set_number_of_levels(levels)
 
         df = MLUtils.factorize_columns(self._data_frame,categorical_columns)
         x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
-        objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,False,True,[])
+        objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])
 
         model_filepath = model_path+"/LogisticRegression/TrainedModels/model.pkl"
         summary_filepath = model_path+"/LogisticRegression/ModelSummary/summary.json"

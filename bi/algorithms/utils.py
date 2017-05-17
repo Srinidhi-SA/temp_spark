@@ -64,16 +64,35 @@ def factorize_columns(df,cat_columns):
     return df
 
 def generate_train_test_split(df,cutoff,dependent_colname,drop_list):
-    out = generate_random_number_array(df)
-    ids = return_filtered_index(out,0.7)
-    df_x = df[[col for col in df.columns if col not in drop_list+[dependent_colname]]]
+    levels = df[dependent_colname].unique()
+    if len(levels) > 2:
+        out = generate_random_number_array(df)
+        ids = return_filtered_index(out,0.7)
+        df_x = df[[col for col in df.columns if col not in drop_list+[dependent_colname]]]
+        x_train = df_x.iloc[ids[0],:]
+        x_test = df_x.iloc[ids[1],:]
+        r_response = np.array(df[dependent_colname])
+        y_train = r_response[ids[0]]
+        y_test = r_response[ids[1]]
+    else:
+        df1 = df[df[dependent_colname]==levels[0]]
+        df2 = df[df[dependent_colname]==levels[1]]
+        out1 = generate_random_number_array(df1)
+        ids1 = return_filtered_index(out1,0.7)
+        out2 = generate_random_number_array(df2)
+        ids2 = return_filtered_index(out2,0.7)
+        df_x1 = df1[[col for col in df.columns if col not in drop_list+[dependent_colname]]]
+        x_train1 = df_x1.iloc[ids1[0],:]
+        x_test1 = df_x1.iloc[ids2[1],:]
+        df_x2 = df2[[col for col in df.columns if col not in drop_list+[dependent_colname]]]
+        x_train2 = df_x1.iloc[ids2[0],:]
+        x_test2 = df_x1.iloc[ids2[1],:]
+        r_response = np.array(df[dependent_colname])
+        x_train = pd.concat([x_train1,x_train2])
+        x_test = pd.concat([x_test1,x_test2])
+        y_train = np.concatenate((r_response[ids1[0]],r_response[ids2[0]]))
+        y_test = np.concatenate((r_response[ids2[1]],r_response[ids2[1]]))
 
-    x_train = df_x.iloc[ids[0],:]
-    x_test = df_x.iloc[ids[1],:]
-
-    r_response = np.array(df[dependent_colname])
-    y_train = r_response[ids[0]]
-    y_test = r_response[ids[1]]
     return (x_train,x_test,y_train,y_test)
 
 def calculate_confusion_matrix(actual,predicted):
@@ -99,6 +118,7 @@ def calculate_precision_recall(actual,predicted):
     else:
         conf_matrix = calculate_confusion_matrix(actual,predicted)
         k = conf_matrix.to_dict()
+        print k
         class_summary = {}
         count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
         count_dict["tp"] = k[1][1]

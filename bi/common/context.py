@@ -26,10 +26,12 @@ class ContextSetter:
     def set_params(self):
         self.FILE_SETTING_KEYS = self._config_obj.get_file_settings()
         self.CSV_FILE = self._config_obj.get_file_settings()['inputfile'][0]
-        self.NARRATIVES_FILE = self._config_obj.get_file_settings()['narratives_file'][0]
-        self.RESULT_FILE = self._config_obj.get_file_settings()['result_file'][0]
-        self.MONITOR_API = self._config_obj.get_file_settings()['monitor_api'][0]
-
+        if "narratives_file" in self.FILE_SETTING_KEYS:
+            self.NARRATIVES_FILE = self._config_obj.get_file_settings()['narratives_file'][0]
+        if "result_file" in self.FILE_SETTING_KEYS:
+            self.RESULT_FILE = self._config_obj.get_file_settings()['result_file'][0]
+        if "monitor_api" in self.FILE_SETTING_KEYS:
+            self.MONITOR_API = self._config_obj.get_file_settings()['monitor_api'][0]
         if "train_test_split" in self.FILE_SETTING_KEYS:
             self.train_test_split = self._config_obj.get_file_settings()['train_test_split'][0]
         if "modelpath" in self.FILE_SETTING_KEYS:
