@@ -25,6 +25,7 @@ from sklearn.feature_extraction import DictVectorizer as DV
 from sklearn import linear_model, cross_validation, grid_search
 from sklearn.metrics import roc_curve, auc
 from sklearn.feature_selection import RFECV
+from bi.algorithms import utils as MLUtils
 
 
 class LogisticRegression:
@@ -74,10 +75,9 @@ class LogisticRegression:
         """
         """
         if len(drop_cols) > 0:
-            x_test = drop_columns(x_test,drop_cols)
-
+            x_test = MLUtils.drop_columns(x_test,drop_cols)
         y_score = trained_model.predict(x_test)
         y_prob = trained_model.predict_proba(x_test)
+        y_prob = MLUtils.calculate_predicted_probability(y_prob)
         x_test['responded'] = y_score
-        print(x_test['responded'].value_counts())
-        return x_test
+        return {"predicted_class":y_score,"predicted_probability":y_prob}

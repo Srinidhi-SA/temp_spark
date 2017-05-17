@@ -22,7 +22,7 @@ from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
 from bi.scripts.random_forest import RandomForestScript
-from bi.scripts.xgboost import XgboostScript
+from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 
 from parser import configparser
@@ -247,13 +247,7 @@ def main(confFilePath):
             print "Random Foreset Model Done in ", time.time() - st,  " seconds."
         except:
             print "Random Foreset Model Failed"
-        try:
-            st = time.time()
-            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
-            xgb_obj.Train()
-            print "XGBoost Model Done in ", time.time() - st,  " seconds."
-        except:
-            print "Xgboost Model Failed"
+
         try:
             st = time.time()
             lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
@@ -261,6 +255,14 @@ def main(confFilePath):
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except:
             print "Logistic Regression Model Failed"
+
+        # try:
+        st = time.time()
+        xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
+        xgb_obj.Train()
+        print "XGBoost Model Done in ", time.time() - st,  " seconds."
+        # except:
+        print "Xgboost Model Failed"
 
     elif analysistype == 'Scoring':
         df_helper.remove_nulls(dataframe_context.get_result_column())

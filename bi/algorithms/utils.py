@@ -95,6 +95,15 @@ def generate_train_test_split(df,cutoff,dependent_colname,drop_list):
 
     return (x_train,x_test,y_train,y_test)
 
+def calculate_predicted_probability(probability_array):
+    out = []
+    if len(probability_array[0]) > 1:
+        for val in probability_array:
+            out.append(max(val))
+        return out
+    else:
+        return probability_array
+
 def calculate_confusion_matrix(actual,predicted):
     out = pd.crosstab(pd.Series(actual),pd.Series(predicted), rownames=['Known Class'], colnames=['Predicted Class'])
     return out
