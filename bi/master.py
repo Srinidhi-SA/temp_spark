@@ -262,7 +262,7 @@ def main(confFilePath):
             xgb_obj.Train()
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except:
-        print "Xgboost Model Failed"
+            print "Xgboost Model Failed"
 
     elif analysistype == 'Scoring':
         df_helper.remove_nulls(dataframe_context.get_result_column())

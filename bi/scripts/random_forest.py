@@ -83,7 +83,7 @@ class RandomForestScript:
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
-        pandas_df = MLUtils.factorize_columns(df,categorical_columns)
+        pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         score = random_forest_obj.predict(pandas_df,trained_model,["species"])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
