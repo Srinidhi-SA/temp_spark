@@ -51,7 +51,7 @@ class LogisticRegressionScript:
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
 
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_json()
+        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_dict()
         self._model_summary["precision_recall_stats"] = MLUtils.calculate_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
         self._model_summary["accuracy_score"] = metrics.accuracy_score(objs["actual"], objs["predicted"])

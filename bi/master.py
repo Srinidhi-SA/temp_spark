@@ -256,12 +256,12 @@ def main(confFilePath):
         except:
             print "Logistic Regression Model Failed"
 
-        # try:
-        st = time.time()
-        xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
-        xgb_obj.Train()
-        print "XGBoost Model Done in ", time.time() - st,  " seconds."
-        # except:
+        try:
+            st = time.time()
+            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
+            xgb_obj.Train()
+            print "XGBoost Model Done in ", time.time() - st,  " seconds."
+        except:
         print "Xgboost Model Failed"
 
     elif analysistype == 'Scoring':

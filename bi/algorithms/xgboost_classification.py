@@ -62,6 +62,7 @@ class XgboostClassifier:
         y_prob = [0]*len(y_score)
 
         importances = clf.feature_importances_
+        importances = map(float,importances)
         feature_importance = clf.feature_importances_.argsort()[::-1]
         imp_cols = [x_train.columns[x] for x in feature_importance]
         feature_importance = dict(zip(imp_cols,importances))

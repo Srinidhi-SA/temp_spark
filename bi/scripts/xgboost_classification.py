@@ -14,6 +14,7 @@ from bi.common import DataWriter
 from bi.common import BIException
 from bi.algorithms import XgboostClassifier
 from bi.algorithms import utils as MLUtils
+import xgboost as xgb
 
 class XgboostScript:
     def __init__(self, data_frame, df_helper,df_context, spark):
@@ -40,14 +41,14 @@ class XgboostScript:
         df = MLUtils.factorize_columns(self._data_frame,categorical_columns)
         x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         clf_xgb = xgboost_obj.initiate_xgboost_classifier()
-        objs = MLUtils.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,[])
+        objs = xgboost_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,[])
 
         model_filepath = model_path+"/XGBoost/TrainedModels/model.pkl"
         summary_filepath = model_path+"/XGBoost/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
 
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_json()
+        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_dict()
         self._model_summary["precision_recall_stats"] = MLUtils.calculate_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
         self._model_summary["accuracy_score"] = metrics.accuracy_score(objs["actual"], objs["predicted"])
@@ -55,7 +56,7 @@ class XgboostScript:
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         print self._model_summary
         f = open(summary_filepath, 'w')
-        f.write(json.dumps({"modelSummary":self._model_summary}))
+        f.write(json.dumps({"modelSummary":json.dumps(self._model_summary)}))
         f.close()
 
     def Predict(self):

@@ -84,6 +84,7 @@ class RandomForest:
         y_prob = clf.predict_proba(x_test)
         results = pd.DataFrame({"actual":y_test,"predicted":y_score,"prob":list(y_prob)})
         importances = clf.feature_importances_
+        importances = map(float,importances)
         feature_importance = clf.feature_importances_.argsort()[::-1]
         imp_cols = [x_train.columns[x] for x in feature_importance]
         feature_importance = dict(zip(imp_cols,importances))

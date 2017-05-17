@@ -78,9 +78,9 @@ def generate_train_test_split(df,cutoff,dependent_colname,drop_list):
         df1 = df[df[dependent_colname]==levels[0]]
         df2 = df[df[dependent_colname]==levels[1]]
         out1 = generate_random_number_array(df1)
-        ids1 = return_filtered_index(out1,0.7)
+        ids1 = return_filtered_index(out1,0.6)
         out2 = generate_random_number_array(df2)
-        ids2 = return_filtered_index(out2,0.7)
+        ids2 = return_filtered_index(out2,0.6)
         df_x1 = df1[[col for col in df.columns if col not in drop_list+[dependent_colname]]]
         x_train1 = df_x1.iloc[ids1[0],:]
         x_test1 = df_x1.iloc[ids2[1],:]
@@ -127,7 +127,6 @@ def calculate_precision_recall(actual,predicted):
     else:
         conf_matrix = calculate_confusion_matrix(actual,predicted)
         k = conf_matrix.to_dict()
-        print k
         class_summary = {}
         count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
         count_dict["tp"] = k[1][1]
