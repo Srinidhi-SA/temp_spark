@@ -7,7 +7,6 @@ from bi.common.decorators import accepts
 from bi.common import BIException
 from bi.common import DataFrameHelper
 from bi.common.datafilterer import DataFrameFilterer
-from bi.common.results import DecisionTreeResult
 from bi.common import utils
 
 import time
@@ -20,13 +19,11 @@ from collections import Counter
 
 import numpy as np
 import pandas as pd
-import xgboost as xgb
 from statistics import mean,median,mode,pstdev
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.feature_extraction import DictVectorizer as DV
-from sklearn import datasets, linear_model, cross_validation, grid_search
+from sklearn import linear_model, cross_validation, grid_search
 from sklearn.metrics import roc_curve, auc
 from sklearn.feature_selection import RFECV
 
@@ -56,3 +53,63 @@ class RandomForest:
                                     )
 
         return clf
+
+    def predict(self,x_test,trained_model,drop_cols):
+        """
+        """
+        if len(drop_cols) > 0:
+            x_test = drop_columns(x_test,drop_cols)
+
+        y_score = trained_model.predict(x_test)
+        y_prob = trained_model.predict_proba(x_test)
+        x_test['responded'] = y_score
+        print(x_test['responded'].value_counts())
+        return x_test
+
+    def train_and_predict(self,x_train, x_test, y_train, y_test,clf,plot_flag,print_flag,drop_cols):
+        """
+        Output is a dictionary
+        y_prob => Array probability values for prediction
+        results => Array of predicted class
+        feature_importance => features ranked by their Importance
+        feature_Weight => weight of features
+        """
+        if len(drop_cols) > 0:
+            x_train = drop_columns(x_train,drop_cols)
+            x_test = drop_columns(x_test,drop_cols)
+
+        clf.fit(x_train, y_train)
+        y_score = clf.predict(x_test)
+        y_prob = clf.predict_proba(x_test)
+        results = pd.DataFrame({"actual":y_test,"predicted":y_score,"prob":list(y_prob)})
+        importances = clf.feature_importances_
+        feature_importance = clf.feature_importances_.argsort()[::-1]
+        imp_cols = [x_train.columns[x] for x in feature_importance]
+        feature_importance = dict(zip(imp_cols,importances))
+        # if print_flag:
+        #     print("Classification Table")
+        #     print(pd.crosstab(results.actual, results.predicted, rownames=['actual'], colnames=['preds']))
+        #
+        # fpr = dict()
+        # tpr = dict()
+        # roc_auc = dict()
+        #
+        # fpr["response"], tpr["response"], _ = roc_curve(y_test, y_score)
+        # roc_auc["response"] = auc(fpr["response"], tpr["response"])
+        # if plot_flag == True:
+        #     plt.figure()
+        #     lw = 2
+        #     plt.plot(fpr['response'], tpr['response'], color='darkorange',
+        #              lw=lw, label='ROC curve (area = %0.2f)' % roc_auc['response'])
+        #     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+        #     plt.xlim([0.0, 1.0])
+        #     plt.ylim([0.0, 1.05])
+        #     plt.xlabel('False Positive Rate')
+        #     plt.ylabel('True Positive Rate')
+        #     plt.title('ROC Curve')
+        #     plt.legend(loc="lower right")
+        #     plt.show()
+
+        # return {"y_prob":y_prob,"results":results,"feature_importance":feature_importance,
+                # "feature_weight":importances,"auc":roc_auc["response"],"trained_model":clf}
+        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance}

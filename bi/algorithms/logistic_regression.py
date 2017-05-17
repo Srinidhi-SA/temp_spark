@@ -19,28 +19,32 @@ from collections import Counter
 
 import numpy as np
 import pandas as pd
-import xgboost as xgb
 
+from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction import DictVectorizer as DV
 from sklearn import linear_model, cross_validation, grid_search
 from sklearn.metrics import roc_curve, auc
 from sklearn.feature_selection import RFECV
 
 
-class Xgboost:
-    def __init__(self, data_frame, data_frame_helper, spark):
+class LogisticRegression:
+    def __init__(self, data_frame, data_frame_helper, spark ,levels):
         # self._spark = spark
         # self.data_frame = data_frame.toPandas()
         # self._measure_columns = data_frame_helper.get_numeric_columns()
         # self._dimension_columns = data_frame_helper.get_string_columns()
         # self.classifier = initiate_forest_classifier(10,5)
-        print "XGBOOST INITIALIZATION DONE"
+        print "LOGSTIC REGRESSION INITIALIZATION DONE"
+        self._levels = levels
 
-    def initiate_xgboost_classifier(self):
-        general_params = {"booster":"gbtree","silent":0,"nthread":2}
-        booster_params = {"eta":0.3,}
-        task_params = {}
-        clf = xgb.XGBClassifier()
+    def set_number_of_levels(self,levels):
+        self._levels = levels
+
+    def initiate_logistic_regression_classifier(self):
+        if len(self._levels) > 2:
+            clf = LogisticRegression(multi_class = 'multinomial', solver = 'newton-cg')
+        else:
+            clf = LogisticRegression()
         return clf
 
     def train_and_predict(self,x_train, x_test, y_train, y_test,clf,drop_cols):
@@ -53,8 +57,9 @@ class Xgboost:
         if len(drop_cols) > 0:
             x_train = drop_columns(x_train,drop_cols)
             x_test = drop_columns(x_test,drop_cols)
-
+        print "YYYYY"
         clf.fit(x_train, y_train)
+        print "DSDSDSD"
         y_score = clf.predict(x_test)
         y_prob = clf.predict_proba(x_test)
         y_prob = [0]*len(y_score)

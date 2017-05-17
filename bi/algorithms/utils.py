@@ -76,67 +76,6 @@ def generate_train_test_split(df,cutoff,dependent_colname,drop_list):
     y_test = r_response[ids[1]]
     return (x_train,x_test,y_train,y_test)
 
-
-def predict(x_test,trained_model,drop_cols):
-    """
-    """
-    if len(drop_cols) > 0:
-        x_test = drop_columns(x_test,drop_cols)
-
-    y_score = trained_model.predict(x_test)
-    y_prob = trained_model.predict_proba(x_test)
-    x_test['responded'] = y_score
-    print(x_test['responded'].value_counts())
-    return x_test
-
-def train_and_predict(x_train, x_test, y_train, y_test,clf,plot_flag,print_flag,drop_cols):
-    """
-    Output is a dictionary
-    y_prob => Array probability values for prediction
-    results => Array of predicted class
-    feature_importance => features ranked by their Importance
-    feature_Weight => weight of features
-    """
-    if len(drop_cols) > 0:
-        x_train = drop_columns(x_train,drop_cols)
-        x_test = drop_columns(x_test,drop_cols)
-
-    clf.fit(x_train, y_train)
-    y_score = clf.predict(x_test)
-    y_prob = clf.predict_proba(x_test)
-    results = pd.DataFrame({"actual":y_test,"predicted":y_score,"prob":list(y_prob)})
-    importances = clf.feature_importances_
-    feature_importance = clf.feature_importances_.argsort()[::-1]
-    imp_cols = [x_train.columns[x] for x in feature_importance]
-    feature_importance = dict(zip(imp_cols,importances))
-    # if print_flag:
-    #     print("Classification Table")
-    #     print(pd.crosstab(results.actual, results.predicted, rownames=['actual'], colnames=['preds']))
-    #
-    # fpr = dict()
-    # tpr = dict()
-    # roc_auc = dict()
-    #
-    # fpr["response"], tpr["response"], _ = roc_curve(y_test, y_score)
-    # roc_auc["response"] = auc(fpr["response"], tpr["response"])
-    # if plot_flag == True:
-    #     plt.figure()
-    #     lw = 2
-    #     plt.plot(fpr['response'], tpr['response'], color='darkorange',
-    #              lw=lw, label='ROC curve (area = %0.2f)' % roc_auc['response'])
-    #     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
-    #     plt.xlim([0.0, 1.0])
-    #     plt.ylim([0.0, 1.05])
-    #     plt.xlabel('False Positive Rate')
-    #     plt.ylabel('True Positive Rate')
-    #     plt.title('ROC Curve')
-    #     plt.legend(loc="lower right")
-    #     plt.show()
-
-    # return {"y_prob":y_prob,"results":results,"feature_importance":feature_importance,
-            # "feature_weight":importances,"auc":roc_auc["response"],"trained_model":clf}
-    return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance}
-
 def calculate_confusion_matrix(actual,predicted):
     out = pd.crosstab(pd.Series(actual),pd.Series(predicted), rownames=['Known Class'], colnames=['Predicted Class'])
     return out
@@ -145,15 +84,29 @@ def calculate_precision_recall(actual,predicted):
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
     classes = df["actual"].unique()
     output = {}
-    for val in classes:
+    if len(classes) > 2:
+        for val in classes:
+            class_summary = {}
+            count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
+            count_dict["tp"] = df[(df["actual"]==val) & (df["predicted"]==val)].shape[0]
+            count_dict["fp"] = df[(df["actual"]!=val) & (df["predicted"]==val)].shape[0]
+            count_dict["tn"] = df[(df["actual"]!=val) & (df["predicted"]!=val)].shape[0]
+            count_dict["fn"] = df[(df["actual"]==val) & (df["predicted"]!=val)].shape[0]
+            class_summary["counts"] = count_dict
+            class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
+            class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
+            output[str(val)] = class_summary
+    else:
+        conf_matrix = calculate_confusion_matrix(actual,predicted)
+        k = conf_matrix.to_dict()
         class_summary = {}
         count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
-        count_dict["tp"] = df[(df["actual"]==val) & (df["predicted"]==val)].shape[0]
-        count_dict["fp"] = df[(df["actual"]!=val) & (df["predicted"]==val)].shape[0]
-        count_dict["tn"] = df[(df["actual"]!=val) & (df["predicted"]!=val)].shape[0]
-        count_dict["fn"] = df[(df["actual"]==val) & (df["predicted"]!=val)].shape[0]
+        count_dict["tp"] = k[1][1]
+        count_dict["fp"] = k[0][1]
+        count_dict["tn"] = k[0][0]
+        count_dict["fn"] = k[1][0]
         class_summary["counts"] = count_dict
         class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
-        output[str(val)] = class_summary
+        output["overall"] = class_summary
     return output
