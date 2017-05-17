@@ -17,6 +17,7 @@ def return_filtered_index(random_array,cutoff):
             id_test.append(idx)
         else:
             id_train.append(idx)
+
     return (id_train,id_test)
 
 def drop_columns(df,drop_column_list):
@@ -83,16 +84,15 @@ def generate_train_test_split(df,cutoff,dependent_colname,drop_list):
         ids2 = return_filtered_index(out2,0.6)
         df_x1 = df1[[col for col in df.columns if col not in drop_list+[dependent_colname]]]
         x_train1 = df_x1.iloc[ids1[0],:]
-        x_test1 = df_x1.iloc[ids2[1],:]
+        x_test1 = df_x1.iloc[ids1[1],:]
         df_x2 = df2[[col for col in df.columns if col not in drop_list+[dependent_colname]]]
-        x_train2 = df_x1.iloc[ids2[0],:]
-        x_test2 = df_x1.iloc[ids2[1],:]
+        x_train2 = df_x2.iloc[ids2[0],:]
+        x_test2 = df_x2.iloc[ids2[1],:]
         r_response = np.array(df[dependent_colname])
         x_train = pd.concat([x_train1,x_train2])
         x_test = pd.concat([x_test1,x_test2])
         y_train = np.concatenate((r_response[ids1[0]],r_response[ids2[0]]))
-        y_test = np.concatenate((r_response[ids2[1]],r_response[ids2[1]]))
-
+        y_test = np.concatenate((r_response[ids1[1]],r_response[ids2[1]]))
     return (x_train,x_test,y_train,y_test)
 
 def calculate_predicted_probability(probability_array):

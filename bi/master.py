@@ -240,13 +240,13 @@ def main(confFilePath):
         df = df_helper.get_data_frame()
         df = df.toPandas()
         df = df.dropna()
-        try:
-            st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-            rf_obj.Train()
-            print "Random Foreset Model Done in ", time.time() - st,  " seconds."
-        except:
-            print "Random Foreset Model Failed"
+        # try:
+        st = time.time()
+        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+        rf_obj.Train()
+        print "Random Foreset Model Done in ", time.time() - st,  " seconds."
+        # except:
+            # print "Random Foreset Model Failed"
 
         try:
             st = time.time()
