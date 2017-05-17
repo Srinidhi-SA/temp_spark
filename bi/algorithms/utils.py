@@ -125,8 +125,11 @@ def calculate_precision_recall(actual,predicted):
             class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
             output[str(val)] = class_summary
     else:
+        print actual
         conf_matrix = calculate_confusion_matrix(actual,predicted)
         k = conf_matrix.to_dict()
+        print k
+        print predicted
         class_summary = {}
         count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
         count_dict["tp"] = k[1][1]

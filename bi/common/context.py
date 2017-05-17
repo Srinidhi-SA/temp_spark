@@ -25,22 +25,23 @@ class ContextSetter:
 
     def set_params(self):
         self.FILE_SETTING_KEYS = self._config_obj.get_file_settings()
+        file_setting_keys = self.FILE_SETTING_KEYS.keys()
         self.CSV_FILE = self._config_obj.get_file_settings()['inputfile'][0]
-        if "narratives_file" in self.FILE_SETTING_KEYS:
+        if "narratives_file" in file_setting_keys:
             self.NARRATIVES_FILE = self._config_obj.get_file_settings()['narratives_file'][0]
-        if "result_file" in self.FILE_SETTING_KEYS:
+        if "result_file" in file_setting_keys:
             self.RESULT_FILE = self._config_obj.get_file_settings()['result_file'][0]
-        if "monitor_api" in self.FILE_SETTING_KEYS:
+        if "monitor_api" in file_setting_keys:
             self.MONITOR_API = self._config_obj.get_file_settings()['monitor_api'][0]
-        if "train_test_split" in self.FILE_SETTING_KEYS:
+        if "train_test_split" in file_setting_keys:
             self.train_test_split = self._config_obj.get_file_settings()['train_test_split'][0]
-        if "modelpath" in self.FILE_SETTING_KEYS:
+        if "modelpath" in file_setting_keys:
             self.MODEL_PATH = self._config_obj.get_file_settings()['modelpath'][0]
-        if "scorepath" in self.FILE_SETTING_KEYS:
+        if "scorepath" in file_setting_keys:
             self.SCORE_PATH = self._config_obj.get_file_settings()['scorepath'][0]
-        if "foldername" in self.FILE_SETTING_KEYS:
+        if "foldername" in file_setting_keys:
             self.FOLDERS = self._config_obj.get_file_settings()['foldername'][0]
-        if "modelname" in self.FILE_SETTING_KEYS:
+        if "modelname" in file_setting_keys:
             self.MODELS = self._config_obj.get_file_settings()['modelname'][0]
 
         self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
