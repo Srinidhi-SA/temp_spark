@@ -23,6 +23,7 @@ from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
 from bi.scripts.random_forest import RandomForestScript
 from bi.scripts.xgboost import XgboostScript
+from bi.scripts.logistic_regression import LogisticRegressionScript
 
 from parser import configparser
 
@@ -239,14 +240,27 @@ def main(confFilePath):
         df = df_helper.get_data_frame()
         df = df.toPandas()
         df = df.dropna()
-        st = time.time()
-        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-        rf_obj.Train()
-        print "Random Foreset Analysis Done in ", time.time() - st,  " seconds."
-        # st = time.time()
-        # xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
-        # xgb_obj.Train()
-        # print "XGBoost Analysis Done in ", time.time() - st,  " seconds."
+        try:
+            st = time.time()
+            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+            rf_obj.Train()
+            print "Random Foreset Model Done in ", time.time() - st,  " seconds."
+        except:
+            print "Random Foreset Model Failed"
+        try:
+            st = time.time()
+            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
+            xgb_obj.Train()
+            print "XGBoost Model Done in ", time.time() - st,  " seconds."
+        except:
+            print "Xgboost Model Failed"
+        try:
+            st = time.time()
+            lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
+            lr_obj.Train()
+            print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
+        except:
+            print "Logistic Regression Model Failed"
 
     elif analysistype == 'Scoring':
         df_helper.remove_nulls(dataframe_context.get_result_column())
@@ -272,7 +286,7 @@ def main(confFilePath):
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
-            
+
 
 
 

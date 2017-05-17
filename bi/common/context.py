@@ -32,9 +32,9 @@ class ContextSetter:
 
         if "train_test_split" in self.FILE_SETTING_KEYS:
             self.train_test_split = self._config_obj.get_file_settings()['train_test_split'][0]
-        if "model_path" in self.FILE_SETTING_KEYS:
+        if "modelpath" in self.FILE_SETTING_KEYS:
             self.MODEL_PATH = self._config_obj.get_file_settings()['modelpath'][0]
-        if "score_path" in self.FILE_SETTING_KEYS:
+        if "scorepath" in self.FILE_SETTING_KEYS:
             self.SCORE_PATH = self._config_obj.get_file_settings()['scorepath'][0]
         if "foldername" in self.FILE_SETTING_KEYS:
             self.FOLDERS = self._config_obj.get_file_settings()['foldername'][0]
