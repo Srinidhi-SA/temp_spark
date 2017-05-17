@@ -49,19 +49,22 @@ class RandomForestScript:
         joblib.dump(objs["trained_model"],model_filepath)
 
         self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_dict()
-        self._model_summary["precision_recall_stats"] = MLUtils.calculate_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
         self._model_summary["model_accuracy"] = metrics.accuracy_score(objs["actual"], objs["predicted"])
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
-        self._model_summary["model_precision"] = 0.59
-        self._model_summary["model_recall"] = 0.55
-        self._model_summary["target_variable"] = "SALES"
-        self._model_summary["independent_variables"] = 10
-        self._model_summary["test_sample_prediction"] = {"yes":80,"No":20}
+
+        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
+        self._model_summary["precision_recall_stats"] = overall_precision_recall["classwise_stats"]
+        self._model_summary["model_precision"] = overall_precision_recall["precision"]
+        self._model_summary["model_recall"] = overall_precision_recall["recall"]
+        self._model_summary["target_variable"] = result_column
+        self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
         self._model_summary["algorithm_name"] = "Random Forest"
+        self._model_summary["validation_method"] = "Cross Validation"
+        self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
+
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 3400
-        self._model_summary["validation_method"] = "Cross Validation"
 
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
@@ -88,6 +91,9 @@ class RandomForestScript:
         score = random_forest_obj.predict(pandas_df,trained_model,["species"])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
+        self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+        self._score_summary["result_column"] = result_column
+        
         df.to_csv(score_data_path,header=True,index=False)
         # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         # spark_scored_df = SQLctx.createDataFrame(df)

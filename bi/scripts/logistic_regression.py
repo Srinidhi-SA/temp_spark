@@ -58,6 +58,17 @@ class LogisticRegressionScript:
         self._model_summary["accuracy_score"] = metrics.accuracy_score(objs["actual"], objs["predicted"])
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
+        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
+        self._model_summary["precision_recall_stats"] = overall_precision_recall["classwise_stats"]
+        self._model_summary["model_precision"] = overall_precision_recall["precision"]
+        self._model_summary["model_recall"] = overall_precision_recall["recall"]
+        self._model_summary["target_variable"] = result_column
+        self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
+        self._model_summary["algorithm_name"] = "Logistic Regression"
+        self._model_summary["validation_method"] = "Cross Validation"
+        self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
+
+
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         print self._model_summary
         f = open(summary_filepath, 'w')

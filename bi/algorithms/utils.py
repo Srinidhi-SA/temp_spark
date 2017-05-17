@@ -108,36 +108,65 @@ def calculate_confusion_matrix(actual,predicted):
     out = pd.crosstab(pd.Series(actual),pd.Series(predicted), rownames=['Known Class'], colnames=['Predicted Class'])
     return out
 
+def calculate_overall_precision_recall(actual,predicted):
+    df = pd.DataFrame({"actual":actual,"predicted":predicted})
+    classes = df["actual"].unique()
+    val_counts_predicted = df["predicted"].value_counts().to_dict()
+    prediction_split = {}
+    for val in val_counts_predicted.keys():
+        prediction_split[val] = round(val_counts_predicted[val]*100/float(len(predicted)),2)
+    val_counts = df["actual"].value_counts().to_dict()
+    positive_class = max(val_counts,key=val_counts.get)
+
+    class_precision_recall = calculate_precision_recall(actual,predicted)
+    output = {"precision":0,"recall":0,"classwise_stats":class_precision_recall,"prediction_split":prediction_split}
+
+    if len(classes) > 2:
+        p = []
+        r = []
+        for val in class_precision_recall.keys():
+            p.append(class_precision_recall[val]["precision"])
+            r.append(class_precision_recall[val]["recall"])
+        output["precision"] = np.mean(p)
+        output["recall"] = np.mean(r)
+    else:
+        count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
+        count_dict["tp"] = df[(df["actual"]==positive_class) & (df["predicted"]==positive_class)].shape[0]
+        count_dict["fp"] = df[(df["actual"]!=positive_class) & (df["predicted"]==positive_class)].shape[0]
+        count_dict["tn"] = df[(df["actual"]!=positive_class) & (df["predicted"]!=positive_class)].shape[0]
+        count_dict["fn"] = df[(df["actual"]==positive_class) & (df["predicted"]!=positive_class)].shape[0]
+        output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
+        output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
+    return output
+
 def calculate_precision_recall(actual,predicted):
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
     classes = df["actual"].unique()
     output = {}
-    if len(classes) > 2:
-        for val in classes:
-            class_summary = {}
-            count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
-            count_dict["tp"] = df[(df["actual"]==val) & (df["predicted"]==val)].shape[0]
-            count_dict["fp"] = df[(df["actual"]!=val) & (df["predicted"]==val)].shape[0]
-            count_dict["tn"] = df[(df["actual"]!=val) & (df["predicted"]!=val)].shape[0]
-            count_dict["fn"] = df[(df["actual"]==val) & (df["predicted"]!=val)].shape[0]
-            class_summary["counts"] = count_dict
-            class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
-            class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
-            output[str(val)] = class_summary
-    else:
-        print actual
-        conf_matrix = calculate_confusion_matrix(actual,predicted)
-        k = conf_matrix.to_dict()
-        print k
-        print predicted
+    for val in classes:
         class_summary = {}
         count_dict = {"tp":0,"fp":0,"tn":0,"fn":0}
-        count_dict["tp"] = k[1][1]
-        count_dict["fp"] = k[0][1]
-        count_dict["tn"] = k[0][0]
-        count_dict["fn"] = k[1][0]
+        count_dict["tp"] = df[(df["actual"]==val) & (df["predicted"]==val)].shape[0]
+        count_dict["fp"] = df[(df["actual"]!=val) & (df["predicted"]==val)].shape[0]
+        count_dict["tn"] = df[(df["actual"]!=val) & (df["predicted"]!=val)].shape[0]
+        count_dict["fn"] = df[(df["actual"]==val) & (df["predicted"]!=val)].shape[0]
         class_summary["counts"] = count_dict
         class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
-        output["overall"] = class_summary
+        output[str(val)] = class_summary
+    return output
+
+def calculate_scored_probability_stats(scored_dataframe):
+    new_df = scored_dataframe[["predicted_class","predicted_probability"]]
+    bands = [0.25,0.50,0.75,0.90]
+    output = {}
+
+    for val in bands:
+        temp_df = new_df[new_df["predicted_probability"] >= val]
+        output["More than "+str(100*val)+"%"] = temp_df["predicted_class"].value_counts().to_dict()
+    temp_df = new_df[new_df["predicted_probability"] < 0.25]
+    output["Less than 25%"] = temp_df["predicted_class"].value_counts().to_dict()
+    for key in output.keys():
+        if output[key] == {}:
+            output.pop(key, None)
     return output
