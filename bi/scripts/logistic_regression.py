@@ -41,7 +41,8 @@ class LogisticRegressionScript:
         logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         logistic_regression_obj.set_number_of_levels(levels)
 
-        df = MLUtils.factorize_columns(self._data_frame,categorical_columns)
+        # df = MLUtils.factorize_columns(self._data_frame,categorical_columns)
+        df = MLUtils.factorize_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
         x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
         objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])

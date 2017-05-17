@@ -38,7 +38,8 @@ class XgboostScript:
         drop_column_list = []
         self._data_frame = self._data_frame.loc[:,[col for col in self._data_frame.columns if col not in drop_column_list]]
         xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
-        df = MLUtils.factorize_columns(self._data_frame,categorical_columns)
+        # df = MLUtils.factorize_columns(self._data_frame,categorical_columns)
+        df = MLUtils.factorize_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
         x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         clf_xgb = xgboost_obj.initiate_xgboost_classifier()
         objs = xgboost_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,[])
