@@ -51,7 +51,7 @@ class XgboostScript:
 
         self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_dict()
         self._model_summary["feature_importance"] = objs["feature_importance"]
-        self._model_summary["accuracy_score"] = metrics.accuracy_score(objs["actual"], objs["predicted"])
+        self._model_summary["model_accuracy"] = metrics.accuracy_score(objs["actual"], objs["predicted"])
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
@@ -66,7 +66,7 @@ class XgboostScript:
 
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
-        print self._model_summary
+        # print self._model_summary
         f = open(summary_filepath, 'w')
         f.write(json.dumps({"modelSummary":json.dumps(self._model_summary)}))
         f.close()

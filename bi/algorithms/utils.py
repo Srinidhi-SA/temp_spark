@@ -135,8 +135,14 @@ def calculate_overall_precision_recall(actual,predicted):
         count_dict["fp"] = df[(df["actual"]!=positive_class) & (df["predicted"]==positive_class)].shape[0]
         count_dict["tn"] = df[(df["actual"]!=positive_class) & (df["predicted"]!=positive_class)].shape[0]
         count_dict["fn"] = df[(df["actual"]==positive_class) & (df["predicted"]!=positive_class)].shape[0]
-        output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
-        output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
+        if count_dict["tp"]+count_dict["fp"] > 0:
+            output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
+        else:
+            output["precision"] = 0
+        if count_dict["tp"]+count_dict["fn"] > 0:
+            output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
+        else:
+            output["recall"] = 0
     return output
 
 def calculate_precision_recall(actual,predicted):
@@ -151,8 +157,14 @@ def calculate_precision_recall(actual,predicted):
         count_dict["tn"] = df[(df["actual"]!=val) & (df["predicted"]!=val)].shape[0]
         count_dict["fn"] = df[(df["actual"]==val) & (df["predicted"]!=val)].shape[0]
         class_summary["counts"] = count_dict
-        class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
-        class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
+        if count_dict["tp"]+count_dict["fp"] > 0:
+            class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
+        else:
+            class_summary["precision"] = 0
+        if count_dict["tp"]+count_dict["fn"] > 0:
+            class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
+        else:
+            class_summary["recall"] = 0
         output[str(val)] = class_summary
     return output
 
@@ -170,3 +182,10 @@ def calculate_scored_probability_stats(scored_dataframe):
         if output[key] == {}:
             output.pop(key, None)
     return output
+
+def create_dummy_columns(df,colnames):
+    df1 = df[[col for col in df.columns if col not in colnames]]
+    for col in colnames:
+        dummies = pd.get_dummies(df[col],prefix = col)
+        df1 = pd.concat([df1,dummies], axis = 1)
+    return df1

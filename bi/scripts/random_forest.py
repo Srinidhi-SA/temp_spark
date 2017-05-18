@@ -68,7 +68,7 @@ class RandomForestScript:
 
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
-        print self._model_summary
+        # print self._model_summary
         f = open(summary_filepath, 'w')
         f.write(json.dumps({"modelSummary":self._model_summary}))
         f.close()
@@ -93,7 +93,7 @@ class RandomForestScript:
         df["predicted_probability"] = score["predicted_probability"]
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column
-        
+
         df.to_csv(score_data_path,header=True,index=False)
         # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         # spark_scored_df = SQLctx.createDataFrame(df)
