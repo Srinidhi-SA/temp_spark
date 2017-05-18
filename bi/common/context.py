@@ -26,6 +26,7 @@ class ContextSetter:
     def set_params(self):
         self.FILE_SETTING_KEYS = self._config_obj.get_file_settings()
         file_setting_keys = self.FILE_SETTING_KEYS.keys()
+        print file_setting_keys
         self.CSV_FILE = self._config_obj.get_file_settings()['inputfile'][0]
         if "narratives_file" in file_setting_keys:
             self.NARRATIVES_FILE = self._config_obj.get_file_settings()['narratives_file'][0]

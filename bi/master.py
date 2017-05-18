@@ -265,7 +265,7 @@ def main(confFilePath):
             print "Xgboost Model Failed"
 
     elif analysistype == 'Scoring':
-        df_helper.remove_nulls(dataframe_context.get_result_column())
+        # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
         df = df.toPandas()
         df = df.dropna()
