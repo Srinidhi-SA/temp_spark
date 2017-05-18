@@ -64,6 +64,8 @@ class XgboostScript:
         self._model_summary["validation_method"] = "Cross Validation"
         self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
 
+        self._model_summary["total_trees"] = 100
+        self._model_summary["total_rules"] = 300
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
@@ -89,6 +91,8 @@ class XgboostScript:
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
         df.to_csv(score_data_path,header=True,index=False)
+        self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+        self._score_summary["result_column"] = result_column
         # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         # spark_scored_df = SQLctx.createDataFrame(pandas_df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)

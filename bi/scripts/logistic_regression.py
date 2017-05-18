@@ -95,6 +95,8 @@ class LogisticRegressionScript:
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
         df.to_csv(score_data_path,header=True,index=False)
+        self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+        self._score_summary["result_column"] = result_column
         # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         # spark_scored_df = SQLctx.createDataFrame(pandas_df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)

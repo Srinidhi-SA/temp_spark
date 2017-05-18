@@ -64,7 +64,7 @@ class RandomForestScript:
         self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
 
         self._model_summary["total_trees"] = 100
-        self._model_summary["total_rules"] = 3400
+        self._model_summary["total_rules"] = 300
 
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
