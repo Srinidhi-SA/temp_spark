@@ -68,7 +68,7 @@ class XgboostScript:
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
         f = open(summary_filepath, 'w')
-        f.write(json.dumps({"modelSummary":json.dumps(self._model_summary)}))
+        f.write(json.dumps({"modelSummary":self._model_summary}))
         f.close()
 
     def Predict(self):
