@@ -89,8 +89,9 @@ class LogisticRegressionScript:
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
-        pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        score = logistic_regression_obj.predict(pandas_df,trained_model,["species"])
+        # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
+        score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
         df.to_csv(score_data_path,header=True,index=False)
