@@ -1,5 +1,6 @@
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as FN
+from pyspark.sql.functions import col
 
 from bi.common.decorators import accepts
 from bi.common import BIException
@@ -20,10 +21,6 @@ from pyspark.mllib.util import MLUtils
 from pyspark.sql.types import StringType
 from pyspark.sql import SQLContext
 
-from pyspark.ml import Pipeline
-from pyspark.ml.regression import DecisionTreeRegressor
-from pyspark.ml.feature import VectorIndexer
-from pyspark.ml.evaluation import RegressionEvaluator
 
 """
 Decision Tree
@@ -46,6 +43,8 @@ class DecisionTrees:
         self._total = {}
         self._success = {}
         self._probability = {}
+        self._predicts = []
+        self._map = {}
 
     def parse(self, lines, df):
         block = []
@@ -76,8 +75,10 @@ class DecisionTrees:
                 if "feature" in block2:
                     block2 = "%s %s" % (df.columns[int(block2.split()[1])], ' '.join(block2.split()[2:]))
                 if "Predict" in block2:
-                    outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(':')[1].strip()))]
-                    block2 = "Predict: %s" % (outcome)
+                    temp = float(block2.split(':')[1].strip())
+                    self._predicts.append(temp)
+                #     outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(':')[1].strip()))]
+                #     block2 = "Predict: %s" % (outcome)
                 block.append({'name':block2})
             else:
                 break
@@ -94,9 +95,19 @@ class DecisionTrees:
             if not line : break
         res = []
         res.append({'name': 'Root', 'children':self.parse(data[1:], df)})
+        measure_column_name = self._target_column
+        self._splits = []
+        start = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.min(measure_column_name)).collect()[0][0]
+        self._splits.append(start)
+        for idx in range(len(self._predicts)):
+            if idx == len(self._predicts) - 1:
+                end = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.max(measure_column_name)).collect()[0][0]
+            else:
+                end = (self._predicts[idx]+self._predicts[idx+1])/2
+            self._map[self._predicts[idx]] ={'start':start, 'end': end, 'group': str(round(start,2)) + ' to ' + str(round(end,2))}
+            start = end
+            self._splits.append(start)
         return res[0]
-
-
 
     @accepts(object, rules = dict, colname = str, rule_list=list)
     def extract_rules(self, rules, colname, rule_list = []):
@@ -131,7 +142,15 @@ class DecisionTrees:
                 elif ' in ' in rule:
                     var,levels = re.split(' in ',rule)
                     DFF.values_in(var,levels)
-            for rows in DFF.get_aggregated_result(colname,target):
+            self._splits.sort()
+            self._splits = list(set(self._splits))
+            binned_colname = DFF.bucketize(self._splits, colname)
+            target = self._map[float(target.strip())]['group']
+            print '%'*120
+            print 'TARGET : ', target
+            agg_result = DFF.get_aggregated_result(binned_colname,target)
+            print agg_result
+            for rows in agg_result:
                 if(rows[0]==target):
                     success = rows[1]
                 total = total + rows[1]
@@ -152,22 +171,23 @@ class DecisionTrees:
         colname = target
         self._new_tree = {}
         self._new_tree['name'] = decision_tree['name']
+        self._new_tree['children']=[]
         for rules in decision_tree['children']:
             if self._new_tree.has_key('children'):
                 self._new_tree['children'].append(self.extract_rules(rules=rules, colname=colname))
-            else:
-                self._new_tree['children']=[]
+            # else:
+            #     self._new_tree['children']=[]
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
     def test_all(self, measure_columns=None, dimension_columns=None):
-        measures = measure_columns
-        if measure_columns is None:
-            measures = self._measure_columns
-        dimension = dimension_columns[0]
+        measures = measure_columns[0]
+        self._target_column = measures
+        #dimension = dimension_columns[0]
         all_dimensions = self._dimension_columns
-        all_measures = self._measure_columns
+        all_measures = list(x for x in self._measure_columns if x != measures)
         cat_feature_info = []
-        columns_without_dimension = list(x for x in all_dimensions if x != dimension)
+        #columns_without_dimension = list(x for x in all_dimensions if x != dimension)
+        columns_without_dimension = all_dimensions
         mapping_dict = {}
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
@@ -195,17 +215,29 @@ class DecisionTrees:
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
-        dimension_classes = self._data_frame.select(dimension).distinct().count()
-        self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
+        #dimension_classes = self._data_frame.select(dimension).distinct().count()
+        self._data_frame = self._data_frame[[measures] + columns_without_dimension + all_measures]
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=3, maxBins=max_length)
+        model = DecisionTree.trainRegressor(trainingData,  categoricalFeaturesInfo=cat_feature_info, impurity='variance', maxDepth=3, maxBins=max_length)
         output_result = model.toDebugString()
+        print '*'*120,'\n OUTPUT : '
+        print output_result
         decision_tree = self.tree_json(output_result, self._data_frame)
-        self.generate_probabilities(decision_tree, dimension)
+        self.generate_probabilities(decision_tree, measures)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(decision_tree, self._new_rules, self._total, self._success, self._probability)
-
+        print self._map
+        print self._map.keys()
+        print '*'*300
+        print decision_tree
+        print '\n\n\n'
+        print self._new_tree
+        print '^'*100
+        print 'RULES : ' , self._new_rules
+        print 'Total : ', self._total
+        print 'Success : ', self._success
+        print 'Probability : ', self._probability
         return decision_tree_result

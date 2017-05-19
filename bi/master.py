@@ -22,6 +22,7 @@ from bi.scripts.one_way_anova import OneWayAnovaScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
+from bi.scripts.Decision_tree_regression import DecisionTreeRegressionScript
 
 from parser import configparser
 
@@ -242,6 +243,17 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
+
+        fs = time.time()
+        if df_helper.ignorecolumns != None:
+            df_helper.subset_data()
+        df_helper.fill_na_dimension_nulls()
+        print "----Starting decision tree regression----"
+        df = df_helper.get_data_frame()
+        dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
+        dt_reg.Run()
+        print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."

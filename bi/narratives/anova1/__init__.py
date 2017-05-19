@@ -22,7 +22,7 @@ class AnovaNarratives:
     # @accepts(object, DFAnovaResult, DataFrameHelper)
     def __init__(self, df_anova_result, df_helper):
         self._df_anova_result = df_anova_result
-        self.df_helper = df_helper
+        self._df_helper = df_helper
         self.measures = []
         self.narratives = {}
         #self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
@@ -58,16 +58,16 @@ class AnovaNarratives:
                                                        AnovaNarratives.KEY_NARRATIVES: {}}
                 narrative = OneWayAnovaNarratives(measure_column, dimension_column, anova_result)
                 self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column] = narrative
-            # fs = time.time()
-            # try:
-            #     anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
-            #     drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self.df_helper, anova_narrative)
-            #     self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
-            #     print "Drill Down Narrative Success"
-            # except:
-            #     print "Drill Down Narrative Failed"
-            #     self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
-            # print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
+            fs = time.time()
+            try:
+                anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
+                drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self._df_helper, anova_narrative)
+                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
+                print "Drill Down Narrative Success"
+            except:
+                print "Drill Down Narrative Failed"
+                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
+            print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
                 #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
             #self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
             #                            key = lambda kv: kv[1]['effect_size'], reverse=True))
