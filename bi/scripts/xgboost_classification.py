@@ -74,7 +74,7 @@ class XgboostScript:
         f.close()
 
     def Predict(self):
-        xgboost_obj = Xgboost(self._data_frame, self._dataframe_helper, self._spark)
+        xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()

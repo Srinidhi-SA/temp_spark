@@ -276,7 +276,7 @@ def main(confFilePath):
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
-        elif "Xgboost" in model_path:
+        elif "XGBoost" in model_path:
             st = time.time()
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
