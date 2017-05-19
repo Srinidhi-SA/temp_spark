@@ -7,3 +7,6 @@
 4) py4j         - required for pyspark
 5) statsmodels  - for conducting statistical tests
 6) pattern      - for generating plurals
+7) statistics   - for various statistics
+8) scikit-learn - for ML algorithms
+9) xgboost      - for Xgboost algorithm

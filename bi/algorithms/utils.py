@@ -51,18 +51,19 @@ def missing_value_analysis(df,replacement_dict):
 
 
 def factorize_columns(df,cat_columns):
+    df_copy = df.copy(deep=True)
     df_col = list(df.columns)
     for col in cat_columns:
         if col in df_col:
-            uniq_vals = df[col].unique()
+            uniq_vals = df_copy[col].unique()
             key = [idx for idx,x in enumerate(uniq_vals)]
             rep_dict = dict(zip(uniq_vals,key))
             if col != 'responded':
-                df[col]=df[col].apply(lambda x: rep_dict[x])
+                df_copy[col]=df_copy[col].apply(lambda x: rep_dict[x])
             else:
-                df[col]=df[col].apply(lambda x: 1 if x == 'yes' else 0)
-            df[col]=pd.factorize(df[col])[0]
-    return df
+                df_copy[col]=df_copy[col].apply(lambda x: 1 if x == 'yes' else 0)
+            df_copy[col]=pd.factorize(df_copy[col])[0]
+    return df_copy
 
 def generate_train_test_split(df,cutoff,dependent_colname,drop_list):
     levels = df[dependent_colname].unique()

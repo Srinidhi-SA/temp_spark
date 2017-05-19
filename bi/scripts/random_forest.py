@@ -15,13 +15,14 @@ from bi.common import BIException
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
 
+
 class RandomForestScript:
     def __init__(self, data_frame, df_helper,df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._spark = spark
-        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
+        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
         self._score_summary = {}
 
     def Train(self):
@@ -95,9 +96,29 @@ class RandomForestScript:
         self._score_summary["result_column"] = result_column
 
         df.to_csv(score_data_path,header=True,index=False)
+
+        # print "STARTING DIMENSION ANALYSIS ..."
+        # Dropping predicted_probability column
+        # df.drop('predicted_probability', axis=1, inplace=True)
         # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         # spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
+
+        # # try:
+        # fs = time.time()
+        # freq_obj = FreqDimensionsScript(spark_scored_df, self._dataframe_helper, self._dataframe_context, self._spark)
+        # freq_obj.Run()
+        # print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+        # # except:
+        #     # print "Frequency Analysis Failed "
+        #
+        # try:
+        #     fs = time.time()
+        #     chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
+        #     chisquare_obj.Run()
+        #     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+        # except:
+        #     print "ChiSquare Analysis Failed "
 
         f = open(score_summary_path, 'w')
         f.write(json.dumps({"scoreSummary":self._score_summary}))

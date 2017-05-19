@@ -236,7 +236,7 @@ def main(confFilePath):
             print "Trend Script Failed"
 
     elif analysistype == 'Prediction':
-        df_helper.remove_nulls(dataframe_context.get_result_column())
+        # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
         df = df.toPandas()
         df = df.dropna()
