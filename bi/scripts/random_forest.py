@@ -48,8 +48,8 @@ class RandomForestScript:
         summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
-
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]).to_dict()
+        # confusion matrix keys are the predicted class
+        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
         self._model_summary["model_accuracy"] = metrics.accuracy_score(objs["actual"], objs["predicted"])
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
