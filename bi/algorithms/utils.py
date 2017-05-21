@@ -150,11 +150,11 @@ def calculate_overall_precision_recall(actual,predicted):
         if count_dict["tp"]+count_dict["fp"] > 0:
             output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         else:
-            output["precision"] = 0
+            output["precision"] = 0.0
         if count_dict["tp"]+count_dict["fn"] > 0:
             output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
         else:
-            output["recall"] = 0
+            output["recall"] = 0.0
     return output
 
 def calculate_precision_recall(actual,predicted):
@@ -172,11 +172,11 @@ def calculate_precision_recall(actual,predicted):
         if count_dict["tp"]+count_dict["fp"] > 0:
             class_summary["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         else:
-            class_summary["precision"] = 0
+            class_summary["precision"] = 0.0
         if count_dict["tp"]+count_dict["fn"] > 0:
             class_summary["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
         else:
-            class_summary["recall"] = 0
+            class_summary["recall"] = 0.0
         output[str(val)] = class_summary
     return output
 

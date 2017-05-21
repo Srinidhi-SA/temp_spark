@@ -14,6 +14,13 @@ from bi.common import DataWriter
 from bi.common import BIException
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
+from bi.common import DataFrameHelper
+from bi.stats.frequency_dimensions import FreqDimensions
+from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
+from bi.stats.chisquare import ChiSquare
+from bi.narratives.chisquare import ChiSquareNarratives
+
+
 
 
 class RandomForestScript:
@@ -67,13 +74,9 @@ class RandomForestScript:
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
 
-
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
-        f = open(summary_filepath, 'w')
-        f.write(json.dumps({"modelSummary":self._model_summary}))
-        f.close()
-
+        utils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
     def Predict(self):
         random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
@@ -96,30 +99,45 @@ class RandomForestScript:
         self._score_summary["result_column"] = result_column
 
         df.to_csv(score_data_path,header=True,index=False)
+        utils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
-        # print "STARTING DIMENSION ANALYSIS ..."
+        print "STARTING DIMENSION ANALYSIS ..."
         # Dropping predicted_probability column
-        # df.drop('predicted_probability', axis=1, inplace=True)
-        # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        # spark_scored_df = SQLctx.createDataFrame(df)
+        df.drop('predicted_probability', axis=1, inplace=True)
+        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+        spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
 
-        # # try:
-        # fs = time.time()
-        # freq_obj = FreqDimensionsScript(spark_scored_df, self._dataframe_helper, self._dataframe_context, self._spark)
-        # freq_obj.Run()
-        # print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-        # # except:
-        #     # print "Frequency Analysis Failed "
-        #
-        # try:
-        #     fs = time.time()
-        #     chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
-        #     chisquare_obj.Run()
-        #     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-        # except:
-        #     print "ChiSquare Analysis Failed "
+        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
+        df_helper.set_params()
+        df = df_helper.get_data_frame()
+        result_column = "predicted_class"
+        try:
+            fs = time.time()
+            narratives_file = self._dataframe_context.get_score_path()+"/Narratives/FrequencyNarratives.json"
+            result_file = self._dataframe_context.get_score_path()+"/Results/FrequencyResult.json"
+            df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
+            df_freq_dimension_result = utils.as_dict(df_freq_dimension_obj)
+            utils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
+            # Narratives
+            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
+            narratives = utils.as_dict(narratives_obj)
+            utils.write_to_file(result_file,json.dumps(narratives))
+            print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+        except:
+            print "Frequency Analysis Failed "
 
-        f = open(score_summary_path, 'w')
-        f.write(json.dumps({"scoreSummary":self._score_summary}))
-        f.close()
+        try:
+            fs = time.time()
+            narratives_file = self._dataframe_context.get_score_path()+"/Narratives/ChisquareNarratives.json"
+            result_file = self._dataframe_context.get_score_path()+"/Results/ChisquareResult.json"
+            df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
+            df_chisquare_result = utils.as_dict(df_chisquare_obj)
+            # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
+            utils.write_to_file(result_file,json.dumps(df_chisquare_result))
+            chisquare_narratives = utils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj))
+            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
+            utils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
+            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+        except:
+            print "ChiSquare Analysis Failed "
