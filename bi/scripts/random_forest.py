@@ -98,6 +98,7 @@ class RandomForestScript:
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column
 
+        df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
         utils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
@@ -111,7 +112,7 @@ class RandomForestScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        result_column = "predicted_class"
+        # result_column = "predicted_class"
         try:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"

@@ -106,10 +106,11 @@ class LogisticRegressionScript:
         score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
-        df.to_csv(score_data_path,header=True,index=False)
+
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column
-
+        df = df.rename(index=str, columns={"predicted_class": result_column})
+        df.to_csv(score_data_path,header=True,index=False)
         utils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
         print "STARTING DIMENSION ANALYSIS ..."
@@ -122,7 +123,7 @@ class LogisticRegressionScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        result_column = "predicted_class"
+        # result_column = "predicted_class"
         try:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
