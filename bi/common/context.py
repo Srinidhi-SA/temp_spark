@@ -15,6 +15,7 @@ class ContextSetter:
 
     def __init__(self, config_obj):
         self._config_obj = config_obj
+        self._column_separator = "|~|"
         self.CSV_FILE = ""
         self.RESULT_FILE = ""
         self.NARRATIVES_FILE = ""
@@ -22,11 +23,11 @@ class ContextSetter:
         self.MONITOR_API = ""
         self.analysistype = ""
         self.ignorecolumns = []
+        self.MODELFEATURES = []
 
     def set_params(self):
         self.FILE_SETTING_KEYS = self._config_obj.get_file_settings()
         file_setting_keys = self.FILE_SETTING_KEYS.keys()
-        print file_setting_keys
         self.CSV_FILE = self._config_obj.get_file_settings()['inputfile'][0]
         if "narratives_file" in file_setting_keys:
             self.NARRATIVES_FILE = self._config_obj.get_file_settings()['narratives_file'][0]
@@ -44,6 +45,8 @@ class ContextSetter:
             self.FOLDERS = self._config_obj.get_file_settings()['foldername'][0]
         if "modelname" in file_setting_keys:
             self.MODELS = self._config_obj.get_file_settings()['modelname'][0]
+        if "modelfeatures" in file_setting_keys:
+            self.MODELFEATURES = self._config_obj.get_file_settings()['modelfeatures'][0].split(self._column_separator)
 
         self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
         self.analysistype = self._config_obj.get_column_settings()['analysis_type'][0].strip()
@@ -133,3 +136,6 @@ class ContextSetter:
 
     def get_score_path(self):
         return self.SCORE_PATH
+
+    def get_model_features(self):
+        return self.MODELFEATURES

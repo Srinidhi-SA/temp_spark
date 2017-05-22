@@ -74,9 +74,8 @@ class XgboostScript:
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
-        f = open(summary_filepath, 'w')
-        f.write(json.dumps({"modelSummary":self._model_summary}))
-        f.close()
+        utils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
+
 
     def Predict(self):
         xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)

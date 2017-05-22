@@ -28,6 +28,7 @@ class LogisticRegressionScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
+        self._column_separator = "|~|"
 
     def Train(self):
         st = time.time()
@@ -44,7 +45,6 @@ class LogisticRegressionScript:
         levels = self._data_frame[result_column].unique()
         logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         logistic_regression_obj.set_number_of_levels(levels)
-
         # df = MLUtils.factorize_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
         df = MLUtils.create_dummy_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
         x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
@@ -70,13 +70,13 @@ class LogisticRegressionScript:
         self._model_summary["algorithm_name"] = "Logistic Regression"
         self._model_summary["validation_method"] = "Cross Validation"
         self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
+        self._model_summary["trained_model_features"] = self._column_separator.join(df.columns)
 
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
-        f = open(summary_filepath, 'w')
-        f.write(json.dumps({"modelSummary":self._model_summary}))
-        f.close()
+        utils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
+
 
 
     def Predict(self):
@@ -88,12 +88,21 @@ class LogisticRegressionScript:
         score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
         trained_model_path = self._dataframe_context.get_model_path()
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
+        model_columns = self._dataframe_context.get_model_features()
+
 
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
         # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
+        existing_columns = pandas_df.columns
+        new_columns = list(set(existing_columns)-set(model_columns))
+        missing_columns = list(set(model_columns)-set(existing_columns)-set(result_column))
+        df_shape = pandas_df.shape
+        for col in missing_columns:
+            pandas_df[col] = [0]*df_shape[0]
+        pandas_df = pandas_df[[x for x in model_columns if x != result_column]]
         score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
