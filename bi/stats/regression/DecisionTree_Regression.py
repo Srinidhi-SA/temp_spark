@@ -99,13 +99,19 @@ class DecisionTrees:
         self._splits = []
         start = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.min(measure_column_name)).collect()[0][0]
         self._splits.append(start)
+        self._label_code = {}
+        label_code = 0.0
+        self._coding = []
         for idx in range(len(self._predicts)):
             if idx == len(self._predicts) - 1:
                 end = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.max(measure_column_name)).collect()[0][0]
             else:
                 end = (self._predicts[idx]+self._predicts[idx+1])/2
-            self._map[self._predicts[idx]] ={'start':start, 'end': end, 'group': str(round(start,2)) + ' to ' + str(round(end,2))}
+            group_name = str(round(start,2)) + ' to ' + str(round(end,2))
+            self._map[self._predicts[idx]] ={'start':start, 'end': end, 'group': group_name}
+            self._label_code[label_code] = group_name
             start = end
+            label_code = label_code+1
             self._splits.append(start)
         return res[0]
 
@@ -146,13 +152,15 @@ class DecisionTrees:
             self._splits = list(set(self._splits))
             binned_colname = DFF.bucketize(self._splits, colname)
             target = self._map[float(target.strip())]['group']
-            print '%'*120
-            print 'TARGET : ', target
             agg_result = DFF.get_aggregated_result(binned_colname,target)
+            print target
             print agg_result
             for rows in agg_result:
                 if(rows[0]==target):
-                    success = rows[1]
+                    print '+'*60
+                    print rows[1]
+                    print self._label_code[rows[1]]
+                    success = self._label_code[rows[1]]
                 total = total + rows[1]
             if (total > 0):
                 if not self._new_rules.has_key(target):
@@ -164,6 +172,10 @@ class DecisionTrees:
                 self._total[target].append(total)
                 self._success[target].append(success)
                 self._probability[target].append(success*100.0/total)
+                print 'X'*120
+                key = float(new_tree['name'][9:])
+                new_tree['name'] = 'Predict: ' + self._map[key]['group']
+                print new_tree
                 return new_tree
 
     @accepts(object, decision_tree = dict, target = str)
@@ -222,15 +234,12 @@ class DecisionTrees:
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
         model = DecisionTree.trainRegressor(trainingData,  categoricalFeaturesInfo=cat_feature_info, impurity='variance', maxDepth=3, maxBins=max_length)
         output_result = model.toDebugString()
-        print '*'*120,'\n OUTPUT : '
-        print output_result
         decision_tree = self.tree_json(output_result, self._data_frame)
         self.generate_probabilities(decision_tree, measures)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(decision_tree, self._new_rules, self._total, self._success, self._probability)
         print self._map
-        print self._map.keys()
         print '*'*300
         print decision_tree
         print '\n\n\n'
