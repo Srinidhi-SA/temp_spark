@@ -114,23 +114,22 @@ class RandomForestScript:
         result_column = "predicted_class"
         try:
             fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/Narratives/FrequencyNarratives.json"
-            result_file = self._dataframe_context.get_score_path()+"/Results/FrequencyResult.json"
+            narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
+            result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
             df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = utils.as_dict(df_freq_dimension_obj)
             utils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            # Narratives
             narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
             narratives = utils.as_dict(narratives_obj)
-            utils.write_to_file(result_file,json.dumps(narratives))
+            utils.write_to_file(narratives_file,json.dumps(narratives))
             print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
         except:
             print "Frequency Analysis Failed "
 
         try:
             fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/Narratives/ChisquareNarratives.json"
-            result_file = self._dataframe_context.get_score_path()+"/Results/ChisquareResult.json"
+            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
             df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
             df_chisquare_result = utils.as_dict(df_chisquare_obj)
             # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
