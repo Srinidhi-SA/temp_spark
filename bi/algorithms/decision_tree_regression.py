@@ -156,11 +156,8 @@ class DecisionTreeRegression:
             print target
             print agg_result
             for rows in agg_result:
-                if(rows[0]==target):
-                    print '+'*60
-                    print rows[1]
-                    print self._label_code[rows[1]]
-                    success = self._label_code[rows[1]]
+                if(self._label_code[rows[0]]==target):
+                    success = rows[1]
                 total = total + rows[1]
             if (total > 0):
                 if not self._new_rules.has_key(target):

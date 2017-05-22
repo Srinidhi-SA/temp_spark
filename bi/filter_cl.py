@@ -85,25 +85,26 @@ if __name__ == '__main__':
     dff_helper = DataFilterHelper(df, dff_context)
     dff_helper.set_params()
     df = dff_helper.get_data_frame()
-    sample_rows = min(100.0, float(df.count()*0.8))
-    sample_df = df.sample(False, sample_rows/df.count(), seed = 120)
-    sample_df = sample_df.toPandas()
-    updated_col_names = utils.get_updated_colnames(sample_df)
-    changed_columns = updated_col_names['c']
-    updated_col_names = updated_col_names['f']
-    mapping = dict(zip(sample_df.columns, updated_col_names))
-    from re import sub
-    func = udf(lambda x: float(sub('[^0-9.a-zA-Z/-]','',x)), FloatType())
-    #func = udf(lambda x: dt.datetime.strptime(x,'%d-%m-%Y'), DateType())
-    #df = df.select(*[func(c).alias(mapping.get(c)) if c in changed_columns else c for c in df.columns])
-    #df = df.select([col(c).alias(mapping.get(c)) for c in sample_df.columns])
-    df = df.select(*[func(c).alias(c) if c in changed_columns else c for c in df.columns])
+    if df.count()>0:
+        sample_rows = min(100.0, round(df.count()*0.8))
+        sample_df = df.sample(False, sample_rows/df.count(), seed = 120)
+        sample_df = sample_df.toPandas()
+        updated_col_names = utils.get_updated_colnames(sample_df)
+        changed_columns = updated_col_names['c']
+        updated_col_names = updated_col_names['f']
+        mapping = dict(zip(sample_df.columns, updated_col_names))
+        from re import sub
+        func = udf(lambda x: float(sub('[^0-9.a-zA-Z/-]','',x)), FloatType())
+        #func = udf(lambda x: dt.datetime.strptime(x,'%d-%m-%Y'), DateType())
+        #df = df.select(*[func(c).alias(mapping.get(c)) if c in changed_columns else c for c in df.columns])
+        #df = df.select([col(c).alias(mapping.get(c)) for c in sample_df.columns])
+        df = df.select(*[func(c).alias(c) if c in changed_columns else c for c in df.columns])
 
-    meta_helper = MetaDataHelper(df)
-    df = df.select(*[col(c).alias(mapping.get(c)) if c in changed_columns else c for c in df.columns])
-    #meta_helper.get_datetime_suggestions()
-    if meta_helper.has_date_suggestions():
-        meta_helper.get_formats()
+        meta_helper = MetaDataHelper(df)
+        df = df.select(*[col(c).alias(mapping.get(c)) if c in changed_columns else c for c in df.columns])
+        #meta_helper.get_datetime_suggestions()
+        if meta_helper.has_date_suggestions():
+            meta_helper.get_formats()
     CSV_FILE = dff_context.get_input_file()
     print "File loaded: ", CSV_FILE
     meta_data = utils.as_dict(meta_helper)
