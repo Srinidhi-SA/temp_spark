@@ -22,7 +22,7 @@ class AnovaNarratives:
     # @accepts(object, DFAnovaResult, DataFrameHelper)
     def __init__(self, df_anova_result, df_helper):
         self._df_anova_result = df_anova_result
-        self.df_helper = df_helper
+        self._df_helper = df_helper
         self.measures = []
         self.narratives = {}
         #self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"

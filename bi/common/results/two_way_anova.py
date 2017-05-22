@@ -1,6 +1,6 @@
 from bi.common.decorators import accepts
 import pandas as pd
-from bi.stats.util import Stats
+from utils import Stats
 from scipy import stats
 
 class DFTwoWayAnovaResult:

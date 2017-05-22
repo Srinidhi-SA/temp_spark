@@ -22,6 +22,6 @@
   {% elif n_s_d == 3 %}
     There are three dimensions ({{dims[0]}}, {{dims[1]}} and {{dims[2]}}) that have a significant influence on the {{cm}}.
   {% elif n_s_d > 3 %}
-    There are {{n_s_d}} dimensions that have a significant influence on the {{cm}}. And the most important ones are {{dims[0]}}, {{dims[1]}} and dims{{2}}.
+    There are {{n_s_d}} dimensions that have a significant influence on the {{cm}}. And the most important ones are {{dims[0]}}, {{dims[1]}} and {{dims[2]}}.
   {% endif %}
 {% endif %}

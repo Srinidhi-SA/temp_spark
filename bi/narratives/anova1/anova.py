@@ -73,7 +73,7 @@ class OneWayAnovaNarratives:
         cum_sum = 0
         cat_75_list = []
         groups_by_total = sorted(zip(totals,keys,counts), reverse=True)
-        for t,l,c in groups_by_total:
+        for t,l,c in groups_by_total[:-1]:
             cat_75_list.append(l)
             cum_sum += t
             if len(cat_75_list) == len(keys) - 1 or (float(cum_sum) / sum(totals)) >= 0.75:

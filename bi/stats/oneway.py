@@ -10,7 +10,7 @@ from bi.common.results import AnovaColumnValueGroupStats
 from bi.common.results import AnovaResult
 from bi.common.results import DFAnovaResult
 
-from bi.stats.descr import DescriptiveStats
+#from bi.stats.descr import DescriptiveStats
 
 """
 One way ANOVA test
