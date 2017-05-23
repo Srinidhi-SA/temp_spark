@@ -11,7 +11,7 @@ import numpy
 import json
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables):
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, appid=None):
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
         self._analysed_dimension = analysed_dimension
@@ -20,8 +20,14 @@ class ChiSquareAnalysis:
         self.table = []
         self.effect_size = chisquare_result.get_effect_size()
         self.analysis = {}
+        self.appid = appid
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
+        if self.appid != None:
+            if self.appid == "1":
+                self._base_dir += "appid1/"
+            elif self.appid == "2":
+                self._base_dir += "appid2/"
         self._generate_narratives()
 
     def _get_bin_names (self,splits):
