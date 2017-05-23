@@ -182,5 +182,10 @@ def dateTimeFormatsSupported():
     data["dual_checks"] = ('%m/%d/%Y %H:%M','%m/%d/%y %H:%M','%m-%d-%Y %H:%M','%m-%d-%y %H:%M','%m-%d-%Y %r','%m-%d-%Y %R', '%m-%d-%y %r','%m-%d-%y %R','%m/%d/%Y %r','%m/%d/%Y %R', '%m/%d/%y %r','%m/%d/%y %R','%m/%d/%Y','%m/%d/%y','%m-%d-%Y','%m-%d-%y','%m.%d.%Y','%m.%d.%y','%m - %d - %Y','%m - %d - %y')
     return data
 
+def write_to_file(filepath,obj):
+    f = open(filepath, 'w')
+    f.write(obj)
+    f.close()
+
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

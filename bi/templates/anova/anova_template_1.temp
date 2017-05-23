@@ -54,7 +54,7 @@ significant influence on {{cm}}.
 considerable amount of variation in {{cm}}.
 
 {% if n_d >= 2 %}
-  {% if n_s_d >0 %}
+  {% if n_ns_d >0 %}
     However,
   {% elif n_ns_d>2 %}
     The

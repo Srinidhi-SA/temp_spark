@@ -16,14 +16,16 @@ from bi.scripts.chisquare import ChiSquareScript
 from bi.scripts.decision_tree import DecisionTreeScript
 from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
+from bi.scripts.density_histogram import Density_HistogramsScript
 from bi.scripts.histogram import HistogramsScript
 from bi.scripts.one_way_anova import OneWayAnovaScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript
 from bi.scripts.random_forest import RandomForestScript
-from bi.scripts.xgboost import XgboostScript
+from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
+from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 
 from parser import configparser
 
@@ -154,7 +156,17 @@ def main(confFilePath):
             except:
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
                 send_message_API(monitor_api, "Histogram", "Histogram Failed", False, 0)
-                print 'Histogram Failed'
+
+            try:
+                fs = time.time()
+                d_histogram_obj = Density_HistogramsScript(df, df_helper, dataframe_context, spark)
+                d_histogram_obj.Run()
+                print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
+                send_message_API(monitor_api, "Density Histogram", "Density Histogram Done", True, 100)
+            except:
+                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Density_Histogram/')
+                send_message_API(monitor_api, "Density Histogram", "Density Histogram Failed", False, 0)
+                print 'Density Histogram Failed'
 
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
@@ -236,8 +248,7 @@ def main(confFilePath):
             print "Trend Script Failed"
 
     elif analysistype == 'Prediction':
-        df_helper.remove_nulls(dataframe_context.get_result_column())
-        df = df_helper.get_data_frame()
+        # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
         try:
@@ -247,13 +258,7 @@ def main(confFilePath):
             print "Random Foreset Model Done in ", time.time() - st,  " seconds."
         except:
             print "Random Foreset Model Failed"
-        try:
-            st = time.time()
-            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
-            xgb_obj.Train()
-            print "XGBoost Model Done in ", time.time() - st,  " seconds."
-        except:
-            print "Xgboost Model Failed"
+
         try:
             st = time.time()
             lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
@@ -262,9 +267,16 @@ def main(confFilePath):
         except:
             print "Logistic Regression Model Failed"
 
+        try:
+            st = time.time()
+            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
+            xgb_obj.Train()
+            print "XGBoost Model Done in ", time.time() - st,  " seconds."
+        except:
+            print "Xgboost Model Failed"
+
     elif analysistype == 'Scoring':
-        df_helper.remove_nulls(dataframe_context.get_result_column())
-        df = df_helper.get_data_frame()
+        # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
 
@@ -274,7 +286,7 @@ def main(confFilePath):
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
-        elif "Xgboost" in model_path:
+        elif "XGBoost" in model_path:
             st = time.time()
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
@@ -287,7 +299,16 @@ def main(confFilePath):
         else:
             print "Could Not Load the Model for Scoring"
 
-
+    if analysistype == 'DecisionTreeRegression':
+        fs = time.time()
+        if df_helper.ignorecolumns != None:
+            df_helper.subset_data()
+        df_helper.fill_na_dimension_nulls()
+        print "----Starting decision tree regression----"
+        df = df_helper.get_data_frame()
+        dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
+        dt_reg.Run()
+        print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
 
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."

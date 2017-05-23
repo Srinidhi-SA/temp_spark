@@ -7,12 +7,13 @@ except:
 
 from sklearn.externals import joblib
 from sklearn import metrics
+import xgboost as xgb
 
 from pyspark.sql import SQLContext
 from bi.common import utils
 from bi.common import DataWriter
 from bi.common import BIException
-from bi.algorithms import LogisticRegression
+from bi.algorithms import XgboostClassifier
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
 from bi.stats.frequency_dimensions import FreqDimensions
@@ -20,7 +21,7 @@ from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 
-class LogisticRegressionScript:
+class XgboostScript:
     def __init__(self, data_frame, df_helper,df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
@@ -28,7 +29,6 @@ class LogisticRegressionScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
-        self._column_separator = "|~|"
 
     def Train(self):
         st = time.time()
@@ -42,17 +42,15 @@ class LogisticRegressionScript:
 
         drop_column_list = []
         self._data_frame = self._data_frame.loc[:,[col for col in self._data_frame.columns if col not in drop_column_list]]
-        levels = self._data_frame[result_column].unique()
-        logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
-        logistic_regression_obj.set_number_of_levels(levels)
-        # df = MLUtils.factorize_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
-        df = MLUtils.create_dummy_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
+        xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
+        # df = MLUtils.factorize_columns(self._data_frame,categorical_columns)
+        df = MLUtils.factorize_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
         x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
-        clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
-        objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])
+        clf_xgb = xgboost_obj.initiate_xgboost_classifier()
+        objs = xgboost_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,[])
 
-        model_filepath = model_path+"/LogisticRegression/TrainedModels/model.pkl"
-        summary_filepath = model_path+"/LogisticRegression/ModelSummary/summary.json"
+        model_filepath = model_path+"/XGBoost/TrainedModels/model.pkl"
+        summary_filepath = model_path+"/XGBoost/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
         # confusion matrix keys are the predicted class
@@ -67,20 +65,20 @@ class LogisticRegressionScript:
         self._model_summary["model_recall"] = overall_precision_recall["recall"]
         self._model_summary["target_variable"] = result_column
         self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
-        self._model_summary["algorithm_name"] = "Logistic Regression"
+        self._model_summary["algorithm_name"] = "Xgboost"
         self._model_summary["validation_method"] = "Cross Validation"
         self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
-        self._model_summary["trained_model_features"] = self._column_separator.join(df.columns)
 
+        self._model_summary["total_trees"] = 100
+        self._model_summary["total_rules"] = 300
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
         utils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
 
-
     def Predict(self):
-        logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
+        xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -88,27 +86,17 @@ class LogisticRegressionScript:
         score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
         trained_model_path = self._dataframe_context.get_model_path()
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
-        model_columns = self._dataframe_context.get_model_features()
-
 
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
-        # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
-        existing_columns = pandas_df.columns
-        new_columns = list(set(existing_columns)-set(model_columns))
-        missing_columns = list(set(model_columns)-set(existing_columns)-set(result_column))
-        df_shape = pandas_df.shape
-        for col in missing_columns:
-            pandas_df[col] = [0]*df_shape[0]
-        pandas_df = pandas_df[[x for x in model_columns if x != result_column]]
-        score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
+        pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        score = xgboost_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
-
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column
+
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
         utils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))

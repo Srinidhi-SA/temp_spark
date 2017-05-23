@@ -3,7 +3,7 @@
    {{dim2}} is {{dim2_top_level}},
   where as the contribution in the overall dataset is {{dim2_top_level_overall_per}}%.
 
-  Also, {{dim2_top_diff_percent_cont}}%  is contrubuted by observations where {{dim2}} is {{dim2_top_diff_level}},
+  Also, {{dim2_top_diff_percent_cont}}%  is contributed by observations where {{dim2}} is {{dim2_top_diff_level}},
   where as the contribution of the same is {{dim2_top_diff_overall_per}}% in the overall dataset.
 
   {{dim3_top_level}} in {{dim3}} contribute to {{dim3_top_level_percent_cont}}% of  observations for {{dim1_top_level}} in
