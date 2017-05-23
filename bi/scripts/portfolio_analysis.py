@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     spark = utils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-    
+
     input1 = arguments.input1
     input2 = arguments.input2
     input3 = arguments.input3
@@ -734,8 +734,8 @@ if __name__ == '__main__':
 
     out = {"sector_data":{},"sector_order":sector_performance_stats['order_increasing']}
     for val in out['sector_order']:
-        out["sector_data"][val] = {"allocation":float(sector_performance_stats["per_con"][val]),
-                                   "return":float(returns[val]),
+        out["sector_data"][val] = {"allocation":round(float(sector_performance_stats["per_con"][val]),2),
+                                   "return":round(float(returns[val]),2),
                                    "outcome":sector_mapping[val]['performance']}
 
     result_object['sector_performance'] = out

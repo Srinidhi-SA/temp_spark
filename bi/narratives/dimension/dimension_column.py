@@ -24,8 +24,14 @@ class DimensionColumnNarrative:
         self.summary = []
         self.analysis = []
         self.frequency_dict = json.loads(self._dimension_col_freq_dict)
+        self.appid = df_context.get_app_id()
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/dimensions/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/dimensions/"
+        if self.appid != None:
+            if self.appid == "1":
+                self._base_dir += "appid1/"
+            elif self.appid == "2":
+                self._base_dir += "appid2/"
         self._dataframe_context = df_context
         self._dataframe_helper = df_helper
 
@@ -44,7 +50,7 @@ class DimensionColumnNarrative:
         ignored_columns = self._dataframe_context.get_ignore_column_suggestions()
         if ignored_columns == None:
             ignored_columns = []
-            
+
         data_dict = {"n_c" : len(self._dataframe_helper.get_columns()),
                     "n_m" : len(self._dataframe_helper.get_numeric_columns()),
                     "n_d" : len(self._dataframe_helper.get_string_columns()),

@@ -5,6 +5,7 @@ import pattern.en
 from bi.common.utils import accepts
 from bi.common.results import ChiSquareResult
 from bi.common.results import DFChiSquareResult
+from bi.common import ContextSetter
 import operator
 import numpy
 import json
@@ -18,14 +19,20 @@ from chisquare import ChiSquareAnalysis
 
 
 class ChiSquareNarratives:
-    @accepts(object, int, DFChiSquareResult)
-    def __init__(self, num_dimension_columns, df_chisquare_result):
+    @accepts(object, int, DFChiSquareResult ,ContextSetter)
+    def __init__(self, num_dimension_columns, df_chisquare_result, df_context):
         self._num_dimension_columns = num_dimension_columns
         self._df_chisquare = df_chisquare_result
         self._df_chisquare_result = df_chisquare_result.get_result()
         self.narratives = {}
+        self.appid = df_context.get_app_id()
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
+        if self.appid != None:
+            if self.appid == "1":
+                self._base_dir += "appid1/"
+            elif self.appid == "2":
+                self._base_dir += "appid2/"
         self._generate_narratives()
 
     def _generate_narratives(self):
@@ -59,4 +66,4 @@ class ChiSquareNarratives:
 
             for analysed_dimension in significant_variables:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
-                self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables)
+                self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self.appid)

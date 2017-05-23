@@ -72,6 +72,7 @@ def main(confFilePath):
     script_start_time = time.time()
 
     analysistype = dataframe_context.get_analysis_type()
+    appid = dataframe_context.get_app_id()
     print "ANALYSIS TYPE : ", analysistype
 
     monitor_api = dataframe_context.get_monitor_api()
