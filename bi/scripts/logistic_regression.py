@@ -68,7 +68,7 @@ class LogisticRegressionScript:
         self._model_summary["target_variable"] = result_column
         self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
         self._model_summary["algorithm_name"] = "Logistic Regression"
-        self._model_summary["validation_method"] = "Training and Testing"
+        self._model_summary["validation_method"] = "Train and Test"
         self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
         self._model_summary["trained_model_features"] = self._column_separator.join(df.columns)
 

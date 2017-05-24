@@ -66,7 +66,7 @@ class XgboostScript:
         self._model_summary["target_variable"] = result_column
         self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
         self._model_summary["algorithm_name"] = "Xgboost"
-        self._model_summary["validation_method"] = "Training and Testing"
+        self._model_summary["validation_method"] = "Train and Test"
         self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
 
         self._model_summary["total_trees"] = 100
