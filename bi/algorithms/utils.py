@@ -124,6 +124,10 @@ def calculate_overall_precision_recall(actual,predicted):
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
     classes = df["actual"].unique()
     val_counts_predicted = df["predicted"].value_counts().to_dict()
+    for val in classes:
+        if val not in val_counts_predicted.keys():
+            val_counts_predicted[val] = 0
+    
     prediction_split = {}
     for val in val_counts_predicted.keys():
         prediction_split[val] = round(val_counts_predicted[val]*100/float(len(predicted)),2)
