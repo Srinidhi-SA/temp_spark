@@ -24,6 +24,7 @@ class ContextSetter:
         self.analysistype = ""
         self.ignorecolumns = []
         self.MODELFEATURES = []
+        self.appid = None
 
     def set_params(self):
         self.FILE_SETTING_KEYS = self._config_obj.get_file_settings()
@@ -48,6 +49,9 @@ class ContextSetter:
         if "modelfeatures" in file_setting_keys:
             self.MODELFEATURES = self._config_obj.get_file_settings()['modelfeatures'][0].split(self._column_separator)
 
+        column_setting_keys = self._config_obj.get_column_settings().keys()
+        if "app_id" in column_setting_keys:
+            self.appid = self._config_obj.get_column_settings()['app_id'][0].strip()
         self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
         self.analysistype = self._config_obj.get_column_settings()['analysis_type'][0].strip()
         self.ignorecolumns = self._config_obj.get_column_settings().get('ignore_column_suggestions')
@@ -139,3 +143,6 @@ class ContextSetter:
 
     def get_model_features(self):
         return self.MODELFEATURES
+
+    def get_app_id(self):
+        return self.appid

@@ -187,9 +187,9 @@ def calculate_scored_probability_stats(scored_dataframe):
 
     for val in bands:
         temp_df = new_df[new_df["predicted_probability"] >= val]
-        output["More than "+str(100*val)+"%"] = temp_df["predicted_class"].value_counts().to_dict()
+        output[">"+str(100*val)+"%"] = temp_df["predicted_class"].value_counts().to_dict()
     temp_df = new_df[new_df["predicted_probability"] < 0.25]
-    output["Less than 25%"] = temp_df["predicted_class"].value_counts().to_dict()
+    output["<25%"] = temp_df["predicted_class"].value_counts().to_dict()
     for key in output.keys():
         if output[key] == {}:
             output.pop(key, None)
