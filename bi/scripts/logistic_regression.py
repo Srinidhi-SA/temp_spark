@@ -58,7 +58,7 @@ class LogisticRegressionScript:
         # confusion matrix keys are the predicted class
         self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
-        self._model_summary["model_accuracy"] = metrics.accuracy_score(objs["actual"], objs["predicted"])
+        self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
@@ -68,7 +68,7 @@ class LogisticRegressionScript:
         self._model_summary["target_variable"] = result_column
         self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
         self._model_summary["algorithm_name"] = "Logistic Regression"
-        self._model_summary["validation_method"] = "Cross Validation"
+        self._model_summary["validation_method"] = "Train and Test"
         self._model_summary["independent_variables"] = len(list(set(df.columns)-set([result_column])))
         self._model_summary["trained_model_features"] = self._column_separator.join(df.columns)
 
