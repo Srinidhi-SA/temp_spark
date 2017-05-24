@@ -108,6 +108,7 @@ class ChiSquareAnalysis:
                         minimum_observation = chisquare_result_contingency_table.get_value(j, i)
 
         self.table = chisquare_result_percentage_table_by_target
+        # self.table = chisquare_result_percentage_table
         for i in observations_by_target_categories.keys():
             if (maximum_std < numpy.std(observations_by_target_categories[i].values())):
                 maximum_std = numpy.std(observations_by_target_categories[i].values())

@@ -77,6 +77,7 @@ class DecisionTreeRegression:
                 if "Predict" in block2:
                     temp = float(block2.split(':')[1].strip())
                     self._predicts.append(temp)
+                    self._predicts.sort()
                 #     outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(':')[1].strip()))]
                 #     block2 = "Predict: %s" % (outcome)
                 block.append({'name':block2})
@@ -153,8 +154,6 @@ class DecisionTreeRegression:
             binned_colname = DFF.bucketize(self._splits, colname)
             target = self._map[float(target.strip())]['group']
             agg_result = DFF.get_aggregated_result(binned_colname,target)
-            print target
-            print agg_result
             for rows in agg_result:
                 if(self._label_code[rows[0]]==target):
                     success = rows[1]
@@ -169,10 +168,8 @@ class DecisionTreeRegression:
                 self._total[target].append(total)
                 self._success[target].append(success)
                 self._probability[target].append(success*100.0/total)
-                print 'X'*120
                 key = float(new_tree['name'][9:])
                 new_tree['name'] = 'Predict: ' + self._map[key]['group']
-                print new_tree
                 return new_tree
 
     @accepts(object, decision_tree = dict, target = str)
@@ -180,10 +177,11 @@ class DecisionTreeRegression:
         colname = target
         self._new_tree = {}
         self._new_tree['name'] = decision_tree['name']
-        self._new_tree['children']=[]
+        # self._new_tree['children']=[]
         for rules in decision_tree['children']:
-            if self._new_tree.has_key('children'):
-                self._new_tree['children'].append(self.extract_rules(rules=rules, colname=colname))
+            if not self._new_tree.has_key('children'):
+                self._new_tree['children']=[]
+            self._new_tree['children'].append(self.extract_rules(rules=rules, colname=colname))
             # else:
             #     self._new_tree['children']=[]
 
@@ -235,15 +233,11 @@ class DecisionTreeRegression:
         self.generate_probabilities(decision_tree, measures)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
-        decision_tree_result.set_params(decision_tree, self._new_rules, self._total, self._success, self._probability)
-        print self._map
-        print '*'*300
-        print decision_tree
-        print '\n\n\n'
-        print self._new_tree
+        decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         print '^'*100
+        # print 'TREE : ', {'tree':self._new_tree}
         print 'RULES : ' , self._new_rules
         print 'Total : ', self._total
         print 'Success : ', self._success
         print 'Probability : ', self._probability
-        return decision_tree_result
+        return {'tree':self._new_tree}
