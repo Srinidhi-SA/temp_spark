@@ -10,7 +10,7 @@ import operator
 import numpy
 import json
 from chisquare import ChiSquareAnalysis
-from chisquare_app1 import ChiSquareAnalysisApp1
+from chisquare_app2 import ChiSquareAnalysisApp2
 
 
 ###
@@ -66,11 +66,11 @@ class ChiSquareNarratives:
             summary2 = template.render(data_dict).replace("\n", "")
             summary2 = re.sub(' +',' ',summary2)
             self.narratives[target_dimension]['summary'] = [summary1,summary2]
-            if self._appid=='1' and num_significant_variables>5:
+            if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
             for analysed_dimension in significant_variables:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
-                if self._appid=='1':
-                    self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp1(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
+                if self._appid=='2':
+                    self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
                 else:
                     self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
