@@ -16,4 +16,4 @@ class Density_HistogramsScript:
         #histogram_data = utils.as_dict(binner.get_bins_for_all_measure_columns())
         histogram_data = utils.as_dict(binner.get_bins(self._dataframe_context.get_result_column()))
         print "%r" % histogram_data
-        DataWriter.write_dict_as_json(self._spark, histogram_data, self._dataframe_context.get_result_file()+'Density_Histogram/')
+        DataWriter.write_dict_as_json(self._spark, histogram_data, self._dataframe_context.get_result_file()+'DensityHistogram/')
