@@ -234,10 +234,10 @@ class DecisionTreeRegression:
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
-        print '^'*100
+        # print '^'*100
         # print 'TREE : ', {'tree':self._new_tree}
-        print 'RULES : ' , self._new_rules
-        print 'Total : ', self._total
-        print 'Success : ', self._success
-        print 'Probability : ', self._probability
-        return {'tree':self._new_tree}
+        # print 'RULES : ' , self._new_rules
+        # print 'Total : ', self._total
+        # print 'Success : ', self._success
+        # print 'Probability : ', self._probability
+        return decision_tree_result
