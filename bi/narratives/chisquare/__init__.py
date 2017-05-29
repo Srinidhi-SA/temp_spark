@@ -10,6 +10,7 @@ import operator
 import numpy
 import json
 from chisquare import ChiSquareAnalysis
+from chisquare_app2 import ChiSquareAnalysisApp2
 
 
 ###
@@ -25,13 +26,13 @@ class ChiSquareNarratives:
         self._df_chisquare = df_chisquare_result
         self._df_chisquare_result = df_chisquare_result.get_result()
         self.narratives = {}
-        self.appid = df_context.get_app_id()
+        self._appid = df_context.get_app_id()
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
-        if self.appid != None:
-            if self.appid == "1":
+        if self._appid != None:
+            if self._appid == "1":
                 self._base_dir += "appid1/"
-            elif self.appid == "2":
+            elif self._appid == "2":
                 self._base_dir += "appid2/"
         self._generate_narratives()
 
@@ -40,6 +41,8 @@ class ChiSquareNarratives:
 
             target_chisquare_result = self._df_chisquare_result[target_dimension]
             significant_variables = [dim for dim in target_chisquare_result.keys() if target_chisquare_result[dim].get_pvalue()<=0.05]
+            effect_sizes = [dim for dim in significant_variables if target_chisquare_result[dim].get_effect_size()]
+            significant_variables = [x for (x,y) in sorted(zip(effect_sizes,significant_variables),reverse=True)]
             #insignificant_variables = [i for i in self._df_chisquare_result[target_dimension] if i['pv']>0.05]
             num_analysed_variables = len(target_chisquare_result)
             num_significant_variables = len(significant_variables)
@@ -63,7 +66,11 @@ class ChiSquareNarratives:
             summary2 = template.render(data_dict).replace("\n", "")
             summary2 = re.sub(' +',' ',summary2)
             self.narratives[target_dimension]['summary'] = [summary1,summary2]
-
+            if self._appid=='2' and num_significant_variables>5:
+                significant_variables = significant_variables[:5]
             for analysed_dimension in significant_variables:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
-                self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self.appid)
+                if self._appid=='2':
+                    self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
+                else:
+                    self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)

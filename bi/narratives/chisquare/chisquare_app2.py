@@ -10,7 +10,17 @@ import operator
 import numpy
 import json
 
-class ChiSquareAnalysis:
+def combine(l):
+    if len(l) == 1:
+        return l[0]
+    elif len(l)==2:
+        return l[0]+' and '+l[1]
+    elif len(l)>2:
+        temp = ', '.join(l[:-1])+ ' and ' + l[-1]
+        return temp
+    return ''
+
+class ChiSquareAnalysisApp2:
     def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, appid=None):
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
@@ -88,7 +98,7 @@ class ChiSquareAnalysis:
         observations_by_target_categories = {}
         maximum_std = 0
         maximum_std_category = []
-        minimum_std = 1000000000
+        minimum_std = 1000000000000000
         minimum_std_category = []
 
         category_list = chisquare_result_percentage_table.column_one_values
@@ -114,21 +124,42 @@ class ChiSquareAnalysis:
                         minimum_observation = chisquare_result_contingency_table.get_value(j, i)
 
         self.table = chisquare_result_percentage_table_by_target
-        # self.table = chisquare_result_percentage_table
-        for i in observations_by_target_categories.keys():
-            if (maximum_std < numpy.std(observations_by_target_categories[i].values())):
-                maximum_std = numpy.std(observations_by_target_categories[i].values())
-                temp_max = 0
-                for j in observations_by_target_categories[i].keys():
-                    if temp_max < observations_by_target_categories[i][j]:
-                        temp_max = observations_by_target_categories[i][j]
 
-                        maximum_std_category = [i, j, temp_max*100/sum(observations_by_target_categories[i].values())]
-                    elif (minimum_std > numpy.std(observations_by_target_categories[i].values())):
-                        minimum_std = numpy.std(observations_by_target_categories[i].values())
-
-                        minimum_std_category = [i]
-
+        # for i in observations_by_target_categories.keys():
+        #     if (maximum_std < numpy.std(observations_by_target_categories[i].values())):
+        #         maximum_std = numpy.std(observations_by_target_categories[i].values())
+        #         temp_max = 0
+        #         for j in observations_by_target_categories[i].keys():
+        #             if temp_max < observations_by_target_categories[i][j]:
+        #                 temp_max = observations_by_target_categories[i][j]
+        #
+        #                 maximum_std_category = [i, j, temp_max*100/sum(observations_by_target_categories[i].values())]
+        #             elif (minimum_std > numpy.std(observations_by_target_categories[i].values())):
+        #                 minimum_std = numpy.std(observations_by_target_categories[i].values())
+        #
+        #                 minimum_std_category = [i]
+        maximums = {}
+        minimums = {}
+        for idx,t in enumerate(self.table.table):
+            present_cat = self.table.column_one_values[idx]
+            maxi = self.table.column_two_values[t.index(max(t))]
+            mini = self.table.column_two_values[t.index(min(t))]
+            if not maximums.has_key(maxi):
+                maximums[maxi]=[]
+            tmp = present_cat+ '(' + str(max(t)) + '%)'
+            maximums[maxi].append(tmp)
+            if not minimums.has_key(mini):
+                minimums[mini]=[]
+            tmp = present_cat+ '(' + str(min(t)) + '%)'
+            minimums[mini].append(tmp)
+        temp = {}
+        for k in maximums:
+            temp[k] = combine(maximums[k])
+        maximums = temp
+        temp = {}
+        for k in minimums:
+            temp[k] = combine(minimums[k])
+        minimums = temp
         data_dict = {
                       'num_variables' : num_analysed_variables,
                       'num_significant_variables' : len(significant_variables),
@@ -138,38 +169,27 @@ class ChiSquareAnalysis:
                       'fifty_percent_contribution' : round(half_observation_percent,2),
                       'lowest_contributor' : lowest_contributor,
                       'lowest_contributor_percent' : round(lowest_contributor_percent,2),
-                      'maximum_percent' : round(maximum_percent,2),
-                      'maximum_category' : maximum_category,
-                      'maximum_observation' : maximum_observation,
-                      'minimum_percent' : round(minimum_percent,2),
-                      'minimum_category' : minimum_category,
                       'num_categories' : num_categories,
                       'analysed_dimension' : analysed_dimension,
-                      'max_var' : maximum_std_category,
-                      'min_var' : minimum_std_category
+                      'maximums' : maximums,
+                      'minimums' : minimums
         }
-        # print "*" * 100
-        # print json.dumps(data_dict,indent=2)
-        # print "*" * 100
         templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
         templateEnv = jinja2.Environment( loader=templateLoader )
         template = templateEnv.get_template('chisquare_template3.temp')
         analysis1 = template.render(data_dict).replace("\n", "")
         analysis1 = re.sub(' +',' ',analysis1)
-        title1 = 'Concentration of ' + analysed_dimension
+        title1 = ''
         templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
         templateEnv = jinja2.Environment( loader=templateLoader )
         template = templateEnv.get_template('chisquare_template4.temp')
         analysis2 = template.render(data_dict).replace("\n", "")
         analysis2 = re.sub(' +',' ',analysis2)
-        if analysis2 != '':
-            title2 = 'Relationship between '+analysed_dimension+' and '+ target_dimension
-        else:
-            title2 = ''
+        title2 = ''
 
-        self.analysis = {'title1':title1,
+        self.analysis = {'title1':'',
                         'analysis1':analysis1,
-                        'title2':title2,
+                        'title2':'',
                         'analysis2':analysis2}
         # self.sub_heading = re.split(', whereas',analysis1)[0]
-        self.sub_heading = 'Relationship between '+analysed_dimension+' and '+ target_dimension
+        self.sub_heading = analysed_dimension.title()
