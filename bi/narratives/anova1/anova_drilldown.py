@@ -23,7 +23,6 @@ class AnovaDrilldownNarratives:
         self.df = df_helper.get_data_frame()
         self.analysis = {}
         self._generate_analysis()
-        # print self.analysis
 
 
     def get_aggregared_count(self, df, dimension_columns):
@@ -110,7 +109,7 @@ class AnovaDrilldownNarratives:
             highest_level_by_avg = max(anova_narr.group_by_mean,key=anova_narr.group_by_mean.get)
             highest_level_by_sum = max(anova_narr.group_by_total,key=anova_narr.group_by_total.get)
             # print highest_level_by_avg,highest_level_by_sum
-
+            self.analysis[dim] = {"sum":None,"avg":None}
             if highest_level_by_avg != highest_level_by_sum:
                 df_avg = df1.filter(df1[dim] == highest_level_by_avg)
                 inner_dict_avg = self.generate_inner_data_dict(highest_level_by_avg,df_avg,dim,self.dimension_columns,overall_aggregation,anova_narr)
@@ -131,11 +130,11 @@ class AnovaDrilldownNarratives:
 
                 narr_avg = template.render(data_dict["avg"]).replace("\n", "")
                 narr_avg = re.sub(' +',' ',narr_avg)
-                self.analysis[dim] = {"avg":narr_avg}
+                self.analysis[dim]["avg"] = narr_avg
 
                 narr_sum = template.render(data_dict["sum"]).replace("\n", "")
                 narr_sum = re.sub(' +',' ',narr_sum)
-                self.analysis[dim] = {"sum":narr_sum}
+                self.analysis[dim]["sum"] = narr_sum
             else:
                 df_avg = df1.filter(df1[dim] == highest_level_by_avg)
                 inner_dict = self.generate_inner_data_dict(highest_level_by_avg,df_avg,dim,self.dimension_columns,overall_aggregation,anova_narr)
@@ -149,4 +148,4 @@ class AnovaDrilldownNarratives:
                 template = templateEnv.get_template('anova_drilldown_avg.temp')
                 narr = template.render(data_dict["avg"]).replace("\n", "")
                 narr = re.sub(' +',' ',narr)
-                self.analysis[dim] = {"avg":narr}
+                self.analysis[dim]["avg"] = narr

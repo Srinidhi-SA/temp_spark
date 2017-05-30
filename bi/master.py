@@ -18,7 +18,7 @@ from bi.scripts.chisquare import ChiSquareScript
 from bi.scripts.decision_tree import DecisionTreeScript
 from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
-from bi.scripts.density_histogram import Density_HistogramsScript
+from bi.scripts.density_histogram import DensityHistogramsScript
 from bi.scripts.histogram import HistogramsScript
 from bi.scripts.one_way_anova import OneWayAnovaScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
@@ -91,9 +91,12 @@ def main(confFilePath):
                 freq_obj.Run()
                 print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
                 send_message_API(monitor_api, "FrequencyAnalysis", "FrequencyAnalysis Done", True, 100)
-            except:
+            except Exception as e:
                 print "Frequency Analysis Failed "
                 send_message_API(monitor_api, "FrequencyAnalysis", "FrequencyAnalysis Script Failed", False, 0)
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'FreqDimension/')
             print "Descriptive analysis Not in Scripts to run "
@@ -107,9 +110,12 @@ def main(confFilePath):
                 chisquare_obj.Run()
                 print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
-            except:
+            except Exception as e:
                 print "ChiSquare Analysis Failed "
                 send_message_API(monitor_api, "ChiSquare", "ChiSquare Failed", False, 0)
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'ChiSquare/')
             print "Dimension vs. Dimension Not in Scripts to run "
@@ -125,9 +131,12 @@ def main(confFilePath):
                 decision_tree_obj.Run()
                 print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "DecisionTrees", "DecisionTrees Done", True, 100)
-            except:
+            except Exception as e:
                 send_message_API(monitor_api, "DecisionTrees", "DecisionTrees script Failed", False, 0)
                 print "DecisionTrees Analysis Failed"
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTree/')
             print "Predictive modeling Not in Scripts to run"
@@ -144,11 +153,14 @@ def main(confFilePath):
                 descr_stats_obj.Run()
                 print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "DescriptiveStats", "DescriptiveStats Done", True, 100)
-            except:
+            except Exception as e:
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
                 send_message_API(monitor_api, "DescriptiveStats", "DescriptiveStats Failed", False, 0)
                 print 'Descriptive Failed'
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
 
             try:
                 fs = time.time()
@@ -156,21 +168,25 @@ def main(confFilePath):
                 histogram_obj.Run()
                 print "Histogram Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "Histogram", "Histogram Done", True, 100)
-            except:
+            except Exception as e:
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
                 send_message_API(monitor_api, "Histogram", "Histogram Failed", False, 0)
-
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
             try:
                 fs = time.time()
-                d_histogram_obj = Density_HistogramsScript(df, df_helper, dataframe_context, spark)
+                d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
                 d_histogram_obj.Run()
                 print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "Density Histogram", "Density Histogram Done", True, 100)
-            except:
+            except Exception as e:
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Density_Histogram/')
                 send_message_API(monitor_api, "Density Histogram", "Density Histogram Failed", False, 0)
                 print 'Density Histogram Failed'
-
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
@@ -193,11 +209,14 @@ def main(confFilePath):
                 two_way_obj.Run()
                 print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
-            except:
+            except Exception as e:
                 print 'Anova Failed'
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
                 send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Script Failed", False, 0)
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
@@ -217,19 +236,24 @@ def main(confFilePath):
                     regression_obj.Run()
                     print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     send_message_API(monitor_api, "Regression", "Regression Done", True, 100)
-                except:
+                except Exception as e:
                     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
                     send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
                     print 'Regression Failed'
+                    print "ERROR"*5
+                    print e
+                    print "ERROR"*5
 
-            except:
+            except Exception as e:
                 print 'Correlation Failed. Regression not executed'
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Correlation/')
                 send_message_API(monitor_api, "Correlation", "Correlation Failed", False, 0)
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Regression/')
                 send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
-
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
 
         else:
             print 'Regression not in Scripts to run'
@@ -245,10 +269,13 @@ def main(confFilePath):
             print "Trend Analysis Done in ", time.time() - fs, " seconds."
             send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
 
-        except:
+        except Exception as e:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
 
     elif analysistype == 'DecisionTreeRegression':
         fs = time.time()
@@ -270,31 +297,40 @@ def main(confFilePath):
             rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
             rf_obj.Train()
             print "Random Foreset Model Done in ", time.time() - st,  " seconds."
-        except:
+        except Exception as e:
             print "Random Foreset Model Failed"
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
 
         try:
             st = time.time()
             lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
-        except:
+        except Exception as e:
             print "Logistic Regression Model Failed"
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
 
         try:
             st = time.time()
             xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
             xgb_obj.Train()
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
-        except:
+        except Exception as e:
             print "Xgboost Model Failed"
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
 
     elif analysistype == 'Scoring':
         # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
-
         model_path = dataframe_context.get_model_path()
+        
         if "RandomForest" in model_path:
             st = time.time()
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)

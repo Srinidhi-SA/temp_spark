@@ -61,12 +61,15 @@ class AnovaNarratives:
             fs = time.time()
             try:
                 anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
-                drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self.df_helper, anova_narrative)
+                drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self._df_helper, anova_narrative)
                 self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
                 print "Drill Down Narrative Success"
-            except:
+            except Exception as e:
                 print "Drill Down Narrative Failed"
                 self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
+                print "DRILL DOWN ERROR"
+                print e
+                print "DRILL DOWN ERROR"
             print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
                 #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
             #self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),

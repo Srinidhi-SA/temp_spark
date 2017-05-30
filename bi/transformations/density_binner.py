@@ -17,7 +17,7 @@ Constants for Binner classes
 """
 
 
-class Density_Binner:
+class DensityBinner:
     '''
     Utility class for binning numeric columns of a data frame
     '''
