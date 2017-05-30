@@ -1,6 +1,7 @@
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql import functions as FN
 from pyspark.sql.types import DateType
+from pyspark.sql.types import DoubleType
 from pyspark.sql.types import TimestampType
 from decorators import accepts
 from datetime import datetime
@@ -21,6 +22,9 @@ class DataFrameFilterer:
                                 outputCol=self._bucket_name)
         splits.sort()
         bucketizer.setSplits(splits)
+        column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
+        if column_data_types[target_col] != DoubleType:
+            self._data_frame = self._data_frame.select(*[col(target_col).cast('double').alias(target_col) if column==target_col else column for column in self._data_frame.columns])
         self._data_frame = bucketizer.transform(self._data_frame)
         return self._bucket_name
 

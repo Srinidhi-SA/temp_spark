@@ -284,7 +284,9 @@ def main(confFilePath):
             dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-        except:
+        except Exception as e:
+            print '*'*250
+            print e
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
             send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
             print "Decision Tree Regression Script Failed"
@@ -331,7 +333,7 @@ def main(confFilePath):
         df = df.toPandas()
         df = df.dropna()
         model_path = dataframe_context.get_model_path()
-        
+
         if "RandomForest" in model_path:
             st = time.time()
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
