@@ -109,7 +109,7 @@ class AnovaDrilldownNarratives:
             highest_level_by_avg = max(anova_narr.group_by_mean,key=anova_narr.group_by_mean.get)
             highest_level_by_sum = max(anova_narr.group_by_total,key=anova_narr.group_by_total.get)
             # print highest_level_by_avg,highest_level_by_sum
-            self.analysis[dim] = {"sum":None,"avg":None}
+            self.analysis[dim] = {"sum":"","avg":""}
             if highest_level_by_avg != highest_level_by_sum:
                 df_avg = df1.filter(df1[dim] == highest_level_by_avg)
                 inner_dict_avg = self.generate_inner_data_dict(highest_level_by_avg,df_avg,dim,self.dimension_columns,overall_aggregation,anova_narr)
