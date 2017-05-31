@@ -8,6 +8,7 @@ from bi.common import DataFrameHelper
 from bi.common.datafilterer import DataFrameFilterer
 from bi.common.results import DecisionTreeResult
 from bi.common import utils
+from bi.narratives import utils as NarrativesUtils
 
 
 import json
@@ -108,7 +109,7 @@ class DecisionTreeRegression:
                 end = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.max(measure_column_name)).collect()[0][0]
             else:
                 end = (self._predicts[idx]+self._predicts[idx+1])/2
-            group_name = str(round(start,2)) + ' to ' + str(round(end,2))
+            group_name = NarrativesUtils.round_number(start,2) + ' to ' + NarrativesUtils.round_number(end,2)
             self._map[self._predicts[idx]] ={'start':start, 'end': end, 'group': group_name}
             self._label_code[label_code] = group_name
             start = end
