@@ -37,19 +37,10 @@ class LogisticRegressionScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
-        # train_test_ratio = float(self._dataframe_context.get_train_test_split())
-        # if train_test_ratio == None:
-        #     train_test_ratio = 0.7
 
-        # drop_column_list = []
-        # self._data_frame = self._data_frame.loc[:,[col for col in self._data_frame.columns if col not in drop_column_list]]
         levels = self._data_frame[result_column].unique()
         logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         logistic_regression_obj.set_number_of_levels(levels)
-        # df = MLUtils.factorize_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
-        # df = MLUtils.create_dummy_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
-        # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
-        # x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col != result_column]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
 
         clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
