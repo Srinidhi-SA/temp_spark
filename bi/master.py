@@ -28,6 +28,8 @@ from bi.scripts.random_forest import RandomForestScript
 from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
+from bi.algorithms import utils as MLUtils
+
 
 from parser import configparser
 
@@ -295,6 +297,12 @@ def main(confFilePath):
         # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
+        categorical_columns = df_helper.get_string_columns()
+        result_column = dataframe_context.get_result_column()
+        drop_column_list = []
+        df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
+        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        df_helper.set_train_test_data(df)
         try:
             st = time.time()
             rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)

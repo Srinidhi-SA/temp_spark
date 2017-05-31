@@ -14,6 +14,8 @@ import datetime as dt
 from functools import reduce
 from datetime import datetime
 import pandas as pd
+from sklearn.model_selection import train_test_split
+
 
 class DataFrameHelper:
     """
@@ -49,6 +51,7 @@ class DataFrameHelper:
         self.consider_columns = ""
         self._df_context = df_context
         self.measure_suggestions = []
+        self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
 
     def set_params(self):
 
@@ -117,6 +120,15 @@ class DataFrameHelper:
             self._sample_data_frame = self._data_frame.sample(False, 4000/float(self._data_frame.count()), seed=0)
         else:
             self._sample_data_frame = self._data_frame
+
+    def set_train_test_data(self,df):
+        df = df
+        result_column = self._df_context.get_result_column()
+        train_test_ratio = float(self._df_context.get_train_test_split())
+        if train_test_ratio == None:
+            train_test_ratio = 0.7
+        x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col != result_column]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+        self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
 
     def remove_nulls(self, col):
         self._data_frame = self._data_frame.na.drop(subset=col)
@@ -368,6 +380,14 @@ class DataFrameHelper:
             except ValueError as err:
                 pass
         return date_time_suggestions
+
+    def get_train_test_data(self):
+        train_test_data = self.train_test_data
+        x_train = train_test_data["x_train"]
+        x_test = train_test_data["x_test"]
+        y_train = train_test_data["y_train"]
+        y_test = train_test_data["y_test"]
+        return (x_train,x_test,y_train,y_test)
 
 class DataFrameColumnMetadata:
     @accepts(object, basestring, type(ColumnType.MEASURE), type(ColumnType.INTEGER))
