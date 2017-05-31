@@ -1,10 +1,10 @@
 
 from binner import Binner
 from quantizer import Quantizer
-from density_binner import Density_Binner
+from density_binner import DensityBinner
 
 __all__ = [
     'Binner',
     'Quantizer',
-    'Density_Binner'
+    'DensityBinner'
 ]

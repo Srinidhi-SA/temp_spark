@@ -8,6 +8,7 @@ from bi.common import DataFrameHelper
 from bi.common.datafilterer import DataFrameFilterer
 from bi.common.results import DecisionTreeResult
 from bi.common import utils
+from bi.narratives import utils as NarrativesUtils
 
 
 import json
@@ -108,7 +109,7 @@ class DecisionTreeRegression:
                 end = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.max(measure_column_name)).collect()[0][0]
             else:
                 end = (self._predicts[idx]+self._predicts[idx+1])/2
-            group_name = str(round(start,2)) + ' to ' + str(round(end,2))
+            group_name = NarrativesUtils.round_number(start,2) + ' to ' + NarrativesUtils.round_number(end,2)
             self._map[self._predicts[idx]] ={'start':start, 'end': end, 'group': group_name}
             self._label_code[label_code] = group_name
             start = end
@@ -234,10 +235,10 @@ class DecisionTreeRegression:
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
-        print '^'*100
+        # print '^'*100
         # print 'TREE : ', {'tree':self._new_tree}
-        print 'RULES : ' , self._new_rules
-        print 'Total : ', self._total
-        print 'Success : ', self._success
-        print 'Probability : ', self._probability
-        return {'tree':self._new_tree}
+        # print 'RULES : ' , self._new_rules
+        # print 'Total : ', self._total
+        # print 'Success : ', self._success
+        # print 'Probability : ', self._probability
+        return decision_tree_result

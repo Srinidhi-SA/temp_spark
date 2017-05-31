@@ -15,7 +15,7 @@
 
     The distribution is
         {% if skew == 0 %} <b>not skewed</b>, which means that there are nearly equal contributions from low-value as well as <b>high-value</b> {{col_name}} observations.
-        {% elif skew > 0 %} <b>positively skewed</b>, which implies that there is a significant chunk of <b>high-value</b> {{col_name}} observations.
-        {% else %} <b>negatively skewed</b>, which implies that there is a significant chunk of <b>low-value</b> {{col_name}} observations.
+        {% elif skew > 0 %} <b>positively skewed</b>, which implies that there is a significant chunk of <b>low-value</b> {{col_name}} observations.
+        {% else %} <b>negatively skewed</b>, which implies that there is a significant chunk of <b>high-value</b> {{col_name}} observations.
         {% endif %}
   {% endif %}
