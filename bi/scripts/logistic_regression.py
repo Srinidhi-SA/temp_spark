@@ -7,6 +7,7 @@ except:
 
 from sklearn.externals import joblib
 from sklearn import metrics
+from sklearn.model_selection import train_test_split
 
 from pyspark.sql import SQLContext
 from bi.common import utils
@@ -36,7 +37,7 @@ class LogisticRegressionScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
-        train_test_ratio = self._dataframe_context.get_train_test_split()
+        train_test_ratio = float(self._dataframe_context.get_train_test_split())
         if train_test_ratio == None:
             train_test_ratio = 0.7
 
@@ -47,7 +48,8 @@ class LogisticRegressionScript:
         logistic_regression_obj.set_number_of_levels(levels)
         # df = MLUtils.factorize_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
         df = MLUtils.create_dummy_columns(self._data_frame,[x for x in categorical_columns if x != result_column])
-        x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
+        # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
+        x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col != result_column]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
         clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
         objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])
 
