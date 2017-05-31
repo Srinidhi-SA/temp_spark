@@ -122,10 +122,11 @@ class DataFrameHelper:
             self._sample_data_frame = self._data_frame
 
     def set_train_test_data(self,df):
-        from bi.algorithms import utils as MLUtils
+        # from bi.algorithms import utils as MLUtils
         df = df
         result_column = self._df_context.get_result_column()
         train_test_ratio = float(self._df_context.get_train_test_split())
+        print train_test_ratio
         if train_test_ratio == None:
             train_test_ratio = 0.7
         x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col != result_column]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
