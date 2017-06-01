@@ -124,10 +124,9 @@ class ChiSquareAnalysis:
                         temp_max = observations_by_target_categories[i][j]
 
                         maximum_std_category = [i, j, temp_max*100/sum(observations_by_target_categories[i].values())]
-                    elif (minimum_std > numpy.std(observations_by_target_categories[i].values())):
-                        minimum_std = numpy.std(observations_by_target_categories[i].values())
-
-                        minimum_std_category = [i]
+            elif (minimum_std > numpy.std(observations_by_target_categories[i].values())):
+                minimum_std = numpy.std(observations_by_target_categories[i].values())
+                minimum_std_category = [i]
 
         data_dict = {
                       'num_variables' : num_analysed_variables,
