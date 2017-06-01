@@ -7,7 +7,7 @@ from pyspark.sql.types import StringType
 from pyspark.sql.types import *
 from pyspark.sql import DataFrame
 
-from bi.common import utils
+from bi.common import utils as CommonUtils
 from bi.common.datafilterer import DataFrameFilterer
 
 import datetime as dt
@@ -122,12 +122,15 @@ class DataFrameHelper:
             self._sample_data_frame = self._data_frame
 
     def set_train_test_data(self,df):
+        # from bi.algorithms import utils as MLUtils
         df = df
         result_column = self._df_context.get_result_column()
         train_test_ratio = float(self._df_context.get_train_test_split())
+        print train_test_ratio
         if train_test_ratio == None:
             train_test_ratio = 0.7
         x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col != result_column]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+        # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
 
     def remove_nulls(self, col):
@@ -139,7 +142,7 @@ class DataFrameHelper:
         used to convert dimension columns to measures takes input from config (measure suggestions).
         """
         try:
-            func = udf(lambda x: utils.tryconvert(x), FloatType())
+            func = udf(lambda x: CommonUtils.tryconvert(x), FloatType())
             self._data_frame = self._data_frame.select(*[func(c).alias(c) if c in self.measure_suggestions else c for c in self.columns])
             self._data_frame.schema.fields
         except:
@@ -321,8 +324,8 @@ class DataFrameHelper:
 
     def get_datetime_suggestions(self):
         self.date_time_suggestions = {}
-        formats = utils.dateTimeFormatsSupported()["formats"]
-        dual_checks = utils.dateTimeFormatsSupported()["dual_checks"]
+        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
+        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
 
         for dims in self.string_columns:
             row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
@@ -367,8 +370,8 @@ class DataFrameHelper:
 
     def get_datetime_format(self,colname):
         date_time_suggestions = {}
-        formats = utils.dateTimeFormatsSupported()["formats"]
-        dual_checks = utils.dateTimeFormatsSupported()["dual_checks"]
+        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
+        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
 
         row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
         x = row_vals[0][colname]

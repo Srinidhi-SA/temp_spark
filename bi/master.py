@@ -6,7 +6,7 @@ import ConfigParser
 import json
 import requests
 
-from bi.common import utils
+from bi.common import utils as CommonUtils
 from bi.common import DataLoader
 from bi.common import DataWriter
 from bi.common import DataFrameHelper
@@ -48,7 +48,7 @@ def send_message_API(monitor_api, task, message, complete, progress):
 def main(confFilePath):
     start_time = time.time()
     APP_NAME = 'mAdvisor'
-    spark = utils.get_spark_session(app_name=APP_NAME)
+    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
 
     config_file = confFilePath#sys.argv[1]

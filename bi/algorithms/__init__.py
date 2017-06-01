@@ -11,5 +11,5 @@ __all__ = [
     'RandomForest',
     'XgboostClassifier',
     "LogisticRegression",
-    "DecisionTreeRegression"
+    "DecisionTreeRegression",
 ]

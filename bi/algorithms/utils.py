@@ -127,7 +127,7 @@ def calculate_overall_precision_recall(actual,predicted):
     for val in classes:
         if val not in val_counts_predicted.keys():
             val_counts_predicted[val] = 0
-    
+
     prediction_split = {}
     for val in val_counts_predicted.keys():
         prediction_split[val] = round(val_counts_predicted[val]*100/float(len(predicted)),2)
