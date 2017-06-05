@@ -5,7 +5,7 @@ import pattern.en
 from bi.common.utils import accepts
 from bi.common.results import ChiSquareResult
 from bi.common.results import DFChiSquareResult
-# from bi.narratives.utils import NarrativesUtils
+from bi.narratives import utils as NarrativesUtils
 import operator
 import numpy
 import json
@@ -153,14 +153,14 @@ class ChiSquareAnalysis:
         templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
         templateEnv = jinja2.Environment( loader=templateLoader )
         template = templateEnv.get_template('chisquare_template3.temp')
-        analysis1 = template.render(data_dict).replace("\n", "")
-        analysis1 = re.sub(' +',' ',analysis1)
+        analysis1 = template.render(data_dict)
+        analysis1 = NarrativesUtils.clean_narratives(analysis1)
         title1 = 'Concentration of ' + analysed_dimension
         templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
         templateEnv = jinja2.Environment( loader=templateLoader )
         template = templateEnv.get_template('chisquare_template4.temp')
-        analysis2 = template.render(data_dict).replace("\n", "")
-        analysis2 = re.sub(' +',' ',analysis2)
+        analysis2 = template.render(data_dict)
+        analysis2 = NarrativesUtils.clean_narratives(analysis2)
         if analysis2 != '':
             title2 = 'Relationship between '+analysed_dimension+' and '+ target_dimension
         else:

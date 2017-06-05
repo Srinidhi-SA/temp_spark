@@ -3,7 +3,6 @@ import jinja2
 import re
 from collections import OrderedDict
 
-#from nltk import tokenize
 from bi.common.utils import accepts
 from bi.common.results.regression import RegressionResult
 from bi.common.results.correlation import CorrelationStats
@@ -73,13 +72,13 @@ class LinearRegressionNarrative:
         chart_output=''
         if any(reg_coeffs_present):
             chart_template = templateEnv.get_template('regression_template_2.temp')
-            chart_output = chart_template.render(data_dict).replace("\n", "")
-            chart_output = re.sub(' +',' ',chart_output)
+            chart_output = chart_template.render(data_dict)
+            chart_output = NarrativesUtils.clean_narratives(chart_output)
         self.summary = [output, chart_output]
 
         takeaway_template = templateEnv.get_template('regression_takeaway.temp')
-        takeaway_output = takeaway_template.render(data_dict).replace("\n", "")
-        takeaway_output = re.sub(' +',' ',takeaway_output)
+        takeaway_output = takeaway_template.render(data_dict)
+        takeaway_output = NarrativesUtils.clean_narratives(takeaway_output)
         self.key_takeaway = takeaway_output
 
 
@@ -134,11 +133,8 @@ class LinearRegressionNarrative:
             templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
             templateEnv = jinja2.Environment( loader=templateLoader )
             template = templateEnv.get_template('regression_template_3.temp')
-            output = template.render(data_dict).replace("\n", "")
-            output = re.sub(' +',' ',output)
-            output = re.sub(' ,',',',output)
-            output = re.sub(' \.','.',output)
-            output = re.sub('\( ','()',output)
+            output = template.render(data_dict)
+            output = NarrativesUtils.clean_narratives(output)
             lines=output
             '''
             lines1 = ''
@@ -184,111 +180,3 @@ class LinearRegressionNarrative:
             # sample_data = self._dataframe_helper.get_sample_data(cols, output_column, self._sample_size)
             # self.narratives[cols]['sample_data'] = sample_data[cols]
             # self.output_column_sample_data = sample_data[output_column]
-
-
-    # def _generate_analysis(self):
-    #     self.analysis.append(self._generate_correlation_comments())
-    #     self.analysis.append(self._generate_regression_coefficients_comments())
-
-    def _generate_regression_coefficients_comments(self):
-        lines = []
-        input_columns = self._regression_result.get_input_columns()
-
-        if len(input_columns) == 1:
-            lines.append('%s is the top influencers that explain a great magnitude of change in %s.'\
-                    %(input_columns[0],  self._regression_result.get_output_column()))
-        else:
-            lines.append('%s are the top influencers that explain a great magnitude of change in %s.'\
-                    %(", and".join([", ".join(input_columns[:-1]), input_columns[-1]]),  \
-                    self._regression_result.get_output_column()))
-
-        count = 0
-        for variable in reversed(input_columns):
-            try:
-                # print self._regression_result
-                coeff = self._regression_result.get_coeff(variable)
-                if coeff > 0:
-                    lines.append('One unit increase in %s results in %0.4f units of increase in %s.' \
-                            %(variable, coeff, self._regression_result.get_output_column()))
-                elif coeff < 0:
-                    lines.append('One unit increase in %s results in %0.4f units of decrease in %s.' \
-                            %(variable, coeff, self._regression_result.get_output_column()))
-                count += 1
-                if count > 2:
-                    break
-            except Exception, e:
-                print e
-
-
-        if len(lines) > 0:
-            return ' '.join(lines)
-
-
-        return ' '
-
-    def _generate_correlation_comments(self):
-        input_variables = self._regression_result.get_input_columns()
-        lines = []
-        positive_corr_comment_made = False
-        positive_strongly_correlated_vars = self._get_correlated_variables(input_variables,
-                                                                           LinearRegressionNarrative.STRONG_CORRELATION)
-        if positive_strongly_correlated_vars != None:
-            lines.append('The %s figures are positively & strongly correlated with %s.' \
-                    %(self._regression_result.get_output_column(), positive_strongly_correlated_vars))
-            lines.append('As %s increase, %s also increases sharply.' \
-                         %(positive_strongly_correlated_vars, self._regression_result.get_output_column()))
-            positive_corr_comment_made = True
-
-        if not positive_corr_comment_made:
-            positive_moderately_correlated_vars = self._get_correlated_variables(input_variables,
-                                                        LinearRegressionNarrative.MODERATE_CORRELATION)
-            if positive_moderately_correlated_vars != None:
-                lines.append('The %s figures are positively & moderately correlated with %s.' \
-                             %(self._regression_result.get_output_column(), positive_moderately_correlated_vars))
-                lines.append('As %s increases, %s also increases.' \
-                             % (positive_strongly_correlated_vars, self._regression_result.get_output_column()))
-
-        negative_corr_comment_made = False
-        negative_strongly_correlated_vars = self._get_correlated_variables(input_variables,
-                                                                           LinearRegressionNarrative.STRONG_CORRELATION,
-                                                                           positive_correlation=False)
-        if negative_strongly_correlated_vars != None:
-            lines.append('The %s figures are negatively & strongly correlated with %s.' \
-                         %(self._regression_result.get_output_column(), negative_strongly_correlated_vars))
-            lines.append('As %s increase, %s decreases sharply.' \
-                         %(negative_strongly_correlated_vars, self._regression_result.get_output_column()))
-            negative_corr_comment_made = True
-
-        if not negative_corr_comment_made:
-            negative_moderately_correlated_vars = self._get_correlated_variables(input_variables,
-                                                                LinearRegressionNarrative.MODERATE_CORRELATION,
-                                                                positive_correlation=False)
-            if negative_moderately_correlated_vars != None:
-                lines.append('The %s figures are negatively & moderately correlated with %s.' \
-                             %(self._regression_result.get_output_column(), negative_moderately_correlated_vars))
-                lines.append('As %s increase, %s decreases.' \
-                             %(negative_moderately_correlated_vars, self._regression_result.get_output_column()))
-
-        if len(lines) > 0:
-            return ' '.join(lines)
-
-        return ' '
-
-
-    def _get_correlated_variables(self, variables, correlation_threshold, positive_correlation=True):
-        input_vars = None
-        if positive_correlation:
-            input_vars = [var for var in variables \
-                    if self._column_correlations.get_correlation(var) != None and \
-                    self._column_correlations.get_correlation(var).get_correlation() >= correlation_threshold]
-        else:
-            input_vars = [var for var in variables \
-                    if self._column_correlations.get_correlation(var) != None and \
-                    -1 * self._column_correlations.get_correlation(var).get_correlation() >= correlation_threshold]
-
-        if len(input_vars) == 0:
-            return None
-        elif len(input_vars) == 1:
-            return input_vars[0]
-        else:
-            return ", and ".join([", ".join(input_vars[:-1]), input_vars[-1]])

@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 from bi.narratives.anova1.anova import OneWayAnovaNarratives
 from anova_drilldown import AnovaDrilldownNarratives
-import bi.narratives.utils as NarrativeUtils
+from bi.narratives import utils as NarrativesUtils
 
 class AnovaNarratives:
     ALPHA = 0.05
@@ -73,9 +73,9 @@ class AnovaNarratives:
                 print e
                 print "DRILL DOWN ERROR"
             print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
-                self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
-            self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
-                                       key = lambda kv: kv[1]['effect_size'], reverse=True))
+            # self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
+            # self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
+            #                            key = lambda kv: kv[1]['effect_size'], reverse=True))
             sorted_dim=[]
             for key,value in sorted(effect_sizes.iteritems(),key = lambda (k,v):(v,k)):
                 sorted_dim.append(key)
@@ -92,17 +92,17 @@ class AnovaNarratives:
             templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
             templateEnv = jinja2.Environment( loader=templateLoader )
             template = templateEnv.get_template('anova_template_1.temp')
-            output = template.render(data_dict).replace("\n", "")
-            output = re.sub(' +',' ',output)
+            output = template.render(data_dict)
+            output = NarrativesUtils.clean_narratives(output)
             chart_template = templateEnv.get_template('anova_template_2.temp')
-            output_chart = chart_template.render(data_dict).replace("\n", "")
-            output_chart = re.sub(' +',' ',output_chart)
+            output_chart = chart_template.render(data_dict)
+            output_chart = NarrativesUtils.clean_narratives(output_chart)
             self.narratives[measure_column][AnovaNarratives.KEY_SUMMARY] = [output,output_chart]
 
             takeaway = ''
             templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
             templateEnv = jinja2.Environment( loader=templateLoader )
             template = templateEnv.get_template('anova_takeaway.temp')
-            takeaway = template.render(data_dict).replace("\n", "")
-            takeaway = re.sub(' +',' ',takeaway)
+            takeaway = template.render(data_dict)
+            takeaway = NarrativesUtils.clean_narratives(takeaway)
             self.narratives[measure_column][AnovaNarratives.KEY_TAKEAWAY] = takeaway

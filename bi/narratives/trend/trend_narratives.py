@@ -144,8 +144,6 @@ class TrendNarrative:
         templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
         templateEnv = jinja2.Environment( loader=templateLoader )
         template = templateEnv.get_template('trend_summary.temp')
-        output = template.render(dataDict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
+        output = template.render(dataDict)
+        output = NarrativesUtils.clean_narratives(output)
         return output

@@ -77,10 +77,8 @@ class DimensionColumnNarrative:
         templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
         templateEnv = jinja2.Environment( loader=templateLoader )
         template = templateEnv.get_template('dimension_report_summary.temp')
-        output = template.render(data_dict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
+        output = template.render(data_dict)
+        output = NarrativesUtils.clean_narratives(output)
         self.summary = output.split(data_dict["separator"])
         self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
 
@@ -138,16 +136,12 @@ class DimensionColumnNarrative:
         templateEnv = jinja2.Environment( loader=templateLoader )
 
         template1 = templateEnv.get_template('dimension_distribution1.temp')
-        output1 = template1.render(data_dict).replace("\n", "")
-        output1 = re.sub(' +',' ',output1)
-        output1 = re.sub(' ,',',',output1)
-        output1 = re.sub(' \.','.',output1)
+        output1 = template1.render(data_dict)
+        output1 = NarrativesUtils.clean_narratives(output1)
 
         template2 = templateEnv.get_template('dimension_distribution2.temp')
-        output2 = template2.render(data_dict).replace("\n", "")
-        output2 = re.sub(' +',' ',output2)
-        output2 = re.sub(' ,',',',output2)
-        output2 = re.sub(' \.','.',output2)
+        output2 = template2.render(data_dict)
+        output2 = NarrativesUtils.clean_narratives(output2)
         lines.append(output1)
         lines.append(output2)
         return lines
@@ -176,8 +170,6 @@ class DimensionColumnNarrative:
         if len(uniq_val) == 1:
             data_dict["count"] = uniq_val[0]
         if len(data_dict["keys"]) >= 3:
-            #percent_75 = np.percentile(count.values(),75)
-            #kv=[(freq_dict[colname][colname][key],count[key]) for key in count.keys()]
             percent_75 = sum(count.values())*0.75
             kv = sorted(count.items(),key = operator.itemgetter(1),reverse=True)
             kv_75 = [(k,v) for k,v in kv if v <= percent_75]
@@ -203,16 +195,12 @@ class DimensionColumnNarrative:
         templateEnv = jinja2.Environment( loader=templateLoader )
 
         template1 = templateEnv.get_template('dimension_distribution1.temp')
-        output1 = template1.render(data_dict).replace("\n", "")
-        output1 = re.sub(' +',' ',output1)
-        output1 = re.sub(' ,',',',output1)
-        output1 = re.sub(' \.','.',output1)
+        output1 = template1.render(data_dict)
+        output1 = NarrativesUtils.clean_narratives(output1)
 
         template2 = templateEnv.get_template('dimension_distribution2.temp')
-        output2 = template2.render(data_dict).replace("\n", "")
-        output2 = re.sub(' +',' ',output2)
-        output2 = re.sub(' ,',',',output2)
-        output2 = re.sub(' \.','.',output2)
+        output2 = template2.render(data_dict)
+        output2 = NarrativesUtils.clean_narratives(output2)
         lines.append(output1)
         lines.append(output2)
         return lines

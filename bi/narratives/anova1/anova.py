@@ -11,6 +11,7 @@ from bi.stats import TuckeyHSD
 
 from bi.narratives import utils as NarrativesUtils
 
+
 class OneWayAnovaNarratives:
     THRESHHOLD_TOTAL = 0.75
     ALPHA = 0.05
@@ -27,8 +28,6 @@ class OneWayAnovaNarratives:
         self.analysis = None
         self.largest_volume = []
         self.largest_average = []
-
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
         self._generate_narratives()
         self.sub_heading = self.get_sub_heading()
@@ -136,9 +135,6 @@ class OneWayAnovaNarratives:
         templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
         templateEnv = jinja2.Environment( loader=templateLoader )
         template = templateEnv.get_template('anova_template_3.temp')
-        output = template.render(data_dict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
-        output = re.sub('\( ','(',output)
+        output = template.render(data_dict)
+        output = NarrativesUtils.clean_narratives(output)
         self.analysis = output
