@@ -10,6 +10,7 @@ from collections import OrderedDict
 
 from bi.narratives.anova1.anova import OneWayAnovaNarratives
 from anova_drilldown import AnovaDrilldownNarratives
+import bi.narratives.utils as NarrativeUtils
 
 class AnovaNarratives:
     ALPHA = 0.05
@@ -59,22 +60,22 @@ class AnovaNarratives:
                 narrative = OneWayAnovaNarratives(measure_column, dimension_column, anova_result)
                 self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column] = narrative
                 self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
-            # fs = time.time()
-            # try:
-                # anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
-                # drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self._df_helper, anova_narrative)
-                # self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
-                # print "Drill Down Narrative Success"
-            # except Exception as e:
-                # print "Drill Down Narrative Failed"
-                # self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
-                # print "DRILL DOWN ERROR"
-                # print e
-                # print "DRILL DOWN ERROR"
-            # print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
-                #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
-            #self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
-            #                            key = lambda kv: kv[1]['effect_size'], reverse=True))
+            fs = time.time()
+            try:
+                anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
+                drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self._df_helper, anova_narrative)
+                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
+                print "Drill Down Narrative Success"
+            except Exception as e:
+                print "Drill Down Narrative Failed"
+                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
+                print "DRILL DOWN ERROR"
+                print e
+                print "DRILL DOWN ERROR"
+            print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
+                self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
+            self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
+                                       key = lambda kv: kv[1]['effect_size'], reverse=True))
             sorted_dim=[]
             for key,value in sorted(effect_sizes.iteritems(),key = lambda (k,v):(v,k)):
                 sorted_dim.append(key)
@@ -96,8 +97,6 @@ class AnovaNarratives:
             chart_template = templateEnv.get_template('anova_template_2.temp')
             output_chart = chart_template.render(data_dict).replace("\n", "")
             output_chart = re.sub(' +',' ',output_chart)
-            #anova_1_and_2 = output +"\n"+ output_chart
-            #print anova_1_and_2
             self.narratives[measure_column][AnovaNarratives.KEY_SUMMARY] = [output,output_chart]
 
             takeaway = ''

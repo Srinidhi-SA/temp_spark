@@ -30,6 +30,13 @@ def round_number(num, digits, as_string=True):
         return result+decs
     return result
 
+def clean_narratives(output):
+    output = re.sub('\n',' ',output)
+    output = re.sub(' +',' ',output)
+    output = re.sub(' ,',',',output)
+    output = re.sub(' \.','.',output)
+    output = re.sub('\( ','(',output)
+
 def clean_result_text(text):
     return str.replace("\n", "")
 
