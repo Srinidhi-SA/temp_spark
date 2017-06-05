@@ -3,6 +3,9 @@
 Utility functions to be used by various narrative objects
 """
 import re
+import enchant
+import jinja2
+import pattern
 
 def round_number(num, digits, as_string=True):
     millions = 0
@@ -39,11 +42,47 @@ def clean_narratives(output):
     output = re.sub('\( ','(',output)
     return output
 
+def get_template_output(base_dir, template_file, data_dict):
+    templateLoader = jinja2.FileSystemLoader( searchpath=base_dir)
+    templateEnv = jinja2.Environment( loader=templateLoader )
+    template = templateEnv.get_template(template_file)
+    output = template.render(data_dict)
+    return clean_narratives(output)
+
 def clean_result_text(text):
     return str.replace("\n", "")
 
-def pluraize(text):
-    return pattern.en.pluralize(text)
+def get_plural_word(text):
+    d = enchant.Dict("en_US")
+    if text == text.upper():
+        plural = text.lower()
+        plural = pattern.en.pluralize(text)
+        if d.check(plural):
+            plural = plural.upper()
+        else:
+            plural = text
+    elif text == text.title():
+        plural = text.lower()
+        plural = pattern.en.pluralize(text)
+        if d.check(plural):
+            plural = plural.title()
+        else:
+            plural = text
+    else:
+        plural = pattern.en.pluralize(text)
+        if not d.check(plural):
+            plural = text
+    return plural
+
+def pluralize(text):
+    matches=[m.start() for m in re.finditer('[^a-zA-Z]', text)]
+    if(len(matches)>0):
+        br = matches[-1]+1
+        text = text[:br]+get_plural_word(text[br:])
+    else:
+        text = get_plural_word(text)
+    return text
+
 
 def parse_leaf_name(name):
     return name[9:]

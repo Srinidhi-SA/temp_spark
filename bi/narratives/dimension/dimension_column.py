@@ -74,11 +74,8 @@ class DimensionColumnNarrative:
                     "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns),
                     "separator" : "~~"
         }
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('dimension_report_summary.temp')
-        output = template.render(data_dict)
-        output = NarrativesUtils.clean_narratives(output)
+        output = NarrativesUtils.get_template_output(self._base_dir,\
+                                        'dimension_report_summary.temp',data_dict)
         self.summary = output.split(data_dict["separator"])
         self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
 
@@ -89,7 +86,7 @@ class DimensionColumnNarrative:
         freq_dict = json.loads(freq_dict)
         colname = self._colname
         data_dict = {"colname":self._colname}
-        data_dict["plural_colname"] = pattern.en.pluralize(data_dict["colname"])
+        data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']
 
         max_key = max(count,key=count.get)
@@ -132,16 +129,10 @@ class DimensionColumnNarrative:
             self.subheader = "Top %d %s account for more than three quarters (%d percent) of observations." % (data_dict["kv_75"],data_dict["plural_colname"],data_dict["percent_contr"])
         else:
             self.subheader = ""
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-
-        template1 = templateEnv.get_template('dimension_distribution1.temp')
-        output1 = template1.render(data_dict)
-        output1 = NarrativesUtils.clean_narratives(output1)
-
-        template2 = templateEnv.get_template('dimension_distribution2.temp')
-        output2 = template2.render(data_dict)
-        output2 = NarrativesUtils.clean_narratives(output2)
+        output1 =  NarrativesUtils.get_template_output(self._base_dir,\
+                                                'dimension_distribution1.temp',data_dict)
+        output2 = NarrativesUtils.get_template_output(self._base_dir,\
+                                                'dimension_distribution2.temp',data_dict)
         lines.append(output1)
         lines.append(output2)
         return lines
@@ -153,7 +144,7 @@ class DimensionColumnNarrative:
         freq_dict = json.loads(freq_dict)
         colname = self._colname
         data_dict = {"colname":self._colname}
-        data_dict["plural_colname"] = pattern.en.pluralize(data_dict["colname"])
+        data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']
 
         max_key = max(count,key=count.get)
@@ -191,16 +182,10 @@ class DimensionColumnNarrative:
         smallest_per = round(data_dict["min"]["val"]/float(sum(count.values())),2)*100
         self.count = {"largest" :[largest_text,str(round(largest_per,0))+'%'],"smallest" : [smallest_text,str(round(smallest_per,0))+'%']}
         self.subheader = "Snapshot of "+data_dict["colname"]
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-
-        template1 = templateEnv.get_template('dimension_distribution1.temp')
-        output1 = template1.render(data_dict)
-        output1 = NarrativesUtils.clean_narratives(output1)
-
-        template2 = templateEnv.get_template('dimension_distribution2.temp')
-        output2 = template2.render(data_dict)
-        output2 = NarrativesUtils.clean_narratives(output2)
+        output1 =  NarrativesUtils.get_template_output(self._base_dir,\
+                                                'dimension_distribution1.temp',data_dict)
+        output2 = NarrativesUtils.get_template_output(self._base_dir,\
+                                                'dimension_distribution2.temp',data_dict)
         lines.append(output1)
         lines.append(output2)
         return lines

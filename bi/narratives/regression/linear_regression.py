@@ -60,26 +60,19 @@ class LinearRegressionNarrative:
                     'nsm': non_sig_measures,
                     "cm": self._regression_result.get_output_column()
         }
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('regression_template_1.temp')
-        output = template.render(data_dict).replace("\n", "")
-        output = re.sub(' +',' ',output)
+        output = NarrativesUtils.get_template_output(self._base_dir,\
+                                                        'regression_template_1.temp',data_dict)
         # print output
         reg_coeffs_present = []
         for cols in self._regression_result.get_input_columns():
             reg_coeffs_present.append(self._regression_result.get_coeff(cols)!=0)
         chart_output=''
         if any(reg_coeffs_present):
-            chart_template = templateEnv.get_template('regression_template_2.temp')
-            chart_output = chart_template.render(data_dict)
-            chart_output = NarrativesUtils.clean_narratives(chart_output)
+            chart_output = NarrativesUtils.get_template_output(self._base_dir,\
+                                                            'regression_template_2.temp',data_dict)
         self.summary = [output, chart_output]
-
-        takeaway_template = templateEnv.get_template('regression_takeaway.temp')
-        takeaway_output = takeaway_template.render(data_dict)
-        takeaway_output = NarrativesUtils.clean_narratives(takeaway_output)
-        self.key_takeaway = takeaway_output
+        self.key_takeaway = NarrativesUtils.get_template_output(self._base_dir,\
+                                                        'regression_takeaway.temp',data_dict)
 
 
     def _generate_analysis(self):
@@ -130,12 +123,8 @@ class LinearRegressionNarrative:
                 "abs_coeffs2": [abs(l) for l in mvd_result['coefficients2']]
             }
             '''
-            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-            templateEnv = jinja2.Environment( loader=templateLoader )
-            template = templateEnv.get_template('regression_template_3.temp')
-            output = template.render(data_dict)
-            output = NarrativesUtils.clean_narratives(output)
-            lines=output
+            lines=NarrativesUtils.get_template_output(self._base_dir,\
+                                                            'regression_template_3.temp',data_dict)
             '''
             lines1 = ''
             if mvd_result['dimension']!='':

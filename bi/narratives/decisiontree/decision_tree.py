@@ -46,7 +46,7 @@ class DecisionTreeNarrative:
         rules = self._decision_rules_dict
         colname = self._colname
         data_dict = {"dimension_name":self._colname}
-        data_dict["plural_colname"] = pattern.en.pluralize(data_dict["dimension_name"])
+        data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
         data_dict["significant_vars"] = []
         rules_dict = self.table
         self.condensedTable={}
@@ -56,17 +56,10 @@ class DecisionTreeNarrative:
                 rules1 = self._generate_rules(target,rule)
                 self.condensedTable[target].append(rules1)
         self.dropdownValues = rules_dict.keys()
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('decision_rule_summary.temp')
-        output = template.render(data_dict)
-        output = NarrativesUtils.clean_narratives(output)
-
-        template = templateEnv.get_template('decision_tree_summary.temp')
-        output1 = template.render(data_dict)
-        output1 = NarrativesUtils.clean_narratives(output)
-        self.dropdownComment = output
-        self.subheader = output1
+        self.dropdownComment = NarrativesUtils.get_template_output(self._base_dir,\
+                                                    'decision_rule_summary.temp',data_dict)
+        self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
+                                        'decision_tree_summary.temp',data_dict)
 
     def _generate_rules(self,target,rules):
         colname = self._colname

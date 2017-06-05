@@ -89,14 +89,8 @@ class AnovaNarratives:
                 'd' : significant_dimensions+insignificant_dimensions,
                 'dims' : sorted_dim
             }
-            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-            templateEnv = jinja2.Environment( loader=templateLoader )
-            template = templateEnv.get_template('anova_template_1.temp')
-            output = template.render(data_dict)
-            output = NarrativesUtils.clean_narratives(output)
-            chart_template = templateEnv.get_template('anova_template_2.temp')
-            output_chart = chart_template.render(data_dict)
-            output_chart = NarrativesUtils.clean_narratives(output_chart)
+            output = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.temp',data_dict)
+            output_chart = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.temp',data_dict)
             self.narratives[measure_column][AnovaNarratives.KEY_SUMMARY] = [output,output_chart]
 
             takeaway = ''

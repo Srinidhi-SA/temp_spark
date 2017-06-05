@@ -150,17 +150,9 @@ class ChiSquareAnalysis:
         # print "*" * 100
         # print json.dumps(data_dict,indent=2)
         # print "*" * 100
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('chisquare_template3.temp')
-        analysis1 = template.render(data_dict)
-        analysis1 = NarrativesUtils.clean_narratives(analysis1)
+        analysis1 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template3.temp',data_dict)
+        analysis2 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template4.temp',data_dict)
         title1 = 'Concentration of ' + analysed_dimension
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('chisquare_template4.temp')
-        analysis2 = template.render(data_dict)
-        analysis2 = NarrativesUtils.clean_narratives(analysis2)
         if analysis2 != '':
             title2 = 'Relationship between '+analysed_dimension+' and '+ target_dimension
         else:
