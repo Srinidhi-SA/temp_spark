@@ -8,6 +8,7 @@ from two_way_anova import DFTwoWayAnovaResult
 from two_way_anova import MeasureAnovaResult
 from two_way_anova import TwoWayAnovaResult
 from two_way_anova import OneWayAnovaResult
+from two_way_anova import TopDimensionStats
 
 from correlation import ColumnCorrelations
 from correlation import CorrelationStats
@@ -48,5 +49,5 @@ __all__ = [
     # chisquare
     'ChiSquareResult', 'FreqDimensionResult', 'DecisionTreeResult',
     # two_way_anova
-    'DFTwoWayAnovaResult', 'MeasureAnovaResult', 'TwoWayAnovaResult' , 'OneWayAnovaResult'
+    'DFTwoWayAnovaResult', 'MeasureAnovaResult', 'TwoWayAnovaResult' , 'OneWayAnovaResult','TopDimensionStats',
 ]
