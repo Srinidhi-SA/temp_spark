@@ -1,0 +1,53 @@
+PARASEPARATOR
+How Sales is Changing over Time
+PARAHEADER
+This section provides insights on how Sales is performing over time and
+captures the most significant moments that defined the overall pattern or trend
+over the observation period.
+
+PARASEPARATOR
+
+The dataset contains sales figures for a 12-month period. The values of sales have grown by 232% during the same time, from $4,406 in Jan 2014 to $14,628 in Dec 2014.  The total sales were $146,516 for the last 12 months, with the average sales per month being $12,209.  Interestingly, the sales contribution from a streak of 3 months (Aug-Oct) amounts to a total of $651,037, which is almost half of the overall sales for the 12-month period.
+
+PARASEPARATOR
+
+Driven by the strong increase, sales seem to be on positive trend which is statistically significant.  However, the sales figures are unlikely to follow a seasonal pattern during this period.
+PARASEPARATOR
+
+Highest and Lowest Points of Sales
+PARAHEADER
+The sales figures hit a peak of $25,306 in Aug 2014, which resulted after a continuous streak of growth for 2 months (Jul-Aug).  The most significant factor that fuelled this strong run is the product category, Local Deals.  Sales contribution from Local Deals in Aug 2014 increased by over 4 percentage points (18% vis-à-vis 13.6%) compared to rest of the observation period.
+
+PARASEPARATOR
+However, there are also few months when sales were lagging and didn’t do very well. The most notable among them was Jun 2014 and values for sales dropped to $9,263 from 12,263 in May 2014. This was primarily due to sharp decline in sales from 18 to 24 Age Group, which observed a decline of over 6 percentage points (21% vs. 15%).
+PARASEPARATOR
+
+Significant factors that drive increase in Sales
+PARAHEADER
+The largest increase in terms of percentage observed in Feb 2016, when it sharply rose by 128% (from $4,406 to $10,085).  The largest increase in terms of absolute value observed in Feb 2016, when it sharply rose by $5,250 (from $4,400 to $9,650). While there were many ups and downs, the longest streak of continuous increase (by absolute value) was experienced between Jun 2014 and Aug 2014, when it increased from $9,263 to $14,628.
+LINESEPARATOR
+
+City has been very instrumental in driving sales growth, as New York and Chicago witnessed the highest overall growth rates of 50% and 38% respectively.
+
+BULLETSEPARATOR
+
+Product categories, such as Vegetables (35%) and Diary (32%), were also contributing significantly to the overall increase.
+
+PARASEPARATOR
+
+Significant factors that drag Sales down
+PARAHEADER
+The largest decrease in terms of percentage observed in Apr 2016, when it declined by 40% (from $10,406 to $6,085).  The largest decrease in terms of absolute value observed in Oct 2016, when it fell by $5,250 (from $9,800 to $4,650). While there were many ups and downs, the longest streak of continuous decrease (by absolute value) was experienced between Jun 2014 and Aug 2014, when it increased from $9,263 to $14,628.
+LINESEPARATOR
+
+Deal Type has been an area of concern, as Adventures and Gourmet shrunk over 56% and 43% respectively.
+
+BULLETSEPARATOR
+
+45 to 54 age group declined by 25% from $10,350 to $7,800 and it had a significant impact on overall growth as the age group accounted for 30% of the total sales in Jan 2014,
+
+PARASEPARATOR
+
+Forecast for the next 6 months
+PARAHEADER
+The predicted values for sales, estimated based on historical trend and seasonality, for the next six months lie between $12,960 and $13,383.  It is expected to cross 13,000-mark in Feb 2015 and generate total sales of about $13,383 in Jun 2015, which represents an overall decli ne of 9% (CAGR).
