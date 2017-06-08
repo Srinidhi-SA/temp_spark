@@ -10,6 +10,8 @@ class DFTwoWayAnovaResult:
         return self.result[measure].get_anova_result(dimension)
     def add_measure_result(self,measure,Measure_Anova_Result):
         self.result[measure] = Measure_Anova_Result
+    def add_trend_result(self, measure, trend_result):
+        self.result[measure].set_TrendResult(trend_result)
     def get_measure_result(self, measure):
         return self.result[measure]
     def get_measure_columns(self):
@@ -23,6 +25,7 @@ class MeasureAnovaResult:
         self.df = var[0] - 1
         self.sst = float(sst)
         self.OneWayAnovaResult = {}
+        self.TrendResult = None
         #self.TwoWayAnovaResult = {}
 
     def get_anova_result(self,dimension):
@@ -30,6 +33,9 @@ class MeasureAnovaResult:
 
     def get_dimensions_analyzed(self):
         return self.OneWayAnovaResult.keys()
+
+    def set_TrendResult(self, trend_result):
+        self.TrendResult = trend_result
 
     def set_OneWayAnovaResult(self, dimension, var, sse):
         self.OneWayAnovaResult[dimension] = OneWayAnovaResult(var, self.global_mean, sse, self.sst)
@@ -144,6 +150,9 @@ class TopDimensionStats:
         if self.p_value[dimension]<=0.05:
             self.compute_contributions(dimension,var)
 
+    def get_p_value(self, dimension):
+        return self.p_value[dimension]
+
     def compute_contributions(self, dimension, var):
         var = var.sort_values('total', ascending = False)
         cumsums = var.total.cumsum()
@@ -222,3 +231,18 @@ class OneWayAnovaResult:
 
     def is_statistically_significant(self,alpha=0.05):
         return self.p_value <= alpha
+
+class TrendResult:
+    def __init__(self, agg_data_frame, date_field, measure):
+        self._data_frame = agg_data_frame
+        self._dimension_results = {}
+        self._date_field = date_field
+        self._measure = measure
+
+    def add_trend_result(self,dimension, agg_data_frame, agg_data_frame_dimension):
+        self._dimension_results[dimension] = Trend_Dimenion_Result(agg_data_frame, agg_data_frame_dimension)
+
+class Trend_Dimenion_Result:
+    def __init__(self, agg_data_frame, agg_data_frame_dimension):
+        self._data_frame = agg_data_frame
+        self._grouped_data_frame = agg_data_frame_dimension

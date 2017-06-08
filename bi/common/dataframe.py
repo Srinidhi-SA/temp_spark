@@ -52,6 +52,7 @@ class DataFrameHelper:
         self._df_context = df_context
         self.measure_suggestions = []
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
+        self._date_formats = {}
 
     def set_params(self):
 
@@ -369,20 +370,24 @@ class DataFrameHelper:
         #return self._data_frame.collect()
 
     def get_datetime_format(self,colname):
-        date_time_suggestions = {}
-        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
-        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
+        if self._date_formats.has_key(colname):
+            return self._date_formats[colname]
+        else:
+            date_time_suggestions = {}
+            formats = CommonUtils.dateTimeFormatsSupported()["formats"]
+            dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
 
-        row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
-        x = row_vals[0][colname]
-        for format1 in formats:
-            try:
-                t = datetime.strptime(x,format1)
-                date_time_suggestions[colname] = format1
-                break
-            except ValueError as err:
-                pass
-        return date_time_suggestions
+            row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
+            x = row_vals[0][colname]
+            for format1 in formats:
+                try:
+                    t = datetime.strptime(x,format1)
+                    date_time_suggestions[colname] = format1
+                    self._date_formats[colname] = format1
+                    break
+                except ValueError as err:
+                    pass
+            return date_time_suggestions
 
     def get_train_test_data(self):
         train_test_data = self.train_test_data
