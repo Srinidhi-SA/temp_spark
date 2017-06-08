@@ -2,6 +2,10 @@
 """
 Utility functions to be used by various narrative objects
 """
+import re
+import enchant
+import jinja2
+import pattern
 
 def round_number(num, digits, as_string=True):
     millions = 0
@@ -30,11 +34,55 @@ def round_number(num, digits, as_string=True):
         return result+decs
     return result
 
+def clean_narratives(output):
+    output = re.sub('\n',' ',output)
+    output = re.sub(' +',' ',output)
+    output = re.sub(' ,',',',output)
+    output = re.sub(' \.','.',output)
+    output = re.sub('\( ','(',output)
+    return output
+
+def get_template_output(base_dir, template_file, data_dict):
+    templateLoader = jinja2.FileSystemLoader( searchpath=base_dir)
+    templateEnv = jinja2.Environment( loader=templateLoader )
+    template = templateEnv.get_template(template_file)
+    output = template.render(data_dict)
+    return clean_narratives(output)
+
 def clean_result_text(text):
     return str.replace("\n", "")
 
-def pluraize(text):
-    return pattern.en.pluralize(text)
+def get_plural_word(text):
+    d = enchant.Dict("en_US")
+    if text == text.upper():
+        plural = text.lower()
+        plural = pattern.en.pluralize(text)
+        if d.check(plural):
+            plural = plural.upper()
+        else:
+            plural = text
+    elif text == text.title():
+        plural = text.lower()
+        plural = pattern.en.pluralize(text)
+        if d.check(plural):
+            plural = plural.title()
+        else:
+            plural = text
+    else:
+        plural = pattern.en.pluralize(text)
+        if not d.check(plural):
+            plural = text
+    return plural
+
+def pluralize(text):
+    matches=[m.start() for m in re.finditer('[^a-zA-Z]', text)]
+    if(len(matches)>0):
+        br = matches[-1]+1
+        text = text[:br]+get_plural_word(text[br:])
+    else:
+        text = get_plural_word(text)
+    return text
+
 
 def parse_leaf_name(name):
     return name[9:]
@@ -58,6 +106,33 @@ def get_leaf_nodes(node):
 
 def generate_rule_text(rule_path_list,separator):
     return separator.join(rule_path_list[:-1])
+
+def get_rules_dictionary(rules):
+    key_dimensions = {}
+    key_measures = {}
+    rules_list = re.split(r',\s*(?![^()]*\))',rules)
+    for rx in rules_list:
+        if ' <= ' in rx:
+            var,limit = re.split(' <= ',rx)
+            if not key_measures.has_key(var):
+                key_measures[var] ={}
+            key_measures[var]['upper_limit'] = limit
+        elif ' > ' in rx:
+            var,limit = re.split(' > ',rx)
+            if not key_measures.has_key(var):
+                key_measures[var] = {}
+            key_measures[var]['lower_limit'] = limit
+        elif ' not in ' in rx:
+            var,levels = re.split(' not in ',rx)
+            if not key_dimensions.has_key(var):
+                key_dimensions[var]={}
+            key_dimensions[var]['not_in'] = levels
+        elif ' in ' in rx:
+            var,levels = re.split(' in ',rx)
+            if not key_dimensions.has_key(var):
+                key_dimensions[var]={}
+            key_dimensions[var]['in'] = levels
+    return [key_dimensions,key_measures]
 
 def generate_leaf_rule_dict(rule_list,separator):
     out = {}

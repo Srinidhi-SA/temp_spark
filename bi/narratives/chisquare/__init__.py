@@ -55,16 +55,8 @@ class ChiSquareNarratives:
                           'significant_variables' : significant_variables,
                           'target_dimension' : target_dimension
             } # for both para 1 and para 2
-            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-            templateEnv = jinja2.Environment( loader=templateLoader )
-            template = templateEnv.get_template('chisquare_template1.temp')
-            summary1 = template.render(data_dict).replace("\n", "")
-            summary1 = re.sub(' +',' ',summary1)
-            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-            templateEnv = jinja2.Environment( loader=templateLoader )
-            template = templateEnv.get_template('chisquare_template2.temp')
-            summary2 = template.render(data_dict).replace("\n", "")
-            summary2 = re.sub(' +',' ',summary2)
+            summary1 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template1.temp',data_dict)
+            summary2 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template2.temp',data_dict)
             self.narratives[target_dimension]['summary'] = [summary1,summary2]
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]

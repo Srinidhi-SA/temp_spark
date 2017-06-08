@@ -165,11 +165,6 @@ class TrendNarrative:
         return sub_heading
 
     def generate_summary(self,dataDict):
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('trend_summary.temp')
-        output = template.render(dataDict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
+        output = NarrativesUtils.get_template_output(self._base_dir,\
+                                                        'trend_summary.temp',data_dict)
         return output
