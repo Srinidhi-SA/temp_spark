@@ -45,7 +45,7 @@ class TrendScript:
                 trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._measure_col, self._td_col, self._existingDateFormat, self._requestedDateFormat)
                 trend_narratives = utils.as_dict(trend_narratives_obj)
                 # print 'Trend narratives:  %s' %(json.dumps(trend_narratives, indent=2))
-                DataWriter.write_dict_as_json(self._spark, trend_narratives, self._dataframe_context.get_narratives_file()+'Trend/')
+                DataWriter.write_dict_as_json(self._spark, json.dumps(trend_narratives), self._dataframe_context.get_narratives_file()+'Trend/')
             else:
                 print "Trend Analysis Failed"
                 print "#"*20+"Trend Analysis Error"+"#"*20
