@@ -41,6 +41,9 @@ class MeasureAnovaResult:
         self.OneWayAnovaResult[dimension] = OneWayAnovaResult(var, self.global_mean, sse, self.sst)
         self.OneWayAnovaResult[dimension].set_results()
 
+    def get_OneWayAnovaEffectSize(self, dimension):
+        return self.OneWayAnovaResult[dimension].get_effect_size()
+
     def set_OneWayAnova_Contributions(self,top_dimension_result):
         for dimension in top_dimension_result.keys():
             self.OneWayAnovaResult[dimension].set_contribution(top_dimension_result[dimension])
