@@ -23,7 +23,7 @@ class TimeSeriesNarrative:
         grouped_data = df_helper.get_aggregate_data(time_dimension_column,measure_column,
                                                         existingDateFormat=existingDateFormat,
                                                         requestedDateFormat=requestedDateFormat)
-        print df_helper.get_significant_dimension()
+        significant_dimensions = df_helper.get_significant_dimension()
         trend_narrative_obj = TrendNarrative(measure_column,time_dimension_column,grouped_data,existingDateFormat,requestedDateFormat)
         grouped_data = trend_narrative_obj.formatDateColumn(grouped_data,requestedDateFormat)
         grouped_data = grouped_data.sort_values(by='key', ascending=True)
@@ -31,8 +31,12 @@ class TimeSeriesNarrative:
         dataDict = trend_narrative_obj.generateDataDict(grouped_data)
         pandasDf = df_helper.get_data_frame().toPandas()
         # update reference time with max value
-        reference_time = ""
-        xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,time_dimension_column,measure_column,existingDateFormat,reference_time)
+        # reference_time = dataDict["peakTime"]
+        reference_time = "Aug-14"
+        print reference_time
+        print existingDateFormat,requestedDateFormat
+
+        xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),time_dimension_column,measure_column,existingDateFormat,reference_time)
         dataDict.update(xtraData)
 
         print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))

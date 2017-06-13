@@ -152,12 +152,12 @@ class TrendNarrative:
         dataDict["table_data"] = table_data
         return dataDict
 
-    def get_xtra_calculations(self,df,index_col,value_col,datetime_pattern,reference_time):
-        index_col = "Month"
-        datetime_pattern = "%b-%y"
-        value_col = "Sales"
-        reference_time = "Feb-14"
-        level_cont = NarrativesUtils.calculate_level_contribution(df,["Buyer_Gender","Platform"],index_col,datetime_pattern,value_col,reference_time)
+    def get_xtra_calculations(self,df,significant_columns,index_col,value_col,datetime_pattern,reference_time):
+        # index_col = "Month"
+        # datetime_pattern = "%b-%y"
+        # value_col = "Sales"
+        # reference_time = "Feb-14"
+        level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
         bucket_dict = NarrativesUtils.calculate_bucket_data(level_cont)
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict,level_cont)

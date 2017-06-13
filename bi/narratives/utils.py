@@ -329,7 +329,7 @@ def calculate_dimension_contribution(level_cont):
         max_level = max(v,key=lambda x: v[x]["growth"])
         while v[max_level]["contribution"] < 5:
             del(v[max_level])
-            if len(v.keys() > 1):
+            if len(v.keys()) > 1:
                 max_level = max(v,key=lambda x: v[x]["growth"])
             else:
                 max_level = None
@@ -353,7 +353,7 @@ def calculate_dimension_contribution(level_cont):
         min_level = max(v,key=lambda x: v[x]["growth"])
         while v[min_level]["contribution"] < 5:
             del(v[min_level])
-            if len(v.keys() > 1):
+            if len(v.keys()) > 1:
                 min_level = max(v,key=lambda x: v[x]["growth"])
             else:
                 min_level = None
