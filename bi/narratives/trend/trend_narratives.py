@@ -9,6 +9,7 @@ from datetime import datetime
 #from nltk import tokenize
 from bi.common.utils import accepts
 from bi.narratives import utils as NarrativesUtils
+from bi.algorithms import TimeSeriesAnalysis
 
 class TrendNarrative:
 
@@ -42,6 +43,10 @@ class TrendNarrative:
         # df["perChange"] = [round((y-x)*100/float(x),2) for x,y in zip(df["value"],df["value"].iloc[1:])]+[round((df["value"].iloc[-1]-df["value"].iloc[-2])*100/float(df["value"].iloc[-2]),2)]
         df["perChange"] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(df["value"].iloc[1:],df["value"])]
         dataDict["measure"] = self._measure_column
+        df["year_month"] = df["key"].apply(lambda x: self.month_dict[int(x.strftime('%m'))]+"-"+str(x.strftime('%Y')))
+        df["trendDirection"] = df["perChange"].apply(lambda x: "P" if x>=0 else "N")
+        trendString = "".join(df["trendDirection"])
+        maxRuns = NarrativesUtils.longestRun(trendString)
 
         # dataDict["dateLevel"] = "day"
         # if df.shape[0] <= 365:
@@ -75,12 +80,19 @@ class TrendNarrative:
             yr = str(dataDict["dateRange"]//365)
             mon = str((dataDict["dateRange"]%365)//12)
             dataDict["durationString"] = yr+" years and "+mon+" months"
-
-        df["year_month"] = df["key"].apply(lambda x: self.month_dict[int(x.strftime('%m'))]+"-"+str(x.strftime('%Y')))
+        dataDict["dataLevel"] = "month"
+        dataDict["durationString"] = "9 months"
+        dataDict["duration"] = 9
+        dataDict["dateRange"] = 9
+        dataDict["dateLevel"] = "month"
         # list(set(zip([x.strftime('%m') for x in df["key"]],[x.strftime('%Y') for x in df["key"]])))
-
-
+        dataDict["bubbleData"] = [{"value":"","text":""},{"value":"","text":""}]
         dataDict["overall_growth"] = round((df["value"].iloc[-1]-df["value"].iloc[0])*100/float(df["value"].iloc[0]),2)
+        dataDict["bubbleData"][0]["value"] = str(dataDict["overall_growth"])+"%"
+        dataDict["bubbleData"][0]["text"] = "Overall growth in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
+        max_growth_index = np.argmax(df["perChange"])
+        dataDict["bubbleData"][1]["value"] = str(round(list(df["perChange"])[max_growth_index],2))+"%"
+        dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
         dataDict["start_value"] = round(df["value"].iloc[0],2)
         dataDict["end_value"] = round(df["value"].iloc[-1],2)
         dataDict["average_value"] = round(df["value"].mean(),2)
@@ -102,62 +114,67 @@ class TrendNarrative:
         dataDict["lowestValue"] = df["value"][low_index]
         dataDict["peakTime"] = df["year_month"][peak_index]
         dataDict["lowestTime"] = df["year_month"][low_index]
+
         k = peak_index
-        while df["perChange"][k] >= 0:
+        while k != -1 and df["perChange"][k] >= 0:
             k = k-1
         l = low_index
-        while df["perChange"][l] < 0:
+        while l != -1 and df["perChange"][l] < 0:
             l = l-1
-        dataDict["peakStreakDuration"] = k-peak_index
-        dataDict["LowStreakDuration"] = l-low_index
-        if dataDict["LowStreakDuration"] >=2 :
+        if peak_index - k > 0:
+            dataDict["peakStreakDuration"] = peak_index - k
+        else:
+            dataDict["peakStreakDuration"] = 0
+        if low_index - l > 0:
+            dataDict["lowStreakDuration"] = low_index - l
+        else:
+            dataDict["lowStreakDuration"] = 0
+        if dataDict["lowStreakDuration"] >=2 :
             dataDict["lowStreakBeginMonth"] = df["year_month"][l]
             dataDict["lowStreakBeginValue"] = df["value"][l]
 
-        max_increase_index = np.argmax(list(df["perChange"]))
-        if dataDict["dataLevel"] == "day":
-            dataDict["max_increase_time"] = str(df["key"][max_increase_index])
-        else:
-            dataDict["max_increase_time"] = df["year_month"][max_increase_index]
+        table_data = {"increase":[],"decrease":[]}
 
-        dataDict["max_increase_percentage"] = round(df["perChange"][max_increase_index],2)
-        dataDict["maxIncreaseValues"] = (df["value"][max_increase_index-1],df["value"][max_increase_index])
-        max_decrease_index = np.argmin(list(df["perChange"]))
-        if dataDict["dataLevel"] == "day":
-            dataDict["max_decrease_time"] = str(df["key"][max_decrease_index])
-        else:
-            dataDict["max_decrease_time"] = df["year_month"][max_decrease_index]
+        percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "percentage")
+        abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "absolute")
+        streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"positive",dataDict["dataLevel"])
+        table_data["increase"].append(percent_stats)
+        table_data["increase"].append(abs_stats)
+        table_data["increase"].append(streak)
 
-        dataDict["max_decrease_percentage"] = round(df["perChange"][max_decrease_index],2)
-        dataDict["maxDecreaseValues"] = (df["value"][max_decrease_index-1],df["value"][max_decrease_index])
+        percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "negative", stat_type = "percentage")
+        abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "negative", stat_type = "absolute")
+        streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"negative",dataDict["dataLevel"])
+        table_data["decrease"].append(percent_stats)
+        table_data["decrease"].append(abs_stats)
+        table_data["decrease"].append(streak)
 
-        if dataDict["overall_growth"] > 0:
-            dataDict["trend"] = "positive"
-            streakList =  NarrativesUtils.continuous_streak(df,direction="increase")
-            streak = max(streakList,key=len)
-            dataDict["end_streak_value"] = round(streak[-1]["value"],2)
-            dataDict["start_streak_value"] = round(streak[0]["value"],2)
-            if dataDict["dataLevel"] == "day":
-                dataDict["streak_end_month"] = str(streak[-1]["key"])
-                dataDict["streak_start_month"] = str(streak[0]["key"])
-            else:
-                dataDict["streak_end_month"] = streak[-1]["year_month"]
-                dataDict["streak_start_month"] = streak[0]["year_month"]
-
-        elif dataDict["overall_growth"] < 0:
-            dataDict["trend"] = "negative"
-            streakList =  NarrativesUtils.continuous_streak(df,direction="decrease")
-            streak = max(streakList,key=len)
-            dataDict["end_streak_value"] = round(streak[-1]["value"],2)
-            dataDict["start_streak_value"] = round(streak[0]["value"],2)
-            if dataDict["dataLevel"] == "day":
-                dataDict["streak_end_month"] = str(streak[-1]["key"])
-                dataDict["streak_start_month"] = str(streak[0]["key"])
-            else:
-                dataDict["streak_end_month"] = streak[-1]["year_month"]
-                dataDict["streak_start_month"] = streak[0]["year_month"]
-
+        dataDict["table_data"] = table_data
         return dataDict
+
+    def get_xtra_calculations(self,df,index_col,value_col,datetime_pattern,reference_time):
+        index_col = "Month"
+        datetime_pattern = "%b-%y"
+        value_col = "Sales"
+        reference_time = "Feb-14"
+        level_cont = NarrativesUtils.calculate_level_contribution(df,["Buyer_Gender","Platform"],index_col,datetime_pattern,value_col,reference_time)
+        level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
+        bucket_dict = NarrativesUtils.calculate_bucket_data(level_cont)
+        bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict,level_cont)
+        dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
+        level_cont_dict.update(bucket_data)
+        level_cont_dict.update(dim_data)
+        return level_cont_dict
+
+    def get_forecast_values(self,series,prediction_window):
+        if len(series) > 12:
+            slen = 12
+        else:
+            slen = 1
+        alpha, beta, gamma = 0.716, 0.029, 0.993
+        time_series_object = TimeSeriesAnalysis()
+        prediction = time_series_object.triple_exponential_smoothing(series, slen, alpha, beta, gamma, prediction_window)
+        return prediction
 
     def generate_sub_heading(self,measure_column):
         sub_heading = "How %s is changing over Time" %(measure_column)

@@ -308,7 +308,6 @@ class DataFrameHelper:
         else:
             agg_data = self._data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["key","value"]
-
         return agg_data
 
     def fill_na_measure_mean(self):

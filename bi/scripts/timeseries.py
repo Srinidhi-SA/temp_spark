@@ -18,7 +18,8 @@ class TrendScript:
             "mm/dd/YYYY":"%m/%d/%Y",
             "dd/mm/YYYY":"%d/%m/%Y",
             "YYYY/mm/dd":"%Y/%m/%d",
-            "dd <month> YYYY":"%d %b,%Y"
+            "dd <month> YYYY":"%d %b,%Y",
+            "%b-%y":"%b-%y"
         }
         if self._date_suggestion_cols != None:
             self._td_col = self._date_suggestion_cols[0]
@@ -33,7 +34,6 @@ class TrendScript:
                 self._requestedDateFormat = df_context.get_requested_date_format()[0]
             else:
                 self._requestedDateFormat = None
-
             if self._requestedDateFormat != None:
                 self._requestedDateFormat = self._dateFormatConversionDict[self._requestedDateFormat]
             else:
@@ -44,8 +44,8 @@ class TrendScript:
             if self._dateFormatDetected:
                 trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._measure_col, self._td_col, self._existingDateFormat, self._requestedDateFormat)
                 trend_narratives = utils.as_dict(trend_narratives_obj)
-                # print 'Trend narratives:  %s' %(json.dumps(trend_narratives, indent=2))
-                DataWriter.write_dict_as_json(self._spark, json.dumps(trend_narratives), self._dataframe_context.get_narratives_file()+'Trend/')
+                # print json.dumps(trend_narratives, indent=2)
+                DataWriter.write_dict_as_json(self._spark, {"TREND":json.dumps(trend_narratives)}, self._dataframe_context.get_narratives_file()+'Trend/')
             else:
                 print "Trend Analysis Failed"
                 print "#"*20+"Trend Analysis Error"+"#"*20
