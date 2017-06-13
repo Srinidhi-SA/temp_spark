@@ -23,7 +23,7 @@ class TimeSeriesNarrative:
         grouped_data = df_helper.get_aggregate_data(time_dimension_column,measure_column,
                                                         existingDateFormat=existingDateFormat,
                                                         requestedDateFormat=requestedDateFormat)
-
+        print df_helper.get_significant_dimension()
         trend_narrative_obj = TrendNarrative(measure_column,time_dimension_column,grouped_data,existingDateFormat,requestedDateFormat)
         grouped_data = trend_narrative_obj.formatDateColumn(grouped_data,requestedDateFormat)
         grouped_data = grouped_data.sort_values(by='key', ascending=True)

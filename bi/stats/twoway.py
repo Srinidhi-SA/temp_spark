@@ -161,6 +161,8 @@ class TwoWayAnova:
         if self._anova_result.get_OneWayAnovaResult(dimension).is_statistically_significant(alpha = 0.05):
             self.test_anova_top_dimension(var, measure, dimension, sst)
             effect_size = self._anova_result.get_OneWayAnovaEffectSize(dimension)
+            print "DSDSDDD"
+            print dimension,effect_size
             self._data_frame_helper.add_significant_dimension(dimension,effect_size)
 
     def test_anova_top_dimension(self, var, measure, dimension, sst):

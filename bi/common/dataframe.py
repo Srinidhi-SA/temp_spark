@@ -215,6 +215,9 @@ class DataFrameHelper:
     def add_significant_dimension(self, dimension, effect_size):
         self.significant_dimensions[dimension] = effect_size
 
+    def get_significant_dimension(self):
+        return self.significant_dimensions
+
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
           raise BIException('No such column exists: %s' %(column_name,))
