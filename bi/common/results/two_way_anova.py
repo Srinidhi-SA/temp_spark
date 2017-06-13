@@ -10,6 +10,8 @@ class DFTwoWayAnovaResult:
         return self.result[measure].get_anova_result(dimension)
     def add_measure_result(self,measure,Measure_Anova_Result):
         self.result[measure] = Measure_Anova_Result
+    def add_trend_result(self, measure, trend_result):
+        self.result[measure].set_TrendResult(trend_result)
     def get_measure_result(self, measure):
         return self.result[measure]
     def get_measure_columns(self):
@@ -23,6 +25,7 @@ class MeasureAnovaResult:
         self.df = var[0] - 1
         self.sst = float(sst)
         self.OneWayAnovaResult = {}
+        self.TrendResult = None
         #self.TwoWayAnovaResult = {}
 
     def get_anova_result(self,dimension):
@@ -31,9 +34,19 @@ class MeasureAnovaResult:
     def get_dimensions_analyzed(self):
         return self.OneWayAnovaResult.keys()
 
+    def set_TrendResult(self, trend_result):
+        self.TrendResult = trend_result
+
     def set_OneWayAnovaResult(self, dimension, var, sse):
         self.OneWayAnovaResult[dimension] = OneWayAnovaResult(var, self.global_mean, sse, self.sst)
         self.OneWayAnovaResult[dimension].set_results()
+
+    def get_OneWayAnovaEffectSize(self, dimension):
+        return self.OneWayAnovaResult[dimension].get_effect_size()
+
+    def set_OneWayAnova_Contributions(self,top_dimension_result):
+        for dimension in top_dimension_result.keys():
+            self.OneWayAnovaResult[dimension].set_contribution(top_dimension_result[dimension])
 
     def get_OneWayAnovaResult(self, dimension):
         return self.OneWayAnovaResult[dimension]
@@ -111,6 +124,55 @@ class TwoWayAnovaResult:
         self.effect_size_row = self.ss_row/self.ss_total
         self.effect_size_column = self.ss_column/self.ss_total
 
+class TopDimensionStats:
+    def __init__(self,top_dimension, total,df,mean, sst):
+        self.top_dimension = top_dimension
+        self.sum_measure = total
+        self._df_total = df - 1
+        self.avg_measure = mean
+        self._sst = sst
+        self.p_value = {}
+        self.effect_size = {}
+        self.contributions = {}
+
+    def set_p_value(self,var,sse, dimension):
+        df_between = len(var.index)-1
+        df_total = var.counts.sum() - 1
+        var['dev'] = var.counts * (var.means - self.avg_measure)**2
+        ss_between = float(var.dev.sum())
+        ss_within = sse
+        df_within = self._df_total - df_between
+        if ss_within > 0:
+            self.effect_size[dimension] = ss_between/self._sst
+        else:
+            self.effect_size[dimension] = 0
+        ms_between = ss_between/df_between
+        ms_within = ss_within/df_within
+        f_stat = ms_between/ms_within
+        self.p_value[dimension] = 1 - stats.f.cdf(f_stat, df_between, df_within)
+        if self.p_value[dimension]<=0.05:
+            self.compute_contributions(dimension,var)
+
+    def get_p_value(self, dimension):
+        return self.p_value[dimension]
+
+    def compute_contributions(self, dimension, var):
+        var = var.sort_values('total', ascending = False)
+        cumsums = var.total.cumsum()
+        seventy_five_sum = self.sum_measure * 0.75
+        seventy_five_limit = next(i for i in range(len(cumsums)) if cumsums[i]>=seventy_five_sum)
+        var = var.ix[:seventy_five_limit]
+        var['percent'] = var.total/self.sum_measure
+        self.contributions[dimension] = dict(zip(var.levels, var.percent))
+
+    def get_top_3_significant_dimensions(self):
+        significant_dimensions = [k for k,v in self.p_value.items() if v<=0.05]
+        if len(significant_dimensions)<2:
+            return significant_dimensions
+        else:
+            significant_dimensions = sorted(significant_dimensions, key = lambda x: -self.effect_size[x])[:3]
+            return significant_dimensions
+
 class OneWayAnovaResult:
     def __init__(self, var, global_mean, sse, sst):
         self._global_mean = global_mean
@@ -143,6 +205,9 @@ class OneWayAnovaResult:
         self.f_stat = self.ms_between/self.ms_within
         self.p_value = 1 - stats.f.cdf(self.f_stat, self.df_between, self.df_within)
 
+    def set_contribution(self, top_dimension_contribution):
+        self.contributions = top_dimension_contribution
+
     def get_df_total(self):
         return self.df_total
 
@@ -167,5 +232,20 @@ class OneWayAnovaResult:
     def get_effect_size(self):
         return self.effect_size
 
-    def is_statistically_significant(self,alpha):
+    def is_statistically_significant(self,alpha=0.05):
         return self.p_value <= alpha
+
+class TrendResult:
+    def __init__(self, agg_data_frame, date_field, measure):
+        self._data_frame = agg_data_frame
+        self._dimension_results = {}
+        self._date_field = date_field
+        self._measure = measure
+
+    def add_trend_result(self,dimension, agg_data_frame, agg_data_frame_dimension):
+        self._dimension_results[dimension] = Trend_Dimenion_Result(agg_data_frame, agg_data_frame_dimension)
+
+class Trend_Dimenion_Result:
+    def __init__(self, agg_data_frame, agg_data_frame_dimension):
+        self._data_frame = agg_data_frame
+        self._grouped_data_frame = agg_data_frame_dimension

@@ -11,10 +11,15 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-def round_number(num, digits, as_string=True):
+def round_number(num, digits=2, as_string=True):
     millions = 0
     thousands = 0
-    if(num//1000000 > 0) and (as_string):
+    billions = 0
+    if(num//1000000000 > 0) and (as_string):
+        num = num/1000000000.0
+        billions =1
+        digits = 2
+    elif(num//1000000 > 0) and (as_string):
         num = num/1000000.0
         millions =1
         digits = 2
@@ -22,6 +27,8 @@ def round_number(num, digits, as_string=True):
         num = num/1000.0
         thousands = 1
         digits = 2
+    elif (abs(num)<1):
+        digits = digits + int(abs(math.log(num,10)))
     result = float(format(num, '0.%df' %(digits,)))
     if as_string:
         result = str(result)
@@ -31,6 +38,8 @@ def round_number(num, digits, as_string=True):
         if temp>3:
             for insertions in range(len(result)-3,0,-3):
                 result = result[:insertions]+','+result[insertions:]
+        if billions ==1:
+            return result+decs+' Billion'
         if millions ==1:
             return result+decs+' Million'
         if thousands == 1:
