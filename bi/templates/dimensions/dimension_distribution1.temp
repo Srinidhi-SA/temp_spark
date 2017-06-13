@@ -4,13 +4,13 @@
   The {{colname}} variable has only two observations, i.e. {{keys[0]}} and {{keys[1]}}.
   Both the {{plural_colname}} have the same number of observations i.e {{max['val']}}.
 {% elif keys|length == 2 and n_uniq != 1  %}
-  The {{colname}} variable has only two observation, i.e. {{keys[0]}} and {{keys[1]}}.
+  The {{colname}} variable has only two observations, i.e. {{keys[0]}} and {{keys[1]}}.
   {{max['key']}} is the <b>largest</b> with {{max['val']}} observations, whereas {{min['key']}} is the <b>smallest</b> {{colname}} with just {{min['val']}} observations.
 {% elif keys|length == 3 and n_uniq == 1  %}
-  The {{colname}} variable has only three observation, which are {{keys[0]}}, {{keys[1]}} and {{keys[2]}}.
+  The {{colname}} variable has only three observations, which are {{keys[0]}}, {{keys[1]}} and {{keys[2]}}.
   All the {{plural_colname}} have the same number of observations i.e {{max['val']}}.
 {% elif keys|length == 2 and n_uniq != 1  %}
-  The {{colname}} variable has only three observation, which are {{keys[0]}}, {{keys[1]}} and {{keys[2]}}.
+  The {{colname}} variable has only three observations, which are {{keys[0]}}, {{keys[1]}} and {{keys[2]}}.
   {{max['key']}} is the <b>largest</b> with {{max['val']}} observations, whereas {{min['key']}} is the <b>smallest</b> {{colname}} with just {{min['val']}} observations.
 {% elif keys|length > 3 and n_uniq == 1 %}
   There are {{keys|length}} {{plural_colname}} in the dataset.
