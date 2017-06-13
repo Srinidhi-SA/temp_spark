@@ -203,22 +203,22 @@ def main(confFilePath):
         df = df_helper.get_data_frame()
         #df = df.na.drop(subset=dataframe_context.get_result_column())
         if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
-            # try:
-            fs = time.time()
-            # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-            # one_way_anova_obj.Run()
-            two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
-            two_way_obj.Run()
-            print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-            send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
-            # except Exception as e:
-            # print 'Anova Failed'
-            # DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
-            # DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
-            # send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Script Failed", False, 0)
-            # print "ERROR"*5
-            # print e
-            # print "ERROR"*5
+            try:
+                fs = time.time()
+                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+                # one_way_anova_obj.Run()
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
+                two_way_obj.Run()
+                print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+                send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
+            except Exception as e:
+                print 'Anova Failed'
+                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
+                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
+                send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Script Failed", False, 0)
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
@@ -264,34 +264,34 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
             send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
 
-        # try:
-        fs = time.time()
-        trend_obj = TrendScript(df_helper,dataframe_context,spark)
-        trend_obj.Run()
-        print "Trend Analysis Done in ", time.time() - fs, " seconds."
-        send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
+        try:
+            fs = time.time()
+            trend_obj = TrendScript(df_helper,dataframe_context,spark)
+            trend_obj.Run()
+            print "Trend Analysis Done in ", time.time() - fs, " seconds."
+            send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
 
-        # except Exception as e:
-        #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
-        #     send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
-        #     print "Trend Script Failed"
-        #     print "ERROR"*5
-        #     print e
-        #     print "ERROR"*5
+        except Exception as e:
+            DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
+            send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
+            print "Trend Script Failed"
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
 
-        # try:
-        #     fs = time.time()
-        #     df_helper.fill_na_dimension_nulls()
-        #     df = df_helper.get_data_frame()
-        #     dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
-        #     dt_reg.Run()
-        #     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-        # except Exception as e:
-        #     print '*'*250
-        #     print e
-        #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
-        #     send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
-        #     print "Decision Tree Regression Script Failed"
+        try:
+            fs = time.time()
+            df_helper.fill_na_dimension_nulls()
+            df = df_helper.get_data_frame()
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
+            dt_reg.Run()
+            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+        except Exception as e:
+            print '*'*250
+            print e
+            DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
+            send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
+            print "Decision Tree Regression Script Failed"
 
     elif analysistype == 'Prediction':
         # df_helper.remove_nulls(dataframe_context.get_result_column())

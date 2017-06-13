@@ -19,6 +19,8 @@ class TimeSeriesNarrative:
                            "card2":{},
                            "card3":{}
                         }
+        month_dict = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
+
         #grouped_data needs to be sorted by date
         grouped_data = df_helper.get_aggregate_data(time_dimension_column,measure_column,
                                                         existingDateFormat=existingDateFormat,
@@ -30,11 +32,12 @@ class TimeSeriesNarrative:
         grouped_data["value"] = grouped_data["value"].apply(lambda x: round(x,2))
         dataDict = trend_narrative_obj.generateDataDict(grouped_data)
         pandasDf = df_helper.get_data_frame().toPandas()
+        pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x:datetime.strptime(x,existingDateFormat))
+        pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
         # update reference time with max value
-        # reference_time = dataDict["peakTime"]
-        reference_time = "Aug-14"
+        reference_time = dataDict["reference_time"]
         print reference_time
-        print existingDateFormat,requestedDateFormat
+        print significant_dimensions
 
         xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),time_dimension_column,measure_column,existingDateFormat,reference_time)
         dataDict.update(xtraData)
@@ -54,7 +57,6 @@ class TimeSeriesNarrative:
         self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
         self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
 
-        month_dict = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
         grouped_data["key1"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
         grouped_data["key"] = grouped_data["key"].apply(lambda x: str(x))
         trend_data = grouped_data[["key","key1","value"]].T.to_dict().values()

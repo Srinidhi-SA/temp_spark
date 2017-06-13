@@ -385,6 +385,8 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
         k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k.index))
         k = k.sort_values(by="rank", ascending=True)
         max_index = list(k.index).index(max_time)
+        print k.head()
+        print max_index,columns,column_levels
         for level in column_levels:
             data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
             data_dict["contribution"] = round(float(np.sum(k[level]))*100/np.sum(k["total"]),2)

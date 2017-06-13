@@ -26,7 +26,7 @@ class TrendScript:
             self._measure_col = df_context.get_result_column()
             self._existingDateFormat = None
             dateColumnFormatDict =  df_helper.get_datetime_format(self._td_col)
-            if self._td_col in dateColumnFormatDict.keys():
+            if dateColumnFormatDict.has_key(self._td_col):
                 self._existingDateFormat = dateColumnFormatDict[self._td_col]
                 self._dateFormatDetected = True
 
@@ -44,7 +44,7 @@ class TrendScript:
             if self._dateFormatDetected:
                 trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._measure_col, self._td_col, self._existingDateFormat, self._requestedDateFormat)
                 trend_narratives = utils.as_dict(trend_narratives_obj)
-                # print json.dumps(trend_narratives, indent=2)
+                print json.dumps(trend_narratives, indent=2)
                 DataWriter.write_dict_as_json(self._spark, {"TREND":json.dumps(trend_narratives)}, self._dataframe_context.get_narratives_file()+'Trend/')
             else:
                 print "Trend Analysis Failed"

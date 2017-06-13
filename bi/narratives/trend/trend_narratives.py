@@ -48,22 +48,6 @@ class TrendNarrative:
         trendString = "".join(df["trendDirection"])
         maxRuns = NarrativesUtils.longestRun(trendString)
 
-        # dataDict["dateLevel"] = "day"
-        # if df.shape[0] <= 365:
-        #     dataDict["duration"] = df.shape[0]
-        #     dataDict["dataLevel"] = "day"
-        #     dataDict["durationString"] = str(dataDict["duration"])+" days"
-        #
-        # elif df.shape[0] > 365 and df.shape[0] <= 1095:
-        #     dataDict["duration"] = len(list(set(df["year_month"])))
-        #     dataDict["dataLevel"] = "month"
-        #     dataDict["durationString"] = str(dataDict["duration"])+" months"
-        # else:
-        #     dataDict["dataLevel"] = "month"
-        #     yr = str(df.shape[0]//365)
-        #     mon = str((df.shape[0]%365)//12)
-        #     dataDict["durationString"] = yr+" years and "+mon+"months"
-
         dataDict["dateRange"] = (df["key"].iloc[-1]-df["key"].iloc[0]).days
         dataDict["dateLevel"] = "day"
         if dataDict["dateRange"] <= 365:
@@ -80,11 +64,7 @@ class TrendNarrative:
             yr = str(dataDict["dateRange"]//365)
             mon = str((dataDict["dateRange"]%365)//12)
             dataDict["durationString"] = yr+" years and "+mon+" months"
-        dataDict["dataLevel"] = "month"
-        dataDict["durationString"] = "9 months"
-        dataDict["duration"] = 9
-        dataDict["dateRange"] = 9
-        dataDict["dateLevel"] = "month"
+
         # list(set(zip([x.strftime('%m') for x in df["key"]],[x.strftime('%Y') for x in df["key"]])))
         dataDict["bubbleData"] = [{"value":"","text":""},{"value":"","text":""}]
         dataDict["overall_growth"] = round((df["value"].iloc[-1]-df["value"].iloc[0])*100/float(df["value"].iloc[0]),2)
@@ -113,6 +93,7 @@ class TrendNarrative:
         dataDict["peakValue"] = df["value"][peak_index]
         dataDict["lowestValue"] = df["value"][low_index]
         dataDict["peakTime"] = df["year_month"][peak_index]
+        dataDict["reference_time"] = dataDict["peakTime"]
         dataDict["lowestTime"] = df["year_month"][low_index]
 
         k = peak_index
@@ -153,10 +134,7 @@ class TrendNarrative:
         return dataDict
 
     def get_xtra_calculations(self,df,significant_columns,index_col,value_col,datetime_pattern,reference_time):
-        # index_col = "Month"
-        # datetime_pattern = "%b-%y"
-        # value_col = "Sales"
-        # reference_time = "Feb-14"
+        datetime_pattern = "%b-%Y"
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
         bucket_dict = NarrativesUtils.calculate_bucket_data(level_cont)

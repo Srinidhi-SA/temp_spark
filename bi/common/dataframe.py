@@ -301,6 +301,7 @@ class DataFrameHelper:
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if existingDateFormat != None and requestedDateFormat != None:
+            print existingDateFormat,requestedDateFormat
             # def date(s):
             #   return str(s.date())
             # date_udf = udf(date, StringType())
