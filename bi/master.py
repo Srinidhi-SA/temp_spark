@@ -287,8 +287,9 @@ def main(confFilePath):
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
         except Exception as e:
-            print '*'*250
+            print "ERROR"*5
             print e
+            print "ERROR"*5
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
             send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
             print "Decision Tree Regression Script Failed"

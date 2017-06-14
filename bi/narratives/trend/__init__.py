@@ -58,8 +58,8 @@ class TimeSeriesNarrative:
         self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
 
         grouped_data["key"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
-        grouped_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
-        trend_data = grouped_data[["key","value"]].T.to_dict().values()
+        trend_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
+        trend_data = trend_data.T.to_dict().values()
         trend_data = sorted(trend_data,key=lambda x :datetime.strptime(x['key'],"%b-%Y"))
         self.narratives["card1"]["chart"] = trend_data
 
