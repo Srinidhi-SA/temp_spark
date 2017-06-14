@@ -72,6 +72,8 @@ class RegressionResult:
 
         return self.stats.get(RegressionResult.COEFFICIENTS).get(input_column).get(RegressionResult.COEFF)
 
+    def get_all_coeff(self):
+        return self.stats[RegressionResult.COEFFICIENTS]
 
 class DFRegressionResult:
     def __init__(self):

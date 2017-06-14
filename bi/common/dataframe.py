@@ -218,6 +218,20 @@ class DataFrameHelper:
     def get_significant_dimension(self):
         return self.significant_dimensions
 
+    def filter_dataframe(self, colname, values):
+        if type(values) == str:
+            values = values[1:-1]
+            values = values.split(',')
+        df = self._data_frame.where(col(colname).isin(values))
+        return df
+
+    def get_splits_of_numerical_column(self,colname):
+        min_max = self._data_frame.agg(FN.min(column_name).alias('min'), FN.max(column_name).alias('max')).collect()
+        min_value = min_max[0]['min']
+        max_value = min_max[0]['max']
+        splits = CommonUtils.frange(min_value, max_value, num_bins)
+        return splits
+
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
           raise BIException('No such column exists: %s' %(column_name,))

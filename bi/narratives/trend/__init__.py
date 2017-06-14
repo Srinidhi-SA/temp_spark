@@ -57,25 +57,27 @@ class TimeSeriesNarrative:
         self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
         self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
 
-        grouped_data["key1"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
-        grouped_data["key"] = grouped_data["key"].apply(lambda x: str(x))
-        trend_data = grouped_data[["key","key1","value"]].T.to_dict().values()
-        trend_data = sorted(trend_data,key=lambda x :datetime.strptime(x['key'],"%Y-%m-%d"))
+        grouped_data["key"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
+        grouped_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
+        trend_data = grouped_data[["key","value"]].T.to_dict().values()
+        trend_data = sorted(trend_data,key=lambda x :datetime.strptime(x['key'],"%b-%Y"))
         self.narratives["card1"]["chart"] = trend_data
 
         prediction_window = 6
+        grouped_data["key"] = grouped_data["key"].apply(lambda x :datetime.strptime(x,"%b-%Y"))
+        grouped_data.sort_values(by="key",inplace=True)
         predicted_values = trend_narrative_obj.get_forecast_values(grouped_data["value"],prediction_window)
         predicted_values = predicted_values[len(grouped_data["value"]):]
         predicted_values = [round(x,2) for x in predicted_values]
 
-        prediction_data = [{"key":datetime.strftime(datetime.strptime(x["key"],"%Y-%m-%d"),existingDateFormat),"value":x["value"]} for x in trend_data]
+        prediction_data = [{"key":x["key"],"value":x["value"]} for x in trend_data]
         prediction_data[-1]["predicted_value"] = prediction_data[-1]["value"]
 
         for val in range(prediction_window):
             dataLevel = dataDict["dataLevel"]
             if dataLevel == "month":
-                last_key = datetime.strptime(prediction_data[-1]["key"],existingDateFormat)
-                key = datetime.strftime(last_key+relativedelta(months=val+1),existingDateFormat)
+                last_key = datetime.strptime(prediction_data[-1]["key"],"%b-%Y")
+                key = datetime.strftime(last_key+relativedelta(months=val+1),"%b-%Y")
                 prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
 
         forecastDataDict = {"startForecast":predicted_values[0],
@@ -86,7 +88,7 @@ class TimeSeriesNarrative:
         summary3 = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'trend_narrative_card3.temp',forecastDataDict)
         self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
-        self.narratives["card3"]["chart"] = prediction_data
+        self.narratives["card3"]["chart"] = {"data":prediction_data,"format":"%b-%Y"}
 
 __all__ = [
     'TrendNarrative'
