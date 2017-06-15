@@ -55,11 +55,21 @@ class TwoWayAnova:
         else:
             data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if existingDateFormat != None and requestedDateFormat != None:
-            func = udf(lambda x: datetime.strptime(x,existingDateFormat).strftime(requestedDateFormat), StringType())
+            # func = udf(lambda x: datetime.strptime(x,existingDateFormat).strftime(requestedDateFormat), StringType())
             # data_frame = data_frame.select(*[func(column).alias(aggregate_column) if column==aggregate_column else column for column in self._data_frame.columns])
-            subset_data = data_frame.select(aggregate_column,measure_column, aggregate_column)
-            agg_data = subset_data.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
-            agg_data.columns = ["Date","measure"]
+            # subset_data = data_frame.select(aggregate_column,measure_column)
+            agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
+            agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column])
+            agg_data = agg_data.sort_values('date_col')
+            agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
+            agg_data.columns = ["Date","measure","date_col"]
+            agg_data = agg_data[['Date','measure']]
+        elif existingDateFormat != None:
+            agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
+            agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column])
+            agg_data = agg_data.sort_values('date_col')
+            agg_data.columns = ["Date","measure","date_col"]
+            agg_data = agg_data[['Date','measure']]
         else:
             agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","measure"]
@@ -71,14 +81,21 @@ class TwoWayAnova:
         if existingDateFormat != None and requestedDateFormat != None:
             func = udf(lambda x: datetime.strptime(x,existingDateFormat).strftime(requestedDateFormat), StringType())
             # data_frame = data_frame.select(*[func(column).alias(aggregate_column) if column==aggregate_column else column for column in self._data_frame.columns])
-            subset_data = data_frame.select(aggregate_column,measure_column, dimension_column, aggregate_column)
-            agg_data = subset_data.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
+            # subset_data = data_frame.select(aggregate_column,measure_column, dimension_column, aggregate_column)
+            agg_data = data_frame.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","dimension","measure"]
+            agg_data['date_col'] = pd.to_datetime(agg_data['Date'])
+            agg_data = agg_data.sort_values('date_col')
+            agg_data['Date'] = agg_data['date_col'].dt.strftime(requestedDateFormat)
+            agg_data = agg_data[["Date","dimension","measure"]]
         else:
             agg_data = data_frame.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","dimension","measure"]
+            agg_data['date_col'] = pd.to_datetime(agg_data['Date'])
+            agg_data = agg_data.sort_values('date_col')
+            agg_data = agg_data[["Date","dimension","measure"]]
         grouped_data = agg_data.groupby('dimension').agg({'measure' : ['first', 'last', 'sum']}).reset_index()
-        return agg_data
+        return grouped_data
 
     def initialise_trend_object(self, measure):
         agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
@@ -133,6 +150,7 @@ class TwoWayAnova:
             if self._dateFormatDetected:
                 self.initialise_trend_object(m)
             self.test_against(m, dimensions_to_test)
+            self._anova_result.set_TrendResult(self.trend_result)
             DF_Anova_Result.add_measure_result(m,self._anova_result)
         return DF_Anova_Result
 

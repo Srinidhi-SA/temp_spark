@@ -18,6 +18,8 @@ class DFTwoWayAnovaResult:
         return self.result.keys()
     def get_dimensions_analyzed(self,measure):
         return self.result[measure].get_dimensions_analyzed()
+    def get_significant_dimensions(self,measure):
+        return self.result[measure].get_OneWayAnovaSignificantDimensions()
 
 class MeasureAnovaResult:
     def __init__(self, var, sst):
@@ -37,12 +39,27 @@ class MeasureAnovaResult:
     def set_TrendResult(self, trend_result):
         self.TrendResult = trend_result
 
+    def get_TrendResult(self):
+        return self.TrendResult
+
     def set_OneWayAnovaResult(self, dimension, var, sse):
         self.OneWayAnovaResult[dimension] = OneWayAnovaResult(var, self.global_mean, sse, self.sst)
         self.OneWayAnovaResult[dimension].set_results()
 
     def get_OneWayAnovaEffectSize(self, dimension):
         return self.OneWayAnovaResult[dimension].get_effect_size()
+
+    def get_OneWayAnovaSignificantDimensions(self):
+        significant_dimensions = {}
+        insignificant_dimensions = []
+        for dimension in self.OneWayAnovaResult:
+            p,e = self.OneWayAnovaResult[dimension].get_p_and_effect_size()
+            if p<=0.05:
+                significant_dimensions[dimension] = e
+            else:
+                insignificant_dimensions.append(dimension)
+        return significant_dimensions,insignificant_dimensions
+
 
     def set_OneWayAnova_Contributions(self,top_dimension_result):
         for dimension in top_dimension_result.keys():
@@ -158,12 +175,13 @@ class TopDimensionStats:
 
     def compute_contributions(self, dimension, var):
         var = var.sort_values('total', ascending = False)
-        cumsums = var.total.cumsum()
-        seventy_five_sum = self.sum_measure * 0.75
-        seventy_five_limit = next(i for i in range(len(cumsums)) if cumsums[i]>=seventy_five_sum)
-        var = var.ix[:seventy_five_limit]
-        var['percent'] = var.total/self.sum_measure
-        self.contributions[dimension] = dict(zip(var.levels, var.percent))
+        max_diff_index = var.total.diff(1).argmax()
+        var = var.ix[:max_diff_index]
+        var['percent'] = var['total']/self.sum_measure
+        self.contributions[dimension] = dict(zip(var['levels'], var['percent']))
+
+    def get_contributions(self, dimension):
+        return self.contributions[dimension]
 
     def get_top_3_significant_dimensions(self):
         significant_dimensions = [k for k,v in self.p_value.items() if v<=0.05]
@@ -171,6 +189,14 @@ class TopDimensionStats:
             return significant_dimensions
         else:
             significant_dimensions = sorted(significant_dimensions, key = lambda x: -self.effect_size[x])[:3]
+            return significant_dimensions
+
+    def get_significant_dimensions(self):
+        significant_dimensions = [k for k,v in self.p_value.items() if v<=0.05]
+        if len(significant_dimensions)<2:
+            return significant_dimensions
+        else:
+            significant_dimensions = sorted(significant_dimensions, key = lambda x: -self.effect_size[x])
             return significant_dimensions
 
 class OneWayAnovaResult:
@@ -235,17 +261,34 @@ class OneWayAnovaResult:
     def is_statistically_significant(self,alpha=0.05):
         return self.p_value <= alpha
 
+    def get_p_and_effect_size(self):
+        return self.p_value, self.effect_size
+
 class TrendResult:
     def __init__(self, agg_data_frame, date_field, measure):
-        self._data_frame = agg_data_frame
-        self._dimension_results = {}
-        self._date_field = date_field
-        self._measure = measure
+        self.data_frame = agg_data_frame
+        self.dimension_results = {}
+        self.date_field = date_field
+        self.measure = measure
+        print 'TREND RESULT : '
+        print self.data_frame
 
     def add_trend_result(self,dimension, agg_data_frame, agg_data_frame_dimension):
-        self._dimension_results[dimension] = Trend_Dimenion_Result(agg_data_frame, agg_data_frame_dimension)
+        self.dimension_results[dimension] = TrendDimensionResult(agg_data_frame, agg_data_frame_dimension)
 
-class Trend_Dimenion_Result:
+    def get_trend_result(self, dimension):
+        return self.dimension_results[dimension]
+
+    def get_grouped_data(self, dimension):
+        return self.dimension_results[dimension].get_grouped_data()
+
+class TrendDimensionResult:
     def __init__(self, agg_data_frame, agg_data_frame_dimension):
-        self._data_frame = agg_data_frame
-        self._grouped_data_frame = agg_data_frame_dimension
+        self.data_frame = agg_data_frame
+        self.grouped_data_frame = agg_data_frame_dimension
+        print 'TREND DIEMNSION RESULT : '
+        print self.data_frame
+        print self.grouped_data_frame
+
+    def get_grouped_data(self):
+        return self.grouped_data_frame
