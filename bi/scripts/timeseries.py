@@ -29,7 +29,6 @@ class TrendScript:
             if dateColumnFormatDict.has_key(self._td_col):
                 self._existingDateFormat = dateColumnFormatDict[self._td_col]
                 self._dateFormatDetected = True
-
             if df_context.get_requested_date_format() != None:
                 self._requestedDateFormat = df_context.get_requested_date_format()[0]
             else:
@@ -38,6 +37,7 @@ class TrendScript:
                 self._requestedDateFormat = self._dateFormatConversionDict[self._requestedDateFormat]
             else:
                 self._requestedDateFormat = self._existingDateFormat
+
 
     def Run(self):
         if self._date_suggestion_cols != None:

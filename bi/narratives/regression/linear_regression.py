@@ -36,7 +36,6 @@ class LinearRegressionNarrative:
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/regression/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
         self._generate_narratives()
-        # NarrativesUtils.round_number(num, 2)
 
     def _generate_narratives(self):
         self._generate_summary()
