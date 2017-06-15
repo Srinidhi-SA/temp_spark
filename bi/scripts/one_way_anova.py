@@ -1,10 +1,10 @@
 import json
 
-from bi.common import utils
 from bi.common import DataWriter
-from bi.common import BIException
-from bi.stats import OneWayAnova
+from bi.common import utils
 from bi.narratives.anova import AnovaNarratives
+from bi.stats import OneWayAnova
+
 
 class OneWayAnovaScript:
     def __init__(self, data_frame, df_helper, df_context, spark):

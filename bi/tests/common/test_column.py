@@ -1,6 +1,7 @@
 
 import unittest
 
+from pyspark.sql.types import ArrayType
 from pyspark.sql.types import BinaryType
 from pyspark.sql.types import DateType
 from pyspark.sql.types import DecimalType
@@ -11,9 +12,9 @@ from pyspark.sql.types import LongType
 from pyspark.sql.types import ShortType
 from pyspark.sql.types import StringType
 from pyspark.sql.types import TimestampType
-from pyspark.sql.types import ArrayType
 
 from bi.common.column import ColumnType
+
 
 class TestColumnType(unittest.TestCase):
     """Test cases for testing functionality of bi.commom.column.ColumnType

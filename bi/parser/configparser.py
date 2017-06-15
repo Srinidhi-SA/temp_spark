@@ -1,6 +1,3 @@
-import ConfigParser
-import json
-
 class ParserConfig():
     """docstring for ParserConfig."""
     def __init__(self, config):

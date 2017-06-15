@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """Gathers descriptive stats for all columns in a dataframe"""
 
-import sys
 import argparse
 import json
+import sys
 
-from bi.common import utils
 from bi.common import DataLoader
 from bi.common import DataWriter
 from bi.common import MetaDataHelper
+from bi.common import utils
+
+
 # from bi.common import ContextSetter
 
 def get_argument_parser():

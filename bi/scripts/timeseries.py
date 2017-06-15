@@ -1,9 +1,9 @@
-from bi.common import utils
+import json
+
 from bi.common import DataWriter
+from bi.common import utils
 from bi.narratives.trend import TimeSeriesNarrative
 
-
-import json
 
 class TrendScript:
 

@@ -1,12 +1,10 @@
-import subprocess
-
-from pyspark.sql import SparkSession
-from pyspark.sql import Row
-from pyspark.sql import types as pst
 from pyspark import RDD
+from pyspark.sql import Row
+from pyspark.sql import SparkSession
+from pyspark.sql import types as pst
 
-from writemode import WriteMode
 from decorators import accepts
+from writemode import WriteMode
 
 '''
 Ref: http://nadbordrozd.github.io/blog/2016/05/22/one-weird-trick-that-will-fix-your-pyspark-schemas/

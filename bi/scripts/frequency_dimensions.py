@@ -1,12 +1,8 @@
-
-import json
-
-from bi.common import utils
 from bi.common import DataWriter
-from bi.common import BIException
-from bi.stats.frequency_dimensions import FreqDimensions
-from bi.narratives.dimension import DimensionNarrative
+from bi.common import utils
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
+from bi.stats.frequency_dimensions import FreqDimensions
+
 
 class FreqDimensionsScript:
     def __init__(self, data_frame, df_helper, df_context, spark):

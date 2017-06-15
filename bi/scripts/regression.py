@@ -1,12 +1,12 @@
 
-from bi.common import utils
-from bi.common import DataWriter
-from bi.algorithms import LinearRegression
-from bi.narratives.regression import RegressionNarrative
-from bi.narratives.regression import LinearRegressionNarrative
 import json
 
-import json
+from bi.algorithms import LinearRegression
+from bi.common import DataWriter
+from bi.common import utils
+from bi.narratives.regression import LinearRegressionNarrative
+
+
 # from bi.stats import Correlation
 
 class RegressionScript:

@@ -1,14 +1,10 @@
-import os
-import jinja2
-import re
-import pattern.en
-from bi.common.utils import accepts
-from bi.common.results import ChiSquareResult
-from bi.common.results import DFChiSquareResult
-from bi.narratives import utils as NarrativesUtils
 import operator
+import os
+
 import numpy
-import json
+
+from bi.narratives import utils as NarrativesUtils
+
 
 class ChiSquareAnalysis:
     def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, appid=None):

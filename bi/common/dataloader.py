@@ -6,6 +6,7 @@ from pyspark.sql import SparkSession
 
 from decorators import accepts
 
+
 class DataLoader:
     @staticmethod
     @accepts(SparkSession, basestring, has_header=bool, interpret_data_schema=bool)
