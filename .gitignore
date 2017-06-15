@@ -109,3 +109,5 @@ metastore_db/*
 
 # Local Config File
 #configs/config.cfg
+
+.idea/
