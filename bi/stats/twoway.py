@@ -39,7 +39,6 @@ class TwoWayAnova:
         self._dimension_columns = self._data_frame_helper.get_string_columns()
         self._df_rows = self._data_frame_helper.get_num_rows()
         self.top_dimension_result = {}
-
         self._dateFormatConversionDict = {
             "mm/dd/YYYY":"%m/%d/%Y",
             "dd/mm/YYYY":"%d/%m/%Y",
@@ -148,6 +147,8 @@ class TwoWayAnova:
             global_mean = var[0][1]
             sst = self._data_frame.select((col(m)-global_mean)*(col(m)-global_mean)).agg({'*':'sum'}).collect()[0][0]
             self._anova_result = MeasureAnovaResult(var[0],sst)
+            if self._dateFormatDetected:
+                self.initialise_trend_object(m)
             self.test_against(m, dimensions_to_test)
             self._anova_result.set_TrendResult(self.trend_result)
             DF_Anova_Result.add_measure_result(m,self._anova_result)
@@ -200,7 +201,16 @@ class TwoWayAnova:
                         agg({'*':'sum'}).collect()
             sse = sse+group_sse[0][0]
         self.top_dimension_result[agg_dimension].set_p_value(var, sse, dimension)
+        if self.top_dimension_result[agg_dimension].get_p_value(dimension)<=0.05:
+            if self._dateFormatDetected:
+                self.set_trend_result(measure, dimension)
 
+    def set_trend_result(self, measure, dimension):
+        agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
+                                                    self._existingDateFormat, self._requestedDateFormat,True)
+        add_data_frame_dimension = self.get_aggregated_by_date_and_dimension(self._primary_date, measure, dimension,\
+                                                                self._existingDateFormat, self._requestedDateFormat)
+        self.trend_result.add_trend_result(dimension,agg_data_frame,add_data_frame_dimension)
 
     def test_against(self,measure, dimensions):
         for dimension in dimensions:
