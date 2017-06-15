@@ -215,6 +215,23 @@ class DataFrameHelper:
     def add_significant_dimension(self, dimension, effect_size):
         self.significant_dimensions[dimension] = effect_size
 
+    def get_significant_dimension(self):
+        return self.significant_dimensions
+
+    def filter_dataframe(self, colname, values):
+        if type(values) == str:
+            values = values[1:-1]
+            values = values.split(',')
+        df = self._data_frame.where(col(colname).isin(values))
+        return df
+
+    def get_splits_of_numerical_column(self,colname):
+        min_max = self._data_frame.agg(FN.min(column_name).alias('min'), FN.max(column_name).alias('max')).collect()
+        min_value = min_max[0]['min']
+        max_value = min_max[0]['max']
+        splits = CommonUtils.frange(min_value, max_value, num_bins)
+        return splits
+
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
           raise BIException('No such column exists: %s' %(column_name,))
@@ -298,6 +315,7 @@ class DataFrameHelper:
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if existingDateFormat != None and requestedDateFormat != None:
+            print existingDateFormat,requestedDateFormat
             # def date(s):
             #   return str(s.date())
             # date_udf = udf(date, StringType())
@@ -313,7 +331,6 @@ class DataFrameHelper:
         else:
             agg_data = self._data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["key","value"]
-
         return agg_data
 
     def fill_na_measure_mean(self):
