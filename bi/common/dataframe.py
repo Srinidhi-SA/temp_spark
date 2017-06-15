@@ -52,6 +52,8 @@ class DataFrameHelper:
         self._df_context = df_context
         self.measure_suggestions = []
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
+        self._date_formats = {}
+        self.significant_dimensions = {}
 
     def set_params(self):
 
@@ -210,6 +212,26 @@ class DataFrameHelper:
     def subset_data_frame(self, columns):
         return self._data_frame.select(*columns)
 
+    def add_significant_dimension(self, dimension, effect_size):
+        self.significant_dimensions[dimension] = effect_size
+
+    def get_significant_dimension(self):
+        return self.significant_dimensions
+
+    def filter_dataframe(self, colname, values):
+        if type(values) == str:
+            values = values[1:-1]
+            values = values.split(',')
+        df = self._data_frame.where(col(colname).isin(values))
+        return df
+
+    def get_splits_of_numerical_column(self,colname):
+        min_max = self._data_frame.agg(FN.min(column_name).alias('min'), FN.max(column_name).alias('max')).collect()
+        min_value = min_max[0]['min']
+        max_value = min_max[0]['max']
+        splits = CommonUtils.frange(min_value, max_value, num_bins)
+        return splits
+
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
           raise BIException('No such column exists: %s' %(column_name,))
@@ -293,6 +315,7 @@ class DataFrameHelper:
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if existingDateFormat != None and requestedDateFormat != None:
+            print existingDateFormat,requestedDateFormat
             # def date(s):
             #   return str(s.date())
             # date_udf = udf(date, StringType())
@@ -308,7 +331,6 @@ class DataFrameHelper:
         else:
             agg_data = self._data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["key","value"]
-
         return agg_data
 
     def fill_na_measure_mean(self):
@@ -369,20 +391,24 @@ class DataFrameHelper:
         #return self._data_frame.collect()
 
     def get_datetime_format(self,colname):
-        date_time_suggestions = {}
-        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
-        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
+        if self._date_formats.has_key(colname):
+            return self._date_formats[colname]
+        else:
+            date_time_suggestions = {}
+            formats = CommonUtils.dateTimeFormatsSupported()["formats"]
+            dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
 
-        row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
-        x = row_vals[0][colname]
-        for format1 in formats:
-            try:
-                t = datetime.strptime(x,format1)
-                date_time_suggestions[colname] = format1
-                break
-            except ValueError as err:
-                pass
-        return date_time_suggestions
+            row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
+            x = row_vals[0][colname]
+            for format1 in formats:
+                try:
+                    t = datetime.strptime(x,format1)
+                    date_time_suggestions[colname] = format1
+                    self._date_formats[colname] = format1
+                    break
+                except ValueError as err:
+                    pass
+            return date_time_suggestions
 
     def get_train_test_data(self):
         train_test_data = self.train_test_data
