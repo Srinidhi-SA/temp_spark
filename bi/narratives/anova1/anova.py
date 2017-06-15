@@ -1,8 +1,6 @@
 import os
 import jinja2
 import re
-import pattern.en
-import re
 from bi.common.utils import accepts
 from bi.common.results.two_way_anova import OneWayAnovaResult
 
@@ -10,6 +8,7 @@ from bi.stats import TuckeyHSD
 
 
 from bi.narratives import utils as NarrativesUtils
+
 
 class OneWayAnovaNarratives:
     THRESHHOLD_TOTAL = 0.75
@@ -27,8 +26,6 @@ class OneWayAnovaNarratives:
         self.analysis = None
         self.largest_volume = []
         self.largest_average = []
-
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
         self._generate_narratives()
         self.sub_heading = self.get_sub_heading()
@@ -112,7 +109,7 @@ class OneWayAnovaNarratives:
             'n_c_d_75': len(cat_75_list),
             'percent_contr' : NarrativesUtils.round_number(100.0 * cum_sum / sum(totals),2),
             'dimension_name' : self._dimension_column,
-            'plural_dimension_name' : pattern.en.pluralize(self._dimension_column),
+            'plural_dimension_name' : NarrativesUtils.pluralize(self._dimension_column),
             'measure_name' : self._measure_column,
 
             'best_category_by_mean': top_group_by_mean,
@@ -132,13 +129,5 @@ class OneWayAnovaNarratives:
             'diff_percent': round(mean_diff_percentage,2),
             'other_categories': other_group_names_list
         }
-
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('anova_template_3.temp')
-        output = template.render(data_dict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
-        output = re.sub('\( ','(',output)
-        self.analysis = output
+        self.analysis = \
+                NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.temp',data_dict)

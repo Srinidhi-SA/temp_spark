@@ -15,12 +15,6 @@ class MeasureColumnNarrative:
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._measure_descr_stats = measure_descr_stats
         self._five_point_summary_stats = measure_descr_stats.get_five_point_summary_stats()
-        # self._histogram = measure_descr_stats.get_histogram()
-        # self._num_columns = context.get_column_count()
-        # self._num_rows = context.get_row_count()
-        # self._measures = context.get_measures()
-        # self._dimensions = context.get_dimensions()
-        # self._time_dimensions = context.get_time_dimension()
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self.title = None
@@ -31,7 +25,6 @@ class MeasureColumnNarrative:
         self._analysis2 = None
         self.analysis = None
         self.take_away = None
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/descriptive/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/descriptive/"
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())
         self.num_dimensions = len(self._dataframe_helper.get_string_columns())
@@ -68,17 +61,11 @@ class MeasureColumnNarrative:
                     "ignorecolumns" : ignored_columns,
                     "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns)
         }
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('descr_stats_summary.temp')
-        output = template.render(data_dict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
-        self.summary = output
+        self.summary = NarrativesUtils.get_template_output(self._base_dir,\
+                                        'descr_stats_summary.temp',data_dict)
 
     def _generate_analysis_para1(self):
-        output = 'Para1 entered'
+        output = ''
         data_dict = {"cols" : self._dataframe_helper.get_num_columns(),
                     "min" : NarrativesUtils.round_number(self._measure_descr_stats.get_min(), 0),
                     "max" : NarrativesUtils.round_number(self._measure_descr_stats.get_max(), 0),
@@ -92,18 +79,12 @@ class MeasureColumnNarrative:
                     "col_name": self._column_name,
                     'rows': self._dataframe_helper.get_num_rows()
         }
-
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('distribution_narratives.temp')
-        output = template.render(data_dict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
+        output = NarrativesUtils.get_template_output(self._base_dir,\
+                                        'distribution_narratives.temp',data_dict)
         return output
 
     def _generate_analysis_para2(self):
-        output = 'Para2 entered'
+        output = ''
         histogram_buckets = self._measure_descr_stats.get_histogram()
         threshold = self._dataframe_helper.get_num_rows() * 0.75
         s = 0
@@ -144,17 +125,12 @@ class MeasureColumnNarrative:
                     "end_value" : end_value,
                     "measure_colname":self._column_name
         }
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('histogram_narrative.temp')
-        output = template.render(data_dict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
+        output = NarrativesUtils.get_template_output(self._base_dir,\
+                                        'histogram_narrative.temp',data_dict)
         return output
 
     def _generate_take_away(self):
-        output = 'Takeaway entered'
+        output = ''
         histogram_buckets = self._measure_descr_stats.get_histogram()
         threshold = self._dataframe_helper.get_num_rows() * 0.75
         s = 0
@@ -187,11 +163,6 @@ class MeasureColumnNarrative:
                     "end": end_value
                     }
         if (len(histogram_buckets)>3):
-            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-            templateEnv = jinja2.Environment( loader=templateLoader )
-            template = templateEnv.get_template('histogram_takeaway.temp')
-            output = template.render(data_dict).replace("\n", "")
-            output = re.sub(' +',' ',output)
-            output = re.sub(' ,',',',output)
-            output = re.sub(' \.','.',output)
+            output = NarrativesUtils.get_template_output(self._base_dir,\
+                                            'histogram_takeaway.temp',data_dict)
         return output

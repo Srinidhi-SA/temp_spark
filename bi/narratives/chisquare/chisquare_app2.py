@@ -5,7 +5,7 @@ import pattern.en
 from bi.common.utils import accepts
 from bi.common.results import ChiSquareResult
 from bi.common.results import DFChiSquareResult
-# from bi.narratives.utils import NarrativesUtils
+from bi.narratives import utils as NarrativesUtils
 import operator
 import numpy
 import json
@@ -174,17 +174,9 @@ class ChiSquareAnalysisApp2:
                       'maximums' : maximums,
                       'minimums' : minimums
         }
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('chisquare_template3.temp')
-        analysis1 = template.render(data_dict).replace("\n", "")
-        analysis1 = re.sub(' +',' ',analysis1)
+        analysis1 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template3.temp',data_dict)
         title1 = ''
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('chisquare_template4.temp')
-        analysis2 = template.render(data_dict).replace("\n", "")
-        analysis2 = re.sub(' +',' ',analysis2)
+        analysis2 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template4.temp',data_dict)
         title2 = ''
 
         self.analysis = {'title1':'',

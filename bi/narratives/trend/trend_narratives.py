@@ -92,16 +92,47 @@ class TrendNarrative:
             dataDict["start_time"] = df["year_month"].iloc[0]
             dataDict["end_time"] = df["year_month"].iloc[-1]
 
+        if dataDict["overall_growth"] < 0:
+            dataDict["overall_growth_text"] = "negative growth"
+        else:
+            dataDict["overall_growth_text"] = "positive growth"
+        peak_index = np.argmax(df["value"])
+        low_index = np.argmin(df["value"])
+        dataDict["peakValue"] = df["value"][peak_index]
+        dataDict["lowestValue"] = df["value"][low_index]
+        dataDict["peakTime"] = df["year_month"][peak_index]
+        dataDict["lowestTime"] = df["year_month"][low_index]
+        k = peak_index
+        while df["perChange"][k] >= 0:
+            k = k-1
+        l = low_index
+        while df["perChange"][l] < 0:
+            l = l-1
+        dataDict["peakStreakDuration"] = k-peak_index
+        dataDict["LowStreakDuration"] = l-low_index
+        if dataDict["LowStreakDuration"] >=2 :
+            dataDict["lowStreakBeginMonth"] = df["year_month"][l]
+            dataDict["lowStreakBeginValue"] = df["value"][l]
+
+        max_increase_index = np.argmax(list(df["perChange"]))
+        if dataDict["dataLevel"] == "day":
+            dataDict["max_increase_time"] = str(df["key"][max_increase_index])
+        else:
+            dataDict["max_increase_time"] = df["year_month"][max_increase_index]
+
+        dataDict["max_increase_percentage"] = round(df["perChange"][max_increase_index],2)
+        dataDict["maxIncreaseValues"] = (df["value"][max_increase_index-1],df["value"][max_increase_index])
+        max_decrease_index = np.argmin(list(df["perChange"]))
+        if dataDict["dataLevel"] == "day":
+            dataDict["max_decrease_time"] = str(df["key"][max_decrease_index])
+        else:
+            dataDict["max_decrease_time"] = df["year_month"][max_decrease_index]
+
+        dataDict["max_decrease_percentage"] = round(df["perChange"][max_decrease_index],2)
+        dataDict["maxDecreaseValues"] = (df["value"][max_decrease_index-1],df["value"][max_decrease_index])
+
         if dataDict["overall_growth"] > 0:
             dataDict["trend"] = "positive"
-            max_increase_index = np.argmax(list(df["perChange"]))
-            if dataDict["dataLevel"] == "day":
-                dataDict["max_increase_time"] = str(df["key"][max_increase_index])
-            else:
-                dataDict["max_increase_time"] = df["year_month"][max_increase_index]
-
-            dataDict["max_increase_percentage"] = round(df["perChange"][max_increase_index],2)
-            dataDict["maxIncreaseValues"] = (df["value"][max_increase_index-1],df["value"][max_increase_index])
             streakList =  NarrativesUtils.continuous_streak(df,direction="increase")
             streak = max(streakList,key=len)
             dataDict["end_streak_value"] = round(streak[-1]["value"],2)
@@ -115,14 +146,6 @@ class TrendNarrative:
 
         elif dataDict["overall_growth"] < 0:
             dataDict["trend"] = "negative"
-            max_decrease_index = np.argmin(list(df["perChange"]))
-            if dataDict["dataLevel"] == "day":
-                dataDict["max_decrease_time"] = str(df["key"][max_decrease_index])
-            else:
-                dataDict["max_decrease_time"] = df["year_month"][max_decrease_index]
-
-            dataDict["max_decrease_percentage"] = round(df["perChange"][max_decrease_index],2)
-            dataDict["maxDecreaseValues"] = (df["value"][max_decrease_index-1],df["value"][max_decrease_index])
             streakList =  NarrativesUtils.continuous_streak(df,direction="decrease")
             streak = max(streakList,key=len)
             dataDict["end_streak_value"] = round(streak[-1]["value"],2)
@@ -137,15 +160,11 @@ class TrendNarrative:
         return dataDict
 
     def generate_sub_heading(self,measure_column):
-        sub_heading = "This section provides insights on how %s is performing over time and captures the most significant moments that defined the overall pattern or trend over the observation period." %(measure_column)
+        sub_heading = "How %s is changing over Time" %(measure_column)
+        # sub_heading = "This section provides insights on how %s is performing over time and captures the most significant moments that defined the overall pattern or trend over the observation period." %(measure_column)
         return sub_heading
 
     def generate_summary(self,dataDict):
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('trend_summary.temp')
-        output = template.render(dataDict).replace("\n", "")
-        output = re.sub(' +',' ',output)
-        output = re.sub(' ,',',',output)
-        output = re.sub(' \.','.',output)
+        output = NarrativesUtils.get_template_output(self._base_dir,\
+                                                        'trend_summary.temp',data_dict)
         return output
