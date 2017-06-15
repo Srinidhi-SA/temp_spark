@@ -114,21 +114,10 @@ def calculate_confusion_matrix(actual,predicted):
     dict_out = out.to_dict()
     actual_classes = list(set(actual))
     predicted_classes = list(set(predicted))
-    total_classes = list(set(actual_classes+predicted_classes))
-    dummy_dict = dict(zip(total_classes,[0]*len(total_classes)))
-    for k in total_classes:
+    dummy_dict = dict(zip(actual_classes,[0]*len(actual_classes)))
+    for k in actual_classes:
         if k not in predicted_classes:
             dict_out[k] = dummy_dict
-    if len(actual_classes) < len(predicted_classes):
-        for k in total_classes:
-            if k not in predicted_classes:
-                dict_out[k] = dummy_dict
-            else:
-                temp = dict_out[k]
-                missing_keys = list(set(total_classes)-set(actual_classes))
-                additional_data = dict(zip(missing_keys,[0]*len(missing_keys)))
-                temp.update(additional_data)
-                dict_out[k] = temp
     return dict_out
 
 def calculate_overall_precision_recall(actual,predicted):

@@ -1,6 +1,8 @@
 import os
 import jinja2
 import re
+import pattern.en
+import re
 from bi.common.utils import accepts
 from bi.common.results.anova import AnovaResult
 
@@ -114,7 +116,7 @@ class OneWayAnovaNarratives:
             'n_c_d_75': len(cat_75_list),
             'percent_contr' : NarrativesUtils.round_number(100.0 * cum_sum / total,2),
             'dimension_name' : self._dimension_column,
-            'plural_dimension_name' : NarrativesUtils.pluralize(self._dimension_column),
+            'plural_dimension_name' : pattern.en.pluralize(self._dimension_column),
             'measure_name' : self._measure_column,
 
             'best_category_by_mean': top_group_by_mean,

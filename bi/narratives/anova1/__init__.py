@@ -10,7 +10,6 @@ from collections import OrderedDict
 
 from bi.narratives.anova1.anova import OneWayAnovaNarratives
 from anova_drilldown import AnovaDrilldownNarratives
-from bi.narratives import utils as NarrativesUtils
 
 class AnovaNarratives:
     ALPHA = 0.05
@@ -60,21 +59,21 @@ class AnovaNarratives:
                 narrative = OneWayAnovaNarratives(measure_column, dimension_column, anova_result)
                 self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column] = narrative
                 self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
-            fs = time.time()
-            try:
-                anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
-                drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self._df_helper, anova_narrative)
-                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
-                print "Drill Down Narrative Success"
-            except Exception as e:
-                print "Drill Down Narrative Failed"
-                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
-                print "DRILL DOWN ERROR"
-                print e
-                print "DRILL DOWN ERROR"
-            print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
-            # self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
-            # self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
+            # fs = time.time()
+            # try:
+                # anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
+                # drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self._df_helper, anova_narrative)
+                # self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
+                # print "Drill Down Narrative Success"
+            # except Exception as e:
+                # print "Drill Down Narrative Failed"
+                # self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
+                # print "DRILL DOWN ERROR"
+                # print e
+                # print "DRILL DOWN ERROR"
+            # print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
+                #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
+            #self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
             #                            key = lambda kv: kv[1]['effect_size'], reverse=True))
             sorted_dim=[]
             for key,value in sorted(effect_sizes.iteritems(),key = lambda (k,v):(v,k)):
@@ -89,14 +88,22 @@ class AnovaNarratives:
                 'd' : significant_dimensions+insignificant_dimensions,
                 'dims' : sorted_dim
             }
-            output = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.temp',data_dict)
-            output_chart = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.temp',data_dict)
+            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
+            templateEnv = jinja2.Environment( loader=templateLoader )
+            template = templateEnv.get_template('anova_template_1.temp')
+            output = template.render(data_dict).replace("\n", "")
+            output = re.sub(' +',' ',output)
+            chart_template = templateEnv.get_template('anova_template_2.temp')
+            output_chart = chart_template.render(data_dict).replace("\n", "")
+            output_chart = re.sub(' +',' ',output_chart)
+            #anova_1_and_2 = output +"\n"+ output_chart
+            #print anova_1_and_2
             self.narratives[measure_column][AnovaNarratives.KEY_SUMMARY] = [output,output_chart]
 
             takeaway = ''
             templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
             templateEnv = jinja2.Environment( loader=templateLoader )
             template = templateEnv.get_template('anova_takeaway.temp')
-            takeaway = template.render(data_dict)
-            takeaway = NarrativesUtils.clean_narratives(takeaway)
+            takeaway = template.render(data_dict).replace("\n", "")
+            takeaway = re.sub(' +',' ',takeaway)
             self.narratives[measure_column][AnovaNarratives.KEY_TAKEAWAY] = takeaway
