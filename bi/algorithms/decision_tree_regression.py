@@ -31,7 +31,7 @@ Decision Tree
 class DecisionTreeRegression:
 
     #@accepts(object, DataFrame)
-    def __init__(self, data_frame, data_frame_helper, df_context, spark):
+    def __init__(self, data_frame, df_context, data_frame_helper, spark):
         self._spark = spark
         self._data_frame = data_frame
         self._data_frame1 = data_frame
