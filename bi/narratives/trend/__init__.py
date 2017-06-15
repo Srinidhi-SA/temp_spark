@@ -20,7 +20,7 @@ class TimeSeriesNarrative:
         dataDict = trend_narrative_obj.generateDataDict(grouped_data)
         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
 
-        self.narratives["heading"] = measure_column+" Performance Report"
+        self.narratives["heading"] = "Trend Analysis"
         self.narratives["summary"] = trend_narrative_obj.generate_summary(dataDict).split("#LINESEPARATOR#")
         self.narratives["sub_heading"] = trend_narrative_obj.generate_sub_heading(measure_column)
 
