@@ -266,15 +266,26 @@ class OneWayAnovaResult:
 
 class TrendResult:
     def __init__(self, agg_data_frame, date_field, measure):
-        self.data_frame = agg_data_frame
+        self._data_frame = agg_data_frame
+        self.subset_df = {}
         self.dimension_results = {}
+        self.top_dimensions = {}
         self.date_field = date_field
         self.measure = measure
-        print 'TREND RESULT : '
-        print self.data_frame
+        self._growth_rate = (self._data_frame['measure'].iloc[-1]*100/self._data_frame['measure'].iloc[0]) - 100
 
-    def add_trend_result(self,dimension, agg_data_frame, agg_data_frame_dimension):
-        self.dimension_results[dimension] = TrendDimensionResult(agg_data_frame, agg_data_frame_dimension)
+    def get_data_frame(self):
+        return self._data_frame
+
+    def get_overall_growth_percent(self):
+        return self._growth_rate
+
+    def add_subset_df(self, data_frame, dimension, top_dimension):
+        self.subset_df[dimension] = data_frame
+        self.top_dimensions[dimension] = top_dimension.levels
+
+    def add_trend_result(self,dimension, agg_data_frame):
+        self.dimension_results[dimension] = TrendDimensionResult(agg_data_frame)
 
     def get_trend_result(self, dimension):
         return self.dimension_results[dimension]
@@ -282,13 +293,15 @@ class TrendResult:
     def get_grouped_data(self, dimension):
         return self.dimension_results[dimension].get_grouped_data()
 
+    def get_subset_data(self,dimension):
+        return self.subset_df[dimension]
+
+    def get_top_dimension(self, dimension):
+        return self.top_dimensions[dimension]
+
 class TrendDimensionResult:
-    def __init__(self, agg_data_frame, agg_data_frame_dimension):
-        self.data_frame = agg_data_frame
+    def __init__(self, agg_data_frame_dimension):
         self.grouped_data_frame = agg_data_frame_dimension
-        print 'TREND DIEMNSION RESULT : '
-        print self.data_frame
-        print self.grouped_data_frame
 
     def get_grouped_data(self):
         return self.grouped_data_frame

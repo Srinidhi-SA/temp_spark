@@ -21,7 +21,7 @@ class AnovaNarratives:
     DRILL_DOWN = 'drill_down_narrative'
     KEY_CARD = 'card'
     KEY_HEADING = 'heading'
-    KEY_SUBHEADING = 'sub-heading'
+    KEY_SUBHEADING = 'header'
     KEY_CHART = 'charts'
     KEY_PARAGRAPH = 'paragraphs'
     KEY_PARA_HEADER = 'header'
@@ -32,7 +32,6 @@ class AnovaNarratives:
     def __init__(self, df_anova_result, df_helper):
         self._df_anova_result = df_anova_result
         self._df_helper = df_helper
-        self.measures = []
         self.narratives = {}
         #self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anovas/"

@@ -1,6 +1,8 @@
 import os
 import jinja2
 import re
+import math
+import numpy as np
 from bi.common.utils import accepts
 from bi.common.results.two_way_anova import OneWayAnovaResult
 # from bi.stats import TuckeyHSD
@@ -29,7 +31,7 @@ class BubbleData:
         self.text = text
 
 class chart:
-    def __init__(self, data, labels,  heading = ''):
+    def __init__(self, data, labels='',  heading = ''):
         self.heading = heading
         self.data = data
         self.labels = labels
@@ -220,11 +222,144 @@ class OneWayAnovaNarratives:
 
     def _generate_card2(self):
         self.card2 = card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
+        subset_data_frame = self._trend_result.get_subset_data(self._dimension_column)
+        agg_data_frame = self._trend_result.get_data_frame()
+        total_measure = 'Total '+ self._measure_column_capitalized
+        if len(agg_data_frame.columns)==2:
+            agg_data_frame.columns = ['Date',total_measure]
+        subset_measure = self._trend_result.get_top_dimension(self._dimension_column) + ' ' + self._measure_column_capitalized
+        subset_data_frame.columns = ['Date', subset_measure]
+        outer_join = agg_data_frame.merge(subset_data_frame, how='left', on = 'Date')
+        inner_join = agg_data_frame.merge(subset_data_frame, how='inner', on = 'Date')
+        correlation = inner_join[[total_measure,subset_measure]].corr()[total_measure][subset_measure]
+        data = {
+                'Time Period' : list(outer_join['Date']),
+                total_measure : list(outer_join[total_measure]),
+                subset_measure : list(outer_join[subset_measure])
+        }
+        data_c3 = [['Time Period'] + list(outer_join['Date']),
+                [total_measure] + list(outer_join[total_measure]),
+                [subset_measure] + list(outer_join[subset_measure])]
+        chart1 = chart(data = data)
+        chart1.add_data_c3(data_c3)
+        self.card2.add_chart('trend_chart',chart1)
+
+        overall_increase_percent = (agg_data_frame[total_measure].iloc[-1]*100/agg_data_frame[total_measure].iloc[0]) - 100
+        subset_increase_percent = (subset_data_frame[subset_measure].iloc[-1]*100/subset_data_frame[subset_measure].iloc[0]) - 100
+
+        overall_peak_index = agg_data_frame[total_measure].argmax()
+        overall_peak_value = agg_data_frame[total_measure].ix[overall_peak_index]
+        overall_peak_date = agg_data_frame['Date'].ix[overall_peak_index]
+
+        subset_peak_index = subset_data_frame[subset_measure].argmax()
+        subset_peak_value = subset_data_frame[subset_measure].ix[subset_peak_index]
+        subset_peak_date = subset_data_frame['Date'].ix[subset_peak_index]
+
+        agg_data_frame['prev'] = agg_data_frame[total_measure].shift(1)
+        subset_data_frame['prev'] = subset_data_frame[subset_measure].shift(1)
+        if math.isnan(agg_data_frame['prev'].ix[overall_peak_index]):
+            overall_peak_increase = 0
+        else:
+            overall_peak_increase = (subset_data_frame[subset_measure].ix[subset_peak_index]/subset_data_frame['prev'].ix[subset_peak_index])*100 - 100
+        if math.isnan(subset_data_frame['prev'].ix[subset_peak_index]):
+            subset_peak_increase = 0
+        else:
+            subset_peak_increase = (subset_data_frame[subset_measure].ix[subset_peak_index]/subset_data_frame['prev'].ix[subset_peak_index])*100 - 100
+
+        agg_data_frame['avg_diff'] = agg_data_frame[total_measure] - agg_data_frame[total_measure].mean()
+        subset_data_frame['avg_diff'] = subset_data_frame[subset_measure] - subset_data_frame[subset_measure].mean()
+
+        agg_data_frame = self.streaks(agg_data_frame,'avg_diff')
+        subset_data_frame = self.streaks(subset_data_frame, 'avg_diff')
+
+        overall_longest_streak_end_index = agg_data_frame['u_streak'].argmax()
+        overall_longest_streak_contribution = agg_data_frame[total_measure].ix[overall_longest_streak_end_index]
+        overall_streak_length = int(agg_data_frame['u_streak'].ix[overall_longest_streak_end_index])
+        for i in range(1,int(overall_streak_length)):
+            overall_longest_streak_contribution = agg_data_frame[total_measure].shift(i).ix[overall_longest_streak_end_index]
+        overall_longest_streak_contribution = overall_longest_streak_contribution*100/agg_data_frame[total_measure].sum()
+        overall_longest_streak_end_date = agg_data_frame['Date'].ix[overall_longest_streak_end_index]
+        overall_longest_streak_start_date = agg_data_frame['Date'].shift(overall_streak_length-1).ix[overall_longest_streak_end_index]
+
+        subset_longest_streak_end_index = subset_data_frame['u_streak'].argmax()
+        subset_longest_streak_contribution = subset_data_frame[subset_measure].ix[subset_longest_streak_end_index]
+        subset_streak_length = int(subset_data_frame['u_streak'].ix[subset_longest_streak_end_index])
+        for i in range(1,int(subset_streak_length)):
+            subset_longest_streak_contribution = subset_data_frame[subset_measure].shift(i).ix[subset_longest_streak_end_index]
+        subset_longest_streak_contribution = subset_longest_streak_contribution*100/subset_data_frame[subset_measure].sum()
+        subset_longest_streak_end_date = subset_data_frame['Date'].ix[subset_longest_streak_end_index]
+        subset_longest_streak_start_date = subset_data_frame['Date'].shift(subset_streak_length-1).ix[subset_longest_streak_end_index]
+
+        data_dict = {
+                    'correlation' : correlation,
+                    'overall_increase_percent' : round(overall_increase_percent,2),
+                    'subset_increase_percent' : round(subset_increase_percent,2),
+                    'overall_peak_value' : overall_peak_value,
+                    'overall_peak_date' : overall_peak_date,
+                    'overall_peak_increase' : round(overall_peak_increase,2),
+                    'overall_streak_length' : overall_streak_length,
+                    'overall_streak_start_date' : overall_longest_streak_start_date,
+                    'overall_streak_end_date' : overall_longest_streak_end_date,
+                    'overall_streak_contribution' : round(overall_longest_streak_contribution,2),
+                    'subset_peak_value' : subset_peak_value,
+                    'subset_peak_date' : subset_peak_date,
+                    'subset_peak_increase' : round(subset_peak_increase,2),
+                    'subset_streak_length' : subset_streak_length,
+                    'subset_streak_start_date' : subset_longest_streak_start_date,
+                    'subset_streak_end_date' : subset_longest_streak_end_date,
+                    'subset_streak_contribution' : round(subset_longest_streak_contribution,2),
+                    'target' : self._measure_column,
+                    'top_dimension' : self._trend_result.get_top_dimension(self._dimension_column),
+                    'dimension' : self._dimension_column,
+        }
+        output = {}
+        output['header'] = ''
+        output['content'] = []
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.temp',data_dict))
+        self.card2.add_paragraph(output)
+        self.generate_trending_comments()
+
+    def generate_trending_comments(self):
+        grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
+        grouped_data_frame['increase'] = (grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100/grouped_data_frame['measure']['first']
+        positive_growth_dimensions = grouped_data_frame['dimension'].ix[grouped_data_frame['increase']>3]
+        negative_growth_dimensions = grouped_data_frame['dimension'].ix[grouped_data_frame['increase']<-2]
+        stable_growth_dimensions = grouped_data_frame['dimension'].ix[(grouped_data_frame['increase']>=-2) & (grouped_data_frame['increase']<=3)]
+        positive_growth_values = grouped_data_frame['increase'].ix[grouped_data_frame['increase']>3]
+        negative_growth_values = grouped_data_frame['increase'].ix[grouped_data_frame['increase']<-2]
+        # stable_growth_values = grouped_data_frame['increase'].ix[(grouped_data_frame['increase']>=-2) & (grouped_data_frame['increase']<=3)]
+
+        positive_growth_dimensions = [i for j,i in sorted(zip(positive_growth_values,positive_growth_dimensions), reverse=True)]
+        negative_growth_dimensions = [i for j,i in sorted(zip(negative_growth_values,negative_growth_dimensions))]
+        positive_growth_values = sorted(positive_growth_values, reverse=True)
+        negative_growth_values = sorted(negative_growth_values)
+
+        overall_growth_rate = self._trend_result.get_overall_growth_percent()
+
+        data_dict = {
+                    'positive_growth_dimensions' : positive_growth_dimensions,
+                    'negative_growth_dimensions' : negative_growth_dimensions,
+                    'stable_growth_dimensions' : stable_growth_dimensions,
+                    'positive_growth_values' : positive_growth_values,
+                    'negative_growth_values' : negative_growth_values,
+                    'num_positive_growth_dimensions' : len(positive_growth_dimensions),
+                    'num_negative_growth_dimensions' : len(negative_growth_dimensions),
+                    'num_stable_growth_dimensions' : len(stable_growth_dimensions),
+                    'target' : self._measure_column,
+                    'dimension' : self._dimension_column,
+                    'overall_growth_rate' : overall_growth_rate,
+        }
+        output = {'header' : '',
+                  'content': []}
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_7.temp',data_dict))
+        self.card2.add_paragraph(output)
+
+    def streaks(self, df, col):
+        sign = np.sign(df[col])
+        s = sign.groupby((sign!=sign.shift()).cumsum()).cumsum()
+        return df.assign(u_streak=s.where(s>0, 0.0), d_streak=s.where(s<0, 0.0).abs())
 
     def get_category(self, x):
-        print '#'*100
-        print x['increase']
-        print x['increase'][0]
         if x['increase'][0] >= self._increase_limit:
             if x['contribution'][0] >= self._increase_limit:
                 return 'Leaders Club'
@@ -245,18 +380,7 @@ class OneWayAnovaNarratives:
         grouped_data_frame['contribution'] = grouped_data_frame['measure']['sum']*100/sum(grouped_data_frame['measure']['sum'])
         self._contribution_limit = grouped_data_frame['contribution'].median()
         self._increase_limit = max(0.0, grouped_data_frame['increase'].median())
-        print grouped_data_frame
-        print self._contribution_limit, self._increase_limit
         grouped_data_frame['category'] = grouped_data_frame.apply(self.get_category, axis=1)
-        # grouped_data_frame['category'] = 'Red Alert'
-        # grouped_data_frame['category'].ix[(grouped_data_frame['contribution']>=self._contribution_limit) & \
-        #                 (grouped_data_frame['increase']>=self._increase_limit)] = 'Leaders Club'
-        # grouped_data_frame['category'].ix[(grouped_data_frame['contribution']<self._contribution_limit) & \
-        #                 (grouped_data_frame['increase']>=self._increase_limit)] = 'Playing Safe'
-        # grouped_data_frame['category'].ix[(grouped_data_frame['contribution']>=self._contribution_limit) & \
-        #                 (grouped_data_frame['increase']<self._increase_limit)] = 'Opportunity Bay'
-        print grouped_data_frame
-        print '*'*120
         data = {
                       'Share of '+self._measure_column : list(grouped_data_frame['contribution']),
                       self._measure_column_capitalized+' growth' : list(grouped_data_frame['increase']),
@@ -267,7 +391,6 @@ class OneWayAnovaNarratives:
                     ['Share of '+self._measure_column] + list(grouped_data_frame['contribution']),
                     [self._dimension_column] + list(grouped_data_frame['dimension']),
                     ['Category'] + list(grouped_data_frame['category'])]
-        print data
         chart_data = chart(data=data, labels={})
         chart_data.add_data_c3(data_c3)
         self.card3.add_chart('decision_matrix', chart_data)
