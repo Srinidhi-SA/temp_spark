@@ -222,13 +222,16 @@ class OneWayAnovaNarratives:
         self.card2 = card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
 
     def get_category(self, x):
-        if x['increase'] >= self._increase_limit:
-            if x['contributions'] >= self._increase_limit:
+        print '#'*100
+        print x['increase']
+        print x['increase'][0]
+        if x['increase'][0] >= self._increase_limit:
+            if x['contribution'][0] >= self._increase_limit:
                 return 'Leaders Club'
             else:
-                return 'Plating Safe'
+                return 'Playing Safe'
         else:
-            if x['contributions'] >= self._contribution_limit:
+            if x['contribution'][0] >= self._contribution_limit:
                 return 'Opportunity Bay'
             else:
                 return 'Red Alert'
@@ -244,14 +247,16 @@ class OneWayAnovaNarratives:
         self._increase_limit = max(0.0, grouped_data_frame['increase'].median())
         print grouped_data_frame
         print self._contribution_limit, self._increase_limit
-        # grouped_data_frame['category'] = grouped_data_frame.apply(self.get_category, axis=1)
-        grouped_data_frame['category'] = 'Red Alert'
-        grouped_data_frame['category'][(grouped_data_frame['contribution']>=self._contribution_limit) & \
-                        (grouped_data_frame['increase']>=self._increase_limit)] = 'Leaders Club'
-        grouped_data_frame['category'][(grouped_data_frame['contribution']<self._contribution_limit) & \
-                        (grouped_data_frame['increase']>=self._increase_limit)] = 'Playing Safe'
-        grouped_data_frame['category'][(grouped_data_frame['contribution']>=self._contribution_limit) & \
-                        (grouped_data_frame['increase']<self._increase_limit)] = 'Opportunity Bay'
+        grouped_data_frame['category'] = grouped_data_frame.apply(self.get_category, axis=1)
+        # grouped_data_frame['category'] = 'Red Alert'
+        # grouped_data_frame['category'].ix[(grouped_data_frame['contribution']>=self._contribution_limit) & \
+        #                 (grouped_data_frame['increase']>=self._increase_limit)] = 'Leaders Club'
+        # grouped_data_frame['category'].ix[(grouped_data_frame['contribution']<self._contribution_limit) & \
+        #                 (grouped_data_frame['increase']>=self._increase_limit)] = 'Playing Safe'
+        # grouped_data_frame['category'].ix[(grouped_data_frame['contribution']>=self._contribution_limit) & \
+        #                 (grouped_data_frame['increase']<self._increase_limit)] = 'Opportunity Bay'
+        print grouped_data_frame
+        print '*'*120
         data = {
                       'Share of '+self._measure_column : list(grouped_data_frame['contribution']),
                       self._measure_column_capitalized+' growth' : list(grouped_data_frame['increase']),
@@ -285,4 +290,4 @@ class OneWayAnovaNarratives:
         output = {'header' : '',
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_5.temp',data_dict))
-        self.card1.add_paragraph(output)
+        self.card3.add_paragraph(output)
