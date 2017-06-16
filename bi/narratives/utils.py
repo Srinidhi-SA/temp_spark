@@ -382,7 +382,6 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
         data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
         column_levels = df[column_name].unique()
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
-        print "DDDDD"
         k = df.pivot_table(index = index_col, columns = column_name, values = value_col, aggfunc="sum")
         k["total"] = k.sum(axis=1)
         k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k.index))
@@ -489,3 +488,22 @@ def get_bucket_data_dict(bucket_dict,level_cont):
         out["ratio_string"] = str(ratio)
 
     return out
+
+def get_level_cont_dict(level_cont):
+    dk = level_cont["summary"]
+    output = []
+    for k,v in dk.items():
+        level_list = v.keys()
+        max_level = max(v,key=lambda x: v[x]["diff"])
+        t_dict = {}
+        for k1,v1 in dk[k][max_level].items():
+            t_dict[k1] = v1
+            t_dict.update({"level":max_level})
+        output.append(t_dict)
+    out_dict = dict(zip(dk.keys(),output))
+    out_data = {}
+    out_data["highest_contributing_variable"] = max(out_dict,key=lambda x:out_dict[x]["diff"])
+    out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
+    out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
+    out_data["highest_contributing_level_range"] = str(out_dict[out_data["highest_contributing_variable"]]["max_avg"])+" vis-a-vis "+str(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"])
+    output = []

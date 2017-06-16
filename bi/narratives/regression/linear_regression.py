@@ -1,16 +1,19 @@
 import os
 import re
+import json
 from collections import OrderedDict
 
 from bi.common.utils import accepts
 from bi.common.results.regression import RegressionResult
 from bi.common.results.correlation import CorrelationStats
 from bi.common.results.correlation import ColumnCorrelations
+from bi.algorithms import KmeansClustering
 from bi.narratives import utils as NarrativesUtils
 from bi.stats.util import Stats
 from bi.common import utils as CommonUtils
 
 import pyspark.sql.functions as FN
+from pyspark.sql.functions import avg
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.types import DoubleType
 
@@ -19,11 +22,12 @@ class LinearRegressionNarrative:
     MODERATE_CORRELATION = 0.3
 
 
-    def __init__(self, regression_result, column_correlations,kmeans_result, df_helper):
+    def __init__(self, regression_result, column_correlations, df_helper,df_context,spark):
         self._dataframe_helper = df_helper
+        self._dataframe_context = df_context
         self._regression_result = regression_result
-        self._kmeans_result = kmeans_result
         self._data_frame = self._dataframe_helper.get_data_frame()
+        self._spark = spark
         #self._correlation_stats = correlation_stats
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._result_column = self._dataframe_helper.resultcolumn
@@ -38,30 +42,109 @@ class LinearRegressionNarrative:
         self.narratives = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/regression/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
-        # self._generate_narratives()
+
+    def generate_main_card_data(self):
+        all_x_variables = [x for x in self._measure_columns if x != self._regression_result.get_output_column()]
+        significant_measures = self._regression_result.get_input_columns()
+        non_sig_measures = [x for x in all_x_variables if x not in significant_measures]
+        data_dict = {
+                    "n_m" : len(self._measure_columns),
+                    "n_d" : len(self._dataframe_helper.get_string_columns()),
+                    "n_td" : len(self._dataframe_helper.get_timestamp_columns()),
+                    "all_measures" : self._measure_columns,
+                    "om" : all_x_variables,
+                    "n_o_m" : len(all_x_variables),
+                    'sm': significant_measures,
+                    'n_s_m' : len(significant_measures),
+                    'n_ns_m': len(non_sig_measures),
+                    'nsm': non_sig_measures,
+                    "cm": self._regression_result.get_output_column()
+        }
+
+        return data_dict
 
     def getQuadrantData(self,col1,col2):
+        print "YELLOS"
         col1_mean = Stats.mean(self._data_frame,col1)
         col2_mean = Stats.mean(self._data_frame,col2)
-        low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean and FN.col(col2) < col2_mean)
-        low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean and FN.col(col2) >= col2_mean)
-        high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean and FN.col(col2) >= col2_mean)
-        high1low2 = self._data_frame.filter(FN.col(col1) >= col1_mean and FN.col(col2) < col2_mean)
+        low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean & FN.col(col2) < col2_mean)
+        low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean & FN.col(col2) >= col2_mean)
+        high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean & FN.col(col2) >= col2_mean)
+        high1low2 = self._data_frame.filter(FN.col(col1) >= col1_mean & FN.col(col2) < col2_mean)
         print "AAAA"
 
-    def generateGroupedMeasureDataDict(self):
-        splits_data = self.get_measure_column_splits(self._data_frame,self._result_column)
+    def keyAreasDict(self,dim_col_regression,measure_col):
+        data = dim_col_regression
+        dimension_data_dict = {}
+        dims = data.keys()
+        dimension_level_coeff_dict = {}
+        all_coeff_list = []
+        highest_coeff = {}
+        lowest_coeff = {}
+        for dim in dims:
+            levels = data[dim].keys()
+            coeff_list = [(x,data[dim][x]["coeff"][measure_col]["coefficient"]) for x in levels if data[dim][x]["coeff"].has_key(measure_col)]
+            coeff_list = sorted(coeff_list,key=lambda x:abs(x[1]),reverse=True)
+            highest_coeff[dim] = coeff_list[0]
+            lowest_coeff[dim] = coeff_list[-1]
+            all_coeff_list.append([coeff_list[0],dim])
+        all_coeff_list = sorted(all_coeff_list,key=lambda x:abs(x[0][1]),reverse=True)
+        top2_dims = [x[1] for x in all_coeff_list[:2]]
+        dimension_data_dict = dict(zip(top2_dims,[{}]*len(top2_dims)))
+        for val in top2_dims:
+            temp_dict = {}
+            temp_dict["levels"] = data[val].keys()
+            temp_dict["highest_impact_level"] = highest_coeff[val]
+            temp_dict["lowest_impact_level"] = lowest_coeff[val]
+            dimension_data_dict[val] = temp_dict
+        dimension_data_dict[top2_dims[0]]["rank"] = 1
+        dimension_data_dict[top2_dims[1]]["rank"] = 2
+        return dimension_data_dict
+
+    def generateGroupedMeasureDataDict(self,measure_column):
+        splits_data = self.get_measure_column_splits(self._data_frame,measure_column)
         splits = splits_data["splits"]
-        double_df = self._data_frame.withColumn(self._result_column, self._data_frame[self._result_column].cast(DoubleType()))
-        bucketizer = Bucketizer(inputCol=self._result_column,
+        double_df = self._data_frame.withColumn(measure_column, self._data_frame[measure_column].cast(DoubleType()))
+        bucketizer = Bucketizer(inputCol=measure_column,
                         outputCol="BINNED_INDEX")
         bucketizer.setSplits(splits)
         binned_df = bucketizer.transform(double_df)
         unique_bins = binned_df.select("BINNED_INDEX").distinct().collect()
         unique_bins = [int(x[0]) for x in unique_bins]
         binned_index_dict = dict(zip(unique_bins,splits_data["splits_range"]))
-        print binned_index_dict
+        output = {"bins":binned_index_dict,"data":binned_df}
+        return output
 
+    def generate_card1_data(self,measure_column):
+        print "################################"
+        print "Running Kmeans"
+        print "################################"
+        data_dict = {}
+        input_cols = [self._result_column,measure_column]
+        df = self._data_frame
+        kmeans_obj = KmeansClustering(df, self._dataframe_helper, self._dataframe_context, self._spark)
+        kmeans_obj.kmeans_pipeline(input_cols,cluster_count=None,max_cluster=5)
+        kmeans_result = {"stats":kmeans_obj.get_kmeans_result(),"data":kmeans_obj.get_prediction_data()}
+        data_dict = self.generateClusterDataDict(kmeans_result)
+        print json.dumps(data_dict,indent=2)
+        return data_dict
+
+    def generate_card2_data(self,measure_column,dim_col_regression):
+        dimension_data_dict = self.keyAreasDict(dim_col_regression,measure_column)
+        grouped_output = self.generateGroupedMeasureDataDict(measure_column)
+        df = grouped_output["data"]
+        bins = grouped_output["bins"]
+        print json.dumps(dimension_data_dict,indent=2)
+        category_dict = dict(zip(bins.keys(),[str(bins[x][0])+" to "+str(bins[x][1]) for x in bins.keys()]))
+        table_data = {}
+        for val in dimension_data_dict.keys():
+            data = df.groupby(df["BINNED_INDEX"]).pivot(val).avg(self._result_column).toPandas()
+            data = data.fillna(0)
+            data = data.sort_values(by="BINNED_INDEX", axis=0, ascending=True, inplace=True)
+            print data
+            # print category_dict[data["BINNED_INDEX"][0]]
+            # data["BINNED_INDEX"] = data["BINNED_INDEX"].apply(lambda x:category_dict[x])
+            table_data[val] = data
 
     def get_measure_column_splits(self,df,colname,n_split = 4):
         """
@@ -73,14 +156,15 @@ class LinearRegressionNarrative:
         maximum_val = Stats.max(df,colname)
         splits  = CommonUtils.frange(minimum_val,maximum_val,num_steps=n_split)
         splits = sorted(splits)
-        splits_range = [(splits[idx],splits[idx+1]) for idx in range(n_split+1)]
+        splits_range = [(splits[idx],splits[idx+1]) for idx in range(len(splits)-1)]
         output = {"splits":splits,"splits_range":splits_range}
         return output
 
-    def generateClusterDataDict(self):
-        kmeans_stats = self._kmeans_result["stats"]
+
+    def generateClusterDataDict(self,kmeans_result):
+        kmeans_stats = kmeans_result["stats"]
         input_columns = kmeans_stats["inputCols"]
-        kmeans_df = self._kmeans_result["data"]
+        kmeans_df = kmeans_result["data"]
         cluster_data_dict = {"chart_data":None,"grp_data":None}
         grp_df = kmeans_df.groupBy("prediction").count().toPandas()
         grp_counts = zip(grp_df["prediction"], grp_df["count"])

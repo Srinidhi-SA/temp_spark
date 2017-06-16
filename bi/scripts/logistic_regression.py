@@ -101,6 +101,15 @@ class LogisticRegressionScript:
         df["predicted_probability"] = score["predicted_probability"]
 
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+
+        inner_keys =  self._score_summary["prediction_split"][self._score_summary["prediction_split"].keys()[0]].keys()
+        pred_split_new = [["Range"],[inner_keys[0]],[inner_keys[1]]]
+        for k,v in self._score_summary["prediction_split"].items():
+            pred_split_new[0].append(k)
+            pred_split_new[1].append(v[inner_keys[0]])
+            pred_split_new[2].append(v[inner_keys[1]])
+        self._score_summary["prediction_split"] = pred_split_new
+
         self._score_summary["result_column"] = result_column
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
