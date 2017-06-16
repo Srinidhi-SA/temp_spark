@@ -389,8 +389,9 @@ class DataFrameHelper:
         #return self._data_frame.collect()
 
     def get_datetime_format(self,colname):
+        date_time_suggestions = {}
         if self._date_formats.has_key(colname):
-            return self._date_formats[colname]
+            date_time_suggestions[colname] = self._date_formats[colname]
         else:
             date_time_suggestions = {}
             formats = CommonUtils.dateTimeFormatsSupported()["formats"]
@@ -406,7 +407,7 @@ class DataFrameHelper:
                     break
                 except ValueError as err:
                     pass
-            return date_time_suggestions
+        return date_time_suggestions
 
     def get_train_test_data(self):
         train_test_data = self.train_test_data

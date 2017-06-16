@@ -59,7 +59,7 @@ class TimeSeriesNarrative:
         trend_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
         trend_data = trend_data.T.to_dict().values()
         trend_data = sorted(trend_data,key=lambda x :datetime.strptime(x['key'],"%b-%Y"))
-        self.narratives["card1"]["chart"] = trend_data
+        self.narratives["card1"]["chart"] = {"data":trend_data,"format":"%b-%Y"}
 
         prediction_window = 6
         grouped_data["key"] = grouped_data["key"].apply(lambda x :datetime.strptime(x,"%b-%Y"))
