@@ -65,8 +65,9 @@ class OneWayAnovaNarratives:
 
     def _generate_narratives(self):
         self._generate_card1()
-        self._generate_card2()
-        self._generate_card3()
+        if self._trend_result != '':
+            self._generate_card2()
+            self._generate_card3()
 
     def _generate_title(self):
         self.title = 'Impact of %s on %s' % (self._dimension_column_capitalized, self._measure_column_capitalized)
@@ -233,13 +234,13 @@ class OneWayAnovaNarratives:
         inner_join = agg_data_frame.merge(subset_data_frame, how='inner', on = 'Date')
         correlation = inner_join[[total_measure,subset_measure]].corr()[total_measure][subset_measure]
         data = {
-                'Time Period' : list(outer_join['Date']),
-                total_measure : list(outer_join[total_measure]),
-                subset_measure : list(outer_join[subset_measure])
+                'Time Period' : list(inner_join['Date']),
+                total_measure : list(inner_join[total_measure]),
+                subset_measure : list(inner_join[subset_measure])
         }
-        data_c3 = [['Time Period'] + list(outer_join['Date']),
-                [total_measure] + list(outer_join[total_measure]),
-                [subset_measure] + list(outer_join[subset_measure])]
+        data_c3 = [['Time Period'] + list(inner_join['Date']),
+                [total_measure] + list(inner_join[total_measure]),
+                [subset_measure] + list(inner_join[subset_measure])]
         chart1 = chart(data = data)
         chart1.add_data_c3(data_c3)
         self.card2.add_chart('trend_chart',chart1)
