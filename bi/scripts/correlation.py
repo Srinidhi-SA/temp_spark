@@ -1,10 +1,7 @@
-
-import json
-
-from bi.common import utils
-from bi.common import DataLoader
 from bi.common import DataWriter
+from bi.common import utils
 from bi.stats import Correlation
+
 
 class CorrelationScript:
     def __init__(self, data_frame, df_helper, df_context, spark):

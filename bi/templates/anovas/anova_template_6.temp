@@ -1,0 +1,36 @@
+{% if correlation >= 0.85 %}
+  {{target}} contribution from {{top_dimension}} is predominantly in line with the overall {{target}}
+  trend, as the {{dimension}} observed similar ups and downs during the observation period.
+{% elif subset_increase_percent < 0.67*overall_increase_percent %}
+  Despite being the highest contributor to overall {{target}}, {{top_dimension}} growth has underperformed
+  with respect to the overall growth.
+{% elif subset_increase_percent >= 1.5*overall_increase_percent %}
+  The growth rate of {{target}} for {{top_dimension}} has overperformed the overall growth rate.
+{% elif corretation > 0.6 %}
+  {{target}} contribution from {{top_dimension}} is predominantly in line with the overall {{target}} growth.
+{% endif %}
+
+The overall {{target}} figures hit a peak of {{overall_peak_value}} in {{overall_peak_date}},
+when it grew by over {{overall_peak_increase}}% compared to the previous time period.
+
+{% if overall_peak_date==subset_peak_date %}
+  Interestingly, {{top_dimension}}’s {{target}} also peaked at {{subset_peak_value}} during a similar period.
+{% else %}
+  But, {{top_dimension}}’s {{target}}  peaked at {{subset_peak_value}} during {{subset_peak_date}}.
+{% endif %}
+
+{% if overall_streak_length > 1 %}
+  The period between {{overall_streak_start_date}} and {{overall_streak_end_date}} performed consistently
+  well, contributing {{overall_streak_contribution}}% of the total {{target}}.
+{% endif %}
+
+{% if subset_streak_length > 1 %}
+  {% if overall_streak_end_date == subset_streak_end_date and overall_streak_start_date == subset_streak_start_date %}
+    The same period also witnessed consistent performance from {{top_dimension}}, during which it
+    contributed {{subset_streak_contribution}}% of the {{target}} from {{top_dimension}}.
+  {% else %}
+    Whereas, the period between {{subset_streak_start_date}} and {{subset_streak_end_date}} saw
+    consistent performance from {{top_dimension}}'s {{target}}, during which it contributed about
+    {{subset_streak_contribution}}% of the {{target}} from {{top_dimension}}.
+  {% endif %}
+{% endif %}

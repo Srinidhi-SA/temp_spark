@@ -1,7 +1,7 @@
 
+from bi.common import DataWriter
 from bi.common import utils
 from bi.transformations import Binner
-from bi.common import DataWriter
 
 
 class HistogramsScript:

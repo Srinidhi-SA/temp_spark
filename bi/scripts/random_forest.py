@@ -1,5 +1,6 @@
-import time
 import json
+import time
+
 try:
     import cPickle as pickle
 except:
@@ -7,12 +8,9 @@ except:
 
 from sklearn.externals import joblib
 from sklearn import metrics
-from sklearn.model_selection import train_test_split
 
 from pyspark.sql import SQLContext
 from bi.common import utils
-from bi.common import DataWriter
-from bi.common import BIException
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper

@@ -1,11 +1,7 @@
 import os
-import jinja2
-import re
 
-from bi.common.utils import accepts
 from bi.common.results.frequency_dimensions import FreqDimensionResult
-
-from collections import OrderedDict
+from bi.common.utils import accepts
 from dimension_column import DimensionColumnNarrative
 
 

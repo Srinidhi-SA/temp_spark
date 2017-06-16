@@ -1,8 +1,16 @@
 # marlabs-bi
 Business Intelligence application by Marlabs. Contains Python code thats run on spark clusters for business insight generation.
 
+## Installation
+
+    pip instal -r requirements.txt`
+python setup.py bdist_egg
+
+curl -X POST 'localhost:8090/contexts/pysql-context?context-factory=spark.jobserver.python.PythonSQLContextFactory'
+curl --data-binary @dist/marlabs_bi_jobs-0.0.0-py2.7.egg -H 'Content-Type: application/python-archive' localhost:8090/binaries/test_api_1
+
 ## Code Layout
-    * code layout details....
+    - code layout details....
 
 ## Writing unit test cases
     * unit test conventions.....

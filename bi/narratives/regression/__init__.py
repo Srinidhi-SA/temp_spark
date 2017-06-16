@@ -1,7 +1,3 @@
-from bi.common.utils import accepts
-from bi.common.results.regression import DFRegressionResult
-from bi.common.results.correlation import Correlations
-
 from linear_regression import LinearRegressionNarrative
 
 

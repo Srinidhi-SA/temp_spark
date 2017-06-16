@@ -1,17 +1,15 @@
-import time
 import sys
+import time
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 import ConfigParser
-import json
-import requests
 
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader
 from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import ContextSetter
-from bi.common import BIException
 
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -20,7 +18,6 @@ from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
 from bi.scripts.density_histogram import DensityHistogramsScript
 from bi.scripts.histogram import HistogramsScript
-from bi.scripts.one_way_anova import OneWayAnovaScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.regression import RegressionScript
 from bi.scripts.timeseries import TrendScript

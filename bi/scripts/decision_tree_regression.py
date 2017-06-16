@@ -1,12 +1,11 @@
 
 import json
 
-from bi.common import utils
-from bi.common import DataWriter
-from bi.common import BIException
 from bi.algorithms import DecisionTreeRegression
-from bi.narratives.decisiontree import DecisionNarrative
+from bi.common import DataWriter
+from bi.common import utils
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+
 
 class DecisionTreeRegressionScript:
     def __init__(self, data_frame, df_helper,df_context, spark):

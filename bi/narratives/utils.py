@@ -2,14 +2,16 @@
 """
 Utility functions to be used by various narrative objects
 """
+import math
 import re
+
 import enchant
 import jinja2
-import pattern
-import math
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pattern
 from datetime import datetime
+
 
 def round_number(num, digits=2, as_string=True):
     millions = 0

@@ -1,14 +1,13 @@
 
-from pyspark.context import SparkContext
-from pyspark.status import StatusTracker
-from pyspark.status import SparkJobInfo
-from pyspark.status import SparkStageInfo
-
-
 import threading
 import time
 
+from pyspark.context import SparkContext
+from pyspark.status import SparkJobInfo
+from pyspark.status import SparkStageInfo
+
 from decorators import accepts
+
 
 class ProgressTracker(threading.Thread):
 

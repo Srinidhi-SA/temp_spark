@@ -1,5 +1,4 @@
 from bi.common.utils import accepts
-from bi.common.results import DataFrameDescriptiveStats
 
 from measure import MeasureColumnNarrative
 # from bi.common import DataframeContext

@@ -1,14 +1,10 @@
 import json
-from functools import reduce
 
-from bi.common import utils
-from bi.common import DataLoader
 from bi.common import DataWriter
-from bi.common import DataFrameHelper
-from bi.common import BIException
-
-from bi.stats import TwoWayAnova
+from bi.common import utils
 from bi.narratives.anovas import AnovaNarratives
+from bi.stats import TwoWayAnova
+
 
 class TwoWayAnovaScript:
     def __init__(self, data_frame, df_helper, df_context, spark):

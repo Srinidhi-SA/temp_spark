@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 """Gathers descriptive stats for all columns in a dataframe"""
 
-from bi.common import utils
 from bi.common import DataWriter
-from bi.stats.descr import DescriptiveStats
+from bi.common import utils
 # from bi.narratives.descr import DescriptiveStatsNarrative
 from bi.narratives.descr.measure import MeasureColumnNarrative
-import json
+from bi.stats.descr import DescriptiveStats
 
-import json
 
 class DescriptiveStatsScript:
     def __init__(self, data_frame, df_helper, df_context, spark):

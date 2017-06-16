@@ -1,13 +1,7 @@
-
-from pyspark.sql import functions as FN
+import json
 
 from bi.common.decorators import accepts
-from bi.common import BIException
 from bi.common.results import FreqDimensionResult
-import collections
-
-import json
-import pandas as pd
 
 """
 Count Frequency in a Dimension

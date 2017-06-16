@@ -1,8 +1,7 @@
-import pandas as pd
-import numpy as np
-import math
 import random
-from statistics import mean,median,mode,pstdev
+
+import numpy as np
+import pandas as pd
 
 
 def generate_random_number_array(df):

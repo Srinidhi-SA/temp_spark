@@ -1,13 +1,9 @@
 import os
-import jinja2
-import re
-from bi.common.utils import accepts
+
 from bi.common.results.two_way_anova import OneWayAnovaResult
-
-from bi.stats import TuckeyHSD
-
-
+from bi.common.utils import accepts
 from bi.narratives import utils as NarrativesUtils
+from bi.stats import TuckeyHSD
 
 
 class OneWayAnovaNarratives:

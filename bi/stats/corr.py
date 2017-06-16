@@ -2,12 +2,11 @@
 import math
 
 from bi.common import ALPHA_LEVELS
-from bi.common import DataFrameHelper
 from bi.common.decorators import accepts
+from bi.common.exception import BIException
+from bi.common.results import ColumnCorrelations
 from bi.common.results import CorrelationStats
 from bi.common.results import Correlations as AllCorrelations
-from bi.common.results import ColumnCorrelations
-from bi.common.exception import BIException
 from bi.stats.util import Stats
 
 """

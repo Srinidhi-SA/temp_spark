@@ -1,14 +1,9 @@
-import os
-import operator
-import jinja2
-import re
-import pattern.en
-import numpy as np
 import json
-from bi.common.utils import accepts
+import operator
+import os
 
 from bi.narratives import utils as NarrativesUtils
-from bi.common.results import FreqDimensionResult
+
 
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2

@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
-import sys
 import argparse
-import numpy as np
+import json
+import sys
+from collections import Counter
+
 import pandas as pd
 from datetime import datetime
-from datetime import timedelta
-import json
-from collections import Counter
-from functools import reduce
-from pyspark.sql import DataFrame
 
-from bi.common import utils
 from bi.common import DataLoader
 from bi.common import DataWriter
-from bi.common import DataFrameHelper
+from bi.common import utils
+
 
 def get_argument_parser():
     parser = argparse.ArgumentParser()

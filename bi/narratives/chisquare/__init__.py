@@ -1,14 +1,8 @@
 import os
-import jinja2
-import re
-import pattern.en
-from bi.common.utils import accepts
-from bi.common.results import ChiSquareResult
-from bi.common.results import DFChiSquareResult
+
 from bi.common import ContextSetter
-import operator
-import numpy
-import json
+from bi.common.results import DFChiSquareResult
+from bi.common.utils import accepts
 from chisquare import ChiSquareAnalysis
 from chisquare_app2 import ChiSquareAnalysisApp2
 

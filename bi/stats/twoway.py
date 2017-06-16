@@ -1,19 +1,13 @@
-from pyspark.sql import DataFrame
+import pandas as pd
+from datetime import datetime
 from pyspark.sql import functions as FN
 from pyspark.sql.functions import mean, sum, col, count, udf
 from pyspark.sql.types import StringType
-import math
 
 from bi.common.decorators import accepts
-from bi.common import BIException
-from bi.common import DataFrameHelper
-import pandas as pd
-from datetime import datetime
-
 from bi.common.results import DFTwoWayAnovaResult
 from bi.common.results import MeasureAnovaResult
-from bi.common.results import TwoWayAnovaResult
-from bi.common.results import OneWayAnovaResult, TopDimensionStats, TrendResult
+from bi.common.results import TopDimensionStats, TrendResult
 
 #from bi.stats.descr import DescriptiveStats
 
@@ -183,6 +177,7 @@ class TwoWayAnova:
 
     def test_anova_top_dimension(self, var, measure, dimension, sst):
         top_dimension = var.ix[var.total.argmax()]
+        self._top_dimension = top_dimension
         self._df_subset = self._data_frame.where(col(dimension).isin([top_dimension.levels]))
         dimensions_to_test_for_top_dimension = set(self._dimensions_to_test)-set([dimension])
         self.top_dimension_result[dimension] = TopDimensionStats(top_dimension.levels,top_dimension.total, top_dimension.counts, top_dimension.means, sst)
@@ -203,14 +198,16 @@ class TwoWayAnova:
         self.top_dimension_result[agg_dimension].set_p_value(var, sse, dimension)
         if self.top_dimension_result[agg_dimension].get_p_value(dimension)<=0.05:
             if self._dateFormatDetected:
-                self.set_trend_result(measure, dimension)
+                self.set_trend_result(measure, dimension, agg_dimension)
 
-    def set_trend_result(self, measure, dimension):
-        agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
+    def set_trend_result(self, measure, dimension, agg_dimension):
+        if not self.trend_result.subset_df.has_key(agg_dimension):
+            agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
                                                     self._existingDateFormat, self._requestedDateFormat,True)
+            self.trend_result.add_subset_df(agg_data_frame,agg_dimension, self._top_dimension)
         add_data_frame_dimension = self.get_aggregated_by_date_and_dimension(self._primary_date, measure, dimension,\
                                                                 self._existingDateFormat, self._requestedDateFormat)
-        self.trend_result.add_trend_result(dimension,agg_data_frame,add_data_frame_dimension)
+        self.trend_result.add_trend_result(dimension,add_data_frame_dimension)
 
     def test_against(self,measure, dimensions):
         for dimension in dimensions:

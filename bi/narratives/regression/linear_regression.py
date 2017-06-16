@@ -1,5 +1,4 @@
 import os
-import jinja2
 import re
 from collections import OrderedDict
 
@@ -14,9 +13,6 @@ from bi.common import utils as CommonUtils
 import pyspark.sql.functions as FN
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.types import DoubleType
-
-
-
 
 class LinearRegressionNarrative:
     STRONG_CORRELATION = 0.7
@@ -43,7 +39,7 @@ class LinearRegressionNarrative:
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/regression/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
         # self._generate_narratives()
-        
+
     def getQuadrantData(self,col1,col2):
         col1_mean = Stats.mean(self._data_frame,col1)
         col2_mean = Stats.mean(self._data_frame,col2)

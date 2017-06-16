@@ -1,17 +1,14 @@
 import os
-import jinja2
 import re
 import time
 
-from bi.common.utils import accepts
-from bi.common.results.anova import DFAnovaResult
-from bi.common.results.anova import AnovaResult
-from bi.common import DataFrameHelper
+import jinja2
 
-from collections import OrderedDict
-
-from oneway import OneWayAnovaNarratives
 from anova_drilldown import AnovaDrilldownNarratives
+from bi.common import DataFrameHelper
+from bi.common.results.anova import DFAnovaResult
+from bi.common.utils import accepts
+from oneway import OneWayAnovaNarratives
 
 
 class AnovaNarratives:

@@ -1,13 +1,11 @@
-import os
-import re
 import json
-from dateutil.relativedelta import relativedelta
-from datetime import datetime
-from bi.common.utils import accepts
-from trend_narratives import TrendNarrative
-from datetime import datetime
-from bi.narratives import utils as NarrativesUtils
+import os
 
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+from bi.narratives import utils as NarrativesUtils
+from trend_narratives import TrendNarrative
 
 
 class TimeSeriesNarrative:

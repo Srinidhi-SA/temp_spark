@@ -1,6 +1,6 @@
-from sparkjobserver.api import SparkJob,build_problems
-from pyspark.sql import SparkSession
 from bi import master
+from sparkjobserver.api import SparkJob, build_problems
+
 
 class JobScript(SparkJob):
     def validate(self, context, runtime, config):
