@@ -19,5 +19,4 @@ class CorrelationScript:
 
         # print 'RESULT: %s' % (json.dumps(correlations_result, indent=2))
         DataWriter.write_dict_as_json(self._spark, correlations_result, self._dataframe_context.get_result_file()+'Correlation/')
-
         return correlations_obj
