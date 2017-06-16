@@ -16,7 +16,7 @@ class DecisionTreeRegressionScript:
 
     def Run(self):
 
-        df_decision_tree_obj = DecisionTreeRegression(self._data_frame, self._dataframe_helper,self._dataframe_context, self._spark).test_all(measure_columns=(self._dataframe_context.get_result_column(),))
+        df_decision_tree_obj = DecisionTreeRegression(self._data_frame, self._dataframe_context, self._dataframe_helper, self._spark).test_all(measure_columns=(self._dataframe_context.get_result_column(),))
         df_decision_tree_result = utils.as_dict(df_decision_tree_obj)
 
         #print 'RESULT: %s' % (json.dumps(df_decision_tree_result, indent=2))

@@ -1,18 +1,29 @@
 import os
 import re
+from collections import OrderedDict
 
+from bi.common.utils import accepts
+from bi.common.results.regression import RegressionResult
+from bi.common.results.correlation import CorrelationStats
+from bi.common.results.correlation import ColumnCorrelations
 from bi.narratives import utils as NarrativesUtils
+from bi.stats.util import Stats
+from bi.common import utils as CommonUtils
 
+import pyspark.sql.functions as FN
+from pyspark.ml.feature import Bucketizer
+from pyspark.sql.types import DoubleType
 
 class LinearRegressionNarrative:
     STRONG_CORRELATION = 0.7
     MODERATE_CORRELATION = 0.3
 
 
-    def __init__(self, num_measure_columns, regression_result, column_correlations, df_helper):
+    def __init__(self, regression_result, column_correlations,kmeans_result, df_helper):
         self._dataframe_helper = df_helper
-        self._num_measure_columns = num_measure_columns
         self._regression_result = regression_result
+        self._kmeans_result = kmeans_result
+        self._data_frame = self._dataframe_helper.get_data_frame()
         #self._correlation_stats = correlation_stats
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._result_column = self._dataframe_helper.resultcolumn
@@ -27,7 +38,72 @@ class LinearRegressionNarrative:
         self.narratives = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/regression/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
-        self._generate_narratives()
+        # self._generate_narratives()
+
+    def getQuadrantData(self,col1,col2):
+        col1_mean = Stats.mean(self._data_frame,col1)
+        col2_mean = Stats.mean(self._data_frame,col2)
+        low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean and FN.col(col2) < col2_mean)
+        low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean and FN.col(col2) >= col2_mean)
+        high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean and FN.col(col2) >= col2_mean)
+        high1low2 = self._data_frame.filter(FN.col(col1) >= col1_mean and FN.col(col2) < col2_mean)
+        print "AAAA"
+
+    def generateGroupedMeasureDataDict(self):
+        splits_data = self.get_measure_column_splits(self._data_frame,self._result_column)
+        splits = splits_data["splits"]
+        double_df = self._data_frame.withColumn(self._result_column, self._data_frame[self._result_column].cast(DoubleType()))
+        bucketizer = Bucketizer(inputCol=self._result_column,
+                        outputCol="BINNED_INDEX")
+        bucketizer.setSplits(splits)
+        binned_df = bucketizer.transform(double_df)
+        unique_bins = binned_df.select("BINNED_INDEX").distinct().collect()
+        unique_bins = [int(x[0]) for x in unique_bins]
+        binned_index_dict = dict(zip(unique_bins,splits_data["splits_range"]))
+        print binned_index_dict
+
+
+    def get_measure_column_splits(self,df,colname,n_split = 4):
+        """
+        n_split = number of splits required -1
+        splits = [0.0, 23.0, 46.0, 69.0, 92.0, 115.0]
+        splits_range = [(0.0, 23.0), (23.0, 46.0), (46.0, 69.0), (69.0, 92.0), (92.0, 115.0)]
+        """
+        minimum_val = Stats.min(df,colname)
+        maximum_val = Stats.max(df,colname)
+        splits  = CommonUtils.frange(minimum_val,maximum_val,num_steps=n_split)
+        splits = sorted(splits)
+        splits_range = [(splits[idx],splits[idx+1]) for idx in range(n_split+1)]
+        output = {"splits":splits,"splits_range":splits_range}
+        return output
+
+    def generateClusterDataDict(self):
+        kmeans_stats = self._kmeans_result["stats"]
+        input_columns = kmeans_stats["inputCols"]
+        kmeans_df = self._kmeans_result["data"]
+        cluster_data_dict = {"chart_data":None,"grp_data":None}
+        grp_df = kmeans_df.groupBy("prediction").count().toPandas()
+        grp_counts = zip(grp_df["prediction"], grp_df["count"])
+        grp_counts = sorted(grp_counts,key=lambda x:x[1],reverse=True)
+        grp_dict = dict(grp_counts)
+        chart_data = {}
+        for idx in grp_df["prediction"]:
+            chart_data[idx] = []
+        grp_data = {}
+        total = float(sum(grp_dict.values()))
+        for grp_id in list(grp_df["prediction"]):
+            data = {}
+            data["count"] = grp_dict[grp_id]
+            data["contribution"] = round(grp_dict[grp_id]*100/total,2)
+            df = kmeans_df.filter(FN.col("prediction") == grp_id)
+            data["columns"] = dict(zip(input_columns,[{}]*len(input_columns)))
+            for val in input_columns:
+                data["columns"][val]["avg"] = Stats.mean(df,val)
+            grp_data[grp_id] = data
+            chart_data[grp_id] = df.select(input_columns).toPandas().T.to_dict()
+        cluster_data_dict["chart_data"] = chart_data
+        cluster_data_dict["grp_data"] = grp_data
+        return cluster_data_dict
 
     def _generate_narratives(self):
         self._generate_summary()

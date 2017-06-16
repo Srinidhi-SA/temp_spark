@@ -50,7 +50,8 @@ class KmeansClustering:
                 wssse = kmeans_model.computeCost(vectorized_data)
                 wssse_output.append(wssse)
             wssse_dict = dict(zip(cluster_count_array,wssse_output))
-            cluster_count = max(wssse_dict,key = wssse_dict.get)
+
+            cluster_count = min(wssse_dict,key = wssse_dict.get)
             kmeans = KMeans().setK(cluster_count).setSeed(1)
             kmeans_model = kmeans.fit(vectorized_data)
             wssse = kmeans_model.computeCost(vectorized_data)
@@ -69,4 +70,11 @@ class KmeansClustering:
         self._kmeans_result["wssse_dict"] = wssse_dict
         self._kmeans_result["centers"] = centers
         self._kmeans_result["cluster_count"] = cluster_count
+        self._kmeans_result["inputCols"] = inputCols
         self._predictedData = cluster_prediction
+
+    def get_kmeans_result(self):
+        return self._kmeans_result
+
+    def get_prediction_data(self):
+        return self._predictedData
