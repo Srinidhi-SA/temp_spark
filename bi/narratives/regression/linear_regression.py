@@ -116,9 +116,6 @@ class LinearRegressionNarrative:
         return output
 
     def generate_card1_data(self,measure_column):
-        print "################################"
-        print "Running Kmeans"
-        print "################################"
         data_dict = {}
         input_cols = [self._result_column,measure_column]
         df = self._data_frame
@@ -126,7 +123,7 @@ class LinearRegressionNarrative:
         kmeans_obj.kmeans_pipeline(input_cols,cluster_count=None,max_cluster=5)
         kmeans_result = {"stats":kmeans_obj.get_kmeans_result(),"data":kmeans_obj.get_prediction_data()}
         data_dict = self.generateClusterDataDict(kmeans_result)
-        print json.dumps(data_dict,indent=2)
+        # print json.dumps(data_dict,indent=2)
         return data_dict
 
     def generate_card2_data(self,measure_column,dim_col_regression):
@@ -134,12 +131,14 @@ class LinearRegressionNarrative:
         grouped_output = self.generateGroupedMeasureDataDict(measure_column)
         df = grouped_output["data"]
         bins = grouped_output["bins"]
-        print json.dumps(dimension_data_dict,indent=2)
+        # print json.dumps(dimension_data_dict,indent=2)
         category_dict = dict(zip(bins.keys(),[str(bins[x][0])+" to "+str(bins[x][1]) for x in bins.keys()]))
         table_data = {}
         for val in dimension_data_dict.keys():
             data = df.groupby(df["BINNED_INDEX"]).pivot(val).avg(self._result_column).toPandas()
             data = data.fillna(0)
+            print data
+            print "GGGGGGGGGGG"*3
             data = data.sort_values(by="BINNED_INDEX", axis=0, ascending=True, inplace=True)
             print data
             # print category_dict[data["BINNED_INDEX"][0]]

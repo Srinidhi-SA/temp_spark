@@ -215,3 +215,19 @@ def create_dummy_columns(df,colnames):
         dummies = pd.get_dummies(df[col],prefix = col)
         df1 = pd.concat([df1,dummies], axis = 1)
     return df1
+
+def transform_feature_importance(feature_importance_dict):
+    feature_importance_new = [["Name"],["Value"]]
+    for k,v in feature_importance_dict.items():
+        feature_importance_new[0].append(k)
+        feature_importance_new[1].append(v)
+    zipped_feature_importance = zip(feature_importance_new[0],feature_importance_new[1])
+    zipped_feature_importance_subset = zipped_feature_importance[1:]
+    zipped_feature_importance_subset = sorted(zipped_feature_importance_subset,key=lambda x:x[1],reverse=True)
+    zipped_feature_importance = [zipped_feature_importance[0]]+zipped_feature_importance_subset
+    feature_importance_new = [[],[]]
+    for val in zipped_feature_importance:
+        feature_importance_new[0].append(val[0])
+        feature_importance_new[1].append(val[1])
+    output = [feature_importance_new[0][:6],feature_importance_new[1][:6]]
+    return output

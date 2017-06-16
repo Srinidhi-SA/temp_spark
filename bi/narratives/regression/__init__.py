@@ -69,19 +69,22 @@ class RegressionNarrative:
             card4narrative = "HEEHEEHEE"
             self.narratives["cards"][measure_column]["card4"] = card4narrative
 
-
-
-            # run_clustering(self.significant_measures)
-            # regression_narrative_obj.generateGroupedMeasureDataDict()
-            # regression_narrative_obj.getQuadrantData("Sales","Marketing_Cost")
+            run_clustering(self.significant_measures)
+            print "HAHAH"
+            regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
+            print "DDDD"
+            regression_narrative_obj.getQuadrantData(self.result_column,measure_column)
 
     def run_regression_for_dimension_levels(self):
 
-        # significant_dimensions = self._dataframe_helper.get_significant_dimension()
-        # sig_dims = [(x,significant_dimensions[x]) for x in significant_dimensions.keys()]
-        # sig_dims = sorted(sig_dims,key=lambda x:x[1],reverse=True)
-        # cat_columns = [x[0] for x in sig_dims[:5]]
-        cat_columns = self._dataframe_helper.get_string_columns()[:5]
+        significant_dimensions = self._dataframe_helper.get_significant_dimension()
+        if significant_dimensions != {}:
+            sig_dims = [(x,significant_dimensions[x]) for x in significant_dimensions.keys()]
+            sig_dims = sorted(sig_dims,key=lambda x:x[1],reverse=True)
+            cat_columns = [x[0] for x in sig_dims[:5]]
+        else:
+            cat_columns = self._dataframe_helper.get_string_columns()[:5]
+
         regression_result_dimension_cols = dict(zip(cat_columns,[{}]*len(cat_columns)))
         for col in cat_columns:
             column_levels = self._dataframe_helper.get_all_levels(col)

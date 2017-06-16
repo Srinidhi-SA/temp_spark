@@ -50,11 +50,7 @@ class RandomForestScript:
         # confusion matrix keys are the predicted class
         self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
-        feature_importance_new = [["Name"],["Value"]]
-        for k,v in objs["feature_importance"].items():
-            feature_importance_new[0].append(k)
-            feature_importance_new[1].append(v)
-        self._model_summary["feature_importance"] = feature_importance_new
+        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
         self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
@@ -142,7 +138,7 @@ class RandomForestScript:
             # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
             utils.write_to_file(result_file,json.dumps(df_chisquare_result))
             chisquare_narratives = utils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj,self._dataframe_context))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
+            print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
             utils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
             print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
         except:

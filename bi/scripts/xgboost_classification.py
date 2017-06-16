@@ -47,11 +47,8 @@ class XgboostScript:
         # confusion matrix keys are the predicted class
         self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
-        feature_importance_new = [["Name"],["Value"]]
-        for k,v in objs["feature_importance"].items():
-            feature_importance_new[0].append(k)
-            feature_importance_new[1].append(v)
-        self._model_summary["feature_importance"] = feature_importance_new
+        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
+
         self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
@@ -99,7 +96,7 @@ class XgboostScript:
             pred_split_new[1].append(v[inner_keys[0]])
             pred_split_new[2].append(v[inner_keys[1]])
         self._score_summary["prediction_split"] = pred_split_new
-        
+
         self._score_summary["result_column"] = result_column
 
         df = df.rename(index=str, columns={"predicted_class": result_column})
