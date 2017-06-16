@@ -276,20 +276,20 @@ def main(confFilePath):
             print e
             print "ERROR"*5
 
-        # try:
-        #     fs = time.time()
-        #     df_helper.fill_na_dimension_nulls()
-        #     df = df_helper.get_data_frame()
-        #     dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
-        #     dt_reg.Run()
-        #     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-        # except Exception as e:
-        #     print "ERROR"*5
-        #     print e
-        #     print "ERROR"*5
-        #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
-        #     send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
-        #     print "Decision Tree Regression Script Failed"
+        try:
+            fs = time.time()
+            df_helper.fill_na_dimension_nulls()
+            df = df_helper.get_data_frame()
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
+            dt_reg.Run()
+            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+        except Exception as e:
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
+            DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
+            send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
+            print "Decision Tree Regression Script Failed"
 
     elif analysistype == 'Prediction':
         # df_helper.remove_nulls(dataframe_context.get_result_column())
