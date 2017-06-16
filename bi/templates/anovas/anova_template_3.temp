@@ -2,25 +2,25 @@
   {{measure_name}} contribution from each of the {{plural_dimension_name}} seems to be similar.
 {% else %}
   {% if num_top_groups == 2 %}
-    The <b>top two {{plural_dimension_name}}({{top_groups[0]}} and {{top_groups[1]}})<\b>
-    account for about <b>{{top_groups_percent}}%<\b> of the total {{measure_name}}.
+    The <b>top two {{plural_dimension_name}}({{top_groups[0]}} and {{top_groups[1]}})</b>
+    account for about <b>{{top_groups_percent}}%</b> of the total {{measure_name}}.
   {% elif num_top_groups == 3 %}
-    The <b>top three {{plural_dimension_name}}({{top_groups[0]}}, {{top_groups[1]}} and top_groups[2])<\b>
-    account for about <b>{{top_groups_percent}}%<\b> of the total {{measure_name}}.
+    The <b>top three {{plural_dimension_name}}({{top_groups[0]}}, {{top_groups[1]}} and top_groups[2])</b>
+    account for about <b>{{top_groups_percent}}%</b> of the total {{measure_name}}.
   {% elif num_top_groups > 3 %}
-  The <b>top {{num_top_groups}} {{plural_dimension_name}}({{top_groups[0]}}, {{top_groups[1]}}, etc.)<\b>
-  account for about <b>{{top_groups_percent}}%<\b> of the total {{measure_name}}.
+  The <b>top {{num_top_groups}} {{plural_dimension_name}}({{top_groups[0]}}, {{top_groups[1]}}, etc.)</b>
+  account for about <b>{{top_groups_percent}}%</b> of the total {{measure_name}}.
   {% endif %}
 {% endif %}
 {% if best_category_by_mean==best_category_by_total %}
-  Being the <b>largest contributor<\b>, total {{measure_name}} from {{best_category_by_total}}
+  Being the <b>largest contributor</b>, total {{measure_name}} from {{best_category_by_total}}
   amounts to {{best_category_by_total_sum}} that accounts for about {{best_category_by_total_cont}}%
   of the total {{measure_name}} and the average {{measure_name}} is {{best_category_by_total_avg}}.
 {% else %}
-  Being the <b>largest contributor<\b>, total {{measure_name}} from {{best_category_by_total}}
+  Being the <b>largest contributor</b>, total {{measure_name}} from {{best_category_by_total}}
   amounts to {{best_category_by_total_sum}} that accounts for about {{best_category_by_total_cont}}%
   of the total {{measure_name}}.
-  However, {{best_category_by_mean}} has the <b>highest average<\b> {{measure_name}} of
+  However, {{best_category_by_mean}} has the <b>highest average</b> {{measure_name}} of
   {{best_category_by_mean_avg}}, whereas the average for {{best_category_by_total}} is
   {{best_category_by_total_avg}}.
 {% endif %}
