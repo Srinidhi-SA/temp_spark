@@ -1,21 +1,16 @@
-from pyspark.sql import functions as FN
-
-from bi.common.decorators import accepts
-from bi.common import BIException
-
-from bi.common.results.chisquare import ContingencyTable
-from bi.common.results import ChiSquareResult
-from bi.common.results import DFChiSquareResult
-
-
-from pyspark.mllib.stat import Statistics
-from pyspark.mllib.linalg import Matrices
-from pyspark.sql.types import DoubleType
-from pyspark.ml.feature import Bucketizer
-
-import json
 import math
 from itertools import chain
+
+from pyspark.ml.feature import Bucketizer
+from pyspark.mllib.linalg import Matrices
+from pyspark.mllib.stat import Statistics
+from pyspark.sql.types import DoubleType
+
+from bi.common import BIException
+from bi.common.decorators import accepts
+from bi.common.results import ChiSquareResult
+from bi.common.results import DFChiSquareResult
+from bi.common.results.chisquare import ContingencyTable
 
 """
 Chi Square Test

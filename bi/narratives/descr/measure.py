@@ -1,10 +1,7 @@
 import os
-import jinja2
-import re
-from bi.common.utils import accepts
-from bi.common.results import MeasureDescriptiveStats
 
 from bi.narratives import utils as NarrativesUtils
+
 
 class MeasureColumnNarrative:
 

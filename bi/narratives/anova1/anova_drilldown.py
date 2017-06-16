@@ -1,16 +1,9 @@
 import os
-import jinja2
-import re
-import pattern.en
-import re
-from bi.common.utils import accepts
-from bi.common import utils
-from bi.narratives import utils as NarrativesUtils
-from bi.common.results.anova import AnovaResult
-from bi.stats.posthoctests import TuckeyHSD
-from bi.narratives import utils as NarrativesUtils
 
 from pyspark.sql import functions as FN
+
+from bi.narratives import utils as NarrativesUtils
+
 
 class AnovaDrilldownNarratives:
 

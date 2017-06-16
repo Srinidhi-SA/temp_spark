@@ -1,6 +1,3 @@
-from pyspark.sql.dataframe import DataFrame
-from bi.parser import configparser
-
 class FilterContextSetter:
     def __init__(self, config_obj):
         self._config_obj = config_obj

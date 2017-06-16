@@ -1,14 +1,8 @@
-import os
-import jinja2
-import re
-import pattern.en
-from bi.common.utils import accepts
-from bi.common.results import ChiSquareResult
-from bi.common.results import DFChiSquareResult
-from bi.narratives import utils as NarrativesUtils
 import operator
-import numpy
-import json
+import os
+
+from bi.narratives import utils as NarrativesUtils
+
 
 def combine(l):
     if len(l) == 1:

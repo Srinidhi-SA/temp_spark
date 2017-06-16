@@ -1,15 +1,12 @@
 import os
-import jinja2
-import re
-import json
-import pandas as pd
+
 import numpy as np
 from datetime import datetime
 
-#from nltk import tokenize
-from bi.common.utils import accepts
-from bi.narratives import utils as NarrativesUtils
 from bi.algorithms import TimeSeriesAnalysis
+# from nltk import tokenize
+from bi.narratives import utils as NarrativesUtils
+
 
 class TrendNarrative:
 

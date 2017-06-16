@@ -1,14 +1,8 @@
-
-import json
-from functools import reduce
-
-from bi.common import utils
-from bi.common import DataLoader
 from bi.common import DataWriter
-from bi.common import DataFrameHelper
-from bi.common import BIException
-from bi.stats.chisquare import ChiSquare
+from bi.common import utils
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.stats.chisquare import ChiSquare
+
 
 class ChiSquareScript:
     def __init__(self, data_frame, df_helper, df_context, spark):

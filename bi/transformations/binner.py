@@ -1,12 +1,10 @@
-from pyspark.sql import DataFrame
+from pyspark.ml.feature import Bucketizer
 from pyspark.sql import functions as FN
 from pyspark.sql.types import DoubleType
-from pyspark.ml.feature import Bucketizer
 
 from bi.common import BIException
 from bi.common import utils
 from bi.common.decorators import accepts
-
 from bi.common.results import DataFrameHistogram
 from bi.common.results import Histogram
 

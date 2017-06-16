@@ -1,6 +1,6 @@
-from sparkjobserver.api import SparkJob,build_problems
-from pyspark.sql import SparkSession
 from bi.scripts import metadata
+from sparkjobserver.api import SparkJob, build_problems
+
 
 class JobScript(SparkJob):
 

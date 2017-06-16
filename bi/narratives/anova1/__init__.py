@@ -1,16 +1,12 @@
 import os
-import jinja2
-import re
 import time
 
-from bi.common.utils import accepts
-from bi.common.results.two_way_anova import DFTwoWayAnovaResult,MeasureAnovaResult,OneWayAnovaResult
+import jinja2
 
-from collections import OrderedDict
-
-from bi.narratives.anova1.anova import OneWayAnovaNarratives
 from anova_drilldown import AnovaDrilldownNarratives
 from bi.narratives import utils as NarrativesUtils
+from bi.narratives.anova1.anova import OneWayAnovaNarratives
+
 
 class AnovaNarratives:
     ALPHA = 0.05

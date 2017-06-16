@@ -1,7 +1,7 @@
 
 from binner import Binner
-from quantizer import Quantizer
 from density_binner import DensityBinner
+from quantizer import Quantizer
 
 __all__ = [
     'Binner',

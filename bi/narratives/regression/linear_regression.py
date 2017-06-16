@@ -1,13 +1,5 @@
 import os
-import jinja2
 import re
-from collections import OrderedDict
-
-from bi.common.utils import accepts
-from bi.common.results.regression import RegressionResult
-from bi.common.results.correlation import CorrelationStats
-from bi.common.results.correlation import ColumnCorrelations
-
 
 from bi.narratives import utils as NarrativesUtils
 

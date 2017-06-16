@@ -1,12 +1,13 @@
 import os
-import jinja2
 import re
-from bi.common.utils import accepts
-from bi.common.results.anova import AnovaResult
 
+import jinja2
+
+from bi.common.results.anova import AnovaResult
+from bi.common.utils import accepts
+from bi.narratives import utils as NarrativesUtils
 from bi.stats.posthoctests import TuckeyHSD
 
-from bi.narratives import utils as NarrativesUtils
 
 class OneWayAnovaNarratives:
     THRESHHOLD_TOTAL = 0.75

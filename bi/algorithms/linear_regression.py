@@ -1,7 +1,6 @@
-from pyspark.ml.regression import LinearRegression as LR
 from pyspark.ml.linalg import DenseVector
+from pyspark.ml.regression import LinearRegression as LR
 
-from bi.common.utils import accepts
 from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult
 from bi.common.results.regression import RegressionResult

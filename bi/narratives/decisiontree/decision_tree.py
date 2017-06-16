@@ -1,14 +1,10 @@
 import os
-import jinja2
-import re
-import pattern.en
-import numpy as np
-from bi.common.utils import accepts
 
-from bi.narratives import utils as NarrativesUtils
-from bi.common.results import DecisionTreeResult
 from bi.common.dataframe import DataFrameHelper
-from bi.common.datafilterer import DataFrameFilterer
+from bi.common.results import DecisionTreeResult
+from bi.common.utils import accepts
+from bi.narratives import utils as NarrativesUtils
+
 
 class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2

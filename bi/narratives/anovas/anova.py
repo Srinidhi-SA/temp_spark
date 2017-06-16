@@ -1,12 +1,12 @@
 import os
 import jinja2
-import re
 import math
 import numpy as np
 from bi.common.utils import accepts
 from bi.common.results.two_way_anova import OneWayAnovaResult
 # from bi.stats import TuckeyHSD
 from bi.narratives import utils as NarrativesUtils
+
 
 class card:
     def __init__(self, heading):

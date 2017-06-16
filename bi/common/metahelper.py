@@ -1,13 +1,14 @@
 
-from column import ColumnType
-from pyspark.sql.functions import udf,col,unix_timestamp
-from pyspark.sql import functions as FN
-from pyspark.sql.types import StringType
-from pyspark.sql.types import DateType, FloatType
-import datetime as dt
-from bi.common import utils
 import random
-from re import sub
+
+import datetime as dt
+from pyspark.sql import functions as FN
+from pyspark.sql.functions import udf, col
+from pyspark.sql.types import DateType, FloatType
+from pyspark.sql.types import StringType
+
+from bi.common import utils
+from column import ColumnType
 
 
 class MetaDataHelper():
