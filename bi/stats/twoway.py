@@ -40,6 +40,7 @@ class TwoWayAnova:
             "dd <month> YYYY":"%d %b,%Y"
         }
         self._dateFormatDetected = False
+        self.trend_result = ''
         self.get_primary_time_dimension(df_context)
 
     def get_aggregated_by_date(self, aggregate_column, measure_column, existingDateFormat = None, \
@@ -53,14 +54,22 @@ class TwoWayAnova:
             # data_frame = data_frame.select(*[func(column).alias(aggregate_column) if column==aggregate_column else column for column in self._data_frame.columns])
             # subset_data = data_frame.select(aggregate_column,measure_column)
             agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
-            agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column])
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            except:
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
             agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
             agg_data.columns = ["Date","measure","date_col"]
             agg_data = agg_data[['Date','measure']]
         elif existingDateFormat != None:
             agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
-            agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column])
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            except:
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
             agg_data.columns = ["Date","measure","date_col"]
             agg_data = agg_data[['Date','measure']]
@@ -78,14 +87,22 @@ class TwoWayAnova:
             # subset_data = data_frame.select(aggregate_column,measure_column, dimension_column, aggregate_column)
             agg_data = data_frame.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","dimension","measure"]
-            agg_data['date_col'] = pd.to_datetime(agg_data['Date'])
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
+            except:
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
             agg_data['Date'] = agg_data['date_col'].dt.strftime(requestedDateFormat)
             agg_data = agg_data[["Date","dimension","measure"]]
         else:
             agg_data = data_frame.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","dimension","measure"]
-            agg_data['date_col'] = pd.to_datetime(agg_data['Date'])
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
+            except:
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
             agg_data = agg_data[["Date","dimension","measure"]]
         grouped_data = agg_data.groupby('dimension').agg({'measure' : ['first', 'last', 'sum']}).reset_index()

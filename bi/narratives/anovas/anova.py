@@ -65,8 +65,9 @@ class OneWayAnovaNarratives:
 
     def _generate_narratives(self):
         self._generate_card1()
-        self._generate_card2()
-        self._generate_card3()
+        if self._trend_result != '':
+            self._generate_card2()
+            self._generate_card3()
 
     def _generate_title(self):
         self.title = 'Impact of %s on %s' % (self._dimension_column_capitalized, self._measure_column_capitalized)
