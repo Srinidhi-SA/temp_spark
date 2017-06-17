@@ -42,7 +42,7 @@ class RegressionNarrative:
         # main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
         #                                                 'regression_main_card.temp',main_card_data)
         # self.narratives["main_card"] = main_card_narrative
-        self.significant_measures = ["Shipping_Cost"]
+
         for measure_column in self.significant_measures:
             # card1data = regression_narrative_obj.generate_card1_data(measure_column)
             # card1narrative = NarrativesUtils.get_template_output(self._base_dir,\
