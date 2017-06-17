@@ -21,10 +21,9 @@ class RegressionNarrative:
         all_coeff = [(x,self.all_coefficients[x]) for x in self.all_coefficients.keys()]
         all_coeff = sorted(all_coeff,key = lambda x:abs(x[1]["coefficient"]),reverse = True)
         self.significant_measures = [x[0] for x in all_coeff[:3]]
-        cards = dict(zip(self.significant_measures,[{}]*len(self.significant_measures)))
         self.narratives = {"heading": self.result_column + "Performance Report",
                            "main_card":{},
-                           "cards":cards
+                           "cards":[]
                         }
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/regression/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
@@ -39,41 +38,41 @@ class RegressionNarrative:
                                     self._dataframe_context,
                                     self._spark
                                     )
-        main_card_data = regression_narrative_obj.generate_main_card_data()
-        main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'regression_main_card.temp',main_card_data)
-        self.narratives["main_card"] = main_card_narrative
-
+        # main_card_data = regression_narrative_obj.generate_main_card_data()
+        # main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
+        #                                                 'regression_main_card.temp',main_card_data)
+        # self.narratives["main_card"] = main_card_narrative
+        self.significant_measures = ["Shipping_Cost"]
         for measure_column in self.significant_measures:
-            card1data = regression_narrative_obj.generate_card1_data(measure_column)
+            # card1data = regression_narrative_obj.generate_card1_data(measure_column)
             # card1narrative = NarrativesUtils.get_template_output(self._base_dir,\
             #                                                 'regression_card1.temp',card1data)
             card1narrative = "HEEHEEHEE"
-            self.narratives["cards"][measure_column]["card1"] = card1narrative
+            self.narratives["cards"].append({"card0":card1narrative})
 
             # card2data = regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
             # card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
             #                                                 'regression_card2.temp',card2data)
             card2narrative = "HEEHEEHEE"
-            self.narratives["cards"][measure_column]["card2"] = card2narrative
+            self.narratives["cards"].append({"card1":card2narrative})
 
             # card2data = regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
             # card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
             #                                                 'regression_card2.temp',card2data)
             card3narrative = "HEEHEEHEE"
-            self.narratives["cards"][measure_column]["card3"] = card3narrative
+            self.narratives["cards"].append({"card2":card3narrative})
 
-            # card2data = regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
-            # card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
-            #                                                 'regression_card2.temp',card2data)
-            card4narrative = "HEEHEEHEE"
-            self.narratives["cards"][measure_column]["card4"] = card4narrative
 
-            run_clustering(self.significant_measures)
-            print "HAHAH"
-            regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
-            print "DDDD"
-            regression_narrative_obj.getQuadrantData(self.result_column,measure_column)
+            card3 = {}
+            card4data = regression_narrative_obj.generate_card4_data(self.result_column,measure_column)
+            card4heading = "Sensitivity Analysis: Effect of "+self.result_column+" on Segments of "+measure_column
+            card4narrative = NarrativesUtils.get_template_output(self._base_dir,\
+                                                                'regression_card4.temp',card4data)
+            card4paragraphs = NarrativesUtils.paragraph_splitter(card4narrative)
+            card3 = {"paragraphs":card4paragraphs}
+            card3["charts"] = card4data["charts"]
+            card3["heading"] = card4heading
+            self.narratives["cards"].append({"card3":card3})
 
     def run_regression_for_dimension_levels(self):
 
@@ -99,7 +98,7 @@ class RegressionNarrative:
                           }
                 level_regression_result[level] = result
             regression_result_dimension_cols[col] = level_regression_result
-        print json.dumps(regression_result_dimension_cols,indent=2)
+        # print json.dumps(regression_result_dimension_cols,indent=2)
         return regression_result_dimension_cols
 
 
