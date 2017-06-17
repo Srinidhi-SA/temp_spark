@@ -33,7 +33,5 @@ class RegressionScript:
 
         regression_narratives_obj = RegressionNarrative(self._dataframe_helper,self._dataframe_context,self._spark,regression_result_obj,self._correlations)
         regression_narratives = utils.as_dict(regression_narratives_obj.narratives)
-
-
-        print 'Regression narratives:  %s' %(json.dumps(regression_narratives, indent=2))
-        DataWriter.write_dict_as_json(self._spark, regression_narratives, self._dataframe_context.get_narratives_file()+'Regression/')
+        # print 'Regression narratives:  %s' %(json.dumps(regression_narratives, indent=2))
+        DataWriter.write_dict_as_json(self._spark, {"TREND":json.dumps(regression_narratives)}, self._dataframe_context.get_narratives_file()+'Regression/')

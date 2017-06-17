@@ -175,13 +175,12 @@ class LinearRegressionNarrative:
         high1low2_col1 = [x[0] for x in high1low2.select(col1).collect()]
         high1low2_col2 = [x[0] for x in high1low2.select(col2).collect()]
         high1low2_color = ["yellow"]*len(high1low2_col2)
-        
+
         col1_data = [col1]+low1low2_col1+low1high2_col1+high1high2_col1+high1low2_col1
         col2_data = [col2]+low1low2_col2+low1high2_col2+high1high2_col2+high1low2_col2
         color_data = ["Colors"]+low1low2_color+low1high2_color+high1high2_color+high1low2_color
         plot_labels = ["Labels"]+labels
         data_dict["charts"]["data"] = [col1_data,col2_data,color_data,plot_labels]
-        data_dict["charts"]["data"] = []
         print "one iteration done"
         return data_dict
 
