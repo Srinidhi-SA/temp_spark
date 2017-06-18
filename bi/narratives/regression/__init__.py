@@ -38,17 +38,24 @@ class RegressionNarrative:
                                     self._dataframe_context,
                                     self._spark
                                     )
-        # main_card_data = regression_narrative_obj.generate_main_card_data()
+        main_card_data = regression_narrative_obj.generate_main_card_data()
         # main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
         #                                                 'regression_main_card.temp',main_card_data)
         # self.narratives["main_card"] = main_card_narrative
 
         for measure_column in self.significant_measures:
-            # card1data = regression_narrative_obj.generate_card1_data(measure_column)
-            # card1narrative = NarrativesUtils.get_template_output(self._base_dir,\
-            #                                                 'regression_card1.temp',card1data)
-            card1narrative = "HEEHEEHEE"
-            self.narratives["cards"].append({"card0":card1narrative})
+            card0 = {}
+            card1data = regression_narrative_obj.generate_card1_data(measure_column)
+            card1heading = "Impact of "+measure_column+" on "+self.result_column
+            card1narrative = NarrativesUtils.get_template_output(self._base_dir,\
+                                                            'regression_card1.temp',card1data)
+
+            card1paragraphs = NarrativesUtils.paragraph_splitter(card1narrative)
+            card0 = {"paragraphs":card1paragraphs}
+            card0["charts"] = card1data["chart_data"]
+            card0["heading"] = card1heading
+            self.narratives["cards"].append({"card0":card0})
+
 
             # card2data = regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
             # card2narrative = NarrativesUtils.get_template_output(self._base_dir,\

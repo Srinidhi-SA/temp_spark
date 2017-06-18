@@ -65,13 +65,21 @@ class LinearRegressionNarrative:
 
     def generate_card1_data(self,measure_column):
         data_dict = {}
+        data_dict["measure_column"] = measure_column
+        data_dict["result_column"] = self._result_column
+        data_dict["significant_measures"] = self._regression_result.get_input_columns()
+        data_dict["n_sig_measures"] = len(data_dict["significant_measures"])
+        data_dict["coefficient"] = round(self._regression_result.get_all_coeff()[measure_column]["coefficient"],2)
+        data_dict["correlation"] = self._data_frame.corr(self._result_column,measure_column)
         input_cols = [self._result_column,measure_column]
         df = self._data_frame
         kmeans_obj = KmeansClustering(df, self._dataframe_helper, self._dataframe_context, self._spark)
         kmeans_obj.kmeans_pipeline(input_cols,cluster_count=None,max_cluster=5)
         kmeans_result = {"stats":kmeans_obj.get_kmeans_result(),"data":kmeans_obj.get_prediction_data()}
-        data_dict = self.generateClusterDataDict(kmeans_result)
-        # print json.dumps(data_dict,indent=2)
+        data_dict["n_cluster"] = kmeans_result["stats"]["cluster_count"]
+        cluster_data_dict = self.generateClusterDataDict(measure_column,kmeans_result)
+        data_dict["cluster_details"] = cluster_data_dict["grp_data"]
+        data_dict["chart_data"] = cluster_data_dict["chart_data"]
         return data_dict
 
     def generate_card2_data(self,measure_column,dim_col_regression):
@@ -279,7 +287,8 @@ class LinearRegressionNarrative:
         return output
 
 
-    def generateClusterDataDict(self,kmeans_result):
+    def generateClusterDataDict(self,measure_column,kmeans_result):
+        print "generating Kmeans data"
         kmeans_stats = kmeans_result["stats"]
         input_columns = kmeans_stats["inputCols"]
         kmeans_df = kmeans_result["data"]
@@ -288,23 +297,43 @@ class LinearRegressionNarrative:
         grp_counts = zip(grp_df["prediction"], grp_df["count"])
         grp_counts = sorted(grp_counts,key=lambda x:x[1],reverse=True)
         grp_dict = dict(grp_counts)
-        chart_data = {}
-        for idx in grp_df["prediction"]:
-            chart_data[idx] = []
-        grp_data = {}
+
+        colors = ["red","blue","green","yellow","black"]
+        cluster_ids = list(grp_df["prediction"])
+        color_dict = dict(zip(cluster_ids,colors[:len(cluster_ids)]))
+
+        chart_data = {"heading":"","data":[]}
+        result_col_data = [self._result_column]
+        measure_col_data = [measure_column]
+        color_data = ["Colors"]
+        plot_labels = ["Cluster Labels"]
+
+        grp_data = []
         total = float(sum(grp_dict.values()))
         for grp_id in list(grp_df["prediction"]):
             data = {}
+            data["group_number"] = grp_id+1
             data["count"] = grp_dict[grp_id]
             data["contribution"] = round(grp_dict[grp_id]*100/total,2)
             df = kmeans_df.filter(FN.col("prediction") == grp_id)
             data["columns"] = dict(zip(input_columns,[{}]*len(input_columns)))
             for val in input_columns:
-                data["columns"][val]["avg"] = Stats.mean(df,val)
-            grp_data[grp_id] = data
-            chart_data[grp_id] = df.select(input_columns).toPandas().T.to_dict()
-        cluster_data_dict["chart_data"] = chart_data
+                data["columns"][val]["avg"] = round(Stats.mean(df,val),2)
+            grp_data.append(data)
+            # preparing chart data
+            grp_result_data = [x[0] for x in df.select(self._result_column).collect()]
+            result_col_data += grp_result_data
+            grp_measure_data = [x[0] for x in df.select(measure_column).collect()]
+            measure_col_data += grp_measure_data
+            color_list = [color_dict[grp_id]]*len(grp_measure_data)
+            color_data += color_list
+            label_list = ["Cluster "+str(int(grp_id))]
+            plot_labels += label_list
+
+        grp_data = sorted(grp_data,key=lambda x:x["contribution"],reverse=True)
+        chart_data = [result_col_data,measure_col_data,color_data,plot_labels]
         cluster_data_dict["grp_data"] = grp_data
+        cluster_data_dict["chart_data"] = chart_data
         return cluster_data_dict
 
     def _generate_narratives(self):
