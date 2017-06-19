@@ -59,7 +59,7 @@ class RegressionNarrative:
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             except Exception as e:
                 print e
-                print '----  ABOVE EXCEPTION  ----' * 30
+                print '----  ABOVE EXCEPTION  ----' * 10
                 existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
@@ -72,7 +72,7 @@ class RegressionNarrative:
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             except Exception as e:
                 print e
-                print '----  ABOVE EXCEPTION  ----' * 30
+                print '----  ABOVE EXCEPTION  ----' * 10
                 existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
@@ -109,11 +109,12 @@ class RegressionNarrative:
                                     self._spark
                                     )
         main_card_data = regression_narrative_obj.generate_main_card_data()
-        # main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
-        #                                                 'regression_main_card.temp',main_card_data)
-        # self.narratives["main_card"] = main_card_narrative
+        main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
+                                                        'regression_main_card.temp',main_card_data)
+        self.narratives["main_card"] = NarrativesUtils.paragraph_splitter(main_card_narrative)
 
         for measure_column in self.significant_measures:
+            temp_cards = {}
             card0 = {}
             card1data = regression_narrative_obj.generate_card1_data(measure_column)
             card1heading = "Impact of "+measure_column+" on "+self.result_column
@@ -124,35 +125,35 @@ class RegressionNarrative:
             card0 = {"paragraphs":card1paragraphs}
             card0["charts"] = card1data["chart_data"]
             card0["heading"] = card1heading
-            self.narratives["cards"].append({"card0":card0})
+            # self.narratives["cards"].append({"card0":card0})
+            temp_cards['card0'] = card0
 
 
             # card2data = regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
             card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
-            print '^'*360
             card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                             'regression_card2.temp',card2data)
             card2paragraphs = NarrativesUtils.paragraph_splitter(card2narrative)
             card1 = {'tables': card2table, 'paragraphs' : card2paragraphs,
                         'heading' : 'Key Areas where ' + measure_column + ' matters'}
-            print card1
-            self.narratives['cards'].append({'card1':card1})
+            # self.narratives['cards'].append({'card1':card1})
+            temp_cards['card1'] = card1
 
             # card2data = regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
             # card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
             #                                                 'regression_card2.temp',card2data)
-            card3heading = 'How '+ self.result_column +' and '+ measure_column + ' changed over time'
-            agg_data = self.get_agg_data_frame(measure_column, result_column= self.result_column)
-            card3data = regression_narrative_obj.generate_card3_data(agg_data, measure_column)
-            card3narrative = NarrativesUtils.get_template_output(self._base_dir,\
-                                                            'regression_card3.temp',card3data)
-            card3chart = {'heading': ''}
-            card3chart['data']=regression_narrative_obj.generate_card3_chart(agg_data)
-            card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
-            card2 = {'charts': card3chart, 'paragraphs': card2paragraphs, 'heading': card3heading}
-            print '$'*300
-            print card2
-            self.narratives["cards"].append({"card2":card2})
+            if self._primary_date != None:
+                card3heading = 'How '+ self.result_column +' and '+ measure_column + ' changed over time'
+                agg_data = self.get_agg_data_frame(measure_column, result_column= self.result_column)
+                card3data = regression_narrative_obj.generate_card3_data(agg_data, measure_column)
+                card3narrative = NarrativesUtils.get_template_output(self._base_dir,\
+                                                                'regression_card3.temp',card3data)
+                card3chart = {'heading': ''}
+                card3chart['data']=regression_narrative_obj.generate_card3_chart(agg_data)
+                card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
+                card2 = {'charts': card3chart, 'paragraphs': card2paragraphs, 'heading': card3heading}
+                self.narratives["cards"].append({"card2":card2})
+                temp_cards['card2'] = card2
 
 
             card3 = {}
@@ -164,7 +165,10 @@ class RegressionNarrative:
             card3 = {"paragraphs":card4paragraphs}
             card3["charts"] = card4data["charts"]
             card3["heading"] = card4heading
-            self.narratives["cards"].append({"card3":card3})
+            # self.narratives["cards"].append({"card3":card3})
+            temp_cards['card3'] = card3
+
+            self.narratives['cards'].append(temp_cards)
 
     def run_regression_for_dimension_levels(self):
 

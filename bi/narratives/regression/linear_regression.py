@@ -135,7 +135,6 @@ class LinearRegressionNarrative:
     def generate_card3_data(self, agg_data, measure_column):
         date_column = agg_data.columns[0]
         data_dict = {}
-        print agg_data
         data_dict['target'] = self._result_column
         data_dict['measure'] = measure_column
         data_dict['total_measure'] = agg_data[measure_column].sum()
