@@ -90,12 +90,19 @@ class LinearRegressionNarrative:
         # print json.dumps(dimension_data_dict,indent=2)
         category_dict = dict(zip(bins.keys(),[str(bins[x][0])+" to "+str(bins[x][1]) for x in bins.keys()]))
         table_data = {}
+        maximum_averages = {}
         for val in dimension_data_dict.keys():
             data = df.groupby(df["BINNED_INDEX"]).pivot(val).avg(self._result_column).toPandas()
             data = data.fillna(0)
             data.sort_values(by="BINNED_INDEX", inplace=True)
             data["BINNED_INDEX"] = data["BINNED_INDEX"].apply(lambda x:category_dict[x])
+            print data.columns
+            print data.max()
+            print data
             table_data[val] = data
+        print '*'*250
+        print 'TABLE DATA'
+        print table_data
 
     def generate_card4_data(self,col1,col2):
         #col1 result_column col2 is measure column

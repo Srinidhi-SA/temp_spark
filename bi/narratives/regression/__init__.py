@@ -61,6 +61,7 @@ class RegressionNarrative:
             # card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
             #                                                 'regression_card2.temp',card2data)
             card2narrative = "HEEHEEHEE"
+            regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
             self.narratives["cards"].append({"card1":card2narrative})
 
             # card2data = regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
@@ -106,6 +107,7 @@ class RegressionNarrative:
                 level_regression_result[level] = result
             regression_result_dimension_cols[col] = level_regression_result
         # print json.dumps(regression_result_dimension_cols,indent=2)
+        print regression_result_dimension_cols
         return regression_result_dimension_cols
 
 

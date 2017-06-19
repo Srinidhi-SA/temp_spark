@@ -388,8 +388,12 @@ class OneWayAnovaNarratives:
                       self._dimension_column : list(grouped_data_frame['dimension']),
                       'Category' : list(grouped_data_frame['category']),
         }
-        data_c3 = [[self._measure_column_capitalized+' growth'] + list(grouped_data_frame['increase']),
-                    ['Share of '+self._measure_column] + list(grouped_data_frame['contribution']),
+        # data_c3 = [[self._measure_column_capitalized+' growth'] + list(grouped_data_frame['increase']),
+        #             ['Share of '+self._measure_column] + list(grouped_data_frame['contribution']),
+        #             [self._dimension_column] + list(grouped_data_frame['dimension']),
+        #             ['Category'] + list(grouped_data_frame['category'])]
+        data_c3 = [['Growth'] + list(grouped_data_frame['increase']),
+                    ['Share'] + list(grouped_data_frame['contribution']),
                     [self._dimension_column] + list(grouped_data_frame['dimension']),
                     ['Category'] + list(grouped_data_frame['category'])]
         chart_data = chart(data=data, labels={})
