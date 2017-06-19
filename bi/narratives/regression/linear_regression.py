@@ -103,7 +103,7 @@ class LinearRegressionNarrative:
             colnames = data.columns[1:]
             table_data[val] = {}
             headers = ['header'+str(i) for i in range(1,len(data.columns)+1)]
-            table_data[val]['header'] = dict(zip(headers,['']+list(colnames)))
+            table_data[val]['header'] = [dict(zip(headers,['Category']+list(colnames)))]
             table_data[val]['tableData'] = [dict(zip(headers,row)) for row in data.values.tolist()]
         ranked_dimensions = [(dimension_data_dict[dim]['rank'], dim) for dim in dimension_data_dict]
         ranked_dimensions = sorted(ranked_dimensions)
