@@ -101,7 +101,10 @@ class LinearRegressionNarrative:
             data.sort_values(by="BINNED_INDEX", inplace=True)
             data["BINNED_INDEX"] = data["BINNED_INDEX"].apply(lambda x:category_dict[x])
             colnames = data.columns[1:]
-            table_data[val] = [['']+list(colnames)]+data.values.tolist()
+            table_data[val] = {}
+            headers = ['header'+str(i) for i in range(1,len(data.columns)+1)]
+            table_data[val]['header'] = dict(zip(headers,['']+list(colnames)))
+            table_data[val]['tableData'] = [dict(zip(headers,row)) for row in data.values.tolist()]
         ranked_dimensions = [(dimension_data_dict[dim]['rank'], dim) for dim in dimension_data_dict]
         ranked_dimensions = sorted(ranked_dimensions)
         ranked_dimensions = [dim for rank,dim in ranked_dimensions]
@@ -109,16 +112,20 @@ class LinearRegressionNarrative:
         chart_data = {}
         if len(ranked_dimensions)>0:
             data_dict['dim1'] = dimension_data_dict[ranked_dimensions[0]]
-            chart_data['table1'] = table_data[ranked_dimensions[0]]
+            chart_data['table1']={}
+            chart_data['table1']['heading'] = 'Average '+self._result_column
+            chart_data['table1']['data'] = table_data[ranked_dimensions[0]]
         else:
             data_dict['dim1'] = ''
             chart_data['table'] = ''
         if len(ranked_dimensions)>1:
             data_dict['dim2'] = dimension_data_dict[ranked_dimensions[1]]
-            chart_data['table2'] = table_data[ranked_dimensions[1]]
+            chart_data['table2'] = {}
+            chart_data['table2']['heading'] = 'Average '+self._result_column
+            chart_data['table2']['data'] = table_data[ranked_dimensions[1]]
         else:
             data_dict['dim2'] = ''
-            table_data['table2'] = ''
+            chart_data['table2'] = ''
 
         # dimension_data_dict['ranked_dimensions'] = ranked_dimensions
         data_dict['target'] = self._result_column

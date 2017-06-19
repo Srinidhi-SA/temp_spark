@@ -29,6 +29,7 @@ class RegressionNarrative:
         self.all_coefficients = self._df_regression_result.get_all_coeff()
         all_coeff = [(x,self.all_coefficients[x]) for x in self.all_coefficients.keys()]
         all_coeff = sorted(all_coeff,key = lambda x:abs(x[1]["coefficient"]),reverse = True)
+        self._all_coeffs = all_coeff
         self.significant_measures = [x[0] for x in all_coeff[:3]]
         self.narratives = {"heading": self.result_column + "Performance Report",
                            "main_card":{},
@@ -111,7 +112,15 @@ class RegressionNarrative:
         main_card_data = regression_narrative_obj.generate_main_card_data()
         main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'regression_main_card.temp',main_card_data)
-        self.narratives["main_card"] = NarrativesUtils.paragraph_splitter(main_card_narrative)
+        self.narratives['main_card'] = {}
+        self.narratives["main_card"]['paragraphs'] = NarrativesUtils.paragraph_splitter(main_card_narrative)
+        self.narratives["main_card"]['header'] = 'Key Measures that affect ' + self.result_column
+        self.narratives["main_card"]['chart'] = {}
+        self.narratives["main_card"]['chart']['heading'] = ''
+        self.narratives["main_card"]['chart']['data'] = [[i for i,j in self._all_coeffs],
+                                                         [j for i,j in self._all_coeffs]]
+        self.narratives["main_card"]['chart']['labels'] = {'Measure':'Effect_Size'}
+
 
         for measure_column in self.significant_measures:
             temp_cards = {}
@@ -123,7 +132,14 @@ class RegressionNarrative:
 
             card1paragraphs = NarrativesUtils.paragraph_splitter(card1narrative)
             card0 = {"paragraphs":card1paragraphs}
-            card0["charts"] = card1data["chart_data"]
+            card0["charts"] = {}
+            card0['charts']['chart2']={}
+            card0['charts']['chart2']['data']=card1data["chart_data"]
+            card0['charts']['chart2']['heading'] = ''
+            card0['charts']['chart2']['labels'] = {}
+
+            card0['charts']['chart1']={}
+
             card0["heading"] = card1heading
             # self.narratives["cards"].append({"card0":card0})
             temp_cards['card0'] = card0
@@ -136,6 +152,7 @@ class RegressionNarrative:
             card2paragraphs = NarrativesUtils.paragraph_splitter(card2narrative)
             card1 = {'tables': card2table, 'paragraphs' : card2paragraphs,
                         'heading' : 'Key Areas where ' + measure_column + ' matters'}
+            print card1
             # self.narratives['cards'].append({'card1':card1})
             temp_cards['card1'] = card1
 
