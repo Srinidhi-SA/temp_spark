@@ -152,7 +152,7 @@ class RegressionNarrative:
                 card3chart['data']=regression_narrative_obj.generate_card3_chart(agg_data)
                 card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
                 card2 = {'charts': card3chart, 'paragraphs': card2paragraphs, 'heading': card3heading}
-                self.narratives["cards"].append({"card2":card2})
+                # self.narratives["cards"].append({"card2":card2})
                 temp_cards['card2'] = card2
 
 
