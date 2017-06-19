@@ -143,6 +143,7 @@ class LinearRegressionNarrative:
             vals = agg_data[col].tolist()
             if count == 1:
                 chart_data.append(['x']+vals)
+                count = 0
             else:
                 chart_data.append([col]+vals)
         return chart_data
