@@ -118,7 +118,7 @@ class RegressionNarrative:
         self.narratives["main_card"]['chart'] = {}
         self.narratives["main_card"]['chart']['heading'] = ''
         self.narratives["main_card"]['chart']['data'] = [[i for i,j in self._all_coeffs],
-                                                         [j for i,j in self._all_coeffs]]
+                                                         [j['coefficient'] for i,j in self._all_coeffs]]
         self.narratives["main_card"]['chart']['labels'] = {'Measure':'Effect_Size'}
 
 
