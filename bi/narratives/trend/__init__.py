@@ -38,7 +38,8 @@ class TimeSeriesNarrative:
         print significant_dimensions
 
         xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),time_dimension_column,measure_column,existingDateFormat,reference_time)
-        dataDict.update(xtraData)
+        if xtraData != None:
+            dataDict.update(xtraData)
 
         print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
 

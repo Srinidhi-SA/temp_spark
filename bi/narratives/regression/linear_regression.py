@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import operator
 from collections import OrderedDict
 
 from bi.common.utils import accepts
@@ -90,19 +91,72 @@ class LinearRegressionNarrative:
         # print json.dumps(dimension_data_dict,indent=2)
         category_dict = dict(zip(bins.keys(),[str(bins[x][0])+" to "+str(bins[x][1]) for x in bins.keys()]))
         table_data = {}
-        maximum_averages = {}
         for val in dimension_data_dict.keys():
+            dimension_data_dict[val]['dimension'] = val
+            dimension_data_dict[val]['num_levels'] = len(dimension_data_dict[val]['levels'])
             data = df.groupby(df["BINNED_INDEX"]).pivot(val).avg(self._result_column).toPandas()
+            agg_by_dimension = df.groupby(val).agg({self._result_column:'mean'}).collect()
+            dimension_data_dict[val]['highest_average'] = max(agg_by_dimension,key=operator.itemgetter(1))[0]
             data = data.fillna(0)
             data.sort_values(by="BINNED_INDEX", inplace=True)
             data["BINNED_INDEX"] = data["BINNED_INDEX"].apply(lambda x:category_dict[x])
-            print data.columns
-            print data.max()
-            print data
-            table_data[val] = data
-        print '*'*250
-        print 'TABLE DATA'
-        print table_data
+            colnames = data.columns[1:]
+            table_data[val] = [['']+list(colnames)]+data.values.tolist()
+        ranked_dimensions = [(dimension_data_dict[dim]['rank'], dim) for dim in dimension_data_dict]
+        ranked_dimensions = sorted(ranked_dimensions)
+        ranked_dimensions = [dim for rank,dim in ranked_dimensions]
+        data_dict = {}
+        chart_data = {}
+        if len(ranked_dimensions)>0:
+            data_dict['dim1'] = dimension_data_dict[ranked_dimensions[0]]
+            chart_data['table1'] = table_data[ranked_dimensions[0]]
+        else:
+            data_dict['dim1'] = ''
+            chart_data['table'] = ''
+        if len(ranked_dimensions)>1:
+            data_dict['dim2'] = dimension_data_dict[ranked_dimensions[1]]
+            chart_data['table2'] = table_data[ranked_dimensions[1]]
+        else:
+            data_dict['dim2'] = ''
+            table_data['table2'] = ''
+
+        # dimension_data_dict['ranked_dimensions'] = ranked_dimensions
+        data_dict['target'] = self._result_column
+        data_dict['measure'] = measure_column
+        return chart_data, data_dict
+
+    def generate_card3_chart(self, agg_data):
+        chart_data = []
+        for col in agg_data.columns:
+            vals = agg_data[col].tolist()
+            chart_data.append([col]+vals)
+        return chart_data
+
+    def generate_card3_data(self, agg_data, measure_column):
+        date_column = agg_data.columns[0]
+        data_dict = {}
+        print agg_data
+        data_dict['target'] = self._result_column
+        data_dict['measure'] = measure_column
+        data_dict['total_measure'] = agg_data[measure_column].sum()
+        data_dict['total_target'] = agg_data[self._result_column].sum()
+        data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, 1)
+        data_dict['num_dates'] = len(agg_data.index)
+        data_dict['start_date'] = agg_data[date_column].iloc[0]
+        data_dict['end_date'] = agg_data[date_column].iloc[-1]
+        data_dict['start_value'] = agg_data[measure_column].iloc[0]
+        data_dict['end_value'] = agg_data[measure_column].iloc[-1]
+        # data_dict['target_start_value'] = agg_data[self._result_column].iloc[0]
+        # data_dict['target_end_value'] = agg_data[self._result_column].iloc[-1]
+        data_dict['change_percent'] = data_dict['end_value']*100/data_dict['start_value'] - 100
+        data_dict['correlation'] = agg_data.corr()[measure_column][self._result_column]
+        peak_index = agg_data[measure_column].argmax()
+        data_dict['peak_value'] = agg_data[measure_column].ix[peak_index]
+        data_dict['peak_date'] = agg_data[date_column].ix[peak_index]
+        lowest_index = agg_data[measure_column].argmin()
+        data_dict['lowest_value'] = agg_data[measure_column].ix[lowest_index]
+        data_dict['lowest_date'] = agg_data[date_column].ix[lowest_index]
+        return data_dict
 
     def generate_card4_data(self,col1,col2):
         #col1 result_column col2 is measure column

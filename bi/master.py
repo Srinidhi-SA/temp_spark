@@ -222,37 +222,37 @@ def main(confFilePath):
             send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Analysis Not Required", False, 0)
 
         if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
-            try:
-                fs = time.time()
-                correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
-                correlations = correlation_obj.Run()
-                print "Correlation Analysis Done in ", time.time() - fs ," seconds."
-                send_message_API(monitor_api, "Correlation", "Correlation Done", True, 100)
-                try:
-                    df = df.na.drop(subset=measure_columns)
-                    fs = time.time()
-                    regression_obj = RegressionScript(df, df_helper, dataframe_context, spark, correlations)
-                    regression_obj.Run()
-                    print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                    send_message_API(monitor_api, "Regression", "Regression Done", True, 100)
-                except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
-                    send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
-                    print 'Regression Failed'
-                    print "ERROR"*5
-                    print e
-                    print "ERROR"*5
+            # try:
+            fs = time.time()
+            correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
+            correlations = correlation_obj.Run()
+            print "Correlation Analysis Done in ", time.time() - fs ," seconds."
+            send_message_API(monitor_api, "Correlation", "Correlation Done", True, 100)
+            # try:
+            df = df.na.drop(subset=measure_columns)
+            fs = time.time()
+            regression_obj = RegressionScript(df, df_helper, dataframe_context, spark, correlations)
+            regression_obj.Run()
+            print "Regression Analysis Done in ", time.time() - fs, " seconds."
+            send_message_API(monitor_api, "Regression", "Regression Done", True, 100)
+            # except Exception as e:
+            #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
+            #     send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
+            #     print 'Regression Failed'
+            #     print "ERROR"*5
+            #     print e
+            #     print "ERROR"*5
 
-            except Exception as e:
-                print 'Correlation Failed. Regression not executed'
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Correlation/')
-                send_message_API(monitor_api, "Correlation", "Correlation Failed", False, 0)
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Regression/')
-                send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
-                print "ERROR"*5
-                print e
-                print "ERROR"*5
+            # except Exception as e:
+            #     print 'Correlation Failed. Regression not executed'
+            #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Correlation/')
+            #     send_message_API(monitor_api, "Correlation", "Correlation Failed", False, 0)
+            #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
+            #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Regression/')
+            #     send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
+            #     print "ERROR"*5
+            #     print e
+            #     print "ERROR"*5
 
         else:
             print 'Regression not in Scripts to run'
@@ -261,20 +261,20 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
             send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
 
-        try:
-            fs = time.time()
-            trend_obj = TrendScript(df_helper,dataframe_context,spark)
-            trend_obj.Run()
-            print "Trend Analysis Done in ", time.time() - fs, " seconds."
-            send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
+        # try:
+        fs = time.time()
+        trend_obj = TrendScript(df_helper,dataframe_context,spark)
+        trend_obj.Run()
+        print "Trend Analysis Done in ", time.time() - fs, " seconds."
+        send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
 
-        except Exception as e:
-            DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
-            send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
-            print "Trend Script Failed"
-            print "ERROR"*5
-            print e
-            print "ERROR"*5
+        # except Exception as e:
+        #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
+        #     send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
+        #     print "Trend Script Failed"
+        #     print "ERROR"*5
+        #     print e
+        #     print "ERROR"*5
 
         try:
             fs = time.time()

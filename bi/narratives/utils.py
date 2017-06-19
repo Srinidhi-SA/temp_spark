@@ -378,6 +378,7 @@ def calculate_dimension_contribution(level_cont):
 
 def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col,max_time):
     out = {}
+    # columns = ['EDUCATION','MARRIAGE','AGE_CATEGORY','BILL_AMOUNT_DECEMBER','BILL_AMOUNT_NOVEMBER']
     for column_name in columns:
         data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
         column_levels = df[column_name].unique()

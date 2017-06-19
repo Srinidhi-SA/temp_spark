@@ -134,11 +134,14 @@ class TrendNarrative:
         datetime_pattern = "%b-%Y"
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
+        print '&'*360
+        print level_cont_dict
         bucket_dict = NarrativesUtils.calculate_bucket_data(level_cont)
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict,level_cont)
         dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
-        level_cont_dict.update(bucket_data)
-        level_cont_dict.update(dim_data)
+        if level_cont_dict != None:
+            level_cont_dict.update(bucket_data)
+            level_cont_dict.update(dim_data)
         return level_cont_dict
 
     def get_forecast_values(self,series,prediction_window):
