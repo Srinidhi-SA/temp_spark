@@ -1,10 +1,10 @@
 Overview
 PARAHEADER
 {% if n_sig_measures == 1 %}
-  {{measure_column}} is the only <b>significant influencer<\b> of {{result_column}}
+  {{measure_column}} is the only <b>significant influencer</b> of {{result_column}}
   and it explains a great magnitude of change in {{result_column}}.
 {% elif n_sig_measures >1 %}
-  {{measure_column}} is one of the <b>significant influencer<\b> of {{result_column}}
+  {{measure_column}} is one of the <b>significant influencer</b> of {{result_column}}
    and it explains a great magnitude of change in {{result_column}}.
 {% endif %}
 
