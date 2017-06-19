@@ -134,9 +134,13 @@ class LinearRegressionNarrative:
 
     def generate_card3_chart(self, agg_data):
         chart_data = []
+        count = 1
         for col in agg_data.columns:
             vals = agg_data[col].tolist()
-            chart_data.append([col]+vals)
+            if count == 1:
+                chart_data.append(['x']+vals)
+            else:
+                chart_data.append([col]+vals)
         return chart_data
 
     def generate_card3_data(self, agg_data, measure_column):
