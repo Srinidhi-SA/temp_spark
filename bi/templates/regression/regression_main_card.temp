@@ -1,18 +1,18 @@
 {% if n_s_m > 3 %}
-  There are <b>{{n_m}} measures<\b> in the dataset and <b>{{n_s_m}} of them<\b> (including {{sm[0]}},
-  {{sm[1]}},{{sm[2]}}, etc.) have <b>significant influence<\b> on {{cm}}.
+  There are <b>{{n_m}} measures</b> in the dataset and <b>{{n_s_m}} of them</b> (including {{sm[0]}},
+  {{sm[1]}},{{sm[2]}}, etc.) have <b>significant influence</b> on {{cm}}.
 {% elif n_s_m == 3 %}
-  There are <b>{{n_m}} measures<\b> in the dataset and <b>three of them<\b> ({{sm[0]}},
-  {{sm[1]}} and {{sm[2]}}) have <b>significant influence<\b> on {{cm}}.
+  There are <b>{{n_m}} measures</b> in the dataset and <b>three of them</b> ({{sm[0]}},
+  {{sm[1]}} and {{sm[2]}}) have <b>significant influence</b> on {{cm}}.
 {% elif n_s_m == 2 %}
-  There are <b>{{n_m}} measures<\b> in the dataset and <b>two of them<\b> ({{sm[0]}} and
-  {{sm[1]}}) have <b>significant influence<\b> on {{cm}}.
+  There are <b>{{n_m}} measures</b> in the dataset and <b>two of them</b> ({{sm[0]}} and
+  {{sm[1]}}) have <b>significant influence</b> on {{cm}}.
 {% elif n_s_m == 1 %}
   {% if n_m > 1 %}
-    There are <b>{{n_m}} measures<\b> in the dataset and <b> only {{sm[0]}}</b> has <b>significant
-    influence<\b> on {{cm}}.
+    There are <b>{{n_m}} measures</b> in the dataset and <b> only {{sm[0]}}</b> has <b>significant
+    influence</b> on {{cm}}.
   {% else %}
-    There is <b>only one measure<\b> in the dataset ({{sm[0]}}) and it has <b>significant influence<\b>
+    There is <b>only one measure</b> in the dataset ({{sm[0]}}) and it has <b>significant influence</b>
   on {{cm}}.
   {% endif %}
 {% endif %}
@@ -34,10 +34,10 @@
 {% endif %}
 
 {% if n_s_m == 1 %}
-  The chart below displays the <b>impact of {{sm[0]}}<\b> on {{cm}}, as measured by effect size.
+  The chart below displays the <b>impact of {{sm[0]}}</b> on {{cm}}, as measured by effect size.
   Let us take a deeper look at {{sm[0]}} that explain remarkable amount of change in {{cm}}.
 {% elif n_s_m > 1 %}
-  The chart below displays the <b>impact of key Measures<\b> on {{cm}}, as measured by effect size.
+  The chart below displays the <b>impact of key Measures</b> on {{cm}}, as measured by effect size.
   Let us take a deeper look at some of the most important Measures that explain remarkable amount
   of change in {{cm}}.
 {% endif %}

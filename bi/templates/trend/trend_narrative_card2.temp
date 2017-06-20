@@ -30,6 +30,7 @@ PARASEPARATOR
 
 Significant factors that drive increase in measure
 PARAHEADER
+<i>
 <ul>
 <li>
   HighestSigDimension has been very instrumental in driving measure growth,
@@ -57,3 +58,4 @@ as negativeSecondHighestSigDimensionL1[0] and negativeSecondHighestSigDimensionL
  shrunk over negativeSecondHighestSigDimensionL1[1]% and negativeSecondHighestSigDimensionL2[1]% respectively.
 </li>
 </ul>
+</i>
