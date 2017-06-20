@@ -20,6 +20,10 @@ class TimeSeriesNarrative:
         month_dict = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
 
         #grouped_data needs to be sorted by date
+        pandasDf = df_helper.get_data_frame().toPandas()
+        pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x:datetime.strptime(x,existingDateFormat))
+        pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
+        
         grouped_data = df_helper.get_aggregate_data(time_dimension_column,measure_column,
                                                         existingDateFormat=existingDateFormat,
                                                         requestedDateFormat=requestedDateFormat)
@@ -29,10 +33,10 @@ class TimeSeriesNarrative:
         grouped_data = grouped_data.sort_values(by='key', ascending=True)
         grouped_data["value"] = grouped_data["value"].apply(lambda x: round(x,2))
         dataDict = trend_narrative_obj.generateDataDict(grouped_data)
-        pandasDf = df_helper.get_data_frame().toPandas()
-        pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x:datetime.strptime(x,existingDateFormat))
-        pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
-        # update reference time with max value
+        # pandasDf = df_helper.get_data_frame().toPandas()
+        # pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x:datetime.strptime(x,existingDateFormat))
+        # pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
+        # # update reference time with max value
         reference_time = dataDict["reference_time"]
         print reference_time
         print significant_dimensions
