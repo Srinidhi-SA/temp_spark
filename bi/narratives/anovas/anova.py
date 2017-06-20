@@ -57,9 +57,9 @@ class OneWayAnovaNarratives:
         self._one_way_anova_result = anova_result
         self._trend_result = trend_result
         # self.effect_size = anova_result.get_effect_size()
-        self.card1 = ''
-        self.card2 = ''
-        self.card3 = ''
+        self.card1 = {}
+        self.card2 = {}
+        self.card3 = {}
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anovas/"
         self._generate_narratives()
 
@@ -367,7 +367,7 @@ class OneWayAnovaNarratives:
 
     def get_category(self, x):
         if x['increase'][0] >= self._increase_limit:
-            if x['contribution'][0] >= self._increase_limit:
+            if x['contribution'][0] >= self._contribution_limit:
                 return 'Leaders Club'
             else:
                 return 'Playing Safe'

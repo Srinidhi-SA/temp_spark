@@ -119,7 +119,8 @@ class RegressionNarrative:
         self.narratives["main_card"]['chart']['heading'] = ''
         self.narratives["main_card"]['chart']['data'] = [[i for i,j in self._all_coeffs],
                                                          [j['coefficient'] for i,j in self._all_coeffs]]
-        self.narratives["main_card"]['chart']['labels'] = {'Measure':'Effect_Size'}
+        self.narratives["main_card"]['chart']['label'] = {'x':'Measure Name',
+                                                            'y': 'Change in ' + self.result_column + ' per unit increase'}
 
 
         for measure_column in self.significant_measures:
@@ -168,7 +169,7 @@ class RegressionNarrative:
                 card3chart = {'heading': ''}
                 card3chart['data']=regression_narrative_obj.generate_card3_chart(agg_data)
                 card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
-                card2 = {'charts': card3chart, 'paragraphs': card2paragraphs, 'heading': card3heading}
+                card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
                 # self.narratives["cards"].append({"card2":card2})
                 temp_cards['card2'] = card2
 

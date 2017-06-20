@@ -346,8 +346,6 @@ class LinearRegressionNarrative:
         output = {"bins":binned_index_dict,"data":binned_df}
         return output
 
-
-
     def get_measure_column_splits(self,df,colname,n_split = 4):
         """
         n_split = number of splits required -1
