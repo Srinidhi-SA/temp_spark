@@ -29,7 +29,7 @@ def round_number(num, digits=2, as_string=True):
         num = num/1000.0
         thousands = 1
         digits = 2
-    elif (abs(num)<1):
+    elif (abs(num)<1) and (num!=0):
         digits = digits + int(abs(math.log(num,10)))
     result = float(format(num, '0.%df' %(digits,)))
     if as_string:
@@ -381,7 +381,7 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
     k=''
     print '*'*600
     print columns
-    columns = ['EDUCATION','MARRIAGE','AGE_CATEGORY','BILL_AMOUNT_DECEMBER','BILL_AMOUNT_NOVEMBER']
+    #columns = ['EDUCATION','MARRIAGE','AGE_CATEGORY','BILL_AMOUNT_DECEMBER','BILL_AMOUNT_NOVEMBER']
     for column_name in columns:
         data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
         column_levels = df[column_name].unique()
