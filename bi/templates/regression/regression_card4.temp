@@ -27,10 +27,12 @@ PARASEPARATOR
   from {{freq["low1low2"][0][2]}} ({{freq["low1low2"][0][0]}}) mostly belongs to this segment.
   They cover nearly {{contribution["low1low2"]}} of the total population.
 {% elif freq["low1low2"]|length == 2 %}
+  <b>Low {{result_column}} with Low {{measure_column}}</b>:
   Mostly {{result_column}} from {{freq["low1low2"][0][2]}} ({{freq["low1low2"][0][0]}})
   and {{freq["low1low2"][1][2]}} ({{freq["low1low2"][1][0]}}) belong to this segment.
   They cover nearly {{contribution["low1low2"]}} of the total population.
 {% elif freq["low1low2"]|length >=3 %}
+  <b>Low {{result_column}} with Low {{measure_column}}</b>:
   Mostly {{result_column}} from {{freq["low1low2"][0][2]}} ({{freq["low1low2"][0][0]}})
   ,{{freq["low1low2"][1][2]}} ({{freq["low1low2"][1][0]}}) and {{freq["low1low2"][0][2]}} ({{freq["low1low2"][0][0]}}) belong to this segment.
   They cover nearly {{contribution["low1low2"]}} of the total population.
@@ -75,65 +77,64 @@ PARASEPARATOR
   Overall, {{result_column}} values are relatively inelastic to changes in {{measure_column}}.
 {% endif %}
 {% if overall_elasticity > 0 %}
-  For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity|abs}} increase in {{result_column}}.
+  For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity|abs}}
+  increase in {{result_column}}.
 {% else %}
-For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity|abs}} decrease in {{result_column}}.
+  For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity|abs}}
+  decrease in {{result_column}}.
 {% endif %}
 However, the sensitivity of {{result_column}} to change in {{measure_column}} varies across these four segments.
 
 PARASEPARATOR
 
   <ul>
-    <li>
     {% if elastic_count == 4 %}
-    All the segments {{elastic_grp_list[0][0]}} ({{elastic_grp_list[0][1]}}),
+    <li>All the segments {{elastic_grp_list[0][0]}} ({{elastic_grp_list[0][1]}}),
      {{elastic_grp_list[1][0]}} ({{elastic_grp_list[1][1]}}),
      {{elastic_grp_list[2][0]}} ({{elastic_grp_list[2][1]}})
-     and {{elastic_grp_list[3][0]}} ({{elastic_grp_list[3][1]}}) show some elasticity.
+     and {{elastic_grp_list[3][0]}} ({{elastic_grp_list[3][1]}}) show some elasticity.</li>
     {% elif elastic_count < 4 %}
       {% if elastic_count == 1%}
-        {{elastic_grp_list[0][0]}}  show relatively higher sensitivity to change
-         in {{measure_column}} ({{elastic_grp_list[0][1]}}) for a one percent
-         increase in {{measure_column}}, compared to other segments.
+        <li>{{elastic_grp_list[0][0]}}  show relatively higher sensitivity to change
+         in {{measure_column}} ({{elastic_grp_list[0][1]}})% for a one percent
+         increase in {{measure_column}}, compared to other segments.</li>
       {% elif elastic_count == 2 %}
-        {{elastic_grp_list[0][0]}} and {{elastic_grp_list[1][0]}} show relatively
+        <li>{{elastic_grp_list[0][0]}} and {{elastic_grp_list[1][0]}} show relatively
         higher sensitivity to change in {{measure_column}}
-        ({{elastic_grp_list[0][1]}} and {{elastic_grp_list[1][1]}} respectively,
-        for a one percent increase in {{measure_column}}) compared to other segments.
+        ({{elastic_grp_list[0][1]}}% and {{elastic_grp_list[1][1]}}% respectively,
+        for a one percent increase in {{measure_column}}) compared to other segments.</li>
       {% elif elastic_count == 3 %}
-        {{elastic_grp_list[0][0]}},{{elastic_grp_list[1][0]}} and {{elastic_grp_list[2][0]}}
+        <li>{{elastic_grp_list[0][0]}},{{elastic_grp_list[1][0]}} and {{elastic_grp_list[2][0]}}
          show relatively higher sensitivity to change in {{measure_column}}
-         ({{elastic_grp_list[0][1]}},{{elastic_grp_list[1][1]}} and {{elastic_grp_list[2][1]}}
-          respectively, for a one percent increase in {{measure_column}}) compared to other segments.
+         ({{elastic_grp_list[0][1]}}%,{{elastic_grp_list[1][1]}}% and {{elastic_grp_list[2][1]}}%
+          respectively, for a one percent increase in {{measure_column}}) compared to other segments.</li>
 
       {% endif %}
-    </li>
     {% endif %}
-    <li>
+
     {% if inelastic_count == 4%}
-      All the segments {{inelastic_grp_list[0][0]}} ({{inelastic_grp_list[0][1]}}),
+      <li>All the segments {{inelastic_grp_list[0][0]}} ({{inelastic_grp_list[0][1]}}),
       {{inelastic_grp_list[1][0]}} ({{inelastic_grp_list[1][1]}}),
       {{inelastic_grp_list[2][0]}} ({{inelastic_grp_list[2][1]}})
-      and {{inelastic_grp_list[3][0]}} ({{inelastic_grp_list[3][1]}}) are inelastic.
+      and {{inelastic_grp_list[3][0]}} ({{inelastic_grp_list[3][1]}}) are inelastic.</li>
     {% elif inelastic_count < 4 %}
        {% if inelastic_count == 1 %}
-       Interestingly, for {{inelastic_grp_list[0][0]}}  segment, {{result_column}} changes by
-        {{inelastic_grp_list[0][1]}}  for a one percent increase in {{measure_column}}.
+       <li>Interestingly, for {{inelastic_grp_list[0][0]}}  segment, {{result_column}} changes by
+        {{inelastic_grp_list[0][1]}}%  for a one percent increase in {{measure_column}}.
         It implies that any incremental change in {{measure_column}} undermines potential
-        sales from this segment.
+        sales from this segment.</li>
        {% elif inelastic_count == 2 %}
-       Interestingly {{inelastic_grp_list[0][0]}} and {{inelastic_grp_list[1][0]}} segment,
-       {{result_column}} changes by {{inelastic_grp_list[0][1]}} and {{inelastic_grp_list[1][1]}}
+       <li>Interestingly {{inelastic_grp_list[0][0]}} and {{inelastic_grp_list[1][0]}} segment,
+       {{result_column}} changes by {{inelastic_grp_list[0][1]}}% and {{inelastic_grp_list[1][1]}}%
        for a one percent increase in {{measure_column}}.
         It implies that any incremental change in {{measure_column}} undermines potential
-        sales from this segment.
+        sales from this segment.</li>
        {% elif inelastic_count == 3 %}
-       Interestingly {{inelastic_grp_list[0][0]}},{{inelastic_grp_list[1][0]}} and {{inelastic_grp_list[2][0]}} segment,
-       {{result_column}} changes by {{inelastic_grp_list[0][1]}},{{inelastic_grp_list[1][1]}} and {{inelastic_grp_list[2][1]}}
+       <li>Interestingly {{inelastic_grp_list[0][0]}},{{inelastic_grp_list[1][0]}} and {{inelastic_grp_list[2][0]}} segment,
+       {{result_column}} changes by {{inelastic_grp_list[0][1]}}%,{{inelastic_grp_list[1][1]}}% and {{inelastic_grp_list[2][1]}}%
        for a one percent increase in {{measure_column}}.
         It implies that any incremental change in {{measure_column}} undermines potential
-        sales from this segment.
+        sales from this segment.</li>
        {% endif %}
-       </li>
     {% endif %}
     </ul>

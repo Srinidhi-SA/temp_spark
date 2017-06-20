@@ -346,13 +346,13 @@ class LinearRegressionNarrative:
         output = {"bins":binned_index_dict,"data":binned_df}
         return output
 
-    def get_measure_column_splits(self,df,colname,n_split = 4):
+    def get_measure_column_splits(self,df,colname,n_split = 5):
         """
         n_split = number of splits required -1
         splits = [0.0, 23.0, 46.0, 69.0, 92.0, 115.0]
         splits_range = [(0.0, 23.0), (23.0, 46.0), (46.0, 69.0), (69.0, 92.0), (92.0, 115.0)]
         """
-        n_split = 4
+        n_split = 5
         minimum_val = Stats.min(df,colname)
         maximum_val = Stats.max(df,colname)
         splits  = CommonUtils.frange(minimum_val,maximum_val,num_steps=n_split)

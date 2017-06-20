@@ -57,9 +57,9 @@ class OneWayAnovaNarratives:
         self._one_way_anova_result = anova_result
         self._trend_result = trend_result
         # self.effect_size = anova_result.get_effect_size()
-        self.card1 = {}
-        self.card2 = {}
-        self.card3 = {}
+        self.card1 = ''
+        self.card2 = ''
+        self.card3 = ''
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anovas/"
         self._generate_narratives()
 
@@ -157,7 +157,7 @@ class OneWayAnovaNarratives:
                 'uniformly_distributed' : uniformly_distributed,
                 'top_groups' : top_groups,
                 'num_top_groups' : len(top_groups),
-                'top_groups_percent' : round(100.0 * top_groups_contribution / sum(totals),2),
+                'top_groups_percent' : NarrativesUtils.round_number(100.0 * top_groups_contribution / sum(totals),2),
                 'dimension_name' : self._dimension_column,
                 'plural_dimension_name' : NarrativesUtils.pluralize(self._dimension_column),
                 'measure_name' : self._measure_column,
@@ -194,13 +194,13 @@ class OneWayAnovaNarratives:
                     'significant_dimensions' : significant_dimensions,
                     'num_significant_dimensions' : len(significant_dimensions),
                     'top1_contributors' : top1_contributors,
-                    'top1_contribution' : top1_contribution,
+                    'top1_contribution' : NarrativesUtils.round_number(top1_contribution,2),
                     'num_top1_contributors' : len(top1_contributors),
                     'top2_contributors' : top2_contributors,
-                    'top2_contribution' : top2_contribution,
+                    'top2_contribution' : NarrativesUtils.round_number(top2_contribution,2),
                     'num_top2_contributors' : len(top2_contributors),
                     'top3_contributors' : top3_contributors,
-                    'top3_contribution' : top3_contribution,
+                    'top3_contribution' : NarrativesUtils.round_number(top3_contribution,2),
                     'num_top3_contributors' : len(top3_contributors),
                     'target' : self._measure_column,
                     'dimension' : self._dimension_column,
@@ -300,14 +300,14 @@ class OneWayAnovaNarratives:
                     'correlation' : correlation,
                     'overall_increase_percent' : round(overall_increase_percent,2),
                     'subset_increase_percent' : round(subset_increase_percent,2),
-                    'overall_peak_value' : overall_peak_value,
+                    'overall_peak_value' : round(overall_peak_value,2),
                     'overall_peak_date' : overall_peak_date,
                     'overall_peak_increase' : round(overall_peak_increase,2),
                     'overall_streak_length' : overall_streak_length,
                     'overall_streak_start_date' : overall_longest_streak_start_date,
                     'overall_streak_end_date' : overall_longest_streak_end_date,
                     'overall_streak_contribution' : round(overall_longest_streak_contribution,2),
-                    'subset_peak_value' : subset_peak_value,
+                    'subset_peak_value' : round(subset_peak_value,2),
                     'subset_peak_date' : subset_peak_date,
                     'subset_peak_increase' : round(subset_peak_increase,2),
                     'subset_streak_length' : subset_streak_length,
@@ -346,8 +346,8 @@ class OneWayAnovaNarratives:
                     'positive_growth_dimensions' : positive_growth_dimensions,
                     'negative_growth_dimensions' : negative_growth_dimensions,
                     'stable_growth_dimensions' : stable_growth_dimensions,
-                    'positive_growth_values' : positive_growth_values,
-                    'negative_growth_values' : negative_growth_values,
+                    'positive_growth_values' : [NarrativesUtils.round_number(i,2) for i in positive_growth_values],
+                    'negative_growth_values' : [NarrativesUtils.round_number(i,2) for i in negative_growth_values],
                     'num_positive_growth_dimensions' : len(positive_growth_dimensions),
                     'num_negative_growth_dimensions' : len(negative_growth_dimensions),
                     'num_stable_growth_dimensions' : len(stable_growth_dimensions),
