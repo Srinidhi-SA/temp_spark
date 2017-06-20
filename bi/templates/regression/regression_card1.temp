@@ -52,7 +52,7 @@ PARAHEADER
 <ul>
     <li>
      <u>Group 1:</u> This is the largest group, accounting for
-     {{cluster_details[0]["contribution"]}}% of the observations,
+     {{cluster_details[0]["contribution"] | round(2)}}% of the observations,
      has an average {{result_column}} of {{cluster_details[0]["columns"][result_column]["avg"]}}
      and average {{measure_column}} of {{cluster_details[0]["columns"][measure_column]["avg"]}}.
      </li>
@@ -61,7 +61,7 @@ PARAHEADER
             <li>
               <u>Group {{item.group_number}}:</u> The average {{result_column}} for this group is {{item["columns"][result_column]["avg"]}}
               and the average {{measure_column}} is {{item["columns"][result_column]["avg"]}}.
-              It covers about {{item["contribution"]}}% of the total observations.
+              It covers about {{item["contribution"] | round(2)}}% of the total observations.
             </li>
         {% endfor %}
 
@@ -70,6 +70,6 @@ PARAHEADER
      <u>Group {{cluster_details|length}}:</u> The smallest group has the average
      {{result_column}} of {{cluster_details[-1]["columns"][result_column]["avg"]}}
      and the {{measure_column}} typically amounts to {{cluster_details[-1]["columns"][measure_column]["avg"]}}
-    for any observation from this group. It accounts for only  {{cluster_details[-1]["contribution"]}}% of the total observations.
+    for any observation from this group. It accounts for only  {{cluster_details[-1]["contribution"] | round(2)}}% of the total observations.
     </li>
 </ul>
