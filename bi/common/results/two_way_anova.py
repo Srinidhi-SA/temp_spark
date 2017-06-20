@@ -154,6 +154,12 @@ class TopDimensionStats:
 
     def set_p_value(self,var,sse, dimension):
         df_between = len(var.index)-1
+        print '-'*120
+        print dimension, ' : ', df_between
+        if df_between == 0:
+            self.p_value[dimension] = 1
+            self.effect_size[dimension] = 0
+            return
         df_total = var.counts.sum() - 1
         var['dev'] = var.counts * (var.means - self.avg_measure)**2
         ss_between = float(var.dev.sum())

@@ -378,12 +378,16 @@ def calculate_dimension_contribution(level_cont):
 
 def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col,max_time):
     out = {}
-    # columns = ['EDUCATION','MARRIAGE','AGE_CATEGORY','BILL_AMOUNT_DECEMBER','BILL_AMOUNT_NOVEMBER']
+    k=''
+    print '*'*600
+    print columns
+    columns = ['EDUCATION','MARRIAGE','AGE_CATEGORY','BILL_AMOUNT_DECEMBER','BILL_AMOUNT_NOVEMBER']
     for column_name in columns:
         data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
         column_levels = df[column_name].unique()
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
         k = df.pivot_table(index = index_col, columns = column_name, values = value_col, aggfunc="sum")
+        k=k.fillna(0)
         k["total"] = k.sum(axis=1)
         k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k.index))
         k = k.sort_values(by="rank", ascending=True)
