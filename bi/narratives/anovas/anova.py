@@ -224,7 +224,7 @@ class OneWayAnovaNarratives:
             total_contribution = sum([v for v,k in contributions])
             contributions = [(round(v,2),k) for v,k in contributions]
             return contributions, total_contribution
-        return '',''
+        return '',0.0
 
     def _generate_card2(self):
         self.card2 = card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
