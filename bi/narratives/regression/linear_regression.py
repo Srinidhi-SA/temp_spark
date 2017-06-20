@@ -333,7 +333,7 @@ class LinearRegressionNarrative:
         return dimension_data_dict
 
     def generateGroupedMeasureDataDict(self,measure_column):
-        splits_data = self.get_measure_column_splits(self._data_frame,measure_column)
+        splits_data = self.get_measure_column_splits(self._data_frame,measure_column, 4)
         splits = splits_data["splits"]
         double_df = self._data_frame.withColumn(measure_column, self._data_frame[measure_column].cast(DoubleType()))
         bucketizer = Bucketizer(inputCol=measure_column,
@@ -354,6 +354,7 @@ class LinearRegressionNarrative:
         splits = [0.0, 23.0, 46.0, 69.0, 92.0, 115.0]
         splits_range = [(0.0, 23.0), (23.0, 46.0), (46.0, 69.0), (69.0, 92.0), (92.0, 115.0)]
         """
+        n_split = 4
         minimum_val = Stats.min(df,colname)
         maximum_val = Stats.max(df,colname)
         splits  = CommonUtils.frange(minimum_val,maximum_val,num_steps=n_split)

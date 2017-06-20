@@ -145,33 +145,38 @@ class OneWayAnovaNarratives:
             top_groups_contribution = groups_by_total[0][0]*100/sum_total
             bottom_groups = [groups_by_total[1][1]]
             bottom_groups_contribution = groups_by_total[1][0]*100/sum_total
+        elif uniformly_distributed:
+            top_groups = []
+            top_groups_contribution = 0
+            bottom_groups = []
+            bottom_groups_contribution = 0
 
         num_groups = len(keys)
 
         data_dict = {
-            'uniformly_distributed' : uniformly_distributed,
-            'top_groups' : top_groups,
-            'num_top_groups' : len(top_groups),
-            'top_groups_percent' : round(100.0 * top_groups_contribution / sum(totals),2),
-            'dimension_name' : self._dimension_column,
-            'plural_dimension_name' : NarrativesUtils.pluralize(self._dimension_column),
-            'measure_name' : self._measure_column,
+                'uniformly_distributed' : uniformly_distributed,
+                'top_groups' : top_groups,
+                'num_top_groups' : len(top_groups),
+                'top_groups_percent' : round(100.0 * top_groups_contribution / sum(totals),2),
+                'dimension_name' : self._dimension_column,
+                'plural_dimension_name' : NarrativesUtils.pluralize(self._dimension_column),
+                'measure_name' : self._measure_column,
 
-            'best_category_by_mean': top_group_by_mean,
-            'best_category_by_mean_cont': round(100.0 * sum_top_group_by_mean / sum(totals), 2),
-            'best_category_by_mean_avg': NarrativesUtils.round_number(avg_top_group_by_mean,2),
+                'best_category_by_mean': top_group_by_mean,
+                'best_category_by_mean_cont': round(100.0 * sum_top_group_by_mean / sum(totals), 2),
+                'best_category_by_mean_avg': NarrativesUtils.round_number(avg_top_group_by_mean,2),
 
-            'best_category_by_total': top_group_by_total,
-            'best_category_by_total_cont': round(100.0 * sum_top_group_by_total / sum(totals), 2),
-            'best_category_by_total_avg': NarrativesUtils.round_number(avg_top_group_by_total,2),
-            'best_category_by_total_sum' : NarrativesUtils.round_number(sum_top_group_by_total,2),
+                'best_category_by_total': top_group_by_total,
+                'best_category_by_total_cont': round(100.0 * sum_top_group_by_total / sum(totals), 2),
+                'best_category_by_total_avg': NarrativesUtils.round_number(avg_top_group_by_total,2),
+                'best_category_by_total_sum' : NarrativesUtils.round_number(sum_top_group_by_total,2),
 
-            'bottom_groups': bottom_groups,
-            'num_bottom_groups' : len(bottom_groups),
-            'bottom_groups_percent': round(100.0 * bottom_groups_contribution / sum(totals),2),
+                'bottom_groups': bottom_groups,
+                'num_bottom_groups' : len(bottom_groups),
+                'bottom_groups_percent': round(100.0 * bottom_groups_contribution / sum(totals),2),
 
-            'num_groups' : num_groups
-        }
+                'num_groups' : num_groups
+                }
         output = {'header' : 'Overview', 'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.temp',data_dict))
         self.card1.add_paragraph(output)
