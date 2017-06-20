@@ -28,32 +28,32 @@ However, there are also few {{dataLevel}} when {{measure}} were lagging and didn
 
 PARASEPARATOR
 
-Significant factors that drive increase in {{measure}}
+Significant factors that drive increase in measure
 PARAHEADER
 <ul>
 <li>
-  {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
-   as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
-   overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
+  HighestSigDimension has been very instrumental in driving measure growth,
+   as HighestSigDimensionL1[0] and HighestSigDimensionL2[0] witnessed the highest
+   overall growth rates of HighestSigDimensionL1[1]% and HighestSigDimensionL2[1]% respectively.
 </li>
 <li>
-  {{SecondHighestSigDimension}}, such as {{SecondHighestSigDimensionL1[0]}} ({{SecondHighestSigDimensionL1[1]}}%)
-   and {{SecondHighestSigDimensionL2[0]}} ({{SecondHighestSigDimensionL2[1]}}%), were also contributing significantly to the overall increase.
+  SecondHighestSigDimension, such as SecondHighestSigDimensionL1[0] (SecondHighestSigDimensionL1[1]%)
+   and SecondHighestSigDimensionL2[0] (SecondHighestSigDimensionL2[1]%), were also contributing significantly to the overall increase.
 </li>
 </ul>
 PARASEPARATOR
 
-Significant factors that drag {{measure}} down
+Significant factors that drag measure down
 PARAHEADER
 <ul>
 <li>
-  {{negativeHighestSigDimension}} has been an area of concern,
-  as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
-   shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
+  negativeHighestSigDimension has been an area of concern,
+  as negativeHighestSigDimensionL1[0] and negativeHighestSigDimensionL2[0]
+   shrunk over negativeHighestSigDimensionL1[1]% and negativeHighestSigDimensionL2[1]% respectively.
 </li>
 <li>
-{{negativeSecondHighestSigDimension}} has been an area of concern,
-as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
- shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
+negativeSecondHighestSigDimension has been an area of concern,
+as negativeSecondHighestSigDimensionL1[0] and negativeSecondHighestSigDimensionL2[0]
+ shrunk over negativeSecondHighestSigDimensionL1[1]% and negativeSecondHighestSigDimensionL2[1]% respectively.
 </li>
 </ul>
