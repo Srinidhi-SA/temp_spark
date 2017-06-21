@@ -81,8 +81,6 @@ class LinearRegressionNarrative:
         cluster_data_dict = self.generateClusterDataDict(measure_column,kmeans_result)
         data_dict["cluster_details"] = cluster_data_dict["grp_data"]
         # cluster_data_dict["chart_data"] = self.sort_chart_date(cluster_data_dict["chart_data"])
-        print '!'*3000
-        print cluster_data_dict["chart_data"]
         data_dict["chart_data"] = cluster_data_dict["chart_data"]
         return data_dict
 
@@ -285,7 +283,7 @@ class LinearRegressionNarrative:
         col1_data = [col1_data[0]]+[i[1] for i in all_data]
         color_data = [color_data[0]]+[i[2] for i in all_data]
 
-        data_dict["charts"]["data"] = [col1_data,col2_data,color_data,plot_labels]
+        data_dict["charts"]["data"] = [col2_data,col1_data,color_data,plot_labels]
         print "one iteration done"
         return data_dict
 
@@ -427,7 +425,7 @@ class LinearRegressionNarrative:
             plot_labels += label_list
 
         grp_data = sorted(grp_data,key=lambda x:x["contribution"],reverse=True)
-        chart_data = [result_col_data,measure_col_data,color_data,plot_labels]
+        chart_data = [measure_col_data,result_col_data,color_data,plot_labels]
         cluster_data_dict["grp_data"] = grp_data
         cluster_data_dict["chart_data"] = chart_data
         return cluster_data_dict
