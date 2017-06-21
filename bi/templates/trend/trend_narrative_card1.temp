@@ -16,7 +16,7 @@ The dataset contains {{measure}} figures for a {{durationString}} period.
   the same time, from {{start_value}} in {{start_time}} to
   {{end_value}} in {{end_time}}.
 {% endif %}
-The <b> total {{measure}} </b> were {{total}} for the last {{durationString}},
+The total {{measure}} </b> were {{total}} for the last {{durationString}},
  with the <b> average {{measure}} per {{dateLevel}} being {{average_value}}.
 {% if ratio_string != "" %}
   Interestingly, the sales contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
