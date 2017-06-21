@@ -23,7 +23,7 @@ class TimeSeriesNarrative:
         pandasDf = df_helper.get_data_frame().toPandas()
         pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x:datetime.strptime(x,existingDateFormat))
         pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
-        
+
         grouped_data = df_helper.get_aggregate_data(time_dimension_column,measure_column,
                                                         existingDateFormat=existingDateFormat,
                                                         requestedDateFormat=requestedDateFormat)
@@ -42,6 +42,8 @@ class TimeSeriesNarrative:
         print significant_dimensions
 
         xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),time_dimension_column,measure_column,existingDateFormat,reference_time)
+        print '______'*200
+        print xtraData
         if xtraData != None:
             dataDict.update(xtraData)
 
