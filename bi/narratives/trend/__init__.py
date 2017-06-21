@@ -65,7 +65,7 @@ class TimeSeriesNarrative:
         self.narratives["card1"]["chart"] = {"data":trend_data,"format":"%b-%Y"}
 
         if dataDict["dateRange"]<365:
-            prediction_window = 6
+            prediction_window = 3
         else:
             prediction_window = 6
         grouped_data["key"] = grouped_data["key"].apply(lambda x :datetime.strptime(x,"%b-%Y"))
