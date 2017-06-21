@@ -292,9 +292,9 @@ def get_max_min_stats(df,dataLevel,trend = "positive", stat_type = "percentage")
     else:
         changeValues = (0,df["value"][index])
     if trend == "positive":
-        output = {"increase":"Largest (Percentage)","period":period,"increased_by":change,"range":str(changeValues[0])+" to "+str(changeValues[1])}
+        output = {"increase":"Largest ("+stat_type.title()+")","period":period,"increased_by":change,"range":str(changeValues[0])+" to "+str(changeValues[1])}
     else:
-        output = {"decrease":"Largest (Percentage)","period":period,"decreased_by":change,"range":str(changeValues[0])+" to "+str(changeValues[1])}
+        output = {"decrease":"Largest ("+stat_type.title()+")","period":period,"decreased_by":change,"range":str(changeValues[0])+" to "+str(changeValues[1])}
     return output
 
 def get_streak_data(df,trendString,maxRuns,trend,dataLevel):
@@ -380,7 +380,7 @@ def calculate_dimension_contribution(level_cont):
     data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
     data_dict["negativeSecondHighestSigDimensionL2"] = [sorted_k2[1][0],sorted_k2[1][1]["growth"]]
     return data_dict
-    
+
 def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col,max_time):
     out = {}
     k=''

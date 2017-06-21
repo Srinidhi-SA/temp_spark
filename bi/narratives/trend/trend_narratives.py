@@ -68,8 +68,8 @@ class TrendNarrative:
         dataDict["bubbleData"][0]["value"] = str(dataDict["overall_growth"])+"%"
         dataDict["bubbleData"][0]["text"] = "Overall growth in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
         max_growth_index = np.argmax(df["perChange"])
-        dataDict["bubbleData"][1]["value"] = str(round(list(df["perChange"])[max_growth_index],2))+"%"
-        dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
+        dataDict["bubbleData"][1]["value"] = str(round(list(df["perChange"].ix[max_growth_index]),2))+"%"
+        dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"].ix[max_growth_index]))
         dataDict["start_value"] = round(df["value"].iloc[0],2)
         dataDict["end_value"] = round(df["value"].iloc[-1],2)
         dataDict["average_value"] = round(df["value"].mean(),2)

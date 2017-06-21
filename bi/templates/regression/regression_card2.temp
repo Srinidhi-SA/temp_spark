@@ -44,7 +44,7 @@ increases
 {% else %}
 decreases
 {% endif %}
-{{target}} by  {{dim1["lowest_impact_level"][1]}} units for one unit increase in {{measure}}.
+{{target}} by  {{dim1["lowest_impact_level"][1] | round(2)}} units for one unit increase in {{measure}}.
 
 PARASEPARATOR
 
@@ -92,4 +92,4 @@ However, {{dim2["lowest_impact_level"][0]}} {{dim2["dimension"]}} is the least a
 {% else %}
   decreases
 {% endif %}
-{{target}} by  {{dim2["lowest_impact_level"][1]}} units for one unit increase in {{measure}}.
+{{target}} by  {{dim2["lowest_impact_level"][1] | round(2)}} units for one unit increase in {{measure}}.

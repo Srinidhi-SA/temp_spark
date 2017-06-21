@@ -51,9 +51,11 @@ PARAHEADER
   as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
    shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
 </li>
+{% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
 <li>
 {{negativeSecondHighestSigDimension}} has been an area of concern,
 as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
  shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
 </li>
+{% endif %}
 </ul>

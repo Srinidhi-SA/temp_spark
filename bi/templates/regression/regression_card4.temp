@@ -77,10 +77,10 @@ PARASEPARATOR
   Overall, {{result_column}} values are relatively inelastic to changes in {{measure_column}}.
 {% endif %}
 {% if overall_elasticity > 0 %}
-  For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity|abs}}
+  For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity | round(2)}}
   increase in {{result_column}}.
 {% else %}
-  For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity|abs}}
+  For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity | round(2)}}
   decrease in {{result_column}}.
 {% endif %}
 However, the sensitivity of {{result_column}} to change in {{measure_column}} varies across these four segments.

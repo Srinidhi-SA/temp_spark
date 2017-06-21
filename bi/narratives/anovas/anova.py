@@ -140,6 +140,7 @@ class OneWayAnovaNarratives:
                 bottom_groups_contribution = bottom_groups_contribution + t
                 if bottom_groups_contribution >= five_percent_total:
                     break
+            bottom_groups_contribution = bottom_groups_contribution*100/sum_total
         elif not uniformly_distributed:
             top_groups = [groups_by_total[0][1]]
             top_groups_contribution = groups_by_total[0][0]*100/sum_total
@@ -157,7 +158,7 @@ class OneWayAnovaNarratives:
                 'uniformly_distributed' : uniformly_distributed,
                 'top_groups' : top_groups,
                 'num_top_groups' : len(top_groups),
-                'top_groups_percent' : NarrativesUtils.round_number(100.0 * top_groups_contribution / sum(totals),2),
+                'top_groups_percent' : NarrativesUtils.round_number(top_groups_contribution,2),
                 'dimension_name' : self._dimension_column,
                 'plural_dimension_name' : NarrativesUtils.pluralize(self._dimension_column),
                 'measure_name' : self._measure_column,
@@ -173,7 +174,7 @@ class OneWayAnovaNarratives:
 
                 'bottom_groups': bottom_groups,
                 'num_bottom_groups' : len(bottom_groups),
-                'bottom_groups_percent': round(100.0 * bottom_groups_contribution / sum(totals),2),
+                'bottom_groups_percent': NarrativesUtils.round_number(bottom_groups_contribution,2),
 
                 'num_groups' : num_groups
                 }
@@ -300,14 +301,14 @@ class OneWayAnovaNarratives:
                     'correlation' : correlation,
                     'overall_increase_percent' : round(overall_increase_percent,2),
                     'subset_increase_percent' : round(subset_increase_percent,2),
-                    'overall_peak_value' : round(overall_peak_value,2),
+                    'overall_peak_value' : NarrativesUtils.round_number(overall_peak_value,2),
                     'overall_peak_date' : overall_peak_date,
                     'overall_peak_increase' : round(overall_peak_increase,2),
                     'overall_streak_length' : overall_streak_length,
                     'overall_streak_start_date' : overall_longest_streak_start_date,
                     'overall_streak_end_date' : overall_longest_streak_end_date,
                     'overall_streak_contribution' : round(overall_longest_streak_contribution,2),
-                    'subset_peak_value' : round(subset_peak_value,2),
+                    'subset_peak_value' : NarrativesUtils.round_number(subset_peak_value,2),
                     'subset_peak_date' : subset_peak_date,
                     'subset_peak_increase' : round(subset_peak_increase,2),
                     'subset_streak_length' : subset_streak_length,
@@ -353,7 +354,7 @@ class OneWayAnovaNarratives:
                     'num_stable_growth_dimensions' : len(stable_growth_dimensions),
                     'target' : self._measure_column,
                     'dimension' : self._dimension_column,
-                    'overall_growth_rate' : overall_growth_rate,
+                    'overall_growth_rate' : NarrativesUtils.round_number(overall_growth_rate),
         }
         output = {'header' : '',
                   'content': []}

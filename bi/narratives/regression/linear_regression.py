@@ -159,17 +159,17 @@ class LinearRegressionNarrative:
         data_dict['num_dates'] = len(agg_data.index)
         data_dict['start_date'] = agg_data[date_column].iloc[0]
         data_dict['end_date'] = agg_data[date_column].iloc[-1]
-        data_dict['start_value'] = agg_data[measure_column].iloc[0]
-        data_dict['end_value'] = agg_data[measure_column].iloc[-1]
+        data_dict['start_value'] = round(agg_data[measure_column].iloc[0],2)
+        data_dict['end_value'] = round(agg_data[measure_column].iloc[-1],2)
         # data_dict['target_start_value'] = agg_data[self._result_column].iloc[0]
         # data_dict['target_end_value'] = agg_data[self._result_column].iloc[-1]
-        data_dict['change_percent'] = data_dict['end_value']*100/data_dict['start_value'] - 100
-        data_dict['correlation'] = agg_data.corr()[measure_column][self._result_column]
+        data_dict['change_percent'] = NarrativesUtils.round_number(agg_data[measure_column].iloc[-1]*100/agg_data[measure_column].iloc[0] - 100,2)
+        data_dict['correlation'] = NarrativesUtils.round_number(agg_data.corr()[measure_column][self._result_column],2)
         peak_index = agg_data[measure_column].argmax()
-        data_dict['peak_value'] = agg_data[measure_column].ix[peak_index]
+        data_dict['peak_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[peak_index],2)
         data_dict['peak_date'] = agg_data[date_column].ix[peak_index]
         lowest_index = agg_data[measure_column].argmin()
-        data_dict['lowest_value'] = agg_data[measure_column].ix[lowest_index]
+        data_dict['lowest_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[lowest_index],2)
         data_dict['lowest_date'] = agg_data[date_column].ix[lowest_index]
         return data_dict
 

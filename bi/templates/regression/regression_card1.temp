@@ -60,7 +60,7 @@ PARAHEADER
         {% for item in cluster_details[1:-1] %}
             <li>
               <u>Group {{item.group_number}}:</u> The average {{result_column}} for this group is {{item["columns"][result_column]["avg"]}}
-              and the average {{measure_column}} is {{item["columns"][result_column]["avg"]}}.
+              and the average {{measure_column}} is {{item["columns"][measure_column]["avg"]}}.
               It covers about {{item["contribution"] | round(2)}}% of the total observations.
             </li>
         {% endfor %}
