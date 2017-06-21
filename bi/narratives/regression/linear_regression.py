@@ -264,7 +264,7 @@ class LinearRegressionNarrative:
         col2_data = [col2]+low1low2_col2+low1high2_col2+high1high2_col2+high1low2_col2
         color_data = ["Colors"]+low1low2_color+low1high2_color+high1high2_color+high1low2_color
         # plot_labels = ["Labels"]+labels
-        plot_labels = dict(zip(['red','blue','green','yellow'],plot_labels))
+        plot_labels = dict(zip(['red','blue','green','yellow'],labels))
         data_dict["charts"]["data"] = [col1_data,col2_data,color_data,plot_labels]
         print "one iteration done"
         return data_dict
