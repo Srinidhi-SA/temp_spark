@@ -187,10 +187,10 @@ class LinearRegressionNarrative:
 
         col1_mean = Stats.mean(self._data_frame,col1)
         col2_mean = Stats.mean(self._data_frame,col2)
-        low1low2 = self._data_frame.filter((FN.col(col1) < col1_mean) & (FN.col(col2) < col2_mean))
-        low1high2 = self._data_frame.filter((FN.col(col1) < col1_mean) & (FN.col(col2) >= col2_mean))
-        high1high2 = self._data_frame.filter((FN.col(col1) >= col1_mean) & (FN.col(col2) >= col2_mean))
-        high1low2 = self._data_frame.filter((FN.col(col1) >= col1_mean) & (FN.col(col2) < col2_mean))
+        low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) < col2_mean)
+        low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) >= col2_mean)
+        high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) >= col2_mean)
+        high1low2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) < col2_mean)
 
         contribution = {}
         freq = {}
