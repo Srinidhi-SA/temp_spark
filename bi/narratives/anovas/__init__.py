@@ -60,8 +60,9 @@ class AnovaNarratives:
             output = {'header' : ''}
             output['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.temp',data_dict)
             self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output)
-            output['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.temp',data_dict)
-            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output)
+            output1 = {'header' : ''}
+            output1['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.temp',data_dict)
+            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output1)
             self.narratives['main_card'][AnovaNarratives.KEY_CHART] = {}
             effect_size_chart = { 'heading' : '',
                                   'labels' : {'Dimension':'Effect Size'},
