@@ -81,6 +81,8 @@ class LinearRegressionNarrative:
         cluster_data_dict = self.generateClusterDataDict(measure_column,kmeans_result)
         data_dict["cluster_details"] = cluster_data_dict["grp_data"]
         cluster_data_dict["chart_data"] = self.sort_chart_date(cluster_data_dict["chart_data"])
+        print '!'*3000
+        print cluster_data_dict["chart_data"]
         data_dict["chart_data"] = cluster_data_dict["chart_data"]
         return data_dict
 
@@ -88,7 +90,7 @@ class LinearRegressionNarrative:
         x,y,color, cluster = data
         x_label = x[0]
         y_label = y[0]
-        color = color[0]
+        color_label = color[0]
         all_data = sorted(zip(y[1:],x[1:],color[1:]))
         y = [y_label]+[i[0] for i in all_data]
         x = [x_label]+[i[1] for i in all_data]
