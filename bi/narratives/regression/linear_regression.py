@@ -86,10 +86,13 @@ class LinearRegressionNarrative:
 
     def sort_chart_date(self, data):
         x,y,color, cluster = data
-        all_data = sorted(zip(y,x,color))
-        y = [i[0] for i in all_data]
-        x = [i[1] for i in all_data]
-        color = [i[2] for i in all_data]
+        x_label = x[0]
+        y_label = y[0]
+        color = color[0]
+        all_data = sorted(zip(y[1:],x[1:],color[1:]))
+        y = [y_label]+[i[0] for i in all_data]
+        x = [x_label]+[i[1] for i in all_data]
+        color = [color_label]+[i[2] for i in all_data]
         return [x,y,color,cluster]
 
 

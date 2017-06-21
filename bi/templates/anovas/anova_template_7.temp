@@ -2,13 +2,13 @@
   One {{dimension}}, {{positive_growth_dimensions[0]}}, is the fastest growing in terms of {{target}}
   at {{positive_growth_values[0]}}% compared to the overall growth of {{overall_growth_rate}}%.
 {% elif num_positive_growth_dimensions == 2 %}
-  {{positive_growth_dimensions[0]}} and {{positive_growth_dimensions[0]}}, are the fastest growing
-  in terms of {{target}} at {{positive_growth_values[0]}}% & {{positive_growth_values[0]}}% respectively
+  {{positive_growth_dimensions[0]}} and {{positive_growth_dimensions[1]}}, are the fastest growing
+  in terms of {{target}} at {{positive_growth_values[0]}}% & {{positive_growth_values[1]}}% respectively
   compared to the overall average of {{overall_growth_rate}}%.
 {% elif num_positive_growth_dimensions > 2 %}
   {{num_positive_growth_dimensions}} {{dimension}}, including {{positive_growth_dimensions[0]}} and
-  {{positive_growth_dimensions[0]}}, are the fastest growing in terms of {{target}} at
-  {{positive_growth_values[0]}}% & {{positive_growth_values[0]}}% respectively compared to the
+  {{positive_growth_dimensions[1]}}, are the fastest growing in terms of {{target}} at
+  {{positive_growth_values[0]}}% & {{positive_growth_values[1]}}% respectively compared to the
   overall average of {{overall_growth_rate}}%.
 {% else %}
   No {{dimension}} showed a significant positive growth during the period.
