@@ -38,16 +38,12 @@ class TimeSeriesNarrative:
         # pandasDf[time_dimension_column] = pandasDf[time_dimension_column].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
         # # update reference time with max value
         reference_time = dataDict["reference_time"]
-        print reference_time
-        print significant_dimensions
 
         xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),time_dimension_column,measure_column,existingDateFormat,reference_time)
-        print '______'*200
-        print xtraData
         if xtraData != None:
             dataDict.update(xtraData)
 
-        print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
+        # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
 
         self.narratives["SectionHeading"] = measure_column+" Performance Report"
         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
@@ -68,7 +64,10 @@ class TimeSeriesNarrative:
         trend_data = sorted(trend_data,key=lambda x :datetime.strptime(x['key'],"%b-%Y"))
         self.narratives["card1"]["chart"] = {"data":trend_data,"format":"%b-%Y"}
 
-        prediction_window = 6
+        if dataDict["dateRange"]<365:
+            prediction_window = 6
+        else:
+            prediction_window = 6
         grouped_data["key"] = grouped_data["key"].apply(lambda x :datetime.strptime(x,"%b-%Y"))
         grouped_data.sort_values(by="key",inplace=True)
         predicted_values = trend_narrative_obj.get_forecast_values(grouped_data["value"],prediction_window)
@@ -82,7 +81,7 @@ class TimeSeriesNarrative:
             dataLevel = dataDict["dataLevel"]
             if dataLevel == "month":
                 last_key = datetime.strptime(prediction_data[-1]["key"],"%b-%Y")
-                key = datetime.strftime(last_key+relativedelta(months=val+1),"%b-%Y")
+                key = datetime.strftime(last_key+relativedelta(months=1),"%b-%Y")
                 prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
 
         forecastDataDict = {"startForecast":predicted_values[0],

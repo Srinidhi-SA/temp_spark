@@ -215,8 +215,6 @@ class TwoWayAnova:
         self.top_dimension_result[agg_dimension].set_p_value(var, sse, dimension)
         # TODO: check for significant dimension and add trend result only if significant
         # if self.top_dimension_result[agg_dimension].get_p_value(dimension)<=0.05:
-        print '%'*120
-        print measure, dimension, agg_dimension
         if self._dateFormatDetected:
                 self.set_trend_result(measure, dimension, agg_dimension)
 

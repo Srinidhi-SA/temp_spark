@@ -107,7 +107,7 @@ if __name__ == '__main__':
     CSV_FILE = dff_context.get_input_file()
     print "File loaded: ", CSV_FILE
     meta_data = utils.as_dict(meta_helper)
-    print "Metadata: ", meta_data
+    # print "Metadata: ", meta_data
     RESULT_FILE = dff_context.get_result_file()
     DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)
     #df.write.csv('hdfs://localhost:9000/input/created_by_spark.csv')
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     files = commands.getoutput('hadoop fs -ls '+dummy_ip).splitlines()[-1]
     files = files.split()[-1]
     #commands.getoutput('hadoop fs -rm '+CSV_FILE)
-    print '*'*20 + 'hadoop fs -distcp '+files+' /input/spark_created_' + '*'*20
+    # print '*'*20 + 'hadoop fs -distcp '+files+' /input/spark_created_' + '*'*20
     #commands.getoutput('hadoop distcp '+files+' /input/spark_created_'+str(random.random()))
     commands.getoutput('hadoop fs -rm '+CSV_FILE)
     commands.getoutput('hadoop fs -cp '+files+' '+CSV_FILE)

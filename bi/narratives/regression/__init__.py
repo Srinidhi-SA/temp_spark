@@ -153,7 +153,6 @@ class RegressionNarrative:
             card2paragraphs = NarrativesUtils.paragraph_splitter(card2narrative)
             card1 = {'tables': card2table, 'paragraphs' : card2paragraphs,
                         'heading' : 'Key Areas where ' + measure_column + ' matters'}
-            print card1
             # self.narratives['cards'].append({'card1':card1})
             temp_cards['card1'] = card1
 

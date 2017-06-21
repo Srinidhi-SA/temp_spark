@@ -46,13 +46,13 @@ class TrendNarrative:
         maxRuns = NarrativesUtils.longestRun(trendString)
 
         dataDict["dateRange"] = (df["key"].iloc[-1]-df["key"].iloc[0]).days
-        dataDict["dateLevel"] = "day"
-        if dataDict["dateRange"] <= 365:
+        dataDict["dateLevel"] = "month"
+        if dataDict["dateRange"] <= 180:
             dataDict["duration"] = dataDict["dateRange"]
             dataDict["dataLevel"] = "day"
             dataDict["durationString"] = str(dataDict["duration"])+" days"
 
-        elif dataDict["dateRange"] > 365 and dataDict["dateRange"] <= 1095:
+        elif dataDict["dateRange"] > 180 and dataDict["dateRange"] <= 1095:
             dataDict["duration"] = len(list(set(df["year_month"])))
             dataDict["dataLevel"] = "month"
             dataDict["durationString"] = str(dataDict["duration"])+" months"
@@ -133,18 +133,16 @@ class TrendNarrative:
     def get_xtra_calculations(self,df,significant_columns,index_col,value_col,datetime_pattern,reference_time):
         datetime_pattern = "%b-%Y"
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
-        print '^'*600
-        print 'LEVEL CONT  :  ', level_cont
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
-        print '&'*360
-        print 'LEVEL CONT DICT  :  ', level_cont_dict
 
         bucket_dict = NarrativesUtils.calculate_bucket_data(level_cont)
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict,level_cont)
         dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
         if level_cont_dict != None:
-            level_cont_dict.update(bucket_data)
-            level_cont_dict.update(dim_data)
+            if bucket_data != None:
+                level_cont_dict.update(bucket_data)
+            if dim_data != None:
+                level_cont_dict.update(dim_data)
         return level_cont_dict
 
     def get_forecast_values(self,series,prediction_window):
