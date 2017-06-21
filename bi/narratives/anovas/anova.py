@@ -397,10 +397,22 @@ class OneWayAnovaNarratives:
         #             ['Share of '+self._measure_column] + list(grouped_data_frame['contribution']),
         #             [self._dimension_column] + list(grouped_data_frame['dimension']),
         #             ['Category'] + list(grouped_data_frame['category'])]
-        data_c3 = [['Growth'] + list(grouped_data_frame['increase']),
-                    ['Share'] + list(grouped_data_frame['contribution']),
-                    [self._dimension_column] + list(grouped_data_frame['dimension']),
-                    ['Category'] + list(grouped_data_frame['category'])]
+        growth = list(grouped_data_frame['increase'])
+        share = list(grouped_data_frame['contribution'])
+        label = list(grouped_data_frame['dimension'])
+        category_legend = list(grouped_data_frame['category'])
+        all_data = sorted(zip(share, growth, label, category_legend))
+
+        share = [i[0] for i in all_data]
+        growth = [i[1] for i in all_data]
+        label = [i[2] for i in all_data]
+        category_legend = [i[3] for i in all_data]
+
+        data_c3 = [['Growth'] + growth,
+                    ['Share'] + share,
+                    [self._dimension_column] + label,
+                    ['Category'] + category_legend]
+
         chart_data = chart(data=data, labels={})
         chart_data.add_data_c3(data_c3)
         self.card3.add_chart('decision_matrix', chart_data)
