@@ -57,9 +57,11 @@ PARAHEADER
      and average {{measure_column}} of {{cluster_details[0]["columns"][measure_column]["avg"]}}.
      </li>
       {% if n_cluster >= 3%}
+      {% set counter = 1 %}
         {% for item in cluster_details[1:-1] %}
+            {% set counter = counter + 1 %}
             <li>
-              <u>Group {{item.group_number}}:</u> The average {{result_column}} for this group is {{item["columns"][result_column]["avg"]}}
+              <u>Group {{counter}}:</u> The average {{result_column}} for this group is {{item["columns"][result_column]["avg"]}}
               and the average {{measure_column}} is {{item["columns"][measure_column]["avg"]}}.
               It covers about {{item["contribution"] | round(2)}}% of the total observations.
             </li>

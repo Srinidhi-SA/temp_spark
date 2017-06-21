@@ -114,6 +114,11 @@ class TrendNarrative:
         table_data = {"increase":[],"decrease":[]}
 
         percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "percentage")
+        ###############################
+        #####      TEMP FIX      ######
+        dataDict["bubbleData"][1]["value"] = str(percent_stats['increased_by'])+"%"
+        dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,percent_stats['period'])
+        ###############################
         abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "absolute")
         streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"positive",dataDict["dataLevel"])
         table_data["increase"].append(percent_stats)
