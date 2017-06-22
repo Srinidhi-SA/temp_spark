@@ -34,7 +34,7 @@ PARASEPARATOR
 {% elif freq["low1low2"]|length >=3 %}
   <b>Low {{result_column}} with Low {{measure_column}}</b>:
   Mostly {{result_column}} from {{freq["low1low2"][0][2]}} ({{freq["low1low2"][0][0]}})
-  ,{{freq["low1low2"][1][2]}} ({{freq["low1low2"][1][0]}}) and {{freq["low1low2"][0][2]}} ({{freq["low1low2"][0][0]}}) belong to this segment.
+  , {{freq["low1low2"][1][2]}} ({{freq["low1low2"][1][0]}}) and {{freq["low1low2"][2][2]}} ({{freq["low1low2"][2][0]}}) belong to this segment.
   They cover nearly {{contribution["low1low2"]}} of the total population.
 {% endif %}
 
