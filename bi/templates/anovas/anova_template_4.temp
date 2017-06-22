@@ -16,14 +16,14 @@
 
 {% if num_top1_contributors==1 %}
   For instance,{{top1_contributors[0][1]}}, the top performing {{significant_dimensions[0]}} account
-  for {{top1_contributors[0][0]}}% of the overall {{target}} from {{top_dimension}}.
+  for <b>{{top1_contributors[0][0]}}% of the overall {{target}} from {{top_dimension}}</b>.
 {% elif num_top1_contributors==2 %}
   For instance, {{top1_contributors[0][1]}}({{top1_contributors[0][0]}}%) along with
   {{top1_contributors[1][1]}}({{top1_contributors[1][0]}}%), the top performing {{significant_dimensions[0]}}
-  account for {{top1_contribution}}% of the overall {{target}} from {{top_dimension}}.
+  account for <b>{{top1_contribution}}% of the overall {{target}} from {{top_dimension}}</b>.
 {% elif num_top1_contributors>2 %}
   For instance, the top {{num_top1_contributors}} {{significant_dimensions[0]}} account for
-  {{top1_contribution}}% of the overall {{target}} from {{top_dimension}}.
+  <b>{{top1_contribution}}% of the overall {{target}} from {{top_dimension}}</b>.
 {%endif%}
 
 {% if num_top2_contributors==1 %}

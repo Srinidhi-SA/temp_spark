@@ -85,9 +85,9 @@ class TimeSeriesNarrative:
                 prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
 
         forecastDataDict = {"startForecast":predicted_values[0],
-                            "endForecast":predicted_values[1],
+                            "endForecast":predicted_values[prediction_window-1],
                             "measure":dataDict["measure"],
-                            "prediction_window_text":"6 months"
+                            "prediction_window_text": str(prediction_window) + " months"
                             }
         summary3 = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'trend_narrative_card3.temp',forecastDataDict)

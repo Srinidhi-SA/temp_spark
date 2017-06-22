@@ -11,13 +11,13 @@ PARAHEADER
 {% if correlation >=0.7 and correlation < 1 %}
   It is positively & strongly correlated with the {{result_column}} figures.
 {% elif correlation >=0.4 and correlation < 0.7 %}
-  It is positively & weakly correlated with the {{result_column}} figures.
+  It is positively & moderately correlated with the {{result_column}} figures.
 {% elif correlation >=0   and correlation < 0.4 %}
   It is positively correlated with the {{result_column}} figures.
 {% elif correlation >= -1 and correlation < -0.7 %}
   It is negatively & strongly correlated with the {{result_column}} figures.
 {% elif correlation >= -0.7 and correlation < -0.4 %}
-  It is negatively & weakly correlated with the {{result_column}} figures.
+  It is negatively & moderately correlated with the {{result_column}} figures.
 {% elif correlation >= -0.4 and correlation < 0 %}
   It is negatively correlated with the {{result_column}} figures.
 {% endif %}
@@ -51,7 +51,7 @@ PARAHEADER
 
 <ul>
     <li>
-     <u>Group 1:</u> This is the largest group, accounting for
+     <b><u>Group 1:</u></b> This is the largest group, accounting for
      {{cluster_details[0]["contribution"] | round(2)}}% of the observations,
      has an average {{result_column}} of {{cluster_details[0]["columns"][result_column]["avg"]}}
      and average {{measure_column}} of {{cluster_details[0]["columns"][measure_column]["avg"]}}.
@@ -61,7 +61,7 @@ PARAHEADER
         {% for item in cluster_details[1:-1] %}
             {% set counter = counter + 1 %}
             <li>
-              <u>Group {{counter}}:</u> The average {{result_column}} for this group is {{item["columns"][result_column]["avg"]}}
+              <b><u>Group {{counter}}:</u></b> The average {{result_column}} for this group is {{item["columns"][result_column]["avg"]}}
               and the average {{measure_column}} is {{item["columns"][measure_column]["avg"]}}.
               It covers about {{item["contribution"] | round(2)}}% of the total observations.
             </li>
@@ -69,7 +69,7 @@ PARAHEADER
 
       {% endif %}
     <li>
-     <u>Group {{cluster_details|length}}:</u> The smallest group has the average
+     <b><u>Group {{cluster_details|length}}:</u></b> The smallest group has the average
      {{result_column}} of {{cluster_details[-1]["columns"][result_column]["avg"]}}
      and the {{measure_column}} typically amounts to {{cluster_details[-1]["columns"][measure_column]["avg"]}}
     for any observation from this group. It accounts for only  {{cluster_details[-1]["contribution"] | round(2)}}% of the total observations.
