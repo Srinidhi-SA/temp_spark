@@ -9,17 +9,17 @@ PARAHEADER
 {% endif %}
 
 {% if correlation >=0.7 and correlation < 1 %}
-  It is positively & strongly correlated with the {{result_column}} figures.
+  It is <b>positively & strongly correlated</b> with the {{result_column}} figures.
 {% elif correlation >=0.4 and correlation < 0.7 %}
-  It is positively & moderately correlated with the {{result_column}} figures.
+  It is <b>positively & moderately correlated</b> with the {{result_column}} figures.
 {% elif correlation >=0   and correlation < 0.4 %}
-  It is positively correlated with the {{result_column}} figures.
+  It is <b>positively correlated</b> with the {{result_column}} figures.
 {% elif correlation >= -1 and correlation < -0.7 %}
-  It is negatively & strongly correlated with the {{result_column}} figures.
+  It is <b>negatively & strongly correlated</b> with the {{result_column}} figures.
 {% elif correlation >= -0.7 and correlation < -0.4 %}
-  It is negatively & moderately correlated with the {{result_column}} figures.
+  It is <b>negatively & moderately correlated</b> with the {{result_column}} figures.
 {% elif correlation >= -0.4 and correlation < 0 %}
-  It is negatively correlated with the {{result_column}} figures.
+  It is <b>negatively correlated</b> with the {{result_column}} figures.
 {% endif %}
 
 {% if correlation >=0.4 and correlation < 1 %}

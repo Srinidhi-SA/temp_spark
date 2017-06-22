@@ -72,9 +72,9 @@ PARASEPARATOR
 PARASEPARATOR
 
 {% if overall_elasticity|abs > 1 %}
-  Overall, {{result_column}} values are relatively elastic to changes in {{measure_column}}.
+  Overall, {{result_column}} values are <b>relatively elastic to changes</b> in {{measure_column}}.
 {% else %}
-  Overall, {{result_column}} values are relatively inelastic to changes in {{measure_column}}.
+  Overall, {{result_column}} values are <b>relatively inelastic to changes</b> in {{measure_column}}.
 {% endif %}
 {% if overall_elasticity > 0 %}
   For a one percent increase in {{measure_column}} is associated with a {{overall_elasticity | round(2)}}
