@@ -17,6 +17,7 @@ class RegressionNarrative:
         self._correlations = correlations
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._date_columns = df_context.get_date_column_suggestions()
         self._spark = spark
         self.measures = []
         self.result_column = self._dataframe_helper.resultcolumn
@@ -196,6 +197,9 @@ class RegressionNarrative:
             cat_columns = [x[0] for x in sig_dims[:5]]
         else:
             cat_columns = self._dataframe_helper.get_string_columns()[:5]
+        if self._date_columns != None:
+            if len(self._date_columns) >0 :
+                cat_columns = list(set(cat_columns)-set(self._date_columns))
 
         regression_result_dimension_cols = dict(zip(cat_columns,[{}]*len(cat_columns)))
         for col in cat_columns:
@@ -204,11 +208,18 @@ class RegressionNarrative:
             for level in column_levels:
                 filtered_df = self._dataframe_helper.filter_dataframe(col,level)
                 result = LinearRegression(filtered_df, self._dataframe_helper, self._dataframe_context).fit(self._dataframe_context.get_result_column())
-                result = {"intercept" : result.get_intercept(),
-                          "rmse" : result.get_root_mean_square_error(),
-                          "rsquare" : result.get_rsquare(),
-                          "coeff" : result.get_all_coeff()
-                          }
+                if result == None:
+                    result = {"intercept" : 0.0,
+                              "rmse" : 0.0,
+                              "rsquare" : 0.0,
+                              "coeff" : 0.0
+                              }
+                else:
+                    result = {"intercept" : result.get_intercept(),
+                              "rmse" : result.get_root_mean_square_error(),
+                              "rsquare" : result.get_rsquare(),
+                              "coeff" : result.get_all_coeff()
+                              }
                 level_regression_result[level] = result
             regression_result_dimension_cols[col] = level_regression_result
         # print json.dumps(regression_result_dimension_cols,indent=2)

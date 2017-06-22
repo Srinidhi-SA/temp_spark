@@ -333,7 +333,10 @@ class LinearRegressionNarrative:
         lowest_coeff = {}
         for dim in dims:
             levels = data[dim].keys()
-            coeff_list = [(x,data[dim][x]["coeff"][measure_col]["coefficient"]) for x in levels if data[dim][x]["coeff"].has_key(measure_col)]
+            try:
+                coeff_list = [(x,data[dim][x]["coeff"][measure_col]["coefficient"]) if (isinstance(data[dim][x]['coeff'],dict) and data[dim][x]["coeff"].has_key(measure_col)) else (x,0.0) for x in levels ]
+            except:
+                continue
             coeff_list = sorted(coeff_list,key=lambda x:abs(x[1]),reverse=True)
             highest_coeff[dim] = coeff_list[0]
             lowest_coeff[dim] = coeff_list[-1]

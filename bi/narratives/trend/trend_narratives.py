@@ -65,10 +65,10 @@ class TrendNarrative:
         # list(set(zip([x.strftime('%m') for x in df["key"]],[x.strftime('%Y') for x in df["key"]])))
         dataDict["bubbleData"] = [{"value":"","text":""},{"value":"","text":""}]
         dataDict["overall_growth"] = round((df["value"].iloc[-1]-df["value"].iloc[0])*100/float(df["value"].iloc[0]),2)
-        dataDict["bubbleData"][0]["value"] = str(dataDict["overall_growth"])+"%"
+        dataDict["bubbleData"][0]["value"] = str(abs(dataDict["overall_growth"]))+"%"
         dataDict["bubbleData"][0]["text"] = "Overall growth in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
         max_growth_index = np.argmax(df["perChange"])
-        dataDict["bubbleData"][1]["value"] = str(round(list(df["perChange"])[max_growth_index],2))+"%"
+        dataDict["bubbleData"][1]["value"] = str(abs(round(list(df["perChange"])[max_growth_index],2)))+"%"
         dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
         dataDict["start_value"] = round(df["value"].iloc[0],2)
         dataDict["end_value"] = round(df["value"].iloc[-1],2)
