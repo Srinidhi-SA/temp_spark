@@ -284,7 +284,7 @@ def get_max_min_stats(df,dataLevel,trend = "positive", stat_type = "percentage")
     else:
         period = df["year_month"][index]
     if stat_type == "percentage":
-        change = str(round(df[col][index],2))+"%"
+        change = str(abs(round(df[col][index],2)))+"%"
     elif stat_type == "absolute":
         change = str(round(df[col][index],2))
     if index != 0:
