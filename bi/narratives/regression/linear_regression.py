@@ -259,19 +259,19 @@ class LinearRegressionNarrative:
 
         low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
         low1low2_col2 = [x[0] for x in low1low2.select(col2).collect()]
-        low1low2_color = ["red"]*len(low1low2_col2)
+        low1low2_color = ["#DD2E1F"]*len(low1low2_col2)
 
         low1high2_col1 = [x[0] for x in low1high2.select(col1).collect()]
         low1high2_col2 = [x[0] for x in low1high2.select(col2).collect()]
-        low1high2_color = ["blue"]*len(low1high2_col2)
+        low1high2_color = ["#7C5BBB"]*len(low1high2_col2)
 
         high1high2_col1 = [x[0] for x in high1high2.select(col1).collect()]
         high1high2_col2 = [x[0] for x in high1high2.select(col2).collect()]
-        high1high2_color = ["green"]*len(high1high2_col2)
+        high1high2_color = ["#00AEB3"]*len(high1high2_col2)
 
         high1low2_col1 = [x[0] for x in high1low2.select(col1).collect()]
         high1low2_col2 = [x[0] for x in high1low2.select(col2).collect()]
-        high1low2_color = ["yellow"]*len(high1low2_col2)
+        high1low2_color = ["#EC640C"]*len(high1low2_col2)
 
         col1_data = [col1]+low1low2_col1+low1high2_col1+high1high2_col1+high1low2_col1
         col2_data = [col2]+low1low2_col2+low1high2_col2+high1high2_col2+high1low2_col2

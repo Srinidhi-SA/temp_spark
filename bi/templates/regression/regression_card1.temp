@@ -28,9 +28,9 @@ PARAHEADER
   As {{measure_column}} changes, {{result_column}} tend to move in the opposite direction.
 {% endif %}
 {% if coefficient > 0 %}
-  An incremental unit change in {{measure_column}} corresponds to an average increase in {{result_column}} by {{oefficient}} units.
+  An incremental unit change in {{measure_column}} corresponds to an average increase in {{result_column}} by {{coefficient}} units.
 {% elif coefficient < 0%}
-  An incremental unit change in {{measure_column}} corresponds to an average decrease in {{result_column}} by {{oefficient}} units.
+  An incremental unit change in {{measure_column}} corresponds to an average decrease in {{result_column}} by {{coefficient}} units.
 {% endif %}
 
 

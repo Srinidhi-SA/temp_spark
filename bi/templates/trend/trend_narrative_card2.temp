@@ -2,7 +2,7 @@ Highest and Lowest Points of {{measure}}
 PARAHEADER
 {% if peakStreakDuration >= 2%}
   The sales figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
-  a continuous streak of growth for {{peakStreakDuration}} Streak Ending at {{peakTime}}.
+  a continuous streak of growth for {{peakStreakDuration}} {{dateLevel}}s ending at {{peakTime}}.
 {% else %}
   The sales figures hit a peak of {{peakValue}} in {{peakTime}}.
 {% endif %}
