@@ -5,6 +5,7 @@ from bi.common.results import DFChiSquareResult
 from bi.common.utils import accepts
 from chisquare import ChiSquareAnalysis
 from chisquare_app2 import ChiSquareAnalysisApp2
+from bi.narratives import utils as NarrativesUtils
 
 
 ###
