@@ -31,12 +31,8 @@ class AnovaNarratives:
         self._generate_narratives()
         #self._generate_take_away()
 
-    def get_card_num(self):
-        self._card_no = self._card_no + 1
-        return AnovaNarratives.KEY_CARD+str(self._card_no)
 
     def _generate_narratives(self):
-        self._card_no = 0
         for measure_column in self._df_anova_result.get_measure_columns():
             measure_anova_result = self._df_anova_result.result[measure_column]
             significant_dimensions_dict, insignificant_dimensions = measure_anova_result.get_OneWayAnovaSignificantDimensions()
@@ -73,6 +69,8 @@ class AnovaNarratives:
     def _generate_dimension_narratives(self, significant_dimensions, measure_anova_result, measure):
         self.narratives['cards'] = []
         anova_trend_result = measure_anova_result.get_TrendResult()
+        if len(significant_dimensions) == 0:
+            self.narratives['cards'].append({'card1':'', 'card2':'', 'card3':''})
         for dimension in significant_dimensions:
             anova_dimension_result = measure_anova_result.get_anova_result(dimension)
             narratives = OneWayAnovaNarratives(measure, dimension, anova_dimension_result, anova_trend_result)
