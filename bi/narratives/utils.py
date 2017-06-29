@@ -53,8 +53,8 @@ def round_number(n, digits = 2, as_string = True):
     if abs(n)>1 and as_string:
         return humanize.intcomma(humanize.intword(n)).title()
     elif (abs(n)<1) and (n!=0):
-        digits = digits + int(abs(math.log(num,10)))
-        return float(format(num, '0.%df' %(digits,)))
+        digits = digits + int(abs(math.log(n,10)))
+        return float(format(n, '0.%df' %(digits,)))
     elif type(n)==float:
         return round(n,digits)
     else:
