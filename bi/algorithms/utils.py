@@ -145,7 +145,7 @@ def calculate_overall_precision_recall(actual,predicted):
     positive_class = max(val_counts,key=val_counts.get)
 
     class_precision_recall = calculate_precision_recall(actual,predicted)
-    output = {"precision":0,"recall":0,"classwise_stats":class_precision_recall,"prediction_split":prediction_split}
+    output = {"precision":0,"recall":0,"classwise_stats":class_precision_recall,"prediction_split":prediction_split,"positive_class":positive_class}
 
     if len(classes) > 2:
         p = []
