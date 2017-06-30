@@ -108,6 +108,11 @@ class MeasureColumnNarrative:
         lowest = min(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'],histogram_buckets[2]['num_records'])
         highest = max(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'],histogram_buckets[2]['num_records'])
 
+        quartile_sums = self._five_point_summary_stats.get_sums()
+        quartile_means = self._five_point_summary_stats.get_means()
+        total = self._measure_descr_stats.get_total()
+        avg = self._measure_descr_stats.get_mean()
+
         data_dict = {"histogram" : histogram_buckets,
                     "per_cont_hist1" : NarrativesUtils.round_number(histogram_buckets[0]['num_records']*100/self._measure_descr_stats.get_total(), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
                     "per_cont_hist2" : NarrativesUtils.round_number(histogram_buckets[1]['num_records']*100/self._measure_descr_stats.get_total(), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
@@ -120,7 +125,16 @@ class MeasureColumnNarrative:
                     "three_quarter_percent" : round(s,2),
                     "start_value" : start_value,
                     "end_value" : end_value,
-                    "measure_colname":self._column_name
+                    "measure_colname":self._column_name,
+                    "q4_frac" : NarrativesUtils.round_number(quartile_sums['q4']*100.0/total, 2),
+                    "q1_frac" : NarrativesUtils.round_number(quartile_sums['q1']*100.0/total, 2),
+                    "q4_sum" : NarrativesUtils.round_number(quartile_sums['q4'], 2),
+                    "q4_mean" : NarrativesUtils.round_number(quartile_means['q4'], 2),
+                    "q1_sum" : NarrativesUtils.round_number(quartile_sums['q1'], 2),
+                    "q4_overall_mean" : round(quartile_means['q4']*1.0/avg, 2),
+                    "q4_q1_mean" : round(quartile_means['q4']*1.0/quartile_means['q1'] - 1, 1),
+                    "total" : NarrativesUtils.round_number(total,2),
+                    "avg" : NarrativesUtils.round_number(avg,2)
         }
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                         'histogram_narrative.temp',data_dict)
