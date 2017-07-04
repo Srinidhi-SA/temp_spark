@@ -1,6 +1,7 @@
 from functools import reduce
 
 import datetime as dt
+import pandas as pd
 from datetime import datetime
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as FN
@@ -329,6 +330,38 @@ class DataFrameHelper:
         else:
             agg_data = self._data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["key","value"]
+        return agg_data
+
+    def get_agg_data_frame(self,aggregate_column, measure_column, result_column,existingDateFormat=None,requestedDateFormat=None):
+        data_frame = self._data_frame
+        if existingDateFormat != None and requestedDateFormat != None:
+            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            except Exception as e:
+                print e
+                print '----  ABOVE EXCEPTION  ----' * 10
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            agg_data = agg_data.sort_values('date_col')
+            agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
+            agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
+            agg_data = agg_data[[aggregate_column,measure_column, result_column]]
+        elif existingDateFormat != None:
+            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            except Exception as e:
+                print e
+                print '----  ABOVE EXCEPTION  ----' * 10
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            agg_data = agg_data.sort_values('date_col')
+            agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
+            agg_data = agg_data[['Date','measure']]
+        else:
+            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+            agg_data.columns = [aggregate_column,measure_column,result_column]
         return agg_data
 
     def fill_na_measure_mean(self):

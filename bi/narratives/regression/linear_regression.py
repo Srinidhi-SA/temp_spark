@@ -121,7 +121,6 @@ class LinearRegressionNarrative:
             headers = ['header'+str(i) for i in range(1,len(data.index)+2)]
             table_data[val]['header'] = [dict(zip(headers,['Category']+list(data['BINNED_INDEX'])))]
             table_data[val]['tableData'] = [dict(zip(headers,[col]+[round(i,2) for i in data[col].tolist()])) for col in colnames]
-            print val, table_data[val]
         ranked_dimensions = [(dimension_data_dict[dim]['rank'], dim) for dim in dimension_data_dict]
         ranked_dimensions = sorted(ranked_dimensions)
         ranked_dimensions = [dim for rank,dim in ranked_dimensions]
@@ -177,7 +176,7 @@ class LinearRegressionNarrative:
         # data_dict['target_start_value'] = agg_data[self._result_column].iloc[0]
         # data_dict['target_end_value'] = agg_data[self._result_column].iloc[-1]
         data_dict['change_percent'] = NarrativesUtils.round_number(agg_data[measure_column].iloc[-1]*100/agg_data[measure_column].iloc[0] - 100,2)
-        data_dict['correlation'] = NarrativesUtils.round_number(agg_data.corr()[measure_column][self._result_column],2)
+        data_dict['correlation'] = NarrativesUtils.round_number(agg_data[measure_column].corr(agg_data[self._result_column]),2)
         peak_index = agg_data[measure_column].argmax()
         data_dict['peak_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[peak_index],2)
         data_dict['peak_date'] = agg_data[date_column].ix[peak_index]
@@ -188,7 +187,6 @@ class LinearRegressionNarrative:
 
     def generate_card4_data(self,col1,col2):
         #col1 result_column col2 is measure column
-        print col1,col2
         data_dict = {}
         significant_dimensions = self._dataframe_helper.get_significant_dimension()
         if significant_dimensions != {}:
@@ -254,7 +252,6 @@ class LinearRegressionNarrative:
         data_dict["freq"] = freq
         data_dict["contribution"] = contribution
 
-        print "calculating chart data"
         data_dict["charts"] = {"heading":"","data":[]}
 
         low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
@@ -284,7 +281,6 @@ class LinearRegressionNarrative:
         color_data = [color_data[0]]+[i[2] for i in all_data]
 
         data_dict["charts"]["data"] = [col2_data,col1_data,color_data,plot_labels]
-        print "one iteration done"
         return data_dict
 
 
@@ -385,7 +381,6 @@ class LinearRegressionNarrative:
 
 
     def generateClusterDataDict(self,measure_column,kmeans_result):
-        print "generating Kmeans data"
         kmeans_stats = kmeans_result["stats"]
         input_columns = kmeans_stats["inputCols"]
         kmeans_df = kmeans_result["data"]
@@ -432,135 +427,3 @@ class LinearRegressionNarrative:
         cluster_data_dict["grp_data"] = grp_data
         cluster_data_dict["chart_data"] = chart_data
         return cluster_data_dict
-
-    def _generate_narratives(self):
-        self._generate_summary()
-        self._generate_analysis()
-
-    def _generate_summary(self):
-
-        all_x_variables = [x for x in self._measure_columns if x != self._regression_result.get_output_column()]
-        significant_measures = self._regression_result.get_input_columns()
-        non_sig_measures = [x for x in all_x_variables if x not in significant_measures]
-        data_dict = {
-                    "n_m" : len(self._measure_columns),
-                    "n_d" : len(self._dataframe_helper.get_string_columns()),
-                    "n_td" : len(self._dataframe_helper.get_timestamp_columns()),
-                    "all_measures" : self._measure_columns,
-                    "om" : all_x_variables,
-                    "n_o_m" : len(all_x_variables),
-                    'sm': significant_measures,
-                    'n_s_m' : len(significant_measures),
-                    'n_ns_m': len(non_sig_measures),
-                    'nsm': non_sig_measures,
-                    "cm": self._regression_result.get_output_column()
-        }
-        output = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'regression_template_1.temp',data_dict)
-        # print output
-        reg_coeffs_present = []
-        for cols in self._regression_result.get_input_columns():
-            reg_coeffs_present.append(self._regression_result.get_coeff(cols)!=0)
-        chart_output=''
-        if any(reg_coeffs_present):
-            chart_output = NarrativesUtils.get_template_output(self._base_dir,\
-                                                            'regression_template_2.temp',data_dict)
-        self.summary = [output, chart_output]
-        self.key_takeaway = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'regression_takeaway.temp',data_dict)
-
-
-    def _generate_analysis(self):
-        input_columns = self._regression_result.get_input_columns()
-        output_column = self._regression_result.get_output_column()
-        MVD_analysis = self._regression_result.MVD_analysis
-        lines = ''
-        # print input_columns
-        most_significant_col = ''
-        highest_regression_coeff = 0
-        input_cols_coeff_list = []
-        for cols in input_columns:
-            coef = self._regression_result.get_coeff(cols)
-            temp = abs(coef)
-            input_cols_coeff_list.append((cols,temp))
-            if temp > highest_regression_coeff:
-                highest_regression_coeff=temp
-                most_significant_col = cols
-        sorted_input_cols = sorted(input_cols_coeff_list,key=lambda x:x[1],reverse=True)
-
-        for cols,coeff in sorted_input_cols:
-            corelation_coeff = round(self._column_correlations.get_correlation(cols).get_correlation(),2)
-            regression_coeff = round(self._regression_result.get_coeff(cols),3)
-            #mvd_result = MVD_analysis[cols]
-            data_dict = {
-                "cc" : corelation_coeff,
-                "beta" : regression_coeff,
-                "hsm" : cols,
-                "cm" : output_column,
-                "msc" : most_significant_col
-                }
-            '''
-            data_dict = {
-                "cc" : corelation_coeff,
-                "beta" : regression_coeff,
-                "hsm" : cols,
-                "cm" : output_column,
-                "msc" : most_significant_col,
-                "most_significant_dimension" : mvd_result['dimension'],
-                "levels" : mvd_result['levels'],
-                "coefficients" : mvd_result['coefficients'],
-                "num_levels" : len(mvd_result['levels']),
-                "abs_coeffs": [abs(l) for l in mvd_result['coefficients']],
-                "most_significant_dimension2" : mvd_result['dimension2'],
-                "levels2" : mvd_result['levels2'],
-                "coefficients2" : mvd_result['coefficients2'],
-                "num_levels2" : len(mvd_result['levels2']),
-                "abs_coeffs2": [abs(l) for l in mvd_result['coefficients2']]
-            }
-            '''
-            lines=NarrativesUtils.get_template_output(self._base_dir,\
-                                                            'regression_template_3.temp',data_dict)
-            '''
-            lines1 = ''
-            if mvd_result['dimension']!='':
-                template4 = templateEnv.get_template('regression_template_4.temp')
-                output = template4.render(data_dict).replace("\n", "")
-                output = re.sub(' +',' ',output)
-                output = re.sub(' ,',',',output)
-                output = re.sub(' \.','.',output)
-                output = re.sub('\( ','()',output)
-                lines1 = output
-
-            lines2 = ''
-            if mvd_result['dimension2']!='':
-                template5 = templateEnv.get_template('regression_template_5.temp')
-                output = template4.render(data_dict).replace("\n", "")
-                output = re.sub(' +',' ',output)
-                output = re.sub(' ,',',',output)
-                output = re.sub(' \.','.',output)
-                output = re.sub('\( ','()',output)
-                lines2 = output
-            '''
-            # column_narrative = {}
-            # column_narrative[cols] = {}
-            # column_narrative[cols]['title'] = 'Relationship between ' + cols + ' and ' + output_column
-            # column_narrative[cols]['analysis'] = lines
-            # temp = re.split('\. ',lines)
-            # column_narrative[cols]['sub_heading'] = temp[-2]
-            # column_narrative[cols]['data'] = self._dataframe_helper.get_sample_data(cols, output_column, self._sample_size)
-            # self.narratives.append(column_narrative)
-
-            self.narratives[cols] = {}
-            self.narratives[cols]["coeff"] = coeff
-            self.narratives[cols]['title'] = 'Relationship between ' + cols + ' and ' + output_column
-            self.narratives[cols]['analysis'] = lines
-            '''
-            self.narratives[cols]['DVM_analysis'] = lines1
-            self.narratives[cols]['DVM_analysis2'] = lines2
-            '''
-            temp = re.split('\. ',lines)
-            self.narratives[cols]['sub_heading'] = temp[-2]
-            self.narratives[cols]['data'] = self._dataframe_helper.get_sample_data(cols, output_column, self._sample_size)
-            # sample_data = self._dataframe_helper.get_sample_data(cols, output_column, self._sample_size)
-            # self.narratives[cols]['sample_data'] = sample_data[cols]
-            # self.output_column_sample_data = sample_data[output_column]

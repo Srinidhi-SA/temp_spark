@@ -116,8 +116,11 @@ class LogisticRegressionScript:
         utils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
         print "STARTING DIMENSION ANALYSIS ..."
-        # Dropping predicted_probability column
-        df.drop('predicted_probability', axis=1, inplace=True)
+        columns_to_keep = []
+        columns_to_drop = columns_to_keep+["predicted_probability"]
+        df.drop(columns_to_drop, axis=1, inplace=True)
+        # # Dropping predicted_probability column
+        # df.drop('predicted_probability', axis=1, inplace=True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)

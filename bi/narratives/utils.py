@@ -50,13 +50,15 @@ from datetime import datetime
 #     return result
 
 def round_number(n, digits = 2, as_string = True):
+    if type(n) != int:
+        n = float(n)
     if abs(n)>1 and as_string:
         return humanize.intcomma(humanize.intword(n)).title()
+    elif type(n)==float:
+        return round(n,digits)
     elif (abs(n)<1) and (n!=0):
         digits = digits + int(abs(math.log(n,10)))
         return float(format(n, '0.%df' %(digits,)))
-    elif type(n)==float:
-        return round(n,digits)
     else:
         return n
 
@@ -526,3 +528,26 @@ def get_bucket_data_dict(bucket_dict,level_cont):
 #     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
 #     out_data["highest_contributing_level_range"] = str(out_dict[out_data["highest_contributing_variable"]]["max_avg"])+" vis-a-vis "+str(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"])
 #     output = []
+
+
+def date_formats_mapping_dict():
+    dateFormatConversionDict = {
+        "mm/dd/YYYY":"%m/%d/%Y",
+        "dd/mm/YYYY":"%d/%m/%Y",
+        "YYYY/mm/dd":"%Y/%m/%d",
+        "dd <month> YYYY":"%d %b,%Y",
+        "%b-%y":"%b-%y"
+    }
+    return dateFormatConversionDict
+
+def get_date_conversion_formats(self, primary_date,dateColumnFormatDict,requestedDateFormat):
+    dateFormatConversionDict = date_formats_mapping_dict()
+    if primary_date in dateColumnFormatDict.keys():
+        existingDateFormat = dateColumnFormatDict[primary_date]
+    else:
+        existingDateFormat = None
+
+    if requestedDateFormat != None:
+        requestedDateFormat = dateFormatConversionDict[requestedDateFormat]
+    else:
+        requestedDateFormat = existingDateFormat

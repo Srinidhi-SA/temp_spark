@@ -2,6 +2,7 @@ import json
 
 from bi.common import DataWriter
 from bi.common import utils
+from bi.narratives import utils as NarrativesUtils
 from bi.narratives.trend import TimeSeriesNarrative
 
 
@@ -14,16 +15,11 @@ class TrendScript:
         self._dateFormatDetected = False
         self._date_suggestion_cols = df_context.get_date_column_suggestions()
         self._time_dimension_columns = df_helper.get_timestamp_columns()
-        self._dateFormatConversionDict = {
-            "mm/dd/YYYY":"%m/%d/%Y",
-            "dd/mm/YYYY":"%d/%m/%Y",
-            "YYYY/mm/dd":"%Y/%m/%d",
-            "dd <month> YYYY":"%d %b,%Y",
-            "%b-%y":"%b-%y"
-        }
+        self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
+        self._measure_col = df_context.get_result_column()
+
         if self._date_suggestion_cols != None:
             self._td_col = self._date_suggestion_cols[0]
-            self._measure_col = df_context.get_result_column()
             self._existingDateFormat = None
             dateColumnFormatDict =  df_helper.get_datetime_format(self._td_col)
             if dateColumnFormatDict.has_key(self._td_col):
