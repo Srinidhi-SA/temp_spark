@@ -50,7 +50,7 @@ class MetaDataHelper():
             }
         self.get_datetime_suggestions()
         self._dimensions_to_consider = []
-        self.__populate_data()
+        self._populate_data()
         self._numeric_columns = [x.split('||')[0] for x in self._numeric_columns]
 
         #self.get_sample_data_frame()
@@ -100,7 +100,7 @@ class MetaDataHelper():
                 levels_fin[levels[column_name][i]]= int(levels['count'][i])
         return levels_fin
 
-    def __populate_data(self):
+    def _populate_data(self):
         #self._data_frame.show()
         for measure_column in self._numeric_columns:
             measure_column_name = measure_column.split('||')[0]

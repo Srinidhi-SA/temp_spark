@@ -79,10 +79,10 @@ class DataFrameHelper:
             if self.utf8columns != None:
                 self.ignorecolumns = self.utf8columns
 
-        self.subset_data()
+        self.drop_ignore_columns()
         #self.df_filterer = DataFrameFilterer(self._data_frame)
         #self.dimension_filter = self._df_context.get_dimension_filters()
-        self.__subset_data()
+        self._subset_data()
 
         self.measure_suggestions = self._df_context.get_measure_suggestions()
 
@@ -114,8 +114,8 @@ class DataFrameHelper:
         #for colmn in self.date_filter.keys():
         #    self.df_filterer.dates_between(colmn, dt.date(int(self.date_filter[colmn][2]),int(self.date_filter[colmn][1]),int(self.date_filter[colmn][0])),
         #                                        dt.date(int(self.date_filter[colmn][5]),int(self.date_filter[colmn][4]),int(self.date_filter[colmn][3])))
-        self.__update_meta()
-        self.__populate_data()
+        self._update_meta()
+        self._populate_column_data()
 
         if self._data_frame.count() > 5000:
             self._sample_data_frame = self._data_frame.sample(False, 4000/float(self._data_frame.count()), seed=0)
@@ -149,7 +149,7 @@ class DataFrameHelper:
         except:
             pass
 
-    def __update_meta(self):
+    def _update_meta(self):
         self.columns = [field.name for field in self._data_frame.schema.fields]
         self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
         self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
@@ -242,7 +242,7 @@ class DataFrameHelper:
                 return row[1]
         return 0
 
-    def __populate_data(self):
+    def _populate_column_data(self):
         for measure_column in self.numeric_columns:
             null_values = self.get_num_null_values(measure_column)
             non_null_values = self.num_rows - null_values
@@ -267,7 +267,7 @@ class DataFrameHelper:
                 DataFrameHelper.NON_NULL_VALUES: non_null_values
             }
 
-    def __subset_data(self):
+    def _subset_data(self):
         """
         dropping or keeping columns based on consider column input coming from users.
         """
@@ -284,17 +284,16 @@ class DataFrameHelper:
                 self.consider_columns = list(set(self.columns) - set(self.consider_columns))
                 self._data_frame = reduce(DataFrame.drop, self.consider_columns, self._data_frame)
                 self.columns = [field.name for field in self._data_frame.schema.fields]
-        self.__update_meta()
+        self._update_meta()
 
 
-    def subset_data(self):
+    def drop_ignore_columns(self):
         """
         drops columns from ignore_column_suggestions coming from config.
         """
         if self.ignorecolumns != None:
-            #self._data_frame = reduce(DataFrame.drop, *self.ignorecolumns, self._data_frame)
-            self._data_frame = self._data_frame.select(*[c for c in self.columns if c not in self.ignorecolumns ])
-            self.__update_meta()
+            self._data_frame = self._data_frame.select([c for c in self._data_frame.columns if c not in self.ignorecolumns ])
+            self._update_meta()
         else:
             self._data_frame = self._data_frame
 

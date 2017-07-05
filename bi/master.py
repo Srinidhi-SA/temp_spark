@@ -123,7 +123,7 @@ def main(confFilePath):
             try:
                 fs = time.time()
                 if df_helper.ignorecolumns != None:
-                    df_helper.subset_data()
+                    df_helper.drop_ignore_columns()
                 df_helper.fill_na_dimension_nulls()
                 df = df_helper.get_data_frame()
                 decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark)
@@ -194,7 +194,7 @@ def main(confFilePath):
             send_message_API(monitor_api, "Histogram", "Histogram Failed", False, 0)
 
         if df_helper.ignorecolumns != None:
-            df_helper.subset_data()
+            df_helper.drop_ignore_columns()
         measure_columns = df_helper.get_numeric_columns()
         dimension_columns = df_helper.get_string_columns()
         df = df_helper.get_data_frame()
