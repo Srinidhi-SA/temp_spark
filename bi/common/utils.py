@@ -187,11 +187,15 @@ def write_to_file(filepath,obj):
     f.write(obj)
     f.close()
 
-def get_level_count_dict(df,categorical_columns):
+def get_level_count_dict(df,categorical_columns,separator):
     count_dict = {}
+    out = []
     for col in categorical_columns:
-        count_dict[col] = len(df.select(col).distinct().collect())
-    return count_dict
+        # count_dict[col] = len(df.select(col).distinct().collect())
+        count_dict[col] = len(df[col].unique())
+        out.append(col)
+        out.append(str(count_dict[col]))
+    return separator.join(out)
 
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

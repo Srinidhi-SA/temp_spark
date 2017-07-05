@@ -61,6 +61,7 @@ class XgboostScript:
         self._model_summary["algorithm_name"] = "Xgboost"
         self._model_summary["validation_method"] = "Train and Test"
         self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
+        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,self._model_summary["independent_variables"],self._dataframe_context.get_column_separator())
 
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
@@ -106,18 +107,18 @@ class XgboostScript:
         print "STARTING DIMENSION ANALYSIS ..."
         columns_to_keep = []
         columns_to_drop = []
-        considercolumnstype = self._dataframe_context.get_consider_columns_type()
-        considercolumns = self._dataframe_context.get_consider_columns()
+        considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
+        considercolumns = self._dataframe_context.get_score_consider_columns()
         if considercolumnstype != None:
             if considercolumns != None:
-                if considercolumnstype == "excluding":
+                if considercolumnstype == ["excluding"]:
                     columns_to_drop = considercolumns
-                elif considercolumnstype == "including":
+                elif considercolumnstype == ["including"]:
                     columns_to_keep = considercolumns
-
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
-        columns_to_drop += ["predicted_probability"]
+        else:
+            columns_to_drop += ["predicted_probability"]
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)

@@ -1,6 +1,6 @@
 # from bi.common.decorators import accepts
 # from bi.common.dataframe import DataFrameHelper
-
+import ast
 class ContextSetter:
 
     MEASUREC_COLUMNS = "measure_columns"
@@ -44,6 +44,9 @@ class ContextSetter:
             self.MODELS = self._config_obj.get_file_settings()['modelname'][0]
         if "modelfeatures" in file_setting_keys:
             self.MODELFEATURES = self._config_obj.get_file_settings()['modelfeatures'][0].split(self._column_separator)
+        if "levelcounts" in file_setting_keys:
+            self.levelcounts = self._config_obj.get_file_settings()['levelcounts'][0].split(self._column_separator)
+            self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
 
         column_setting_keys = self._config_obj.get_column_settings().keys()
         if "app_id" in column_setting_keys:
@@ -56,20 +59,28 @@ class ContextSetter:
         if self.ignorecolumns!=None:
             self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
         self.considercolumns = self._config_obj.get_column_settings().get('consider_columns')
-        if not self.considercolumns == None:
-            if not self.resultcolumn == None:
-                self.considercolumns.append(self.resultcolumn)
-                self.considercolumns = list(set(self.considercolumns))
+        self.scoreconsidercolumns = self._config_obj.get_column_settings().get('score_consider_columns')
 
         self.dimension_filter = self._config_obj.get_dimension_filters()
         self.measure_filter = self._config_obj.get_measure_filters()
         self.date_filter = self._config_obj.get_date_filters()
         self.string_to_date_columns = self._config_obj.get_date_settings()
         self.considercolumnstype = self._config_obj.get_column_settings().get('consider_columns_type')
+        if self.considercolumnstype == ["including"]:
+            if self.resultcolumn != None:
+                self.considercolumns.append(self.resultcolumn)
+                self.considercolumns = list(set(self.considercolumns))
         self.scripts_to_run = self._config_obj.get_file_settings().get('script_to_run')
         self.date_columns = self._config_obj.get_column_settings().get('date_columns')
         self.date_format = self._config_obj.get_column_settings().get('date_format')
         self.measure_suggestions = self._config_obj.get_column_settings().get('measure_suggestions')
+        self.scoreconsidercolumnstype = self._config_obj.get_column_settings().get('score_consider_columns_type')
+
+    def get_column_separator(self):
+        return self._column_separator
+
+    def get_level_count_dict(self):
+        return self.levelcount_dict
 
     def get_measure_suggestions(self):
         return self.measure_suggestions
@@ -79,6 +90,9 @@ class ContextSetter:
 
     def get_consider_columns_type(self):
         return self.considercolumnstype
+
+    def get_score_consider_columns_type(self):
+        return self.scoreconsidercolumnstype
 
     def get_input_file(self):
         return self.CSV_FILE
@@ -100,6 +114,9 @@ class ContextSetter:
 
     def get_consider_columns(self):
         return self.considercolumns
+
+    def get_score_consider_columns(self):
+        return self.scoreconsidercolumns
 
     def get_ignore_column_suggestions(self):
         return self.ignorecolumns
