@@ -73,6 +73,18 @@ class RandomForestScript:
         CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
     def Predict(self):
+        # Match with the level_counts and then clean the data
+        dataSanity = True
+        level_counts_train = self._dataframe_context.get_level_count_dict()
+        cat_cols = self._dataframe_helper.get_string_columns()
+        level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,cat_cols,self._dataframe_context.get_column_separator(),output_type="dict")
+        for key in level_counts_train:
+            if key in level_counts_score:
+                if level_counts_train[key] != level_counts_score[key]:
+                    dataSanity = False
+            else:
+                dataSanity = False
+
         random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
@@ -104,6 +116,7 @@ class RandomForestScript:
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
         CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
+
 
         print "STARTING DIMENSION ANALYSIS ..."
         columns_to_keep = []
