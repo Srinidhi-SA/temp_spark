@@ -10,7 +10,7 @@ from sklearn.externals import joblib
 from sklearn import metrics
 
 from pyspark.sql import SQLContext
-from bi.common import utils
+from bi.common import utils as CommonUtils
 from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
@@ -65,10 +65,9 @@ class LogisticRegressionScript:
         self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
         self._model_summary["trained_model_features"] = self._column_separator.join(x_train.columns+[result_column])
 
-
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
-        utils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
+        CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
 
 
@@ -113,11 +112,23 @@ class LogisticRegressionScript:
         self._score_summary["result_column"] = result_column
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
-        utils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
+        CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
         print "STARTING DIMENSION ANALYSIS ..."
         columns_to_keep = []
-        columns_to_drop = columns_to_keep+["predicted_probability"]
+        columns_to_drop = []
+        considercolumnstype = self._dataframe_context.get_consider_columns_type()
+        considercolumns = self._dataframe_context.get_consider_columns()
+        if considercolumnstype != None:
+            if considercolumns != None:
+                if considercolumnstype == "excluding":
+                    columns_to_drop = considercolumns
+                elif considercolumnstype == "including":
+                    columns_to_keep = considercolumns
+
+        if len(columns_to_keep) > 0:
+            columns_to_drop = list(set(df.columns)-set(columns_to_keep))
+        columns_to_drop += ["predicted_probability"]
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
@@ -134,12 +145,12 @@ class LogisticRegressionScript:
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
             result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
             df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-            df_freq_dimension_result = utils.as_dict(df_freq_dimension_obj)
-            utils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
+            df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
+            CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
             # Narratives
             narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
-            narratives = utils.as_dict(narratives_obj)
-            utils.write_to_file(narratives_file,json.dumps(narratives))
+            narratives = CommonUtils.as_dict(narratives_obj)
+            CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
             print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
         except:
             print "Frequency Analysis Failed "
@@ -149,12 +160,12 @@ class LogisticRegressionScript:
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
             result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
             df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-            df_chisquare_result = utils.as_dict(df_chisquare_obj)
+            df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
             # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-            utils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = utils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj, self._dataframe_context))
+            CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
+            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj, self._dataframe_context))
             # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            utils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
+            CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
             print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
         except:
             print "ChiSquare Analysis Failed "
