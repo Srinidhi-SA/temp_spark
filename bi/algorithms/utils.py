@@ -3,6 +3,10 @@ import random
 import numpy as np
 import pandas as pd
 
+from pyspark.sql.functions import mean, stddev, col
+from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
+from pyspark.sql.types import StringType
+from pyspark.ml.clustering import KMeans
 
 def generate_random_number_array(df):
     out = [random.random() for idx in range(df.shape[0])]
@@ -231,3 +235,37 @@ def transform_feature_importance(feature_importance_dict):
         feature_importance_new[1].append(val[1])
     output = [feature_importance_new[0][:6],feature_importance_new[1][:6]]
     return output
+
+def cluster_by_column(df, col_to_cluster):
+    my_df = df.select(df.columns)
+    assembler = VectorAssembler(inputCols = [col_to_cluster], outputCol = "feature_vector")
+    assembled = assembler.transform(my_df)
+
+    avg,std = assembled.agg(mean(col_to_cluster).alias('avg'), stddev(col_to_cluster).alias('std')).collect()[0]
+    assembled_without_outlier = assembled.filter(col(col_to_cluster)>=avg-3*std).filter(col(col_to_cluster)<=avg+3*std)
+    assembled_without_outlier = assembled_without_outlier.select([c for c in assembled_without_outlier.columns if c!=col_to_cluster])
+    assembled = assembled.select([c for c in assembled.columns if c!=col_to_cluster])
+    # mmScaler = StandardScaler(inputCol="feature_vector", outputCol="standard_features",withStd=True, withMean=False)
+    # scale_model = mmScaler.fit(assembled)
+    # vectorized_data = scale_model.transform(assembled)
+    kmeans = KMeans(predictionCol=col_to_cluster, featuresCol='feature_vector').setK(3).setSeed(1)
+    model = kmeans.fit(assembled_without_outlier)
+    final_df = model.transform(assembled)
+    final_df = final_df.select([c for c in final_df.columns if c!='feature_vector'])
+    final_df = final_df.select([col(c) if c!=col_to_cluster else col(c).alias(col_to_cluster) for c in final_df.columns])
+    return final_df, model.clusterCenters()
+
+def add_string_index(df, string_columns=None):
+    my_df = df.select(df.columns)
+    column_name_maps = {}
+    mapping_dict = {}
+    if string_columns==None:
+        string_columns = [c.name for c in df.schema.fields if type(c.dataType) == StringType]
+    for c in string_columns:
+        my_df = StringIndexer(inputCol=c, outputCol=c+'_index').fit(my_df).transform(my_df)
+        column_name_maps[c+'_index'] = c
+        mapping_dict[c] = dict(enumerate(my_df[[c+'_index']].schema[0].metadata['ml_attr']['vals']))
+    my_df = my_df.select([c for c in my_df.columns if c not in string_columns])
+    my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in column_name_maps.keys() \
+                            else col(c) for c in my_df.columns])
+    return my_df, mapping_dict

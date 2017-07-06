@@ -77,5 +77,5 @@ class DecisionTreeNarrative:
         if temp_narrative == 'If ':
             temp_narrative = ""
         else:
-            temp_narrative = str(temp_narrative) + 'then the ' + str(colname) + ' is most likely to fall under ' + str(target)
+            temp_narrative = temp_narrative + 'then the ' + colname + ' is most likely to fall under ' + target
             return temp_narrative
