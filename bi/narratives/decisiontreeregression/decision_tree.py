@@ -1,4 +1,5 @@
 import os
+import random
 
 from bi.common.dataframe import DataFrameHelper
 from bi.common.results import DecisionTreeResult
@@ -6,7 +7,7 @@ from bi.common.utils import accepts
 from bi.narratives import utils as NarrativesUtils
 
 
-class DecisionTreeNarrative:
+class DecisionTreeRegNarrative:
     MAX_FRACTION_DIGITS = 2
 
     def _get_new_table(self):
@@ -48,8 +49,11 @@ class DecisionTreeNarrative:
         self.condensedTable={}
         for target in rules_dict.keys():
             self.condensedTable[target]=[]
-            for rule in rules_dict[target]:
-                rules1 = self._generate_rules(target,rule)
+            total = self.total_predictions[target]
+            success = self.succesful_predictions[target]
+            success_percent = self.success_percent[target]
+            for idx,rule in enumerate(rules_dict[target]):
+                rules1 = self._generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
                 self.condensedTable[target].append(rules1)
         self.dropdownValues = rules_dict.keys()
         self.dropdownComment = NarrativesUtils.get_template_output(self._base_dir,\
@@ -57,10 +61,10 @@ class DecisionTreeNarrative:
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
                                         'decision_tree_summary.temp',data_dict)
 
-    def _generate_rules(self,target,rules):
+    def _generate_rules(self,target,rules, total, success, success_percent):
         colname = self._colname
         key_dimensions,key_measures=NarrativesUtils.get_rules_dictionary(rules)
-        temp_narrative = 'If '
+        temp_narrative = ''
         for var in key_measures.keys():
             if key_measures[var].has_key('upper_limit') and key_measures[var].has_key('lower_limit'):
                 temp_narrative = temp_narrative + 'the value of ' + var + ' falls between ' + key_measures[var]['lower_limit'] + ' and ' + key_measures[var]['upper_limit']+', '
@@ -74,8 +78,25 @@ class DecisionTreeNarrative:
             elif key_dimensions[var].has_key('not_in'):
                 temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + ', '
 
-        if temp_narrative == 'If ':
+        if temp_narrative == '':
             temp_narrative = ""
         else:
-            temp_narrative = temp_narrative + 'then the ' + colname + ' is most likely to fall under ' + target
-            return temp_narrative
+            r = random.randint(0,99)%5
+            if r == 0:
+                narrative = 'Nearly ' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            ' of observations that have ' + temp_narrative + ' result in '+ \
+                            target + ' '+ self._column_name + ' values.'
+            elif r == 1:
+                narrative = 'If the ' + temp_narrative +' it is ' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            ' likely that the observations are ' + target + ' segment.'
+            elif r == 2:
+                narrative = 'When the ' +  temp_narrative + ' the probability of ' + target + \
+                            ' is ' + NarrativesUtils.round_number(success_percent)+ '%' + '.'
+            elif r == 3:
+                narrative = 'If the ' + temp_narrative +' then there is ' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            ' probability that the ' + self._column_name + ' observations would be ' + target + ' valued.'
+            else:
+                narrative = 'There is a very high chance(' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            ') that ' +  self._column_name + ' would be relatively ' + target + ' when, ' + \
+                            temp_narrative
+            return narrative

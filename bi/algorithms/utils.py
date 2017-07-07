@@ -3,7 +3,7 @@ import random
 import numpy as np
 import pandas as pd
 
-from pyspark.sql.functions import mean, stddev, col
+from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
 from pyspark.sql.types import StringType
 from pyspark.ml.clustering import KMeans
@@ -236,23 +236,30 @@ def transform_feature_importance(feature_importance_dict):
     output = [feature_importance_new[0][:6],feature_importance_new[1][:6]]
     return output
 
-def cluster_by_column(df, col_to_cluster):
+def cluster_by_column(df, col_to_cluster, get_aggregation = False):
     my_df = df.select(df.columns)
     assembler = VectorAssembler(inputCols = [col_to_cluster], outputCol = "feature_vector")
     assembled = assembler.transform(my_df)
 
-    avg,std = assembled.agg(mean(col_to_cluster).alias('avg'), stddev(col_to_cluster).alias('std')).collect()[0]
+    avg,std,total = assembled.agg(mean(col_to_cluster).alias('avg'), stddev(col_to_cluster).alias('std'), sum(col_to_cluster).alias('total')).collect()[0]
     assembled_without_outlier = assembled.filter(col(col_to_cluster)>=avg-3*std).filter(col(col_to_cluster)<=avg+3*std)
     assembled_without_outlier = assembled_without_outlier.select([c for c in assembled_without_outlier.columns if c!=col_to_cluster])
-    assembled = assembled.select([c for c in assembled.columns if c!=col_to_cluster])
+    assembled = assembled.select([col(c) if c!=col_to_cluster else col(c).alias('target_col') for c in assembled.columns])
     # mmScaler = StandardScaler(inputCol="feature_vector", outputCol="standard_features",withStd=True, withMean=False)
     # scale_model = mmScaler.fit(assembled)
     # vectorized_data = scale_model.transform(assembled)
     kmeans = KMeans(predictionCol=col_to_cluster, featuresCol='feature_vector').setK(3).setSeed(1)
     model = kmeans.fit(assembled_without_outlier)
     final_df = model.transform(assembled)
+    if (get_aggregation):
+        agg_df = final_df.groupby(col_to_cluster).agg(sum('target_col').alias('sum'), count('target_col').alias('count'))
+        aggr = {}
+        for row in agg_df.collect():
+            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': row[1]*100.0/total, 'count_percent': row[2]*100.0/final_df.count()}
     final_df = final_df.select([c for c in final_df.columns if c!='feature_vector'])
     final_df = final_df.select([col(c) if c!=col_to_cluster else col(c).alias(col_to_cluster) for c in final_df.columns])
+    if (get_aggregation):
+        return final_df, aggr
     return final_df, model.clusterCenters()
 
 def add_string_index(df, string_columns=None):

@@ -2,10 +2,10 @@ import os
 
 from bi.common.results.decision_tree import DecisionTreeResult
 from bi.common.utils import accepts
-from decision_tree import DecisionTreeNarrative
+from decision_tree import DecisionTreeRegNarrative
 
 
-class DecisionNarrative:
+class DecisionRegNarrative:
 
     @accepts(object, (int, long), DecisionTreeResult)
     def __init__(self, num_measure_columns, decision_tree_rules):

@@ -116,6 +116,7 @@ class DecisionTreeRegression:
             if(rows[0]==target):
                 success = rows[1]
             total = total + rows[1]
+        target = self._mapping_dict[self._target_dimension][target]
         if (total > 0):
             if not self._new_rules.has_key(target):
                 self._new_rules[target] = []
@@ -170,8 +171,9 @@ class DecisionTreeRegression:
     def transform_data_frames(self):
         self._data_frame, self._mapping_dict = MLUtils.add_string_index(self._data_frame, self._dimension_columns)
         self._data_frame, clusters = MLUtils.cluster_by_column(self._data_frame, self._target_dimension)
-        self._data_frame1, d = MLUtils.cluster_by_column(self._data_frame1, self._target_dimension)
-        self._mapping_dict[self._target_dimension] = dict(zip([x[1] for x in sorted(zip(clusters,[0,1,2]))],\
+        self._data_frame1, self._aggr_data = MLUtils.cluster_by_column(self._data_frame1, self._target_dimension, get_aggregation=True)
+        self._cluster_order = [x[1] for x in sorted(zip(clusters,[0,1,2]))]
+        self._mapping_dict[self._target_dimension] = dict(zip(self._cluster_order,\
                                                     ['Low','Medium','High']))
         self._reverse_map = {}
         for k,v in self._mapping_dict[self._target_dimension].iteritems():
@@ -227,4 +229,5 @@ class DecisionTreeRegression:
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
+        decision_tree_result.set_target_map(self._mapping_dict[self._target_dimension], self._aggr_data)
         return decision_tree_result
