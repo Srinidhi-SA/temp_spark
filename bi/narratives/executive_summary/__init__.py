@@ -32,7 +32,7 @@ class ExecutiveSummaryNarrative:
             anova_data.append(narrative_data_dict[val])
         narrative_data_dict["sig_dims"] = sig_dims
         narrative_data_dict["anova_data"] = anova_data
-        print json.dumps(narrative_data_dict,indent=2)
+        # print json.dumps(narrative_data_dict,indent=2)
         executive_summary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'executive_summary.temp',narrative_data_dict)
         print executive_summary
