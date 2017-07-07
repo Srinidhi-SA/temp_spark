@@ -63,7 +63,8 @@ class RandomForestScript:
         self._model_summary["algorithm_name"] = "Random Forest"
         self._model_summary["validation_method"] = "Train and Test"
         self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,self._model_summary["independent_variables"],self._dataframe_context.get_column_separator())
+        cat_cols = list(set(categorical_columns)-set([result_column]))
+        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
 
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300

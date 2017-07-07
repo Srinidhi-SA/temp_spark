@@ -109,7 +109,7 @@ def calculate_confusion_matrix(actual,predicted):
     confusion matrix structure is defined below
     {"pred1":{"actual1":2,"actal2":3,"actual3":5},"pred2":{"actual1":5,"actal2":7,"actual3":5},"pred3":{"actual1":1,"actal2":3,"actual3":5}}
     """
-    out = pd.crosstab(pd.Series(actual),pd.Series(predicted), rownames=['Known Class'], colnames=['Predicted Class'])
+    out = pd.crosstab(pd.Series(list(actual)),pd.Series(list(predicted)), rownames=['Known Class'], colnames=['Predicted Class'])
     dict_out = out.to_dict()
     actual_classes = list(set(actual))
     predicted_classes = list(set(predicted))

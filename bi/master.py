@@ -10,6 +10,7 @@ from bi.common import DataLoader
 from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import ContextSetter
+from bi.common import ResultSetter
 
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -25,6 +26,7 @@ from bi.scripts.random_forest import RandomForestScript
 from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
+from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
 
 
@@ -66,6 +68,7 @@ def main(confFilePath):
     df_helper = DataFrameHelper(df, dataframe_context)
     df_helper.set_params()
     df = df_helper.get_data_frame()
+    result_setter = ResultSetter(df,dataframe_context)
 
     measure_columns = df_helper.get_numeric_columns()
     dimension_columns = df_helper.get_string_columns()
@@ -263,7 +266,7 @@ def main(confFilePath):
 
         try:
             fs = time.time()
-            trend_obj = TrendScript(df_helper,dataframe_context,spark)
+            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark)
             trend_obj.Run()
             print "Trend Analysis Done in ", time.time() - fs, " seconds."
             send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
@@ -291,6 +294,12 @@ def main(confFilePath):
             send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
             print "Decision Tree Regression Script Failed"
 
+        fs = time.time()
+        exec_obj = ExecutiveSummaryScript(df_helper,dataframe_context,result_setter,spark)
+        exec_obj.Run()
+        print "Executive Summary Done in ", time.time() - fs, " seconds."
+        # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
+
     elif analysistype == 'Prediction':
         # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
@@ -301,16 +310,16 @@ def main(confFilePath):
         df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         df_helper.set_train_test_data(df)
-        try:
-            st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-            rf_obj.Train()
-            print "Random Foreset Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            print "Random Foreset Model Failed"
-            print "ERROR"*5
-            print e
-            print "ERROR"*5
+        # try:
+        st = time.time()
+        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+        rf_obj.Train()
+        print "Random Foreset Model Done in ", time.time() - st,  " seconds."
+        # except Exception as e:
+        #     print "Random Foreset Model Failed"
+        #     print "ERROR"*5
+        #     print e
+        #     print "ERROR"*5
 
         try:
             st = time.time()

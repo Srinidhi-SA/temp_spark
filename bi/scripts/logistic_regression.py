@@ -64,7 +64,8 @@ class LogisticRegressionScript:
         self._model_summary["validation_method"] = "Train and Test"
         self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
         self._model_summary["trained_model_features"] = self._column_separator.join(x_train.columns+[result_column])
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,self._model_summary["independent_variables"],self._dataframe_context.get_column_separator())
+        cat_cols = list(set(categorical_columns)-set([result_column]))
+        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary

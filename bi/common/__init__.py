@@ -14,6 +14,7 @@ from metahelper import MetaDataHelper
 from datafilterhelper import DataFilterHelper
 from filtercontext import FilterContextSetter
 from context import ContextSetter
+from resultloader import ResultSetter
 
 
 # Alpha levels corresponding to (90%, 95%, 99%, 99.9%, 99.99%, 99.999%, 99.9999%, 99.99999%)
@@ -36,5 +37,6 @@ __all__ = [
     'MetaDataHelper',
     'DataFilterHelper',
     'FilterContextSetter',
-    'ContextSetter'
+    'ContextSetter',
+    'ResultSetter'
 ]
