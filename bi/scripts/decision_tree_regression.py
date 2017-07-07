@@ -4,7 +4,7 @@ import json
 from bi.algorithms import DecisionTreeRegression
 from bi.common import DataWriter
 from bi.common import utils
-from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.narratives.decisiontreeregression.decision_tree import DecisionTreeRegNarrative
 
 
 class DecisionTreeRegressionScript:
@@ -24,7 +24,7 @@ class DecisionTreeRegressionScript:
         DataWriter.write_dict_as_json(self._spark, df_decision_tree_result, self._dataframe_context.get_result_file()+'DecisionTreeReg/')
 
         #Narratives
-        narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column()+' Range', df_decision_tree_obj, self._dataframe_helper)
+        narratives_obj = DecisionTreeRegNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper)
         narratives = utils.as_dict(narratives_obj)
         #print "Narratives: %s" % (json.dumps(narratives, indent=2))
         DataWriter.write_dict_as_json(self._spark, narratives, self._dataframe_context.get_narratives_file()+'DecisionTreeReg/')

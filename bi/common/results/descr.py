@@ -47,6 +47,18 @@ class FivePointSummary:
             FivePointSummary.Q4: q4_freq
         }
 
+    def set_sums(self,quartile_sums):
+        self.sums = quartile_sums
+
+    def set_means(self, quartile_means):
+        self.means = quartile_means
+
+    def get_means(self):
+        return self.means
+
+    def get_sums(self):
+        return self.sums
+
     def get_num_outliers(self):
         return self.outliers.get(FivePointSummary.LEFT_OUTLIERS) + self.outliers.get(FivePointSummary.RIGHT_OUTLIERS)
 

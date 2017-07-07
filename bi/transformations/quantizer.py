@@ -39,12 +39,37 @@ class Quantizer:
         column = FN.column(measure_column)
         num_left_outliers = data_frame.filter(column < left_hinge).count()
         num_right_outliers = data_frame.filter(column > right_hinge).count()
-        q1_freq = data_frame.filter(column < q1).count()
-        q2_freq = data_frame.filter(column >= q1).filter(column < median).count()
-        q3_freq = data_frame.filter(column >= median).filter(column < q3).count()
-        q4_freq = data_frame.filter(column >= q3).count()
+        # q1_freq = data_frame.filter(column < q1).count()
+        # q2_freq = data_frame.filter(column >= q1).filter(column < median).count()
+        # q3_freq = data_frame.filter(column >= median).filter(column < q3).count()
+        # q4_freq = data_frame.filter(column >= q3).count()
+        q1_stats = data_frame.filter(column < q1).agg(FN.sum(column).alias('sum'), FN.count(column).alias('count')).collect()
+        q2_stats = data_frame.filter(column >= q1).filter(column < median).agg(FN.sum(column).alias('sum'), FN.count(column).alias('count')).collect()
+        q3_stats = data_frame.filter(column >= median).filter(column < q3).agg(FN.sum(column).alias('sum'), FN.count(column).alias('count')).collect()
+        q4_stats = data_frame.filter(column >= q3).agg(FN.sum(column).alias('sum'), FN.count(column).alias('count')).collect()
 
-        return FivePointSummary(left_hinge_value=left_hinge, q1_value=q1, median=median, q3_value=q3,
+        q1_freq = q1_stats[0]['count']
+        q2_freq = q2_stats[0]['count']
+        q3_freq = q3_stats[0]['count']
+        q4_freq = q4_stats[0]['count']
+
+        quartile_sums = {}
+        quartile_sums['q1'] = q1_stats[0]['sum']
+        quartile_sums['q2'] = q2_stats[0]['sum']
+        quartile_sums['q3'] = q3_stats[0]['sum']
+        quartile_sums['q4'] = q4_stats[0]['sum']
+
+        quartile_means = {}
+        quartile_means['q1'] = q1_stats[0]['sum']/q1_stats[0]['count']
+        quartile_means['q2'] = q2_stats[0]['sum']/q2_stats[0]['count']
+        quartile_means['q3'] = q3_stats[0]['sum']/q3_stats[0]['count']
+        quartile_means['q4'] = q4_stats[0]['sum']/q4_stats[0]['count']
+
+        FPS = FivePointSummary(left_hinge_value=left_hinge, q1_value=q1, median=median, q3_value=q3,
                                 right_hinge_value=right_hinge, num_left_outliers=num_left_outliers,
                                 num_right_outliers=num_right_outliers, q1_freq=q1_freq, q2_freq=q2_freq,
                                 q3_freq=q3_freq, q4_freq=q4_freq)
+        FPS.set_means(quartile_means)
+        FPS.set_sums(quartile_sums)
+
+        return FPS
