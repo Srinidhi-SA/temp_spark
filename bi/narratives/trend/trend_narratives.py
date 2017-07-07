@@ -36,7 +36,7 @@ class TrendNarrative:
         return df_copy
 
     def generateDataDict(self,df):
-        dataDict = {}
+        dataDict = {"trend_present":True}
         # df["perChange"] = [round((y-x)*100/float(x),2) for x,y in zip(df["value"],df["value"].iloc[1:])]+[round((df["value"].iloc[-1]-df["value"].iloc[-2])*100/float(df["value"].iloc[-2]),2)]
         df["perChange"] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(df["value"].iloc[1:],df["value"])]
         dataDict["measure"] = self._measure_column

@@ -101,7 +101,6 @@ class TimeSeriesNarrative:
                     prediction_window = 6
                 grouped_data["key"] = grouped_data["key"].apply(lambda x :datetime.strptime(x,"%b-%Y"))
                 grouped_data.sort_values(by="key",inplace=True)
-                print grouped_data.tail(10)
                 predicted_values = trend_narrative_obj.get_forecast_values(grouped_data["value"],prediction_window)
                 predicted_values = predicted_values[len(grouped_data["value"]):]
                 predicted_values = [round(x,2) for x in predicted_values]
@@ -115,22 +114,26 @@ class TimeSeriesNarrative:
                         last_key = datetime.strptime(prediction_data[-1]["key"],"%b-%Y")
                         key = datetime.strftime(last_key+relativedelta(months=1),"%b-%Y")
                         prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
-                print prediction_data
                 forecastDataDict = {"startForecast":predicted_values[0],
                                     "endForecast":predicted_values[prediction_window-1],
                                     "measure":dataDict["measure"],
+                                    "forecast":True,
+                                    "forecast_percentage": round((predicted_values[prediction_window-1]-predicted_values[0])/predicted_values[0],2),
                                     "prediction_window_text": str(prediction_window) + " months"
                                     }
+                self._result_setter.update_executive_summary_data(forecastDataDict)
                 summary3 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                 'trend_narrative_card3.temp',forecastDataDict)
                 self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
                 self.narratives["card3"]["chart"] = {"data":prediction_data,"format":"%b-%Y"}
             else:
+                self._result_setter.update_executive_summary_data({"trend_present":False})
                 print "Trend Analysis Failed"
                 print "#"*20+"Trend Analysis Error"+"#"*20
                 print "No date format for the date column %s was detected." %(time_dimension_column)
                 print "#"*60
         else:
+            self._result_setter.update_executive_summary_data({"trend_present":False})
             print "Trend Analysis Failed"
             print "#"*20+"Trend Analysis Error"+"#"*20
             print "No date column present for Trend Analysis."

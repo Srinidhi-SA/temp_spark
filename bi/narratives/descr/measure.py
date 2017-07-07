@@ -7,7 +7,8 @@ class MeasureColumnNarrative:
 
     MAX_FRACTION_DIGITS = 2
 
-    def __init__(self, column_name, measure_descr_stats, df_helper, df_context):
+    def __init__(self, column_name, measure_descr_stats, df_helper, df_context, result_setter):
+        self._result_setter = result_setter
         self._column_name = column_name.lower()
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._measure_descr_stats = measure_descr_stats
@@ -122,6 +123,7 @@ class MeasureColumnNarrative:
                     "end_value" : end_value,
                     "measure_colname":self._column_name
         }
+        self._result_setter.update_executive_summary_data({"skew":data_dict["skew"]})
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                         'histogram_narrative.temp',data_dict)
         return output

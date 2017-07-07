@@ -8,7 +8,7 @@ from bi.common.results.two_way_anova import OneWayAnovaResult
 from bi.narratives import utils as NarrativesUtils
 
 
-class card:
+class Card:
     def __init__(self, heading):
         self.heading = heading
         self.charts = {}
@@ -49,7 +49,8 @@ class OneWayAnovaNarratives:
     ALPHA = 0.05
 
     #@accepts(object, (str, basestring), (str, basestring), OneWayAnovaResult)
-    def __init__(self, measure_column, dimension_column, anova_result, trend_result):
+    def __init__(self, measure_column, dimension_column, anova_result, trend_result, result_setter):
+        self._result_setter = result_setter
         self._measure_column = measure_column
         self._measure_column_capitalized = '%s%s' % (measure_column[0].upper(), measure_column[1:])
         self._dimension_column = dimension_column
@@ -73,7 +74,7 @@ class OneWayAnovaNarratives:
         self.title = 'Impact of %s on %s' % (self._dimension_column_capitalized, self._measure_column_capitalized)
 
     def _generate_card1(self):
-        self.card1 = card('Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized)
+        self.card1 = Card('Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized)
         dim_table = self._one_way_anova_result.get_dim_table()
         keys = dim_table['levels']
         totals = dim_table['total']
@@ -228,7 +229,7 @@ class OneWayAnovaNarratives:
         return '',0.0
 
     def _generate_card2(self):
-        self.card2 = card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
+        self.card2 = Card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
         subset_data_frame = self._trend_result.get_subset_data(self._dimension_column)
         agg_data_frame = self._trend_result.get_data_frame()
         total_measure = 'Total '+ self._measure_column_capitalized
@@ -379,7 +380,7 @@ class OneWayAnovaNarratives:
                 return 'Red Alert'
 
     def _generate_card3(self):
-        self.card3 = card(self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix')
+        self.card3 = Card(self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix')
         self.card3.add_paragraph({'header': '',
             'content' : 'Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.'})
         grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
@@ -433,6 +434,12 @@ class OneWayAnovaNarratives:
                     'target' : self._measure_column,
                     'dimension' : self._dimension_column
         }
+        executive_summary_data = {}
+        executive_summary_data[self._dimension_column] = {"num_red_alert":len(leaders_club),
+                                                          "red_alert":red_alert
+                                                         }
+        self._result_setter.update_executive_summary_data(executive_summary_data)
+
         output = {'header' : '',
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_5.temp',data_dict))

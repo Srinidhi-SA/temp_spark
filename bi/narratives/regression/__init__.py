@@ -12,7 +12,8 @@ from bi.narratives import utils as NarrativesUtils
 
 
 class RegressionNarrative:
-    def __init__(self, df_helper, df_context, spark, df_regression_result, correlations):
+    def __init__(self, df_helper, df_context, result_setter, spark, df_regression_result, correlations):
+        self._result_setter = result_setter
         self._df_regression_result = df_regression_result
         self._correlations = correlations
         self._dataframe_helper = df_helper
@@ -69,7 +70,7 @@ class RegressionNarrative:
         self.narratives["main_card"]['chart']['label'] = {'x':'Measure Name',
                                                             'y': 'Change in ' + self.result_column + ' per unit increase'}
 
-
+        count = 0
         for measure_column in self.significant_measures:
             measure_column_cards = {}
             card0 = {}
@@ -125,6 +126,13 @@ class RegressionNarrative:
             measure_column_cards['card3'] = card3
 
             self.narratives['cards'].append(measure_column_cards)
+
+            if count == 0:
+                card4data.pop("charts")
+                self._result_setter.update_executive_summary_data(card4data)
+            count += 1
+
+
 
     def run_regression_for_dimension_levels(self):
 

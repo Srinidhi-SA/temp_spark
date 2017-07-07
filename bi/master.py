@@ -151,7 +151,7 @@ def main(confFilePath):
         if ('Descriptive analysis' in scripts_to_run):
             try:
                 fs = time.time()
-                descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, spark)
+                descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark)
                 descr_stats_obj.Run()
                 print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "DescriptiveStats", "DescriptiveStats Done", True, 100)
@@ -207,7 +207,7 @@ def main(confFilePath):
                 fs = time.time()
                 # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
                 # one_way_anova_obj.Run()
-                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, spark)
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark)
                 two_way_obj.Run()
                 print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
@@ -234,7 +234,7 @@ def main(confFilePath):
                 try:
                     df = df.na.drop(subset=measure_columns)
                     fs = time.time()
-                    regression_obj = RegressionScript(df, df_helper, dataframe_context, spark, correlations)
+                    regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations)
                     regression_obj.Run()
                     print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     send_message_API(monitor_api, "Regression", "Regression Done", True, 100)
@@ -310,16 +310,16 @@ def main(confFilePath):
         df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         df_helper.set_train_test_data(df)
-        # try:
-        st = time.time()
-        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-        rf_obj.Train()
-        print "Random Foreset Model Done in ", time.time() - st,  " seconds."
-        # except Exception as e:
-        #     print "Random Foreset Model Failed"
-        #     print "ERROR"*5
-        #     print e
-        #     print "ERROR"*5
+        try:
+            st = time.time()
+            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+            rf_obj.Train()
+            print "Random Foreset Model Done in ", time.time() - st,  " seconds."
+        except Exception as e:
+            print "Random Foreset Model Failed"
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
 
         try:
             st = time.time()
