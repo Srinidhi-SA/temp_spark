@@ -27,6 +27,10 @@ class DecisionTreeRegNarrative:
         self.succesful_predictions=decision_tree_rules.get_success()
         self.total_predictions=decision_tree_rules.get_total()
         self.success_percent= decision_tree_rules.get_success_percent()
+        self._important_vars = decision_tree_rules.get_significant_vars()
+        self._target_distribution = decision_tree_rules.get_target_contributions()
+        print '$'*300
+        print self._target_distribution
         self._get_new_table()
         self._df_helper = df_helper
         self.subheader = None
@@ -45,6 +49,8 @@ class DecisionTreeRegNarrative:
         data_dict = {"dimension_name":self._colname}
         data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
         data_dict["significant_vars"] = []
+        data_dict['significant_vars_high'] = self._important_vars['High']
+        data_dict['significant_vars_low'] = self._important_vars['Low']
         rules_dict = self.table
         self.condensedTable={}
         for target in rules_dict.keys():
@@ -56,8 +62,18 @@ class DecisionTreeRegNarrative:
                 rules1 = self._generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
                 self.condensedTable[target].append(rules1)
         self.dropdownValues = rules_dict.keys()
-        self.dropdownComment = NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_rule_summary.temp',data_dict)
+        data_dict['rules_list_high'] = self.condensedTable['High']
+        data_dict['rules_list_low'] = self.condensedTable['Low']
+        data_dict['count_percent_high'] = NarrativesUtils.round_number(self._target_distribution['High']['count_percent'],2)
+        data_dict['sum_percent_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum_percent'],2)
+        data_dict['sum_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum'],2)
+        data_dict['count_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['count_percent'],2)
+        data_dict['sum_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['sum_percent'],2)
+
+        self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
+                                                    'decision_reg_card2.temp',data_dict))
+        self.card2_chart = {'sum' : dict([(k,v['sum']) for k,v in self._target_distribution.items()]),
+                            'mean': dict([(k,v['sum']*1.0/v['count']) for k,v in self._target_distribution.items()])}
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
                                         'decision_tree_summary.temp',data_dict)
 
@@ -83,20 +99,20 @@ class DecisionTreeRegNarrative:
         else:
             r = random.randint(0,99)%5
             if r == 0:
-                narrative = 'Nearly ' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            ' of observations that have ' + temp_narrative + ' result in '+ \
+                narrative = 'Nearly <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            '</b> of observations that have <i><u>' + temp_narrative + '</u></i> result in '+ \
                             target + ' '+ self._column_name + ' values.'
             elif r == 1:
-                narrative = 'If the ' + temp_narrative +' it is ' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            ' likely that the observations are ' + target + ' segment.'
+                narrative = 'If <i><u>' + temp_narrative +'</u></i> it is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            '</b> likely that the observations are ' + target + ' segment.'
             elif r == 2:
-                narrative = 'When the ' +  temp_narrative + ' the probability of ' + target + \
-                            ' is ' + NarrativesUtils.round_number(success_percent)+ '%' + '.'
+                narrative = 'When <i><u>' +  temp_narrative + '</u></i> the probability of ' + target + \
+                            ' is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + '</b>.'
             elif r == 3:
-                narrative = 'If the ' + temp_narrative +' then there is ' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            ' probability that the ' + self._column_name + ' observations would be ' + target + ' valued.'
+                narrative = 'If <i><u>' + temp_narrative +'</u></i> then there is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            '</b> probability that the ' + self._column_name + ' observations would be ' + target + ' valued.'
             else:
-                narrative = 'There is a very high chance(' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            ') that ' +  self._column_name + ' would be relatively ' + target + ' when, ' + \
-                            temp_narrative
+                narrative = 'There is a very high chance(<b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                            '</b>) that ' +  self._column_name + ' would be relatively ' + target + ' when, <i><u>' + \
+                            temp_narrative[:-1] + '</u></i>.'
             return narrative

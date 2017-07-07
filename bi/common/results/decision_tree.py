@@ -27,6 +27,9 @@ class DecisionTreeResult:
         print '&'*300
         print self._important_vars
 
+    def get_significant_vars(self):
+        return self._important_vars
+
     def get_target_map(self):
         return self._target_map
 
