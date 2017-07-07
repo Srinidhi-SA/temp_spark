@@ -4,6 +4,7 @@ import random
 from bi.common.dataframe import DataFrameHelper
 from bi.common.results import DecisionTreeResult
 from bi.common.utils import accepts
+from bi.common import ResultSetter
 from bi.narratives import utils as NarrativesUtils
 
 
@@ -16,8 +17,9 @@ class DecisionTreeRegNarrative:
             self.new_table[keys]['rules'] = self.table[keys]
             self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
 
-    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper)
-    def __init__(self, column_name, decision_tree_rules,df_helper):
+    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ResultSetter)
+    def __init__(self, column_name, decision_tree_rules,df_helper,result_setter):
+        self._result_setter = result_setter
         self._column_name = column_name.lower()
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
@@ -76,6 +78,12 @@ class DecisionTreeRegNarrative:
                             'mean': dict([(k,v['sum']*1.0/v['count']) for k,v in self._target_distribution.items()])}
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
                                         'decision_tree_summary.temp',data_dict)
+        executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],
+                                  "average_high_group" : data_dict["average_high_group"],
+                                  "average_overall" : data_dict["average_overall"],
+                                  "high_vs_overall" : data_dict["high_vs_overall"]
+                                 }
+        self._result_setter.update_executive_summary_data(executive_summary_data)
 
     def _generate_rules(self,target,rules, total, success, success_percent):
         colname = self._colname

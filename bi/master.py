@@ -283,7 +283,7 @@ def main(confFilePath):
             fs = time.time()
             df_helper.fill_na_dimension_nulls()
             df = df_helper.get_data_frame()
-            dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, spark)
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark)
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
         except Exception as e:

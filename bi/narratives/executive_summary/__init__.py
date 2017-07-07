@@ -26,10 +26,10 @@ class ExecutiveSummaryNarrative:
         sig_dimension_dict = self._dataframe_helper.get_significant_dimension()
         sig_dimension_dict = sorted(sig_dimension_dict,key=lambda x:abs(sig_dimension_dict[x]),reverse=True)
         sig_dims = []
-        anova_data = {}
+        anova_data = []
         for val in sig_dimension_dict:
             sig_dims.append(val)
-            anova_data[val] = narrative_data_dict[val]
+            anova_data.append(narrative_data_dict[val])
         narrative_data_dict["sig_dims"] = sig_dims
         narrative_data_dict["anova_data"] = anova_data
         print json.dumps(narrative_data_dict,indent=2)
