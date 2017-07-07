@@ -89,11 +89,7 @@ class DecisionTreeRegression:
     def extract_rules(self, rule_list, target):
         if not self._important_vars.has_key(target):
             self._important_vars[target] = []
-        print '&'*100
-        print target,
         target = self._reverse_map[target]
-        print target
-        print '^'*100
         DFF = DataFrameFilterer(self._data_frame1)
         colname = self._target_dimension
         success = 0
@@ -222,16 +218,6 @@ class DecisionTreeRegression:
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)
         self._new_tree = self.wrap_tree(self._new_tree)
-        print '*'*240
-        print output_result
-        print '/'*240
-        print decision_tree
-        print '+'*240
-        print self._new_tree
-        print '-'*240
-        print self._new_rules
-        print '|'*240
-        print self._total,'\n\n\n', self._success,'\n\n\n', self._probability
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)

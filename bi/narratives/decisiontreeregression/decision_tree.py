@@ -29,8 +29,6 @@ class DecisionTreeRegNarrative:
         self.success_percent= decision_tree_rules.get_success_percent()
         self._important_vars = decision_tree_rules.get_significant_vars()
         self._target_distribution = decision_tree_rules.get_target_contributions()
-        print '$'*300
-        print self._target_distribution
         self._get_new_table()
         self._df_helper = df_helper
         self.subheader = None
@@ -69,7 +67,9 @@ class DecisionTreeRegNarrative:
         data_dict['sum_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum'],2)
         data_dict['count_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['count_percent'],2)
         data_dict['sum_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['sum_percent'],2)
-
+        data_dict['average_high_group'] = self._target_distribution['High']['sum']*1.0/self._target_distribution['High']['count']
+        data_dict['average_overall'] = sum([self._target_distribution[i]['sum'] for i in self._target_distribution])*1.0/sum([self._target_distribution[i]['count'] for i in self._target_distribution])
+        data_dict['high_vs_overall'] = data_dict['average_high_group']*100.0/data_dict['average_high_group'] - 100
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_reg_card2.temp',data_dict))
         self.card2_chart = {'sum' : dict([(k,v['sum']) for k,v in self._target_distribution.items()]),
