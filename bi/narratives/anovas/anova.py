@@ -435,7 +435,7 @@ class OneWayAnovaNarratives:
                     'dimension' : self._dimension_column
         }
         executive_summary_data = {}
-        executive_summary_data[self._dimension_column] = {"num_red_alert":len(leaders_club),
+        executive_summary_data[self._dimension_column] = {"num_red_alert":len(red_alert),
                                                           "red_alert":red_alert
                                                          }
         self._result_setter.update_executive_summary_data(executive_summary_data)
