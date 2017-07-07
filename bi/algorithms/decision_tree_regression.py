@@ -32,6 +32,7 @@ class DecisionTreeRegression:
         self._success = {}
         self._probability = {}
         self._alias_dict = {}
+        self._important_vars = {}
 
     def parse(self, lines, df):
         block = []
@@ -86,6 +87,8 @@ class DecisionTreeRegression:
 
     @accepts(object, rule_list=list,target=str)
     def extract_rules(self, rule_list, target):
+        if not self._important_vars.has_key(target):
+            self._important_vars[target] = []
         print '&'*100
         print target,
         target = self._reverse_map[target]
@@ -95,6 +98,7 @@ class DecisionTreeRegression:
         colname = self._target_dimension
         success = 0
         total = 0
+        important_vars = []
         for rule in rule_list:
             if ' <= ' in rule:
                 var,limit = re.split(' <= ',rule)
@@ -112,11 +116,13 @@ class DecisionTreeRegression:
                 levels=levels[1:-1].split(",")
                 levels = [self._alias_dict[x] for x in levels]
                 DFF.values_in(var,levels)
+            important_vars.append(var)
         for rows in DFF.get_aggregated_result(colname,target):
             if(rows[0]==target):
                 success = rows[1]
             total = total + rows[1]
         target = self._mapping_dict[self._target_dimension][target]
+        self._important_vars[target] = list(set(self._important_vars[target] + important_vars))
         if (total > 0):
             if not self._new_rules.has_key(target):
                 self._new_rules[target] = []
@@ -229,5 +235,5 @@ class DecisionTreeRegression:
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
-        decision_tree_result.set_target_map(self._mapping_dict[self._target_dimension], self._aggr_data)
+        decision_tree_result.set_target_map(self._mapping_dict[self._target_dimension], self._aggr_data, self._important_vars)
         return decision_tree_result
