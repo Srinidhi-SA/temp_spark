@@ -35,7 +35,8 @@ class ExecutiveSummaryNarrative:
         # print json.dumps(narrative_data_dict,indent=2)
         executive_summary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'executive_summary.temp',narrative_data_dict)
-        print executive_summary
+        executive_summary_paragraphs = NarrativesUtils.paragraph_splitter(executive_summary)
+        print executive_summary_paragraphs
 
 
 __all__ = [

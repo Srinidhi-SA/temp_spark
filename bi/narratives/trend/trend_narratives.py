@@ -40,7 +40,7 @@ class TrendNarrative:
         # df["perChange"] = [round((y-x)*100/float(x),2) for x,y in zip(df["value"],df["value"].iloc[1:])]+[round((df["value"].iloc[-1]-df["value"].iloc[-2])*100/float(df["value"].iloc[-2]),2)]
         df["perChange"] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(df["value"].iloc[1:],df["value"])]
         dataDict["measure"] = self._measure_column
-        df["year_month"] = df["key"].apply(lambda x: self.month_dict[int(x.strftime('%m'))]+"-"+str(x.strftime('%Y')))
+        # df["year_month"] = df["key"].apply(lambda x: self.month_dict[int(x.strftime('%m'))]+"-"+str(x.strftime('%Y')))
         df["trendDirection"] = df["perChange"].apply(lambda x: "P" if x>=0 else "N")
         trendString = "".join(df["trendDirection"])
         maxRuns = NarrativesUtils.longestRun(trendString)
@@ -136,7 +136,7 @@ class TrendNarrative:
         return dataDict
 
     def get_xtra_calculations(self,df,significant_columns,index_col,value_col,datetime_pattern,reference_time):
-        datetime_pattern = "%b-%Y"
+        datetime_pattern = "%b-%y"
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
 
