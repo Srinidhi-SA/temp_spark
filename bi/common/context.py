@@ -67,7 +67,7 @@ class ContextSetter:
         self.string_to_date_columns = self._config_obj.get_date_settings()
         self.considercolumnstype = self._config_obj.get_column_settings().get('consider_columns_type')
         if self.considercolumnstype == ["including"]:
-            if self.resultcolumn != None:
+            if self.resultcolumn != None and self.considercolumns != None:
                 self.considercolumns.append(self.resultcolumn)
                 self.considercolumns = list(set(self.considercolumns))
         self.scripts_to_run = self._config_obj.get_file_settings().get('script_to_run')
