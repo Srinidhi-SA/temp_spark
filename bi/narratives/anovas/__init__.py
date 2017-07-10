@@ -27,6 +27,7 @@ class AnovaNarratives:
         self._df_anova_result = df_anova_result
         self._df_helper = df_helper
         self.narratives = {}
+        self.narratives['variables'] = ''
         #self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anovas/"
         self._generate_narratives()
@@ -72,6 +73,7 @@ class AnovaNarratives:
         anova_trend_result = measure_anova_result.get_TrendResult()
         if len(significant_dimensions) == 0:
             self.narratives['cards'].append({'card1':'', 'card2':'', 'card3':''})
+        self.narratives['variables'] = significant_dimensions
         for dimension in significant_dimensions:
             anova_dimension_result = measure_anova_result.get_anova_result(dimension)
             narratives = OneWayAnovaNarratives(measure, dimension, anova_dimension_result, anova_trend_result,self._result_setter)
