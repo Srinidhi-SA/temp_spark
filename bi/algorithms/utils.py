@@ -8,6 +8,17 @@ from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
 from pyspark.sql.types import StringType
 from pyspark.ml.clustering import KMeans
 
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer
+
+import numpy as np
+import functools
+from pyspark.ml.feature import OneHotEncoder
+from pyspark.ml.pipeline import PipelineModel
+from pyspark.ml.feature import IndexToString, StringIndexer
+from pyspark.sql.functions import monotonically_increasing_id
+
+
 def generate_random_number_array(df):
     out = [random.random() for idx in range(df.shape[0])]
     return out

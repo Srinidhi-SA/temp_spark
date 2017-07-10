@@ -18,6 +18,9 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from pyspark.ml.classification import RandomForestClassifier as RF
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 
 
 
@@ -36,20 +39,23 @@ class RandomForestPysparkScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
-        model_path = self._dataframe_context.get_model_path()
+        categorical_columns = [x for x in categorical_columns if x != result_column]
 
-        pipeline = create_ml_pipeline(numerical_columns,categorical_columns,result_column)
+        model_path = self._dataframe_context.get_model_path()
+        df = self._data_frame
+
+        pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column)
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
-        print indexed.show()
+        print indexed.show(2)
 
-        save_pipeline(model,"/home/marlabs/jupyter-workbook/Tutorial/")
-        trainingData,validationData = get_training_and_validation_data(indexed,target_column,0.8)
+        # save_pipeline(pipelineModel,"/home/marlabs/jupyter-workbook/Tutorial/")
+        trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
         rf = RF(labelCol='label', featuresCol='features',numTrees=200)
         fit = rf.fit(trainingData)
         transformed = fit.transform(validationData)
-
-        feature_importance = calculate_feature_importance(indexed,fit,categorical_columns,numerical_columns)
+        print transformed.select(categorical_columns+["prediction"]).show(3)
+        feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
         print feature_importance
 
     def Predict(self):
