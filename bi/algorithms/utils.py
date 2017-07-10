@@ -276,3 +276,68 @@ def add_string_index(df, string_columns=None):
     my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in column_name_maps.keys() \
                             else col(c) for c in my_df.columns])
     return my_df, mapping_dict
+
+##################################Spark ML Pipelines ###########################
+
+def create_ml_pipeline(numerical_columns,categorical_columns,target_column):
+    indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed') for x in categorical_columns ] #String Indexer
+    encoders = [OneHotEncoder(dropLast=False, inputCol=x+"_indexed", outputCol=x+"_encoded") for x in categorical_columns] # one hot encoder
+    assembler_features = VectorAssembler(inputCols=[x+"_encoded" for x in sorted(categorical_columns)]+sorted(numerical_columns), outputCol='features')
+    labelIndexer = StringIndexer(inputCol=target_column, outputCol="label")
+    ml_stages = [[i,j] for i,j in zip(indexers, encoders)]
+    pipeline_stages = []
+    for ml_stage in ml_stages:
+        pipeline_stages += ml_stage
+
+    pipeline_stages += [assembler_features, labelIndexer]
+    pipeline = Pipeline(stages=pipeline_stages)
+    return pipeline
+
+def save_pipeline(pipeline,dir_path):
+    """
+    Need to check if any folder exist with the given name
+    if yes then 1st delete that then proceed
+    """
+    path = dir_path+"/model_pipeline"
+    pipeline.save(path)
+
+def load_pipeline(filepath):
+    model = PipelineModel.load(filepath)
+    return model
+
+def stratified_sampling(df,target_column,split):
+    levels = [x[0] for x in df.select(target_column).distinct().collect()]
+    frac = [split]*len(levels)
+    sampling_dict = dict(zip(levels,frac))
+    sampled_df = df.sampleBy(target_column, fractions = sampling_dict, seed=0)
+    return sampled_df
+
+def get_training_and_validation_data(df,target_column,split):
+    df = df.withColumn("monotonically_increasing_id", monotonically_increasing_id())
+    trainingData = stratified_sampling(df,target_column,split)
+    validationIds = df.select("monotonically_increasing_id").subtract(trainingData.select("monotonically_increasing_id"))
+    indexed = df.alias("indexed")
+    validation = validationIds.alias("validation")
+    validationData = indexed.join(validation, col("indexed.monotonically_increasing_id") == col("validation.monotonically_increasing_id"), 'inner').select("indexed.*")
+    return trainingData,validationData
+
+def calculate_sparkml_feature_importance(df,modelFit,categorical_columns,numerical_columns):
+    featureImportanceSparseVector = modelFit.featureImportances
+    feature_importance = {}
+    start_idx = 0
+    end_idx = 0
+    for level in sorted(categorical_columns):
+        count = len(df.select(level).distinct().collect())
+        end_idx += count
+        col_percentage = 0
+        for key in range(start_idx,end_idx):
+            try:
+                col_percentage += featureImportanceSparseVector[key]
+            except:
+                continue
+        feature_importance[level] = col_percentage
+        start_idx = end_idx
+    for val in sorted(numerical_columns):
+        feature_importance[val] = featureImportanceSparseVector[start_idx]
+        start_idx += 1
+    return feature_importance
