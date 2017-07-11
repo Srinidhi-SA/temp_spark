@@ -12,6 +12,8 @@
 
   The values for {{measure}} range from a minimum of {{lowestValue}} and all the way up to a maximum of {{peakValue}}.
   The total {{measure}} amount to {{total}} with the average {{measure}} per observation being {{average_value}}.
+
+  PARASEPARATOR
 {% endif %}
 
 {% if trend_present == True %}
@@ -72,6 +74,8 @@
   {% elif skew >=-0.05 and skew <= 0.05 %}
     The {{measure}} distribution is not skewed, which means that there are nearly equal contributions from low-value as well as high-value observations.
   {% endif %}
+
+  PARASEPARATOR
 
   {% if forecast == True %}
     {% if overall_growth > 0 %}
@@ -143,6 +147,8 @@
     {% endif %}
   {% endif %}
 
+  PARASEPARATOR
+
   {% if sig_dims|length == 1%}
     {{sig_dims[0]}}  have strong influence on {{measure}} as they explain significant portion of variance in {{measure}}.
   {% elif sig_dims|length == 2%}
@@ -186,6 +192,8 @@
 
   {% endif %}
 
+  PARASEPARATOR
+  
   mAdvisor has observed opportunities for improving the {{measure}} figures by engaging with other key factor and metrics.
 
   <ul>
