@@ -28,6 +28,7 @@ from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
+from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 
 
 from parser import configparser
@@ -300,7 +301,7 @@ def main(confFilePath):
         print "Executive Summary Done in ", time.time() - fs, " seconds."
         # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
 
-    elif analysistype == 'Prediction':
+    elif analysistype == 'Prediction1':
         # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
@@ -366,6 +367,18 @@ def main(confFilePath):
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
+
+    elif analysistype == 'Prediction':
+        categorical_columns = df_helper.get_string_columns()
+        numerical_columns = df_helper.get_numeric_columns()
+        result_column = dataframe_context.get_result_column()
+        drop_column_list = []
+
+        st = time.time()
+        rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
+        rf_obj.Train()
+        print "Random Foreset Model Done in ", time.time() - st,  " seconds."
+
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."
