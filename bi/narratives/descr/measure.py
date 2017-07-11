@@ -23,6 +23,7 @@ class MeasureColumnNarrative:
         self._analysis2 = None
         self.analysis = None
         self.take_away = None
+        self.card2 = ''
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/descriptive/"
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())
         self.num_dimensions = len(self._dataframe_helper.get_string_columns())
@@ -111,8 +112,10 @@ class MeasureColumnNarrative:
 
         quartile_sums = self._five_point_summary_stats.get_sums()
         quartile_means = self._five_point_summary_stats.get_means()
+        quartile_frequencies = self._five_point_summary_stats.get_frequencies()
         total = self._measure_descr_stats.get_total()
         avg = self._measure_descr_stats.get_mean()
+        counts = self._measure_descr_stats.get_num_values()
 
         data_dict = {"histogram" : histogram_buckets,
                     "per_cont_hist1" : NarrativesUtils.round_number(histogram_buckets[0]['num_records']*100/self._measure_descr_stats.get_total(), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
@@ -127,6 +130,8 @@ class MeasureColumnNarrative:
                     "start_value" : start_value,
                     "end_value" : end_value,
                     "measure_colname":self._column_name,
+                    "q4_cont" : NarrativesUtils.round_number(quartile_frequencies['q4']*100.0/counts, 2),
+                    "q1_cont" : NarrativesUtils.round_number(quartile_frequencies['q1']*100.0/counts, 2),
                     "q4_frac" : NarrativesUtils.round_number(quartile_sums['q4']*100.0/total, 2),
                     "q1_frac" : NarrativesUtils.round_number(quartile_sums['q1']*100.0/total, 2),
                     "q4_sum" : NarrativesUtils.round_number(quartile_sums['q4'], 2),
@@ -138,6 +143,20 @@ class MeasureColumnNarrative:
                     "avg" : NarrativesUtils.round_number(avg,2)
         }
         self._result_setter.update_executive_summary_data({"skew":data_dict["skew"]})
+        if abs(self._measure_descr_stats.get_skew())>0.1:
+            content = NarrativesUtils.get_template_output(self._base_dir,\
+                                            'descriptive_card2.temp',data_dict)
+            self.card2 = {}
+            self.card2['data'] = {'heading': 'Concentration of High & Low segments',
+                                    'content': content}
+            quartiles = ['q1','q2','q3','q4']
+            observations = [0.0] + [quartile_frequencies[i]*100.0/counts for i in quartiles]
+            totals = [0.0] + [quartile_sums[i]*100.0/total for i in quartiles]
+            chart = {'x-label': '% of Observations',
+                    'y-label': '% of Total '+self._column_name+' (Cumulative)',
+                    'x': list(NarrativesUtils.accumu(observations)),
+                    'y': list(NarrativesUtils.accumu(totals))}
+            self.card2['chart'] = chart
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                         'histogram_narrative.temp',data_dict)
         return output

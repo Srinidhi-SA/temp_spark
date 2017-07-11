@@ -59,6 +59,9 @@ class FivePointSummary:
     def get_sums(self):
         return self.sums
 
+    def get_frequencies(self):
+        return self.freq
+
     def get_num_outliers(self):
         return self.outliers.get(FivePointSummary.LEFT_OUTLIERS) + self.outliers.get(FivePointSummary.RIGHT_OUTLIERS)
 

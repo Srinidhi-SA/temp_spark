@@ -259,6 +259,12 @@ def longestRun(s):
     output["N"] = 1 + max(len(stars) for stars in starStrings)
     return output
 
+def accumu(lis):
+    total = 0
+    for x in lis:
+        total += x
+        yield total
+
 def continuous_streak(aggData, direction="increase"):
     data = aggData.T.to_dict().values()
     if len(data) < 2:
