@@ -301,7 +301,7 @@ def main(confFilePath):
         print "Executive Summary Done in ", time.time() - fs, " seconds."
         # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
 
-    elif analysistype == 'Prediction1':
+    elif analysistype == 'Prediction':
         # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
@@ -313,7 +313,8 @@ def main(confFilePath):
         df_helper.set_train_test_data(df)
         try:
             st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+            # rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+            rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             rf_obj.Train()
             print "Random Foreset Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
@@ -352,7 +353,8 @@ def main(confFilePath):
 
         if "RandomForest" in model_path:
             st = time.time()
-            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            # trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "XGBoost" in model_path:
@@ -368,16 +370,6 @@ def main(confFilePath):
         else:
             print "Could Not Load the Model for Scoring"
 
-    elif analysistype == 'Prediction':
-        categorical_columns = df_helper.get_string_columns()
-        numerical_columns = df_helper.get_numeric_columns()
-        result_column = dataframe_context.get_result_column()
-        drop_column_list = []
-
-        st = time.time()
-        rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
-        rf_obj.Train()
-        print "Random Foreset Model Done in ", time.time() - st,  " seconds."
 
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."

@@ -55,7 +55,7 @@ class DataFrameHelper:
         self.significant_dimensions = {}
 
     def set_params(self):
-
+        print "Setting the dataframe"
         self.columns = [field.name for field in self._data_frame.schema.fields]
         self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
         self.utf8columns = self._df_context.get_utf8_columns()
@@ -63,6 +63,10 @@ class DataFrameHelper:
         self.consider_columns = self._df_context.get_consider_columns()
         self.considercolumnstype = self._df_context.get_consider_columns_type()
 
+        ##################################################################
+        #####Ignoring the columns which user want to keep for the analysis
+        #####Also removing any utf8 columns from consider columns
+        ##################################################################
         if self.considercolumnstype[0] == "including":
             if self.consider_columns != None:
                 if self.utf8columns != None:
@@ -70,6 +74,10 @@ class DataFrameHelper:
                 for colname in self.consider_columns:
                     if colname in self.ignorecolumns:
                         self.ignorecolumns.remove(colname)
+        ##################################################################
+        #####Removing the result column from ignore column list
+        #####Also adding any utf8 columns to ignore columns
+        ##################################################################
         if self.ignorecolumns != None:
             if self.resultcolumn in self.ignorecolumns:
                 self.ignorecolumns.remove(self.resultcolumn)
@@ -78,14 +86,16 @@ class DataFrameHelper:
         else:
             if self.utf8columns != None:
                 self.ignorecolumns = self.utf8columns
-
+        ##################################################################
+        #####dropping or keeping columns based on ignore or consider column
+        ##################################################################
         self.drop_ignore_columns()
-        #self.df_filterer = DataFrameFilterer(self._data_frame)
-        #self.dimension_filter = self._df_context.get_dimension_filters()
         self._subset_data()
 
-        self.measure_suggestions = self._df_context.get_measure_suggestions()
+        #self.df_filterer = DataFrameFilterer(self._data_frame)
+        #self.dimension_filter = self._df_context.get_dimension_filters()
 
+        self.measure_suggestions = self._df_context.get_measure_suggestions()
         if self.measure_suggestions != None:
             if self.ignorecolumns != None:
                 self.measure_suggestions = list(set(self.measure_suggestions)-set(self.ignorecolumns))
@@ -97,19 +107,17 @@ class DataFrameHelper:
                     self.clean_data_frame()
         # for colmn in self.dimension_filter.keys():
         #     self.df_filterer.values_in(colmn, self.dimension_filter[colmn])
-        #
         # self.measure_filter = self._df_context.get_measure_filters()
         # print self.measure_filter
         # for colmn in self.measure_filter.keys():
         #     self.df_filterer.values_between(colmn, self.measure_filter[colmn][0],self.measure_filter[colmn][1],1,1)
-
         # self._data_frame = self.df_filterer.get_filtered_data_frame()
         self.date_settings = self._df_context.get_date_settings()
         self.columns = [field.name for field in self._data_frame.schema.fields]
         for colmn in self.date_settings.keys():
             if colmn in self.columns:
                 self.change_to_date(colmn, self.date_settings[colmn][0])
-                # print self.date_settings[colmn][0]
+
         #self.date_filter = self._df_context.get_date_filters()
         #for colmn in self.date_filter.keys():
         #    self.df_filterer.dates_between(colmn, dt.date(int(self.date_filter[colmn][2]),int(self.date_filter[colmn][1]),int(self.date_filter[colmn][0])),

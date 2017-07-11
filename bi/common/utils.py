@@ -183,16 +183,20 @@ def dateTimeFormatsSupported():
     return data
 
 def write_to_file(filepath,obj):
+    if filepath.startswith("file"):
+        filepath = filepath[7:]
     f = open(filepath, 'w')
     f.write(obj)
     f.close()
 
-def get_level_count_dict(df,categorical_columns,separator,output_type="string"):
+def get_level_count_dict(df,categorical_columns,separator,output_type="string",dataType="pandas"):
     count_dict = {}
     out = []
     for col in categorical_columns:
-        # count_dict[col] = len(df.select(col).distinct().collect())
-        count_dict[col] = len(df[col].unique())
+        if dataType == "spark":
+            count_dict[col] = len(df.select(col).distinct().collect())
+        else:
+            count_dict[col] = len(df[col].unique())
         out.append(col)
         out.append(str(count_dict[col]))
     if output_type == "string":

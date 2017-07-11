@@ -1,4 +1,7 @@
 import random
+import os
+import shutil
+import json
 
 import numpy as np
 import pandas as pd
@@ -17,6 +20,7 @@ from pyspark.ml.feature import OneHotEncoder
 from pyspark.ml.pipeline import PipelineModel
 from pyspark.ml.feature import IndexToString, StringIndexer
 from pyspark.sql.functions import monotonically_increasing_id
+from pyspark.ml.classification import RandomForestClassificationModel
 
 
 def generate_random_number_array(df):
@@ -146,6 +150,7 @@ def calculate_confusion_matrix(actual,predicted):
     return dict_out
 
 def calculate_overall_precision_recall(actual,predicted):
+    # get positive or negative class from the user
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
     classes = df["actual"].unique()
     val_counts_predicted = df["predicted"].value_counts().to_dict()
@@ -304,16 +309,23 @@ def create_ml_pipeline(numerical_columns,categorical_columns,target_column):
     pipeline = Pipeline(stages=pipeline_stages)
     return pipeline
 
-def save_pipeline(pipeline,dir_path):
+def save_pipeline_or_model(pipeline,dir_path):
     """
     Need to check if any folder exist with the given name
     if yes then 1st delete that then proceed
     """
-    path = dir_path+"/model_pipeline"
-    pipeline.save(path)
+    if dir_path.startswith("file"):
+        new_path = dir_path[7:]
+    if os.path.isdir(new_path):
+        shutil.rmtree(new_path)
+    pipeline.save(dir_path)
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
+    return model
+
+def load_rf_model(filepath):
+    model = RandomForestClassificationModel.load(filepath)
     return model
 
 def stratified_sampling(df,target_column,split):
@@ -352,3 +364,17 @@ def calculate_sparkml_feature_importance(df,modelFit,categorical_columns,numeric
         feature_importance[val] = featureImportanceSparseVector[start_idx]
         start_idx += 1
     return feature_importance
+
+def read_string_indexer_mapping(pipeline_path,sqlContext):
+    metadata = sqlContext.read.text(pipeline_path+"/metadata")
+    stageuids = json.loads(metadata.take(1)[0][0])["paramMap"]["stageUids"]
+    if len(stageuids) < 11:
+        parquet_key = "0"+str(len(stageuids)-1)+"_"+stageuids[-1]
+    else:
+        parquet_key = str(len(stageuids)-1)+"_"+stageuids[-1]
+    parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
+    level_df = sqlContext.read.parquet(parquet_filepath)
+    levels = [str(v) for v in  [x[0] for x in level_df.select("labels").collect()][0]]
+    mapping_dict = dict(enumerate(levels))
+    return mapping_dict
+    
