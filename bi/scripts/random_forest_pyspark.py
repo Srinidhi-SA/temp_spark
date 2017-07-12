@@ -59,7 +59,7 @@ class RandomForestPysparkScript:
         f = open("/tmp/temporary_log.txt","a")
         f.write(pipeline_filepath+"\n")
         f.write("pipeline model done\n")
-
+        print pipeline_filepath
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         f.write("pipeline model daved\n")
         trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)

@@ -317,9 +317,11 @@ def save_pipeline_or_model(pipeline,dir_path):
     """
     if dir_path.startswith("file"):
         new_path = dir_path[7:]
+    else:
+        new_path = dir_path
     if os.path.isdir(new_path):
         shutil.rmtree(new_path)
-    pipeline.save(dir_path)
+    pipeline.save(new_path)
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
