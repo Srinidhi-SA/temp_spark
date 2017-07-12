@@ -129,6 +129,8 @@ class RandomForestPysparkScript:
         test_data_path = self._dataframe_context.get_input_file()
         score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
         trained_model_path = self._dataframe_context.get_model_path()
+        if trained_model_path.endswith(".pkl"):
+            trained_model_path = "/".join(trained_model_path.split("/")[:-1])+"/model"
         pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
 
