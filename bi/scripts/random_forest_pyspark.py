@@ -149,19 +149,6 @@ class RandomForestPysparkScript:
         probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
         probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
-        inner_keys =  self._score_summary["prediction_split"][self._score_summary["prediction_split"].keys()[0]].keys()
-        pred_split_new = [["Range"],[inner_keys[0]],[inner_keys[1]]]
-        for k,v in self._score_summary["prediction_split"].items():
-            pred_split_new[0].append(k)
-            if inner_keys[0] in v:
-                pred_split_new[1].append(v[inner_keys[0]])
-            else:
-                pred_split_new[1].append(0)
-            if inner_keys[1] in v:
-                pred_split_new[2].append(v[inner_keys[1]])
-            else:
-                pred_split_new[2].append(0)
-        self._score_summary["prediction_split"] = pred_split_new
         self._score_summary["result_column"] = result_column
         scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
         # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
@@ -204,17 +191,17 @@ class RandomForestPysparkScript:
         except:
             print "Frequency Analysis Failed "
 
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-            df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-            CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj,self._dataframe_context))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-        except:
-            print "ChiSquare Analysis Failed "
+        # try:
+        fs = time.time()
+        narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+        result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
+        df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
+        df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
+        # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
+        CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
+        chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj,self._dataframe_context))
+        # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
+        CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
+        print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+        # except:
+        #     print "ChiSquare Analysis Failed "
