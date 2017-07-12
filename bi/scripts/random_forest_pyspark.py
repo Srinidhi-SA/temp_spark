@@ -80,7 +80,7 @@ class RandomForestPysparkScript:
             self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "areaUnderPR"}) # accuracy of the model
 
 
-        self._model_summary["feature_importance"] = feature_importance
+        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(feature_importance)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
         transformed = OriginalTargetconverter.transform(transformed)
