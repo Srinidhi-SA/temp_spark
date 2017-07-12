@@ -18,11 +18,20 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from pyspark.ml.classification import RandomForestClassifier as RF
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+from pyspark.ml.feature import IndexToString, StringIndexer
+from pyspark.sql.functions import col, udf
+from pyspark.sql.types import *
 
 
 
 
-class RandomForestScript:
+
+
+
+class RandomForestPysparkScript:
     def __init__(self, data_frame, df_helper,df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
@@ -36,24 +45,53 @@ class RandomForestScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
+        categorical_columns = [x for x in categorical_columns if x != result_column]
+
         model_path = self._dataframe_context.get_model_path()
-
-        random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
-        x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-        clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
-        objs = random_forest_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
-
-        model_filepath = model_path+"/RandomForest/TrainedModels/model.pkl"
+        pipeline_filepath = model_path+"/RandomForest/TrainedModels/pipeline"
+        model_filepath = model_path+"/RandomForest/TrainedModels/model"
         summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
-        trained_model_string = pickle.dumps(objs["trained_model"])
-        joblib.dump(objs["trained_model"],model_filepath)
-        # confusion matrix keys are the predicted class
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
-        self._model_summary["feature_importance"] = objs["feature_importance"]
-        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
-        self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
+
+        df = self._data_frame
+        pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column)
+        pipelineModel = pipeline.fit(df)
+        indexed = pipelineModel.transform(df)
+        MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
+
+        trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
+        OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
+
+        rf = RF(labelCol='label', featuresCol='features',numTrees=200)
+        fit = rf.fit(trainingData)
+        MLUtils.save_pipeline_or_model(fit,model_filepath)
+        transformed = fit.transform(validationData)
+        feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
+
+        label_classes = transformed.select("label").distinct().collect()
+        results = transformed.select(["prediction","label"])
+        if len(label_classes) > 2:
+            evaluator = MulticlassClassificationEvaluator(predictionCol="prediction")
+            evaluator.evaluate(results)
+            self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "accuracy"}) # accuracy of the model
+        else:
+            evaluator = BinaryClassificationEvaluator(rawPredictionCol="prediction")
+            evaluator.evaluate(results)
+            # print evaluator.evaluate(results,{evaluator.metricName: "areaUnderROC"})
+            # print evaluator.evaluate(results,{evaluator.metricName: "areaUnderPR"})
+            self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "areaUnderPR"}) # accuracy of the model
+
+
+        self._model_summary["feature_importance"] = feature_importance
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
+        transformed = OriginalTargetconverter.transform(transformed)
+        label_indexer_dict = [dict(enumerate(field.metadata["ml_attr"]["vals"])) for field in transformed.schema.fields if field.name == "label"][0]
+        prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
+        transformed = transformed.withColumn("predictedClass",prediction_to_levels(transformed.prediction))
+        prediction_df = transformed.select(["originalTargetColumn","predictedClass"]).toPandas()
+        objs = {"actual":prediction_df["originalTargetColumn"],"predicted":prediction_df["predictedClass"]}
+
+        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary["precision_recall_stats"] = overall_precision_recall["classwise_stats"]
         self._model_summary["model_precision"] = overall_precision_recall["precision"]
@@ -62,23 +100,25 @@ class RandomForestScript:
         self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
         self._model_summary["algorithm_name"] = "Random Forest"
         self._model_summary["validation_method"] = "Train and Test"
-        self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
-        cat_cols = list(set(categorical_columns)-set([result_column]))
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
-
+        self._model_summary["independent_variables"] = len(categorical_columns)+len(numerical_columns)
+        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(trainingData,categorical_columns,self._dataframe_context.get_column_separator(),dataType="spark")
+        # print json.dumps(self._model_summary,indent=2)
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
-
-        # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
-        # print self._model_summary
         CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
+
     def Predict(self):
-        # Match with the level_counts and then clean the data
+        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
-        cat_cols = self._dataframe_helper.get_string_columns()
-        level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,cat_cols,self._dataframe_context.get_column_separator(),output_type="dict")
+        categorical_columns = self._dataframe_helper.get_string_columns()
+        numerical_columns = self._dataframe_helper.get_numeric_columns()
+        time_dimension_columns = self._dataframe_helper.get_timestamp_columns()
+        result_column = self._dataframe_context.get_result_column()
+        categorical_columns = [x for x in categorical_columns if x != result_column]
+
+        level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,categorical_columns,self._dataframe_context.get_column_separator(),output_type="dict",dataType="spark")
         for key in level_counts_train:
             if key in level_counts_score:
                 if level_counts_train[key] != level_counts_score[key]:
@@ -86,24 +126,29 @@ class RandomForestScript:
             else:
                 dataSanity = False
 
-        random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
-        categorical_columns = self._dataframe_helper.get_string_columns()
-        numerical_columns = self._dataframe_helper.get_numeric_columns()
-        result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
         score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
         trained_model_path = self._dataframe_context.get_model_path()
+        if trained_model_path.endswith(".pkl"):
+            trained_model_path = "/".join(trained_model_path.split("/")[:-1])+"/model"
+        pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
 
-        trained_model = joblib.load(trained_model_path)
-        # pandas_df = self._data_frame.toPandas()
+        pipelineModel = MLUtils.load_pipeline(pipeline_path)
+        trained_model = MLUtils.load_rf_model(trained_model_path)
         df = self._data_frame
-        pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        score = random_forest_obj.predict(pandas_df,trained_model,[result_column])
-        df["predicted_class"] = score["predicted_class"]
-        df["predicted_probability"] = score["predicted_probability"]
-        self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
-
+        indexed = pipelineModel.transform(df)
+        transformed = trained_model.transform(indexed)
+        label_indexer_dict = MLUtils.read_string_indexer_mapping(pipeline_path,SQLctx)
+        prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
+        transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
+        # udf_to_calculate_probability = udf(lambda x:max(x[0]))
+        # transformed = transformed.withColumn("predicted_probability",udf_to_calculate_probability(transformed.probability))
+        # print transformed.select("predicted_probability").show(5)
+        probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
+        probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
+        probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
+        self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
         inner_keys =  self._score_summary["prediction_split"][self._score_summary["prediction_split"].keys()[0]].keys()
         pred_split_new = [["Range"],[inner_keys[0]],[inner_keys[1]]]
         for k,v in self._score_summary["prediction_split"].items():
@@ -117,11 +162,13 @@ class RandomForestScript:
             else:
                 pred_split_new[2].append(0)
         self._score_summary["prediction_split"] = pred_split_new
-
         self._score_summary["result_column"] = result_column
-
-        df = df.rename(index=str, columns={"predicted_class": result_column})
-        df.to_csv(score_data_path,header=True,index=False)
+        scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
+        # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
+        if score_data_path.startswith("file"):
+            score_data_path = score_data_path[7:]
+        scored_dataframe.to_csv(score_data_path,header=True,index=False)
+        # print json.dumps({"scoreSummary":self._score_summary},indent=2)
         CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
 
@@ -138,19 +185,11 @@ class RandomForestScript:
                     columns_to_keep = considercolumns
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
-        else:
-            columns_to_drop += ["predicted_probability"]
-        df.drop(columns_to_drop, axis=1, inplace=True)
-        # # Dropping predicted_probability column
-        # df.drop('predicted_probability', axis=1, inplace=True)
-        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        spark_scored_df = SQLctx.createDataFrame(df)
-        # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
-
-        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
+        spark_scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
+        modified_df = spark_scored_df.select([x for x in spark_scored_df.columns if x not in columns_to_drop])
+        df_helper = DataFrameHelper(modified_df, self._dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        # result_column = "predicted_class"
         try:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"

@@ -118,8 +118,14 @@ class LogisticRegressionScript:
         pred_split_new = [["Range"],[inner_keys[0]],[inner_keys[1]]]
         for k,v in self._score_summary["prediction_split"].items():
             pred_split_new[0].append(k)
-            pred_split_new[1].append(v[inner_keys[0]])
-            pred_split_new[2].append(v[inner_keys[1]])
+            if inner_keys[0] in v:
+                pred_split_new[1].append(v[inner_keys[0]])
+            else:
+                pred_split_new[1].append(0)
+            if inner_keys[1] in v:
+                pred_split_new[2].append(v[inner_keys[1]])
+            else:
+                pred_split_new[2].append(0)
         self._score_summary["prediction_split"] = pred_split_new
 
         self._score_summary["result_column"] = result_column
