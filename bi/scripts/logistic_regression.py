@@ -35,11 +35,16 @@ class LogisticRegressionScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
-
+        if model_path.startswith("file"):
+            model_path = model_path[7:]
         levels = self._data_frame[result_column].unique()
         logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         logistic_regression_obj.set_number_of_levels(levels)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
+        cat_cols = list(set(categorical_columns)-set([result_column]))
+        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
+        x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
+        x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
 
         clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
         objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])
@@ -62,11 +67,8 @@ class LogisticRegressionScript:
         self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
         self._model_summary["algorithm_name"] = "Logistic Regression"
         self._model_summary["validation_method"] = "Train and Test"
-        self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
-        self._model_summary["trained_model_features"] = self._column_separator.join(x_train.columns+[result_column])
-        cat_cols = list(set(categorical_columns)-set([result_column]))
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
-
+        self._model_summary["independent_variables"] = len(cat_cols)
+        self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
         CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
@@ -91,16 +93,21 @@ class LogisticRegressionScript:
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
         score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
+        if score_data_path.startswith("file"):
+            score_data_path = score_data_path[7:]
         trained_model_path = self._dataframe_context.get_model_path()
+        if trained_model_path.startswith("file"):
+            trained_model_path = trained_model_path[7:]
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
+        if score_summary_path.startswith("file"):
+            score_summary_path = score_summary_path[7:]
         model_columns = self._dataframe_context.get_model_features()
 
 
         trained_model = joblib.load(trained_model_path)
-        # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
-        # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
+        pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        pandas_df = MLUtils.create_dummy_columns(pandas_df,[x for x in categorical_columns if x != result_column])
         existing_columns = pandas_df.columns
         new_columns = list(set(existing_columns)-set(model_columns))
         missing_columns = list(set(model_columns)-set(existing_columns)-set(result_column))
@@ -111,23 +118,7 @@ class LogisticRegressionScript:
         score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
-
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
-
-        inner_keys =  self._score_summary["prediction_split"][self._score_summary["prediction_split"].keys()[0]].keys()
-        pred_split_new = [["Range"],[inner_keys[0]],[inner_keys[1]]]
-        for k,v in self._score_summary["prediction_split"].items():
-            pred_split_new[0].append(k)
-            if inner_keys[0] in v:
-                pred_split_new[1].append(v[inner_keys[0]])
-            else:
-                pred_split_new[1].append(0)
-            if inner_keys[1] in v:
-                pred_split_new[2].append(v[inner_keys[1]])
-            else:
-                pred_split_new[2].append(0)
-        self._score_summary["prediction_split"] = pred_split_new
-
         self._score_summary["result_column"] = result_column
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)

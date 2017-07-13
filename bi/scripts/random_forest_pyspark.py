@@ -57,7 +57,6 @@ class RandomForestPysparkScript:
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
-
         trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
         OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
 
@@ -81,7 +80,7 @@ class RandomForestPysparkScript:
             self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "areaUnderPR"}) # accuracy of the model
 
 
-        self._model_summary["feature_importance"] = feature_importance
+        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(feature_importance)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
         transformed = OriginalTargetconverter.transform(transformed)
@@ -149,19 +148,6 @@ class RandomForestPysparkScript:
         probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
         probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
-        inner_keys =  self._score_summary["prediction_split"][self._score_summary["prediction_split"].keys()[0]].keys()
-        pred_split_new = [["Range"],[inner_keys[0]],[inner_keys[1]]]
-        for k,v in self._score_summary["prediction_split"].items():
-            pred_split_new[0].append(k)
-            if inner_keys[0] in v:
-                pred_split_new[1].append(v[inner_keys[0]])
-            else:
-                pred_split_new[1].append(0)
-            if inner_keys[1] in v:
-                pred_split_new[2].append(v[inner_keys[1]])
-            else:
-                pred_split_new[2].append(0)
-        self._score_summary["prediction_split"] = pred_split_new
         self._score_summary["result_column"] = result_column
         scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
         # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})

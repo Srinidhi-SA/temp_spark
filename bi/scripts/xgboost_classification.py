@@ -34,7 +34,8 @@ class XgboostScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
-
+        if model_path.startswith("file"):
+            model_path = model_path[7:]
         xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
         clf_xgb = xgboost_obj.initiate_xgboost_classifier()
@@ -90,9 +91,14 @@ class XgboostScript:
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
         score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
+        if score_data_path.startswith("file"):
+            score_data_path = score_data_path[7:]
         trained_model_path = self._dataframe_context.get_model_path()
+        if trained_model_path.startswith("file"):
+            trained_model_path = trained_model_path[7:]
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
-
+        if score_summary_path.startswith("file"):
+            score_summary_path = score_summary_path[7:]
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
@@ -101,21 +107,6 @@ class XgboostScript:
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
-
-        inner_keys =  self._score_summary["prediction_split"][self._score_summary["prediction_split"].keys()[0]].keys()
-        pred_split_new = [["Range"],[inner_keys[0]],[inner_keys[1]]]
-        for k,v in self._score_summary["prediction_split"].items():
-            pred_split_new[0].append(k)
-            if inner_keys[0] in v:
-                pred_split_new[1].append(v[inner_keys[0]])
-            else:
-                pred_split_new[1].append(0)
-            if inner_keys[1] in v:
-                pred_split_new[2].append(v[inner_keys[1]])
-            else:
-                pred_split_new[2].append(0)
-        self._score_summary["prediction_split"] = pred_split_new
-
         self._score_summary["result_column"] = result_column
 
         df = df.rename(index=str, columns={"predicted_class": result_column})
@@ -147,7 +138,6 @@ class XgboostScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        # result_column = "predicted_class"
         try:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
@@ -155,6 +145,9 @@ class XgboostScript:
             df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
             CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
+            f.write("frew results \n")
+            f.write(json.dumps(df_freq_dimension_result))
+            f.close()
             # Narratives
             narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
             narratives = CommonUtils.as_dict(narratives_obj)

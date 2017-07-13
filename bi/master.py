@@ -302,15 +302,6 @@ def main(confFilePath):
         # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
 
     elif analysistype == 'Prediction':
-        # df_helper.remove_nulls(dataframe_context.get_result_column())
-        df = df.toPandas()
-        df = df.dropna()
-        categorical_columns = df_helper.get_string_columns()
-        result_column = dataframe_context.get_result_column()
-        drop_column_list = []
-        df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
-        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        df_helper.set_train_test_data(df)
         try:
             st = time.time()
             # rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
@@ -322,7 +313,15 @@ def main(confFilePath):
             print "ERROR"*5
             print e
             print "ERROR"*5
-
+        # df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df.toPandas()
+        df = df.dropna()
+        categorical_columns = df_helper.get_string_columns()
+        result_column = dataframe_context.get_result_column()
+        drop_column_list = []
+        df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
+        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        df_helper.set_train_test_data(df)
         try:
             st = time.time()
             lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
@@ -346,11 +345,7 @@ def main(confFilePath):
             print "ERROR"*5
 
     elif analysistype == 'Scoring':
-        # df_helper.remove_nulls(dataframe_context.get_result_column())
-        df = df.toPandas()
-        df = df.dropna()
         model_path = dataframe_context.get_model_path()
-
         if "RandomForest" in model_path:
             st = time.time()
             # trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
@@ -358,11 +353,17 @@ def main(confFilePath):
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "XGBoost" in model_path:
+            # df_helper.remove_nulls(dataframe_context.get_result_column())
+            df = df.toPandas()
+            df = df.dropna()
             st = time.time()
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "LogisticRegression" in model_path:
+            # df_helper.remove_nulls(dataframe_context.get_result_column())
+            df = df.toPandas()
+            df = df.dropna()
             st = time.time()
             trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()

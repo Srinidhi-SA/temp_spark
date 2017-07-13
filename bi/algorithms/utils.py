@@ -227,7 +227,8 @@ def calculate_scored_probability_stats(scored_dataframe):
     for key in output.keys():
         if output[key] == {}:
             output.pop(key, None)
-    return output
+
+    return reformat_prediction_split(output)
 
 def create_dummy_columns(df,colnames):
     df1 = df[[col for col in df.columns if col not in colnames]]
@@ -316,9 +317,11 @@ def save_pipeline_or_model(pipeline,dir_path):
     """
     if dir_path.startswith("file"):
         new_path = dir_path[7:]
+    else:
+        new_path = dir_path
     if os.path.isdir(new_path):
         shutil.rmtree(new_path)
-    pipeline.save(dir_path)
+    pipeline.save(new_path)
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
@@ -377,4 +380,20 @@ def read_string_indexer_mapping(pipeline_path,sqlContext):
     levels = [str(v) for v in  [x[0] for x in level_df.select("labels").collect()][0]]
     mapping_dict = dict(enumerate(levels))
     return mapping_dict
-    
+
+def reformat_prediction_split(prediction_split):
+    inner_keys = []
+    for key,val in prediction_split.items():
+        inner_keys += val.keys()
+    inner_keys = list(set(inner_keys))
+    pred_split_new = [["Range"]]
+    for val in inner_keys:
+        pred_split_new.append([val])
+    for k,v in prediction_split.items():
+        pred_split_new[0].append(k)
+        for idx,val in enumerate(pred_split_new[1:]):
+            if val[0] in v:
+                pred_split_new[idx+1].append(v[val[0]])
+            else:
+                pred_split_new[idx+1].append(0)
+    return pred_split_new
