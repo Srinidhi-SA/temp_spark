@@ -145,9 +145,6 @@ class XgboostScript:
             df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
             CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            f.write("frew results \n")
-            f.write(json.dumps(df_freq_dimension_result))
-            f.close()
             # Narratives
             narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
             narratives = CommonUtils.as_dict(narratives_obj)

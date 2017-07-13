@@ -313,6 +313,7 @@ def main(confFilePath):
             print "ERROR"*5
             print e
             print "ERROR"*5
+
         # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()

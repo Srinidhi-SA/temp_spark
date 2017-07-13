@@ -321,7 +321,7 @@ def save_pipeline_or_model(pipeline,dir_path):
         new_path = dir_path
     if os.path.isdir(new_path):
         shutil.rmtree(new_path)
-    pipeline.save(new_path)
+    pipeline.save(dir_path)
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
