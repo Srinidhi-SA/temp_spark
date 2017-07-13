@@ -30,6 +30,7 @@ class DecisionTrees:
         self._success = {}
         self._probability = {}
         self._alias_dict = {}
+        self._important_vars = {}
 
     def parse(self, lines, df):
         block = []
@@ -84,10 +85,13 @@ class DecisionTrees:
 
     @accepts(object, rule_list=list,target=str)
     def extract_rules(self, rule_list, target):
+        if not self._important_vars.has_key(target):
+            self._important_vars[target] = []
         DFF = DataFrameFilterer(self._data_frame1)
         colname = self._target_dimension
         success = 0
         total = 0
+        important_vars = []
         for rule in rule_list:
             if ' <= ' in rule:
                 var,limit = re.split(' <= ',rule)
@@ -105,10 +109,12 @@ class DecisionTrees:
                 levels=levels[1:-1].split(",")
                 levels = [self._alias_dict[x] for x in levels]
                 DFF.values_in(var,levels)
+            important_vars.append(var)
         for rows in DFF.get_aggregated_result(colname,target):
             if(rows[0]==target):
                 success = rows[1]
             total = total + rows[1]
+        self._important_vars[target] = list(set(self._important_vars[target] + important_vars))
         if (total > 0):
             if not self._new_rules.has_key(target):
                 self._new_rules[target] = []
@@ -176,6 +182,7 @@ class DecisionTrees:
         mapping_dict = {}
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
+        decision_tree_result.set_freq_distribution(self.calculate_frequencies(), self._important_vars)
         for column in all_dimensions:
             mapping_dict[column] = dict(enumerate(self._data_frame.select(column).distinct().rdd.map(lambda x: str(x[0])).collect()))
         # for c in mapping_dict:
@@ -222,4 +229,9 @@ class DecisionTrees:
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
+
         return decision_tree_result
+
+    def calculate_frequencies(self):
+        freq_tab = self._data_frame.dropna(subset = [self._target_dimension]).groupby(self._target_dimension).count().toPandas()
+        return dict([tuple(x) for x in freq_tab.values])
