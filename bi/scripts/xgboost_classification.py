@@ -74,7 +74,6 @@ class XgboostScript:
 
 
     def Predict(self):
-        f = open("/tmp/guls_temp.txt","a")
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
         cat_cols = self._dataframe_helper.get_string_columns()
@@ -100,9 +99,6 @@ class XgboostScript:
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
         if score_summary_path.startswith("file"):
             score_summary_path = score_summary_path[7:]
-        f.write(score_data_path+"\n")
-        f.write(trained_model_path+"\n")
-        f.write(score_summary_path+"\n")
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
@@ -110,16 +106,10 @@ class XgboostScript:
         score = xgboost_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
-        print df.head()
-        f.write("|".join(df.columns)+"\n")
-        f.write("columns before")
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column
 
         df = df.rename(index=str, columns={"predicted_class": result_column})
-        print df.head()
-        f.write("|".join(df.columns)+"\n")
-        f.write("columns after\n")
         df.to_csv(score_data_path,header=True,index=False)
         CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
@@ -148,8 +138,6 @@ class XgboostScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        f.write("|".join(df.columns)+"\n")
-        # result_column = "predicted_class"
         try:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
