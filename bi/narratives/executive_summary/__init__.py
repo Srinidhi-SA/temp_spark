@@ -27,7 +27,8 @@ class ExecutiveSummaryNarrative:
         anova_data = []
         for val in sig_dimension_dict:
             sig_dims.append(val)
-            anova_data.append(narrative_data_dict[val])
+            if val in narrative_data_dict:
+                anova_data.append(narrative_data_dict[val])
         narrative_data_dict["sig_dims"] = sig_dims
         narrative_data_dict["anova_data"] = anova_data
         # print json.dumps(narrative_data_dict,indent=2)
