@@ -4,7 +4,6 @@ import json
 import pandas as pd
 from pyspark.sql import functions as FN
 from pyspark.sql.functions import sum
-
 from bi.narratives import utils as NarrativesUtils
 
 
@@ -17,12 +16,11 @@ class ExecutiveSummaryNarrative:
 
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/executiveSummary/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/executiveSummary/"
-
+        self.executive_summary = None
         self.generate_narratives()
 
     def generate_narratives(self):
         narrative_data_dict = self._result_setter.get_executive_summary_data()
-
         sig_dimension_dict = self._dataframe_helper.get_significant_dimension()
         sig_dimension_dict = sorted(sig_dimension_dict,key=lambda x:abs(sig_dimension_dict[x]),reverse=True)
         sig_dims = []
@@ -36,8 +34,10 @@ class ExecutiveSummaryNarrative:
         executive_summary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'executive_summary.temp',narrative_data_dict)
         executive_summary_paragraphs = NarrativesUtils.paragraph_splitter(executive_summary)
-        print executive_summary_paragraphs
+        self.executive_summary = executive_summary_paragraphs
 
+    def get_executive_summary_narratives(self):
+        return self.executive_summary
 
 __all__ = [
     'ExecutiveSummaryNarrative'

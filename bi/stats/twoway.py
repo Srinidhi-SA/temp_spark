@@ -9,6 +9,8 @@ from bi.common.results import DFTwoWayAnovaResult
 from bi.common.results import MeasureAnovaResult
 from bi.common.results import TopDimensionStats, TrendResult
 
+from bi.narratives import utils as NarrativesUtils
+
 #from bi.stats.descr import DescriptiveStats
 
 """
@@ -33,12 +35,7 @@ class TwoWayAnova:
         self._dimension_columns = self._data_frame_helper.get_string_columns()
         self._df_rows = self._data_frame_helper.get_num_rows()
         self.top_dimension_result = {}
-        self._dateFormatConversionDict = {
-            "mm/dd/YYYY":"%m/%d/%Y",
-            "dd/mm/YYYY":"%d/%m/%Y",
-            "YYYY/mm/dd":"%Y/%m/%d",
-            "dd <month> YYYY":"%d %b,%Y"
-        }
+        self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._dateFormatDetected = False
         self.trend_result = ''
         self.get_primary_time_dimension(df_context)

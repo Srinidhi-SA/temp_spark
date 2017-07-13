@@ -160,43 +160,45 @@
   {% endif %}
 
   {% if sig_dims|length == 1%}
+    {% if anova_data|length == 1%}
 
-    {% if anova_data[0]["num_red_alert"] == 1 %}
-      {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} is not performing well both in terms of {{target}} contribution and growth.
-    {% elif anova_data[0]["num_red_alert"] == 2 %}
-      {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} and {{anova_data[0]["red_alert"][1]}} are not performing well both in terms of {{target}} contribution and growth.
-    {% elif anova_data[0]["num_red_alert"] > 2 %}
-      {{anova_data[0]["red_alert"][0]}},
-      {{anova_data[0]["red_alert"][1]}} and {{anova_data[0]["red_alert"][2]}}
+      {% if anova_data[0]["num_red_alert"] == 1 %}
+        {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} is not performing well both in terms of {{target}} contribution and growth.
+      {% elif anova_data[0]["num_red_alert"] == 2 %}
+        {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} and {{anova_data[0]["red_alert"][1]}} are not performing well both in terms of {{target}} contribution and growth.
+      {% elif anova_data[0]["num_red_alert"] > 2 %}
+        {{anova_data[0]["red_alert"][0]}},
+        {{anova_data[0]["red_alert"][1]}} and {{anova_data[0]["red_alert"][2]}}
+      {% endif %}
     {% endif %}
-
   {% elif sig_dims|length >= 2%}
-
-    {% if anova_data[0]["num_red_alert"] == 1 %}
-      {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} is not performing well both in terms of {{target}} contribution and growth.
-    {% elif anova_data[0]["num_red_alert"] == 2 %}
-      {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} and {{anova_data[0]["red_alert"][1]}} are not performing well both in terms of {{target}} contribution and growth.
-    {% elif anova_data[0]["num_red_alert"] > 2 %}
-      {{anova_data[0]["red_alert"][0]}},
-      {{anova_data[0]["red_alert"][1]}} and {{anova_data[0]["red_alert"][2]}}
+    {% if anova_data|length == 2%}
+      {% if anova_data[0]["num_red_alert"] == 1 %}
+        {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} is not performing well both in terms of {{target}} contribution and growth.
+      {% elif anova_data[0]["num_red_alert"] == 2 %}
+        {{sig_dims[0]}} - {{anova_data[0]["red_alert"][0]}} and {{anova_data[0]["red_alert"][1]}} are not performing well both in terms of {{target}} contribution and growth.
+      {% elif anova_data[0]["num_red_alert"] > 2 %}
+        {{anova_data[0]["red_alert"][0]}},
+        {{anova_data[0]["red_alert"][1]}} and {{anova_data[0]["red_alert"][2]}}
+      {% endif %}
+      Also,
+      {% if anova_data[1]["num_red_alert"] == 1 %}
+        {{sig_dims[1]}} - {{anova_data[1]["red_alert"][0]}} is not performing well both in terms of {{target}} contribution and growth.
+      {% elif anova_data[1]["num_red_alert"] == 2 %}
+        {{sig_dims[1]}} - {{anova_data[1]["red_alert"][0]}} and {{anova_data[1]["red_alert"][1]}} are not performing well both in terms of {{target}} contribution and growth.
+      {% elif anova_data[1]["num_red_alert"] > 2 %}
+        {{anova_data[1]["red_alert"][0]}},
+        {{anova_data[1]["red_alert"][1]}} and {{anova_data[1]["red_alert"][2]}}
+      {% endif %}
     {% endif %}
-    Also,
-    {% if anova_data[1]["num_red_alert"] == 1 %}
-      {{sig_dims[1]}} - {{anova_data[1]["red_alert"][0]}} is not performing well both in terms of {{target}} contribution and growth.
-    {% elif anova_data[1]["num_red_alert"] == 2 %}
-      {{sig_dims[1]}} - {{anova_data[1]["red_alert"][0]}} and {{anova_data[1]["red_alert"][1]}} are not performing well both in terms of {{target}} contribution and growth.
-    {% elif anova_data[1]["num_red_alert"] > 2 %}
-      {{anova_data[1]["red_alert"][0]}},
-      {{anova_data[1]["red_alert"][1]}} and {{anova_data[1]["red_alert"][2]}}
-    {% endif %}
-
   {% endif %}
 
   PARASEPARATOR
-  
+
   mAdvisor has observed opportunities for improving the {{measure}} figures by engaging with other key factor and metrics.
 
   <ul>
+    {% if anova_data|length > 0%}
     <li>
       Focusing more on {{sig_dims[0]}},
       {% if anova_data[0]["num_red_alert"] == 1 %}
@@ -209,6 +211,7 @@
       would enhance overall {{measure}}, as they show high potential for growth
       and hold significant portion of current {{measure}}.
     </li>
+    {% endif %}
        A one percentage increase in {{measure_column}} for the segment, where
        {% if freq["high1high2"]|length == 1 %}
           {{freq["high1high2"][0][2]}} ({{freq["high1high2"][0][0]}}).
