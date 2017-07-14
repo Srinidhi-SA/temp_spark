@@ -75,7 +75,9 @@ class DecisionTreeRegNarrative:
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_reg_card2.temp',data_dict))
         self.card2_chart = {'sum' : dict([(k,v['sum']) for k,v in self._target_distribution.items()]),
-                            'mean': dict([(k,v['sum']*1.0/v['count']) for k,v in self._target_distribution.items()])}
+                            'mean': dict([(k,v['sum']*1.0/v['count']) for k,v in self._target_distribution.items()]),
+                            'legends': {'sum': self._capitalized_column_name+' Total',
+                                        'mean': self._capitalized_column_name+' Avg'}}
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
                                         'decision_tree_summary.temp',data_dict)
         executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],

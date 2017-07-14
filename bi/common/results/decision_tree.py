@@ -25,6 +25,11 @@ class DecisionTreeResult:
         self._target_agg = target_agg
         self._important_vars = important_vars
 
+    def set_freq_distribution(self, target_agg, important_vars):
+        self._target_map = None
+        self._target_agg = target_agg
+        self._important_vars = important_vars
+
     def get_significant_vars(self):
         return self._important_vars
 
@@ -35,6 +40,8 @@ class DecisionTreeResult:
         return self._target_agg
 
     def get_target_contributions(self):
+        if self._target_map==None:
+            return self._target_agg
         return dict([(self._target_map[i], self._target_agg[i]) for i in range(3)])
 
     def get_decision_rules(self):
