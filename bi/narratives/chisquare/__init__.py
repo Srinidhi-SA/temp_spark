@@ -50,7 +50,7 @@ class ChiSquareNarratives:
             paragraph={}
             paragraph['header'] = ''
             paragraph['content'] = NarrativesUtils.get_template_output(self._base_dir,'main_card.temp',data_dict)
-            self.narratives['main_card']['paragraphs']=paragraph
+            self.narratives['main_card']['paragraphs']=[paragraph]
             self.narratives['cards'] = []
             chart = {'header':'Strength of association between '+target_dimension+' and other dimensions'}
             chart['data'] = effect_size_dict

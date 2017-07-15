@@ -143,6 +143,7 @@ class ChiSquareAnalysis:
         self.card4['chart'] = chart
         self.card4['bubble_data'] = bubble
         output3 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
+        self.card4['paragraphs'] = output3
         print self.card4
 
     def generate_card4_chart(self, second_target, second_target_contributions, levels, levels_count, total):
