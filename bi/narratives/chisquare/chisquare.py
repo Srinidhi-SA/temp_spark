@@ -177,7 +177,7 @@ class ChiSquareAnalysis:
         target_levels = self._table.get_column_one_levels()
         dim_levels = self._table.get_column_two_levels()
 
-        header = [self._analysed_dimension] + dim_levels + ['Total']
+        header = [self._analysed_dimension] + target_levels + ['Total']
         data = []
 
         for idx, lvl in enumerate(dim_levels):
