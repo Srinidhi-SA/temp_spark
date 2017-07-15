@@ -20,3 +20,5 @@ PARAHEADER
   <b> {{top_levels_percent}}% </b>of the total observations.
 {% endif %}
 And, <b>{{bottom_level}}</b> is the smallest with <b>just {{bottom_level_percent}}<b> of the total observations.
+
+PARASEPARATOR

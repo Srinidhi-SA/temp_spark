@@ -17,9 +17,9 @@ class ChiSquareAnalysis:
         # self.appid = appid
         self.card1 = {}
         # self.card1 = {}
-        # self.card2 = {}
-        self.card4 = {}
+        self.card2 = {}
         # self.card4 = {}
+        # self.card3 = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
         if appid != None:
@@ -135,37 +135,40 @@ class ChiSquareAnalysis:
         self.card1['chart']=[]
         self.card1['heat_map']=self._table
         self.generate_card1_chart()
-        print '-'*1500
-        print self.card1
-        print '='*1500
-        self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
-        chart,bubble=self.generate_card4_chart(second_target, second_target_contributions, levels, level_counts, total)
-        self.card4['chart'] = chart
-        self.card4['bubble_data'] = bubble
-        output3 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
-        self.card4['paragraphs'] = output3
-        print self.card4
 
-    def generate_card4_chart(self, second_target, second_target_contributions, levels, levels_count, total):
+        self.card2['heading']='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
+        chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
+        self.card2['chart'] = chart
+        self.card2['bubble_data'] = bubble
+        output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict))
+        self.card2['paragraphs'] = output2
+
+        # self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
+        # chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
+        # self.card4['chart'] = chart
+        # self.card4['bubble_data'] = bubble
+        # output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
+        # self.card4['paragraphs'] = output4
+
+    def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):
         chart = {}
-        label = {'total' : '# of '+second_target+'(left)',
-                  'percentage': '# of '+second_target+'(right)'}
+        label = {'total' : '# of '+__target+'(left)',
+                  'percentage': '# of '+__target+'(right)'}
         data = {}
-        data['total'] = dict(zip(levels,second_target_contributions))
-        second_target_percentages = [x*100.0/y for x,y in zip(second_target_contributions,levels_count)]
-        data['percentage'] = dict(zip(levels,second_target_percentages))
+        data['total'] = dict(zip(levels,__target_contributions))
+        __target_percentages = [x*100.0/y for x,y in zip(__target_contributions,levels_count)]
+        data['percentage'] = dict(zip(levels,__target_percentages))
         chart_data = {'label':label,
                                 'data':data}
-        print self.card4
         bubble_data1 = {}
         bubble_data2 = {}
-        bubble_data1['value'] = NarrativesUtils.round_number(max(second_target_contributions)*100.0/total,2)+'%'
-        m_index = second_target_contributions.index(max(second_target_contributions))
-        bubble_data1['text'] = 'Percentage '+second_target+' from '+ levels[m_index]
+        bubble_data1['value'] = NarrativesUtils.round_number(max(__target_contributions)*100.0/total,2)+'%'
+        m_index = __target_contributions.index(max(__target_contributions))
+        bubble_data1['text'] = 'Percentage '+__target+' from '+ levels[m_index]
 
-        bubble_data2['value'] = NarrativesUtils.round_number(max(second_target_percentages),2)+'%'
-        m_index = second_target_percentages.index(max(second_target_percentages))
-        bubble_data2['text'] = levels[m_index] + ' has the highest rate of '+second_target
+        bubble_data2['value'] = NarrativesUtils.round_number(max(__target_percentages),2)+'%'
+        m_index = __target_percentages.index(max(__target_percentages))
+        bubble_data2['text'] = levels[m_index] + ' has the highest rate of '+__target
 
         bubble_data = [bubble_data1,bubble_data2]
         return chart_data, bubble_data
