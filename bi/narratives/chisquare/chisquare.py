@@ -132,7 +132,7 @@ class ChiSquareAnalysis:
         self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
         self.card1['paragraphs'] = output
         self.card1['chart']=[]
-        self.card1['heat_chart']=self._table
+        self.card1['heat_map']=self._table
         self.generate_card1_chart()
         print '-'*1500
         print self.card1
