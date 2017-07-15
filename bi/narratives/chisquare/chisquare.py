@@ -13,10 +13,13 @@ class ChiSquareAnalysis:
         self._analysed_dimension = analysed_dimension
         self._significant_variables =  significant_variables
         self._num_analysed_variables = num_analysed_variables
-        self.table = []
-        self.effect_size = chisquare_result.get_effect_size()
-        self.analysis = {}
+        self._table = chisquare_result.get_contingency_table()
         self.appid = appid
+        self.card0 = {}
+        # self.card1 = {}
+        # self.card2 = {}
+        self.card3 = {}
+        # self.card4 = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
         if self.appid != None:
@@ -26,137 +29,178 @@ class ChiSquareAnalysis:
                 self._base_dir += "appid2/"
         self._generate_narratives()
 
-    def _get_bin_names (self,splits):
-        bin_names = []
-        start = splits[0]
-        for i in splits[1:]:
-            bin_names.append(str(round(start,2)) + ' to ' + str(round(i,2)))
-            start = i
-        return bin_names
-
     def _generate_narratives(self):
         chisquare_result = self._chisquare_result
         target_dimension = self._target_dimension
         analysed_dimension = self._analysed_dimension
         significant_variables = self._significant_variables
         num_analysed_variables = self._num_analysed_variables
-        #self.narratives[target_dimension][analysed_dimension]['table'] = []
-        splits = chisquare_result.get_splits()
-        chisquare_result_percentage_table = chisquare_result.get_rounded_percentage_table()
-        chisquare_result_contingency_table = chisquare_result.get_contingency_table()
-        chisquare_result_percentage_table_by_target = chisquare_result.get_rounded_percentage_table_by_target()
+        table = self._table
+        total = self._table.get_total()
 
-        if splits:
-            new_column_2_name = self._get_bin_names(splits)
-            # new_column_2_name = NarrativesUtils.get_bin_names(splits)
-            chisquare_result_percentage_table.column_two_values = [new_column_2_name[int(float(i))] for i in chisquare_result_percentage_table.column_two_values]
-            chisquare_result_contingency_table.column_two_values = [new_column_2_name[int(float(i))] for i in chisquare_result_contingency_table.column_two_values]
-            chisquare_result_percentage_table_by_target.column_two_values = [new_column_2_name[int(float(i))] for i in chisquare_result_percentage_table_by_target.column_two_values]
-        cumulative_percent = {}
+        levels = self._table.get_column_two_levels()
+        level_counts = self._table.get_column_total()
+        levels_count_sum = sum(level_counts)
+        levels_percentages = [i*100.0/levels_count_sum for i in level_counts]
+        sorted_levels = sorted(zip(level_counts,levels),reverse=True)
+        level_differences = [0.0]+[sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
+        top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
+        top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
+        bottom_dim = sorted_levels[-1][1]
+        bottom_dim_contribution = sorted_levels[-1][0]
 
-        num_categories = len(chisquare_result_percentage_table.column_two_values)
-        chisquare_result_percentage_table.table
-        for i in range(0, num_categories):
-            column_two_value = chisquare_result_percentage_table.column_two_values[i]
-            cumulative_percent[column_two_value] = sum(row_data[i] for row_data in chisquare_result_percentage_table.table)
+        target_levels = self._table.get_column_one_levels()
+        target_counts = self._table.get_row_total()
+        sorted_target_levels = sorted(zip(target_counts,target_levels),reverse=True)
+        top_target_count, top_target = sorted_target_levels[0]
+        second_target_count, second_target = sorted_target_levels[1]
 
-        cumulative_percent = sorted(cumulative_percent.items(),key=operator.itemgetter(1),reverse=True)
+        top_target_contributions = [table.get_value(top_target,i) for i in levels]
+        sum_top_target = sum(top_target_contributions)
 
-        half_observation_categories = []
-        half_observation_percent = 0
-        for c,p in cumulative_percent:
-            half_observation_percent = half_observation_percent + p
-            half_observation_categories.append(c)
-            if (half_observation_percent >= 50):
-                break
+        sorted_levels = sorted(zip(top_target_contributions,levels), reverse=True)
+        level_differences = [0.0] + [sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
+        top_target_top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
+        top_target_top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
+        top_target_bottom_dim = sorted_levels[-1][1]
+        top_target_bottom_dim_contribution = sorted_levels[-1][0]
 
-        lowest_contributor = cumulative_percent[-1][0]
-        lowest_contributor_percent = cumulative_percent[-1][1]
-        #to_exclude = len(chisquare_result_percentage_table[cumulative_percent[0][0]])-1
-        to_exclude = len(chisquare_result_percentage_table.column_one_values)
-        maximum_percent = 0
-        maximum_category = []
-        minimum_percent = 100
-        minimum_category = []
-        maximum_observation = 0
-        minimum_observation = 0
-        category_list = {}
-        observations_by_target_categories = {}
-        maximum_std = 0
-        maximum_std_category = []
-        minimum_std = 1000000000
-        minimum_std_category = []
-
-        category_list = chisquare_result_percentage_table.column_one_values
-
-        #rows = [analysed_dimension+'/'+target_dimension] + category_list + ['Distribution by '+analysed_dimension]
-        #self.table.append(rows)
-
-        for i in chisquare_result_percentage_table.column_two_values:
-            #rows = [i]
-            for j in chisquare_result_percentage_table.column_one_values:
-                if not observations_by_target_categories.has_key(j):
-                    observations_by_target_categories[j] = {}
-                else:
-                    #rows.append(str(round(chisquare_result_percentage_table.get_value(j, i),2)))
-                    observations_by_target_categories[j][i] =chisquare_result_percentage_table.get_value(j, i)
-                    if (chisquare_result_percentage_table.get_value(j, i) > maximum_percent):
-                        maximum_category = [i,j]
-                        maximum_percent = chisquare_result_percentage_table.get_value(j, i)
-                        maximum_observation = chisquare_result_contingency_table.get_value(j, i)
-                    elif (chisquare_result_percentage_table.get_value(j, i) < minimum_percent):
-                        minimum_category = [i,j]
-                        minimum_percent = chisquare_result_percentage_table.get_value(j, i)
-                        minimum_observation = chisquare_result_contingency_table.get_value(j, i)
-
-        self.table = chisquare_result_percentage_table_by_target
-        # self.table = chisquare_result_percentage_table
-        for i in observations_by_target_categories.keys():
-            if (maximum_std < numpy.std(observations_by_target_categories[i].values())):
-                maximum_std = numpy.std(observations_by_target_categories[i].values())
-                temp_max = 0
-                for j in observations_by_target_categories[i].keys():
-                    if temp_max < observations_by_target_categories[i][j]:
-                        temp_max = observations_by_target_categories[i][j]
-
-                        maximum_std_category = [i, j, temp_max*100/sum(observations_by_target_categories[i].values())]
-            elif (minimum_std > numpy.std(observations_by_target_categories[i].values())):
-                minimum_std = numpy.std(observations_by_target_categories[i].values())
-                minimum_std_category = [i]
-
-        data_dict = {
-                      'num_variables' : num_analysed_variables,
-                      'num_significant_variables' : len(significant_variables),
-                      'significant_variables' : significant_variables,
-                      'target_dimension' : target_dimension,
-                      'fifty_percent_categories' : half_observation_categories,
-                      'fifty_percent_contribution' : round(half_observation_percent,2),
-                      'lowest_contributor' : lowest_contributor,
-                      'lowest_contributor_percent' : round(lowest_contributor_percent,2),
-                      'maximum_percent' : round(maximum_percent,2),
-                      'maximum_category' : maximum_category,
-                      'maximum_observation' : maximum_observation,
-                      'minimum_percent' : round(minimum_percent,2),
-                      'minimum_category' : minimum_category,
-                      'num_categories' : num_categories,
-                      'analysed_dimension' : analysed_dimension,
-                      'max_var' : maximum_std_category,
-                      'min_var' : minimum_std_category
-        }
-        # print "*" * 100
-        # print json.dumps(data_dict,indent=2)
-        # print "*" * 100
-        analysis1 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template3.temp',data_dict)
-        analysis2 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template4.temp',data_dict)
-        title1 = 'Concentration of ' + analysed_dimension
-        if analysis2 != '':
-            title2 = 'Relationship between '+analysed_dimension+' and '+ target_dimension
+        top_target_percentages = [i*100.0/sum_top_target for i in top_target_contributions]
+        best_top_target_index = top_target_contributions.index(max(top_target_contributions))
+        worst_top_target_index = top_target_contributions.index(min(top_target_contributions))
+        top_target_differences = [x-y for x,y in zip(levels_percentages,top_target_percentages)]
+        if len(top_target_differences)>4:
+            tops = 2
+            bottoms = -2
+        elif len(top_target_differences)==4:
+            tops = 2
+            bottoms = -1
         else:
-            title2 = ''
+            tops = 1
+            bottoms = -1
+        sorted_ = sorted(enumerate(top_target_differences), key = lambda x: x[1])
+        best_top_difference_indices = [x for x,y in sorted_[:tops]]
+        worst_top_difference_indices = [x for x,y in sorted_[bottoms:]]
 
-        self.analysis = {'title1':title1,
-                        'analysis1':analysis1,
-                        'title2':title2,
-                        'analysis2':analysis2}
-        # self.sub_heading = re.split(', whereas',analysis1)[0]
-        self.sub_heading = 'Relationship between '+analysed_dimension+' and '+ target_dimension
+        second_target_contributions = [table.get_value(second_target,i) for i in levels]
+        sum_second_target = sum(second_target_contributions)
+
+        sorted_levels = sorted(zip(second_target_contributions,levels), reverse=True)
+        level_differences = [0.0] + [sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
+        second_target_top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
+        second_target_top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
+        second_target_bottom_dim = sorted_levels[-1][1]
+        second_target_bottom_dim_contribution = sorted_levels[-1][0]
+
+        second_target_percentages = [i*100.0/sum_second_target for i in second_target_contributions]
+        best_second_target_index = second_target_contributions.index(max(second_target_contributions))
+        worst_second_target_index = second_target_contributions.index(min(second_target_contributions))
+        second_target_differences = [x-y for x,y in zip(levels_percentages,second_target_percentages)]
+        if len(second_target_differences)>4:
+            seconds = 2
+            bottoms = -2
+        elif len(second_target_differences)==4:
+            seconds = 2
+            bottoms = -1
+        else:
+            seconds = 1
+            bottoms = -1
+        sorted_ = sorted(enumerate(second_target_differences), key = lambda x: x[1])
+        best_second_difference_indices = [x for x,y in sorted_[:seconds]]
+        worst_second_difference_indices = [x for x,y in sorted_[bottoms:]]
+
+        data_dict = {}
+        data_dict['num_significant'] = len(significant_variables)
+        data_dict['colname'] = analysed_dimension
+        data_dict['target'] = target_dimension
+        data_dict['top_levels'] = top_dims
+        data_dict['top_levels_percent'] = top_dims_contribution
+        data_dict['bottom_level'] = bottom_dim
+        data_dict['bottom_level_percent'] = round(bottom_dim_contribution,2)
+        data_dict['second_target']=second_target
+        data_dict['second_target_top_dims'] = second_target_top_dims
+        data_dict['second_target_top_dims_contribution'] = second_target_top_dims_contribution
+        data_dict['second_target_bottom_dim']=second_target_bottom_dim
+        data_dict['second_target_bottom_dim_contribution']=second_target_bottom_dim_contribution
+        data_dict['best_second_target'] = levels[best_second_target_index]
+        data_dict['best_second_target_count'] = second_target_contributions[best_second_target_index]
+        data_dict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/total,2)
+        data_dict['worst_second_target'] = levels[worst_second_target_index]
+        data_dict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/total,2)
+
+        output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
+        self.card0['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
+        self.card0['paragraphs'] = output
+        self.card0['chart']=[]
+        self.generate_card0_chart()
+        print '-'*1500
+        print self.card0
+        print '='*1500
+        self.card3['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
+        chart,bubble=self.generate_card3_chart(second_target, second_target_contributions, levels, level_counts, total)
+        self.card3['chart'] = chart
+        self.card3['bubble_data'] = bubble
+        output3 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card3.temp',data_dict))
+        print self.card3
+
+    def generate_card3_chart(self, second_target, second_target_contributions, levels, levels_count, total):
+        chart = {}
+        label = {'total' : '# of '+second_target+'(left)',
+                  'percentage': '# of '+second_target+'(right)'}
+        data = {}
+        data['total'] = dict(zip(levels,second_target_contributions))
+        second_target_percentages = [x*100.0/y for x,y in zip(second_target_contributions,levels_count)]
+        data['percentage'] = dict(zip(levels,second_target_percentages))
+        chart_data = {'label':label,
+                                'data':data}
+        print self.card3
+        bubble_data1 = {}
+        bubble_data2 = {}
+        bubble_data1['value'] = NarrativesUtils.round_number(max(second_target_contributions)*100.0/total,2)+'%'
+        m_index = second_target_contributions.index(max(second_target_contributions))
+        bubble_data1['text'] = 'Percentage '+second_target+' from '+ levels[m_index]
+
+        bubble_data2['value'] = NarrativesUtils.round_number(max(second_target_percentages),2)+'%'
+        m_index = second_target_percentages.index(max(second_target_percentages))
+        bubble_data2['text'] = levels[m_index] + ' has the highest rate of '+second_target
+
+        bubble_data = [bubble_data1,bubble_data2]
+        return chart_data, bubble_data
+
+    def generate_card0_chart(self):
+        table = self._table.table
+        table_percent = self._table.table_percent
+        table_percent_by_row = self._table.table_percent_by_row
+        table_percent_by_column = self._table.table_percent_by_column
+        target_levels = self._table.get_column_one_levels()
+        dim_levels = self._table.get_column_two_levels()
+
+        header = [self._analysed_dimension] + dim_levels + ['Total']
+        data = []
+
+        for idx, lvl in enumerate(dim_levels):
+            data1 = header+['Tag']
+
+            col_2_vals = zip(*table)[idx]
+            data2 = [lvl] + list(col_2_vals) + [sum(col_2_vals)] + ['bold']
+            dict_ = dict(zip(data1, data2))
+            data.append(dict_)
+
+            col_2_vals = zip(*table_percent_by_column)[idx]
+            data2 = ['As % within '+self._analysed_dimension] + list(col_2_vals) + [100.0] + ['']
+            dict_ = dict(zip(data1, data2))
+            data.append(dict_)
+
+            col_2_vals = zip(*table_percent_by_row)[idx]
+            col_2_vals1 = zip(*table_percent)[idx]
+            data2 = ['As % within '+self._target_dimension] + list(col_2_vals) + [round(sum(col_2_vals1),2)] + ['']
+            dict_ = dict(zip(data1, data2))
+            data.append(dict_)
+
+            # col_2_vals = zip(*table_percent)[idx]
+            data2 = ['As % of Total'] + list(col_2_vals1) + [round(sum(col_2_vals1),2)] + ['']
+            dict_ = dict(zip(data1, data2))
+            data.append(dict_)
+
+        self.card0['chart']={'header':header,
+                            'data':data}
