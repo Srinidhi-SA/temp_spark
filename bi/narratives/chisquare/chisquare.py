@@ -14,7 +14,7 @@ class ChiSquareAnalysis:
         self._significant_variables =  significant_variables
         self._num_analysed_variables = num_analysed_variables
         self._table = chisquare_result.get_contingency_table()
-        self.appid = appid
+        # self.appid = appid
         self.card1 = {}
         # self.card1 = {}
         # self.card2 = {}
@@ -22,7 +22,8 @@ class ChiSquareAnalysis:
         # self.card4 = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
-        if self.appid != None:
+        if appid != None:
+            self.appid=appid
             if self.appid == "1":
                 self._base_dir += "appid1/"
             elif self.appid == "2":
