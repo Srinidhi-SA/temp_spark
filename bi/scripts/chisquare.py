@@ -21,4 +21,4 @@ class ChiSquareScript:
         chisquare_narratives = utils.as_dict(ChiSquareNarratives(len(self._dataframe_helper.get_string_columns()), df_chisquare_obj, self._dataframe_context))
         print '*'*1500
         print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-        DataWriter.write_dict_as_json(self._spark, chisquare_narratives, self._dataframe_context.get_narratives_file()+'ChiSquare/')
+        DataWriter.write_dict_as_json(self._spark, {"narratives":json.dumps(chisquare_narratives["narratives"])}, self._dataframe_context.get_narratives_file()+'ChiSquare/')
