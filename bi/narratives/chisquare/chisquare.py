@@ -16,7 +16,7 @@ class ChiSquareAnalysis:
         self._table = chisquare_result.get_contingency_table()
         # self.appid = appid
         self.card1 = {}
-        # self.card1 = {}
+        # self.card0 = {}
         self.card2 = {}
         # self.card4 = {}
         # self.card3 = {}
@@ -115,7 +115,7 @@ class ChiSquareAnalysis:
         data_dict['colname'] = analysed_dimension
         data_dict['target'] = target_dimension
         data_dict['top_levels'] = top_dims
-        data_dict['top_levels_percent'] = top_dims_contribution
+        data_dict['top_levels_percent'] = NarrativesUtils.round_number(top_dims_contribution*100.0/total)
         data_dict['bottom_level'] = bottom_dim
         data_dict['bottom_level_percent'] = round(bottom_dim_contribution,2)
         data_dict['second_target']=second_target
@@ -128,6 +128,18 @@ class ChiSquareAnalysis:
         data_dict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/total,2)
         data_dict['worst_second_target'] = levels[worst_second_target_index]
         data_dict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/total,2)
+
+        data_dict['top_target']=top_target
+        data_dict['top_target_top_dims'] = top_target_top_dims
+        data_dict['top_target_top_dims_contribution'] = top_target_top_dims_contribution
+        data_dict['top_target_bottom_dim']=top_target_bottom_dim
+        data_dict['top_target_bottom_dim_contribution']=top_target_bottom_dim_contribution
+        data_dict['best_top_target'] = levels[best_top_target_index]
+        data_dict['best_top_target_count'] = top_target_contributions[best_top_target_index]
+        data_dict['best_top_target_percent'] = round(top_target_contributions[best_top_target_index]*100.0/total,2)
+        data_dict['worst_top_target'] = levels[worst_top_target_index]
+        data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/total,2)
+
 
         output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
         self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
