@@ -15,10 +15,10 @@ class ChiSquareAnalysis:
         self._num_analysed_variables = num_analysed_variables
         self._table = chisquare_result.get_contingency_table()
         self.appid = appid
-        self.card0 = {}
+        self.card1 = {}
         # self.card1 = {}
         # self.card2 = {}
-        self.card3 = {}
+        self.card4 = {}
         # self.card4 = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
@@ -128,22 +128,23 @@ class ChiSquareAnalysis:
         data_dict['worst_second_target'] = levels[worst_second_target_index]
         data_dict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/total,2)
 
-        output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
-        self.card0['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
-        self.card0['paragraphs'] = output
-        self.card0['chart']=[]
-        self.generate_card0_chart()
+        output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
+        self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
+        self.card1['paragraphs'] = output
+        self.card1['chart']=[]
+        self.card1['heat_chart']=self._table
+        self.generate_card1_chart()
         print '-'*1500
-        print self.card0
+        print self.card1
         print '='*1500
-        self.card3['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
-        chart,bubble=self.generate_card3_chart(second_target, second_target_contributions, levels, level_counts, total)
-        self.card3['chart'] = chart
-        self.card3['bubble_data'] = bubble
-        output3 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card3.temp',data_dict))
-        print self.card3
+        self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
+        chart,bubble=self.generate_card4_chart(second_target, second_target_contributions, levels, level_counts, total)
+        self.card4['chart'] = chart
+        self.card4['bubble_data'] = bubble
+        output3 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
+        print self.card4
 
-    def generate_card3_chart(self, second_target, second_target_contributions, levels, levels_count, total):
+    def generate_card4_chart(self, second_target, second_target_contributions, levels, levels_count, total):
         chart = {}
         label = {'total' : '# of '+second_target+'(left)',
                   'percentage': '# of '+second_target+'(right)'}
@@ -153,7 +154,7 @@ class ChiSquareAnalysis:
         data['percentage'] = dict(zip(levels,second_target_percentages))
         chart_data = {'label':label,
                                 'data':data}
-        print self.card3
+        print self.card4
         bubble_data1 = {}
         bubble_data2 = {}
         bubble_data1['value'] = NarrativesUtils.round_number(max(second_target_contributions)*100.0/total,2)+'%'
@@ -167,7 +168,7 @@ class ChiSquareAnalysis:
         bubble_data = [bubble_data1,bubble_data2]
         return chart_data, bubble_data
 
-    def generate_card0_chart(self):
+    def generate_card1_chart(self):
         table = self._table.table
         table_percent = self._table.table_percent
         table_percent_by_row = self._table.table_percent_by_row
@@ -202,5 +203,5 @@ class ChiSquareAnalysis:
             dict_ = dict(zip(data1, data2))
             data.append(dict_)
 
-        self.card0['chart']={'header':header,
+        self.card1['chart']={'header':header,
                             'data':data}
