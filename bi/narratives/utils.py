@@ -557,3 +557,40 @@ def get_date_conversion_formats(self, primary_date,dateColumnFormatDict,requeste
         requestedDateFormat = dateFormatConversionDict[requestedDateFormat]
     else:
         requestedDateFormat = existingDateFormat
+
+def streak_data(df,peak_index,low_index,percentage_change_column,value_column):
+    dataDict = {}
+    k = peak_index
+    while k != -1 and df[percentage_change_column][k] >= 0:
+        k = k-1
+    print "peak_index:",peak_index,"KK:",k
+    l = low_index
+    while l != -1 and df[percentage_change_column][l] < 0:
+        l = l-1
+    k = 0 if k == -1 else k
+    l = 0 if l == -1 else l
+    if peak_index - k > 0:
+        dataDict["upStreakDuration"] = peak_index - k
+    else:
+        dataDict["upStreakDuration"] = 0
+    if low_index - l > 0:
+        dataDict["downStreakDuration"] = low_index - l
+    else:
+        dataDict["downStreakDuration"] = 0
+    print "STREAK"
+    print l,k
+    print dataDict["downStreakDuration"],dataDict["upStreakDuration"]
+    if dataDict["downStreakDuration"] >=2 :
+        dataDict["downStreakBeginMonth"] = df["year_month"][l]
+        dataDict["downStreakBeginValue"] = df[value_column][l]
+        dataDict["downStreakEndMonth"] = df["year_month"][l+dataDict["downStreakDuration"]]
+        dataDict["downStreakEndValue"] = df[value_column][l+dataDict["downStreakDuration"]]
+        dataDict["downStreakContribution"] = sum(df[value_column].iloc[l:low_index])*100/sum(df[value_column])
+    if dataDict["upStreakDuration"] >=2 :
+        dataDict["upStreakBeginMonth"] = df["year_month"][k]
+        dataDict["upStreakBeginValue"] = df[value_column][k]
+        dataDict["upStreakEndMonth"] = df["year_month"][k+dataDict["upStreakDuration"]]
+        dataDict["upStreakEndValue"] = df[value_column][k+dataDict["upStreakDuration"]]
+        dataDict["upStreakContribution"] = sum(df[value_column].iloc[k:peak_index])*100/sum(df[value_column])
+
+    return dataDict

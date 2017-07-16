@@ -372,7 +372,10 @@ def main(confFilePath):
         else:
             print "Could Not Load the Model for Scoring"
 
-
+    elif analysistype == "trend":
+        from bi.narratives.trend.trend_calculations import TimeSeriesCalculations
+        trend_obj = TimeSeriesCalculations(df_helper,dataframe_context,result_setter,spark)
+        trend_obj.chisquare_trend("Deal_Type","KK")
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."
