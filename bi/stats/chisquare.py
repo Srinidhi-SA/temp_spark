@@ -73,10 +73,8 @@ class ChiSquare:
         chisquare_result.set_params(result)
 
         freq_table = self._get_contingency_table_of_freq(pivot_table)
-        percentage_table = self._get_contigency_table_of_percentages(pivot_table)
-        percentage_table_rounded = self._get_contigency_table_of_percentages_rounded(pivot_table)
-        percentage_table_rounded_by_target = self._get_contigency_table_of_percentages_rounded_by_target(pivot_table)
-        chisquare_result.set_table_result(freq_table, percentage_table,percentage_table_rounded,percentage_table_rounded_by_target)
+        freq_table.set_tables()
+        chisquare_result.set_table_result(freq_table)
 
         # Cramers V Calculation
 
@@ -86,6 +84,7 @@ class ChiSquare:
 
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
         chisquare_result.set_v_value(v_value)
+        freq_table.set_tables()
 
         return chisquare_result
 
@@ -110,10 +109,9 @@ class ChiSquare:
         chisquare_result.set_params(result)
 
         freq_table = self._get_contingency_table_of_freq(pivot_table)
-        percentage_table = self._get_contigency_table_of_percentages(pivot_table)
-        percentage_table_rounded = self._get_contigency_table_of_percentages_rounded(pivot_table)
-        percentage_table_rounded_by_target = self._get_contigency_table_of_percentages_rounded_by_target(pivot_table)
-        chisquare_result.set_table_result(freq_table, percentage_table,percentage_table_rounded,percentage_table_rounded_by_target)
+        freq_table.update_col2_names(splits)
+        freq_table.set_tables()
+        chisquare_result.set_table_result(freq_table)
 
         # Cramers V Calculation
 
@@ -124,7 +122,6 @@ class ChiSquare:
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
         chisquare_result.set_v_value(v_value)
         chisquare_result.set_split_values([float(x) for x in splits])
-
         return chisquare_result
 
 

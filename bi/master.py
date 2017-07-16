@@ -105,20 +105,20 @@ def main(confFilePath):
             print "Descriptive analysis Not in Scripts to run "
 
         if ('Dimension vs. Dimension' in scripts_to_run):
-            try:
-                df_helper.remove_nulls(dataframe_context.get_result_column())
-                df = df_helper.get_data_frame()
-                fs = time.time()
-                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
-                chisquare_obj.Run()
-                print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-                send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
-            except Exception as e:
-                print "ChiSquare Analysis Failed "
-                send_message_API(monitor_api, "ChiSquare", "ChiSquare Failed", False, 0)
-                print "ERROR"*5
-                print e
-                print "ERROR"*5
+            # try:
+            df_helper.remove_nulls(dataframe_context.get_result_column())
+            df = df_helper.get_data_frame()
+            fs = time.time()
+            chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
+            chisquare_obj.Run()
+            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+            send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
+            # except Exception as e:
+            #     print "ChiSquare Analysis Failed "
+            #     send_message_API(monitor_api, "ChiSquare", "ChiSquare Failed", False, 0)
+            #     print "ERROR"*5
+            #     print e
+            #     print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'ChiSquare/')
             print "Dimension vs. Dimension Not in Scripts to run "

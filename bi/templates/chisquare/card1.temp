@@ -1,0 +1,22 @@
+Overview
+
+PARAHEADER
+
+{% if num_significant == 1 %}
+  {{colname}} is <b>the only significant influencer</b> of customer status and displays significant variation
+  in distribution of {{target}} categories.
+{% else %}
+  {{colname}} is one of <b>the most significant influencer</b> of customer status and displays significant variation
+  in distribution of {{target}} categories.
+{% endif %}
+{% if top_levels | length  == 1%}
+  <b>{{top_levels[0]}} </b> is the largest {{colname}}, accounting for almost<b> {{top_levels_percent}}% of the
+  total </b>observations.
+{% elif top_levels | length  == 2 %}
+  <b>{{top_levels[0]}} and {{top_levels[1]}}  </b> are the two largest {{colname}}s, accounting for
+  <b> {{top_levels_percent}}% </b>observations.
+{% elif top_levels | length >2 %}
+  The top {{top_levels | length}} {{colname}}s including {{top_levels[0]}} and {{top_levels[1]}} account for
+  <b> {{top_levels_percent}}% </b>of the total observations.
+{% endif %}
+And, <b>{{bottom_level}}</b> is the smallest with <b>just {{bottom_level_percent}}<b> of the total observations.

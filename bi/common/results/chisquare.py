@@ -22,6 +22,49 @@ class ContingencyTable:
         self.column_two_values = column_two_values
         self.table = [[0 for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
+        self.table_percent = [[0 for j in range(0,len(column_two_values))] \
+                        for i in range(0,len(column_one_values))]
+        self.table_percent_by_row = [[0 for j in range(0,len(column_two_values))] \
+                        for i in range(0,len(column_one_values))]
+        self.table_percent_by_column = [[0 for j in range(0,len(column_two_values))] \
+                        for i in range(0,len(column_one_values))]
+
+    def get_column_two_levels(self):
+        return self.column_two_values
+
+    def get_column_one_levels(self):
+        return self.column_one_values
+
+    def _get_bin_names (self,splits):
+        bin_names = []
+        start = splits[0]
+        for i in splits[1:]:
+            bin_names.append(str(round(start,2)) + ' to ' + str(round(i,2)))
+            start = i
+        return bin_names
+
+    def update_col2_names(self, splits):
+        bin_names = self._get_bin_names(splits)
+        self.column_two_values = [bin_names[int(float(i))] for i in self.column_two_values]
+
+    def get_row_total(self):
+        return [sum(row_data) for row_data in self.table]
+
+    def get_column_total(self):
+        return [sum(row_data) for row_data in zip(*self.table)]
+
+    def set_tables(self):
+        total = self.get_total()
+        row_total = self.get_row_total()
+        column_total = self.get_column_total()
+        column_one_values = self.column_one_values
+        column_two_values = self.column_two_values
+        self.table_percent = [[round(self.table[i][j]*100.0/total,2) for j in range(0,len(column_two_values))] \
+                        for i in range(0,len(column_one_values))]
+        self.table_percent_by_row = [[round(self.table[i][j]*100.0/row_total[i],2) for j in range(0,len(column_two_values))] \
+                        for i in range(0,len(column_one_values))]
+        self.table_percent_by_column = [[round(self.table[i][j]*100.0/column_total[j],2) for j in range(0,len(column_two_values))] \
+                        for i in range(0,len(column_one_values))]
 
     @accepts(object, (str, basestring), (list, tuple))
     def add_row(self, column_one_value, row_data):
@@ -81,27 +124,15 @@ class ChiSquareResult:
     def get_pvalue(self):
         return self.pv
 
-    def get_percentage_table(self):
-        return self.percentage_table
-
-    def get_rounded_percentage_table(self):
-        return self._percentage_table_rounded
-
-    def get_rounded_percentage_table_by_target(self):
-        return self._percentage_table_rounded_by_target
-
     def get_contingency_table(self):
         return self.contingency_table
 
     def get_effect_size(self):
         return self.cramers_v
 
-    @accepts(object, ContingencyTable, ContingencyTable, ContingencyTable, ContingencyTable)
-    def set_table_result(self, c_table, p_table,p_table_rounded,percentage_table_rounded_by_target):
+    @accepts(object, ContingencyTable)
+    def set_table_result(self, c_table):
         self.contingency_table = c_table
-        self.percentage_table = p_table
-        self._percentage_table_rounded = p_table_rounded
-        self._percentage_table_rounded_by_target = percentage_table_rounded_by_target
 
     def set_v_value(self, v):
         self.cramers_v = v
