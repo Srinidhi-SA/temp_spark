@@ -85,6 +85,7 @@ class ChiSquare:
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
         chisquare_result.set_v_value(v_value)
         freq_table.set_tables()
+        self._dataframe_helper.add_chisquare_significant_dimension(dimension_column_name,v_value)
 
         return chisquare_result
 

@@ -76,7 +76,6 @@ class TimeSeriesNarrative:
                     pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                     pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
 
-
                     # pandasDf = df_helper.get_data_frame().toPandas()
                     # pandasDf[self._date_column_suggested] = pandasDf[self._date_column_suggested].apply(lambda x:datetime.strptime(x,self._existingDateFormat))
                     # pandasDf[self._date_column_suggested] = pandasDf[self._date_column_suggested].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
@@ -177,48 +176,54 @@ class TimeSeriesNarrative:
                                }
             if self._date_suggestion_columns != None:
                 if self._dateFormatDetected:
-                    grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
-                    grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                    grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
-                    grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                    grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
-                    grouped_data = grouped_data.toPandas()
+                    result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
+                    level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
+                    level_count_df_rows =  level_count_df.collect()
+                    top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
+                    all_paragraphs = []
+                    chart_data = {}
+                    for level in  top2levels:
+                        leveldf = self._data_frame.filter(col(self._result_column) == level)
+                        grouped_data = leveldf.groupBy("suggestedDate").agg({ self._result_column : 'count'})
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+                        grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+                        grouped_data = grouped_data.toPandas()
 
-                    pandasDf = self._data_frame.toPandas()
-                    pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
-                    pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
+                        pandasDf = leveldf.toPandas()
+                        pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
+                        pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
+                        pandasDf["value_col"] = [1]*pandasDf.shape[0]
 
-                    significant_dimensions = df_helper.get_significant_dimension()
-                    trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
-                    dataDict = trend_narrative_obj.generateDataDict(grouped_data)
-                    # # update reference time with max value
-                    reference_time = dataDict["reference_time"]
-                    if len(significant_dimensions.keys()) > 0:
-                        xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time)
-                        if xtraData != None:
-                            dataDict.update(xtraData)
-                    # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
-                    self._result_setter.update_executive_summary_data(dataDict)
-                    summary1 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                    'trend_narrative_card1.temp',dataDict)
-                    summary2 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                    'trend_narrative_card2.temp',dataDict)
 
-                    self.narratives["card0"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary1)
-                    self.narratives["card0"]["bubbleData"] = dataDict["bubbleData"]
-                    self.narratives["card0"]["chart"] = ""
-                    self.narratives["card1"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary2)
-                    self.narratives["card1"]["table1"] = dataDict["table_data"]["increase"]
-                    self.narratives["card1"]["table2"] = dataDict["table_data"]["decrease"]
+                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
+                        dataDict = trend_narrative_obj.generateDataDict(grouped_data)
+                        dataDict["measure"] = level
+                        significant_dimensions = df_helper.get_chisquare_significant_dimension()
+                        reference_time = dataDict["reference_time"]
+                        if len(significant_dimensions.keys()) > 0:
+                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),self._date_column_suggested,"value_col",self._existingDateFormat,reference_time)
+                            if xtraData != None:
+                                dataDict.update(xtraData)
 
-                    # grouped_data["key"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
-                    # trend_chart_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
-                    trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
-                    trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
-                    card1chartdata = trend_chart_data
-                    card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
-                    self.narratives["card0"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
-                    
+                        # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
+                        self._result_setter.update_executive_summary_data(dataDict)
+                        summary1 = NarrativesUtils.get_template_output(self._base_dir,\
+                                                                        'dimension_trend.temp',dataDict)
+
+
+                        all_paragraphs += NarrativesUtils.paragraph_splitter(summary1)
+
+                        trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
+                        trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
+                        card1chartdata = trend_chart_data
+                        card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
+                        chart_data[level] = card1chartdata
+                        # self.narratives["card0"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
+                    self.narratives["card0"]["paragraphs"] = all_paragraphs
+                    self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y"}
+                    print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"

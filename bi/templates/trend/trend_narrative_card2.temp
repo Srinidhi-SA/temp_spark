@@ -1,10 +1,10 @@
 Highest and Lowest Points of {{measure}}
 PARAHEADER
 {% if peakStreakDuration >= 2%}
-  The sales figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
+  The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
   <b>a continuous streak of growth for {{peakStreakDuration}} {{dateLevel}}s </b> ending at {{peakTime}}.
 {% else %}
-  The sales figures hit a peak of {{peakValue}} in {{peakTime}}.
+  The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}.
 {% endif %}
 The most significant factor that fuelled this strong run is the {{highest_contributing_variable}},
  {{highest_contributing_level}}.
