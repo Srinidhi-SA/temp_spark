@@ -23,10 +23,10 @@ class ChiSquareAnalysis:
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
         if appid != None:
-            self.appid=appid
-            if self.appid == "1":
+            self._appid=appid
+            if self._appid == "1":
                 self._base_dir += "appid1/"
-            elif self.appid == "2":
+            elif self._appid == "2":
                 self._base_dir += "appid2/"
         self._generate_narratives()
 
