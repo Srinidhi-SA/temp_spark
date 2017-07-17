@@ -17,7 +17,7 @@ class ChiSquareAnalysis:
         # self.appid = appid
         self.card1 = {}
         # self.card0 = {}
-        self.card2 = {}
+        # self.card2 = {}
         # self.card4 = {}
         # self.card3 = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
@@ -179,12 +179,12 @@ class ChiSquareAnalysis:
         self.card1['heat_map']=self._table
         self.generate_card1_chart()
 
-        self.card2['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
-        chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
-        self.card2['chart'] = chart
-        self.card2['bubble_data'] = bubble
-        output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict))
-        self.card2['paragraphs'] = output2
+        # self.card2['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
+        # chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
+        # self.card2['chart'] = chart
+        # self.card2['bubble_data'] = bubble
+        # output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict))
+        # self.card2['paragraphs'] = output2
 
         # self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
         # chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
