@@ -1,7 +1,7 @@
 {% if top_target_top_dims|length > 1 %}
-  The top {{top_target_top_dims|length}} {{colname}}s account for {{top_target_bottom_dim_contribution}}%
+  The top {{top_target_top_dims|length}} {{colname}}s account for {{top_target_top_dims_contribution}}%
   of the total {{top_target}} observations.
 {% endif %}
 Being the largest contributor, total {{top_target}} from {{best_top_target}} amounts to {{best_top_target_count}}
 that accounts for about {{best_top_target_percent}}% of the total {{top_target}}.
-On the other hand, {{worst_top_target}} contributes to just {{worst_top_target_percent}}% of the total churn.
+On the other hand, {{worst_top_target}} contributes to just {{worst_top_target_percent}}% of the total {{top_target}}.
