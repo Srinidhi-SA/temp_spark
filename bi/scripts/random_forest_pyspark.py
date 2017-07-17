@@ -172,6 +172,7 @@ class RandomForestPysparkScript:
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         spark_scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
+        columns_to_drop = [x for x in columns_to_drop if x in spark_scored_df.columns]
         modified_df = spark_scored_df.select([x for x in spark_scored_df.columns if x not in columns_to_drop])
         df_helper = DataFrameHelper(modified_df, self._dataframe_context)
         df_helper.set_params()

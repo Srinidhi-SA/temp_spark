@@ -131,6 +131,7 @@ class RandomForestScript:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
             columns_to_drop += ["predicted_probability"]
+        columns_to_drop = [x for x in columns_to_drop if x in df.columns]
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
