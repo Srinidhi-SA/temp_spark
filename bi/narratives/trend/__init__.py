@@ -227,7 +227,7 @@ class TimeSeriesNarrative:
                     labels = {"y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
                     self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
                                                         "label":labels,
-                                                        "label_text":{"x":"Time Duration","y":"count of "+labels["y"],"y2":"Count of "+labels["y2"]}}
+                                                        "label_text":{"x":"Time Duration","y":"Count of "+labels["y"],"y2":"Count of "+labels["y2"]}}
                     print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
