@@ -195,8 +195,8 @@ class ChiSquareAnalysis:
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):
         chart = {}
-        label = {'total' : '# of '+__target+'(left)',
-                  'percentage': '# of '+__target+'(right)'}
+        label = {'total' : '# of '+__target,
+                  'percentage': '% of '+__target}
         data = {}
         data['total'] = dict(zip(levels,__target_contributions))
         __target_percentages = [x*100.0/y for x,y in zip(__target_contributions,levels_count)]
