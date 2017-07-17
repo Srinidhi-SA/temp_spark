@@ -190,6 +190,7 @@ class TimeSeriesNarrative:
                         grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
                         grouped_data = grouped_data.toPandas()
+                        print grouped_data
 
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
@@ -222,7 +223,7 @@ class TimeSeriesNarrative:
                         chart_data[level] = card1chartdata
                         # self.narratives["card0"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
                     self.narratives["card0"]["paragraphs"] = all_paragraphs
-                    self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y"}
+                    self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y","label_text":{"x":"hh","y":"hh","y2":"jj"}}
                     print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})

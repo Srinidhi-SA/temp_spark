@@ -394,6 +394,10 @@ def calculate_dimension_contribution(level_cont):
     sorted_k1 = sorted(k1.items(),key = lambda x: x[1]["growth"])
     k2 = level_cont["summary"][data_dict["negativeSecondHighestSigDimension"]]
     sorted_k2 = sorted(k1.items(),key = lambda x: x[1]["growth"])
+    print "SORTED K1"
+    print sorted_k1
+    print "SORTED K2"
+    print sorted_k2
     data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
     data_dict["negativeHighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
     data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
@@ -468,6 +472,7 @@ def get_level_cont_dict(level_cont):
 
 def calculate_bucket_data(level_cont):
     df = pd.DataFrame(level_cont["pivot"]["total"])
+    print df
     min_streak = 2
     max_streak = 9
     if df.shape[0]*0.3 < 9:
