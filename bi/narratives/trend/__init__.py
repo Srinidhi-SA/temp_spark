@@ -182,7 +182,7 @@ class TimeSeriesNarrative:
                     top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
                     all_paragraphs = []
                     chart_data = {}
-                    for level in  top2levels:
+                    for idx,level in  enumerate(top2levels):
                         leveldf = self._data_frame.filter(col(self._result_column) == level)
                         grouped_data = leveldf.groupBy("suggestedDate").agg({ self._result_column : 'count'})
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
@@ -208,6 +208,8 @@ class TimeSeriesNarrative:
                                 dataDict.update(xtraData)
 
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
+
+                        dataDict.update({"level_index":idx})
                         self._result_setter.update_executive_summary_data(dataDict)
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'dimension_trend.temp',dataDict)
