@@ -208,7 +208,7 @@ class ChiSquareAnalysis:
                                 'data':data}
         bubble_data1 = {}
         bubble_data2 = {}
-        bubble_data1['value'] = NarrativesUtils.round_number(max(__target_contributions)*100.0/total,2)+'%'
+        bubble_data1['value'] = str(NarrativesUtils.round_number(max(__target_contributions)*100.0/total,2))+'%'
         m_index = __target_contributions.index(max(__target_contributions))
         bubble_data1['text'] = 'Percentage '+__target+' from '+ levels[m_index]
 

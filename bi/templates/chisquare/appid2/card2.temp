@@ -1,0 +1,7 @@
+{% if second_target_top_dims|length > 1 %}
+  The top {{second_target_top_dims|length}} {{colname}}s account for {{second_target_top_dims_contribution}}%
+  of the total {{second_target}} observations.
+{% endif %}
+Being the largest contributor, total {{second_target}} from {{best_second_target}} amounts to {{best_second_target_count}}
+that accounts for about {{best_second_target_percent}}% of the total {{second_target}}.
+On the other hand, {{worst_second_target}} contributes to just {{worst_second_target_percent}}% of the total {{second_target}}.

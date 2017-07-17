@@ -22,7 +22,7 @@ class ChiSquareNarratives:
                 self._base_dir += "appid1/"
             elif self._appid == "2":
                 self._base_dir += "appid2/"
-        self._generate_narratives()
+            self._generate_narratives()
 
     def _generate_narratives(self):
         for target_dimension in self._df_chisquare_result.keys():
@@ -36,7 +36,6 @@ class ChiSquareNarratives:
             #insignificant_variables = [i for i in self._df_chisquare_result[target_dimension] if i['pv']>0.05]
             num_analysed_variables = len(analysed_variables)
             num_significant_variables = len(significant_variables)
-
             self.narratives['main_card']= {}
             self.narratives['main_card']['heading'] = 'Relationship between '+target_dimension+' and other factors'
             self.narratives['main_card']['paragraphs'] = {}
@@ -49,6 +48,7 @@ class ChiSquareNarratives:
             } # for both para 1 and para 2
             paragraph={}
             paragraph['header'] = ''
+
             paragraph['content'] = NarrativesUtils.get_template_output(self._base_dir,'main_card.temp',data_dict)
             self.narratives['main_card']['paragraphs']=[paragraph]
             self.narratives['cards'] = []
@@ -62,7 +62,11 @@ class ChiSquareNarratives:
             for analysed_dimension in significant_variables:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
-                    self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
+                    # print "APPID 2 is used"
+                    # self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
+                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, None)
+                    self.narratives['cards'].append(card)
+
                 else:
                     card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, None)
                     self.narratives['cards'].append(card)
