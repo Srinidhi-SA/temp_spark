@@ -17,8 +17,8 @@ class TwoWayAnovaScript:
     def Run(self):
         df_anova_obj = TwoWayAnova(self._data_frame, self._dataframe_helper, self._dataframe_context).test_all(measure_columns=(self._dataframe_context.get_result_column(),))
         df_anova_result = utils.as_dict(df_anova_obj)
-        # print df_anova_result
-        #print 'RESULT: %s' % (json.dumps(df_anova_result, indent=2))
+        # print 'RESULT: %s' % (json.dumps(df_anova_result, indent=2))
+    
         anova_narratives_obj = AnovaNarratives(df_anova_obj,self._dataframe_helper,self._result_setter)
         anova_narratives = utils.as_dict(anova_narratives_obj)
         # print anova_narratives

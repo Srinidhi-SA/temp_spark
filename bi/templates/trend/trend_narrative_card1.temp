@@ -19,11 +19,11 @@ The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
 The total {{measure}} </b> were {{total}} for the last {{durationString}},
  with the <b> average {{measure}} per {{dateLevel}} being {{average_value}}</b>.
 {% if ratio_string != "" %}
-  Interestingly, the sales contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
+  Interestingly, the {{measure}} contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
   amounts to a total of {{bucket_contribution}}, which is almost {{ratio_string}} of the overall
   {{measure}} for the {{durationString}} period.
 {% else %}
-  Interestingly, the sales contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
+  Interestingly, the {{measure}} contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
   amounts to a total of {{bucket_contribution}}.
 {% endif %}
 

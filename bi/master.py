@@ -144,6 +144,21 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTree/')
             print "Predictive modeling Not in Scripts to run"
 
+        # try:
+        fs = time.time()
+        trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark)
+        trend_obj.Run()
+        print "Trend Analysis Done in ", time.time() - fs, " seconds."
+        send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
+
+        # except Exception as e:
+        #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
+        #     send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
+        #     print "Trend Script Failed"
+        #     print "ERROR"*5
+        #     print e
+        #     print "ERROR"*5
+
     elif analysistype == 'Measure':
         print "STARTING MEASURE ANALYSIS ..."
         df_helper.remove_nulls(dataframe_context.get_result_column())
@@ -313,6 +328,7 @@ def main(confFilePath):
             print "ERROR"*5
             print e
             print "ERROR"*5
+
         # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
@@ -371,7 +387,10 @@ def main(confFilePath):
         else:
             print "Could Not Load the Model for Scoring"
 
-
+    elif analysistype == "trend":
+        from bi.narratives.trend.trend_calculations import TimeSeriesCalculations
+        trend_obj = TimeSeriesCalculations(df_helper,dataframe_context,result_setter,spark)
+        trend_obj.chisquare_trend("Deal_Type","KK")
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."

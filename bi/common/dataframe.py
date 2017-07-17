@@ -53,6 +53,7 @@ class DataFrameHelper:
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
         self._date_formats = {}
         self.significant_dimensions = {}
+        self.chisquare_significant_dimensions = {}
 
     def set_params(self):
         print "Setting the dataframe"
@@ -223,6 +224,12 @@ class DataFrameHelper:
 
     def get_significant_dimension(self):
         return self.significant_dimensions
+
+    def add_chisquare_significant_dimension(self, dimension, effect_size):
+        self.chisquare_significant_dimensions[dimension] = effect_size
+
+    def get_chisquare_significant_dimension(self):
+        return self.chisquare_significant_dimensions
 
     def filter_dataframe(self, colname, values):
         if type(values) == str:
