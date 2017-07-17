@@ -224,8 +224,8 @@ class ChiSquareAnalysis:
         target_levels = self._table.get_column_one_levels()
         dim_levels = self._table.get_column_two_levels()
 
-        # header = [self._analysed_dimension] + target_levels + ['Total']
-        header = ['State'] + target_levels + ['Total'] #TODO remove
+        header1 = [self._analysed_dimension] + target_levels + ['Total']
+        header = ['State','Active','Churn','Total'] #TODO remove
         data = []
 
         for idx, lvl in enumerate(dim_levels):
@@ -252,6 +252,6 @@ class ChiSquareAnalysis:
             dict_ = dict(zip(data1, data2))
             data.append(dict_)
 
-        self.card1['chart']={'header':header,
+        self.card1['chart']={'header':header1,
                             'data':data,
                             'label':self._analysed_dimension}
