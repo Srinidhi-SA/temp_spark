@@ -398,10 +398,18 @@ def calculate_dimension_contribution(level_cont):
     print sorted_k1
     print "SORTED K2"
     print sorted_k2
-    data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
-    data_dict["negativeHighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
-    data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
-    data_dict["negativeSecondHighestSigDimensionL2"] = [sorted_k2[1][0],sorted_k2[1][1]["growth"]]
+    if len(sorted_k1) >= 2:
+        data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
+        data_dict["negativeHighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
+    elif len(sorted_k1) ==1:
+        data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
+        data_dict["negativeHighestSigDimensionL1"] = None
+    if len(sorted_k2) >=2:
+        data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
+        data_dict["negativeSecondHighestSigDimensionL2"] = [sorted_k2[1][0],sorted_k2[1][1]["growth"]]
+    elif len(sorted_k2) ==1:
+        data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
+        data_dict["negativeSecondHighestSigDimensionL1"] = None
     return data_dict
 
 def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col,max_time):

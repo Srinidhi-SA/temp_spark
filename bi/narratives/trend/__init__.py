@@ -223,7 +223,7 @@ class TimeSeriesNarrative:
                         chart_data[level] = card1chartdata
                         # self.narratives["card0"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
                     self.narratives["card0"]["paragraphs"] = all_paragraphs
-                    self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y","label_text":{"x":"hh","y":"hh","y2":"jj"}}
+                    self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y"}
                     print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
