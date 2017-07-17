@@ -54,6 +54,7 @@ class ChiSquareNarratives:
             self.narratives['cards'] = []
             chart = {'header':'Strength of association between '+target_dimension+' and other dimensions'}
             chart['data'] = effect_size_dict
+            chart['label_text']={'x':'Dimensions','y':Effect Size (Cramers-V)}
             self.narratives['main_card']['chart']=chart
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
