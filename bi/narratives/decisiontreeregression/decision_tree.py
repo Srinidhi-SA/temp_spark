@@ -110,19 +110,19 @@ class DecisionTreeRegNarrative:
             r = random.randint(0,99)%5
             if r == 0:
                 narrative = 'Nearly <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            '</b> of observations that have <i><u>' + temp_narrative + '</u></i> result in '+ \
+                            '</b> of observations that have ' + temp_narrative + ' result in '+ \
                             target + ' '+ self._column_name + ' values.'
             elif r == 1:
-                narrative = 'If <i><u>' + temp_narrative +'</u></i> it is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                narrative = 'If ' + temp_narrative +' it is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
                             '</b> likely that the observations are ' + target + ' segment.'
             elif r == 2:
-                narrative = 'When <i><u>' +  temp_narrative + '</u></i> the probability of ' + target + \
+                narrative = 'When ' +  temp_narrative + ' the probability of ' + target + \
                             ' is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + '</b>.'
             elif r == 3:
-                narrative = 'If <i><u>' + temp_narrative +'</u></i> then there is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
+                narrative = 'If ' + temp_narrative +' then there is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
                             '</b> probability that the ' + self._column_name + ' observations would be ' + target + ' valued.'
             else:
                 narrative = 'There is a very high chance(<b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            '</b>) that ' +  self._column_name + ' would be relatively ' + target + ' when, <i><u>' + \
-                            temp_narrative[:-1] + '</u></i>.'
+                            '</b>) that ' +  self._column_name + ' would be relatively ' + target + ' when, ' + \
+                            temp_narrative[:-1] + '.'
             return narrative

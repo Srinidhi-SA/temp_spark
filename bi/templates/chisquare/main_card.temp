@@ -3,14 +3,14 @@
     {{analysed_dimension[0]}} is the only factor in the dataset and it has significant association with {{target}}.
   {% elif num_significant_variables == 1 %}
     There are <b>{{num_variables}} Factors </b> in the dataset and only {{significant_variables[0]}} has
-    <b>significant association</b> with {{target}}.
+    <b>significant association</b> with {{target}}</b>.
   {% elif num_variables != num_significant_variables %}
     There are <b>{{num_variables}} factors</b> in the dataset and <b> {{num_significant_variables}} of them
     </b> (including {{significant_variables[0]}}, {{significant_variables[1]}}) have <b>significant association<b>
-    with {{target}}.
+    with {{target}}</b>.
   {% elif num_variables == num_significant_variables %}
     There are <b>{{num_variables}} factors</b> in the dataset and <b> all of them </b>  have <b>significant
-    association<b> with {{target}}.
+    association<b> with {{target}}</b>.
   {% endif %}
 {% else %}
   {% if num_variables == 1 %}
