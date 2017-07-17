@@ -29,8 +29,6 @@ The total {{measure}} </b> were {{total}} for the last {{durationString}},
 
 PARASEPARATOR
 
-Highest and Lowest Points of {{measure}}
-PARAHEADER
 {% if peakStreakDuration >= 2%}
   The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
   <b>a continuous streak of growth for {{peakStreakDuration}} {{dateLevel}}s </b> ending at {{peakTime}}.
@@ -42,8 +40,6 @@ The most significant factor that fuelled this strong run is the {{highest_contri
 {{measure}} contribution from {{highest_contributing_level}} in {{peakTime}}, increased by over
 {{highest_contributing_level_increase}} percentage points ({{highest_contributing_level_range}})
 compared to rest of the observation period.
-
-PARASEPARATOR
 
 However, there are also few {{dataLevel}} when {{measure}} were lagging and didn't do very well.
 {% if lowStreakDuration >= 2%}
@@ -57,32 +53,15 @@ However, there are also few {{dataLevel}} when {{measure}} were lagging and didn
  {{lowest_contributing_variable}}</b>, which observed a decline of over
   {{lowest_contributing_level_decrease}} percentage points ({{lowest_contributing_level_range}}).
 
-PARASEPARATOR
-
-Significant factors that drive increase in {{measure}}
-PARAHEADER
-<ul>
-<li>
   {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
    as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
    overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
-</li>
-</ul>
-PARASEPARATOR
-
-Significant factors that drag {{measure}} down
-PARAHEADER
-<ul>
-<li>
   {{negativeHighestSigDimension}} has been an area of concern,
   as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
    shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
-</li>
+
 {% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
-<li>
-{{negativeSecondHighestSigDimension}} has been an area of concern,
-as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
+  {{negativeSecondHighestSigDimension}} has been an area of concern,
+  as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
  shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
-</li>
 {% endif %}
-</ul>
