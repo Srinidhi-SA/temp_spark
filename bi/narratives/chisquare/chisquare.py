@@ -79,9 +79,14 @@ class ChiSquareAnalysis:
         else:
             tops = 1
             bottoms = -1
-        sorted_ = sorted(enumerate(top_target_differences), key = lambda x: x[1])
+        sorted_ = sorted(enumerate(top_target_differences), key = lambda x: x[1],reverse=True)
         best_top_difference_indices = [x for x,y in sorted_[:tops]]
         worst_top_difference_indices = [x for x,y in sorted_[bottoms:]]
+
+        top_target_shares = [x*100.0/y for x,y in zip(top_target_contributions,level_counts)]
+        best_top_target_share_index = top_target_shares.index(max(top_target_shares))
+        worst_top_target_share_index = top_target_shares.index(min(top_target_shares))
+        overall_top_percentage = sum_top_target*100.0/total
 
         second_target_contributions = [table.get_value(second_target,i) for i in levels]
         sum_second_target = sum(second_target_contributions)
@@ -110,7 +115,30 @@ class ChiSquareAnalysis:
         best_second_difference_indices = [x for x,y in sorted_[:seconds]]
         worst_second_difference_indices = [x for x,y in sorted_[bottoms:]]
 
+        second_target_shares = [x*100.0/y for x,y in zip(second_target_contributions,level_counts)]
+        best_second_target_share_index = second_target_shares.index(max(second_target_shares))
+        worst_second_target_share_index = second_target_shares.index(min(second_target_shares))
+        overall_second_percentage = sum_second_target*100.0/total
+
         data_dict = {}
+        data_dict['best_second_difference'] = best_second_difference_indices[0]
+        data_dict['worst_second_difference'] = worst_second_difference_indices[0]
+        data_dict['best_top_difference']=best_top_difference_indices[0]
+        data_dict['worst_top_difference'] = worst_top_difference_indices[0]
+        data_dict['levels_percentages'] = levels_percentages
+        data_dict['top_target_percentages'] = top_target_percentages
+        data_dict['second_target_percentages'] = second_target_percentages
+        data_dict['levels'] = levels
+        data_dict['best_top_share'] = best_top_target_share_index
+        data_dict['worst_top_share'] = worst_top_target_share_index
+        data_dict['best_second_share'] = best_second_target_share_index
+        data_dict['worst_second_share'] = worst_second_target_share_index
+        data_dict['top_target_shares'] = top_target_shares
+        data_dict['second_target_shares'] = second_target_shares
+        data_dict['overall_second'] = overall_second_percentage
+        data_dict['overall_top'] = overall_top_percentage
+
+
         data_dict['num_significant'] = len(significant_variables)
         data_dict['colname'] = analysed_dimension
         data_dict['target'] = target_dimension
@@ -142,6 +170,9 @@ class ChiSquareAnalysis:
 
 
         output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
+        print '*'*300
+        print output
+        print '!'*300
         self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
         self.card1['paragraphs'] = output
         self.card1['chart']=[]
@@ -222,4 +253,5 @@ class ChiSquareAnalysis:
             data.append(dict_)
 
         self.card1['chart']={'header':header,
-                            'data':data}
+                            'data':data,
+                            'label':self._analysed_dimension}
