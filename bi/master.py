@@ -317,19 +317,6 @@ def main(confFilePath):
         # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
 
     elif analysistype == 'Prediction':
-        try:
-            st = time.time()
-            # rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-            rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
-            rf_obj.Train()
-            print "Random Foreset Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            print "Random Foreset Model Failed"
-            print "ERROR"*5
-            print e
-            print "ERROR"*5
-
-        # df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df.toPandas()
         df = df.dropna()
         categorical_columns = df_helper.get_string_columns()
@@ -338,6 +325,21 @@ def main(confFilePath):
         df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         df_helper.set_train_test_data(df)
+        # df_helper.remove_nulls(dataframe_context.get_result_column())
+
+
+        try:
+            st = time.time()
+            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+            # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
+            rf_obj.Train()
+            print "Random Foreset Model Done in ", time.time() - st,  " seconds."
+        except Exception as e:
+            print "Random Foreset Model Failed"
+            print "ERROR"*5
+            print e
+            print "ERROR"*5
+
         try:
             st = time.time()
             lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
@@ -361,26 +363,22 @@ def main(confFilePath):
             print "ERROR"*5
 
     elif analysistype == 'Scoring':
+        st = time.time()
         model_path = dataframe_context.get_model_path()
+        df = df.toPandas()
+        df = df.dropna()
         if "RandomForest" in model_path:
-            st = time.time()
-            # trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
-            trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
+            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "XGBoost" in model_path:
             # df_helper.remove_nulls(dataframe_context.get_result_column())
-            df = df.toPandas()
-            df = df.dropna()
-            st = time.time()
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "LogisticRegression" in model_path:
             # df_helper.remove_nulls(dataframe_context.get_result_column())
-            df = df.toPandas()
-            df = df.dropna()
-            st = time.time()
             trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
