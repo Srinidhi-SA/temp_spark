@@ -197,6 +197,9 @@ class ChiSquareAnalysis:
         chart = {}
         label = {'total' : '# of '+__target,
                   'percentage': '% of '+__target}
+        label_text = {'x':self._analysed_dimension,
+                      'y':'# of '+__target,
+                      'y2':'% of '+__target,}
         data = {}
         data['total'] = dict(zip(levels,__target_contributions))
         __target_percentages = [x*100.0/y for x,y in zip(__target_contributions,levels_count)]
