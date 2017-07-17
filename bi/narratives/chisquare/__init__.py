@@ -22,7 +22,7 @@ class ChiSquareNarratives:
                 self._base_dir += "appid1/"
             elif self._appid == "2":
                 self._base_dir += "appid2/"
-            self._generate_narratives()
+        self._generate_narratives()
 
     def _generate_narratives(self):
         for target_dimension in self._df_chisquare_result.keys():
