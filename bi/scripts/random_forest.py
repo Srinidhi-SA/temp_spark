@@ -37,7 +37,8 @@ class RandomForestScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
-
+        if model_path.startswith("file"):
+            model_path = model_path[7:]
         random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
@@ -92,9 +93,14 @@ class RandomForestScript:
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
         score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
+        if score_data_path.startswith("file"):
+            score_data_path = score_data_path[7:]
         trained_model_path = self._dataframe_context.get_model_path()
+        if trained_model_path.startswith("file"):
+            trained_model_path = trained_model_path[7:]
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
-
+        if score_summary_path.startswith("file"):
+            score_summary_path = score_summary_path[7:]
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
