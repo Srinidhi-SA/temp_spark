@@ -3,10 +3,10 @@ Overview
 PARAHEADER
 
 {% if num_significant == 1 %}
-  {{colname}} is <b>the only significant influencer</b> of customer status and displays significant variation
+  {{colname}} is <b>the only significant influencer</b> of {{target}} and displays significant variation
   in distribution of {{target}} categories.
 {% else %}
-  {{colname}} is one of <b>the most significant influencer</b> of customer status and displays significant variation
+  {{colname}} is one of <b>the most significant influencers</b> of {{target}} and displays significant variation
   in distribution of {{target}} categories.
 {% endif %}
 {% if top_levels | length  == 1%}
