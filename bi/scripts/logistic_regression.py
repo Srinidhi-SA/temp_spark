@@ -38,11 +38,9 @@ class LogisticRegressionScript:
         if model_path.startswith("file"):
             model_path = model_path[7:]
         levels = self._data_frame[result_column].unique()
-        print levels
         logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         logistic_regression_obj.set_number_of_levels(levels)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-        print x_train.columns
         cat_cols = list(set(categorical_columns)-set([result_column]))
         self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
         x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
