@@ -24,8 +24,8 @@ And, <b>{{bottom_level}}</b> is the smallest with <b>just {{bottom_level_percent
 PARASEPARATOR
 Key segments of {{second_target}}
 PARAHEADER
-The <b>percentage of {{second_target}}</b> is the <b>lowest for {{levels[worst_second_share]}}</b> ({{second_target_shares[worst_second_share] | round}}%).
-And, <b>{{levels[best_second_share]}}</b> has the <b>highest rate of {{second_target}}</b> ({{second_target_shares[best_second_share] | round}}%),
+The <b>percentage of {{second_target}}</b> is the <b>lowest for the segment {{levels[worst_second_share]}}</b> ({{second_target_shares[worst_second_share] | round}}%).
+and the segment <b> {{levels[best_second_share]}}</b> has the <b>highest rate of {{second_target}}</b> ({{second_target_shares[best_second_share] | round}}%),
 which is
 {% if second_target_shares[worst_second_share]>0 %}
 {{(second_target_shares[best_second_share]*100/second_target_shares[worst_second_share] - 100) | round}}% higher
@@ -33,22 +33,22 @@ than {{levels[worst_second_share]}} and
 {% endif %}
 {{(second_target_shares[best_second_share]*100/overall_second-100) | round}}%
 higher than the overall {{second_target}} rate.
-Interestingly, <b>{{levels[best_second_difference]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference] | round}}%
+Interestingly, the segment <b>{{levels[best_second_difference]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference] | round}}%
 of the total </b>observations, has contributed to only <b>{{second_target_percentages[best_second_difference] | round}}%
 of total {{second_target}}</b>.
-On the other hand, {{second_target}} from <b>{{levels[worst_second_difference]}}</b> amounts for
+On the other hand, {{second_target}} from the segment <b>{{levels[worst_second_difference]}}</b> amounts for
 <b>{{second_target_percentages[worst_second_difference] | round}}% of total {{second_target}}</b>,
 whereas it accounts for only <b>{{levels_percentages[worst_second_difference] | round}}% of the total</b> observations.
 
 PARASEPARATOR
 Key segments of {{top_target}}
 PARAHEADER
-When it comes <b>{{top_target}}</b> observations, <b>{{levels[worst_top_share]}}</b> seems to be the <b>least dominant</b>,
+When it comes <b>{{top_target}}</b> observations, the segment <b>{{levels[worst_top_share]}}</b> seems to be the <b>least dominant</b>,
 since only {{top_target_shares[worst_top_share] | round}}% of observations from the {{colname}} are into {{top_target}}
 category.
-But <b>{{levels[best_top_share]}} has the highest rate of {{top_target}}</b>, i.e. {{top_target_shares[best_top_share] | round}}%.
-Though <b>{{levels[best_top_difference]}}</b> contributes to just <b>{{levels_percentages[best_top_difference] | round}}%</b>
+but the segment <b>{{levels[best_top_share]}} has the highest rate of {{top_target}}</b>, i.e. {{top_target_shares[best_top_share] | round}}%.
+Though the segment <b>{{levels[best_top_difference]}}</b> contributes to just <b>{{levels_percentages[best_top_difference] | round}}%</b>
 of the total observations, it accounts nearly <b>{{top_target_percentages[best_top_difference] | round}}%</b> of the
 total {{top_target}} observations.
-About <b>{{levels_percentages[worst_top_difference] | round}}% </b>of the total observations is from <b>{{levels[worst_top_difference]}}</b>,
+About <b>{{levels_percentages[worst_top_difference] | round}}% </b>of the total observations is from the segment <b>{{levels[worst_top_difference]}}</b>,
 but the {{colname}} contributes to only <b>{{top_target_percentages[worst_top_difference] | round}}%</b> of {{top_target}}.
