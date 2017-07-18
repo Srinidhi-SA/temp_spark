@@ -43,12 +43,12 @@ whereas it accounts for only <b>{{levels_percentages[worst_second_difference] | 
 PARASEPARATOR
 Key segments of {{top_target}}
 PARAHEADER
-When it comes <b>{{top_target}}</b> observations, the segment <b>{{levels[worst_top_share]}}</b> seems to be the <b>least dominant</b>,
+When it comes to <b>{{top_target}}</b> observations, the segment <b>{{levels[worst_top_share]}}</b> seems to be the <b>least dominant</b>,
 since only {{top_target_shares[worst_top_share] | round}}% of observations from the {{colname}} are into {{top_target}}
 category.
 but the segment <b>{{levels[best_top_share]}} has the highest rate of {{top_target}}</b>, i.e. {{top_target_shares[best_top_share] | round}}%.
 Though the segment <b>{{levels[best_top_difference]}}</b> contributes to just <b>{{levels_percentages[best_top_difference] | round}}%</b>
-of the total observations, it accounts nearly <b>{{top_target_percentages[best_top_difference] | round}}%</b> of the
+of the total observations, it accounts for nearly <b>{{top_target_percentages[best_top_difference] | round}}%</b> of the
 total {{top_target}} observations.
 About <b>{{levels_percentages[worst_top_difference] | round}}% </b>of the total observations is from the segment <b>{{levels[worst_top_difference]}}</b>,
 but the {{colname}} contributes to only <b>{{top_target_percentages[worst_top_difference] | round}}%</b> of {{top_target}}.
