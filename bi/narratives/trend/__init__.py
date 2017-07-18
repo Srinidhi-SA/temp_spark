@@ -21,12 +21,16 @@ class TimeSeriesNarrative:
         self._dataframe_context = df_context
 
         self._dateFormatDetected = False
+        self._requestedDateFormat = None
+        self._existingDateFormat = None
         self._date_suggestion_columns = df_context.get_date_column_suggestions()
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._td_columns = df_helper.get_timestamp_columns()
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
 
+        # requestedDateFormat = None
+        # existingDateFormat = None
         if self._date_suggestion_columns != None:
             suggested_date_column = self._date_suggestion_columns[0]
             existingDateFormat = None
@@ -45,10 +49,10 @@ class TimeSeriesNarrative:
 
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/trend/"
-
-        self._requestedDateFormat = requestedDateFormat
-        self._existingDateFormat = existingDateFormat
-        self._date_column_suggested = suggested_date_column
+        if self._dateFormatDetected:
+            self._requestedDateFormat = requestedDateFormat
+            self._existingDateFormat = existingDateFormat
+            self._date_column_suggested = suggested_date_column
 
         if self._existingDateFormat:
             date_format = self._existingDateFormat
