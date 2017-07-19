@@ -52,18 +52,17 @@ class RandomForestPysparkScript:
         model_filepath = model_path+"/RandomForest/TrainedModels/model"
         summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
 
-        df = self._data_frame
+        df=self._data_frame
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column)
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
         OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-
         rf = RF(labelCol='label', featuresCol='features',numTrees=200)
         fit = rf.fit(trainingData)
-        MLUtils.save_pipeline_or_model(fit,model_filepath)
         transformed = fit.transform(validationData)
+        MLUtils.save_pipeline_or_model(fit,model_filepath)
         feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
 
         label_classes = transformed.select("label").distinct().collect()
@@ -199,7 +198,7 @@ class RandomForestPysparkScript:
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
             # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
             CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj,self._dataframe_context))
+            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
             # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
             CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
             print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."

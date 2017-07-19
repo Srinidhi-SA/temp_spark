@@ -397,3 +397,10 @@ def reformat_prediction_split(prediction_split):
             else:
                 pred_split_new[idx+1].append(0)
     return pred_split_new
+
+def fill_missing_values(df,replacement_dict):
+    """
+    replacement_dict => {"col1":23,"col2":"GG","col3":45}
+    """
+    df = df.fillna(replacement_dict)
+    return df
