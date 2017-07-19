@@ -37,7 +37,7 @@ class LogisticRegressionScript:
         model_path = self._dataframe_context.get_model_path()
         if model_path.startswith("file"):
             model_path = model_path[7:]
-            
+
         df = self._data_frame
         levels = df[result_column].unique()
         logistic_regression_obj = LogisticRegression(df, self._dataframe_helper, self._spark)
@@ -185,7 +185,7 @@ class LogisticRegressionScript:
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
             # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
             CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj, self._dataframe_context))
+            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
             # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
             CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
             print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."

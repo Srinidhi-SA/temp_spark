@@ -173,7 +173,7 @@ class RandomForestScript:
         df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
         # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
         CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-        chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(len(df_helper.get_string_columns()), df_chisquare_obj,self._dataframe_context))
+        chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
         # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
         CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
         print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
