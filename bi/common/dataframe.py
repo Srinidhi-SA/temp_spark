@@ -1,5 +1,5 @@
 from functools import reduce
-
+import json
 import datetime as dt
 import pandas as pd
 from datetime import datetime
@@ -133,22 +133,38 @@ class DataFrameHelper:
 
     def set_train_test_data(self,df):
         # from bi.algorithms import utils as MLUtils
-        df = df
         result_column = self._df_context.get_result_column()
         train_test_ratio = float(self._df_context.get_train_test_split())
         date_suggestion_columns = self._df_context.get_date_column_suggestions()
         time_dimension_columns = self.timestamp_columns
-
         columns_to_ignore = [result_column]+date_suggestion_columns+time_dimension_columns
-        print columns_to_ignore
+        print "These Columns are Ignored :- ",  columns_to_ignore
         if train_test_ratio == None:
             train_test_ratio = 0.7
         x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
         # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
 
-    def remove_nulls(self, col):
-        self._data_frame = self._data_frame.na.drop(subset=col)
+    def fill_missing_values(self,df):
+        """
+        Filling missing values
+        missing values in categorical columns are replaced by 'NA'
+        missing values in numerical columns are replaced by 0
+        if there is missing value in target column those rows are deleted
+        """
+        categorical_columns = self.get_string_columns()
+        numerical_columns = self.get_numeric_columns()
+        replacement_dict = {}
+        for col in numerical_columns:
+            replacement_dict[col] = 0
+        for col in categorical_columns:
+            replacement_dict[col] = "NA"
+        df = df.fillna(replacement_dict)
+        return df
+
+    def remove_nulls(self, column_name):
+        # self._data_frame = self._data_frame.na.drop(subset=col)
+        self._data_frame = self._data_frame.filter(col(column_name).isNotNull())
         self.num_rows = self._data_frame.count()
 
     def clean_data_frame(self):

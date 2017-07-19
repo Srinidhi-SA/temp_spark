@@ -52,18 +52,23 @@ class RandomForestPysparkScript:
         model_filepath = model_path+"/RandomForest/TrainedModels/model"
         summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
 
-        df = self._data_frame
+        # filling missing values
+        replacement_dict = {}
+        for col in numerical_columns:
+            replacement_dict[col] = 0
+        for col in categorical_columns+[result_column]:
+            replacement_dict[col] = "NA"
+        df = MLUtils.fill_missing_values(self._data_frame,replacement_dict)
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column)
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
         OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-
         rf = RF(labelCol='label', featuresCol='features',numTrees=200)
         fit = rf.fit(trainingData)
-        MLUtils.save_pipeline_or_model(fit,model_filepath)
         transformed = fit.transform(validationData)
+        MLUtils.save_pipeline_or_model(fit,model_filepath)
         feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
 
         label_classes = transformed.select("label").distinct().collect()

@@ -32,6 +32,8 @@ from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 
 
 from parser import configparser
+from pyspark.sql.functions import col, udf
+
 
 def send_message_API(monitor_api, task, message, complete, progress):
     url = monitor_api
@@ -105,20 +107,18 @@ def main(confFilePath):
             print "Descriptive analysis Not in Scripts to run "
 
         if ('Dimension vs. Dimension' in scripts_to_run):
-            # try:
-            df_helper.remove_nulls(dataframe_context.get_result_column())
-            df = df_helper.get_data_frame()
-            fs = time.time()
-            chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
-            chisquare_obj.Run()
-            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-            send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
-            # except Exception as e:
-            #     print "ChiSquare Analysis Failed "
-            #     send_message_API(monitor_api, "ChiSquare", "ChiSquare Failed", False, 0)
-            #     print "ERROR"*5
-            #     print e
-            #     print "ERROR"*5
+            try:
+                fs = time.time()
+                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
+                chisquare_obj.Run()
+                print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+                send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
+            except Exception as e:
+                print "ChiSquare Analysis Failed "
+                send_message_API(monitor_api, "ChiSquare", "ChiSquare Failed", False, 0)
+                print "ERROR"*5
+                print e
+                print "ERROR"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'ChiSquare/')
             print "Dimension vs. Dimension Not in Scripts to run "
@@ -317,15 +317,16 @@ def main(confFilePath):
         # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
 
     elif analysistype == 'Prediction':
-        df = df.toPandas()
-        df = df.dropna()
+        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df = df_helper.get_data_frame()
+        df = df_helper.fill_missing_values(df)
         categorical_columns = df_helper.get_string_columns()
         result_column = dataframe_context.get_result_column()
+        df = df.toPandas()
         drop_column_list = []
         df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         df_helper.set_train_test_data(df)
-        # df_helper.remove_nulls(dataframe_context.get_result_column())
 
 
         try:
@@ -365,20 +366,22 @@ def main(confFilePath):
     elif analysistype == 'Scoring':
         st = time.time()
         model_path = dataframe_context.get_model_path()
+        result_column = dataframe_context.get_result_column()
+        if result_column in df.columns:
+            df_helper.remove_nulls(result_column)
+        df = df_helper.get_data_frame()
+        df = df_helper.fill_missing_values(df)
         df = df.toPandas()
-        df = df.dropna()
         if "RandomForest" in model_path:
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
             # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "XGBoost" in model_path:
-            # df_helper.remove_nulls(dataframe_context.get_result_column())
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "LogisticRegression" in model_path:
-            # df_helper.remove_nulls(dataframe_context.get_result_column())
             trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
@@ -389,6 +392,11 @@ def main(confFilePath):
         from bi.narratives.trend.trend_calculations import TimeSeriesCalculations
         trend_obj = TimeSeriesCalculations(df_helper,dataframe_context,result_setter,spark)
         trend_obj.chisquare_trend("Deal_Type","KK")
+
+    elif analysistype == "pyspark":
+        st = time.time()
+        rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
+        rf_obj.Train()
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."
