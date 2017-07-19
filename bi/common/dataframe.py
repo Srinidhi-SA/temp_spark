@@ -136,6 +136,8 @@ class DataFrameHelper:
         result_column = self._df_context.get_result_column()
         train_test_ratio = float(self._df_context.get_train_test_split())
         date_suggestion_columns = self._df_context.get_date_column_suggestions()
+        if date_suggestion_columns == None:
+            date_suggestion_columns = []
         time_dimension_columns = self.timestamp_columns
         columns_to_ignore = [result_column]+date_suggestion_columns+time_dimension_columns
         print "These Columns are Ignored :- ",  columns_to_ignore
