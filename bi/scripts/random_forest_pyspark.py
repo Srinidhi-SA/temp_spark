@@ -52,13 +52,7 @@ class RandomForestPysparkScript:
         model_filepath = model_path+"/RandomForest/TrainedModels/model"
         summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
 
-        # filling missing values
-        replacement_dict = {}
-        for col in numerical_columns:
-            replacement_dict[col] = 0
-        for col in categorical_columns+[result_column]:
-            replacement_dict[col] = "NA"
-        df = MLUtils.fill_missing_values(self._data_frame,replacement_dict)
+        df=self._data_frame
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column)
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
