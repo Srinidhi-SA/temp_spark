@@ -212,6 +212,7 @@ class ChiSquareAnalysis:
             sum_ = grouped[d].sum()
             diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
             max_diff = diffs.index(max(diffs))
+            index_txt=''
             if max_diff == 1:
                 index_txt = index_list[0]
             elif max_diff == 2:
