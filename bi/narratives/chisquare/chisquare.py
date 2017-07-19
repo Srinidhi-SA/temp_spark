@@ -25,7 +25,7 @@ class ChiSquareAnalysis:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
         self.card1 = {}
-        # self.card0 = {}
+        self.card0 = {}
         self.card2 = {}
         self.card4 = {}
         # self.card3 = {}
@@ -217,7 +217,7 @@ class ChiSquareAnalysis:
             elif max_diff == 2:
                 index_txt = index_list[0] + ' and ' + index_list[1]
             elif max_diff>2:
-                index_txt = 'including' + index_list[0] + ' and ' + index_list[1]
+                index_txt = 'including ' + index_list[0] + ' and ' + index_list[1]
             distribution_second.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
                                     'levels': index_list[:max_diff],'variation':random.randint(1,100),\
                                     'index_txt': index_txt, 'd':d})
@@ -235,7 +235,7 @@ class ChiSquareAnalysis:
             elif max_diff == 2:
                 index_txt = index_list[0] + ' and ' + index_list[1]
             elif max_diff>2:
-                index_txt = 'including' + index_list[0] + ' and ' + index_list[1]
+                index_txt = 'including ' + index_list[0] + ' and ' + index_list[1]
             distribution_top.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
                                 'levels': index_list[:max_diff], 'variation':random.randint(1,100),\
                                 'index_txt':index_txt, 'd':d})
@@ -270,6 +270,10 @@ class ChiSquareAnalysis:
         self.card4['bubble_data'] = bubble
         output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
         self.card4['paragraphs'] = output4
+
+        output0 = NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict)
+        self.card0['paragraphs'] = output0
+        self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
 
         print '*'*1050
         print output2

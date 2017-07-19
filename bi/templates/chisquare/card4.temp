@@ -1,5 +1,5 @@
 {% if top_target_top_dims|length > 1 %}
-  The top {{top_target_top_dims|length}} {{colname}}s account for {{top_target_top_dims_contribution}}%
+  The top {{top_target_top_dims|length}} {{colname}} account for {{top_target_top_dims_contribution}}%
   of the total {{top_target}} observations.
 {% endif %}
 Being the largest contributor, total {{top_target}} from {{best_top_target}} amounts to {{best_top_target_count}}
@@ -31,7 +31,7 @@ On the other hand, {{worst_top_target}} contributes to just {{worst_top_target_p
     <b>{{dim['d']}}</b>:
     {% if dim['levels'] | length == 1 %}
       {% if dim['variation']%2 == 0 %}
-        Among the {{dim['d']}}s, {{dim['index_txt']}} has got the major chunk of {{top_target}} from {{top_target_top_dims[0]}},
+        Among the {{dim['d']}}, {{dim['index_txt']}} has got the major chunk of {{top_target}} from {{top_target_top_dims[0]}},
         accounting for {{dim['contributions'][0]}}.
       {% elif dim['variation']%2 == 1 %}
         {{dim['index_txt']}} plays a key role in explaining the high concentration of {{top_target}} from
@@ -40,14 +40,14 @@ On the other hand, {{worst_top_target}} contributes to just {{worst_top_target_p
       {% endif %}
     {% elif dim['levels'] | length > 1 %}
       {% if dim['variation']%3 == 0 %}
-        The top {{dim['levels'] | length}} {{dim['d']}}s, {{dim['index_txt']}}, account for {{dim['contributions'] | sum}}%
+        The top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, account for {{dim['contributions'] | sum}}%
         of the total {{top_target}} observations from {{top_target_top_dims[0]}}.
       {% elif dim['variation']%3 == 1 %}
-        Some of the {{dim['d']}}s({{dim['index_txt']}}) account of a significant portion of {{top_target}} observations from
+        Some of the {{dim['d']}}({{dim['index_txt']}}) account of a significant portion of {{top_target}} observations from
         {{top_target_top_dims[0]}}. They cumulatively account for about {{dim['contributions'] | sum}}% of the total
         {{top_target}} from {{top_target_top_dims[0]}}.
       {% elif dim['variation']%3 == 2 %}
-        Among the {{dim['d']}}s, the top {{dim['levels'] | length}} {{dim['d']}}s, {{dim['index_txt']}}, contribute to
+        Among the {{dim['d']}}, the top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, contribute to
         {{dim['contributions'] | sum}}% of the total {{top_target}} observations from {{top_target_top_dims[0]}}.
       {% endif %}
     {% endif %}
