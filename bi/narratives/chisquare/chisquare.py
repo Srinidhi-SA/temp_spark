@@ -25,7 +25,7 @@ class ChiSquareAnalysis:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
         self.card1 = {}
-        self.card0 = {}
+        # self.card0 = {}
         self.card2 = {}
         self.card4 = {}
         # self.card3 = {}
@@ -273,8 +273,8 @@ class ChiSquareAnalysis:
         self.card4['paragraphs'] = output4
 
         output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
-        self.card0['paragraphs'] = output0
-        self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
+        # self.card0['paragraphs'] = output0
+        # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
 
         print '*'*1050
         print output2
