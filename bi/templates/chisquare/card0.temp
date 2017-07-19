@@ -37,8 +37,8 @@
     {% endif %}
   </li>
   {% for dim in distribution_second %}
-    <li>
     {% if dim['levels'] | length == 1 %}
+    <li>
       {% if dim['variation']%2 == 0 %}
         Among the {{dim['d']}}, {{dim['index_txt']}} has got the major chunk of {{second_target}} from {{second_target_top_dims[0]}},
         accounting for {{dim['contributions'][0]}}.
@@ -47,7 +47,9 @@
         {{second_target_top_dims[0]}}. It accounts for {{dim['contributions'][0]}}% of total {{second_target}} from
         {{second_target_top_dims[0]}}.
       {% endif %}
+    </li>
     {% elif dim['levels'] | length > 1 %}
+    <li>
       {% if dim['variation']%3 == 0 %}
         The top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, account for {{dim['contributions'] | sum}}%
         of the total {{second_target}} observations from {{second_target_top_dims[0]}}.
@@ -59,6 +61,6 @@
         Among the {{dim['d']}}, the top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, contribute to
         {{dim['contributions'] | sum}}% of the total {{second_target}} observations from {{second_target_top_dims[0]}}.
       {% endif %}
-    {% endif %}
     </li>
+    {% endif %}
   {% endfor %}
