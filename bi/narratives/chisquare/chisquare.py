@@ -271,7 +271,7 @@ class ChiSquareAnalysis:
         output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
         self.card4['paragraphs'] = output4
 
-        output0 = NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict)
+        output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
         self.card0['paragraphs'] = output0
         self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
 

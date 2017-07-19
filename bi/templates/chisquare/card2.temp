@@ -27,9 +27,8 @@ On the other hand, {{worst_second_target}} contributes to just {{worst_second_ta
   PARASEPARATOR
   <ul>
   {% for dim in distribution_second %}
-    <li>
-
     {% if dim['levels'] | length == 1 %}
+    <li>
       <b>{{dim['d']}}</b>:
       {% if dim['variation']%2 == 0 %}
         Among the {{dim['d']}}, {{dim['index_txt']}} has got the major chunk of {{second_target}} from {{second_target_top_dims[0]}},
@@ -39,7 +38,9 @@ On the other hand, {{worst_second_target}} contributes to just {{worst_second_ta
         {{second_target_top_dims[0]}}. It accounts for {{dim['contributions'][0]}}% of total {{second_target}} from
         {{second_target_top_dims[0]}}.
       {% endif %}
+    </li>
     {% elif dim['levels'] | length > 1 %}
+    <li>
       <b>{{dim['d']}}</b>:
       {% if dim['variation']%3 == 0 %}
         The top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, account for {{dim['contributions'] | sum}}%
@@ -52,6 +53,7 @@ On the other hand, {{worst_second_target}} contributes to just {{worst_second_ta
         Among the {{dim['d']}}, the top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, contribute to
         {{dim['contributions'] | sum}}% of the total {{second_target}} observations from {{second_target_top_dims[0]}}.
       {% endif %}
+    </li>
     {% endif %}
     </li>
   {% endfor %}
