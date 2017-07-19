@@ -8,9 +8,11 @@ from chisquare_app2 import ChiSquareAnalysisApp2
 from bi.narratives import utils as NarrativesUtils
 
 class ChiSquareNarratives:
-    @accepts(object, int, DFChiSquareResult ,ContextSetter)
-    def __init__(self, num_dimension_columns, df_chisquare_result, df_context):
-        self._num_dimension_columns = num_dimension_columns
+    #@accepts(object, int, DFChiSquareResult ,ContextSetter)
+    def __init__(self, df_helper, df_chisquare_result, df_context, data_frame):
+        self._data_frame = data_frame
+        self._df_helper = df_helper
+        self._measure_columns = df_helper.get_numeric_columns()
         self._df_chisquare = df_chisquare_result
         self._df_chisquare_result = df_chisquare_result.get_result()
         self.narratives = {}
@@ -64,9 +66,9 @@ class ChiSquareNarratives:
                 if self._appid=='2':
                     # print "APPID 2 is used"
                     # self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, None)
+                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None)
                     self.narratives['cards'].append(card)
 
                 else:
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, None)
+                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None)
                     self.narratives['cards'].append(card)

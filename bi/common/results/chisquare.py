@@ -35,7 +35,7 @@ class ContingencyTable:
     def get_column_one_levels(self):
         return self.column_one_values
 
-    def _get_bin_names (self,splits):
+    def get_bin_names (self,splits):
         bin_names = []
         start = splits[0]
         for i in splits[1:]:
@@ -44,7 +44,7 @@ class ContingencyTable:
         return bin_names
 
     def update_col2_names(self, splits):
-        bin_names = self._get_bin_names(splits)
+        bin_names = self.get_bin_names(splits)
         self.column_two_values = [bin_names[int(float(i))] for i in self.column_two_values]
 
     def get_row_total(self):
@@ -145,6 +145,11 @@ class ChiSquareResult:
             return self.splits
         else:
             return None
+
+    # def set_buckeddata(self.bucketedData):
+    #     self._bucketedData = bucketedData
+
+
 
 class DFChiSquareResult:
     """
