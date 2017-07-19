@@ -1,33 +1,24 @@
 import operator
 import os
-import random
+
 import numpy
-from pyspark.sql.functions import col
+
 from bi.narratives import utils as NarrativesUtils
 
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None):
-        self._data_frame = data_frame
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, appid=None):
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
         self._analysed_dimension = analysed_dimension
         self._significant_variables =  significant_variables
-
         self._num_analysed_variables = num_analysed_variables
         self._table = chisquare_result.get_contingency_table()
-
-        significant_variables=list(set(significant_variables)-set([analysed_dimension]))
-        significant_variables = list(set(significant_variables)-set(measure_columns))
-        if len(significant_variables)<=3:
-            self._second_level_dimensions = significant_variables
-        elif len(significant_variables)>=3:
-            self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
         self.card1 = {}
         # self.card0 = {}
-        self.card2 = {}
-        self.card4 = {}
+        # self.card2 = {}
+        # self.card4 = {}
         # self.card3 = {}
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
@@ -40,6 +31,22 @@ class ChiSquareAnalysis:
         self._generate_narratives()
 
     def _generate_narratives(self):
+        self._generate_narratives_card1()
+
+    def _get_top_and_bottom_levels(level_names, level_contributions, tops = None, bottoms = None):
+        sorted_ = sorted(zip(level_names,level_contributions,range(len(level_names))),reverse=True,key = lambda x: x[1])
+        level_names,level_contributions, level_indices = zip(*sorted_)
+        diffs = [0.0]+[level_contributions[i]-level_contributions[i+1] for i in range(len(level_names)-1)]
+        if tops == None:
+            tops = level_contributions.index(max(level_contributions))
+        if bottoms == None:
+            bottoms = -1
+        return {'sorted_levels': level_names,
+                'sorted_contributions': level_contributions,
+                'sorted_indices': level_indices,
+                'num_tops':tops}
+
+    def _generate_narratives_card1(self):
         chisquare_result = self._chisquare_result
         target_dimension = self._target_dimension
         analysed_dimension = self._analysed_dimension
@@ -47,6 +54,17 @@ class ChiSquareAnalysis:
         num_analysed_variables = self._num_analysed_variables
         table = self._table
         total = self._table.get_total()
+        table_counts = self._table.table
+        table_percent = self._table.table_percent
+        #row is target dimension and column is analysed dimension when created
+        table_percent_by_row = self._table.table_percent_by_row
+        table_percent_by_column = self._table.table_percent_by_column
+        target_distribution = self._table.get_row_total()
+        analysed_dimension_distribution = self._table.get_column_total()
+        sorted_ = sorted(enumerate(target_distribution), reverse=True, key = lambda x: x[1])
+        top_target_index,second_top_target_index = [x[0] for x in sorted_[:2]]
+
+
 
         levels = self._table.get_column_two_levels()
         level_counts = self._table.get_column_total()
@@ -79,10 +97,10 @@ class ChiSquareAnalysis:
         best_top_target_index = top_target_contributions.index(max(top_target_contributions))
         worst_top_target_index = top_target_contributions.index(min(top_target_contributions))
         top_target_differences = [x-y for x,y in zip(levels_percentages,top_target_percentages)]
-        if len(top_target_differences)>6:
+        if len(top_target_differences)>4:
             tops = 2
             bottoms = -2
-        elif len(top_target_differences)>4:
+        elif len(top_target_differences)==4:
             tops = 2
             bottoms = -1
         else:
@@ -120,7 +138,7 @@ class ChiSquareAnalysis:
         else:
             tops = 1
             bottoms = -1
-        sorted_ = sorted(enumerate(second_target_differences), key = lambda x: x[1], reverse=True)
+        sorted_ = sorted(enumerate(second_target_differences), key = lambda x: x[1])
         best_second_difference_indices = [x for x,y in sorted_[:tops]]
         worst_second_difference_indices = [x for x,y in sorted_[bottoms:]]
 
@@ -130,10 +148,10 @@ class ChiSquareAnalysis:
         overall_second_percentage = sum_second_target*100.0/total
 
         data_dict = {}
-        data_dict['best_second_difference'] = best_second_difference_indices ##these changed
-        data_dict['worst_second_difference'] = worst_second_difference_indices
-        data_dict['best_top_difference']=best_top_difference_indices
-        data_dict['worst_top_difference'] = worst_top_difference_indices
+        data_dict['best_second_difference'] = best_second_difference_indices[0]
+        data_dict['worst_second_difference'] = worst_second_difference_indices[0]
+        data_dict['best_top_difference']=best_top_difference_indices[0]
+        data_dict['worst_top_difference'] = worst_top_difference_indices[0]
         data_dict['levels_percentages'] = levels_percentages
         data_dict['top_target_percentages'] = top_target_percentages
         data_dict['second_target_percentages'] = second_target_percentages
@@ -179,102 +197,28 @@ class ChiSquareAnalysis:
 
 
         output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
+        print '*'*300
+        print output
+        print '!'*300
         self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
         self.card1['paragraphs'] = output
         self.card1['chart']=[]
         self.card1['heat_map']=self._table
         self.generate_card1_chart()
 
+        # self.card2['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
+        # chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
+        # self.card2['chart'] = chart
+        # self.card2['bubble_data'] = bubble
+        # output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict))
+        # self.card2['paragraphs'] = output2
 
-        if self._chisquare_result.get_splits():
-            splits = self._chisquare_result.get_splits()
-            idx = self._table.get_bin_names(splits).index(second_target_top_dims[0])
-            idx1 = self._table.get_bin_names(splits).index(top_target_top_dims[0])
-            splits[len(splits)-1] = splits[len(splits)-1]+1
-            df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
-                                filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
-                                select(self._second_level_dimensions).toPandas()
-            df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
-                                filter(col(self._analysed_dimension)>=splits[idx1]).filter(col(self._analysed_dimension)<splits[idx1+1]).\
-                                select(self._second_level_dimensions).toPandas()
-        else:
-            df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
-                                filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
-                                select(self._second_level_dimensions).toPandas()
-            df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
-                                filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
-                                select(self._second_level_dimensions).toPandas()
-        distribution_second = []
-        for d in self._second_level_dimensions:
-            grouped = df_second_target.groupby(d).agg({d:'count'})
-            index_list = list(grouped.index)
-            grouped_list = grouped[d].tolist()
-            sum_ = grouped[d].sum()
-            diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
-            max_diff = diffs.index(max(diffs))
-            if max_diff == 1:
-                index_txt = index_list[0]
-            elif max_diff == 2:
-                index_txt = index_list[0] + ' and ' + index_list[1]
-            elif max_diff>2:
-                index_txt = 'including' + index_list[0] + ' and ' + index_list[1]
-            distribution_second.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
-                                    'levels': index_list[:max_diff],'variation':random.randint(1,100),\
-                                    'index_txt': index_txt, 'd':d})
-
-        distribution_top = []
-        for d in self._second_level_dimensions:
-            grouped = df_top_target.groupby(d).agg({d:'count'})
-            index_list = list(grouped.index)
-            grouped_list = grouped[d].tolist()
-            sum_ = grouped[d].sum()
-            diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
-            max_diff = diffs.index(max(diffs))
-            if max_diff == 1:
-                index_txt = index_list[0]
-            elif max_diff == 2:
-                index_txt = index_list[0] + ' and ' + index_list[1]
-            elif max_diff>2:
-                index_txt = 'including' + index_list[0] + ' and ' + index_list[1]
-            distribution_top.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
-                                'levels': index_list[:max_diff], 'variation':random.randint(1,100),\
-                                'index_txt':index_txt, 'd':d})
-
-        key_factors = ''
-        num_key_factors = len(self._second_level_dimensions)
-
-        if len(self._second_level_dimensions)==3:
-            key_factors = ', '.join(self._second_level_dimensions[:2]) + ' and ' + self._second_level_dimensions[2]
-        elif len(self._second_level_dimensions)==2:
-            key_factors = ' and '.join(self._second_level_dimensions)
-        elif len(self._second_level_dimensions)==1:
-            key_factors = self._second_level_dimensions[0]
-
-        data_dict['num_key_factors'] = num_key_factors
-        data_dict['key_factors'] = key_factors
-        data_dict['distribution_top'] = distribution_top
-        data_dict['distribution_second'] = distribution_second
-        data_dict['random_card2'] = random.randint(1,100)
-        data_dict['random_card4'] = random.randint(1,100)
-
-        self.card2['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
-        chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
-        self.card2['chart'] = chart
-        self.card2['bubble_data'] = bubble
-        output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict))
-        self.card2['paragraphs'] = output2
-
-        self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
-        chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
-        self.card4['chart'] = chart
-        self.card4['bubble_data'] = bubble
-        output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
-        self.card4['paragraphs'] = output4
-
-        print '*'*1050
-        print output2
-        print '#'*120
-        print output4
+        # self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
+        # chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
+        # self.card4['chart'] = chart
+        # self.card4['bubble_data'] = bubble
+        # output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
+        # self.card4['paragraphs'] = output4
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):
         chart = {}

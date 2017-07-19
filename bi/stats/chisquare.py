@@ -123,6 +123,7 @@ class ChiSquare:
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
         chisquare_result.set_v_value(v_value)
         chisquare_result.set_split_values([float(x) for x in splits])
+        # chisquare_result.set_buckeddata(bucketedData)
         return chisquare_result
 
 
