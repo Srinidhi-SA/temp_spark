@@ -120,7 +120,7 @@ def main(confFilePath):
                 print e
                 print "ERROR"*5
         else:
-            DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'ChiSquare/')
+            DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'card':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
             print "Dimension vs. Dimension Not in Scripts to run "
 
         if ('Predictive modeling' in scripts_to_run):
