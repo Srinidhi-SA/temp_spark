@@ -318,33 +318,32 @@ class ChiSquareAnalysis:
         header1 = [self._analysed_dimension] + target_levels + ['Total']
         header = ['State','Active','Churn','Total'] #TODO remove
         data = []
-        data1=[]
+        data1=[['Tag']+header]
 
         for idx, lvl in enumerate(dim_levels):
-            data1 = ['Tag']+header
-
+            first_row = ['Tag']+header
             col_2_vals = zip(*table)[idx]
             data2 = ['bold'] + [lvl] + list(col_2_vals) + [sum(col_2_vals)]
-            dict_ = dict(zip(data1, data2))
+
+            dict_ = dict(zip(first_row, data2))
             data.append(dict_)
             data1.append(data2)
 
             col_2_vals = zip(*table_percent_by_column)[idx]
             data2 = [''] + ['As % within '+self._analysed_dimension] + list(col_2_vals) + [100.0]
-            dict_ = dict(zip(data1, data2))
+            dict_ = dict(zip(first_row, data2))
             data.append(dict_)
             data1.append(data2)
 
             col_2_vals = zip(*table_percent_by_row)[idx]
             col_2_vals1 = zip(*table_percent)[idx]
             data2 = [''] + ['As % within '+self._target_dimension] + list(col_2_vals) + [round(sum(col_2_vals1),2)]
-            dict_ = dict(zip(data1, data2))
+            dict_ = dict(zip(first_row, data2))
             data.append(dict_)
             data1.append(data2)
-
             # col_2_vals = zip(*table_percent)[idx]
             data2 = [''] + ['As % of Total'] + list(col_2_vals1) + [round(sum(col_2_vals1),2)]
-            dict_ = dict(zip(data1, data2))
+            dict_ = dict(zip(first_row, data2))
             data.append(dict_)
             data1.append(data2)
 
