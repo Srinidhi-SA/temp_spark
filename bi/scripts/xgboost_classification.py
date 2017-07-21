@@ -143,7 +143,7 @@ class XgboostScript:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
             result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
+            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
             CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
             # Narratives

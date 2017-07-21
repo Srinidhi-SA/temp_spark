@@ -8,6 +8,7 @@ from chisquare_app2 import ChiSquareAnalysisApp2
 from bi.narratives import utils as NarrativesUtils
 
 class ChiSquareNarratives:
+    print "Starting Narratives"
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
     def __init__(self, df_helper, df_chisquare_result, df_context, data_frame):
         self._data_frame = data_frame
@@ -27,6 +28,7 @@ class ChiSquareNarratives:
         self._generate_narratives()
 
     def _generate_narratives(self):
+
         for target_dimension in self._df_chisquare_result.keys():
 
             target_chisquare_result = self._df_chisquare_result[target_dimension]

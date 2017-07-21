@@ -317,20 +317,20 @@ def main(confFilePath):
         # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
 
     elif analysistype == 'Prediction':
+        result_column = dataframe_context.get_result_column()
+        categorical_columns = df_helper.get_string_columns()
         df_helper.remove_nulls(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
-        categorical_columns = df_helper.get_string_columns()
-        result_column = dataframe_context.get_result_column()
-        df = df.toPandas()
-        drop_column_list = []
-        df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
-        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        df_helper.set_train_test_data(df)
         try:
             st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-            # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
+            # df = df.toPandas()
+            # drop_column_list = []
+            # df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
+            # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+            # df_helper.set_train_test_data(df)
+            # rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
+            rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             rf_obj.Train()
             print "Random Foreset Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
@@ -341,6 +341,11 @@ def main(confFilePath):
 
         try:
             st = time.time()
+            df = df.toPandas()
+            drop_column_list = []
+            df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
+            df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+            df_helper.set_train_test_data(df)
             lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
@@ -371,9 +376,9 @@ def main(confFilePath):
         df = df_helper.fill_missing_values(df)
 
         if "RandomForest" in model_path:
-            df = df.toPandas()
-            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
-            # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
+            # df = df.toPandas()
+            # trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "XGBoost" in model_path:

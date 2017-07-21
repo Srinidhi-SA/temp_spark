@@ -14,10 +14,12 @@ from bi.common import utils as CommonUtils
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
+
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+
 from pyspark.ml.classification import RandomForestClassifier as RF
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
@@ -180,7 +182,7 @@ class RandomForestPysparkScript:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
             result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
+            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
             CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
             narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
@@ -196,7 +198,7 @@ class RandomForestPysparkScript:
             result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
             df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
+            print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
             CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
             chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
             # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
