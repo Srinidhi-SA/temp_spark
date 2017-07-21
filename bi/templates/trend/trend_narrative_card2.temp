@@ -14,7 +14,7 @@ compared to rest of the observation period.
 
 PARASEPARATOR
 
-However, there are also few {{dataLevel}} when {{measure}} were lagging and didn't do very well.
+However, there are also few {{dataLevel}} when {{measure}} was lagging and didn't do very well.
 {% if lowStreakDuration >= 2%}
   The most notable among them was {{lowestTime}} and values for {{measure}} dropped to {{lowestValue}}
   from {{lowStreakBeginValue}} in {{lowStreakBeginMonth}}.

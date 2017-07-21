@@ -1,6 +1,7 @@
 import os
 import random
 import json
+import itertools
 from bi.common.dataframe import DataFrameHelper
 from bi.common.results import DecisionTreeResult
 from bi.common.utils import accepts
@@ -60,7 +61,7 @@ class DecisionTreeNarrative:
         self.dropdownValues = rules_dict.keys()
         data_dict['rules'] = self.condensedTable
         data_dict['success'] = self.success_percent
-        data_dict['significant_vars'] = self._important_vars
+        data_dict['significant_vars'] = list(set(itertools.chain.from_iterable(self._important_vars.values())))
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_tree_card2.temp',data_dict))
         self.card2_chart = self._target_distribution
