@@ -321,7 +321,7 @@ class ChiSquareAnalysis:
         data1=[]
 
         for idx, lvl in enumerate(dim_levels):
-            data1 = [['Tag']+header]
+            data1 = ['Tag']+header
 
             col_2_vals = zip(*table)[idx]
             data2 = ['bold'] + [lvl] + list(col_2_vals) + [sum(col_2_vals)]
