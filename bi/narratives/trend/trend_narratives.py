@@ -57,6 +57,7 @@ class TrendNarrative:
             dataDict["dataLevel"] = "month"
             dataDict["durationString"] = str(dataDict["duration"])+" months"
         else:
+            dataDict["duration"] = len(list(set(df["year_month"])))
             dataDict["dataLevel"] = "month"
             yr = str(dataDict["dateRange"]//365)
             mon = str((dataDict["dateRange"]%365)//12)

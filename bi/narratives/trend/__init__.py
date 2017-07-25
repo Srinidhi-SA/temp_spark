@@ -71,7 +71,7 @@ class TimeSeriesNarrative:
 
             if self._dataRange <= 180:
                 self._duration = self._dataRange
-                self._dataLevel = "month"
+                self._dataLevel = "day"
                 self._durationString = str(self._duration)+" days"
             elif self._dataRange > 180 and self._dataRange <= 1095:
                 self._duration = self._data_frame.select("year_month").distinct().count()
