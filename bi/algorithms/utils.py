@@ -20,7 +20,8 @@ from pyspark.ml.feature import OneHotEncoder
 from pyspark.ml.pipeline import PipelineModel
 from pyspark.ml.feature import IndexToString, StringIndexer
 from pyspark.sql.functions import monotonically_increasing_id
-from pyspark.ml.classification import RandomForestClassificationModel
+from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel
+
 
 
 def generate_random_number_array(df):
@@ -331,6 +332,10 @@ def load_rf_model(filepath):
     model = RandomForestClassificationModel.load(filepath)
     return model
 
+def load_one_vs_rest_model(filepath):
+    model = OneVsRestModel.load(filepath)
+    return model
+
 def stratified_sampling(df,target_column,split):
     levels = [x[0] for x in df.select(target_column).distinct().collect()]
     frac = [split]*len(levels)
@@ -372,11 +377,18 @@ def read_string_indexer_mapping(pipeline_path,sqlContext):
     metadata = sqlContext.read.text(pipeline_path+"/metadata")
     stageuids = json.loads(metadata.take(1)[0][0])["paramMap"]["stageUids"]
     if len(stageuids) < 11:
-        parquet_key = "0"+str(len(stageuids)-1)+"_"+stageuids[-1]
+        try:
+            parquet_key = "0"+str(len(stageuids)-1)+"_"+stageuids[-1]
+            parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
+            level_df = sqlContext.read.parquet(parquet_filepath)
+        except:
+            parquet_key = str(len(stageuids)-1)+"_"+stageuids[-1]
+            parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
+            level_df = sqlContext.read.parquet(parquet_filepath)
     else:
         parquet_key = str(len(stageuids)-1)+"_"+stageuids[-1]
-    parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
-    level_df = sqlContext.read.parquet(parquet_filepath)
+        parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
+        level_df = sqlContext.read.parquet(parquet_filepath)
     levels = [str(v) for v in  [x[0] for x in level_df.select("labels").collect()][0]]
     mapping_dict = dict(enumerate(levels))
     return mapping_dict

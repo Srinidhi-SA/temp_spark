@@ -16,7 +16,7 @@ class DecisionTreeScript:
 
     def Run(self):
 
-        df_decision_tree_obj = DecisionTrees(self._data_frame, self._dataframe_helper, self._spark).test_all(dimension_columns=(self._dataframe_context.get_result_column(),))
+        df_decision_tree_obj = DecisionTrees(self._data_frame, self._dataframe_helper, self._dataframe_context, self._spark).test_all(dimension_columns=(self._dataframe_context.get_result_column(),))
         df_decision_tree_result = utils.as_dict(df_decision_tree_obj)
 
         # print 'RESULT: %s' % (json.dumps(df_decision_tree_result, indent=2))
@@ -26,6 +26,6 @@ class DecisionTreeScript:
         #Narratives
         narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper)
         narratives = utils.as_dict(narratives_obj)
-        
+
         # print "Narratives: %s" % (json.dumps(narratives, indent=2))
         DataWriter.write_dict_as_json(self._spark, narratives, self._dataframe_context.get_narratives_file()+'DecisionTree/')

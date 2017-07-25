@@ -29,6 +29,8 @@ from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
+from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
+
 
 
 from parser import configparser
@@ -52,41 +54,41 @@ def main(confFilePath):
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-
+    # Setting The Config Parameters
     config_file = confFilePath#sys.argv[1]
     config = ConfigParser.ConfigParser()
     config.optionxform=str
     config.read(config_file)
     config_obj = configparser.ParserConfig(config)
     config_obj.set_params()
-
+    # Setting the Dataframe Context
     dataframe_context = ContextSetter(config_obj)
     dataframe_context.set_params()
+    analysistype = dataframe_context.get_analysis_type()
+    appid = dataframe_context.get_app_id()
+    print "ANALYSIS TYPE : ", analysistype
+    monitor_api = dataframe_context.get_monitor_api()
     scripts_to_run = dataframe_context.get_scripts_to_run()
     if scripts_to_run==None:
         scripts_to_run = []
+    #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-
     print "FILE LOADED: ", dataframe_context.get_input_file()
     df_helper = DataFrameHelper(df, dataframe_context)
     df_helper.set_params()
     df = df_helper.get_data_frame()
-    result_setter = ResultSetter(df,dataframe_context)
-
     measure_columns = df_helper.get_numeric_columns()
     dimension_columns = df_helper.get_string_columns()
+    #Initializing the result_setter
+    result_setter = ResultSetter(df,dataframe_context)
+
     data_load_time = time.time() - start_time
     script_start_time = time.time()
 
-    analysistype = dataframe_context.get_analysis_type()
-    appid = dataframe_context.get_app_id()
-    print "ANALYSIS TYPE : ", analysistype
-
-    monitor_api = dataframe_context.get_monitor_api()
 
     if analysistype == 'Dimension':
         print "STARTING DIMENSION ANALYSIS ..."
-        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
 
         if ('Descriptive analysis' in scripts_to_run):
@@ -99,9 +101,9 @@ def main(confFilePath):
             except Exception as e:
                 print "Frequency Analysis Failed "
                 send_message_API(monitor_api, "FrequencyAnalysis", "FrequencyAnalysis Script Failed", False, 0)
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'FreqDimension/')
             print "Descriptive analysis Not in Scripts to run "
@@ -117,9 +119,9 @@ def main(confFilePath):
                 print "ChiSquare Analysis Failed "
                 DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'card':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
                 send_message_API(monitor_api, "ChiSquare", "ChiSquare Failed", False, 0)
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
         else:
             DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'card':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
             print "Dimension vs. Dimension Not in Scripts to run "
@@ -138,9 +140,9 @@ def main(confFilePath):
             except Exception as e:
                 send_message_API(monitor_api, "DecisionTrees", "DecisionTrees script Failed", False, 0)
                 print "DecisionTrees Analysis Failed"
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTree/')
             print "Predictive modeling Not in Scripts to run"
@@ -156,13 +158,13 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
-            print "ERROR"*5
+            print "#####ERROR#####"*5
             print e
-            print "ERROR"*5
+            print "#####ERROR#####"*5
 
     elif analysistype == 'Measure':
         print "STARTING MEASURE ANALYSIS ..."
-        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
 
         if ('Descriptive analysis' in scripts_to_run):
@@ -177,9 +179,9 @@ def main(confFilePath):
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
                 send_message_API(monitor_api, "DescriptiveStats", "DescriptiveStats Failed", False, 0)
                 print 'Descriptive Failed'
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
 
             try:
                 fs = time.time()
@@ -190,9 +192,9 @@ def main(confFilePath):
             except Exception as e:
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
                 send_message_API(monitor_api, "Histogram", "Histogram Failed", False, 0)
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
             try:
                 fs = time.time()
                 d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
@@ -203,9 +205,9 @@ def main(confFilePath):
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Density_Histogram/')
                 send_message_API(monitor_api, "Density Histogram", "Density Histogram Failed", False, 0)
                 print 'Density Histogram Failed'
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
@@ -233,9 +235,9 @@ def main(confFilePath):
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
                 send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Script Failed", False, 0)
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
@@ -259,9 +261,9 @@ def main(confFilePath):
                     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
                     send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
                     print 'Regression Failed'
-                    print "ERROR"*5
+                    print "#####ERROR#####"*5
                     print e
-                    print "ERROR"*5
+                    print "#####ERROR#####"*5
 
             except Exception as e:
                 print 'Correlation Failed. Regression not executed'
@@ -270,9 +272,9 @@ def main(confFilePath):
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
                 DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Regression/')
                 send_message_API(monitor_api, "Regression", "Regression Failed", False, 0)
-                print "ERROR"*5
+                print "#####ERROR#####"*5
                 print e
-                print "ERROR"*5
+                print "#####ERROR#####"*5
 
         else:
             print 'Regression not in Scripts to run'
@@ -292,9 +294,9 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
             send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
             print "Trend Script Failed"
-            print "ERROR"*5
+            print "#####ERROR#####"*5
             print e
-            print "ERROR"*5
+            print "#####ERROR#####"*5
 
         try:
             fs = time.time()
@@ -304,9 +306,9 @@ def main(confFilePath):
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
         except Exception as e:
-            print "ERROR"*5
+            print "#####ERROR#####"*5
             print e
-            print "ERROR"*5
+            print "#####ERROR#####"*5
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
             send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
             print "Decision Tree Regression Script Failed"
@@ -318,28 +320,27 @@ def main(confFilePath):
         # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
 
     elif analysistype == 'Prediction':
-        result_column = dataframe_context.get_result_column()
-        categorical_columns = df_helper.get_string_columns()
-        df_helper.remove_nulls(dataframe_context.get_result_column())
+        df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
+        categorical_columns = df_helper.get_string_columns()
+        result_column = dataframe_context.get_result_column()
+
+
         try:
             st = time.time()
-            # df = df.toPandas()
-            # drop_column_list = []
-            # df = df.loc[:,[col for col in df.columns if col not in drop_column_list]]
-            # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-            # df_helper.set_train_test_data(df)
             # rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
             rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             rf_obj.Train()
-            print "Random Foreset Model Done in ", time.time() - st,  " seconds."
+            print "Random Forest Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
-            print "Random Foreset Model Failed"
-            print "ERROR"*5
+            print "Random Forest Model Failed"
+            print "#####ERROR#####"*5
             print e
-            print "ERROR"*5
-
+            print "#####ERROR#####"*5
+        df = df.toPandas()
+        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        df_helper.set_train_test_data(df)
         try:
             st = time.time()
             df = df.toPandas()
@@ -348,14 +349,14 @@ def main(confFilePath):
             df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             df_helper.set_train_test_data(df)
             lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
+            # lr_obj = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             print "Logistic Regression Model Failed"
-            print "ERROR"*5
+            print "#####ERROR#####"*5
             print e
-            print "ERROR"*5
-
+            print "#####ERROR#####"*5
         try:
             st = time.time()
             xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
@@ -363,16 +364,16 @@ def main(confFilePath):
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             print "Xgboost Model Failed"
-            print "ERROR"*5
+            print "#####ERROR#####"*5
             print e
-            print "ERROR"*5
+            print "#####ERROR#####"*5
 
     elif analysistype == 'Scoring':
         st = time.time()
         model_path = dataframe_context.get_model_path()
         result_column = dataframe_context.get_result_column()
         if result_column in df.columns:
-            df_helper.remove_nulls(result_column)
+            df_helper.remove_null_rows(result_column)
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
 
@@ -390,6 +391,7 @@ def main(confFilePath):
         elif "LogisticRegression" in model_path:
             df = df.toPandas()
             trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
+            # trainedModel = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
