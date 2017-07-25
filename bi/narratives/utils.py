@@ -394,10 +394,10 @@ def calculate_dimension_contribution(level_cont):
     sorted_k1 = sorted(k1.items(),key = lambda x: x[1]["growth"])
     k2 = level_cont["summary"][data_dict["negativeSecondHighestSigDimension"]]
     sorted_k2 = sorted(k1.items(),key = lambda x: x[1]["growth"])
-    print "SORTED K1"
-    print sorted_k1
-    print "SORTED K2"
-    print sorted_k2
+    # print "SORTED K1"
+    # print sorted_k1
+    # print "SORTED K2"
+    # print sorted_k2
     if len(sorted_k1) >= 2:
         data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
         data_dict["negativeHighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]

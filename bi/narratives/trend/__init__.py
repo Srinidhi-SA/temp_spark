@@ -7,8 +7,10 @@ from dateutil.relativedelta import relativedelta
 from bi.narratives import utils as NarrativesUtils
 from trend_narratives import TrendNarrative
 
-from pyspark.sql.functions import col, udf
+from pyspark.sql.functions import col, udf, max
 from pyspark.sql.types import *
+from pyspark.sql.functions import monotonically_increasing_id
+
 
 
 
@@ -60,6 +62,30 @@ class TimeSeriesNarrative:
             date_to_month_year = udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
             self._data_frame = self._data_frame.withColumn("suggestedDate", string_to_date(self._date_column_suggested))
             self._data_frame = self._data_frame.withColumn("year_month", date_to_month_year(self._date_column_suggested))
+            self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
+            self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
+            id_max = self._data_frame.select(max("_id_")).first()[0]
+            first_date = self._data_frame.select("suggestedDate").first()[0]
+            last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
+            self._dataRange = (last_date-first_date).days
+
+            if self._dataRange <= 180:
+                self._duration = self._dataRange
+                self._dataLevel = "month"
+                self._durationString = str(self._duration)+" days"
+            elif self._dataRange > 180 and self._dataRange <= 1095:
+                self._duration = self._data_frame.select("year_month").distinct().count()
+                self._dataLevel = "month"
+                self._durationString = str(self._duration)+" months"
+            else:
+                self._dataLevel = "month"
+                self._duration = self._data_frame.select("year_month").distinct().count()
+                yr = str(self._dataRange//365)
+                mon = str((self._dataRange%365)//12)
+                self._durationString = yr+" years and "+mon+" months"
+            print self._duration, self._dataLevel, self._durationString
+
+
 
         if self._analysistype=="Measure":
             self.narratives = {"SectionHeading":"",
@@ -188,12 +214,22 @@ class TimeSeriesNarrative:
                     chart_data = {}
                     for idx,level in  enumerate(top2levels):
                         leveldf = self._data_frame.filter(col(self._result_column) == level)
-                        grouped_data = leveldf.groupBy("suggestedDate").agg({ self._result_column : 'count'})
-                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                        grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
-                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
-                        grouped_data = grouped_data.toPandas()
+                        if self._dataLevel == "day":
+                            grouped_data = leveldf.groupBy("suggestedDate").agg({ self._result_column : 'count'})
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+                            grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+                            grouped_data = grouped_data.toPandas()
+                        elif self._dataLevel == "month":
+                            grouped_data = leveldf.groupBy("year_month").agg({ self._result_column : 'count'})
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+                            grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                            grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
+                            grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
+                            grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+
 
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
@@ -204,6 +240,10 @@ class TimeSeriesNarrative:
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data)
                         dataDict["measure"] = level
+                        dataDict["duration"] = self._duration
+                        dataDict["dataLevel"] = self._dataLevel
+                        dataDict["durationString"] = self._durationString
+
                         significant_dimensions = df_helper.get_chisquare_significant_dimension()
                         reference_time = dataDict["reference_time"]
                         if len(significant_dimensions.keys()) > 0:
@@ -224,7 +264,10 @@ class TimeSeriesNarrative:
                         trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
                         card1chartdata = trend_chart_data
-                        card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
+                        if self._dataLevel == "day":
+                                card1chartdata = [{"key":str(val["key"]),"value":val["value"]} for val in card1chartdata]
+                        elif self._dataLevel == "month":
+                            card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
                         chart_data[level] = card1chartdata
                         # self.narratives["card0"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
                     self.narratives["card0"]["paragraphs"] = all_paragraphs

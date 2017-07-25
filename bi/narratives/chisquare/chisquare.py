@@ -257,8 +257,8 @@ class ChiSquareAnalysis:
         data_dict['distribution_second'] = distribution_second
         data_dict['random_card2'] = random.randint(1,100)
         data_dict['random_card4'] = random.randint(1,100)
-        print data_dict['distribution_second']
-        print data_dict['random_card2']
+        # print data_dict['distribution_second']
+        # print data_dict['random_card2']
 
         self.card2['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
         chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
