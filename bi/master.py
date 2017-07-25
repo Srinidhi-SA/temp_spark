@@ -117,13 +117,13 @@ def main(confFilePath):
                 send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
             except Exception as e:
                 print "ChiSquare Analysis Failed "
-                DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'card':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
+                DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
                 send_message_API(monitor_api, "ChiSquare", "ChiSquare Failed", False, 0)
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
         else:
-            DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'card':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
+            DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
             print "Dimension vs. Dimension Not in Scripts to run "
 
         if ('Predictive modeling' in scripts_to_run):
