@@ -140,7 +140,7 @@ class DataFrameHelper:
             date_suggestion_columns = []
         time_dimension_columns = self.timestamp_columns
         columns_to_ignore = [result_column]+date_suggestion_columns+time_dimension_columns
-        print "These Columns are Ignored :- ",  columns_to_ignore
+        print "These Columns are Ignored:- ",  columns_to_ignore
         if train_test_ratio == None:
             train_test_ratio = 0.7
         x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
@@ -164,7 +164,10 @@ class DataFrameHelper:
         df = df.fillna(replacement_dict)
         return df
 
-    def remove_nulls(self, column_name):
+    def remove_null_rows(self, column_name):
+        """
+        remove rowls where the given column has null values
+        """
         # self._data_frame = self._data_frame.na.drop(subset=col)
         self._data_frame = self._data_frame.filter(col(column_name).isNotNull())
         self.num_rows = self._data_frame.count()

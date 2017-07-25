@@ -25,13 +25,16 @@ from pyspark.ml.feature import IndexToString, StringIndexer
 from pyspark.sql.functions import col, udf
 from pyspark.sql.types import *
 
+from pyspark.ml.classification import LogisticRegression, OneVsRest
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 
 
 
 
 
 
-class RandomForestPysparkScript:
+
+class LogisticRegressionPysparkScript:
     def __init__(self, data_frame, df_helper,df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
@@ -48,9 +51,9 @@ class RandomForestPysparkScript:
         categorical_columns = [x for x in categorical_columns if x != result_column]
 
         model_path = self._dataframe_context.get_model_path()
-        pipeline_filepath = model_path+"/RandomForest/TrainedModels/pipeline"
-        model_filepath = model_path+"/RandomForest/TrainedModels/model"
-        summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
+        pipeline_filepath = model_path+"/LogisticRegression/TrainedModels/pipeline"
+        model_filepath = model_path+"/LogisticRegression/TrainedModels/model"
+        summary_filepath = model_path+"/LogisticRegression/ModelSummary/summary.json"
 
         df=self._data_frame
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column)
@@ -59,12 +62,12 @@ class RandomForestPysparkScript:
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
         OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-        rf = RF(labelCol='label', featuresCol='features',numTrees=200)
-        fit = rf.fit(trainingData)
+        lr = LogisticRegression()
+        ovr = OneVsRest(classifier=lr)
+        fit = ovr.fit(trainingData)
         transformed = fit.transform(validationData)
         MLUtils.save_pipeline_or_model(fit,model_filepath)
-        feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
-
+        # feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
         label_classes = transformed.select("label").distinct().collect()
         results = transformed.select(["prediction","label"])
         if len(label_classes) > 2:
@@ -79,7 +82,7 @@ class RandomForestPysparkScript:
             self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "areaUnderPR"}) # accuracy of the model
 
 
-        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(feature_importance)
+        # self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(feature_importance)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
         transformed = OriginalTargetconverter.transform(transformed)
@@ -133,7 +136,7 @@ class RandomForestPysparkScript:
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
 
         pipelineModel = MLUtils.load_pipeline(pipeline_path)
-        trained_model = MLUtils.load_rf_model(trained_model_path)
+        trained_model = MLUtils.load_one_vs_rest_model(trained_model_path)
         df = self._data_frame
         indexed = pipelineModel.transform(df)
         transformed = trained_model.transform(indexed)
@@ -143,13 +146,21 @@ class RandomForestPysparkScript:
         # udf_to_calculate_probability = udf(lambda x:max(x[0]))
         # transformed = transformed.withColumn("predicted_probability",udf_to_calculate_probability(transformed.probability))
         # print transformed.select("predicted_probability").show(5)
-        probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
-        probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
-        probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
-        self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
-        self._score_summary["result_column"] = result_column
-        scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
-        # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
+
+        if "probability" in transformed.columns:
+            probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
+            probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
+            probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
+            self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
+            self._score_summary["result_column"] = result_column
+            scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
+            # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
+        else:
+            self._score_summary["prediction_split"] = []
+            self._score_summary["result_column"] = result_column
+            scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column]).toPandas()
+
+
         if score_data_path.startswith("file"):
             score_data_path = score_data_path[7:]
         scored_dataframe.to_csv(score_data_path,header=True,index=False)
