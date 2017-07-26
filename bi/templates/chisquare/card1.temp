@@ -14,12 +14,28 @@ PARAHEADER
   total </b>observations.
 {% elif top_levels | length  == 2 %}
   <b>{{top_levels[0]}} and {{top_levels[1]}}  </b> are the two largest {{colname}}s, accounting for
-  <b> {{top_levels_percent}}% </b>observations.
+  <b> {{top_levels_percent}}% </b> of the total observations.
 {% elif top_levels | length >2 %}
-  The top {{top_levels | length}} {{colname}}s including {{top_levels[0]}} and {{top_levels[1]}} account for
+  The top {{top_levels | length}} {{plural_colname}} including {{top_levels[0]}} and {{top_levels[1]}} account for
   <b> {{top_levels_percent}}% </b>of the total observations.
 {% endif %}
-And, <b>{{bottom_level}}</b> is the smallest with <b>just {{bottom_level_percent}}</b> of the total observations.
+{% if bottom_level_percent >= 0.01 %}
+  {% if bottom_levels | length == 1 %}
+    And, <b>{{bottom_level[0]}}</b> is the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
+  {% elif bottom_levels | length == 2 %}
+    <b>{{bottom_level[0]}} and {{bottom_levels[1]}}</b> are the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
+  {% elif bottom_levels | length > 2 %}
+    <b>{{bottom_levels| length}} {{plural_colname}}, including {{bottom_level[0]}} and {{bottom_levels[1]}}</b> are the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
+  {% endif %}
+{% else %}
+  {% if bottom_levels | length == 1 %}
+    And, <b>{{bottom_level[0]}}</b> is the smallest with the least number of the total observations.
+  {% elif bottom_levels | length == 2 %}
+    <b>{{bottom_level[0]}} and {{bottom_levels[1]}}</b> are the smallest with the least number of the total observations.
+  {% elif bottom_levels | length > 2 %}
+    <b>{{bottom_levels| length}} {{plural_colname}}, including {{bottom_level[0]}} and {{bottom_levels[1]}}</b> are the smallest with the least number of the total observations.
+  {% endif %}
+{% endif %}
 
 PARASEPARATOR
 Key segments of {{second_target}}

@@ -58,6 +58,7 @@ class ChiSquareAnalysis:
         top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
         bottom_dim = sorted_levels[-1][1]
         bottom_dim_contribution = sorted_levels[-1][0]
+        bottom_dims = [x for x,y in sorted_levels if y==bottom_dim_contribution]
 
         target_levels = self._table.get_column_one_levels()
         target_counts = self._table.get_row_total()
@@ -154,11 +155,17 @@ class ChiSquareAnalysis:
 
         data_dict['num_significant'] = len(significant_variables)
         data_dict['colname'] = analysed_dimension
+        data_dict['plural_colname'] = NarrativesUtils.pluralize(analysed_dimension)
         data_dict['target'] = target_dimension
         data_dict['top_levels'] = top_dims
         data_dict['top_levels_percent'] = NarrativesUtils.round_number(top_dims_contribution*100.0/total)
         data_dict['bottom_level'] = bottom_dim
-        data_dict['bottom_level_percent'] = round(bottom_dim_contribution,2)
+        # if len(bottom_dims)==1:
+        #     bottom_dims = bottom_dims[0] + ' is'
+        # else:
+        #     bottom_dims = ', '.join(bottom_dims[:-1]) + ' and ' + bottom_dims[-1] + ' are'
+        data_dict['bottom_levels'] = bottom_dims
+        data_dict['bottom_level_percent'] = round(bottom_dim_contribution*100/sum(level_counts),2)
         data_dict['second_target']=second_target
         data_dict['second_target_top_dims'] = second_target_top_dims
         data_dict['second_target_top_dims_contribution'] = second_target_top_dims_contribution
