@@ -119,7 +119,7 @@ PARAHEADER
 When it comes to <b>{{top_target}},
 {% if worst_top_share | length == 1 %}
   {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant</b> since only {{top_target_shares[worst_top_share[0]] | round(1)}}%
-  of observations from {{levels[worst_top_share[0]]}} are into {{top_target}} category.
+  of observations are into {{top_target}} category.
 {% elif worst_top_share | length == 2 %}
   both {{levels[worst_top_share[0]]}} and {{levels[worst_top_share[1]]}}</b> seems to be the least dominant with only {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of observations from each of the categories.
