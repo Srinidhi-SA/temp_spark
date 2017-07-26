@@ -136,13 +136,16 @@ class TrendNarrative:
 
     def get_xtra_calculations(self,df,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
         datetime_pattern = "%b-%y"
+        if type(grouped_data["key"][0]) == "str":
+            grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
+        grouped_data = grouped_data.sort_values(by = "key",ascending=True)
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
 
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
 
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)
-
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict)
+
         dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
         # print "#"*20
         # print dim_data

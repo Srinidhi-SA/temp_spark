@@ -264,7 +264,7 @@ class TimeSeriesNarrative:
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel
                         dataDict["durationString"] = self._durationString
-                        print json.dumps(dataDict,indent=2)
+                        # print json.dumps(dataDict,indent=2)
                         significant_dimensions = df_helper.get_chisquare_significant_dimension()
                         reference_time = dataDict["reference_time"]
                         if len(significant_dimensions.keys()) > 0:
@@ -297,7 +297,7 @@ class TimeSeriesNarrative:
                     self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
                                                         "label":labels,
                                                         "label_text":{"x":"Time Duration","y":"Count of "+labels["y"],"y2":"Count of "+labels["y2"]}}
-                    print json.dumps(self.narratives,indent=2)
+                    # print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"

@@ -323,7 +323,7 @@ def get_streak_data(df,trendString,maxRuns,trend,dataLevel):
         if streak_start_index != 0:
             streak_start_index = streak_start_index-1
         streak_end_index = streak_start_index + maxRuns["P"]
-        print streak_start_index,streak_end_index
+        # print streak_start_index,streak_end_index
     else:
         streak_start_index = trendString.index("P"*maxRuns["P"])
         if streak_start_index != 0:
@@ -487,7 +487,6 @@ def get_level_cont_dict(level_cont):
 
     return out_data
 
-import math
 def calculate_bucket_data(grouped_data,dataLevel):
     df = grouped_data
     min_streak = 2
@@ -516,7 +515,6 @@ def calculate_bucket_data(grouped_data,dataLevel):
             temp_dict["start_streak"] = list(df["year_month"])[start_id]
             temp_dict["end_streak"] = df["year_month"][temp_dict["id_max"]]
         max_dict[str(val)] = temp_dict
-
     return max_dict
 
 def get_bucket_data_dict(bucket_dict):
@@ -545,7 +543,6 @@ def get_bucket_data_dict(bucket_dict):
         out["ratio_string"] = "three fourth"
     else:
         out["ratio_string"] = str(ratio)
-
     return out
 
 # def get_level_cont_dict(level_cont):
@@ -595,7 +592,7 @@ def streak_data(df,peak_index,low_index,percentage_change_column,value_column):
     k = peak_index
     while k != -1 and df[percentage_change_column][k] >= 0:
         k = k-1
-    print "peak_index:",peak_index,"KK:",k
+    # print "peak_index:",peak_index,"KK:",k
     l = low_index
     while l != -1 and df[percentage_change_column][l] < 0:
         l = l-1
@@ -609,9 +606,9 @@ def streak_data(df,peak_index,low_index,percentage_change_column,value_column):
         dataDict["downStreakDuration"] = low_index - l
     else:
         dataDict["downStreakDuration"] = 0
-    print "STREAK"
-    print l,k
-    print dataDict["downStreakDuration"],dataDict["upStreakDuration"]
+    # print "STREAK"
+    # print l,k
+    # print dataDict["downStreakDuration"],dataDict["upStreakDuration"]
     if dataDict["downStreakDuration"] >=2 :
         dataDict["downStreakBeginMonth"] = df["year_month"][l]
         dataDict["downStreakBeginValue"] = df[value_column][l]
