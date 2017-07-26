@@ -128,7 +128,8 @@ class ChiSquareAnalysis:
         worst_second_difference_indices = [x for x,y in sorted_[bottoms:]]
 
         second_target_shares = [x*100.0/y for x,y in zip(second_target_contributions,level_counts)]
-        best_second_target_share_index = second_target_shares.index(max(second_target_shares))
+        max_second_target_shares = max(second_target_shares)
+        best_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==max_second_target_shares]
         level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
         min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
         # worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
