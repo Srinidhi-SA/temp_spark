@@ -83,7 +83,9 @@ class TimeSeriesNarrative:
                 yr = str(self._dataRange//365)
                 mon = str((self._dataRange%365)//12)
                 self._durationString = yr+" years and "+mon+" months"
-            print self._duration, self._dataLevel, self._durationString
+            print self._duration
+            print self._dataLevel
+            print self._durationString
 
 
 
@@ -95,12 +97,29 @@ class TimeSeriesNarrative:
                             }
             if self._date_suggestion_columns != None:
                 if self._dateFormatDetected:
-                    grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
-                    grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                    grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
-                    grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                    grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
-                    grouped_data = grouped_data.toPandas()
+                    # grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
+                    # grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+                    # grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+                    # grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                    # grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+                    # grouped_data = grouped_data.toPandas()
+
+                    if self._dataLevel == "day":
+                        grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+                        grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+                        grouped_data = grouped_data.toPandas()
+                    elif self._dataLevel == "month":
+                        grouped_data = self._data_frame .groupBy("year_month").agg({ self._result_column : 'sum'})
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+                        grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                        grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
+                        grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
+                        grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+
 
                     pandasDf = self._data_frame.toPandas()
                     pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
@@ -118,9 +137,12 @@ class TimeSeriesNarrative:
                     # grouped_data = trend_narrative_obj.formatDateColumn(grouped_data,self._requestedDateFormat)
                     # grouped_data = grouped_data.sort_values(by='key', ascending=True)
                     # grouped_data["value"] = grouped_data["value"].apply(lambda x: round(x,2))
-                    dataDict = trend_narrative_obj.generateDataDict(grouped_data)
+                    dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                     # # update reference time with max value
                     reference_time = dataDict["reference_time"]
+                    dataDict["duration"] = self._duration
+                    dataDict["dataLevel"] = self._dataLevel
+                    dataDict["durationString"] = self._durationString
                     if len(significant_dimensions.keys()) > 0:
                         xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time)
                         if xtraData != None:
@@ -230,7 +252,6 @@ class TimeSeriesNarrative:
                             grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
 
-
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
@@ -238,7 +259,7 @@ class TimeSeriesNarrative:
 
 
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
-                        dataDict = trend_narrative_obj.generateDataDict(grouped_data)
+                        dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         dataDict["measure"] = level
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel

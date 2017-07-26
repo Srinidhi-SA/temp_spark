@@ -330,7 +330,7 @@ def get_streak_data(df,trendString,maxRuns,trend,dataLevel):
     if dataLevel == "day":
         streak_end_month = str(df.iloc[streak_end_index]["key"])
         streak_start_month = str(df.iloc[streak_start_index]["key"])
-    else:
+    elif dataLevel == "month":
         streak_end_month = df.iloc[streak_end_index]["year_month"]
         streak_start_month = df.iloc[streak_start_index]["year_month"]
     change = end_streak_value-start_streak_value
