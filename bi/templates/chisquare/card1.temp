@@ -54,9 +54,9 @@ The <b>percentage of {{second_target}}</b> is the <b>
 
 and the segment <b> {{levels[best_second_share]}}</b> has the <b>highest rate of {{second_target}}</b> ({{second_target_shares[best_second_share] | round}}%),
 which is
-{% if second_target_shares[worst_second_share]>0 %}
-{{(second_target_shares[best_second_share]*100/second_target_shares[worst_second_share] - 100) | round}}% higher
-than {{levels[worst_second_share]}} and
+{% if second_target_shares[worst_second_share[0]]>0 %}
+{{(second_target_shares[best_second_share]*100/second_target_shares[worst_second_share[0]] - 100) | round}}% higher
+than {{levels[worst_second_share[0]]}} and
 {% endif %}
 {{(second_target_shares[best_second_share]*100/overall_second-100) | round}}%
 higher than the overall {{second_target}} rate.
