@@ -95,7 +95,7 @@ class ChiSquareAnalysis:
 
         top_target_shares = [x*100.0/y for x,y in zip(top_target_contributions,level_counts)]
         best_top_target_share_index = top_target_shares.index(max(top_target_shares))
-        level_counts_threshold = sum(level_counts)*0.2/len(level_counts)
+        level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
         min_top_target_shares = min([x for x,y in zip(top_target_shares,level_counts) if y>=level_counts_threshold])
         worst_top_target_share_index = top_target_shares.index(min_top_target_shares)
         overall_top_percentage = sum_top_target*100.0/total
@@ -129,7 +129,7 @@ class ChiSquareAnalysis:
 
         second_target_shares = [x*100.0/y for x,y in zip(second_target_contributions,level_counts)]
         best_second_target_share_index = second_target_shares.index(max(second_target_shares))
-        level_counts_threshold = sum(level_counts)*0.2/len(level_counts)
+        level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
         min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
         # worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
         worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==worst_second_target_share_index]
