@@ -144,7 +144,7 @@ class TimeSeriesNarrative:
                     dataDict["dataLevel"] = self._dataLevel
                     dataDict["durationString"] = self._durationString
                     if len(significant_dimensions.keys()) > 0:
-                        xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time)
+                        xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
                         if xtraData != None:
                             dataDict.update(xtraData)
                     # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
@@ -264,12 +264,13 @@ class TimeSeriesNarrative:
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel
                         dataDict["durationString"] = self._durationString
-
+                        print json.dumps(dataDict,indent=2)
                         significant_dimensions = df_helper.get_chisquare_significant_dimension()
                         reference_time = dataDict["reference_time"]
                         if len(significant_dimensions.keys()) > 0:
-                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,significant_dimensions.keys(),self._date_column_suggested,"value_col",self._existingDateFormat,reference_time)
+                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
                             if xtraData != None:
+                                print xtraData
                                 dataDict.update(xtraData)
 
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))

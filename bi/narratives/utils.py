@@ -320,10 +320,15 @@ def get_streak_data(df,trendString,maxRuns,trend,dataLevel):
     output = {}
     if trend == "positive":
         streak_start_index = trendString.index("P"*maxRuns["P"])
-        streak_end_index = streak_start_index + maxRuns["P"]-1
+        if streak_start_index != 0:
+            streak_start_index = streak_start_index-1
+        streak_end_index = streak_start_index + maxRuns["P"]
+        print streak_start_index,streak_end_index
     else:
         streak_start_index = trendString.index("P"*maxRuns["P"])
-        streak_end_index = streak_start_index + maxRuns["P"]-1
+        if streak_start_index != 0:
+            streak_start_index = streak_start_index-1
+        streak_end_index = streak_start_index + maxRuns["P"]
 
     end_streak_value = round(df["value"][streak_end_index],2)
     start_streak_value = round(df["value"][streak_start_index],2)
@@ -394,10 +399,6 @@ def calculate_dimension_contribution(level_cont):
     sorted_k1 = sorted(k1.items(),key = lambda x: x[1]["growth"])
     k2 = level_cont["summary"][data_dict["negativeSecondHighestSigDimension"]]
     sorted_k2 = sorted(k1.items(),key = lambda x: x[1]["growth"])
-    # print "SORTED K1"
-    # print sorted_k1
-    # print "SORTED K2"
-    # print sorted_k2
     if len(sorted_k1) >= 2:
         data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
         data_dict["negativeHighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
@@ -417,7 +418,15 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
     k=''
     #columns = ['EDUCATION','MARRIAGE','AGE_CATEGORY','BILL_AMOUNT_DECEMBER','BILL_AMOUNT_NOVEMBER']
     for column_name in columns:
-        data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
+        data_dict = {
+                    "overall_avg":None,
+                    "excluding_avg":None,
+                    "min_avg":None,
+                    "max_avg":None,
+                    "diff":None,
+                    "contribution":None,
+                    "growth":None
+                    }
         column_levels = df[column_name].unique()
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
         k = df.pivot_table(index = index_col, columns = column_name, values = value_col, aggfunc="sum")
@@ -478,9 +487,9 @@ def get_level_cont_dict(level_cont):
 
     return out_data
 
-def calculate_bucket_data(level_cont):
-    df = pd.DataFrame(level_cont["pivot"]["total"])
-    print df
+import math
+def calculate_bucket_data(grouped_data,dataLevel):
+    df = grouped_data
     min_streak = 2
     max_streak = 9
     if df.shape[0]*0.3 < 9:
@@ -490,17 +499,27 @@ def calculate_bucket_data(level_cont):
     streak_range = range(min_streak,max_streak+1)
     max_dict = {}
     for val in streak_range:
-        df[str(val)] = df["total"].rolling(val).sum()/val
+        df[str(val)] = df["value"].rolling(val).sum()/val
         temp_dict = {}
         temp_dict["id_max"] = df[str(val)].idxmax()
         temp_dict["max_val"] = round(df.loc[temp_dict["id_max"],str(val)],2)
-        start_id = list(df.index).index(temp_dict["id_max"])-val
-        temp_dict["start_streak"] = list(df.index)[start_id]
+        if dataLevel == "day":
+            start_id = temp_dict["id_max"]-val
+            if start_id < 0:
+                start_id = 0
+            temp_dict["start_streak"] = list(df["key"])[start_id]
+            temp_dict["end_streak"] = df["key"][temp_dict["id_max"]]
+        elif dataLevel == "month":
+            start_id = temp_dict["id_max"]-val
+            if start_id < 0:
+                start_id = 0
+            temp_dict["start_streak"] = list(df["year_month"])[start_id]
+            temp_dict["end_streak"] = df["year_month"][temp_dict["id_max"]]
         max_dict[str(val)] = temp_dict
 
     return max_dict
 
-def get_bucket_data_dict(bucket_dict,level_cont):
+def get_bucket_data_dict(bucket_dict):
 #     max_bucket = max(max_dict,key = lambda x: max_dict[x]["max_val"])
     zip_list = []
     for k,v in bucket_dict.items():
@@ -510,7 +529,7 @@ def get_bucket_data_dict(bucket_dict,level_cont):
     out = {}
     out["bucket_length"] = zip_list[0][0]
     out["bucket_contribution"] = zip_list[0][1]
-    out["bucket_duration"] = str(bucket_dict[str(zip_list[0][0])]["start_streak"])+" to "+str(bucket_dict[str(zip_list[0][0])]["id_max"])
+    out["bucket_duration"] = str(bucket_dict[str(zip_list[0][0])]["start_streak"])+" to "+str(bucket_dict[str(zip_list[0][0])]["end_streak"])
     ratio = 45
     if ratio < 20:
         out["ratio_string"] = ""
