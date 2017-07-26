@@ -70,34 +70,43 @@ than {{levels[worst_second_share[0]]}} and
 {% endif %}
 {{(second_target_shares[best_second_share[0]]*100/overall_second-100) | round}}%
 higher than the overall {{second_target}} rate.
-{% if best_second_difference | length ==1 %}
-  Interestingly, <b>{{levels[best_second_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference[0]] | round}}%
-  of the total </b>observations, has contributed to <b>{{second_target_percentages[best_second_difference[0]] | round}}%
-  of total {{second_target}}</b>.
-{% elif best_second_difference | length > 1 %}
-  {% if levels_percentages[best_second_difference[0]] - levels_percentages[best_second_difference[1]] >= 20 %}
+{% if levels|length >=3 %}
+  {% if best_second_difference | length ==1 %}
     Interestingly, <b>{{levels[best_second_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference[0]] | round}}%
     of the total </b>observations, has contributed to <b>{{second_target_percentages[best_second_difference[0]] | round}}%
     of total {{second_target}}</b>.
-  {% else %}
-    Interestingly, <b>{{levels[best_second_difference[0]]}} and {{levels[best_second_difference[1]]}}</b>,
-    which cumulatively account for <b>
-    {{(levels_percentages[best_second_difference[0]]+levels_percentages[best_second_difference[1]]) | round}}%
-    of the total </b>observations, has contributed to <b>
-    {{(second_target_percentages[best_second_difference[0]]+second_target_percentages[best_second_difference[1]]) | round}}%
-    of total {{second_target}}</b>.
+  {% elif best_second_difference | length > 1 %}
+    {% if levels_percentages[best_second_difference[0]] - levels_percentages[best_second_difference[1]] >= 20 %}
+      Interestingly, <b>{{levels[best_second_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference[0]] | round}}%
+      of the total </b>observations, has contributed to <b>{{second_target_percentages[best_second_difference[0]] | round}}%
+      of total {{second_target}}</b>.
+    {% else %}
+      Interestingly, <b>{{levels[best_second_difference[0]]}} and {{levels[best_second_difference[1]]}}</b>,
+      which cumulatively account for <b>
+      {{(levels_percentages[best_second_difference[0]]+levels_percentages[best_second_difference[1]]) | round}}%
+      of the total </b>observations, has contributed to <b>
+      {{(second_target_percentages[best_second_difference[0]]+second_target_percentages[best_second_difference[1]]) | round}}%
+      of total {{second_target}}</b>.
+    {% endif %}
   {% endif %}
-{% endif %}
-{% if worst_second_difference|length == 1 %}
-  On the other hand, {{second_target}} from the segment <b>{{levels[worst_second_difference[0]]}}</b> accounts for
-  <b>{{second_target_percentages[worst_second_difference[0]] | round}}% of total {{second_target}}</b>,
-  whereas it accounts for <b>{{levels_percentages[worst_second_difference[0]] | round}}% of the total</b> observations.
-{% elif worst_second_difference|length == 2 %}
-  On the other hand, {{second_target}} from the segments <b>{{levels[worst_second_difference[0]]}}
-  and {{levels[worst_second_difference[1]]}}</b> account for <b>{{second_target_percentages[worst_second_difference[0]] | round}}% and
-  {{second_target_percentages[worst_second_difference[1]] | round}}% of total {{second_target}}</b>, whereas it cumulatively
-  account for <b>{{(levels_percentages[worst_second_difference[0]]+levels_percentages[worst_second_difference[1]]) | round}}%
-  of the total</b> observations.
+  {% if worst_second_difference|length == 1 %}
+    On the other hand, {{second_target}} from the segment <b>{{levels[worst_second_difference[0]]}}</b> accounts for
+    <b>{{levels_percentages[worst_second_difference[0]] | round}}% of the total</b> observations, but it has contributed to
+    <b>{{second_target_percentages[worst_second_difference[0]] | round}}% of total {{second_target}}</b> {{plural_colname}}.
+  {% elif worst_second_difference|length == 2 %}
+    {% if levels_percentages[worst_second_difference[0]]-levels_percentages[worst_second_difference[1]] >= 20 %}
+      On the other hand, {{second_target}} from the segment <b>{{levels[worst_second_difference[1]]}}</b> accounts for
+      <b>{{levels_percentages[worst_second_difference[1]] | round}}% of the total</b> observations, but it has contributed to
+      <b>{{second_target_percentages[worst_second_difference[1]] | round}}% of total {{second_target}}</b> {{plural_colname}}.
+    {% else %}
+      On the other hand, {{second_target}} from the segments <b>{{levels[worst_second_difference[0]]}}
+      and {{levels[worst_second_difference[1]]}}</b> cumulatively account for
+      <b>{{(levels_percentages[worst_second_difference[0]]+levels_percentages[worst_second_difference[1]]) | round}}%
+      of the total</b> observations, but it has contributed to
+      <b>{{(second_target_percentages[worst_second_difference[0]]+second_target_percentages[worst_second_difference[1]]) | round}}%
+      of total {{second_target}}</b>.
+    {%endif%}
+  {% endif %}
 {% endif %}
 
 PARASEPARATOR
