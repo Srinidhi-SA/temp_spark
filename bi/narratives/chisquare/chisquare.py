@@ -58,6 +58,7 @@ class ChiSquareAnalysis:
         top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
         bottom_dim = sorted_levels[-1][1]
         bottom_dim_contribution = sorted_levels[-1][0]
+        bottom_dims = [y for x,y in sorted_levels if x==bottom_dim_contribution]
 
         target_levels = self._table.get_column_one_levels()
         target_counts = self._table.get_row_total()
@@ -94,7 +95,9 @@ class ChiSquareAnalysis:
 
         top_target_shares = [x*100.0/y for x,y in zip(top_target_contributions,level_counts)]
         best_top_target_share_index = top_target_shares.index(max(top_target_shares))
-        worst_top_target_share_index = top_target_shares.index(min(top_target_shares))
+        level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
+        min_top_target_shares = min([x for x,y in zip(top_target_shares,level_counts) if y>=level_counts_threshold])
+        worst_top_target_share_index = top_target_shares.index(min_top_target_shares)
         overall_top_percentage = sum_top_target*100.0/total
 
         second_target_contributions = [table.get_value(second_target,i) for i in levels]
@@ -126,7 +129,10 @@ class ChiSquareAnalysis:
 
         second_target_shares = [x*100.0/y for x,y in zip(second_target_contributions,level_counts)]
         best_second_target_share_index = second_target_shares.index(max(second_target_shares))
-        worst_second_target_share_index = second_target_shares.index(min(second_target_shares))
+        level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
+        min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
+        # worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
+        worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
         overall_second_percentage = sum_second_target*100.0/total
 
         data_dict = {}
@@ -150,11 +156,17 @@ class ChiSquareAnalysis:
 
         data_dict['num_significant'] = len(significant_variables)
         data_dict['colname'] = analysed_dimension
+        data_dict['plural_colname'] = NarrativesUtils.pluralize(analysed_dimension)
         data_dict['target'] = target_dimension
         data_dict['top_levels'] = top_dims
         data_dict['top_levels_percent'] = NarrativesUtils.round_number(top_dims_contribution*100.0/total)
         data_dict['bottom_level'] = bottom_dim
-        data_dict['bottom_level_percent'] = round(bottom_dim_contribution,2)
+        # if len(bottom_dims)==1:
+        #     bottom_dims = bottom_dims[0] + ' is'
+        # else:
+        #     bottom_dims = ', '.join(bottom_dims[:-1]) + ' and ' + bottom_dims[-1] + ' are'
+        data_dict['bottom_levels'] = bottom_dims
+        data_dict['bottom_level_percent'] = round(bottom_dim_contribution*100/sum(level_counts),2)
         data_dict['second_target']=second_target
         data_dict['second_target_top_dims'] = second_target_top_dims
         data_dict['second_target_top_dims_contribution'] = second_target_top_dims_contribution
@@ -274,7 +286,7 @@ class ChiSquareAnalysis:
         output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
         self.card4['paragraphs'] = output4
 
-        output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
+        # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
         # self.card0['paragraphs'] = output0
         # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
 
