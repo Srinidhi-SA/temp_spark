@@ -57,7 +57,11 @@ class TrendNarrative:
         dataDict["bubbleData"][0]["text"] = "Overall growth in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
         max_growth_index = np.argmax(df["perChange"])
         dataDict["bubbleData"][1]["value"] = str(abs(round(list(df["perChange"])[max_growth_index],2)))+"%"
-        dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
+        if dataDict["dataLevel"] == "day":
+            dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
+        elif dataDict["dataLevel"] == "month":
+            dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["year_month"])[max_growth_index])
+
         # print dataDict["bubbleData"]
         dataDict["start_value"] = round(df["value"].iloc[0],2)
         dataDict["end_value"] = round(df["value"].iloc[-1],2)
@@ -108,7 +112,6 @@ class TrendNarrative:
             dataDict["lowStreakBeginValue"] = df["value"][l]
 
         table_data = {"increase":[],"decrease":[]}
-
         percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "percentage")
         ###############################
         #####      TEMP FIX      ######
@@ -117,7 +120,6 @@ class TrendNarrative:
         ###############################
         abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "absolute")
         streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"positive",dataDict["dataLevel"])
-        # print streak
         table_data["increase"].append(percent_stats)
         table_data["increase"].append(abs_stats)
         table_data["increase"].append(streak)
@@ -132,19 +134,24 @@ class TrendNarrative:
         dataDict["table_data"] = table_data
         return dataDict
 
-    def get_xtra_calculations(self,df,significant_columns,index_col,value_col,datetime_pattern,reference_time):
+    def get_xtra_calculations(self,df,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
         datetime_pattern = "%b-%y"
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
+
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
 
-        bucket_dict = NarrativesUtils.calculate_bucket_data(level_cont)
-        bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict,level_cont)
+        bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)
+
+        bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict)
         dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
+        # print "#"*20
+        # print dim_data
         if level_cont_dict != None:
             if bucket_data != None:
                 level_cont_dict.update(bucket_data)
             if dim_data != None:
                 level_cont_dict.update(dim_data)
+
         return level_cont_dict
 
     def get_forecast_values(self,series,prediction_window):
