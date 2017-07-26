@@ -82,9 +82,9 @@ higher than the overall {{second_target}} rate.
       of total {{second_target}}</b>.
     {% else %}
       Interestingly, <b>{{levels[best_second_difference[0]]}} and {{levels[best_second_difference[1]]}}</b>,
-      which cumulatively account for <b>
+      cumulatively account for <b>
       {{(levels_percentages[best_second_difference[0]]+levels_percentages[best_second_difference[1]]) | round}}%
-      of the total </b>observations, has contributed to <b>
+      of the total </b>observations, and it has contributed to <b>
       {{(second_target_percentages[best_second_difference[0]]+second_target_percentages[best_second_difference[1]]) | round}}%
       of total {{second_target}}</b>.
     {% endif %}
