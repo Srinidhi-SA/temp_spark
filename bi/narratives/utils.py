@@ -502,33 +502,44 @@ def calculate_bucket_data(grouped_data,dataLevel):
         temp_dict = {}
         temp_dict["id_max"] = df[str(val)].idxmax()
         temp_dict["max_val"] = round(df.loc[temp_dict["id_max"],str(val)],2)
+
         if dataLevel == "day":
-            start_id = temp_dict["id_max"]-val
+            start_id = temp_dict["id_max"]-val+1
             if start_id < 0:
                 start_id = 0
             temp_dict["start_streak"] = list(df["key"])[start_id]
             temp_dict["end_streak"] = df["key"][temp_dict["id_max"]]
         elif dataLevel == "month":
-            start_id = temp_dict["id_max"]-val
+            start_id = temp_dict["id_max"]-val+1
             if start_id < 0:
                 start_id = 0
             temp_dict["start_streak"] = list(df["year_month"])[start_id]
             temp_dict["end_streak"] = df["year_month"][temp_dict["id_max"]]
+        if temp_dict["id_max"]+1 <= len(df[str(val)]):
+            temp_dict["contribution"] = df[str(val)].iloc[start_id:temp_dict["id_max"]+1].sum()
+        else:
+            temp_dict["contribution"] = df[str(val)].iloc[start_id:len(df[str(val)])].sum()
+
+        temp_dict["ratio"] = round(temp_dict["contribution"]*100/float(df[str(val)].sum()),2)
+        temp_dict["average"] = df[str(val)].mean()
         max_dict[str(val)] = temp_dict
+        # print max_dict
     return max_dict
 
 def get_bucket_data_dict(bucket_dict):
 #     max_bucket = max(max_dict,key = lambda x: max_dict[x]["max_val"])
     zip_list = []
     for k,v in bucket_dict.items():
-        zip_list.append([int(k),v["max_val"]])
+        if v["max_val"] >= v["average"]:
+            zip_list.append([int(k),v["max_val"]])
     zip_list = sorted(zip_list, key=lambda x:x[1],reverse=True)
-    zip_list = sorted(zip_list, key=lambda x:x[0],reverse=False)
+    # zip_list = sorted(zip_list, key=lambda x:x[0],reverse=False)
     out = {}
     out["bucket_length"] = zip_list[0][0]
-    out["bucket_contribution"] = zip_list[0][1]
-    out["bucket_duration"] = str(bucket_dict[str(zip_list[0][0])]["start_streak"])+" to "+str(bucket_dict[str(zip_list[0][0])]["end_streak"])
-    ratio = 45
+    key = str(zip_list[0][0])
+    out["bucket_contribution"] = round(bucket_dict[key]["contribution"],2)
+    out["bucket_duration"] = str(bucket_dict[key]["start_streak"])+" to "+str(bucket_dict[key]["end_streak"])
+    ratio = bucket_dict[key]["ratio"]
     if ratio < 20:
         out["ratio_string"] = ""
     elif ratio > 20 and ratio <=30:
@@ -543,6 +554,7 @@ def get_bucket_data_dict(bucket_dict):
         out["ratio_string"] = "three fourth"
     else:
         out["ratio_string"] = str(ratio)
+    # print out
     return out
 
 # def get_level_cont_dict(level_cont):

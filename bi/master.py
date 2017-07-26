@@ -147,20 +147,20 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTree/')
             print "Predictive modeling Not in Scripts to run"
 
-        # try:
-        fs = time.time()
-        trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark)
-        trend_obj.Run()
-        print "Trend Analysis Done in ", time.time() - fs, " seconds."
-        send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
+        try:
+            fs = time.time()
+            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark)
+            trend_obj.Run()
+            print "Trend Analysis Done in ", time.time() - fs, " seconds."
+            send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
 
-        # except Exception as e:
-        #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
-        #     send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
-        #     print "Trend Script Failed"
-        #     print "#####ERROR#####"*5
-        #     print e
-        #     print "#####ERROR#####"*5
+        except Exception as e:
+            DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
+            send_message_API(monitor_api, "Trend", "Trend Failed", False, 0)
+            print "Trend Script Failed"
+            print "#####ERROR#####"*5
+            print e
+            print "#####ERROR#####"*5
 
     elif analysistype == 'Measure':
         print "STARTING MEASURE ANALYSIS ..."

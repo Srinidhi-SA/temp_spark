@@ -40,6 +40,7 @@ class TrendNarrative:
         if type(df["key"][0]) == "str":
             df["key"] = df["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         df = df.sort_values(by = "key",ascending=True)
+        df.reset_index(drop=True,inplace=True)
         dataDict = {"trend_present":True}
         dataDict["dataLevel"] = dataLevel
         dataDict["durationString"] = durationString
@@ -139,6 +140,7 @@ class TrendNarrative:
         if type(grouped_data["key"][0]) == "str":
             grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         grouped_data = grouped_data.sort_values(by = "key",ascending=True)
+        grouped_data.reset_index(drop=True,inplace=True)
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
 
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)

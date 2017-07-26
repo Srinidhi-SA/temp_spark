@@ -107,6 +107,7 @@ class TimeSeriesCalculations:
                     crosstab_df["year_month"] = crosstab_df["suggestedDate"].apply(lambda x:x.strftime("%b-%y"))
                     final_df = pd.merge(grouped_result,crosstab_df, how='outer', on=['year_month'])
                     final_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
+                    final_df.reset_index(drop=True,inplace=True)
                     final_df["overallPerChange"] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(final_df["value"].iloc[1:],final_df["value"])]
 
                     growth_dict = {}

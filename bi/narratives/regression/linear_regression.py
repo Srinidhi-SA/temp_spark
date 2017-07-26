@@ -112,6 +112,7 @@ class LinearRegressionNarrative:
             dimension_data_dict[val]['highest_average'] = max(agg_by_dimension,key=operator.itemgetter(1))[0]
             data = data.fillna(0)
             data.sort_values(by="BINNED_INDEX", inplace=True)
+            data.reset_index( drop=True,inplace=True)
             data["BINNED_INDEX"] = data["BINNED_INDEX"].apply(lambda x:category_dict[x])
             colnames = data.columns[1:]
             table_data[val] = {}

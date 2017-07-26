@@ -264,6 +264,7 @@ class TimeSeriesNarrative:
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel
                         dataDict["durationString"] = self._durationString
+                        # grouped_data.to_csv("/home/gulshan/marlabs/datasets/grouped_data"+str(idx))
                         # print json.dumps(dataDict,indent=2)
                         significant_dimensions = df_helper.get_chisquare_significant_dimension()
                         reference_time = dataDict["reference_time"]
