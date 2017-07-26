@@ -107,5 +107,5 @@ class DecisionTreeNarrative:
             else:
                 narrative = 'There is a very high chance(<b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
                             '</b>) that ' +  self._column_name + ' would be relatively ' + target + ' when, ' + \
-                            temp_narrative[:-1] + '.'
+                            temp_narrative[:-2] + '.'
             return narrative
