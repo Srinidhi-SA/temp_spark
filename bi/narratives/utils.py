@@ -505,20 +505,19 @@ def calculate_bucket_data(grouped_data,dataLevel):
 
         if dataLevel == "day":
             start_id = temp_dict["id_max"]-val+1
-            if start_id < 0:
-                start_id = 0
+            start_id = 0 if start_id < 0 else start_id
             temp_dict["start_streak"] = list(df["key"])[start_id]
             temp_dict["end_streak"] = df["key"][temp_dict["id_max"]]
         elif dataLevel == "month":
             start_id = temp_dict["id_max"]-val+1
-            if start_id < 0:
-                start_id = 0
+            start_id = 0 if start_id < 0 else start_id
             temp_dict["start_streak"] = list(df["year_month"])[start_id]
             temp_dict["end_streak"] = df["year_month"][temp_dict["id_max"]]
         if temp_dict["id_max"]+1 <= len(df[str(val)]):
-            temp_dict["contribution"] = df[str(val)].iloc[start_id:temp_dict["id_max"]+1].sum()
+            temp_dict["contribution"] = df["value"].iloc[start_id:temp_dict["id_max"]+1].sum()
         else:
-            temp_dict["contribution"] = df[str(val)].iloc[start_id:len(df[str(val)])].sum()
+            start_id = 0 if start_id < 0 else start_id
+            temp_dict["contribution"] = df["value"].iloc[start_id:len(df[str(val)])].sum()
 
         temp_dict["ratio"] = round(temp_dict["contribution"]*100/float(df[str(val)].sum()),2)
         temp_dict["average"] = df[str(val)].mean()
