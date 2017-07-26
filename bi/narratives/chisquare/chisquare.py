@@ -58,7 +58,7 @@ class ChiSquareAnalysis:
         top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
         bottom_dim = sorted_levels[-1][1]
         bottom_dim_contribution = sorted_levels[-1][0]
-        bottom_dims = [x for x,y in sorted_levels if y==bottom_dim_contribution]
+        bottom_dims = [y for x,y in sorted_levels if x==bottom_dim_contribution]
 
         target_levels = self._table.get_column_one_levels()
         target_counts = self._table.get_row_total()
@@ -131,7 +131,8 @@ class ChiSquareAnalysis:
         best_second_target_share_index = second_target_shares.index(max(second_target_shares))
         level_counts_threshold = sum(level_counts)*0.2/len(level_counts)
         min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
-        worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
+        # worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
+        worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==worst_second_target_share_index]
         overall_second_percentage = sum_second_target*100.0/total
 
         data_dict = {}

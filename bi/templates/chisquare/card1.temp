@@ -40,7 +40,18 @@ PARAHEADER
 PARASEPARATOR
 Key segments of {{second_target}}
 PARAHEADER
-The <b>percentage of {{second_target}}</b> is the <b>lowest for the segment {{levels[worst_second_share]}}</b> ({{second_target_shares[worst_second_share] | round}}%).
+The <b>percentage of {{second_target}}</b> is the <b>
+{% if worst_second_share | length == 1 %}
+  lowest for the segment {{levels[worst_second_share[0]]}}</b> ({{second_target_shares[worst_second_share[0]] | round}}%).
+{% elif worst_second_share | length == 2 %}
+  lowest({{second_target_shares[worst_second_share[0]] | round}}%)
+  for the segments {{levels[worst_second_share[0]]}}</b>  and {{levels[worst_second_share[1]]}}</b>.
+{% elif worst_second_share | length > 2 %}
+  lowest({{second_target_shares[worst_second_share[0]] | round}}%) for {{worst_second_share | length}} segments including
+  {{levels[worst_second_share[0]]}} and {{levels[worst_second_share[1]]}}</b>.
+{% endif %}
+
+
 and the segment <b> {{levels[best_second_share]}}</b> has the <b>highest rate of {{second_target}}</b> ({{second_target_shares[best_second_share] | round}}%),
 which is
 {% if second_target_shares[worst_second_share]>0 %}
