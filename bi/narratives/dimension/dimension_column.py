@@ -115,8 +115,8 @@ class DimensionColumnNarrative:
 
             data_dict["kv_75_cat"] = [k for k,v in kv_75]
 
-        largest_text = " %s is the largest with %d observations" % (data_dict["max"]["key"],data_dict["max"]["val"])
-        smallest_text = " %s is the smallest with %d observations" % (data_dict["min"]["key"],data_dict["min"]["val"])
+        largest_text = " %s is the largest with %s observations" % (data_dict["max"]["key"],NarrativesUtils.round_number(data_dict["max"]["val"]))
+        smallest_text = " %s is the smallest with %s observations" % (data_dict["min"]["key"],NarrativesUtils.round_number(data_dict["min"]["val"]))
         largest_per = round(data_dict["max"]["val"]/float(sum(count.values())),2)*100
         smallest_per = round(data_dict["min"]["val"]/float(sum(count.values())),2)*100
         self.count = {"largest" :[largest_text,str(round(largest_per,0))+'%'],"smallest" : [smallest_text,str(round(smallest_per,0))+'%']}
@@ -171,8 +171,8 @@ class DimensionColumnNarrative:
 
             data_dict["kv_75_cat"] = [k for k,v in kv_75]
 
-        largest_text = " %s is the largest with %d observations" % (data_dict["max"]["key"],data_dict["max"]["val"])
-        smallest_text = " %s is the smallest with %d observations" % (data_dict["min"]["key"],data_dict["min"]["val"])
+        largest_text = " %s is the largest with %d observations" % (data_dict["max"]["key"],NarrativesUtils.round_number(data_dict["max"]["val"]))
+        smallest_text = " %s is the smallest with %d observations" % (data_dict["min"]["key"],NarrativesUtils.round_number(data_dict["min"]["val"]))
         largest_per = round(data_dict["max"]["val"]/float(sum(count.values())),2)*100
         smallest_per = round(data_dict["min"]["val"]/float(sum(count.values())),2)*100
         self.count = {"largest" :[largest_text,str(round(largest_per,0))+'%'],"smallest" : [smallest_text,str(round(smallest_per,0))+'%']}
