@@ -13,9 +13,9 @@
   The {{colname}} variable has only three observations, which are {{keys[0]}}, {{keys[1]}} and {{keys[2]}}.
   {{max['key']}} is the <b>largest</b> with {{max['val']}} observations, whereas {{min['key']}} is the <b>smallest</b> with just {{min['val']}} observations.
 {% elif keys|length > 3 and n_uniq == 1 %}
-  There are {{keys|length}} {{plural_colname}} in the dataset.
-  All the {{plural_colname}} have the same number of observations i.e {{max['val']}}
+  There are {{keys|length|intcomma}} {{plural_colname}} in the dataset.
+  All the {{plural_colname}} have the same number of observations i.e {{max['val']|intcomma}}
 {% elif keys|length > 3 and n_uniq != 1  %}
-  There are {{keys|length}} {{plural_colname}} in the dataset.
-  {{max['key']}} is the <b>largest</b> with {{max['val']}} observations, whereas {{min['key']}} is the <b>smallest</b> with just {{min['val']}} observations.
+  There are {{keys|length|intcomma}} {{plural_colname}} in the dataset.
+  {{max['key']}} is the <b>largest</b> with {{max['val']|intcomma}} observations, whereas {{min['key']}} is the <b>smallest</b> with just {{min['val']|intcomma}} observations.
 {% endif %}
