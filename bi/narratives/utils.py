@@ -88,6 +88,8 @@ def clean_narratives(output):
 def get_template_output(base_dir, template_file, data_dict):
     templateLoader = jinja2.FileSystemLoader( searchpath=base_dir)
     templateEnv = jinja2.Environment( loader=templateLoader )
+    templateEnv.filters['round_number'] = round_number
+    templateEnv.filters['intcomma'] = humanize.intcomma
     template = templateEnv.get_template(template_file)
     output = template.render(data_dict)
     return clean_narratives(output)

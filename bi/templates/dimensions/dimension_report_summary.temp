@@ -2,13 +2,13 @@ mAdvisor has analyzed the dataset and it contains<b>
 {% if n_t == 1%}
   {{n_t}}</b> variable and <b>{{observations}}</b> observations.
 {% else %}
-  {{n_t}}</b> variables and <b>{{observations}}</b> observations.
+  {{n_t|intcomma}}</b> variables and <b>{{observations}}</b> observations.
 {% endif %}
 
 {% if ignorecolumns|length == 1%}
-  Of these <b>{{ignorecolumns|length}}</b> variable is omitted, since it is not fit for the analysis.
+  Of these <b>{{ignorecolumns|length|intcomma}}</b> variable is omitted, since it is not fit for the analysis.
 {% elif ignorecolumns|length > 1 %}
-  Of these <b>{{ignorecolumns|length}}</b> variables are omitted, since these are not fit for the analysis.
+  Of these <b>{{ignorecolumns|length|intcomma}}</b> variables are omitted, since these are not fit for the analysis.
 {%endif%}
 
 The consolidated dataset has
@@ -26,10 +26,10 @@ The consolidated dataset has
     <b>three varibles </b>{{m[0]}}, {{m[1]}}, and {{m[2]}}(all measures).
 {% else %}
     {% if td|length > 0%}
-      {{m|length}} measures,{{d|length}} dimension, and {{td|length}} time dimension.
+      {{m|length|intcomma}} measures,{{d|length|intcomma}} dimension, and {{td|length|intcomma}} time dimension.
     {% else %}
       {% if m|length > 1%}
-         {{m|length}} measures
+         {{m|length|intcomma}} measures
       {% else %}
          {{m|length}} measure
       {% endif %}
