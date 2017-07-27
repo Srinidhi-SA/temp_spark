@@ -243,15 +243,13 @@ class TimeSeriesNarrative:
                     elif self._dataLevel == "month":
                         overall_count = self._data_frame.groupBy("year_month").agg({ self._result_column : 'count'})
                         overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
-                        overall_count = overall_count.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y").date())("year_month"))
+                        overall_count = overall_count.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
                         overall_count = overall_count.orderBy("suggestedDate",ascending=True)
                         overall_count = overall_count.withColumnRenamed("suggestedDate","key")
-                        overall_count = overall_count.select(["key","totalCount"]).toPandas()
-                        # overall_count["key"] = overall_count["key"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+                        overall_count = overall_count.select(["key","totalCount","year_month"]).toPandas()
+                        overall_count["key"] = overall_count["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+                        overall_count = overall_count.loc[:,[c for c in overall_count.columns if c != "year_month"]]
 
-
-
-                    print overall_count
                     for idx,level in  enumerate(top2levels):
                         leveldf = self._data_frame.filter(col(self._result_column) == level)
                         if self._dataLevel == "day":
@@ -271,11 +269,10 @@ class TimeSeriesNarrative:
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
 
                         grouped_data.rename(columns={"value":"value_count"},inplace=True)
-                        print grouped_data
-                        grouped_data = pd.concat([grouped_data, overall_count], axis=1, join_axes=[grouped_data["key"]])
+                        grouped_data = pd.merge(grouped_data, overall_count, on='key', how='left')
                         # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),2))
                         grouped_data["value"] = grouped_data["value_count"]/grouped_data["totalCount"]
-                        print grouped_data
+                        grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,2))
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
@@ -328,7 +325,7 @@ class TimeSeriesNarrative:
                     self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
                                                         "label":labels,
                                                         "label_text":{"x":"Time Duration","y":"Count of "+labels["y"],"y2":"Count of "+labels["y2"]}}
-                    print json.dumps(self.narratives,indent=2)
+                    # print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"
