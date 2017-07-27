@@ -178,3 +178,39 @@ class TrendNarrative:
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'trend_summary.temp',data_dict)
         return output
+
+    def generate_dimension_extra_narrative(self,df,dataDict,dataLevel):
+        if type(df["key"][0]) == "str":
+            df["key"] = df["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
+        df = df.sort_values(by = "key",ascending=True)
+        outDict = {}
+        outDict["total_count"] = int(df["value_count"].sum())
+        bucket_end = dataDict["bucket_end"]
+        bucket_start = dataDict["bucket_start"]
+        if dataLevel == "month":
+            bucket_start_index = list(df["year_month"]).index(dataDict["bucket_start"])
+            bucket_end_index = list(df["year_month"]).index(dataDict["bucket_end"])
+            max_index = list(df["year_month"]).index(dataDict["peakTime"])
+        elif dataLevel == "day":
+            bucket_start_index = list(df["key"]).index(dataDict["bucket_start"])
+            bucket_end_index = list(df["key"]).index(dataDict["bucket_end"])
+            max_index = list(df["key"]).index(dataDict["peakTime"])
+        outDict["bucket_count"] = int(df["value_count"].iloc[bucket_start_index:bucket_end_index].sum())
+        outDict["max_count"] = int(df["value_count"][max_index])
+        ratio = round(outDict["bucket_count"]*100/float(outDict["total_count"]),2)
+        ratio = 45
+        if ratio < 20:
+            outDict["bucket_ratio_string"] = ""
+        elif ratio > 20 and ratio <=30:
+            outDict["bucket_ratio_string"] = "one fourth"
+        elif ratio > 30 and ratio <=40:
+            outDict["bucket_ratio_string"] = "one third"
+        elif ratio > 40 and ratio <=55:
+            outDict["bucket_ratio_string"] = "half"
+        elif ratio > 55 and ratio <=70:
+            outDict["bucket_ratio_string"] = "two third"
+        elif ratio >70 and ratio <=80:
+            outDict["bucket_ratio_string"] = "three fourth"
+        else:
+            outDict["bucket_ratio_string"] = str(ratio)
+        return outDict

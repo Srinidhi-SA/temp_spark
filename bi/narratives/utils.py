@@ -513,6 +513,8 @@ def calculate_bucket_data(grouped_data,dataLevel):
             start_id = 0 if start_id < 0 else start_id
             temp_dict["start_streak"] = list(df["year_month"])[start_id]
             temp_dict["end_streak"] = df["year_month"][temp_dict["id_max"]]
+        temp_dict["start_streak_value"] = df["value"][start_id]
+        temp_dict["end_streak_value"] = df["value"][temp_dict["id_max"]]
         if temp_dict["id_max"]+1 <= len(df[str(val)]):
             temp_dict["contribution"] = df["value"].iloc[start_id:temp_dict["id_max"]+1].sum()
         else:
@@ -537,6 +539,10 @@ def get_bucket_data_dict(bucket_dict):
     out["bucket_length"] = zip_list[0][0]
     key = str(zip_list[0][0])
     out["bucket_contribution"] = round(bucket_dict[key]["contribution"],2)
+    out["bucket_start"] = bucket_dict[key]["start_streak"]
+    out["bucket_end"] = bucket_dict[key]["end_streak"]
+    out["bucket_start_value"] = bucket_dict[key]["start_streak_value"]
+    out["bucket_end_value"] = bucket_dict[key]["end_streak_value"]
     out["bucket_duration"] = str(bucket_dict[key]["start_streak"])+" to "+str(bucket_dict[key]["end_streak"])
     ratio = bucket_dict[key]["ratio"]
     if ratio < 20:

@@ -251,6 +251,9 @@ class TimeSeriesNarrative:
                             grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
                             grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+                        grouped_data.rename(columns={"value":"value_count"},inplace=True)
+                        total_count = grouped_data["value_count"].sum()
+                        grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(total_count),2))
 
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
@@ -271,9 +274,11 @@ class TimeSeriesNarrative:
                         if len(significant_dimensions.keys()) > 0:
                             xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
                             if xtraData != None:
-                                print xtraData
                                 dataDict.update(xtraData)
 
+                        dimensionCount = trend_narrative_obj.generate_dimension_extra_narrative(grouped_data,dataDict,self._dataLevel)
+                        if dimensionCount != None:
+                            dataDict.update(dimensionCount)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
 
                         dataDict.update({"level_index":idx})
@@ -298,7 +303,7 @@ class TimeSeriesNarrative:
                     self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
                                                         "label":labels,
                                                         "label_text":{"x":"Time Duration","y":"Count of "+labels["y"],"y2":"Count of "+labels["y2"]}}
-                    # print json.dumps(self.narratives,indent=2)
+                    print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"

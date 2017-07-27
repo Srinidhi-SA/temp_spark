@@ -1,4 +1,4 @@
-How {{measure}} Rate is Changing over Time
+How {{measure}} is Changing over Time
 PARAHEADER
 This section provides insights on how {{measure}} is performing over time and
 captures the most significant moments that defined the overall pattern or trend
@@ -7,36 +7,28 @@ over the observation period.
 PARASEPARATOR
 
 The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
-{% if overall_growth > 0 %}
-  The percentage of {{measure}} observations has <b> grown by {{overall_growth|abs}}% </b> during
-  the same time, from {{start_value}} in {{start_time}} to
-  {{end_value}} in {{end_time}}.
-{% elif overall_growth <= 0 %}
-  The percentage of {{measure}} has <b> dropped by {{overall_growth|abs}}% </b> during
-  the same time, from {{start_value}} in {{start_time}} to
-  {{end_value}} in {{end_time}}.
+{% if overall_growth >= 1 and  overall_growth <= -1%}
+  The percentage of {{measure}} has changed from <b> {{start_value|abs}}% </b> in {{start_time}}
+  to <b>{{end_value|abs}}%</b> in {{end_time}}.
 {% endif %}
-The total {{measure}} </b> was {{total}} for the last {{durationString}},
- with the <b> average {{measure}} per {{dateLevel}} being {{average_value}}</b>.
+
+The total {{measure}} observations were {{total_count}} for the last {{durationString}},
+ with the <b> average {{measure}} per {{dateLevel}} being {{average_value}}%</b>.
+
 {% if ratio_string != "" %}
-  Interestingly, the {{measure}} contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
-  amounts to a total of {{bucket_contribution}}, which is almost {{ratio_string}} of the overall
+  Interestingly, the {{measure}} during a streak of {{bucket_length}} {{dateLevel}}s ({{bucket_duration}})
+  amounts to a total of {{bucket_count}} (ranging between {{bucket_start_value}}% to {{bucket_end_value}}%),
+  which is almost {{bucket_ratio_string}} of the overall
   {{measure}} for the {{durationString}} period.
-{% else %}
-  Interestingly, the {{measure}} contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
-  amounts to a total of {{bucket_contribution}}.
 {% endif %}
 
 PARASEPARATOR
 
-{% if peakStreakDuration >= 2%}
-  The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
-  <b>a continuous streak of growth for {{peakStreakDuration}} {{dateLevel}}s </b> ending at {{peakTime}}.
-{% else %}
-  The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}.
-{% endif %}
+The percentage of {{measure}} observations hit a peak of {{peakValue}}% in {{peakTime}},
+when the total number of {{measure}} observation was {{max_count}}.
+
 The most significant factor that fuelled this strong run is the {{highest_contributing_variable}},
  {{highest_contributing_level}}.
-{{measure}} contribution from {{highest_contributing_level}} in {{peakTime}}, increased by over
+the {{measure}} rate for {{highest_contributing_level}} in {{peakTime}}, increased by over
 {{highest_contributing_level_increase}} percentage points ({{highest_contributing_level_range}})
 compared to rest of the observation period.
