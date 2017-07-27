@@ -13,10 +13,10 @@ The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
 {% endif %}
 
 The total {{measure}} observations were {{total_count}} for the last {{durationString}},
- with the <b> average {{measure}} per {{dateLevel}} being {{average_value}}%</b>.
+ with the <b> average {{measure}} per {{dataLevel}} being {{average_value}}%</b>.
 
 {% if ratio_string != "" %}
-  Interestingly, the {{measure}} during a streak of {{bucket_length}} {{dateLevel}}s ({{bucket_duration}})
+  Interestingly, the {{measure}} during a streak of {{bucket_length}} {{dataLevel}}s ({{bucket_duration}})
   amounts to a total of {{bucket_count}} (ranging between {{bucket_start_value}}% to {{bucket_end_value}}%),
   which is almost {{bucket_ratio_string}} of the overall
   {{measure}} for the {{durationString}} period.

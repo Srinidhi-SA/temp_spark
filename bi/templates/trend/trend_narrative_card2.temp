@@ -2,7 +2,7 @@ Highest and Lowest Points of {{measure}}
 PARAHEADER
 {% if peakStreakDuration >= 2%}
   The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
-  <b>a continuous streak of growth for {{peakStreakDuration}} {{dateLevel}}s </b> ending at {{peakTime}}.
+  <b>a continuous streak of growth for {{peakStreakDuration}} {{dataLevel}}s </b> ending at {{peakTime}}.
 {% else %}
   The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}.
 {% endif %}
