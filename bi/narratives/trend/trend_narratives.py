@@ -198,7 +198,6 @@ class TrendNarrative:
         outDict["bucket_count"] = int(df["value_count"].iloc[bucket_start_index:bucket_end_index].sum())
         outDict["max_count"] = int(df["value_count"][max_index])
         ratio = round(outDict["bucket_count"]*100/float(outDict["total_count"]),2)
-        ratio = 45
         if ratio < 20:
             outDict["bucket_ratio_string"] = ""
         elif ratio > 20 and ratio <=30:
