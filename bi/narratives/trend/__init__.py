@@ -253,7 +253,7 @@ class TimeSeriesNarrative:
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
                         grouped_data.rename(columns={"value":"value_count"},inplace=True)
                         total_count = grouped_data["value_count"].sum()
-                        grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(total_count),2))
+                        grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),2))
 
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
@@ -287,8 +287,11 @@ class TimeSeriesNarrative:
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'dimension_trend.temp',dataDict)
 
-
-                        all_paragraphs += NarrativesUtils.paragraph_splitter(summary1)
+                        paragraphs = NarrativesUtils.paragraph_splitter(summary1)
+                        if idx != 0:
+                            all_paragraphs += paragraphs[1:]
+                        else:
+                            all_paragraphs += paragraphs
 
                         trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
