@@ -173,7 +173,7 @@ class ChiSquareAnalysis:
         data_dict['bottom_level_percent'] = round(bottom_dim_contribution*100/sum(level_counts),2)
         data_dict['second_target']=second_target
         data_dict['second_target_top_dims'] = second_target_top_dims
-        data_dict['second_target_top_dims_contribution'] = second_target_top_dims_contribution
+        data_dict['second_target_top_dims_contribution'] = second_target_top_dims_contribution*100.0/sum(second_target_contributions)
         data_dict['second_target_bottom_dim']=second_target_bottom_dim
         data_dict['second_target_bottom_dim_contribution']=second_target_bottom_dim_contribution
         data_dict['best_second_target'] = levels[best_second_target_index]
@@ -184,7 +184,7 @@ class ChiSquareAnalysis:
 
         data_dict['top_target']=top_target
         data_dict['top_target_top_dims'] = top_target_top_dims
-        data_dict['top_target_top_dims_contribution'] = top_target_top_dims_contribution
+        data_dict['top_target_top_dims_contribution'] = top_target_top_dims_contribution*100.0/sum(top_target_contributions)
         data_dict['top_target_bottom_dim']=top_target_bottom_dim
         data_dict['top_target_bottom_dim_contribution']=top_target_bottom_dim_contribution
         data_dict['best_top_target'] = levels[best_top_target_index]
