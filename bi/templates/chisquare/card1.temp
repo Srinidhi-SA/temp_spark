@@ -10,30 +10,30 @@ PARAHEADER
   in distribution of {{target}} categories.
 {% endif %}
 {% if top_levels | length  == 1%}
-  <b>{{top_levels[0]}} </b> is the largest {{colname}}, accounting for almost<b> {{top_levels_percent}}% of the
+  <b>Segment {{top_levels[0]}} </b> is the largest {{colname}}, accounting for almost<b> {{top_levels_percent}}% of the
   total </b>observations.
 {% elif top_levels | length  == 2 %}
-  <b>{{top_levels[0]}} and {{top_levels[1]}}  </b> are the two largest {{colname}}s, accounting for
+  <b>Segment {{top_levels[0]}} and segment {{top_levels[1]}}  </b> are the two largest {{colname}}s, accounting for
   <b> {{top_levels_percent}}% </b> of the total observations.
 {% elif top_levels | length >2 %}
-  The top {{top_levels | length}} {{plural_colname}} including {{top_levels[0]}} and {{top_levels[1]}} account for
+  The top {{top_levels | length}} {{plural_colname}} including segment {{top_levels[0]}} and segment {{top_levels[1]}} account for
   <b> {{top_levels_percent}}% </b>of the total observations.
 {% endif %}
 {% if bottom_level_percent >= 0.01 %}
   {% if bottom_levels | length == 1 %}
-    And, <b>{{bottom_levels[0]}}</b> is the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
+    And, <b>segment {{bottom_levels[0]}}</b> is the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
   {% elif bottom_levels | length == 2 %}
-    <b>{{bottom_levels[0]}} and {{bottom_levels[1]}}</b> are the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
+    <b>Segment {{bottom_levels[0]}} and segment {{bottom_levels[1]}}</b> are the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
   {% elif bottom_levels | length > 2 %}
-    <b>{{bottom_levels| length}} {{plural_colname}}, including {{bottom_levels[0]}} and {{bottom_levels[1]}}</b> are the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
+    <b>{{bottom_levels| length}} {{plural_colname}}, including segment {{bottom_levels[0]}} and segment{{bottom_levels[1]}}</b> are the smallest with <b>just {{bottom_level_percent}}%</b> of the total observations.
   {% endif %}
 {% else %}
   {% if bottom_levels | length == 1 %}
-    And, <b>{{bottom_levels[0]}}</b> is the smallest with the least number of the total observations.
+    And, <b>segment {{bottom_levels[0]}}</b> is the smallest with the least number of the total observations.
   {% elif bottom_levels | length == 2 %}
-    <b>{{bottom_levels[0]}} and {{bottom_levels[1]}}</b> are the smallest with the least number of the total observations.
+    <b>Segment {{bottom_levels[0]}} and segment {{bottom_levels[1]}}</b> are the smallest with the least number of the total observations.
   {% elif bottom_levels | length > 2 %}
-    <b>{{bottom_levels| length}} {{plural_colname}}, including {{bottom_levels[0]}} and {{bottom_levels[1]}}</b> are the smallest with the least number of the total observations.
+    <b>{{bottom_levels| length}} {{plural_colname}}, including segment {{bottom_levels[0]}} and segment {{bottom_levels[1]}}</b> are the smallest with the least number of the total observations.
   {% endif %}
 {% endif %}
 
@@ -80,16 +80,16 @@ than {{levels[worst_second_share[0]]}} and
 higher than the overall {{second_target}} rate.
 {% if levels|length >=3 %}
   {% if best_second_difference | length ==1 %}
-    Interestingly, <b>{{levels[best_second_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference[0]] | round(1)}}%
+    Interestingly, <b>segment {{levels[best_second_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference[0]] | round(1)}}%
     of the total </b>observations, has contributed to <b>{{second_target_percentages[best_second_difference[0]] | round(1)}}%
     of total {{second_target}}</b>.
   {% elif best_second_difference | length > 1 %}
     {% if levels_percentages[best_second_difference[0]] - levels_percentages[best_second_difference[1]] >= 20 %}
-      Interestingly, <b>{{levels[best_second_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference[0]] | round(1)}}%
+      Interestingly, <b>segment {{levels[best_second_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_second_difference[0]] | round(1)}}%
       of the total </b>observations, has contributed to <b>{{second_target_percentages[best_second_difference[0]] | round(1)}}%
       of total {{second_target}}</b>.
     {% else %}
-      Interestingly, <b>{{levels[best_second_difference[0]]}} and {{levels[best_second_difference[1]]}}</b>,
+      Interestingly, <b>segment {{levels[best_second_difference[0]]}} and segment {{levels[best_second_difference[1]]}}</b>,
       which cumulatively account for <b>
       {{(levels_percentages[best_second_difference[0]]+levels_percentages[best_second_difference[1]]) | round(1)}}%
       of the total </b>observations, has contributed to <b>
@@ -122,35 +122,35 @@ Key segments of {{top_target}}
 PARAHEADER
 When it comes to <b>{{top_target}},
 {% if worst_top_share | length == 1 %}
-  {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant</b> since only {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  segment {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant</b> since only {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of observations are into {{top_target}} category.
 {% elif worst_top_share | length == 2 %}
-  both {{levels[worst_top_share[0]]}} and {{levels[worst_top_share[1]]}}</b> seems to be the least dominant with only {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  both segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> seems to be the least dominant with only {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of observations from each of the categories.
 {% elif worst_top_share | length > 2 %}
-  there are {{worst_top_share|length}} {{plural_colname}} including {{levels[worst_top_share[0]]}} and {{levels[worst_top_share[1]]}}</b> which are the least dominant with only {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  there are {{worst_top_share|length}} {{plural_colname}} including segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> which are the least dominant with only {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of observations from each of the categories.
 {% endif %}
 {% if best_top_share | length ==1 %}
-  But,<b> {{levels[best_top_share[0]]}}</b> has the
+  But,<b> segment {{levels[best_top_share[0]]}}</b> has the
 {% elif best_top_share | length == 2 %}
-  But,<b> {{levels[best_top_share[0]]}} and {{levels[best_top_share[1]]}}</b> have the
+  But,<b> segment {{levels[best_top_share[0]]}} and segment {{levels[best_top_share[1]]}}</b> have the
 {% elif best_top_share | length > 2 %}
-  But, there are <b>{{best_top_share|length}} categories</b>(including {{levels[best_top_share[0]]}} and {{levels[best_top_share[1]]}}) have the
+  But, there are <b>{{best_top_share|length}} categories</b>(including segment {{levels[best_top_share[0]]}} and segment {{levels[best_top_share[1]]}}) have the
 {% endif %}
 <b>highest rate of {{top_target}}</b> ({{top_target_shares[best_top_share[0]] | round(1)}}%).
 {% if levels|length >=3 %}
   {% if best_top_difference | length ==1 %}
-    Interestingly, <b>{{levels[best_top_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_top_difference[0]] | round(1)}}%
+    Interestingly, <b>segment {{levels[best_top_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_top_difference[0]] | round(1)}}%
     of the total </b>observations, has contributed to <b>{{top_target_percentages[best_top_difference[0]] | round(1)}}%
     of total {{top_target}}</b>.
   {% elif best_top_difference | length > 1 %}
     {% if levels_percentages[best_top_difference[0]] - levels_percentages[best_top_difference[1]] >= 20 %}
-      Interestingly, <b>{{levels[best_top_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_top_difference[0]] | round(1)}}%
+      Interestingly, <b>segment {{levels[best_top_difference[0]]}}</b>, which accounts for <b>{{levels_percentages[best_top_difference[0]] | round(1)}}%
       of the total </b>observations, has contributed to <b>{{top_target_percentages[best_top_difference[0]] | round(1)}}%
       of total {{top_target}}</b>.
     {% else %}
-      Interestingly, <b>{{levels[best_top_difference[0]]}} and {{levels[best_top_difference[1]]}}</b>,
+      Interestingly, <b>segment {{levels[best_top_difference[0]]}} and segment {{levels[best_top_difference[1]]}}</b>,
       which cumulatively account for <b>
       {{(levels_percentages[best_top_difference[0]]+levels_percentages[best_top_difference[1]]) | round(1)}}%
       of the total </b>observations, has contributed to <b>
