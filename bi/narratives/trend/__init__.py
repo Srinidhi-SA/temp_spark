@@ -263,6 +263,7 @@ class TimeSeriesNarrative:
 
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
+                        dataDict["target_column"] = dataDict["measure"]
                         dataDict["measure"] = level
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel

@@ -1,11 +1,13 @@
-How {{measure}} is Changing over Time
+How {{target_column}} is Changing over Time
 PARAHEADER
-This section provides insights on how {{measure}} is performing over time and
+This section provides insights on how different categories are trending over time and
 captures the most significant moments that defined the overall pattern or trend
 over the observation period.
 
 PARASEPARATOR
 
+How {{measure}} is Changing over Time
+PARAHEADER
 The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
 {% if overall_growth >= 1 and  overall_growth <= -1%}
   The percentage of {{measure}} has changed from <b> {{start_value|abs}}% </b> in {{start_time}}
@@ -29,6 +31,6 @@ when the total number of {{measure}} observation was {{max_count}}.
 
 The most significant factor that fuelled this strong run is the {{highest_contributing_variable}},
  {{highest_contributing_level}}.
-the {{measure}} rate for {{highest_contributing_level}} in {{peakTime}}, increased by over
+The {{measure}} rate for {{highest_contributing_level}} in {{peakTime}}, increased by over
 {{highest_contributing_level_increase}} percentage points ({{highest_contributing_level_range}})
 compared to rest of the observation period.
