@@ -1,6 +1,6 @@
 import json
 import os
-
+import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -234,6 +234,24 @@ class TimeSeriesNarrative:
                     top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
                     all_paragraphs = []
                     chart_data = {}
+                    if self._dataLevel == "day":
+                        overall_count = self._data_frame.groupBy("suggestedDate").agg({ self._result_column : 'count'})
+                        overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
+                        overall_count = overall_count.orderBy("suggestedDate",ascending=True)
+                        overall_count = overall_count.withColumnRenamed("suggestedDate","key")
+                        overall_count = overall_count.toPandas()
+                    elif self._dataLevel == "month":
+                        overall_count = self._data_frame.groupBy("year_month").agg({ self._result_column : 'count'})
+                        overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
+                        overall_count = overall_count.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y").date())("year_month"))
+                        overall_count = overall_count.orderBy("suggestedDate",ascending=True)
+                        overall_count = overall_count.withColumnRenamed("suggestedDate","key")
+                        overall_count = overall_count.select(["key","totalCount"]).toPandas()
+                        # overall_count["key"] = overall_count["key"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+
+
+
+                    print overall_count
                     for idx,level in  enumerate(top2levels):
                         leveldf = self._data_frame.filter(col(self._result_column) == level)
                         if self._dataLevel == "day":
@@ -251,10 +269,13 @@ class TimeSeriesNarrative:
                             grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
                             grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
-                        grouped_data.rename(columns={"value":"value_count"},inplace=True)
-                        total_count = grouped_data["value_count"].sum()
-                        grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),2))
 
+                        grouped_data.rename(columns={"value":"value_count"},inplace=True)
+                        print grouped_data
+                        grouped_data = pd.concat([grouped_data, overall_count], axis=1, join_axes=[grouped_data["key"]])
+                        # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),2))
+                        grouped_data["value"] = grouped_data["value_count"]/grouped_data["totalCount"]
+                        print grouped_data
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
