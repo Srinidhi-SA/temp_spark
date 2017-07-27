@@ -272,7 +272,7 @@ class TimeSeriesNarrative:
                         grouped_data = pd.merge(grouped_data, overall_count, on='key', how='left')
                         # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),2))
                         grouped_data["value"] = grouped_data["value_count"]/grouped_data["totalCount"]
-                        grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,2))
+                        grouped_data["value"] = grouped_data["value"].apply(lambda x:round(int(x)*100,2))
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
