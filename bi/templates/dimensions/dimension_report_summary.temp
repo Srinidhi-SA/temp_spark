@@ -1,8 +1,8 @@
 mAdvisor has analyzed the dataset and it contains<b>
 {% if n_t == 1%}
-  {{n_t}}</b> variable and <b>{{observations}}</b> observations.
+  {{n_t|intcomma}}</b> variable and <b>{{observations|round_number}}</b> observations.
 {% else %}
-  {{n_t|intcomma}}</b> variables and <b>{{observations}}</b> observations.
+  {{n_t|intcomma}}</b> variables and <b>{{observations|round_number}}</b> observations.
 {% endif %}
 
 {% if ignorecolumns|length == 1%}
