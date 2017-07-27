@@ -4,7 +4,7 @@
 {% elif second_target_top_dims|length == 1 %}
   The top {{colname}} account for {{second_target_top_dims_contribution | round_number}}%
   of the total {{second_target}} observations.
-{% if second_target_top_dims|length > 2 %}
+{% elif second_target_top_dims|length > 2 %}
   The top {{second_target_top_dims|length}} {{plural_colname}}(including {{second_target_top_dims[0]}} and {{second_target_top_dims[1]}}) account for {{second_target_top_dims_contribution}}%
   of the total {{second_target}} observations.
 {% endif %}
