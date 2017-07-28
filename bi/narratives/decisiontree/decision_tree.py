@@ -62,6 +62,8 @@ class DecisionTreeNarrative:
         data_dict['rules'] = self.condensedTable
         data_dict['success'] = self.success_percent
         data_dict['significant_vars'] = list(set(itertools.chain.from_iterable(self._important_vars.values())))
+        print '*'*1600
+        print data_dict['significant_vars']
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_tree_card2.temp',data_dict))
         self.card2_chart = self._target_distribution
