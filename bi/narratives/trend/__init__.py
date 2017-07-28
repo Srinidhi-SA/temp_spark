@@ -169,7 +169,7 @@ class TimeSeriesNarrative:
                     card1chartdata = trend_chart_data
                     card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
                     self.narratives["card1"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
-                    if dataDict["dateRange"]<365:
+                    if self._duration<365:
                         prediction_window = 3
                     else:
                         prediction_window = 6
@@ -208,6 +208,8 @@ class TimeSeriesNarrative:
                                                                     'trend_narrative_card3.temp',forecastDataDict)
                     self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
                     self.narratives["card3"]["chart"] = {"data":prediction_data,"format":"%b-%y"}
+                    print json.dumps(self.narratives,indent=2)
+
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"
@@ -325,7 +327,7 @@ class TimeSeriesNarrative:
                     self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
                                                         "label":labels,
                                                         "label_text":{"x":"Time Duration","y":"Percentage of "+labels["y"],"y2":"Percentage of "+labels["y2"]}}
-                    print json.dumps(self.narratives,indent=2)
+                    # print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"

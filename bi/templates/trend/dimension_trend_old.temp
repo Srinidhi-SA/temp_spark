@@ -17,7 +17,7 @@ The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
   {{end_value}} in {{end_time}}.
 {% endif %}
 The total {{measure}} </b> were {{total}} for the last {{durationString}},
- with the <b> average {{measure}} per {{dateLevel}} being {{average_value}}</b>.
+ with the <b> average {{measure}} per {{dataLevel}} being {{average_value}}</b>.
 {% if ratio_string != "" %}
   Interestingly, the {{measure}} contribution from a streak of {{bucket_length}} months ({{bucket_duration}})
   amounts to a total of {{bucket_contribution}}, which is almost {{ratio_string}} of the overall
@@ -31,7 +31,7 @@ PARASEPARATOR
 
 {% if peakStreakDuration >= 2%}
   The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
-  <b>a continuous streak of growth for {{peakStreakDuration}} {{dateLevel}}s </b> ending at {{peakTime}}.
+  <b>a continuous streak of growth for {{peakStreakDuration}} {{dataLevel}}s </b> ending at {{peakTime}}.
 {% else %}
   The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}.
 {% endif %}
