@@ -109,6 +109,6 @@ class AnovaNarratives:
             templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
             templateEnv = jinja2.Environment( loader=templateLoader )
             template = templateEnv.get_template('anova_takeaway.temp')
-            takeaway = template.render(data_dict).replace("\n", "")
+            takeaway = template.render(data_dict).replace("\n", " ")
             takeaway = re.sub(' +',' ',takeaway)
             self.narratives[measure_column][AnovaNarratives.KEY_TAKEAWAY] = takeaway
