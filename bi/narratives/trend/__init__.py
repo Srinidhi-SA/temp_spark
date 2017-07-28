@@ -303,7 +303,7 @@ class TimeSeriesNarrative:
                         dataDict.update({"level_index":idx})
                         self._result_setter.update_executive_summary_data(dataDict)
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'dimension_trend.temp',dataDict)
+                                                                        'dimension_trend_v1.temp',dataDict)
 
                         paragraphs = NarrativesUtils.paragraph_splitter(summary1)
                         if idx != 0:
@@ -325,7 +325,7 @@ class TimeSeriesNarrative:
                     self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
                                                         "label":labels,
                                                         "label_text":{"x":"Time Duration","y":"Percentage of "+labels["y"],"y2":"Percentage of "+labels["y2"]}}
-                    # print json.dumps(self.narratives,indent=2)
+                    print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"
