@@ -91,6 +91,16 @@ class ContingencyTable:
         column_two_index = self.column_two_values.index(column_two_value)
         return self.table[column_one_index][column_two_index]
 
+    def get_value_column_percent(self, column_one_value, column_two_value):
+        if column_one_value not in self.column_one_values:
+            raise BIException('Unknown column one value: %s' %(column_one_value,))
+        if column_two_value not in self.column_two_values:
+            raise BIException('Unknown column two value: %s' %(column_two_value,))
+
+        column_one_index = self.column_one_values.index(column_one_value)
+        column_two_index = self.column_two_values.index(column_two_value)
+        return self.table_percent_by_column[column_one_index][column_two_index]
+
 class ChiSquareResult:
     """
     Encapsulates results of ChiSquare test
