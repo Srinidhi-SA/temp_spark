@@ -26,13 +26,13 @@ class TimeSeriesNarrative:
         self._requestedDateFormat = None
         self._existingDateFormat = None
         self._date_suggestion_columns = df_context.get_date_column_suggestions()
+        # self._date_suggestion_columns = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._td_columns = df_helper.get_timestamp_columns()
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
 
-        # requestedDateFormat = None
-        # existingDateFormat = None
+
         if self._date_suggestion_columns != None:
             suggested_date_column = self._date_suggestion_columns[0]
             existingDateFormat = None
@@ -48,6 +48,21 @@ class TimeSeriesNarrative:
                 requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
             else:
                 requestedDateFormat = existingDateFormat
+        else:
+            if self._td_columns != None:
+                if len(self._td_columns) > 0:
+                    suggested_date_column = self._td_columns[0]
+                    existingDateFormat = "%Y-%m-%d"
+                    self._dateFormatDetected = True
+                    if df_context.get_requested_date_format() != None:
+                        requestedDateFormat = df_context.get_requested_date_format()[0]
+                    else:
+                        requestedDateFormat = None
+                    if requestedDateFormat != None:
+                        requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
+                    else:
+                        requestedDateFormat = existingDateFormat
+
 
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/trend/"
@@ -57,13 +72,21 @@ class TimeSeriesNarrative:
             self._date_column_suggested = suggested_date_column
 
         if self._existingDateFormat:
-            date_format = self._existingDateFormat
-            string_to_date = udf(lambda x: datetime.strptime(x,date_format), DateType())
-            date_to_month_year = udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
-            self._data_frame = self._data_frame.withColumn("suggestedDate", string_to_date(self._date_column_suggested))
-            self._data_frame = self._data_frame.withColumn("year_month", date_to_month_year(self._date_column_suggested))
-            self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
-            self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
+
+            if self._date_suggestion_columns != None:
+                date_format = self._existingDateFormat
+                string_to_date = udf(lambda x: datetime.strptime(x,date_format), DateType())
+                date_to_month_year = udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
+                self._data_frame = self._data_frame.withColumn("suggestedDate", string_to_date(self._date_column_suggested))
+                self._data_frame = self._data_frame.withColumn("year_month", date_to_month_year(self._date_column_suggested))
+                self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
+                self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
+            else:
+                self._data_frame = self._data_frame.withColumn("suggestedDate", udf(lambda x:x.date(),DateType())(self._date_column_suggested))
+                self._data_frame = self._data_frame.withColumn("year_month", udf(lambda x:x.date().strftime("%b-%y"),StringType())(self._date_column_suggested))
+                self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
+                self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
+
             id_max = self._data_frame.select(max("_id_")).first()[0]
             first_date = self._data_frame.select("suggestedDate").first()[0]
             last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
@@ -86,8 +109,11 @@ class TimeSeriesNarrative:
             print self._duration
             print self._dataLevel
             print self._durationString
-
-
+            if self._td_columns != None:
+                if self._date_suggestion_columns == None:
+                    self._date_suggestion_columns = self._td_columns
+                else:
+                    self._date_suggestion_columns += self._td_columns
 
         if self._analysistype=="Measure":
             self.narratives = {"SectionHeading":"",
@@ -96,6 +122,7 @@ class TimeSeriesNarrative:
                                "card3":{}
                             }
             if self._date_suggestion_columns != None:
+
                 if self._dateFormatDetected:
                     # grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
                     # grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
@@ -321,13 +348,12 @@ class TimeSeriesNarrative:
                         elif self._dataLevel == "month":
                             card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
                         chart_data[level] = card1chartdata
-                        # self.narratives["card0"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
                     self.narratives["card0"]["paragraphs"] = all_paragraphs
                     labels = {"y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
                     self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
                                                         "label":labels,
                                                         "label_text":{"x":"Time Duration","y":"Percentage of "+labels["y"],"y2":"Percentage of "+labels["y2"]}}
-                    # print json.dumps(self.narratives,indent=2)
+                    print json.dumps(self.narratives,indent=2)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"

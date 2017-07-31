@@ -5,13 +5,20 @@ class TimeSeriesAnalysis:
         # self._measure_columns = data_frame_helper.get_numeric_columns()
         # self._dimension_columns = data_frame_helper.get_string_columns()
         # self.classifier = initiate_forest_classifier(10,5)
+        # https://grisha.org/blog/2016/02/17/triple-exponential-smoothing-forecasting-part-iii/
         print "TIME SERIES INITIALIZATION DONE"
 
     def initial_trend(self, series, slen):
         sum = 0.0
-        for i in range(slen):
-            sum += float(series[i+slen] - series[i]) / slen
-        return sum / slen
+        if len(series) >= slen*2:
+            for i in range(slen):
+                sum += float(series[i+slen] - series[i]) / slen
+            return sum / slen
+        else:
+            new_range = len(series)-slen
+            for i in range(new_range):
+                sum += float(series[i+slen] - series[i])
+            return sum / new_range
 
     def initial_seasonal_components(self, series, slen):
         seasonals = {}

@@ -62,9 +62,15 @@ class LogisticRegressionPysparkScript:
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
         OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
+        levels = trainingData.select("label").distinct().collect()
         lr = LogisticRegression()
         ovr = OneVsRest(classifier=lr)
         fit = ovr.fit(trainingData)
+        # if len(levels) == 2:
+        #     lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
+        # elif len(levels) > 2:
+        #     lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8,family="multinomial")
+        # fit = lr.fit(trainingData)
         transformed = fit.transform(validationData)
         MLUtils.save_pipeline_or_model(fit,model_filepath)
         # feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
