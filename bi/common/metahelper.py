@@ -110,6 +110,7 @@ class MetaDataHelper():
             if non_null_values > 0:
                 min_val = self.get_min(measure_column)
                 max_val = self.get_max(measure_column)
+
             else:
                 min_val = 0
                 max_val = 0
@@ -122,6 +123,11 @@ class MetaDataHelper():
             }
             if (null_values>non_null_values) or (unique_values==1):
                 self.ignore_column_suggestions[MetaDataHelper.MEASURE_COLUMNS].append(measure_column)
+            elif min_val==int(min_val) and max_val==int(max_val):
+                if abs(non_null_values-unique_values) <= 0.01*non_null_values:
+                    if abs(non_null_values-max_val+min_val)<= 0.01*non_null_values or abs(self.total_rows-max_val+min_val)<= 0.01*self.total_rows:
+                        self.ignore_column_suggestions[MetaDataHelper.MEASURE_COLUMNS].append(measure_column)
+                        
         for dimension_column in self._string_columns:
             null_values = self.get_num_null_values(dimension_column)
             non_null_values = self.total_rows - null_values

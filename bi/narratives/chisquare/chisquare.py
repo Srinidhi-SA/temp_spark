@@ -7,12 +7,13 @@ from bi.narratives import utils as NarrativesUtils
 
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None):
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None,target_chisquare_result=None):
         self._data_frame = data_frame
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
         self._analysed_dimension = analysed_dimension
         self._significant_variables =  significant_variables
+        self._target_chisquare_result = target_chisquare_result
 
         self._num_analysed_variables = num_analysed_variables
         self._table = chisquare_result.get_contingency_table()
@@ -24,6 +25,7 @@ class ChiSquareAnalysis:
         elif len(significant_variables)>=3:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
+
         self.card1 = {}
         # self.card0 = {}
         self.card2 = {}
@@ -200,7 +202,18 @@ class ChiSquareAnalysis:
         self.card1['chart']=[]
         self.card1['heat_map']=self._table
         self.generate_card1_chart()
-
+        self._key_factors_contributions = {}
+        # for key_dim in self._second_level_dimensions:
+        #     key_dim_table = self._target_chisquare_result[key_dim].contingency_table
+        #     col_1_index = key_dim_table.get_column_one_levels().index(second_target)
+        #     col_2_names = key_dim_table.get_column_two_levels()
+        #     contributions_percent = key_dim_table.table_percent_by_column[col_1_index]
+        #     sorted_contributions = sorted(zip(col_2_names,contributions_percent),key = lambda x: x[1],reverse=True)
+        #     self._key_factors_contributions[key_dim] = sorted_contributions[:2]
+        #
+        # print '*'*1200
+        # print 'KEY FACTOR CONTRIBUTION OF '+second_target
+        # print self._key_factors_contributions
 
         if self._chisquare_result.get_splits():
             splits = self._chisquare_result.get_splits()
@@ -222,9 +235,15 @@ class ChiSquareAnalysis:
                                 select(self._second_level_dimensions).toPandas()
         distribution_second = []
         for d in self._second_level_dimensions:
-            grouped = df_second_target.groupby(d).agg({d:'count'})
+            key_dim_table = self._target_chisquare_result[d].contingency_table
+            col_1_index = key_dim_table.get_column_one_levels().index(second_target)
+            col_2_names = key_dim_table.get_column_two_levels()
+            contributions_percent = key_dim_table.get_column_total()
+            contributions_percent = dict(zip(col_2_names,contributions_percent))
+            grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
+            contributions_percent_list = [round(y*100.0/contributions_percent[x],1) for x,y in zip(index_list,grouped_list)]
             sum_ = grouped[d].sum()
             diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
             max_diff = diffs.index(max(diffs))
@@ -232,30 +251,37 @@ class ChiSquareAnalysis:
             if max_diff == 1:
                 index_txt = index_list[0]
             elif max_diff == 2:
-                index_txt = index_list[0] + ' and ' + index_list[1]
+                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
             elif max_diff>2:
-                index_txt = 'including ' + index_list[0] + ' and ' + index_list[1]
+                index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
             distribution_second.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
                                     'levels': index_list[:max_diff],'variation':random.randint(1,100),\
-                                    'index_txt': index_txt, 'd':d})
+                                    'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
         distribution_top = []
         for d in self._second_level_dimensions:
-            grouped = df_top_target.groupby(d).agg({d:'count'})
+            key_dim_table = self._target_chisquare_result[d].contingency_table
+            col_1_index = key_dim_table.get_column_one_levels().index(top_target)
+            col_2_names = key_dim_table.get_column_two_levels()
+            contributions_percent = key_dim_table.get_column_total()
+            contributions_percent = dict(zip(col_2_names,contributions_percent))
+            grouped = df_top_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
+            contributions_percent_list = [round(y*100.0/contributions_percent[x],1) for x,y in zip(index_list,grouped_list)]
             sum_ = grouped[d].sum()
             diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
             max_diff = diffs.index(max(diffs))
+            index_txt=''
             if max_diff == 1:
                 index_txt = index_list[0]
             elif max_diff == 2:
-                index_txt = index_list[0] + ' and ' + index_list[1]
+                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
             elif max_diff>2:
-                index_txt = 'including ' + index_list[0] + ' and ' + index_list[1]
+                index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
             distribution_top.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
-                                'levels': index_list[:max_diff], 'variation':random.randint(1,100),\
-                                'index_txt':index_txt, 'd':d})
+                                    'levels': index_list[:max_diff],'variation':random.randint(1,100),\
+                                    'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
         key_factors = ''
         num_key_factors = len(self._second_level_dimensions)
@@ -289,7 +315,7 @@ class ChiSquareAnalysis:
         self.card4['bubble_data'] = bubble
         output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
         self.card4['paragraphs'] = output4
-
+        
         # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
         # self.card0['paragraphs'] = output0
         # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
