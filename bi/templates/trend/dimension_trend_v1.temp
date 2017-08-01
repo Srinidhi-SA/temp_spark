@@ -42,16 +42,16 @@ PARASEPARATOR
   {{measure}}
   PARAHEADER
   {% if overall_growth >= 0 and overall_growth <= 5 %}
-    There was a moderate increase in {{measure}},as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    There was a moderate increase in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% elif overall_growth < 0 and overall_growth >= -5 %}
-    There was a moderate decrease in {{measure}},as it decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    There was a moderate decline in {{measure}}, as it decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% elif overall_growth > 5 %}
-    There was a significant increase in {{measure}},as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    There was a significant increase in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% elif overall_growth < -5 %}
-    There was a strong decrease in {{measure}},as it decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    There was a significant decline in {{measure}}, as it decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% else %}
     The rate of {{measure}} remained unchanged from <b> {{start_value|abs}}% </b> in {{start_time}}
