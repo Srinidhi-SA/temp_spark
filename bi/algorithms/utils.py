@@ -20,7 +20,7 @@ from pyspark.ml.feature import OneHotEncoder
 from pyspark.ml.pipeline import PipelineModel
 from pyspark.ml.feature import IndexToString, StringIndexer
 from pyspark.sql.functions import monotonically_increasing_id
-from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel
+from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
 
 
 
@@ -334,6 +334,10 @@ def load_rf_model(filepath):
 
 def load_one_vs_rest_model(filepath):
     model = OneVsRestModel.load(filepath)
+    return model
+
+def load_logistic_model(filepath):
+    model = LogisticRegressionModel.load(filepath)
     return model
 
 def stratified_sampling(df,target_column,split):

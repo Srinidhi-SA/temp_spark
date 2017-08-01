@@ -352,7 +352,7 @@ def main(confFilePath):
             print "#####ERROR#####"*5
             print e
             print "#####ERROR#####"*5
-            
+
         try:
             st = time.time()
             xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
