@@ -238,12 +238,12 @@ class ChiSquareAnalysis:
             key_dim_table = self._target_chisquare_result[d].contingency_table
             col_1_index = key_dim_table.get_column_one_levels().index(second_target)
             col_2_names = key_dim_table.get_column_two_levels()
-            contributions_percent = key_dim_table.get_column_total()
-            contributions_percent = dict(zip(col_2_names,contributions_percent))
+            contributions_list = key_dim_table.get_column_total()
+            contributions_list = dict(zip(col_2_names,contributions_list))
             grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
-            contributions_percent_list = [round(y*100.0/contributions_percent[x],1) for x,y in zip(index_list,grouped_list)]
+            contributions_percent_list = [round(y*100.0/contributions_list[x],1) for x,y in zip(index_list,grouped_list)]
             sum_ = grouped[d].sum()
             diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
             max_diff = diffs.index(max(diffs))
@@ -263,12 +263,12 @@ class ChiSquareAnalysis:
             key_dim_table = self._target_chisquare_result[d].contingency_table
             col_1_index = key_dim_table.get_column_one_levels().index(top_target)
             col_2_names = key_dim_table.get_column_two_levels()
-            contributions_percent = key_dim_table.get_column_total()
-            contributions_percent = dict(zip(col_2_names,contributions_percent))
+            contributions_list = key_dim_table.get_column_total()
+            contributions_list = dict(zip(col_2_names,contributions_list))
             grouped = df_top_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
-            contributions_percent_list = [round(y*100.0/contributions_percent[x],1) for x,y in zip(index_list,grouped_list)]
+            contributions_percent_list = [round(y*100.0/contributions_list[x],1) for x,y in zip(index_list,grouped_list)]
             sum_ = grouped[d].sum()
             diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
             max_diff = diffs.index(max(diffs))
