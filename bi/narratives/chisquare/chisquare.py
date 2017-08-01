@@ -331,8 +331,8 @@ class ChiSquareAnalysis:
         data = {}
         data['total'] = dict(zip(levels,__target_contributions))
         __target_percentages = [x*100.0/y for x,y in zip(__target_contributions,levels_count)]
-        data['percentage'] = dict(zip(levels,c))
-        c3_data = [levels,__target_contributions,__target_contributions]
+        data['percentage'] = dict(zip(levels,__target_percentages))
+        c3_data = [levels,__target_contributions,__target_percentages]
         chart_data = {'label':label,
                                 'data':data,
                                 'c3_data':c3_data}
