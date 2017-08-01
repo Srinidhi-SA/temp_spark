@@ -165,7 +165,7 @@ class ChiSquareAnalysis:
         data_dict['plural_colname'] = NarrativesUtils.pluralize(analysed_dimension)
         data_dict['target'] = target_dimension
         data_dict['top_levels'] = top_dims
-        data_dict['top_levels_percent'] = NarrativesUtils.round_number(top_dims_contribution*100.0/total)
+        data_dict['top_levels_percent'] = round(top_dims_contribution*100.0/total,1)
         data_dict['bottom_level'] = bottom_dim
         # if len(bottom_dims)==1:
         #     bottom_dims = bottom_dims[0] + ' is'
@@ -260,7 +260,7 @@ class ChiSquareAnalysis:
             if max_diff == 1:
                 index_txt = index_list[0]
             elif max_diff == 2:
-                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
+                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
             elif max_diff>2:
                 index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
             distribution_second.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
