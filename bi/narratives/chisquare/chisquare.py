@@ -226,6 +226,12 @@ class ChiSquareAnalysis:
             df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
                                 filter(col(self._analysed_dimension)>=splits[idx1]).filter(col(self._analysed_dimension)<splits[idx1+1]).\
                                 select(self._second_level_dimensions).toPandas()
+            df_top_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx1]).\
+                        filter(col(self._analysed_dimension)<splits[idx1+1]).\
+                        select(self._second_level_dimensions).toPandas()
+            df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
+                            filter(col(self._analysed_dimension)<splits[idx+1]).\
+                            select(self._second_level_dimensions).toPandas()
         else:
             df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
                                 filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
@@ -233,14 +239,17 @@ class ChiSquareAnalysis:
             df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
                                 filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
                                 select(self._second_level_dimensions).toPandas()
+            df_top_dim = self._data_frame.filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
+                        select(self._second_level_dimensions).toPandas()
+            df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                            select(self._second_level_dimensions).toPandas()
         distribution_second = []
         for d in self._second_level_dimensions:
-            key_dim_table = self._target_chisquare_result[d].contingency_table
-            col_1_index = key_dim_table.get_column_one_levels().index(second_target)
-            col_2_names = key_dim_table.get_column_two_levels()
-            contributions_list = key_dim_table.get_column_total()
-            contributions_list = dict(zip(col_2_names,contributions_list))
             grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
+            contributions = df_second_dim.groupby(d).agg({d:'count'})
+            contribution_index = list(contributions.index)
+            contributions_val = contributions[d].tolist()
+            contributions_list = dict(zip(contribution_index,contributions_val))
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
             contributions_percent_list = [round(y*100.0/contributions_list[x],1) for x,y in zip(index_list,grouped_list)]
@@ -260,12 +269,11 @@ class ChiSquareAnalysis:
 
         distribution_top = []
         for d in self._second_level_dimensions:
-            key_dim_table = self._target_chisquare_result[d].contingency_table
-            col_1_index = key_dim_table.get_column_one_levels().index(top_target)
-            col_2_names = key_dim_table.get_column_two_levels()
-            contributions_list = key_dim_table.get_column_total()
-            contributions_list = dict(zip(col_2_names,contributions_list))
             grouped = df_top_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
+            contributions = df_top_dim.groupby(d).agg({d:'count'})
+            contribution_index = list(contributions.index)
+            contributions_val = contributions[d].tolist()
+            contributions_list = dict(zip(contribution_index,contributions_val))
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
             contributions_percent_list = [round(y*100.0/contributions_list[x],1) for x,y in zip(index_list,grouped_list)]
