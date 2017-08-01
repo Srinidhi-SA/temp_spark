@@ -20,7 +20,7 @@ PARASEPARATOR
   The total number of observations for {{measure}} was {{total_count}} for the last {{durationString}},
    and the <b> average rate of {{measure}} was {{average_value}}%</b>.
 
-  {% if ratio_string != "" %}
+  {% if bucket_ratio_string != "" %}
     Interestingly, the total number of observations for {{measure}} during a streak of {{bucket_length}} {{dataLevel}}s ({{bucket_duration}})
     amounts to a total of {{bucket_count}}, which is almost {{bucket_ratio_string}} of the overall
     {{measure}} for the {{durationString}} period.
@@ -61,7 +61,7 @@ PARASEPARATOR
   The total number of observations for {{measure}} was {{total_count}} for the last {{durationString}},
    and the <b> average rate of {{measure}} was {{average_value}}%</b>.
 
-  {% if ratio_string != "" %}
+  {% if bucket_ratio_string != "" %}
     Interestingly, the total number of observations for {{measure}} during a streak of {{bucket_length}} {{dataLevel}}s ({{bucket_duration}})
     amounts to a total of {{bucket_count}}, which is almost {{bucket_ratio_string}} of the overall
     {{measure}} for the {{durationString}} period.

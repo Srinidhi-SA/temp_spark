@@ -213,3 +213,64 @@ class TrendNarrative:
         else:
             outDict["bucket_ratio_string"] = str(ratio)
         return outDict
+
+    def generate_regression_trend_data(self,agg_data,measure_column,result_column,dataLevel,durationString):
+        if type(agg_data["key"][0]) == "str":
+            agg_data["key"] = agg_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
+        agg_data = agg_data.sort_values(by = "key",ascending=True)
+        date_column = agg_data.columns[0]
+        data_dict = {}
+        data_dict["dataLevel"] = dataLevel
+        data_dict["durationString"] = durationString
+        data_dict['target'] = result_column
+        data_dict['measure'] = measure_column
+        data_dict['total_measure'] = agg_data[measure_column].sum()
+        data_dict['total_target'] = agg_data[result_column].sum()
+        data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, 1)
+        data_dict['num_dates'] = len(agg_data.index)
+
+        peak_index = agg_data[measure_column].argmax()
+        lowest_index = agg_data[measure_column].argmin()
+        if data_dict["dataLevel"] == "day":
+            data_dict['start_date'] = agg_data["key"].iloc[0]
+            data_dict['end_date'] = agg_data["key"].iloc[-1]
+            data_dict['lowest_date'] = agg_data["key"].ix[lowest_index]
+            data_dict['peak_date'] = agg_data["key"].ix[peak_index]
+
+        elif data_dict["dataLevel"] == "month":
+            data_dict['start_date'] = agg_data["year_month"].iloc[0]
+            data_dict['end_date'] = agg_data["year_month"].iloc[-1]
+            data_dict['lowest_date'] = agg_data["year_month"].ix[lowest_index]
+            data_dict['peak_date'] = agg_data["year_month"].ix[peak_index]
+
+        data_dict['start_value'] = round(agg_data[measure_column].iloc[0],2)
+        data_dict['end_value'] = round(agg_data[measure_column].iloc[-1],2)
+        # data_dict['target_start_value'] = agg_data[result_column].iloc[0]
+        # data_dict['target_end_value'] = agg_data[result_column].iloc[-1]
+        data_dict['change_percent'] = NarrativesUtils.round_number(agg_data[measure_column].iloc[-1]*100/agg_data[measure_column].iloc[0] - 100,2)
+        data_dict['correlation'] = NarrativesUtils.round_number(agg_data[measure_column].corr(agg_data[result_column]),2)
+
+        data_dict['peak_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[peak_index],2)
+        data_dict['lowest_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[lowest_index],2)
+        return data_dict
+
+    def generate_regression_trend_chart(self, agg_data,dataLevel):
+        if type(agg_data["key"][0]) == "str":
+            agg_data["key"] = agg_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
+        agg_data = agg_data.sort_values(by = "key",ascending=True)
+        agg_data["key"] = agg_data["key"].apply(lambda x:str(x))
+        chart_data = []
+        count = 1
+        relevant_columns = list(agg_data.columns)
+        if dataLevel == "day":
+            relevant_columns.remove("year_month")
+        elif dataLevel == "month":
+            relevant_columns.remove("key")
+        for col in relevant_columns:
+            vals = agg_data[col].tolist()
+            if count == 1:
+                chart_data.append(['x']+vals)
+                count = 0
+            else:
+                chart_data.append([col]+vals)
+        return chart_data
