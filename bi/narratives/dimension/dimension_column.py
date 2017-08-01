@@ -173,8 +173,8 @@ class DimensionColumnNarrative:
 
         largest_text = " %s is the largest with %s observations" % (data_dict["max"]["key"],str(NarrativesUtils.round_number(data_dict["max"]["val"])))
         smallest_text = " %s is the smallest with %s observations" % (data_dict["min"]["key"],str(NarrativesUtils.round_number(data_dict["min"]["val"])))
-        largest_per = round(data_dict["max"]["val"]/float(sum(count.values())),2)*100
-        smallest_per = round(data_dict["min"]["val"]/float(sum(count.values())),2)*100
+        largest_per = NarrativesUtils.round_number(data_dict["max"]["val"]/float(sum(count.values())),2)*100
+        smallest_per = NarrativesUtils.round_number(data_dict["min"]["val"]/float(sum(count.values())),2)*100
         self.count = {"largest" :[largest_text,str(round(largest_per,0))+'%'],"smallest" : [smallest_text,str(round(smallest_per,0))+'%']}
         self.subheader = "Snapshot of "+data_dict["colname"]
         output1 =  NarrativesUtils.get_template_output(self._base_dir,\
