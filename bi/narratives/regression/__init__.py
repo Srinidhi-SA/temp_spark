@@ -106,6 +106,7 @@ class RegressionNarrative:
             trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark)
             card2 =  trend_narratives_obj.get_regression_trend_card_data()
             if card2:
+                print json.dumps(card2,indent=2)
                 measure_column_cards['card2'] = card2
             # if self._primary_date != None:
             #

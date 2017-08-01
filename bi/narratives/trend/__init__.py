@@ -134,9 +134,6 @@ class TimeSeriesNarrative:
                     base_dir = trend_subsection_data["base_dir"]
 
                     card3heading = 'How '+ result_column +' and '+ measure_column + ' changed over time'
-                    # agg_data = self._dataframe_helper.get_agg_data_frame(self._date_column_suggested, measure_column,\
-                    #             result_column,existingDateFormat=self._existingDateFormat,requestedDateFormat=self._requestedDateFormat)
-
                     if self._dataLevel == "day":
                         grouped_data = self._data_frame.groupBy("suggestedDate").agg({measure_column : 'sum', result_column : 'sum'})
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
@@ -157,16 +154,15 @@ class TimeSeriesNarrative:
                         grouped_data = grouped_data.select(["key",measure_column,result_column,"year_month"]).toPandas()
                         grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
 
-                    print grouped_data.head(5)
                     trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
 
-                    card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column)
+                    card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column,self._dataLevel,self._durationString)
 
                     card3narrative = NarrativesUtils.get_template_output(base_dir,\
                                                                     'regression_card3.temp',card3data)
 
                     card3chart = {'heading': ''}
-                    card3chart['data']=trend_narrative_obj.generate_regression_trend_chart(grouped_data)
+                    card3chart['data']=trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
                     card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
                     card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
                     self.set_regression_trend_card_data(card2)
