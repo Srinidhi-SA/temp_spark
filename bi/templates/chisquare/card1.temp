@@ -10,14 +10,14 @@ PARAHEADER
   in distribution of {{target}} categories.
 {% endif %}
 {% if top_levels | length  == 1%}
-  <b>Segment {{top_levels[0]}} </b> is the largest {{colname}}, accounting for almost<b> {{top_levels_percent}}% of the
+  <b>Segment {{top_levels[0]}} </b> is the largest {{colname}}, accounting for almost<b> {{top_levels_percent|round(1)}}% of the
   total </b>observations.
 {% elif top_levels | length  == 2 %}
   <b>Segment {{top_levels[0]}} and segment {{top_levels[1]}}  </b> are the two largest {{colname}}s, accounting for
-  <b> {{top_levels_percent}}% </b> of the total observations.
+  <b> {{top_levels_percent|round(1)}}% </b> of the total observations.
 {% elif top_levels | length >2 %}
   The top {{top_levels | length}} {{plural_colname}} including segment {{top_levels[0]}} and segment {{top_levels[1]}} account for
-  <b> {{top_levels_percent}}% </b>of the total observations.
+  <b> {{top_levels_percent|round(1)}}% </b>of the total observations.
 {% endif %}
 {% if bottom_level_percent >= 0.01 %}
   {% if bottom_levels | length == 1 %}
