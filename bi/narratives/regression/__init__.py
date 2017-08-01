@@ -22,12 +22,6 @@ class RegressionNarrative:
 
         self._result_setter.set_trend_section_name("regression")
         self._date_columns = df_context.get_date_column_suggestions()
-        # self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
-        # if self._date_columns != None:
-        #     self._primary_date = self._date_columns[0]
-        #     self.get_date_conversion_formats(df_context)
-        # else:
-        #     self._primary_date = None
 
         self._spark = spark
         self.measures = []
@@ -106,22 +100,7 @@ class RegressionNarrative:
             trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark)
             card2 =  trend_narratives_obj.get_regression_trend_card_data()
             if card2:
-                print json.dumps(card2,indent=2)
                 measure_column_cards['card2'] = card2
-            # if self._primary_date != None:
-            #
-            #     card3heading = 'How '+ self.result_column +' and '+ measure_column + ' changed over time'
-            #     agg_data = self._dataframe_helper.get_agg_data_frame(self._primary_date, measure_column,\
-            #                 self.result_column,existingDateFormat=self._existingDateFormat,requestedDateFormat=self._requestedDateFormat)
-            #     card3data = regression_narrative_obj.generate_card3_data(agg_data, measure_column)
-            #     card3narrative = NarrativesUtils.get_template_output(self._base_dir,\
-            #                                                     'regression_card3.temp',card3data)
-            #
-            #     card3chart = {'heading': ''}
-            #     card3chart['data']=regression_narrative_obj.generate_card3_chart(agg_data)
-            #     card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
-            #     card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
-            #     measure_column_cards['card2'] = card2
 
 
             card3 = {}
@@ -180,23 +159,6 @@ class RegressionNarrative:
             regression_result_dimension_cols[col] = level_regression_result
         # print json.dumps(regression_result_dimension_cols,indent=2)
         return regression_result_dimension_cols
-
-    # def get_date_conversion_formats(self, df_context):
-    #     dateColumnFormatDict =  self._dataframe_helper.get_datetime_format(self._primary_date)
-    #     if self._primary_date in dateColumnFormatDict.keys():
-    #         self._existingDateFormat = dateColumnFormatDict[self._primary_date]
-    #     else:
-    #         self._existingDateFormat = None
-    #
-    #     if df_context.get_requested_date_format() != None:
-    #         self._requestedDateFormat = df_context.get_requested_date_format()[0]
-    #     else:
-    #         self._requestedDateFormat = None
-    #
-    #     if self._requestedDateFormat != None:
-    #         self._requestedDateFormat = self._dateFormatConversionDict[self._requestedDateFormat]
-    #     else:
-    #         self._requestedDateFormat = self._existingDateFormat
 
 
 __all__ = [
