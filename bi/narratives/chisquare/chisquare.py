@@ -315,15 +315,11 @@ class ChiSquareAnalysis:
         self.card4['bubble_data'] = bubble
         output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
         self.card4['paragraphs'] = output4
-        
+
         # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
         # self.card0['paragraphs'] = output0
         # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
 
-        # print '*'*10
-        # print output2
-        # print '#'*10
-        # print output4
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):
         chart = {}
@@ -336,8 +332,10 @@ class ChiSquareAnalysis:
         data['total'] = dict(zip(levels,__target_contributions))
         __target_percentages = [x*100.0/y for x,y in zip(__target_contributions,levels_count)]
         data['percentage'] = dict(zip(levels,__target_percentages))
+        c3_data = [levels,__target_contributions,__target_percentages]
         chart_data = {'label':label,
-                                'data':data}
+                                'data':data,
+                                'c3_data':c3_data}
         bubble_data1 = {}
         bubble_data2 = {}
         bubble_data1['value'] = str(NarrativesUtils.round_number(max(__target_contributions)*100.0/total,2))+'%'
