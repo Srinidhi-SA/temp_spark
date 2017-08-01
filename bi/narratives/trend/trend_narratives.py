@@ -198,6 +198,8 @@ class TrendNarrative:
         outDict["bucket_count"] = int(df["value_count"].iloc[bucket_start_index:bucket_end_index].sum())
         outDict["max_count"] = int(df["value_count"][max_index])
         ratio = round(outDict["bucket_count"]*100/float(outDict["total_count"]),2)
+        print "RATIO"
+        print ratio
         if ratio < 20:
             outDict["bucket_ratio_string"] = ""
         elif ratio > 20 and ratio <=30:
@@ -212,4 +214,42 @@ class TrendNarrative:
             outDict["bucket_ratio_string"] = "three fourth"
         else:
             outDict["bucket_ratio_string"] = str(ratio)
+        print outDict["bucket_ratio_string"]
         return outDict
+
+    def generate_regression_trend_data(self,agg_data,measure_column,result_column):
+        date_column = agg_data.columns[0]
+        data_dict = {}
+        data_dict['target'] = result_column
+        data_dict['measure'] = measure_column
+        data_dict['total_measure'] = agg_data[measure_column].sum()
+        data_dict['total_target'] = agg_data[result_column].sum()
+        data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, 1)
+        data_dict['num_dates'] = len(agg_data.index)
+        data_dict['start_date'] = agg_data[date_column].iloc[0]
+        data_dict['end_date'] = agg_data[date_column].iloc[-1]
+        data_dict['start_value'] = round(agg_data[measure_column].iloc[0],2)
+        data_dict['end_value'] = round(agg_data[measure_column].iloc[-1],2)
+        # data_dict['target_start_value'] = agg_data[result_column].iloc[0]
+        # data_dict['target_end_value'] = agg_data[result_column].iloc[-1]
+        data_dict['change_percent'] = NarrativesUtils.round_number(agg_data[measure_column].iloc[-1]*100/agg_data[measure_column].iloc[0] - 100,2)
+        data_dict['correlation'] = NarrativesUtils.round_number(agg_data[measure_column].corr(agg_data[result_column]),2)
+        peak_index = agg_data[measure_column].argmax()
+        data_dict['peak_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[peak_index],2)
+        data_dict['peak_date'] = agg_data[date_column].ix[peak_index]
+        lowest_index = agg_data[measure_column].argmin()
+        data_dict['lowest_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[lowest_index],2)
+        data_dict['lowest_date'] = agg_data[date_column].ix[lowest_index]
+        return data_dict
+
+    def generate_regression_trend_chart(self, agg_data):
+        chart_data = []
+        count = 1
+        for col in agg_data.columns:
+            vals = agg_data[col].tolist()
+            if count == 1:
+                chart_data.append(['x']+vals)
+                count = 0
+            else:
+                chart_data.append([col]+vals)
+        return chart_data

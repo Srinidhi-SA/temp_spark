@@ -31,6 +31,8 @@ class TimeSeriesNarrative:
         self._td_columns = df_helper.get_timestamp_columns()
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
+        self._trend_subsection = self._result_setter.get_trend_section_name()
+        self._regression_trend_card = None
 
 
         if self._date_suggestion_columns != None:
@@ -104,8 +106,15 @@ class TimeSeriesNarrative:
                 self._dataLevel = "month"
                 self._duration = self._data_frame.select("year_month").distinct().count()
                 yr = str(self._dataRange//365)
-                mon = str((self._dataRange%365)//12)
-                self._durationString = yr+" years and "+mon+" months"
+                mon = str((self._dataRange%365)//30)
+                if mon == "12":
+                    yr = str(int(yr)+1)
+                    mon = None
+                if mon != None:
+                    self._durationString = yr+" years and "+mon+" months"
+                else:
+                    self._durationString = yr+" years"
+
             print self._duration
             print self._dataLevel
             print self._durationString
@@ -114,6 +123,58 @@ class TimeSeriesNarrative:
                     self._date_suggestion_columns = self._td_columns
                 else:
                     self._date_suggestion_columns += self._td_columns
+
+        if self._trend_subsection=="regression":
+            self._analysistype = "Other"
+            if self._date_suggestion_columns != None:
+                if self._dateFormatDetected:
+                    trend_subsection_data = self._result_setter.get_trend_section_data()
+                    measure_column = trend_subsection_data["measure_column"]
+                    result_column = trend_subsection_data["result_column"]
+                    base_dir = trend_subsection_data["base_dir"]
+
+                    card3heading = 'How '+ result_column +' and '+ measure_column + ' changed over time'
+                    # agg_data = self._dataframe_helper.get_agg_data_frame(self._date_column_suggested, measure_column,\
+                    #             result_column,existingDateFormat=self._existingDateFormat,requestedDateFormat=self._requestedDateFormat)
+
+                    if self._dataLevel == "day":
+                        grouped_data = self._data_frame.groupBy("suggestedDate").agg({measure_column : 'sum', result_column : 'sum'})
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
+
+                        grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+                        grouped_data = grouped_data.toPandas()
+                    elif self._dataLevel == "month":
+                        grouped_data = self._data_frame.groupBy("year_month").agg({measure_column : 'sum', result_column : 'sum'})
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
+                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
+
+                        grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                        grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
+                        grouped_data = grouped_data.select(["key",measure_column,result_column,"year_month"]).toPandas()
+                        grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+
+                    print grouped_data.head(5)
+                    trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
+
+                    card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column)
+
+                    card3narrative = NarrativesUtils.get_template_output(base_dir,\
+                                                                    'regression_card3.temp',card3data)
+
+                    card3chart = {'heading': ''}
+                    card3chart['data']=trend_narrative_obj.generate_regression_trend_chart(grouped_data)
+                    card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
+                    card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
+                    self.set_regression_trend_card_data(card2)
+                else:
+                    print "NO DATE FORMAT DETECTED"
+            else:
+                print "NO DATE COLUMNS PRESENT"
+
 
         if self._analysistype=="Measure":
             self.narratives = {"SectionHeading":"",
@@ -327,7 +388,6 @@ class TimeSeriesNarrative:
                         dimensionCount = trend_narrative_obj.generate_dimension_extra_narrative(grouped_data,dataDict,self._dataLevel)
                         if dimensionCount != None:
                             dataDict.update(dimensionCount)
-                        # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
 
                         dataDict.update({"level_index":idx})
                         self._result_setter.update_executive_summary_data(dataDict)
@@ -367,6 +427,11 @@ class TimeSeriesNarrative:
                 print "No date column present for Trend Analysis."
                 print "#"*60
 
+    def set_regression_trend_card_data(self,data):
+        self._regression_trend_card = data
+
+    def get_regression_trend_card_data(self):
+        return self._regression_trend_card
 
 __all__ = [
     'TrendNarrative',
