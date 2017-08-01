@@ -312,12 +312,19 @@ def main(confFilePath):
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
             send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
             print "Decision Tree Regression Script Failed"
-
-        fs = time.time()
-        exec_obj = ExecutiveSummaryScript(df_helper,dataframe_context,result_setter,spark)
-        exec_obj.Run()
-        print "Executive Summary Done in ", time.time() - fs, " seconds."
-        # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
+        try:
+            fs = time.time()
+            exec_obj = ExecutiveSummaryScript(df_helper,dataframe_context,result_setter,spark)
+            exec_obj.Run()
+            print "Executive Summary Done in ", time.time() - fs, " seconds."
+            # send_message_API(monitor_api, "ExecutiveSummary", "Executive Summary Done", True, 100)
+        except Exception as e:
+            print "#####ERROR#####"*5
+            print e
+            print "#####ERROR#####"*5
+            DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'ExecutiveSummary/')
+            # send_message_API(monitor_api, "Decision Tree Regression", "Decision Tree Regression Failed", False, 0)
+            print "Executive Summary Script Failed"
 
     elif analysistype == 'Prediction':
         df_helper.remove_null_rows(dataframe_context.get_result_column())
@@ -352,7 +359,7 @@ def main(confFilePath):
             print "#####ERROR#####"*5
             print e
             print "#####ERROR#####"*5
-            
+
         try:
             st = time.time()
             xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)

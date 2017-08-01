@@ -42,6 +42,7 @@ class LogisticRegressionPysparkScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
         self._score_summary = {}
+        self._classifier = "lr" #lr or OneVsRest
 
     def Train(self):
         st = time.time()
@@ -63,16 +64,23 @@ class LogisticRegressionPysparkScript:
         trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
         OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
         levels = trainingData.select("label").distinct().collect()
-        lr = LogisticRegression()
-        ovr = OneVsRest(classifier=lr)
-        fit = ovr.fit(trainingData)
-        # if len(levels) == 2:
-        #     lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
-        # elif len(levels) > 2:
-        #     lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8,family="multinomial")
-        # fit = lr.fit(trainingData)
+
+        if self._classifier == "lr":
+            if len(levels) == 2:
+                lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
+            elif len(levels) > 2:
+                lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8,family="multinomial")
+            fit = lr.fit(trainingData)
+        elif self._classifier == "OneVsRest":
+            lr = LogisticRegression()
+            ovr = OneVsRest(classifier=lr)
+            fit = ovr.fit(trainingData)
         transformed = fit.transform(validationData)
         MLUtils.save_pipeline_or_model(fit,model_filepath)
+
+        print fit.coefficientMatrix
+        print fit.interceptVector
+
         # feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
         label_classes = transformed.select("label").distinct().collect()
         results = transformed.select(["prediction","label"])
@@ -142,13 +150,18 @@ class LogisticRegressionPysparkScript:
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
 
         pipelineModel = MLUtils.load_pipeline(pipeline_path)
-        trained_model = MLUtils.load_one_vs_rest_model(trained_model_path)
+        if self._classifier == "OneVsRest":
+            trained_model = MLUtils.load_one_vs_rest_model(trained_model_path)
+        elif self._classifier == "lr":
+            trained_model = MLUtils.load_logistic_model(trained_model_path)
+
         df = self._data_frame
         indexed = pipelineModel.transform(df)
         transformed = trained_model.transform(indexed)
         label_indexer_dict = MLUtils.read_string_indexer_mapping(pipeline_path,SQLctx)
         prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
         transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
+
         # udf_to_calculate_probability = udf(lambda x:max(x[0]))
         # transformed = transformed.withColumn("predicted_probability",udf_to_calculate_probability(transformed.probability))
         # print transformed.select("predicted_probability").show(5)
