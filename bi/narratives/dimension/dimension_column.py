@@ -110,16 +110,16 @@ class DimensionColumnNarrative:
                 kv_75.append((freq_dict[colname][colname][k],v))
                 if temp_sum >= percent_75:
                     break
-            data_dict["percent_contr"] = round(temp_sum*100/float(sum(count.values())),2)
+            data_dict["percent_contr"] = round(temp_sum*100.0/float(sum(count.values())),2)
             data_dict["kv_75"] = len(kv_75)
 
             data_dict["kv_75_cat"] = [k for k,v in kv_75]
 
         largest_text = " %s is the largest with %s observations" % (data_dict["max"]["key"],NarrativesUtils.round_number(data_dict["max"]["val"]))
         smallest_text = " %s is the smallest with %s observations" % (data_dict["min"]["key"],NarrativesUtils.round_number(data_dict["min"]["val"]))
-        largest_per = round(data_dict["max"]["val"]/float(sum(count.values())),2)*100
-        smallest_per = round(data_dict["min"]["val"]/float(sum(count.values())),2)*100
-        self.count = {"largest" :[largest_text,str(round(largest_per,0))+'%'],"smallest" : [smallest_text,str(round(smallest_per,0))+'%']}
+        largest_per = round(data_dict["max"]["val"]*100.0/float(sum(count.values())),2)
+        smallest_per = round(data_dict["min"]["val"]*100.0/float(sum(count.values())),2)
+        self.count = {"largest" :[largest_text,str(round(largest_per,1))+'%'],"smallest" : [smallest_text,str(round(smallest_per,1))+'%']}
         if len(data_dict["keys"]) >=3:
             self.subheader = "Top %d %s account for more than three quarters (%d percent) of observations." % (data_dict["kv_75"],data_dict["plural_colname"],data_dict["percent_contr"])
         else:

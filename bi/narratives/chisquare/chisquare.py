@@ -252,7 +252,7 @@ class ChiSquareAnalysis:
             contributions_list = dict(zip(contribution_index,contributions_val))
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
-            contributions_percent_list = [round(y*100.0/contributions_list[x],1) for x,y in zip(index_list,grouped_list)]
+            contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
             sum_ = grouped[d].sum()
             diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
             max_diff = diffs.index(max(diffs))
@@ -260,10 +260,10 @@ class ChiSquareAnalysis:
             if max_diff == 1:
                 index_txt = index_list[0]
             elif max_diff == 2:
-                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
+                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
             elif max_diff>2:
                 index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-            distribution_second.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
+            distribution_second.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
                                     'levels': index_list[:max_diff],'variation':random.randint(1,100),\
                                     'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
@@ -276,7 +276,7 @@ class ChiSquareAnalysis:
             contributions_list = dict(zip(contribution_index,contributions_val))
             index_list = list(grouped.index)
             grouped_list = grouped[d].tolist()
-            contributions_percent_list = [round(y*100.0/contributions_list[x],1) for x,y in zip(index_list,grouped_list)]
+            contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
             sum_ = grouped[d].sum()
             diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
             max_diff = diffs.index(max(diffs))
@@ -284,10 +284,10 @@ class ChiSquareAnalysis:
             if max_diff == 1:
                 index_txt = index_list[0]
             elif max_diff == 2:
-                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
+                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
             elif max_diff>2:
-                index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-            distribution_top.append({'contributions':[round(i*100.0/sum_) for i in grouped_list[:max_diff]],\
+                index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
+            distribution_top.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
                                     'levels': index_list[:max_diff],'variation':random.randint(1,100),\
                                     'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
@@ -346,11 +346,11 @@ class ChiSquareAnalysis:
                                 'c3_data':c3_data}
         bubble_data1 = {}
         bubble_data2 = {}
-        bubble_data1['value'] = str(NarrativesUtils.round_number(max(__target_contributions)*100.0/total,2))+'%'
+        bubble_data1['value'] = str(round(max(__target_contributions)*100.0/total,1))+'%'
         m_index = __target_contributions.index(max(__target_contributions))
         bubble_data1['text'] = 'Overall '+__target+' comes from '+ levels[m_index]
 
-        bubble_data2['value'] = NarrativesUtils.round_number(max(__target_percentages),2)+'%'
+        bubble_data2['value'] = str(round(max(__target_percentages),1))+'%'
         m_index = __target_percentages.index(max(__target_percentages))
         bubble_data2['text'] = levels[m_index] + ' has the highest rate of '+__target
 
