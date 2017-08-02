@@ -51,5 +51,5 @@
   </b> bigger than the average and almost <b>{{per_bigger_low|round(1)}} times</b> as
   big as the smallest {{colname}}, which is {{min['key']}}.
 {% elif keys|length == 2 %}
-  {{kv_75_cat[0]}} account for {{percent_contr|round_number}}% of the overall observations.
+  The segment {{max['key']}} accounts for {{largest_per}}% of the overall observations.
 {% endif %}

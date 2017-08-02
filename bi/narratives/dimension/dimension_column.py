@@ -118,6 +118,7 @@ class DimensionColumnNarrative:
         largest_text = " %s is the largest with %s observations" % (data_dict["max"]["key"],NarrativesUtils.round_number(data_dict["max"]["val"]))
         smallest_text = " %s is the smallest with %s observations" % (data_dict["min"]["key"],NarrativesUtils.round_number(data_dict["min"]["val"]))
         largest_per = round(data_dict["max"]["val"]*100.0/float(sum(count.values())),2)
+        data_dict['largest_per']=largest_per
         smallest_per = round(data_dict["min"]["val"]*100.0/float(sum(count.values())),2)
         self.count = {"largest" :[largest_text,str(round(largest_per,1))+'%'],"smallest" : [smallest_text,str(round(smallest_per,1))+'%']}
         if len(data_dict["keys"]) >=3:
@@ -156,7 +157,7 @@ class DimensionColumnNarrative:
         data_dict["n_uniq"] = len(uniq_val)
         if len(uniq_val) == 1:
             data_dict["count"] = uniq_val[0]
-        if len(data_dict["keys"]) >= 3:
+        if len(data_dict["keys"]) >= 2:
             percent_75 = sum(count.values())*0.75
             kv = sorted(count.items(),key = operator.itemgetter(1),reverse=True)
             kv_75 = [(k,v) for k,v in kv if v <= percent_75]
@@ -176,6 +177,7 @@ class DimensionColumnNarrative:
         smallest_text = " %s is the smallest with %s observations" % (data_dict["min"]["key"],str(NarrativesUtils.round_number(data_dict["min"]["val"])))
         largest_per = NarrativesUtils.round_number(data_dict["max"]["val"]/float(sum(count.values())),2)*100
         smallest_per = NarrativesUtils.round_number(data_dict["min"]["val"]/float(sum(count.values())),2)*100
+        data_dict['largest_per']=largest_per
         self.count = {"largest" :[largest_text,str(round(largest_per,0))+'%'],"smallest" : [smallest_text,str(round(smallest_per,0))+'%']}
         self.subheader = "Snapshot of "+data_dict["colname"]
         output1 =  NarrativesUtils.get_template_output(self._base_dir,\
