@@ -7,18 +7,18 @@ PARASEPARATOR
   {{measure}}
   PARAHEADER
   {% if overall_growth >= 1 %}
-    The rate of {{measure}} increased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    The percentage of {{measure}} <b>increased</b> from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% elif overall_growth <= -1 %}
-    The rate of {{measure}} decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    The percentage of {{measure}} <b>decreased</b> from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% else %}
-    The rate of {{measure}} remained unchanged from <b> {{start_value|abs}}% </b> in {{start_time}}
+    The percentage of {{measure}} remained <b>unchanged</b> from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% endif %}
 
   The total number of observations for {{measure}} was {{total_count}} for the last {{durationString}},
-   and the <b> average rate of {{measure}} was {{average_value}}%</b>.
+   and the <b> average rate</b> of {{measure}} was <b>{{average_value}}%</b>.
 
   {% if bucket_ratio_string != "" %}
     Interestingly, the total number of observations for {{measure}} during a streak of {{bucket_length}} {{dataLevel}}s ({{bucket_duration}})
@@ -28,13 +28,16 @@ PARASEPARATOR
 
   PARASEPARATOR
 
-  The percentage of {{measure}} hit a peak of {{peakValue}}% in {{peakTime}},
+  {{measure}} category hit a peak of <b>{{peakValue}}%</b> in <b>{{peakTime}}</b>,
   when the total number of {{measure}} observations was {{max_count}}.
 
-  The most significant factor that fuelled this strong run is the {{highest_contributing_variable}} category,
-   {{highest_contributing_level}}.
-  The {{measure}} rate for {{highest_contributing_level}} in {{peakTime}}, increased by over
-  {{highest_contributing_level_increase}} percentage points ({{highest_contributing_level_range}})
+  The most significant factor that fuelled this strong run is the <b>{{highest_contributing_variable}}</b>
+  {% if category_flag == True %}
+    category
+  {% endif%}
+  ,{{highest_contributing_level}}.
+  The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
+  <b>{{highest_contributing_level_increase}}</b> percentage points ({{highest_contributing_level_range}})
   compared to rest of the observation period.
 
 {% elif level_index == 1%}
@@ -42,16 +45,16 @@ PARASEPARATOR
   {{measure}}
   PARAHEADER
   {% if overall_growth >= 0 and overall_growth <= 5 %}
-    There was a moderate increase in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    There was a moderate <b>increase</b> in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% elif overall_growth < 0 and overall_growth >= -5 %}
     There was a moderate decline in {{measure}}, as it decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% elif overall_growth > 5 %}
-    There was a significant increase in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    There was a significant <b>increase</b> in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% elif overall_growth < -5 %}
-    There was a significant decline in {{measure}}, as it decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
+    There was a significant <b>decline</b> in {{measure}}, as it decreased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
   {% else %}
     The rate of {{measure}} remained unchanged from <b> {{start_value|abs}}% </b> in {{start_time}}
@@ -59,7 +62,7 @@ PARASEPARATOR
   {% endif %}
 
   The total number of observations for {{measure}} was {{total_count}} for the last {{durationString}},
-   and the <b> average rate of {{measure}} was {{average_value}}%</b>.
+   and the <b> average rate</b> of {{measure}} was <b>{{average_value}}%</b>.
 
   {% if bucket_ratio_string != "" %}
     Interestingly, the total number of observations for {{measure}} during a streak of {{bucket_length}} {{dataLevel}}s ({{bucket_duration}})
@@ -72,10 +75,13 @@ PARASEPARATOR
   The percentage of {{measure}} hit a peak of {{peakValue}}% in {{peakTime}},
   when the total number of {{measure}} observations was {{max_count}}.
 
-  The most significant factor that fuelled this strong run is the {{highest_contributing_variable}} category,
-   {{highest_contributing_level}}.
-  The {{measure}} rate for {{highest_contributing_level}} in {{peakTime}}, increased by over
-  {{highest_contributing_level_increase}} percentage points ({{highest_contributing_level_range}})
+  The most significant factor that fuelled this strong run is the <b>{{highest_contributing_variable}}</b>
+    {% if category_flag == True %}
+      category
+    {% endif%}
+   ,{{highest_contributing_level}}.
+  The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
+  <b>{{highest_contributing_level_increase}}</b> percentage points ({{highest_contributing_level_range}})
   compared to rest of the observation period.
 
 {% endif %}
