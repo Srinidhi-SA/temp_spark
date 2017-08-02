@@ -121,9 +121,10 @@ class DimensionColumnNarrative:
         smallest_per = round(data_dict["min"]["val"]*100.0/float(sum(count.values())),2)
         self.count = {"largest" :[largest_text,str(round(largest_per,1))+'%'],"smallest" : [smallest_text,str(round(smallest_per,1))+'%']}
         if len(data_dict["keys"]) >=3:
-            self.subheader = "Top %d %s account for more than three quarters (%d percent) of observations." % (data_dict["kv_75"],data_dict["plural_colname"],data_dict["percent_contr"])
+            # self.subheader = "Top %d %s account for more than three quarters (%d percent) of observations." % (data_dict["kv_75"],data_dict["plural_colname"],data_dict["percent_contr"])
+            self.subheader = 'Distribution of '+self._capitalized_column_name
         else:
-            self.subheader = ""
+            self.subheader = 'Distribution of '+self._capitalized_column_name
         output1 =  NarrativesUtils.get_template_output(self._base_dir,\
                                                 'dimension_distribution1.temp',data_dict)
         output2 = NarrativesUtils.get_template_output(self._base_dir,\
