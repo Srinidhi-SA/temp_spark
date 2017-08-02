@@ -1,4 +1,4 @@
-{% if keys|length > 3 and kv_75 == 1 and n_uniq != 1 %}
+{% if keys|length >= 3 and kv_75 == 1 and n_uniq != 1 %}
   {{kv_75_cat[0]}} alone account for <b>more than
   three quarters</b> ({{percent_contr|round_number}}%) of the overall observations.
   The <b>average</b> number of observations per {{colname}} is {{avg|round_number}} and there are <b>{{above_avg|length|round_number}} {{plural_colname}}</b>
@@ -11,7 +11,7 @@
   {% endif %}
   </b> bigger than the average and almost <b>{{per_bigger_low|round(1)}} times</b> as
   big as the smallest {{colname}}, which is {{min['key']}}.
-{% elif keys|length > 3 and kv_75 == 2 and n_uniq != 1 %}
+{% elif keys|length >= 3 and kv_75 == 2 and n_uniq != 1 %}
   The top<b> {{kv_75}} {{plural_colname}}</b> ({{kv_75_cat[0]}} and {{kv_75_cat[1]}}) account for <b>more than
   three quarters</b> ({{percent_contr|round_number}}%) of the overall observations.
   The <b>average</b> number of observations per {{colname}} is {{avg|round_number}} and there are <b>{{above_avg|length|round_number}} {{plural_colname}}</b>
@@ -24,7 +24,7 @@
   {% endif %}
   </b> bigger than the average and almost <b>{{per_bigger_low|round(1)}} times</b> as
   big as the smallest {{colname}}, which is {{min['key']}}.
-{% elif keys|length > 3 and kv_75 == 3 and n_uniq != 1 %}
+{% elif keys|length >= 3 and kv_75 == 3 and n_uniq != 1 %}
   The top<b> {{kv_75}} {{plural_colname}}</b> ({{kv_75_cat[0]}}, {{kv_75_cat[1]}} and {{kv_75_cat[2]}}) account for <b>more than
   three quarters</b> ({{percent_contr|round_number}}%) of the overall observations.
   The <b>average</b> number of observations per {{colname}} is {{avg|round_number}} and there are <b>{{above_avg|length|round_number}} {{plural_colname}}</b>
@@ -37,7 +37,7 @@
   {% endif %}
   </b> bigger than the average and almost <b>{{per_bigger_low|round(1)}} times</b> as
   big as the smallest {{colname}}, which is {{min['key']}}.
-{% elif keys|length > 3 and kv_75 > 3 and n_uniq != 1  %}
+{% elif keys|length >= 3 and kv_75 >= 3 and n_uniq != 1  %}
   The top<b> {{kv_75}} {{plural_colname}}</b> (including {{kv_75_cat[0]}}, {{kv_75_cat[1]}}, etc..) account for <b>more than
   three quarters</b> ({{percent_contr|round_number}}%) of the overall observations.
   The <b>average</b> number of observations per {{colname}} is {{avg|round_number}} and there are <b>{{above_avg|length|round_number}} {{plural_colname}}</b>
@@ -50,4 +50,6 @@
   {% endif %}
   </b> bigger than the average and almost <b>{{per_bigger_low|round(1)}} times</b> as
   big as the smallest {{colname}}, which is {{min['key']}}.
+{% elif keys|length == 2 %}
+  The top<b> {{kv_75}} {{plural_colname}}</b> ({{kv_75_cat[0]}}, {{kv_75_cat[1]}} and {{kv_75_cat[2]}}) account for {{percent_contr|round_number}}% of the overall observations.
 {% endif %}

@@ -162,7 +162,7 @@ class DimensionColumnNarrative:
             kv_75 = [(k,v) for k,v in kv if v <= percent_75]
             kv_75 = []
             temp_sum = 0
-            for k,v in kv:
+            for k,v in kv[:-1]:
                 temp_sum = temp_sum + v
                 kv_75.append((freq_dict[colname][colname][k],v))
                 if temp_sum >= percent_75:
