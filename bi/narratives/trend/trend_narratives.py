@@ -22,6 +22,8 @@ class TrendNarrative:
         self.summary = None
         self.key_takeaway = None
         self.narratives = {}
+        self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
+
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/trend/"
 
@@ -44,8 +46,8 @@ class TrendNarrative:
         dataDict = {"trend_present":True}
         dataDict["dataLevel"] = dataLevel
         dataDict["durationString"] = durationString
-        # df["perChange"] = [round((y-x)*100/float(x),2) for x,y in zip(df["value"],df["value"].iloc[1:])]+[round((df["value"].iloc[-1]-df["value"].iloc[-2])*100/float(df["value"].iloc[-2]),2)]
-        df["perChange"] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(df["value"].iloc[1:],df["value"])]
+        # df["perChange"] = [round((y-x)*100/float(x),self._num_significant_digits) for x,y in zip(df["value"],df["value"].iloc[1:])]+[round((df["value"].iloc[-1]-df["value"].iloc[-2])*100/float(df["value"].iloc[-2]),self._num_significant_digits)]
+        df["perChange"] = [0]+[round((x-y)*100/float(y),self._num_significant_digits) for x,y in zip(df["value"].iloc[1:],df["value"])]
         dataDict["measure"] = self._measure_column
         df["trendDirection"] = df["perChange"].apply(lambda x: "P" if x>=0 else "N")
         # print df
@@ -53,21 +55,21 @@ class TrendNarrative:
         maxRuns = NarrativesUtils.longestRun(trendString)
         # list(set(zip([x.strftime('%m') for x in df["key"]],[x.strftime('%Y') for x in df["key"]])))
         dataDict["bubbleData"] = [{"value":"","text":""},{"value":"","text":""}]
-        dataDict["overall_growth"] = round((df["value"].iloc[-1]-df["value"].iloc[0])*100/float(df["value"].iloc[0]),2)
+        dataDict["overall_growth"] = round((df["value"].iloc[-1]-df["value"].iloc[0])*100/float(df["value"].iloc[0]),self._num_significant_digits)
         dataDict["bubbleData"][0]["value"] = str(abs(dataDict["overall_growth"]))+"%"
         dataDict["bubbleData"][0]["text"] = "Overall growth in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
         max_growth_index = np.argmax(df["perChange"])
-        dataDict["bubbleData"][1]["value"] = str(abs(round(list(df["perChange"])[max_growth_index],2)))+"%"
+        dataDict["bubbleData"][1]["value"] = str(abs(round(list(df["perChange"])[max_growth_index],self._num_significant_digits)))+"%"
         if dataDict["dataLevel"] == "day":
             dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
         elif dataDict["dataLevel"] == "month":
             dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["year_month"])[max_growth_index])
 
         # print dataDict["bubbleData"]
-        dataDict["start_value"] = round(df["value"].iloc[0],2)
-        dataDict["end_value"] = round(df["value"].iloc[-1],2)
-        dataDict["average_value"] = round(df["value"].mean(),2)
-        dataDict["total"] = round(df["value"].sum(),2)
+        dataDict["start_value"] = round(df["value"].iloc[0],self._num_significant_digits)
+        dataDict["end_value"] = round(df["value"].iloc[-1],self._num_significant_digits)
+        dataDict["average_value"] = round(df["value"].mean(),self._num_significant_digits)
+        dataDict["total"] = round(df["value"].sum(),self._num_significant_digits)
 
         peak_index = np.argmax(df["value"])
         low_index = np.argmin(df["value"])
@@ -197,7 +199,7 @@ class TrendNarrative:
             max_index = list(df["key"]).index(dataDict["peakTime"])
         outDict["bucket_count"] = int(df["value_count"].iloc[bucket_start_index:bucket_end_index].sum())
         outDict["max_count"] = int(df["value_count"][max_index])
-        ratio = round(outDict["bucket_count"]*100/float(outDict["total_count"]),2)
+        ratio = round(outDict["bucket_count"]*100/float(outDict["total_count"]),self._num_significant_digits)
         if ratio < 20:
             outDict["bucket_ratio_string"] = ""
         elif ratio > 20 and ratio <=30:
@@ -226,7 +228,7 @@ class TrendNarrative:
         data_dict['measure'] = measure_column
         data_dict['total_measure'] = agg_data[measure_column].sum()
         data_dict['total_target'] = agg_data[result_column].sum()
-        data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, 1)
+        data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, self._num_significant_digits)
         data_dict['num_dates'] = len(agg_data.index)
 
         peak_index = agg_data[measure_column].argmax()
@@ -243,8 +245,8 @@ class TrendNarrative:
             data_dict['lowest_date'] = agg_data["year_month"].ix[lowest_index]
             data_dict['peak_date'] = agg_data["year_month"].ix[peak_index]
 
-        data_dict['start_value'] = round(agg_data[measure_column].iloc[0],2)
-        data_dict['end_value'] = round(agg_data[measure_column].iloc[-1],2)
+        data_dict['start_value'] = round(agg_data[measure_column].iloc[0],self._num_significant_digits)
+        data_dict['end_value'] = round(agg_data[measure_column].iloc[-1],self._num_significant_digits)
         # data_dict['target_start_value'] = agg_data[result_column].iloc[0]
         # data_dict['target_end_value'] = agg_data[result_column].iloc[-1]
         data_dict['change_percent'] = NarrativesUtils.round_number(agg_data[measure_column].iloc[-1]*100/agg_data[measure_column].iloc[0] - 100,2)

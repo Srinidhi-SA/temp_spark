@@ -467,8 +467,10 @@ def get_level_cont_dict(level_cont):
             t_dict.update({"level":max_level})
         output.append(t_dict)
     out_dict = dict(zip(dk.keys(),output))
-    out_data = {}
+    out_data = {"category_flag":True}
     out_data["highest_contributing_variable"] = max(out_dict,key=lambda x:out_dict[x]["diff"])
+    if "category" in out_data["highest_contributing_variable"].lower():
+        out_data["category_flag"] = False
     out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
     out_data["highest_contributing_level_range"] = str(out_dict[out_data["highest_contributing_variable"]]["max_avg"])+" vis-a-vis "+str(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"])
@@ -642,3 +644,11 @@ def streak_data(df,peak_index,low_index,percentage_change_column,value_column):
         dataDict["upStreakContribution"] = sum(df[value_column].iloc[k:peak_index])*100/sum(df[value_column])
 
     return dataDict
+
+
+def get_significant_digit_settings(param):
+    data = {"trend":1}
+    if param in data:
+        return data[param]
+    else:
+        return 2

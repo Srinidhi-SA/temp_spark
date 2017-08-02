@@ -1,14 +1,8 @@
 import os
-import re
-import time
-
-import jinja2
 
 from anova_drilldown import AnovaDrilldownNarratives
-from bi.common import DataFrameHelper
-from bi.common.results.anova import DFAnovaResult
-from bi.common.utils import accepts
-from oneway import OneWayAnovaNarratives
+from bi.narratives import utils as NarrativesUtils
+from bi.narratives.anova.anova import OneWayAnovaNarratives
 
 
 class AnovaNarratives:
@@ -18,97 +12,69 @@ class AnovaNarratives:
     KEY_NARRATIVES = 'narratives'
     KEY_TAKEAWAY = 'key_takeaway'
     DRILL_DOWN = 'drill_down_narrative'
+    KEY_CARD = 'card'
+    KEY_HEADING = 'heading'
+    KEY_SUBHEADING = 'header'
+    KEY_CHART = 'charts'
+    KEY_PARAGRAPH = 'paragraphs'
+    KEY_PARA_HEADER = 'header'
+    KEY_PARA_CONTENT = 'content'
+    KEY_BUBBLE = 'bubble_data'
 
-    @accepts(object, int, DFAnovaResult, DataFrameHelper)
-    def __init__(self, num_dimension_columns, df_anova_result, df_helper):
-        self.df_helper = df_helper
-        self._num_dimension_columns = num_dimension_columns
+    # @accepts(object, DFAnovaResult, DataFrameHelper)
+    def __init__(self, df_anova_result, df_helper, result_setter):
+        self._result_setter = result_setter
         self._df_anova_result = df_anova_result
-        self.measures = []
+        self._df_helper = df_helper
         self.narratives = {}
+        self.narratives['variables'] = ''
         #self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
         self._generate_narratives()
+        #self._generate_take_away()
 
 
     def _generate_narratives(self):
         for measure_column in self._df_anova_result.get_measure_columns():
-            self.narratives[measure_column] = {}
-            self.narratives[measure_column]['heading'] = "%s Performance Analysis" % (measure_column,)
-            self.narratives[measure_column]['sub_heading1'] = "Analysis by Dimension"
-            num_significant_dimensions = 0
-            num_insignificant_dimensions = 0
-            significant_dimensions = []
-            insignificant_dimensions = []
-            effect_sizes = {}
-            self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]={}
-            #self.narratives[measure_column]['sub_heading'] = {}
-            for dimension_column in self._df_anova_result.get_dimensions_analyzed(measure_column):
-                anova_result = self._df_anova_result.get_anova_result(measure_column, dimension_column)
-                if not anova_result.is_statistically_significant(AnovaNarratives.ALPHA):
-                    insignificant_dimensions.append(dimension_column)
-                    num_insignificant_dimensions+=1
-                    continue
-                significant_dimensions.append(dimension_column)
-                effect_sizes[dimension_column] = anova_result.get_effect_size()
-                num_significant_dimensions += 1
-                if measure_column not in self.measures:
-                    self.measures.append(measure_column)
-                if not self.narratives.has_key(measure_column):
-                    self.narratives[measure_column] = {AnovaNarratives.KEY_SUMMARY: '',
-                                                       AnovaNarratives.KEY_NARRATIVES: {}}
-                narrative = OneWayAnovaNarratives(measure_column, dimension_column, anova_result)
-                self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column] = narrative
-            fs = time.time()
-            try:
-                anova_narrative = self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES]
-                drill_down_narrative = AnovaDrilldownNarratives(measure_column, significant_dimensions, self.df_helper, anova_narrative)
-                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = drill_down_narrative.analysis
-                print "Drill Down Narrative Success"
-            except Exception as e:
-                print "Drill Down Narrative Failed"
-                self.narratives[measure_column][AnovaNarratives.DRILL_DOWN] = {}
-                print "ERROR"*5
-                print e
-                print "ERROR"*5
-            print "Drill Down Analysis Done in ", time.time() - fs,  " seconds."
+            measure_anova_result = self._df_anova_result.result[measure_column]
+            significant_dimensions_dict, insignificant_dimensions = measure_anova_result.get_OneWayAnovaSignificantDimensions()
+            significant_dimensions = [k for k,v in sorted(significant_dimensions_dict.items(), key=lambda x: -x[1])]
+            num_significant_dimensions = len(significant_dimensions)
+            num_insignificant_dimensions = len(insignificant_dimensions)
+            self.narratives = {}
+            self.narratives[AnovaNarratives.KEY_HEADING] = "%s Performance Analysis" % (measure_column,)
+            self.narratives['main_card'] = {}
+            self.narratives['cards'] = []
+            self.narratives['main_card'][AnovaNarratives.KEY_SUBHEADING] = "Relationship between %s and other Dimensions" % (measure_column)
+            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH] = []
+            data_dict = { \
+                            'significant_dimensions' : significant_dimensions,
+                            'insignificant_dimensions' : insignificant_dimensions,
+                            'num_significant_dimensions' : num_significant_dimensions,
+                            'num_insignificant_dimensions' : num_insignificant_dimensions,
+                            'num_dimensions' : num_significant_dimensions+num_insignificant_dimensions,
+                            'target' : measure_column \
+                        }
+            output = {'header' : ''}
+            output['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.temp',data_dict)
+            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output)
+            output1 = {'header' : ''}
+            output1['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.temp',data_dict)
+            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output1)
+            self.narratives['main_card'][AnovaNarratives.KEY_CHART] = {}
+            effect_size_chart = { 'heading' : '',
+                                  'labels' : {'Dimension':'Effect Size'},
+                                  'data' : significant_dimensions_dict}
+            self.narratives['main_card'][AnovaNarratives.KEY_CHART]['effect_size'] = effect_size_chart
+            self._generate_dimension_narratives(significant_dimensions, measure_anova_result, measure_column)
 
-            #self.narratives[measure_column]['sub_heading'][dimension_column] = narrative.get_sub_heading()
-            #self.ordered_narratives = OrderedDict(sorted(self.narratives[measure_column][AnovaNarratives.KEY_NARRATIVES][dimension_column].items(),
-            #                            key = lambda kv: kv[1]['effect_size'], reverse=True))
-
-            sorted_dim=[]
-            for key,value in sorted(effect_sizes.iteritems(),key = lambda (k,v):(v,k)):
-                sorted_dim.append(key)
-            data_dict = {
-                'n_d': num_significant_dimensions+num_insignificant_dimensions,
-                'n_s_d': num_significant_dimensions,
-                'n_ns_d': num_insignificant_dimensions,
-                'sd': significant_dimensions,
-                'nsd': insignificant_dimensions,
-                'cm': measure_column,
-                'd' : significant_dimensions+insignificant_dimensions,
-                'dims' : sorted_dim
-            }
-
-            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-            templateEnv = jinja2.Environment( loader=templateLoader )
-            template = templateEnv.get_template('anova_template_1.temp')
-            output = template.render(data_dict).replace("\n", "")
-            output = re.sub(' +',' ',output)
-
-            chart_template = templateEnv.get_template('anova_template_2.temp')
-            output_chart = chart_template.render(data_dict).replace("\n", "")
-            output_chart = re.sub(' +',' ',output_chart)
-
-            #anova_1_and_2 = output +"\n"+ output_chart
-            #print anova_1_and_2
-            self.narratives[measure_column][AnovaNarratives.KEY_SUMMARY] = [output,output_chart]
-
-            takeaway = ''
-            templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-            templateEnv = jinja2.Environment( loader=templateLoader )
-            template = templateEnv.get_template('anova_takeaway.temp')
-            takeaway = template.render(data_dict).replace("\n", " ")
-            takeaway = re.sub(' +',' ',takeaway)
-            self.narratives[measure_column][AnovaNarratives.KEY_TAKEAWAY] = takeaway
+    def _generate_dimension_narratives(self, significant_dimensions, measure_anova_result, measure):
+        self.narratives['cards'] = []
+        anova_trend_result = measure_anova_result.get_TrendResult()
+        if len(significant_dimensions) == 0:
+            self.narratives['cards'].append({'card1':'', 'card2':'', 'card3':''})
+        self.narratives['variables'] = significant_dimensions
+        for dimension in significant_dimensions:
+            anova_dimension_result = measure_anova_result.get_anova_result(dimension)
+            narratives = OneWayAnovaNarratives(measure, dimension, anova_dimension_result, anova_trend_result,self._result_setter)
+            self.narratives['cards'].append(narratives)
