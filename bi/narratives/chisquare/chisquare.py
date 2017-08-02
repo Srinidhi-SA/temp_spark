@@ -180,9 +180,9 @@ class ChiSquareAnalysis:
         data_dict['second_target_bottom_dim_contribution']=second_target_bottom_dim_contribution
         data_dict['best_second_target'] = levels[best_second_target_index]
         data_dict['best_second_target_count'] = second_target_contributions[best_second_target_index]
-        data_dict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/total,2)
+        data_dict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/sum(second_target_contributions),2)
         data_dict['worst_second_target'] = levels[worst_second_target_index]
-        data_dict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/total,2)
+        data_dict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/sum(second_target_contributions),2)
 
         data_dict['top_target']=top_target
         data_dict['top_target_top_dims'] = top_target_top_dims
@@ -191,9 +191,9 @@ class ChiSquareAnalysis:
         data_dict['top_target_bottom_dim_contribution']=top_target_bottom_dim_contribution
         data_dict['best_top_target'] = levels[best_top_target_index]
         data_dict['best_top_target_count'] = top_target_contributions[best_top_target_index]
-        data_dict['best_top_target_percent'] = round(top_target_contributions[best_top_target_index]*100.0/total,2)
+        data_dict['best_top_target_percent'] = round(top_target_contributions[best_top_target_index]*100.0/sum(top_target_contributions),2)
         data_dict['worst_top_target'] = levels[worst_top_target_index]
-        data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/total,2)
+        data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/sum(top_target_contributions),2)
 
 
         output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
@@ -346,7 +346,7 @@ class ChiSquareAnalysis:
                                 'c3_data':c3_data}
         bubble_data1 = {}
         bubble_data2 = {}
-        bubble_data1['value'] = str(round(max(__target_contributions)*100.0/total,1))+'%'
+        bubble_data1['value'] = str(round(max(__target_contributions)*100.0/sum(__target_contributions),1))+'%'
         m_index = __target_contributions.index(max(__target_contributions))
         bubble_data1['text'] = 'Overall '+__target+' comes from '+ levels[m_index]
 
