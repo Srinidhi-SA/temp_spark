@@ -33,6 +33,7 @@ class TimeSeriesNarrative:
         self._analysistype = self._dataframe_context.get_analysis_type()
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
+        self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
 
 
         if self._date_suggestion_columns != None:
@@ -220,7 +221,7 @@ class TimeSeriesNarrative:
                     trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
                     # grouped_data = trend_narrative_obj.formatDateColumn(grouped_data,self._requestedDateFormat)
                     # grouped_data = grouped_data.sort_values(by='key', ascending=True)
-                    # grouped_data["value"] = grouped_data["value"].apply(lambda x: round(x,2))
+                    # grouped_data["value"] = grouped_data["value"].apply(lambda x: round(x,self._num_significant_digits))
                     dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                     # # update reference time with max value
                     reference_time = dataDict["reference_time"]
@@ -258,7 +259,7 @@ class TimeSeriesNarrative:
                     else:
                         prediction_window = 6
                     predicted_values = trend_narrative_obj.get_forecast_values(grouped_data["value"],prediction_window)[len(grouped_data["value"]):]
-                    predicted_values = [round(x,2) for x in predicted_values]
+                    predicted_values = [round(x,self._num_significant_digits) for x in predicted_values]
                     prediction_data = [{"key":x["key"],"value":x["value"]} for x in trend_chart_data]
                     last_val = prediction_data[-1]
                     last_val.update({"predicted_value":last_val["value"]})
@@ -283,7 +284,7 @@ class TimeSeriesNarrative:
                                         "endForecast":predicted_values[prediction_window-1],
                                         "measure":dataDict["measure"],
                                         "forecast":True,
-                                        "forecast_percentage": round((predicted_values[prediction_window-1]-predicted_values[0])/predicted_values[0],2),
+                                        "forecast_percentage": round((predicted_values[prediction_window-1]-predicted_values[0])/predicted_values[0],self._num_significant_digits),
                                         "prediction_window_text": str(prediction_window) + " months"
                                         }
 
@@ -356,9 +357,9 @@ class TimeSeriesNarrative:
 
                         grouped_data.rename(columns={"value":"value_count"},inplace=True)
                         grouped_data = pd.merge(grouped_data, overall_count, on='key', how='left')
-                        # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),2))
+                        # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),self._num_significant_digits))
                         grouped_data["value"] = grouped_data["value_count"]/grouped_data["totalCount"]
-                        grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,2))
+                        grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,self._num_significant_digits))
                         pandasDf = leveldf.toPandas()
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)

@@ -642,3 +642,11 @@ def streak_data(df,peak_index,low_index,percentage_change_column,value_column):
         dataDict["upStreakContribution"] = sum(df[value_column].iloc[k:peak_index])*100/sum(df[value_column])
 
     return dataDict
+
+
+def get_significant_digit_settings(param):
+    data = {"trend":1}
+    if param in data:
+        return data[param]
+    else:
+        return 2

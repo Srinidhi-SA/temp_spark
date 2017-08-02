@@ -25,6 +25,7 @@ class TimeSeriesCalculations:
         self._spark = spark
         self._dataframe_context = df_context
 
+        self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._dateFormatDetected = False
         self._date_suggestion_columns = df_context.get_date_column_suggestions()
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
@@ -108,12 +109,12 @@ class TimeSeriesCalculations:
                     final_df = pd.merge(grouped_result,crosstab_df, how='outer', on=['year_month'])
                     final_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
                     final_df.reset_index(drop=True,inplace=True)
-                    final_df["overallPerChange"] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(final_df["value"].iloc[1:],final_df["value"])]
+                    final_df["overallPerChange"] = [0]+[round((x-y)*100/float(y),self._num_significant_digits) for x,y in zip(final_df["value"].iloc[1:],final_df["value"])]
 
                     growth_dict = {}
                     for val in chisquare_levels:
                         growth_dict[val]  = {}
-                        growth_dict[val]["growth"] = round(((final_df[val].iloc[-1]-final_df[val].iloc[0])*100/float(final_df[val].iloc[0])),2)
+                        growth_dict[val]["growth"] = round(((final_df[val].iloc[-1]-final_df[val].iloc[0])*100/float(final_df[val].iloc[0])),self._num_significant_digits)
                         if growth_dict[val]["growth"] > 3 or final_df[val].iloc[0] == 0:
                             growth_dict[val]["growthType"] = "positive"
                             print growth_dict[val]["growth"]
@@ -123,7 +124,7 @@ class TimeSeriesCalculations:
                             growth_dict[val]["growthType"] = "stable"
                         growth_dict[val]["total"] = sum(final_df[val])
                     growth_dict["overall"] = {}
-                    growth_dict["overall"]["growth"] = round((final_df["value"].iloc[-1]-final_df["value"].iloc[0]/float(final_df["value"].iloc[0])),2)
+                    growth_dict["overall"]["growth"] = round((final_df["value"].iloc[-1]-final_df["value"].iloc[0]/float(final_df["value"].iloc[0])),self._num_significant_digits)
                     data_dict = {}
                     total_tuple = []
                     for k,v in growth_dict.items():
@@ -131,7 +132,7 @@ class TimeSeriesCalculations:
                             total_tuple.append((k,v["total"]))
                     sorted_total_tuple = sorted(total_tuple,key=lambda x:x[1],reverse=True)
                     top_dimension = sorted_total_tuple[0][0]
-                    final_df["topDimensionPerChange"] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(final_df[top_dimension].iloc[1:],final_df[top_dimension])]
+                    final_df["topDimensionPerChange"] = [0]+[round((x-y)*100/float(y),self._num_significant_digits) for x,y in zip(final_df[top_dimension].iloc[1:],final_df[top_dimension])]
                     data_dict["dimension"] = chisquare_column
                     data_dict["correlation"] = final_df["value"].corr(final_df[top_dimension])
                     data_dict["subset_increase_percent"] = growth_dict[top_dimension]["growth"]
