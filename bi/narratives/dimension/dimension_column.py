@@ -91,8 +91,8 @@ class DimensionColumnNarrative:
         data_dict["keys"] = freq_dict[colname][colname].values()
         data_dict["avg"] = round(sum(count.values())/float(len(count.values())),2)
         data_dict["above_avg"] = [freq_dict[colname][colname][key] for key in count.keys() if count[key] > data_dict["avg"]]
-        data_dict["per_bigger_avg"] = round(data_dict["max"]["val"]/float(data_dict["avg"]),2)
-        data_dict["per_bigger_low"] = round(data_dict["max"]["val"]/float(data_dict["min"]["val"]),2)
+        data_dict["per_bigger_avg"] = round(data_dict["max"]["val"]/float(data_dict["avg"]),4)
+        data_dict["per_bigger_low"] = round(data_dict["max"]["val"]/float(data_dict["min"]["val"]),4)
         uniq_val = list(set(count.values()))
         data_dict["n_uniq"] = len(uniq_val)
         if len(uniq_val) == 1:
