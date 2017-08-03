@@ -45,7 +45,7 @@ if __name__ == '__main__':
     meta_helper = MetaDataHelper(df)
     CSV_FILE = dff_context.get_input_file()
     print "File loaded: ", CSV_FILE
-    meta_data = utils.as_dict(meta_helper)
+    meta_data = CommonUtils.as_dict(meta_helper)
     print "Metadata: ", meta_data
     meta_data = json.dumps(meta_data)
     # print  meta_data

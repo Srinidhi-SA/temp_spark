@@ -9,7 +9,7 @@ from datetime import datetime
 
 from bi.common import DataLoader
 from bi.common import DataWriter
-from bi.common import utils
+from bi.common import utils as CommonUtils
 
 
 def get_argument_parser():
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         print 'One of the aguments --input1 / --input2 / --input3 / --result / --narratives is missing'
         sys.exit(-1)
 
-    spark = utils.get_spark_session(app_name=APP_NAME)
+    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
 
     input1 = arguments.input1
