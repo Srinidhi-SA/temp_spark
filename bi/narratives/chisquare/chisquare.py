@@ -21,8 +21,9 @@ class ChiSquareAnalysis:
         significant_variables=list(set(significant_variables)-set([analysed_dimension]))
         significant_variables = list(set(significant_variables)-set(measure_columns))
         if len(significant_variables)<=3:
-            self._second_level_dimensions = significant_variables
-            self._second_level_dimensions1 = random.shuffle(significant_variables)
+            self._second_level_dimensions = list(significant_variables)
+            random.shuffle(significant_variables)
+            self._second_level_dimensions1 = list(significant_variables)
         elif len(significant_variables)>=3:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
