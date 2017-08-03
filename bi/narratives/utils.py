@@ -10,6 +10,7 @@ import jinja2
 import numpy as np
 import pandas as pd
 import pattern
+import pattern.en
 from datetime import datetime
 
 
@@ -90,6 +91,7 @@ def get_template_output(base_dir, template_file, data_dict):
     templateEnv = jinja2.Environment( loader=templateLoader )
     templateEnv.filters['round_number'] = round_number
     templateEnv.filters['intcomma'] = humanize.intcomma
+    templateEnv.filters['pluralize']=pluralize
     template = templateEnv.get_template(template_file)
     output = template.render(data_dict)
     return clean_narratives(output)
@@ -101,14 +103,14 @@ def get_plural_word(text):
     d = enchant.Dict("en_US")
     if text == text.upper():
         plural = text.lower()
-        plural = pattern.en.pluralize(text)
+        plural = pattern.en.pluralize(plural)
         if d.check(plural):
             plural = plural.upper()
         else:
             plural = text
     elif text == text.title():
         plural = text.lower()
-        plural = pattern.en.pluralize(text)
+        plural = pattern.en.pluralize(plural)
         if d.check(plural):
             plural = plural.title()
         else:

@@ -45,7 +45,7 @@
     <li>
       <b>{{dim['d']}}</b>:
       {% if dim['variation']%2 == 0 %}
-        Among the {{dim['d']}}s, {{dim['index_txt']}} has got the major chunk of {{top_target}} from segment {{top_target_top_dims[0]}},
+        Among the {{dim['d']|pluralize}}, {{dim['index_txt']}} has got the major chunk of {{top_target}} from segment {{top_target_top_dims[0]}},
         accounting for {{dim['contributions'][0] | round(1) }}%.
       {% elif dim['variation']%2 == 1 %}
         {{dim['index_txt']}} plays a key role in explaining the high concentration of {{top_target}} from
