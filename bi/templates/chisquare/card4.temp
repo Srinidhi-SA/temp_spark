@@ -58,14 +58,14 @@
     <li>
       <b>{{dim['d']}}</b>:
       {% if dim['variation']%3 == 0 %}
-        The top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, account for {{dim['contributions'] | sum | round(1) }}%
+        The top {{dim['levels'] | length}} {{dim['d']|pluralize}}, {{dim['index_txt']}}, account for {{dim['contributions'] | sum | round(1) }}%
         of the total {{top_target}} observations from segment {{top_target_top_dims[0]}}.
       {% elif dim['variation']%3 == 1 %}
         Some of the {{dim['d']}}({{dim['index_txt']}}) account of a significant portion of {{top_target}} observations from
         segment {{top_target_top_dims[0]}}. They cumulatively account for about {{dim['contributions'] | sum | round(1) }}% of the total
         {{top_target}} from segment {{top_target_top_dims[0]}}.
       {% elif dim['variation']%3 == 2 %}
-        Among the {{dim['d']}}, the top {{dim['levels'] | length}} {{dim['d']}}, {{dim['index_txt']}}, contribute to
+        Among the {{dim['d']|pluralize}}, the top {{dim['levels'] | length}} {{dim['d']|pluralize}}, {{dim['index_txt']}}, contribute to
         {{dim['contributions'] | sum | round(1) }}% of the total {{top_target}} observations from segment {{top_target_top_dims[0]}}.
       {% endif %}
       The percentage of {{top_target}} for {{dim['levels'][0]}} and {{dim['levels'][1]}} are {{dim['contributions_percent'][0] | round(1) }}% and
