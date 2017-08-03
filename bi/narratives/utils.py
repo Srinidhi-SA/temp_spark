@@ -10,7 +10,6 @@ import jinja2
 import numpy as np
 import pandas as pd
 import pattern
-import pattern.en
 from datetime import datetime
 
 
