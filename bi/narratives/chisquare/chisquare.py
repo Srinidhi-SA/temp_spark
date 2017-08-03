@@ -22,8 +22,10 @@ class ChiSquareAnalysis:
         significant_variables = list(set(significant_variables)-set(measure_columns))
         if len(significant_variables)<=3:
             self._second_level_dimensions = significant_variables
+            self._second_level_dimensions1 = random.shuffle(significant_variables)
         elif len(significant_variables)>=3:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
+            self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
 
         self.card1 = {}
@@ -225,10 +227,10 @@ class ChiSquareAnalysis:
                                 select(self._second_level_dimensions).toPandas()
             df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
                                 filter(col(self._analysed_dimension)>=splits[idx1]).filter(col(self._analysed_dimension)<splits[idx1+1]).\
-                                select(self._second_level_dimensions).toPandas()
+                                select(self._second_level_dimensions1).toPandas()
             df_top_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx1]).\
                         filter(col(self._analysed_dimension)<splits[idx1+1]).\
-                        select(self._second_level_dimensions).toPandas()
+                        select(self._second_level_dimensions1).toPandas()
             df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
                             filter(col(self._analysed_dimension)<splits[idx+1]).\
                             select(self._second_level_dimensions).toPandas()
@@ -238,9 +240,9 @@ class ChiSquareAnalysis:
                                 select(self._second_level_dimensions).toPandas()
             df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
                                 filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
-                                select(self._second_level_dimensions).toPandas()
+                                select(self._second_level_dimensions1).toPandas()
             df_top_dim = self._data_frame.filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
-                        select(self._second_level_dimensions).toPandas()
+                        select(self._second_level_dimensions1).toPandas()
             df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
                             select(self._second_level_dimensions).toPandas()
         distribution_second = []
@@ -268,7 +270,7 @@ class ChiSquareAnalysis:
                                     'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
         distribution_top = []
-        for d in self._second_level_dimensions:
+        for d in self._second_level_dimensions1:
             grouped = df_top_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
             contributions = df_top_dim.groupby(d).agg({d:'count'})
             contribution_index = list(contributions.index)
@@ -303,6 +305,20 @@ class ChiSquareAnalysis:
 
         data_dict['num_key_factors'] = num_key_factors
         data_dict['key_factors'] = key_factors
+
+        key_factors1 = ''
+        num_key_factors1 = len(self._second_level_dimensions1)
+
+        if len(self._second_level_dimensions1)==3:
+            key_factors1 = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
+        elif len(self._second_level_dimensions1)==2:
+            key_factors1 = ' and '.join(self._second_level_dimensions1)
+        elif len(self._second_level_dimensions1)==1:
+            key_factors1 = self._second_level_dimensions1[0]
+
+        data_dict['num_key_factors1'] = num_key_factors1
+        data_dict['key_factors1'] = key_factors1
+
         data_dict['distribution_top'] = distribution_top
         data_dict['distribution_second'] = distribution_second
         data_dict['random_card2'] = random.randint(1,100)

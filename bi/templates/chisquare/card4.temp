@@ -20,21 +20,21 @@
 {% elif levels|length >= 2 %}
   The segment {{worst_top_target}} contributes to just {{worst_top_target_percent|round(1)}}% of the total {{top_target}}.
 {% endif %}
-{% if num_key_factors > 0 %}
+{% if num_key_factors1 > 0 %}
   PARASEPARATOR
   Key Factors influencing {{top_target}} from {{top_target_top_dims[0]}}
   PARAHEADER
   {% if random_card2%3 == 0 %}
     High concentration of {{top_target}} from segment {{top_target_top_dims[0]}} is characterized by the influence of
-    key dimensions, such as {{key_factors}}. Certain specific segments from those factors are more likely to
+    key dimensions, such as {{key_factors1}}. Certain specific segments from those factors are more likely to
     explain segment {{top_target_top_dims[0]}}'s significant rate of {{top_target}}.
   {% elif random_card2%3 == 1 %}
-    There are some key factors({{key_factors}}) that explain why the concentration of {{top_target}} from segment {{top_target_top_dims[0]}}
+    There are some key factors({{key_factors1}}) that explain why the concentration of {{top_target}} from segment {{top_target_top_dims[0]}}
     is very high.
   {% elif random_card2%3 == 2 %}
-    {{key_factors}}
-    {% if num_key_factors > 1 %}are some of
-    {% elif num_key_factors == 1 %} is one of
+    {{key_factors1}}
+    {% if num_key_factors1 > 1 %}are some of
+    {% elif num_key_factors1 == 1 %} is one of
     {% endif %}
     the most important factors that describe the concentration of {{top_target}} from segment {{top_target_top_dims[0]}} Value category.
   {% endif %}
