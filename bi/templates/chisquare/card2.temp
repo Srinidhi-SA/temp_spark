@@ -60,7 +60,7 @@
         The top {{dim['levels'] | length}} {{dim['d']|pluralize}}, {{dim['index_txt']}}, account for {{dim['contributions'] | sum | round(1) }}%
         of the total {{second_target}} observations from segment {{second_target_top_dims[0]}}.
       {% elif dim['variation']%3 == 1 %}
-        Some of the {{dim['d']|pluralize}}({{dim['index_txt']}} account for a significant portion of {{second_target}} observations from
+        Some of the {{dim['d']|pluralize}}({{dim['index_txt']}}) account for a significant portion of {{second_target}} observations from
         segment {{second_target_top_dims[0]}}. They cumulatively account for about {{dim['contributions'] | sum | round(1) }}% of the total
         {{second_target}} from segment {{second_target_top_dims[0]}}.
       {% elif dim['variation']%3 == 2 %}
