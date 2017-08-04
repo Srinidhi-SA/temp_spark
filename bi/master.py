@@ -222,22 +222,22 @@ def main(confFilePath):
         df = df_helper.get_data_frame()
         #df = df.na.drop(subset=dataframe_context.get_result_column())
         if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
-            try:
-                fs = time.time()
-                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                # one_way_anova_obj.Run()
-                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark)
-                two_way_obj.Run()
-                print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-                send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
-            except Exception as e:
-                print 'Anova Failed'
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
-                send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Script Failed", False, 0)
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
+            # try:
+            fs = time.time()
+            # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+            # one_way_anova_obj.Run()
+            two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark)
+            two_way_obj.Run()
+            print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+            send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Done", True, 100)
+            # except Exception as e:
+            #     print 'Anova Failed'
+            #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
+            #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
+            #     send_message_API(monitor_api, "OneWayAnova", "OneWayAnova Script Failed", False, 0)
+            #     print "#####ERROR#####"*5
+            #     print e
+            #     print "#####ERROR#####"*5
         else:
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
             DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')

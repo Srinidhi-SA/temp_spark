@@ -1,0 +1,50 @@
+{% if num_significant_dimensions==1 %}
+  High contribution of {{target}} from {{dimension}} is characterized by the influence of {{significant_dimensions[0]}}.
+{% elif num_significant_dimensions==2 %}
+  High contribution of {{target}} from {{dimension}} is characterized by the influence of key dimensions - {{significant_dimensions[0]}} and {{significant_dimensions[1]}}.
+{% elif num_significant_dimensions >2 %}
+  High contribution of {{target}} from {{dimension}} is characterized by the influence of key dimensions, such as {{significant_dimensions[0]}}, {{significant_dimensions[1]}}, and {{significant_dimensions[2]}}.
+{% endif %}
+
+{% if num_significant_dimensions==1 %}
+  Certain specific segments from {{significant_dimensions[0]}} is more likely to explain {{dimension}}'s
+  significant {{target}} turnover.
+{% elif num_significant_dimensions>1 %}
+  Certain specific segments from those dimensions are more likely to explain {{dimension}}’s
+  significant {{target}} turnover.
+{% endif %}
+
+{% if num_top1_contributors==1 %}
+  For instance,{{top1_contributors[0][1]}}, the <b>top performing {{significant_dimensions[0]}} account
+  for {{top1_contributors[0][0]}}%</b> of the overall {{target}} from {{top_dimension}}.
+{% elif num_top1_contributors==2 %}
+  For instance, {{top1_contributors[0][1]}}({{top1_contributors[0][0]}}%) along with
+  {{top1_contributors[1][1]}}({{top1_contributors[1][0]}}%), the <b>top performing {{significant_dimensions[0]}}
+  account for {{top1_contribution}}%</b> of the overall {{target}} from {{top_dimension}}.
+{% elif num_top1_contributors>2 %}
+  For instance, the top {{num_top1_contributors}} <b>{{significant_dimensions[0]}} account for
+  {{top1_contribution}}%</b> of the overall {{target}} from {{top_dimension}}.
+{%endif%}
+
+{% if num_top2_contributors==1 %}
+  In terms of {{significant_dimensions[1]}}, {{top2_contributors[0][1]}} account
+  for {{top2_contributors[0][0]}}% of the total {{target}} from {{top_dimension}}.
+{% elif num_top2_contributors==2 %}
+  In terms of {{significant_dimensions[1]}}, {{top2_contributors[0][1]}}({{top2_contributors[0][0]}}%)
+  and {{top2_contributors[1][1]}}({{top2_contributors[1][0]}}%) account for {{top2_contribution}}%
+  of the total {{target}} from {{top_dimension}}.
+{% elif num_top2_contributors>2 %}
+  In terms of {{significant_dimensions[1]}}, top {{num_top2_contributors}} account for
+  {{top2_contribution}}% of the total {{target}} from {{top_dimension}}.
+{%endif%}
+
+{% if num_top3_contributors==1 %}
+  Among the {{significant_dimensions[2]}}, {{top3_contributors[0][1]}} has got the major chunk
+  of {{target}} from {{top_dimension}}, accounting for {{top3_contribution}}.
+{% elif num_top3_contributors==2 %}
+  Among the {{significant_dimensions[2]}}, {{top3_contributors[0][1]}} and {{top3_contributors[1][1]}}
+  has got the major chunk of {{target}} from {{top_dimension}}, accounting for {{top3_contribution}}.
+{% elif num_top3_contributors > 2 %}
+  Also, the top {{num_top3_contributors}} {{significant_dimensions[2]}} contribute to
+  {{top3_contribution}}% of {{target}} from {{top_dimension}}.
+{% endif %}
