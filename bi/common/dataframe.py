@@ -1,6 +1,7 @@
 from functools import reduce
 import json
 import datetime as dt
+# import dateparser
 import pandas as pd
 from datetime import datetime
 from pyspark.sql import DataFrame
@@ -457,6 +458,7 @@ class DataFrameHelper:
 
     def change_to_date(self, colname, format1):
         func = udf(lambda x: datetime.strptime(x, format1), DateType())
+        # func = udf(lambda x: dateparser.parse(x),DateType())
         #self._data_frame = self._data_frame.withColumn(colname, func(col(colname)))
         self._data_frame = self._data_frame.select(*[func(column).alias(colname) if column==colname else column for column in self._data_frame.columns])
         #return self._data_frame.collect()

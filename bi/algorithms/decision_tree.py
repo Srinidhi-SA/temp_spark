@@ -188,6 +188,8 @@ class DecisionTrees:
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self.calculate_frequencies(), self._important_vars)
         for column in all_dimensions:
+            print column
+            print '*'*140
             mapping_dict[column] = dict(enumerate(self._data_frame.select(column).distinct().rdd.map(lambda x: str(x[0])).collect()))
         # for c in mapping_dict:
         #     name = c
