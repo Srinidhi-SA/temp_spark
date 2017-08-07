@@ -6,7 +6,8 @@ from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
 
 class DecisionTreeScript:
-    def __init__(self, data_frame, df_helper,df_context, spark):
+    def __init__(self, data_frame, df_helper,df_context, spark, story_narrative):
+        self._story_narrative = story_narrative
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -22,7 +23,7 @@ class DecisionTreeScript:
         DataWriter.write_dict_as_json(self._spark, df_decision_tree_result, self._dataframe_context.get_result_file()+'DecisionTree/')
 
         #Narratives
-        narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper)
+        narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper, self._story_narrative)
         narratives = CommonUtils.as_dict(narratives_obj)
 
         # print "Narratives: %s" % (json.dumps(narratives, indent=2))

@@ -10,7 +10,8 @@ from bi.narratives import utils as NarrativesUtils
 class ChiSquareNarratives:
     print "Starting Narratives"
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
-    def __init__(self, df_helper, df_chisquare_result, df_context, data_frame):
+    def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative):
+        self._story_narrative = story_narrative
         self._data_frame = data_frame
         self._df_helper = df_helper
         self._measure_columns = df_helper.get_numeric_columns()

@@ -15,6 +15,7 @@ from datafilterhelper import DataFilterHelper
 from filtercontext import FilterContextSetter
 from context import ContextSetter
 from resultloader import ResultSetter
+from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
 
 
 # Alpha levels corresponding to (90%, 95%, 99%, 99.9%, 99.99%, 99.999%, 99.9999%, 99.99999%)
@@ -38,5 +39,6 @@ __all__ = [
     'DataFilterHelper',
     'FilterContextSetter',
     'ContextSetter',
-    'ResultSetter'
+    'ResultSetter',
+    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData'
 ]

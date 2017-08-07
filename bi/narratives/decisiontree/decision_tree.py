@@ -6,6 +6,7 @@ from bi.common.dataframe import DataFrameHelper
 from bi.common.results import DecisionTreeResult
 from bi.common.utils import accepts
 from bi.narratives import utils as NarrativesUtils
+from bi.common import NarrativesTree
 
 
 class DecisionTreeNarrative:
@@ -17,8 +18,9 @@ class DecisionTreeNarrative:
             self.new_table[keys]['rules'] = self.table[keys]
             self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
 
-    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper)
-    def __init__(self, column_name, decision_tree_rules,df_helper):
+    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree)
+    def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative):
+        self._story_narrative = story_narrative
         self._column_name = column_name.lower()
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])

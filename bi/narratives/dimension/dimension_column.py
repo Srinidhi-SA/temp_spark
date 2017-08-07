@@ -3,12 +3,13 @@ import operator
 import os
 
 from bi.narratives import utils as NarrativesUtils
-
+from bi.common import NormalCard,SummaryCard,NarrativesTree
 
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
 
-    def __init__(self, column_name, df_helper, df_context, freq_dimension_stats):
+    def __init__(self, column_name, df_helper, df_context, freq_dimension_stats,story_narrative):
+        self._story_narrative = story_narrative
         self._column_name = column_name.lower()
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
@@ -29,9 +30,11 @@ class DimensionColumnNarrative:
                 self._base_dir += "appid2/"
         self._dataframe_context = df_context
         self._dataframe_helper = df_helper
-
+        self._blockSplitter = "|~NEWBLOCK~|"
+        self._dimensionSummaryNode = NarrativesTree()
         self._generate_narratives()
-        # NarrativesUtils.round_number(num, 2)
+        self._story_narrative.add_a_node(self._dimensionSummaryNode)
+        # print json.dumps(self._story_narrative, default=lambda o: o.__dict__)
 
     def _generate_narratives(self):
         if self.appid != None:
@@ -46,10 +49,11 @@ class DimensionColumnNarrative:
         else:
             self._generate_title()
             self._generate_summary()
-            self.analysis = self._generate_analysis()
+            self._generate_analysis()
 
     def _generate_title(self):
         self.header = '%s Performance Report' % (self._capitalized_column_name,)
+        self._dimensionSummaryNode.set_name(self.header)
 
     def _generate_summary(self):
         ignored_columns = self._dataframe_context.get_ignore_column_suggestions()
@@ -67,12 +71,20 @@ class DimensionColumnNarrative:
                     "observations" : self._dataframe_helper.get_num_rows(),
                     "ignorecolumns" : ignored_columns,
                     "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns),
-                    "separator" : "~~"
+                    "blockSplitter" : self._blockSplitter
         }
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                         'dimension_report_summary.temp',data_dict)
-        self.summary = output.split(data_dict["separator"])
-        self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
+        summary = NarrativesUtils.block_splitter(output,self._blockSplitter)
+        bubble_text = "Dimensions:-"+str(data_dict["n_d"])+"Measures :-"+str(data_dict["n_m"])+"Time Dimension"+str(data_dict["n_td"])
+        print "#"*50
+        print bubble_text
+        print "#"*50
+        summary.append({"dataType":"html","data":bubble_text})
+        # self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
+        dimensionSummaryCard = SummaryCard(name="Distribution",slug=None,cardData = summary)
+        self._dimensionSummaryNode.add_a_card(dimensionSummaryCard)
+        print json.dumps(self._dimensionSummaryNode, default=lambda o: o.__dict__)
 
     def _generate_analysis(self):
         lines = []
@@ -127,10 +139,15 @@ class DimensionColumnNarrative:
             self.subheader = 'Distribution of '+self._capitalized_column_name
         output1 =  NarrativesUtils.get_template_output(self._base_dir,\
                                                 'dimension_distribution1.temp',data_dict)
+        output1 = NarrativesUtils.block_splitter(output1,self._blockSplitter)
         output2 = NarrativesUtils.get_template_output(self._base_dir,\
                                                 'dimension_distribution2.temp',data_dict)
+        output2 = NarrativesUtils.block_splitter(output2,self._blockSplitter)
         lines.append(output1)
         lines.append(output2)
+        dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
+        self._dimensionSummaryNode.add_a_card(dimensionCard1)
+        print json.dumps(self._dimensionSummaryNode, default=lambda o: o.__dict__)
         return lines
 
     def _generate_analysis2(self):
