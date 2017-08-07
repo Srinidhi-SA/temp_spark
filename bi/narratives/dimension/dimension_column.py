@@ -34,7 +34,7 @@ class DimensionColumnNarrative:
         self._dimensionSummaryNode = NarrativesTree()
         self._generate_narratives()
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
-        
+
     def _generate_narratives(self):
         if self.appid != None:
             if self.appid == "1":
@@ -79,7 +79,7 @@ class DimensionColumnNarrative:
         bubble_text = {'Dimensions':data_dict['n_d'],
                         'Measures': data_dict['n_m'],
                         'Time Dimension': data_dict['n_td']}
-        summary.append({"dataType":"html","data":bubble_text})
+        summary.append({"dataType":"bubbledata","data":bubble_text})
         # self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
         dimensionSummaryCard = SummaryCard(name="Distribution",slug=None,cardData = summary)
         self._dimensionSummaryNode.add_a_card(dimensionSummaryCard)

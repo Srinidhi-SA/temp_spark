@@ -94,8 +94,6 @@ def main(confFilePath):
         story_narrative.set_name("Dimension analysis")
         df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
-        print '!'*290
-        print CommonUtils.as_dict(story_narrative)
         if ('Descriptive analysis' in scripts_to_run):
             try:
                 fs = time.time()
@@ -184,7 +182,7 @@ def main(confFilePath):
         # f.write(data)
         # f.close()
         # print json.dumps(story_narrative, default=lambda o: o.__dict__)
-
+        # print '&'*290
         # print CommonUtils.as_dict(story_narrative)
 
     elif analysistype == 'Measure':
