@@ -106,7 +106,7 @@ if __name__ == '__main__':
             meta_helper.get_formats()
     CSV_FILE = dff_context.get_input_file()
     print "File loaded: ", CSV_FILE
-    meta_data = utils.as_dict(meta_helper)
+    meta_data = CommonUtils.as_dict(meta_helper)
     # print "Metadata: ", meta_data
     RESULT_FILE = dff_context.get_result_file()
     DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)

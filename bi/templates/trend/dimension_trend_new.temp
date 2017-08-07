@@ -1,11 +1,11 @@
 How {{target_column}} is Changing over Time
-PARAHEADER
+{{blockSplitter}}
 This section provides insights on how {{target_column}} categories are trending over time and captures the most significant moments that defined the overall pattern or trend over the observation period.
 
-PARASEPARATOR
+{{blockSplitter}}
 {% if level_index == 0 %}
   {{measure}}
-  PARAHEADER
+  {{blockSplitter}}
   {% if overall_growth >= 1 %}
     The percentage of {{measure}} <b>increased</b> from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
@@ -26,7 +26,7 @@ PARASEPARATOR
     {{measure}} for the {{durationString}} period.
   {% endif %}
 
-  PARASEPARATOR
+  {{blockSplitter}}
 
   {{measure}} category hit a peak of <b>{{peakValue}}%</b> in <b>{{peakTime}}</b>,
   when the total number of {{measure}} observations was {{max_count}}.
@@ -43,7 +43,7 @@ PARASEPARATOR
 {% elif level_index == 1%}
 
   {{measure}}
-  PARAHEADER
+  {{blockSplitter}}
   {% if overall_growth >= 0 and overall_growth <= 5 %}
     There was a moderate <b>increase</b> in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
@@ -70,7 +70,7 @@ PARASEPARATOR
     {{measure}} for the {{durationString}} period.
   {% endif %}
 
-  PARASEPARATOR
+  {{blockSplitter}}
 
   The percentage of {{measure}} hit a peak of {{peakValue}}% in {{peakTime}},
   when the total number of {{measure}} observations was {{max_count}}.

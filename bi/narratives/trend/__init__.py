@@ -5,6 +5,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from bi.narratives import utils as NarrativesUtils
+from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
+
 from trend_narratives import TrendNarrative
 
 from pyspark.sql.functions import col, udf, max
@@ -15,7 +17,8 @@ from pyspark.sql.functions import monotonically_increasing_id
 
 
 class TimeSeriesNarrative:
-    def __init__(self, df_helper, df_context, result_setter, spark):
+    def __init__(self, df_helper, df_context, result_setter, spark, story_narrative):
+        self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._dataframe_helper = df_helper
         self._data_frame = df_helper.get_data_frame()
@@ -34,6 +37,7 @@ class TimeSeriesNarrative:
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
+        self._blockSplitter = "|~NEWBLOCK~|"
 
 
         if self._date_suggestion_columns != None:
@@ -310,8 +314,7 @@ class TimeSeriesNarrative:
 
         elif self._analysistype == "Dimension":
             self.narratives = {
-                               "card0":{},
-                               "card1":{}
+                               "card0":{}
                                }
             if self._date_suggestion_columns != None:
                 if self._dateFormatDetected:
@@ -319,8 +322,10 @@ class TimeSeriesNarrative:
                     level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
                     level_count_df_rows =  level_count_df.collect()
                     top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
-                    all_paragraphs = []
+                    cardData = []
                     chart_data = {}
+                    cardData1 = []
+                    c3_chart = {"dataType":"c3Chart","data":{}}
                     if self._dataLevel == "day":
                         overall_count = self._data_frame.groupBy("suggestedDate").agg({ self._result_column : 'count'})
                         overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
@@ -386,16 +391,18 @@ class TimeSeriesNarrative:
                         if dimensionCount != None:
                             dataDict.update(dimensionCount)
 
-                        dataDict.update({"level_index":idx})
-                        self._result_setter.update_executive_summary_data(dataDict)
-                        summary1 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'dimension_trend_v1.temp',dataDict)
+                        dataDict.update({"level_index":idx,"blockSplitter":self._blockSplitter})
 
-                        paragraphs = NarrativesUtils.paragraph_splitter(summary1)
+
+                        self._result_setter.update_executive_summary_data(dataDict)
+                        trendStory = NarrativesUtils.get_template_output(self._base_dir,\
+                                                                        'dimension_trend_new.temp',dataDict)
+                        blocks = NarrativesUtils.block_splitter(trendStory,self._blockSplitter)
+
                         if idx != 0:
-                            all_paragraphs += paragraphs[1:]
+                            cardData1 += blocks[1:]
                         else:
-                            all_paragraphs += paragraphs
+                            cardData1 += blocks
 
                         trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
@@ -405,12 +412,25 @@ class TimeSeriesNarrative:
                         elif self._dataLevel == "month":
                             card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
                         chart_data[level] = card1chartdata
-                    self.narratives["card0"]["paragraphs"] = all_paragraphs
+
                     labels = {"y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
-                    self.narratives["card0"]["chart"] = {"data":chart_data,"format":"%b-%y",
-                                                        "label":labels,
-                                                        "label_text":{"x":"Time Duration","y":"Percentage of "+labels["y"],"y2":"Percentage of "+labels["y2"]}}
-                    print json.dumps(self.narratives,indent=2)
+                    c3Chart = {
+                               "data":chart_data,
+                               "format":"%b-%y",
+                               "label":labels,
+                               "label_text":{
+                                             "x":"Time Duration",
+                                             "y":"Percentage of "+labels["y"],
+                                             "y2":"Percentage of "+labels["y2"]
+                                             }
+                               }
+
+
+                    c3_chart["data"] = c3Chart
+                    cardData1.insert(1,c3_chart)
+                    trendCard = NormalCard(name="Trend",slug=None,cardData = cardData1)
+                    trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
+                    self._story_narrative.add_a_node(trendStoryNode)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"
@@ -429,6 +449,9 @@ class TimeSeriesNarrative:
 
     def get_regression_trend_card_data(self):
         return self._regression_trend_card
+
+    def get_story_narrative(self):
+        return self._story_narrative
 
 __all__ = [
     'TrendNarrative',

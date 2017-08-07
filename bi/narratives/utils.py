@@ -12,7 +12,6 @@ import pandas as pd
 import pattern
 from datetime import datetime
 
-
 # def round_number(num, digits=2, as_string=True):
 #     millions = 0
 #     thousands = 0
@@ -75,6 +74,13 @@ def paragraph_splitter(summary):
             else:
                 temp["content"] = [val]
             output.append(temp)
+    return output
+
+def block_splitter(summary,blockSeparator):
+    output = []
+    paragraphs = summary.split(blockSeparator)
+    for val in paragraphs:
+        output.append({"dataType":"html","data":val})
     return output
 
 def clean_narratives(output):

@@ -1,5 +1,6 @@
 import sys
 import time
+import json
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -11,6 +12,9 @@ from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import ContextSetter
 from bi.common import ResultSetter
+from bi.common import NarrativesTree
+
+from bi.algorithms import utils as MLUtils
 
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -27,7 +31,6 @@ from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 from bi.scripts.executive_summary import ExecutiveSummaryScript
-from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
 
@@ -81,20 +84,21 @@ def main(confFilePath):
     dimension_columns = df_helper.get_string_columns()
     #Initializing the result_setter
     result_setter = ResultSetter(df,dataframe_context)
-
+    story_narrative = NarrativesTree()
     data_load_time = time.time() - start_time
     script_start_time = time.time()
 
 
     if analysistype == 'Dimension':
         print "STARTING DIMENSION ANALYSIS ..."
+        story_narrative.set_name("Dimension analysis")
         df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
 
         if ('Descriptive analysis' in scripts_to_run):
             try:
                 fs = time.time()
-                freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark)
+                freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative)
                 freq_obj.Run()
                 print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
                 send_message_API(monitor_api, "FrequencyAnalysis", "FrequencyAnalysis Done", True, 100)
@@ -111,7 +115,7 @@ def main(confFilePath):
         if ('Dimension vs. Dimension' in scripts_to_run):
             try:
                 fs = time.time()
-                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
+                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative)
                 chisquare_obj.Run()
                 print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
@@ -133,7 +137,7 @@ def main(confFilePath):
                     df_helper.drop_ignore_columns()
                 df_helper.fill_na_dimension_nulls()
                 df = df_helper.get_data_frame()
-                decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark)
+                decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative)
                 decision_tree_obj.Run()
                 print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "DecisionTrees", "DecisionTrees Done", True, 100)
@@ -149,7 +153,7 @@ def main(confFilePath):
 
         try:
             fs = time.time()
-            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark)
+            trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
             trend_obj.Run()
             print "Trend Analysis Done in ", time.time() - fs, " seconds."
             send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
@@ -161,6 +165,26 @@ def main(confFilePath):
             print "#####ERROR#####"*5
             print e
             print "#####ERROR#####"*5
+
+        print "MASTER Node"
+        print story_narrative
+
+        print "NAME",story_narrative.get_name()
+        print "Nodes",story_narrative.get_all_nodes()
+        for n in story_narrative.get_all_nodes():
+            print "Printing Nodes"
+            print n.get_name()
+            print n.get_all_cards()
+
+        print "GGSDAAS"
+        import cPickle
+        data = cPickle.dumps(story_narrative)
+        f = open("/home/gulshan/Desktop/circular","w")
+        f.write(data)
+        f.close()
+        print json.dumps(story_narrative, default=lambda o: o.__dict__)
+
+        # print CommonUtils.as_dict(story_narrative)
 
     elif analysistype == 'Measure':
         print "STARTING MEASURE ANALYSIS ..."

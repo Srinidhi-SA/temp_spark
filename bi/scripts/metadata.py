@@ -34,7 +34,7 @@ def main(inputPath,resultPath):
     if meta_helper.has_date_suggestions():
         meta_helper.get_formats()
     print "File loaded: ", CSV_FILE
-    meta_data = utils.as_dict(meta_helper)
+    meta_data = CommonUtils.as_dict(meta_helper)
     meta_data = json.dumps(meta_data)
     # print  meta_data
     print '-'*20
