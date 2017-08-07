@@ -34,8 +34,7 @@ class DimensionColumnNarrative:
         self._dimensionSummaryNode = NarrativesTree()
         self._generate_narratives()
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
-        # print json.dumps(self._story_narrative, default=lambda o: o.__dict__)
-
+        
     def _generate_narratives(self):
         if self.appid != None:
             if self.appid == "1":
@@ -76,15 +75,14 @@ class DimensionColumnNarrative:
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                         'dimension_report_summary.temp',data_dict)
         summary = NarrativesUtils.block_splitter(output,self._blockSplitter)
-        bubble_text = "Dimensions:-"+str(data_dict["n_d"])+"Measures :-"+str(data_dict["n_m"])+"Time Dimension"+str(data_dict["n_td"])
-        print "#"*50
-        print bubble_text
-        print "#"*50
+        # bubble_text = "Dimensions:-"+str(data_dict["n_d"])+"Measures :-"+str(data_dict["n_m"])+"Time Dimension : "+str(data_dict["n_td"])
+        bubble_text = {'Dimensions':data_dict['n_d'],
+                        'Measures': data_dict['n_m'],
+                        'Time Dimension': data_dict['n_td']}
         summary.append({"dataType":"html","data":bubble_text})
         # self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
         dimensionSummaryCard = SummaryCard(name="Distribution",slug=None,cardData = summary)
         self._dimensionSummaryNode.add_a_card(dimensionSummaryCard)
-        print json.dumps(self._dimensionSummaryNode, default=lambda o: o.__dict__)
 
     def _generate_analysis(self):
         lines = []
@@ -148,7 +146,6 @@ class DimensionColumnNarrative:
         lines.append(output2)
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)
-        print json.dumps(self._dimensionSummaryNode, default=lambda o: o.__dict__)
         return lines
 
     def _generate_analysis2(self):

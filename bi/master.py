@@ -94,7 +94,8 @@ def main(confFilePath):
         story_narrative.set_name("Dimension analysis")
         df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
-
+        print '!'*290
+        print CommonUtils.as_dict(story_narrative)
         if ('Descriptive analysis' in scripts_to_run):
             try:
                 fs = time.time()
@@ -176,13 +177,13 @@ def main(confFilePath):
             print n.get_name()
             print n.get_all_cards()
 
-        print "GGSDAAS"
-        import cPickle
-        data = cPickle.dumps(story_narrative)
-        f = open("/home/gulshan/Desktop/circular","w")
-        f.write(data)
-        f.close()
-        print json.dumps(story_narrative, default=lambda o: o.__dict__)
+        # print "GGSDAAS"
+        # import cPickle
+        # data = cPickle.dumps(story_narrative)
+        # f = open("/home/hadoop/circular","w")
+        # f.write(data)
+        # f.close()
+        # print json.dumps(story_narrative, default=lambda o: o.__dict__)
 
         # print CommonUtils.as_dict(story_narrative)
 
