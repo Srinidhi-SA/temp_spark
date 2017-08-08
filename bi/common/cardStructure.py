@@ -16,8 +16,8 @@ class NarrativesTree:
     """
 
     def __init__(self,name=None, slug=None, listOfNodes=[], listOfCards=[]):
-        self.name = str(name)
-        self.slug = str(slug)
+        self.name = '' if name==None else str(name)
+        self.slug = '' if slug==None else str(slug)
         self.listOfNodes = list(listOfNodes)
         self.listOfCards = list(listOfCards)
 
