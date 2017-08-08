@@ -61,14 +61,16 @@ class OneWayAnovaNarratives:
         self.card1 = ''
         self.card2 = ''
         self.card3 = ''
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anovas/"
+        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
         self._generate_narratives()
 
     def _generate_narratives(self):
+        self._card3_required = False
         self._generate_card1()
         if self._trend_result != '':
             self._generate_card2()
-            self._generate_card3()
+            if self._card3_required:
+                self._generate_card3()
 
     def _generate_title(self):
         self.title = 'Impact of %s on %s' % (self._dimension_column_capitalized, self._measure_column_capitalized)
@@ -80,6 +82,10 @@ class OneWayAnovaNarratives:
         totals = dim_table['total']
         means = dim_table['means']
         counts = dim_table['counts']
+
+        if len(keys)>=5:
+            self._card3_required=True
+
 
         group_by_total = {}
         group_by_mean = {}
@@ -99,14 +105,14 @@ class OneWayAnovaNarratives:
         avg_top_group_by_total = means[totals.index(max(totals))]
         bubble1 = BubbleData(NarrativesUtils.round_number(sum_top_group_by_total,1),
                             top_group_by_total + ' is the largest contributor to ' + self._measure_column)
-        self.card1.add_bubble_data(bubble1)
+        # self.card1.add_bubble_data(bubble1)
 
         top_group_by_mean = keys[means.index(max(means))]
         sum_top_group_by_mean = totals[means.index(max(means))]
         avg_top_group_by_mean = max(means)
         bubble2 = BubbleData(NarrativesUtils.round_number(avg_top_group_by_mean,1),
                             top_group_by_mean + ' has the highest average ' + self._measure_column)
-        self.card1.add_bubble_data(bubble2)
+        # self.card1.add_bubble_data(bubble2)
 
         groups_by_total = sorted(zip(totals,keys), reverse=True)
         sum_total = sum(totals)
@@ -136,7 +142,7 @@ class OneWayAnovaNarratives:
             top_groups_contribution = sum(sorted_total[:max_diff_index+1])*100/sum_total
             bottom_groups = []
             bottom_groups_contribution = 0
-            for t,k in groups_by_total[::-1]:
+            for t,k in groups_by_total[:0:-1]:
                 bottom_groups.append(k)
                 bottom_groups_contribution = bottom_groups_contribution + t
                 if bottom_groups_contribution >= five_percent_total:
@@ -229,7 +235,7 @@ class OneWayAnovaNarratives:
         return '',0.0
 
     def _generate_card2(self):
-        self.card2 = Card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
+        # self.card2 = Card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
         subset_data_frame = self._trend_result.get_subset_data(self._dimension_column)
         agg_data_frame = self._trend_result.get_data_frame()
         total_measure = 'Total '+ self._measure_column_capitalized
@@ -250,7 +256,8 @@ class OneWayAnovaNarratives:
                 [subset_measure] + list(inner_join[subset_measure])]
         chart1 = chart(data = data)
         chart1.add_data_c3(data_c3)
-        self.card2.add_chart('trend_chart',chart1)
+        # self.card2.add_chart('trend_chart',chart1)
+        self.card1.add_chart('trend_chart',chart1)
 
         overall_increase_percent = (agg_data_frame[total_measure].iloc[-1]*100/agg_data_frame[total_measure].iloc[0]) - 100
         subset_increase_percent = (subset_data_frame[subset_measure].iloc[-1]*100/subset_data_frame[subset_measure].iloc[0]) - 100
@@ -323,9 +330,10 @@ class OneWayAnovaNarratives:
         output = {}
         output['header'] = ''
         output['content'] = []
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.temp',data_dict))
-        self.card2.add_paragraph(output)
-        self.generate_trending_comments()
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6_new.temp',data_dict))
+        # self.card2.add_paragraph(output)
+        self.card1.add_paragraph(output)
+        # self.generate_trending_comments()
 
     def generate_trending_comments(self):
         grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
@@ -360,7 +368,7 @@ class OneWayAnovaNarratives:
         output = {'header' : '',
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_7.temp',data_dict))
-        self.card2.add_paragraph(output)
+        # self.card2.add_paragraph(output)
 
     def streaks(self, df, col):
         sign = np.sign(df[col])
@@ -386,8 +394,8 @@ class OneWayAnovaNarratives:
         grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
         grouped_data_frame['increase'] = (grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100/grouped_data_frame['measure']['first']
         grouped_data_frame['contribution'] = grouped_data_frame['measure']['sum']*100/sum(grouped_data_frame['measure']['sum'])
-        self._contribution_limit = grouped_data_frame['contribution'].median()
-        self._increase_limit = max(0.0, grouped_data_frame['increase'].median())
+        self._contribution_limit = grouped_data_frame['contribution'].mean()
+        self._increase_limit = max(0.0, grouped_data_frame['increase'].mean())
         grouped_data_frame['category'] = grouped_data_frame.apply(self.get_category, axis=1)
         data = {
                       'Share of '+self._measure_column : list(grouped_data_frame['contribution']),

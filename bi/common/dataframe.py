@@ -440,6 +440,9 @@ class DataFrameHelper:
                     break
                 except ValueError as err:
                     pass
+        print '^'*290
+        print self.date_time_suggestions
+        print '^'*290
 
     def has_date_suggestions(self):
         if len(self.date_time_suggestions)>0:
