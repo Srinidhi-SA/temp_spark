@@ -6,12 +6,14 @@ from bi.common.utils import accepts
 from chisquare import ChiSquareAnalysis
 from chisquare_app2 import ChiSquareAnalysisApp2
 from bi.narratives import utils as NarrativesUtils
+from bi.common import NormalCard,SummaryCard,NarrativesTree
 
 class ChiSquareNarratives:
     print "Starting Narratives"
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
     def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative):
         self._story_narrative = story_narrative
+        self._blockSplitter = "|~NEWBLOCK~|"
         self._data_frame = data_frame
         self._df_helper = df_helper
         self._measure_columns = df_helper.get_numeric_columns()
@@ -29,7 +31,8 @@ class ChiSquareNarratives:
         self._generate_narratives()
 
     def _generate_narratives(self):
-
+        chiSquareNode = NarrativesTree()
+        chiSquareNode.set_name("Chi-Square")
         for target_dimension in self._df_chisquare_result.keys():
 
             target_chisquare_result = self._df_chisquare_result[target_dimension]
@@ -49,7 +52,8 @@ class ChiSquareNarratives:
                           'num_significant_variables' : num_significant_variables,
                           'significant_variables' : significant_variables,
                           'target' : target_dimension,
-                          'analysed_dimensions': analysed_variables
+                          'analysed_dimensions': analysed_variables,
+                          'blockSplitter':self._blockSplitter
             } # for both para 1 and para 2
             paragraph={}
             paragraph['header'] = ''
@@ -62,6 +66,21 @@ class ChiSquareNarratives:
             chart['label_text']={'x':'Dimensions',
                                 'y':'Effect Size (Cramers-V)'}
             self.narratives['main_card']['chart']=chart
+
+
+            main_card = NormalCard()
+            header = "Strength of association between "+target_dimension+" and other dimensions"
+            main_card_data = [{"dataType":"html","data":header}]
+            main_card_data.append({"dataType":"c3Chart","data":chart})
+            main_card_data.append({"dataType":"html","data":NarrativesUtils.get_template_output(self._base_dir,'main_card.temp',data_dict)})
+
+            main_card.set_card_data(main_card_data)
+            main_card.set_card_name("main_card")
+
+            dimensionNode = NarrativesTree()
+            dimensionNode.add_a_card(main_card)
+            dimensionNode.set_name(target_dimension)
+
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
             for analysed_dimension in significant_variables:
@@ -73,5 +92,7 @@ class ChiSquareNarratives:
                     self.narratives['cards'].append(card)
 
                 else:
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
+                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result,dimensionNode)
                     self.narratives['cards'].append(card)
+                    chiSquareNode.add_a_node(card.get_dimension_node)
+        self._story_narrative.add_a_node(chiSquareNode)

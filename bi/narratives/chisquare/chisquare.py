@@ -4,10 +4,14 @@ import random
 import numpy
 from pyspark.sql.functions import col
 from bi.narratives import utils as NarrativesUtils
+from bi.common import NormalCard,SummaryCard,NarrativesTree
+
 
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None,target_chisquare_result=None):
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None,target_chisquare_result=None,dimensionNode = None):
+        self._blockSplitter = "|~NEWBLOCK~|"
+        self._dimensionNode = dimensionNode
         self._data_frame = data_frame
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
@@ -29,11 +33,13 @@ class ChiSquareAnalysis:
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
 
-        self.card1 = {}
-        # self.card0 = {}
-        self.card2 = {}
-        self.card4 = {}
-        # self.card3 = {}
+        # self.card1 = {}
+        # self.card2 = {}
+        # self.card4 = {}
+
+        self.card1 = NormalCard()
+        self.card2 = NormalCard()
+        self.card4 = NormalCard()
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
         if appid != None:
@@ -43,6 +49,10 @@ class ChiSquareAnalysis:
             elif self._appid == "2":
                 self._base_dir += "appid2/"
         self._generate_narratives()
+        self._dimensionNode.add_cards([self.card1,self.card2,self.card4])
+
+    def get_dimension_node(self):
+        return self._dimensionNode
 
     def _generate_narratives(self):
         chisquare_result = self._chisquare_result
@@ -198,13 +208,19 @@ class ChiSquareAnalysis:
         data_dict['worst_top_target'] = levels[worst_top_target_index]
         data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/sum(top_target_contributions),2)
 
+        data_dict["blockSplitter"] = self._blockSplitter
+        output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict),self._blockSplitter)
+        card1Data = []
+        card1Heading = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
+        card1Data.append({"dataType":"html","data":card1Heading})
+        card1Data += output
+        card1Table = {"dataType":"html","data":self._table}
+        card1Chart =  {"dataType":"c3Chart","data":self.generate_card1_chart()}
+        card1Data.append(card1Table)
+        card1Data.append(card1Chart)
+        self.card1.set_card_data(card1Data)
+        self.card1.set_card_name("chi-Square")
 
-        output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
-        self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
-        self.card1['paragraphs'] = output
-        self.card1['chart']=[]
-        self.card1['heat_map']=self._table
-        self.generate_card1_chart()
         self._key_factors_contributions = {}
         # for key_dim in self._second_level_dimensions:
         #     key_dim_table = self._target_chisquare_result[key_dim].contingency_table
@@ -326,20 +342,29 @@ class ChiSquareAnalysis:
         data_dict['random_card4'] = random.randint(1,100)
         # print data_dict['distribution_second']
         # print data_dict['random_card2']
-
-        self.card2['heading']='Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
+        card2Data = []
+        card2Heading = 'Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
         chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
-        self.card2['chart'] = chart
-        self.card2['bubble_data'] = bubble
-        output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict))
-        self.card2['paragraphs'] = output2
 
-        self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
+        output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict),self._blockSplitter)
+        card2Data.append({"dataType":"html","data":card2Heading})
+        card2Data.append({"dataType":"c3Chart","data":chart})
+        card2Data.append({"dataType":"html","data":bubble})
+        card2Data += output2
+        self.card2.set_card_data(card2Data)
+        self.card2.set_card_name("chi-Square")
+
+        card4Data = []
+        card4Heading ='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
         chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
-        self.card4['chart'] = chart
-        self.card4['bubble_data'] = bubble
-        output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
-        self.card4['paragraphs'] = output4
+        output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict),self._blockSplitter)
+
+        card4Data.append({"dataType":"html","data":card4Heading})
+        card4Data.append({"dataType":"c3Chart","data":chart})
+        card4Data.append({"dataType":"html","data":bubble})
+        card4Data += output4
+        self.card4.set_card_data(card4Data)
+        self.card4.set_card_name("chi-Square")
 
         # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
         # self.card0['paragraphs'] = output0
@@ -414,8 +439,10 @@ class ChiSquareAnalysis:
             data.append(dict_)
             data1.append(data2)
 
-        self.card1['chart']={'header':header,
-                            'header1':header1,
-                            'data':data,
-                            'label':self._analysed_dimension,
-                            'data1':data1}
+        out = { 'header':header,
+                'header1':header1,
+                'data':data,
+                'label':self._analysed_dimension,
+                'data1':data1
+              }
+        return out
