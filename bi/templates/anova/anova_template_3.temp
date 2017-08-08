@@ -38,7 +38,3 @@
     {% endif %}
   {% endif %}
 {% endif %}
-{% if num_groups > 3 %}
-  Interestingly, the effect of {{dimension_name}} on {{measure_name}} is significant, as the average
-  {{measure_name}} seems to be different across various cities.
-{% endif %}

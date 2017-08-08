@@ -136,7 +136,7 @@ class OneWayAnovaNarratives:
             top_groups_contribution = sum(sorted_total[:max_diff_index+1])*100/sum_total
             bottom_groups = []
             bottom_groups_contribution = 0
-            for t,k in groups_by_total[::-1]:
+            for t,k in groups_by_total[:0:-1]:
                 bottom_groups.append(k)
                 bottom_groups_contribution = bottom_groups_contribution + t
                 if bottom_groups_contribution >= five_percent_total:

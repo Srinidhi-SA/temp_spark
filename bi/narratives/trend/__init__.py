@@ -119,6 +119,8 @@ class TimeSeriesNarrative:
             print self._duration
             print self._dataLevel
             print self._durationString
+            print self._existingDateFormat
+
             if self._td_columns != None:
                 if self._date_suggestion_columns == None:
                     self._date_suggestion_columns = self._td_columns
