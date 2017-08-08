@@ -422,7 +422,8 @@ class DataFrameHelper:
         dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
 
         for dims in self.string_columns:
-            row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+            # row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+            row_vals = self._data_frame.select(dims).na.drop().distinct().collect()
             x = row_vals[0][dims]
             for format1 in formats:
                 try:
