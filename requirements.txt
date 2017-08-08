@@ -8,7 +8,7 @@ statistics==1.0.3.5
 xgboost==0.6a2
 requests==2.17.3
 Jinja2==2.9.6
-Pattern==2.6
+pattern==2.6
 pyenchant==1.6.8
-python-dateutil(2.6.0)
+python-dateutil==2.6.0
 humanize==0.5.1
