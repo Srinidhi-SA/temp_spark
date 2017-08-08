@@ -126,7 +126,6 @@ class TimeSeriesNarrative:
                     self._date_suggestion_columns += self._td_columns
 
         if self._trend_subsection=="regression":
-            self._startMeasureTrend = False
             if self._date_suggestion_columns != None:
                 if self._dateFormatDetected:
                     trend_subsection_data = self._result_setter.get_trend_section_data()
@@ -167,16 +166,14 @@ class TimeSeriesNarrative:
                     card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
                     card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
                     self.set_regression_trend_card_data(card2)
-                    self._startMeasureTrend = True
                 else:
-                    self._startMeasureTrend = True
                     print "NO DATE FORMAT DETECTED"
             else:
-                self._startMeasureTrend = True
                 print "NO DATE COLUMNS PRESENT"
 
 
         if self._analysistype=="Measure":
+            self._startMeasureTrend = self._result_setter.get_trend_section_completion_status()
             if self._startMeasureTrend == True:
                 self.narratives = {"SectionHeading":"",
                                    "card1":{},
