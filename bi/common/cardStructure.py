@@ -62,7 +62,7 @@ class NormalCard:
         self.cardType = "normal"
         self.name = name
         self.slug = slug
-        self.cardData = cardData
+        self.cardData = list(cardData)
 
     def set_card_data(self,data):
         self.cardData = data

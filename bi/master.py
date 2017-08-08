@@ -166,22 +166,6 @@ def main(confFilePath):
             print e
             print "#####ERROR#####"*5
 
-        print "MASTER Node"
-        print story_narrative
-
-        print "NAME",story_narrative.get_name()
-        print "Nodes",story_narrative.get_all_nodes()
-        for n in story_narrative.get_all_nodes():
-            print "Printing Nodes"
-            print n.get_name()
-            print n.get_all_cards()
-
-        print "GGSDAAS"
-        import cPickle
-        data = cPickle.dumps(story_narrative)
-        f = open("/home/gulshan/Desktop/circular","w")
-        f.write(data)
-        f.close()
         print json.dumps(story_narrative, default=lambda o: o.__dict__)
 
         # print CommonUtils.as_dict(story_narrative)

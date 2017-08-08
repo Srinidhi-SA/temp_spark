@@ -21,9 +21,9 @@
   The segment {{worst_top_target}} contributes to just {{worst_top_target_percent|round(1)}}% of the total {{top_target}}.
 {% endif %}
 {% if num_key_factors > 0 %}
-  PARASEPARATOR
+  blockSplitter
   Key Factors influencing {{top_target}} from {{top_target_top_dims[0]}}
-  PARAHEADER
+  blockSplitter
   {% if random_card2%3 == 0 %}
     High concentration of {{top_target}} from segment {{top_target_top_dims[0]}} is characterized by the influence of
     key dimensions, such as {{key_factors}}. Certain specific segments from those factors are more likely to
@@ -38,7 +38,7 @@
     {% endif %}
     the most important factors that describe the concentration of {{top_target}} from segment {{top_target_top_dims[0]}} Value category.
   {% endif %}
-  PARASEPARATOR
+  blockSplitter
   <ul>
   {% for dim in distribution_top %}
     {% if dim['levels'] | length == 1 %}

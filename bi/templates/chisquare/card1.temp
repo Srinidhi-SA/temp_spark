@@ -1,6 +1,6 @@
 Overview
 
-PARAHEADER
+{{blockSplitter}}
 
 {% if num_significant == 1 %}
   {{colname}} is <b>the only significant influencer</b> of {{target}} and displays significant variation
@@ -37,9 +37,9 @@ PARAHEADER
   {% endif %}
 {% endif %}
 
-PARASEPARATOR
+{{blockSplitter}}
 Key segments of {{second_target}}
-PARAHEADER
+{{blockSplitter}}
 The <b>percentage of {{second_target}}</b> is the <b>
 {% if worst_second_share | length == 1 %}
   lowest for the segment {{levels[worst_second_share[0]]}}</b> ({{second_target_shares[worst_second_share[0]] | round(1)}}%).
@@ -117,9 +117,9 @@ higher than the overall {{second_target}} rate.
   {% endif %}
 {% endif %}
 
-PARASEPARATOR
+{{blockSplitter}}
 Key segments of {{top_target}}
-PARAHEADER
+{{blockSplitter}}
 When it comes to <b>{{top_target}},
 {% if worst_top_share | length == 1 %}
   segment {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant segment</b> since only {{top_target_shares[worst_top_share[0]] | round(1)}}%

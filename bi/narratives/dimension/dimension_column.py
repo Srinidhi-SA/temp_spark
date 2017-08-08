@@ -147,7 +147,6 @@ class DimensionColumnNarrative:
         lines.append(output2)
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)
-        print json.dumps(self._dimensionSummaryNode, default=lambda o: o.__dict__)
         return lines
 
     def _generate_analysis2(self):
