@@ -98,7 +98,7 @@ celerybeat-schedule
 .venv/
 venv/
 ENV/
-
+myenv/
 # Spyder project settings
 .spyderproject
 
@@ -111,3 +111,5 @@ metastore_db/*
 #configs/config.cfg
 
 .idea/
+
+test/output/
