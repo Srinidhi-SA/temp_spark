@@ -246,9 +246,10 @@ class TimeSeriesNarrative:
                         self.narratives["card1"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary1)
                         self.narratives["card1"]["bubbleData"] = dataDict["bubbleData"]
                         self.narratives["card1"]["chart"] = ""
-                        self.narratives["card2"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary2)
-                        self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
-                        self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
+                        self.narratives["card1"]["paragraphs"]=self.narratives["card1"]["paragraphs"]+summary2[:2]
+                        # self.narratives["card2"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary2)
+                        # self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
+                        # self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
 
                         # grouped_data["key"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
                         # trend_chart_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
@@ -294,8 +295,8 @@ class TimeSeriesNarrative:
                         self._result_setter.update_executive_summary_data(forecastDataDict)
                         summary3 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'trend_narrative_card3.temp',forecastDataDict)
-                        self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
-                        self.narratives["card3"]["chart"] = {"data":prediction_data,"format":"%b-%y"}
+                        # self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
+                        # self.narratives["card3"]["chart"] = {"data":prediction_data,"format":"%b-%y"}
                         print json.dumps(self.narratives,indent=2)
 
                     else:
