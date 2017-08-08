@@ -11,6 +11,7 @@ class ResultSetter:
         self.executiveSummaryDataDict = {}
         self.trend_subsection_name = None
         self.trend_subsection_data = None
+        self.trend_subsection_complete = False
 
     # def set_params(self):
     #     self.columns = [field.name for field in self._data_frame.schema.fields]
@@ -26,6 +27,9 @@ class ResultSetter:
     def set_trend_section_name(self,name):
         self.trend_subsection_name = name
 
+    def set_trend_section_completion_status(self,status):
+        self.trend_subsection_complete = status
+
     def get_trend_section_name(self):
         return self.trend_subsection_name
 
@@ -34,3 +38,6 @@ class ResultSetter:
 
     def get_trend_section_data(self):
         return self.trend_subsection_data
+
+    def get_trend_section_completion_status(self):
+        return self.trend_subsection_complete

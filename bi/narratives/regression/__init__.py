@@ -120,7 +120,7 @@ class RegressionNarrative:
                 card4data.pop("charts")
                 self._result_setter.update_executive_summary_data(card4data)
             count += 1
-
+        self._result_setter.set_trend_section_completion_status(True)
 
 
     def run_regression_for_dimension_levels(self):
