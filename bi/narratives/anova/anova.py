@@ -59,7 +59,7 @@ class OneWayAnovaNarratives:
         self._trend_result = trend_result
         # self.effect_size = anova_result.get_effect_size()
         self.card1 = ''
-        # self.card2 = ''
+        self.card2 = ''
         self.card3 = ''
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
         self._generate_narratives()
@@ -105,14 +105,14 @@ class OneWayAnovaNarratives:
         avg_top_group_by_total = means[totals.index(max(totals))]
         bubble1 = BubbleData(NarrativesUtils.round_number(sum_top_group_by_total,1),
                             top_group_by_total + ' is the largest contributor to ' + self._measure_column)
-        self.card1.add_bubble_data(bubble1)
+        # self.card1.add_bubble_data(bubble1)
 
         top_group_by_mean = keys[means.index(max(means))]
         sum_top_group_by_mean = totals[means.index(max(means))]
         avg_top_group_by_mean = max(means)
         bubble2 = BubbleData(NarrativesUtils.round_number(avg_top_group_by_mean,1),
                             top_group_by_mean + ' has the highest average ' + self._measure_column)
-        self.card1.add_bubble_data(bubble2)
+        # self.card1.add_bubble_data(bubble2)
 
         groups_by_total = sorted(zip(totals,keys), reverse=True)
         sum_total = sum(totals)
