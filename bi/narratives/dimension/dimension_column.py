@@ -52,7 +52,7 @@ class DimensionColumnNarrative:
 
     def _generate_title(self):
         self.header = '%s Performance Report' % (self._capitalized_column_name,)
-        self._dimensionSummaryNode.set_name(self.header)
+        # self._dimensionSummaryNode.set_name(self.header)
 
     def _generate_summary(self):
         ignored_columns = self._dataframe_context.get_ignore_column_suggestions()
@@ -81,8 +81,8 @@ class DimensionColumnNarrative:
                         'Time Dimension': data_dict['n_td']}
         summary.append({"dataType":"bubbledata","data":bubble_text})
         # self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
-        dimensionSummaryCard = SummaryCard(name="Distribution",slug=None,cardData = summary)
-        self._dimensionSummaryNode.add_a_card(dimensionSummaryCard)
+        dimensionSummaryCard = SummaryCard(name=self.header,slug=None,cardData = summary)
+        self._story_narrative.add_a_card(dimensionSummaryCard)
 
     def _generate_analysis(self):
         lines = []
@@ -146,6 +146,7 @@ class DimensionColumnNarrative:
         lines.append(output2)
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)
+        self._dimensionSummaryNode.set_name("Summary")
         return lines
 
     def _generate_analysis2(self):

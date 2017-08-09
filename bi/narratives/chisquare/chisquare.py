@@ -33,10 +33,6 @@ class ChiSquareAnalysis:
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
 
-        # self.card1 = {}
-        # self.card2 = {}
-        # self.card4 = {}
-
         self.card1 = NormalCard()
         self.card2 = NormalCard()
         self.card4 = NormalCard()
@@ -219,7 +215,7 @@ class ChiSquareAnalysis:
         card1Data.append(card1Table)
         card1Data.append(card1Chart)
         self.card1.set_card_data(card1Data)
-        self.card1.set_card_name("chi-Square")
+        self.card1.set_card_name(self._analysed_dimension)
 
         self._key_factors_contributions = {}
         # for key_dim in self._second_level_dimensions:
@@ -352,7 +348,7 @@ class ChiSquareAnalysis:
         card2Data.append({"dataType":"html","data":bubble})
         card2Data += output2
         self.card2.set_card_data(card2Data)
-        self.card2.set_card_name("chi-Square")
+        self.card2.set_card_name(self._analysed_dimension)
 
         card4Data = []
         card4Heading ='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
@@ -364,7 +360,7 @@ class ChiSquareAnalysis:
         card4Data.append({"dataType":"html","data":bubble})
         card4Data += output4
         self.card4.set_card_data(card4Data)
-        self.card4.set_card_name("chi-Square")
+        self.card4.set_card_name(self._analysed_dimension)
 
         # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
         # self.card0['paragraphs'] = output0
