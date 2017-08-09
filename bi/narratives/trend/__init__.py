@@ -246,7 +246,7 @@ class TimeSeriesNarrative:
                         self.narratives["card1"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary1)
                         self.narratives["card1"]["bubbleData"] = dataDict["bubbleData"]
                         self.narratives["card1"]["chart"] = ""
-                        self.narratives["card1"]["paragraphs"]=self.narratives["card1"]["paragraphs"]+summary2[:2]
+                        self.narratives["card1"]["paragraphs"]=self.narratives["card1"]["paragraphs"]+ NarrativesUtils.paragraph_splitter(summary2)[:2]
                         # self.narratives["card2"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary2)
                         # self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
                         # self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
