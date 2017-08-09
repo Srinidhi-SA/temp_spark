@@ -226,8 +226,8 @@ class TrendNarrative:
         data_dict["durationString"] = durationString
         data_dict['target'] = result_column
         data_dict['measure'] = measure_column
-        data_dict['total_measure'] = agg_data[measure_column].sum()
-        data_dict['total_target'] = agg_data[result_column].sum()
+        data_dict['total_measure'] = int(agg_data[measure_column].sum())
+        data_dict['total_target'] = int(agg_data[result_column].sum())
         data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, self._num_significant_digits)
         data_dict['num_dates'] = len(agg_data.index)
 
@@ -260,19 +260,21 @@ class TrendNarrative:
         if type(agg_data["key"][0]) == "str":
             agg_data["key"] = agg_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         agg_data = agg_data.sort_values(by = "key",ascending=True)
-        agg_data["key"] = agg_data["key"].apply(lambda x:str(x))
-        chart_data = []
-        count = 1
-        relevant_columns = list(agg_data.columns)
-        if dataLevel == "day":
-            relevant_columns.remove("year_month")
-        elif dataLevel == "month":
-            relevant_columns.remove("key")
+        relevant_columns = list(set(agg_data.columns)-set(["key","year_month"]))
+        chart_data = dict(zip(relevant_columns,[[]]*len(relevant_columns)))
+        label = {"y":"","y2":""}
+        label["y"] = relevant_columns[0]
+        label["y2"] = relevant_columns[1]
+        label_text = {"y":relevant_columns[0],"y2":relevant_columns[1],"x":"Time Duration"}
         for col in relevant_columns:
-            vals = agg_data[col].tolist()
-            if count == 1:
-                chart_data.append(['x']+vals)
-                count = 0
-            else:
-                chart_data.append([col]+vals)
-        return chart_data
+            trend_chart_data = agg_data[["key",col]].T.to_dict().values()
+            trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
+            if dataLevel == "day":
+                trend_chart_data = [{"key":str(val["key"]),"value":round(val[col],2)} for val in trend_chart_data]
+            elif dataLevel == "month":
+                trend_chart_data = [{"key":val["key"].strftime("%b-%y"),"value":round(val[col],2)} for val in trend_chart_data]
+
+            chart_data[col] = trend_chart_data
+        output = {"chart":None}
+        output["chart"] = {"label":label,"data":chart_data,"label_text":label_text,"format":"%b-%y"}
+        return output

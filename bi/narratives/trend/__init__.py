@@ -163,8 +163,8 @@ class TimeSeriesNarrative:
                     card3narrative = NarrativesUtils.get_template_output(base_dir,\
                                                                     'regression_card3.temp',card3data)
 
-                    card3chart = {'heading': ''}
-                    card3chart['data']=trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
+
+                    card3chart =trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
                     card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
                     card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
                     self.set_regression_trend_card_data(card2)
