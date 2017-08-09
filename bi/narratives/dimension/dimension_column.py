@@ -76,10 +76,14 @@ class DimensionColumnNarrative:
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                         'dimension_report_summary.temp',data_dict)
         summary = NarrativesUtils.block_splitter(output,self._blockSplitter)
-        bubble_text = "Dimensions:-"+str(data_dict["n_d"])+"Measures :-"+str(data_dict["n_m"])+"Time Dimension"+str(data_dict["n_td"])
-        summary.append({"dataType":"html","data":bubble_text})
-        # self.vartype = {"Dimensions":data_dict["n_d"],"Measures":data_dict["n_m"],"Time Dimension":data_dict["n_td"]}
-        dimensionSummaryCard = SummaryCard(name=self.header,slug=None,cardData = summary)
+        dimensionSummaryCard = SummaryCard(name=self.header,slug=None,cardData = None)
+        dimensionSummaryCard.set_no_of_measures(data_dict["n_m"])
+        dimensionSummaryCard.set_no_of_dimensions(data_dict["n_d"])
+        dimensionSummaryCard.set_no_of_time_dimensions(data_dict["n_td"])
+
+        dimensionSummaryCard.set_summary_html(summary)
+        # dimensionSummaryCard.set_quote_html
+
         self._story_narrative.add_a_card(dimensionSummaryCard)
 
     def _generate_analysis(self):

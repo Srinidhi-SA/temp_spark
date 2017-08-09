@@ -92,7 +92,28 @@ class SummaryCard:
         self.cardType = "summary"
         self.name = name
         self.slug = slug
-        self.cardData = cardData
+        self.cardData = {
+                            "noOfDimensions":None,
+                            "noOfMeasures":None,
+                            "summaryHtml":None,
+                            "quotesHtml":None,
+                            "noOfTimeDimensions":None
+                        }
+
+    def set_no_of_dimensions(self,data):
+        self.cardData["noOfDimensions"] = data
+
+    def set_no_of_measures(self,data):
+        self.cardData["noOfMeasures"] = data
+
+    def set_no_of_time_dimensions(self,data):
+        self.cardData["noOfTimeDimensions"] = data
+
+    def set_summary_html(self,data):
+        self.cardData["summaryHtml"] = data
+
+    def set_quote_html(self,data):
+        self.cardData["quotesHtml"] = data
 
     def set_card_data(self,data):
         self.cardData = data

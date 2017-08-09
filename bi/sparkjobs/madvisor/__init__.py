@@ -5,12 +5,12 @@ from sparkjobserver.api import SparkJob, build_problems
 class JobScript(SparkJob):
     def validate(self, context, runtime, config):
         job_data = None
-	problems = []
+        problems = []
         if config.get('cfgpath', None):
             job_data = config.get('cfgpath')
         else:
-	    problems.append('Missing cfgpath data')
-	    
+        problems.append('Missing cfgpath data')
+        
 	if len(problems) == 0:
             return job_data
         else:
@@ -21,5 +21,3 @@ class JobScript(SparkJob):
         print 'confPath', confPath
         master.main(confPath)
         return "Done the regression job"
-
-
