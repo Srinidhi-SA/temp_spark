@@ -167,8 +167,8 @@ class TimeSeriesNarrative:
                     card3narrative = NarrativesUtils.get_template_output(base_dir,\
                                                                     'regression_card3.temp',card3data)
 
-                    card3chart = {'heading': ''}
-                    card3chart['data']=trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
+
+                    card3chart =trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
                     card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
                     card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
                     self.set_regression_trend_card_data(card2)
@@ -250,7 +250,7 @@ class TimeSeriesNarrative:
                         self.narratives["card1"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary1)
                         self.narratives["card1"]["bubbleData"] = dataDict["bubbleData"]
                         self.narratives["card1"]["chart"] = ""
-                        self.narratives["card1"]["paragraphs"]=self.narratives["card1"]["paragraphs"]+summary2[:2]
+                        self.narratives["card1"]["paragraphs"]=self.narratives["card1"]["paragraphs"]+ NarrativesUtils.paragraph_splitter(summary2)[:2]
                         # self.narratives["card2"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary2)
                         # self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
                         # self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
