@@ -187,7 +187,7 @@ class OneWayAnovaNarratives:
                 }
         output = {'header' : 'Overview', 'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.temp',data_dict))
-        self.card1.add_paragraph(output)
+        self.card1.add_paragraph(dict(output))
         self.generate_top_dimension_narratives()
 
     def generate_top_dimension_narratives(self):
@@ -217,7 +217,7 @@ class OneWayAnovaNarratives:
         output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_dimension,
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.temp',data_dict))
-        self.card1.add_paragraph(output)
+        self.card1.add_paragraph(dict(output))
 
 
     def get_contributions_for_dimension(self, significant_dimensions, n, top_dimension_stats):
@@ -330,9 +330,9 @@ class OneWayAnovaNarratives:
         output = {}
         output['header'] = ''
         output['content'] = []
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6_new.temp',data_dict))
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.temp',data_dict))
         # self.card2.add_paragraph(output)
-        self.card1.add_paragraph(output)
+        self.card1.add_paragraph(dict(output))
         # self.generate_trending_comments()
 
     def generate_trending_comments(self):
