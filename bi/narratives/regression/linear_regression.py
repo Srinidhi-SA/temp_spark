@@ -72,16 +72,16 @@ class LinearRegressionNarrative:
         data_dict["n_sig_measures"] = len(data_dict["significant_measures"])
         data_dict["coefficient"] = round(self._regression_result.get_all_coeff()[measure_column]["coefficient"],2)
         data_dict["correlation"] = self._data_frame.corr(self._result_column,measure_column)
-        input_cols = [self._result_column,measure_column]
-        df = self._data_frame
-        kmeans_obj = KmeansClustering(df, self._dataframe_helper, self._dataframe_context, self._spark)
-        kmeans_obj.kmeans_pipeline(input_cols,cluster_count=None,max_cluster=5)
-        kmeans_result = {"stats":kmeans_obj.get_kmeans_result(),"data":kmeans_obj.get_prediction_data()}
-        data_dict["n_cluster"] = kmeans_result["stats"]["cluster_count"]
-        cluster_data_dict = self.generateClusterDataDict(measure_column,kmeans_result)
-        data_dict["cluster_details"] = cluster_data_dict["grp_data"]
-        # cluster_data_dict["chart_data"] = self.sort_chart_date(cluster_data_dict["chart_data"])
-        data_dict["chart_data"] = cluster_data_dict["chart_data"]
+        # input_cols = [self._result_column,measure_column]
+        # df = self._data_frame
+        # kmeans_obj = KmeansClustering(df, self._dataframe_helper, self._dataframe_context, self._spark)
+        # kmeans_obj.kmeans_pipeline(input_cols,cluster_count=None,max_cluster=5)
+        # kmeans_result = {"stats":kmeans_obj.get_kmeans_result(),"data":kmeans_obj.get_prediction_data()}
+        # data_dict["n_cluster"] = kmeans_result["stats"]["cluster_count"]
+        # cluster_data_dict = self.generateClusterDataDict(measure_column,kmeans_result)
+        # data_dict["cluster_details"] = cluster_data_dict["grp_data"]
+        # # cluster_data_dict["chart_data"] = self.sort_chart_date(cluster_data_dict["chart_data"])
+        # data_dict["chart_data"] = cluster_data_dict["chart_data"]
         return data_dict
 
     def sort_chart_date(self, data):
