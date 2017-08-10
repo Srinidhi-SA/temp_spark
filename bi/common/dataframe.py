@@ -47,8 +47,9 @@ class DataFrameHelper:
             DataFrameHelper.DIMENSION_COLUMNS: {},
             DataFrameHelper.TIME_DIMENSION_COLUMNS: {}
         }
-        self.ignorecolumns = ""
-        self.consider_columns = ""
+        self.ignorecolumns = []
+        self.consider_columns = []
+
         self._df_context = df_context
         self.measure_suggestions = []
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
@@ -60,6 +61,8 @@ class DataFrameHelper:
         print "Setting the dataframe"
         self.columns = [field.name for field in self._data_frame.schema.fields]
         self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
+        if self.ignorecolumns == None:
+            self.ignorecolumns = []
         self.utf8columns = self._df_context.get_utf8_columns()
         self.resultcolumn = self._df_context.get_result_column()
         self.consider_columns = self._df_context.get_consider_columns()
@@ -323,8 +326,8 @@ class DataFrameHelper:
         elif self.considercolumnstype[0] == 'including':
             if self.consider_columns != None:
                 self.consider_columns = self.consider_columns + [self.resultcolumn]
-                self.consider_columns = list(set(self.columns) - set(self.consider_columns))
-                self._data_frame = reduce(DataFrame.drop, self.consider_columns, self._data_frame)
+                self.drop_columns = list(set(self.columns) - set(self.consider_columns))
+                self._data_frame = reduce(DataFrame.drop, self.drop_columns, self._data_frame)
                 self.columns = [field.name for field in self._data_frame.schema.fields]
         self._update_meta()
 
