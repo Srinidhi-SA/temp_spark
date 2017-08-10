@@ -56,3 +56,11 @@ class ParserConfig():
         self.DimensionFilter = self.ConfigSectionMap('DIMENSION_FILTER')
         self.MeasureFilter = self.ConfigSectionMap('MEASURE_FILTER')
         self.DateFilter = self.ConfigSectionMap('DATE_FILTER')
+
+    def set_json_params(self):
+        self.FileSettings = self.config.get('FILE_SETTINGS')
+        self.ColumnSettings = self.config.get('COLUMN_SETTINGS')
+        self.DateSettings = self.config.get('DATE_SETTINGS')
+        self.DimensionFilter = self.config.get('DIMENSION_FILTER')
+        self.MeasureFilter = self.config.get('MEASURE_FILTER')
+        self.DateFilter = self.config.get('DATE_FILTER')

@@ -52,26 +52,41 @@ def send_message_API(monitor_api, task, message, complete, progress):
 
 
 #if __name__ == '__main__':
-def main(confFilePath):
+def main(configJson):
     start_time = time.time()
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     # Setting The Config Parameters
-    config_file = confFilePath#sys.argv[1]
-    print config_file
-    print type(config_file)
-    if isinstance(config_file, basestring):
-        config = ConfigParser.ConfigParser()
-        config.optionxform=str
-        config.read(config_file)
-        config_obj = configparser.ParserConfig(config)
-        config_obj.set_params()
-        # Setting the Dataframe Context
-        dataframe_context = ContextSetter(config_obj)
+    #sys.argv[1]
+
+    # if isinstance(configJson, basestring):
+    #     config_file = configJson
+    #     config = ConfigParser.ConfigParser()
+    #     config.optionxform=str
+    #     config.read(config_file)
+    #     config_obj = configparser.ParserConfig(config)
+    #     config_obj.set_params()
+    #     # Setting the Dataframe Context
+    #     dataframe_context = ContextSetter(config_obj)
+    #     dataframe_context.set_params()
+
+
+    if isinstance(configJson, basestring):
+        print type(configJson)
+        print json.dumps(configJson)
+        print type(configJson)
+        configJson = {
+                            'FILE_SETTINGS':{'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'], 'levelcounts': ['GG|~|34|~|HH|~|4'], 'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'], 'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'], 'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'], 'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'], 'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension', 'Dimension vs. Dimension', 'Measure vs. Measure'], 'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
+                            'COLUMN_SETTINGS':{'polarity': ['positive'], 'consider_columns_type': ['including'], 'score_consider_columns_type': ['excluding'], 'measure_suggestions': None, 'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'], 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count', 'Free service labour cost', 'Status'], 'date_columns': ['Date'], 'analysis_type': ['Dimension'], 'score_consider_columns': None}
+                        }
+        # configJson = json.loads(configJson)
+        configJsonObj = configparser.ParserConfig(configJson)
+        print configJsonObj
+        configJsonObj.set_json_params()
+        dataframe_context = ContextSetter(configJsonObj)
         dataframe_context.set_params()
-    elif isinstance(config_file, dict):
-        print "AB KYA KARE"
+
 
     analysistype = dataframe_context.get_analysis_type()
     appid = dataframe_context.get_app_id()
