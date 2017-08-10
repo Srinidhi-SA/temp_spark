@@ -59,14 +59,20 @@ def main(confFilePath):
     spark.sparkContext.setLogLevel("ERROR")
     # Setting The Config Parameters
     config_file = confFilePath#sys.argv[1]
-    config = ConfigParser.ConfigParser()
-    config.optionxform=str
-    config.read(config_file)
-    config_obj = configparser.ParserConfig(config)
-    config_obj.set_params()
-    # Setting the Dataframe Context
-    dataframe_context = ContextSetter(config_obj)
-    dataframe_context.set_params()
+    print config_file
+    print type(config_file)
+    if isinstance(config_file, basestring):
+        config = ConfigParser.ConfigParser()
+        config.optionxform=str
+        config.read(config_file)
+        config_obj = configparser.ParserConfig(config)
+        config_obj.set_params()
+        # Setting the Dataframe Context
+        dataframe_context = ContextSetter(config_obj)
+        dataframe_context.set_params()
+    elif isinstance(config_file, dict):
+        print "AB KYA KARE"
+
     analysistype = dataframe_context.get_analysis_type()
     appid = dataframe_context.get_app_id()
     print "ANALYSIS TYPE : ", analysistype
