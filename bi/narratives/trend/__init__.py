@@ -116,11 +116,6 @@ class TimeSeriesNarrative:
                 else:
                     self._durationString = yr+" years"
 
-            print self._duration
-            print self._dataLevel
-            print self._durationString
-            print self._existingDateFormat
-
             if self._td_columns != None:
                 if self._date_suggestion_columns == None:
                     self._date_suggestion_columns = self._td_columns
@@ -297,7 +292,6 @@ class TimeSeriesNarrative:
                                                                         'trend_narrative_card3.temp',forecastDataDict)
                         # self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
                         # self.narratives["card3"]["chart"] = {"data":prediction_data,"format":"%b-%y"}
-                        print json.dumps(self.narratives,indent=2)
 
                     else:
                         self._result_setter.update_executive_summary_data({"trend_present":False})

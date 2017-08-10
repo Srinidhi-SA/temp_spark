@@ -51,8 +51,6 @@ class ContingencyTable:
 
     def update_col2_names(self, splits):
         bin_names = self.get_bin_names(splits)
-        print '*'*145
-        print bin_names
         self.column_two_values = [bin_names[int(float(i))] for i in self.column_two_values]
 
     def get_row_total(self):
