@@ -38,7 +38,6 @@ def main(inputPath,resultPath):
     meta_data = json.dumps(meta_data)
     # print  meta_data
     print '-'*20
-
     DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)
      #spark.stop()
 
