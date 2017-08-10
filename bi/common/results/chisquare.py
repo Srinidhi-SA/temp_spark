@@ -3,6 +3,7 @@
 
 import random
 import json
+from humanize import intcomma
 
 from pyspark.mllib.stat.test import ChiSqTestResult
 
@@ -35,16 +36,23 @@ class ContingencyTable:
     def get_column_one_levels(self):
         return self.column_one_values
 
+    def update_splits(self,splits):
+        splits = [intcomma(int(i)) if int(i)==i else intcomma(round(i,2)) for i in splits]
+        return  splits
+
     def get_bin_names (self,splits):
         bin_names = []
+        splits = self.update_splits(list(splits))
         start = splits[0]
         for i in splits[1:]:
-            bin_names.append(str(round(start,2)) + ' to ' + str(round(i,2)))
+            bin_names.append(str(start) + ' to ' + str(i))
             start = i
         return bin_names
 
     def update_col2_names(self, splits):
         bin_names = self.get_bin_names(splits)
+        print '*'*145
+        print bin_names
         self.column_two_values = [bin_names[int(float(i))] for i in self.column_two_values]
 
     def get_row_total(self):
