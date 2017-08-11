@@ -53,6 +53,7 @@ def send_message_API(monitor_api, task, message, complete, progress):
 
 #if __name__ == '__main__':
 def main(configJson):
+    # return "{}".format(type(configJson))
     start_time = time.time()
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -80,10 +81,23 @@ def main(configJson):
         output["data"] = configJson
 
         return output
-        # configJson = {
-        #                     'FILE_SETTINGS':{'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'], 'levelcounts': ['GG|~|34|~|HH|~|4'], 'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'], 'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'], 'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'], 'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'], 'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension', 'Dimension vs. Dimension', 'Measure vs. Measure'], 'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
-        #                     'COLUMN_SETTINGS':{'polarity': ['positive'], 'consider_columns_type': ['including'], 'score_consider_columns_type': ['excluding'], 'measure_suggestions': None, 'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'], 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count', 'Free service labour cost', 'Status'], 'date_columns': ['Date'], 'analysis_type': ['Dimension'], 'score_consider_columns': None}
-        #                 }
+        configJson = {
+            'FILE_SETTINGS': {'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
+                              'levelcounts': ['GG|~|34|~|HH|~|4'],
+                              'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
+                              'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
+                              'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'],
+                              'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
+                              'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
+                                                'Dimension vs. Dimension', 'Measure vs. Measure'],
+                              'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
+            'COLUMN_SETTINGS': {'polarity': ['positive'], 'consider_columns_type': ['including'],
+                                'score_consider_columns_type': ['excluding'], 'measure_suggestions': None,
+                                'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'],
+                                'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+                                                     'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+                                'analysis_type': ['Dimension'], 'score_consider_columns': None}
+        }
         configJson = json.loads(configJson)
         print configJson
         configJsonObj = configparser.ParserConfig(configJson)
@@ -106,7 +120,7 @@ def main(configJson):
     print "FILE LOADED: ", dataframe_context.get_input_file()
     if analysistype == "metaData":
         print "HOHOHO"
-        print starting Metadata
+        print "starting Metadata"
     else:
         df_helper = DataFrameHelper(df, dataframe_context)
         df_helper.set_params()
