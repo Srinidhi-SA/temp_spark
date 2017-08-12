@@ -15,11 +15,11 @@ from bi.common import utils as CommonUtils
 
 class MetaDataHelper():
 
-    def __init__(self, data_frame, transform = 0):
-        self._file_name = file_name
+    def __init__(self, data_frame):
+        # self._file_name = file_name
         self._data_frame = data_frame
-        if transform==1:
-            self.transform_numeric_column()
+        # if transform==1:
+            # self.transform_numeric_column()
 
 
     def get_binned_stat(self,df,colname,col_stat,n_split = 10):

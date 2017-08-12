@@ -120,9 +120,9 @@ class TimeSeriesNarrative:
                 else:
                     self._durationString = yr+" years"
 
-            print self._duration
-            print self._dataLevel
-            print self._durationString
+            # print self._duration
+            # print self._dataLevel
+            # print self._durationString
             if self._td_columns != None:
                 if self._date_suggestion_columns == None:
                     self._date_suggestion_columns = self._td_columns

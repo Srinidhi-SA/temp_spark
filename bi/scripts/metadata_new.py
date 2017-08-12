@@ -11,7 +11,7 @@ from bi.common import DataWriter
 from bi.common import ColumnType
 from bi.common import utils as CommonUtils
 from bi.common import MetaDataHelper
-from bi.results import DfMetaData,MetaData,ColumnData,ColumnHeader
+from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
 
 
 class MetaDataScript:
@@ -20,7 +20,7 @@ class MetaDataScript:
         self._spark = spark
         # self._file_name = file_name
         self.total_columns = len([field.name for field in self._data_frame.schema.fields])
-        self.total_rows = self._data_frame.count()
+        self._total_rows = self._data_frame.count()
 
         # self._max_levels = min(200, round(self.total_rows**0.5))
 
@@ -49,8 +49,9 @@ class MetaDataScript:
         headers = []
         sampleData = self._data_frame.sample(False, float(100)/self._total_rows, seed=420).toPandas().values.tolist()
 
-        measureColumnStat,measureCharts = MetaDataHelper.calculate_measure_column_stats(self._data_frame,self._numeric_columns)
-        dimensionColumnStat,dimensionCharts = MetaDataHelper.calculate_dimension_column_stats(self._data_frame,self._string_columns)
+        helper_instance = MetaDataHelper(self._data_frame)
+        measureColumnStat,measureCharts = helper_instance.calculate_measure_column_stats(self._data_frame,self._numeric_columns)
+        dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns)
 
         for column in self._data_frame.columns:
             headers.append(ColumnHeader(name=column,slug=None))

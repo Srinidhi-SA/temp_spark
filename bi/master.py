@@ -71,8 +71,6 @@ def main(configJson):
         # Setting the Dataframe Context
         dataframe_context = ContextSetter(config_obj)
         dataframe_context.set_params()
-
-
     else:
         # configJson = {
         #     'FILE_SETTINGS': {'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
@@ -91,32 +89,33 @@ def main(configJson):
         #                                              'Free service labour cost', 'Status'], 'date_columns': ['Date'],
         #                         'analysis_type': ['Dimension'], 'score_consider_columns': None}
         # }
+        configJson = {
+            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
+            'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+        }
         config = configJson["config"]
         job_config = configJson["job_config"]
-        # configJsonObj = configparser.ParserConfig(configJson)
-        # print configJsonObj
-        # configJsonObj.set_json_params()
-        # dataframe_context = ContextSetter(configJsonObj)
-        # dataframe_context.set_params()
-    else:
-        return "not a base string"
+        configJsonObj = configparser.ParserConfig(configJson)
+        configJsonObj.set_json_params()
+        dataframe_context = ContextSetter(configJsonObj)
+        dataframe_context.set_params()
 
-    # analysistype = dataframe_context.get_analysis_type()
-    # appid = dataframe_context.get_app_id()
-    # print "ANALYSIS TYPE : ", analysistype
-    # monitor_api = dataframe_context.get_monitor_api()
-    # scripts_to_run = dataframe_context.get_scripts_to_run()
-    # if scripts_to_run==None:
-    #     scripts_to_run = []
-    # #Load the dataframe
-    # df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-    # print "FILE LOADED: ", dataframe_context.get_input_file()
 
-    analysistype = "metaData"
+    analysistype = dataframe_context.get_analysis_type()
+    appid = dataframe_context.get_app_id()
+    print "ANALYSIS TYPE : ", analysistype
+    monitor_api = dataframe_context.get_monitor_api()
+    scripts_to_run = dataframe_context.get_scripts_to_run()
+    if scripts_to_run==None:
+        scripts_to_run = []
+    #Load the dataframe
+    df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+    print "FILE LOADED: ", dataframe_context.get_input_file()
+
+    # analysistype = "metaData"
     if analysistype == "metaData":
-        print "HOHOHO"
         print "starting Metadata"
-        df = DataLoader.load_csv_file(spark,config["filepath"])
+        # df = DataLoader.load_csv_file(spark,config["filepath"])
         meta_data_class = MetaDataScript(df,spark)
         meta_data_object = meta_data_class.run()
         metaDataJson = json.dumps(meta_data_object, default=lambda o: o.__dict__)
