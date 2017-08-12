@@ -55,29 +55,32 @@ class ContextSetter:
             self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
         if "analysis_type" in column_setting_keys:
             self.analysistype = self._config_obj.get_column_settings()['analysis_type'][0].strip()
-        self.ignorecolumns = self._config_obj.get_column_settings().get('ignore_column_suggestions')
-
-        self.utf8columns = self._config_obj.get_column_settings().get('utf8_columns')
-
-        if self.ignorecolumns!=None:
-            self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
-        self.considercolumns = self._config_obj.get_column_settings().get('consider_columns')
-        self.scoreconsidercolumns = self._config_obj.get_column_settings().get('score_consider_columns')
-
-        self.dimension_filter = self._config_obj.get_dimension_filters()
-        self.measure_filter = self._config_obj.get_measure_filters()
-        self.date_filter = self._config_obj.get_date_filters()
-        self.string_to_date_columns = self._config_obj.get_date_settings()
-        self.considercolumnstype = self._config_obj.get_column_settings().get('consider_columns_type')
-        if self.considercolumnstype == ["including"]:
-            if self.resultcolumn != None and self.considercolumns != None:
-                self.considercolumns.append(self.resultcolumn)
-                self.considercolumns = list(set(self.considercolumns))
-        self.scripts_to_run = self._config_obj.get_file_settings().get('script_to_run')
-        self.date_columns = self._config_obj.get_column_settings().get('date_columns')
-        self.date_format = self._config_obj.get_column_settings().get('date_format')
-        self.measure_suggestions = self._config_obj.get_column_settings().get('measure_suggestions')
-        self.scoreconsidercolumnstype = self._config_obj.get_column_settings().get('score_consider_columns_type')
+        # self.ignorecolumns = self._config_obj.get_column_settings().get('ignore_column_suggestions')
+        #
+        # self.utf8columns = self._config_obj.get_column_settings().get('utf8_columns')
+        #
+        # if self.ignorecolumns!=None:
+        #     self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
+        # self.considercolumns = self._config_obj.get_column_settings().get('consider_columns')
+        # self.scoreconsidercolumns = self._config_obj.get_column_settings().get('score_consider_columns')
+        #
+        # self.dimension_filter = self._config_obj.get_dimension_filters()
+        # self.measure_filter = self._config_obj.get_measure_filters()
+        # self.date_filter = self._config_obj.get_date_filters()
+        # self.string_to_date_columns = self._config_obj.get_date_settings()
+        # self.considercolumnstype = self._config_obj.get_column_settings().get('consider_columns_type')
+        # if self.considercolumnstype == ["including"]:
+        #     if self.resultcolumn != None and self.considercolumns != None:
+        #         self.considercolumns.append(self.resultcolumn)
+        #         self.considercolumns = list(set(self.considercolumns))
+        if "script_to_run" in column_setting_keys:
+            self.scripts_to_run = self._config_obj.get_file_settings().get('script_to_run')
+        else:
+            self.scripts_to_run = []
+        # self.date_columns = self._config_obj.get_column_settings().get('date_columns')
+        # self.date_format = self._config_obj.get_column_settings().get('date_format')
+        # self.measure_suggestions = self._config_obj.get_column_settings().get('measure_suggestions')
+        # self.scoreconsidercolumnstype = self._config_obj.get_column_settings().get('score_consider_columns_type')
 
     def get_column_separator(self):
         return self._column_separator
