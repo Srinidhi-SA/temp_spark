@@ -61,17 +61,17 @@ def main(configJson):
     # Setting The Config Parameters
     #sys.argv[1]
 
-    # if isinstance(configJson, basestring):
-    #     config_file = configJson
-    #     config = ConfigParser.ConfigParser()
-    #     config.optionxform=str
-    #     config.read(config_file)
-    #     config_obj = configparser.ParserConfig(config)
-    #     config_obj.set_params()
-    #     # Setting the Dataframe Context
-    #     dataframe_context = ContextSetter(config_obj)
-    #     dataframe_context.set_params()
-    # else:
+    if isinstance(configJson, basestring):
+        config_file = configJson
+        config = ConfigParser.ConfigParser()
+        config.optionxform=str
+        config.read(config_file)
+        config_obj = configparser.ParserConfig(config)
+        config_obj.set_params()
+        # Setting the Dataframe Context
+        dataframe_context = ContextSetter(config_obj)
+        dataframe_context.set_params()
+    else:
         # configJson = {
         #     'FILE_SETTINGS': {'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
         #                       'levelcounts': ['GG|~|34|~|HH|~|4'],
@@ -89,26 +89,23 @@ def main(configJson):
         #                                              'Free service labour cost', 'Status'], 'date_columns': ['Date'],
         #                         'analysis_type': ['Dimension'], 'score_consider_columns': None}
         # }
-    configJsonMetaData = {
-        'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
-        'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-    }
-    configJson = configJsonMetaData
-    # config = configJson["config"]
-    # job_config = configJson["job_config"]
-    configJsonObj = configparser.ParserConfig(configJson)
-    configJsonObj.set_json_params()
-    dataframe_context = ContextSetter(configJsonObj)
-    dataframe_context.set_params()
+        # configJsonMetaData = {
+        #     'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
+        #     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+        # }
+        # configJson = configJsonMetaData
+
+        config = configJson["config"]
+        job_config = configJson["job_config"]
+        configJsonObj = configparser.ParserConfig(configJson)
+        configJsonObj.set_json_params()
+        dataframe_context = ContextSetter(configJsonObj)
+        dataframe_context.set_params()
 
 
     analysistype = dataframe_context.get_analysis_type()
-    appid = dataframe_context.get_app_id()
     print "ANALYSIS TYPE : ", analysistype
     monitor_api = dataframe_context.get_monitor_api()
-    scripts_to_run = dataframe_context.get_scripts_to_run()
-    if scripts_to_run==None:
-        scripts_to_run = []
     #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
     print "FILE LOADED: ", dataframe_context.get_input_file()
@@ -123,6 +120,10 @@ def main(configJson):
         print metaDataJson
 
     else:
+        scripts_to_run = dataframe_context.get_scripts_to_run()
+        if scripts_to_run==None:
+            scripts_to_run = []
+        appid = dataframe_context.get_app_id()
         df_helper = DataFrameHelper(df, dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
