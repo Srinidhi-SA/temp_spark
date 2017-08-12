@@ -89,10 +89,10 @@ def main(configJson):
         #                                              'Free service labour cost', 'Status'], 'date_columns': ['Date'],
         #                         'analysis_type': ['Dimension'], 'score_consider_columns': None}
         # }
-        configJson = {
-            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
-            'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-        }
+        # configJsonMetaData = {
+        #     'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
+        #     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+        # }
         config = configJson["config"]
         job_config = configJson["job_config"]
         configJsonObj = configparser.ParserConfig(configJson)

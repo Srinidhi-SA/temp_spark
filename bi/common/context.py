@@ -51,9 +51,12 @@ class ContextSetter:
         column_setting_keys = self._config_obj.get_column_settings().keys()
         if "app_id" in column_setting_keys:
             self.appid = self._config_obj.get_column_settings()['app_id'][0].strip()
-        self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
-        self.analysistype = self._config_obj.get_column_settings()['analysis_type'][0].strip()
+        if "result_column" in column_setting_keys:
+            self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
+        if "analysis_type" in column_setting_keys:
+            self.analysistype = self._config_obj.get_column_settings()['analysis_type'][0].strip()
         self.ignorecolumns = self._config_obj.get_column_settings().get('ignore_column_suggestions')
+
         self.utf8columns = self._config_obj.get_column_settings().get('utf8_columns')
 
         if self.ignorecolumns!=None:
