@@ -33,7 +33,7 @@ from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
-
+from bi.scripts.metadata_new import MetaDataScript
 
 
 from parser import configparser
@@ -61,66 +61,67 @@ def main(configJson):
     # Setting The Config Parameters
     #sys.argv[1]
 
-    # if isinstance(configJson, basestring):
-    #     config_file = configJson
-    #     config = ConfigParser.ConfigParser()
-    #     config.optionxform=str
-    #     config.read(config_file)
-    #     config_obj = configparser.ParserConfig(config)
-    #     config_obj.set_params()
-    #     # Setting the Dataframe Context
-    #     dataframe_context = ContextSetter(config_obj)
-    #     dataframe_context.set_params()
-
-
     if isinstance(configJson, basestring):
-        output = {}
-        output["type"] = type(configJson)
-        configJson = json.loads(configJson)
-        output["type1"] = type(configJson)
-        output["data"] = configJson
-
-        return output
-        configJson = {
-            'FILE_SETTINGS': {'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
-                              'levelcounts': ['GG|~|34|~|HH|~|4'],
-                              'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
-                              'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
-                              'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'],
-                              'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
-                              'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
-                                                'Dimension vs. Dimension', 'Measure vs. Measure'],
-                              'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
-            'COLUMN_SETTINGS': {'polarity': ['positive'], 'consider_columns_type': ['including'],
-                                'score_consider_columns_type': ['excluding'], 'measure_suggestions': None,
-                                'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'],
-                                'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-                                                     'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                'analysis_type': ['Dimension'], 'score_consider_columns': None}
-        }
-        configJson = json.loads(configJson)
-        print configJson
-        configJsonObj = configparser.ParserConfig(configJson)
-        print configJsonObj
-        configJsonObj.set_json_params()
-        dataframe_context = ContextSetter(configJsonObj)
+        config_file = configJson
+        config = ConfigParser.ConfigParser()
+        config.optionxform=str
+        config.read(config_file)
+        config_obj = configparser.ParserConfig(config)
+        config_obj.set_params()
+        # Setting the Dataframe Context
+        dataframe_context = ContextSetter(config_obj)
         dataframe_context.set_params()
+
+
+    else:
+        # configJson = {
+        #     'FILE_SETTINGS': {'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
+        #                       'levelcounts': ['GG|~|34|~|HH|~|4'],
+        #                       'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
+        #                       'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
+        #                       'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'],
+        #                       'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
+        #                       'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
+        #                                         'Dimension vs. Dimension', 'Measure vs. Measure'],
+        #                       'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
+        #     'COLUMN_SETTINGS': {'polarity': ['positive'], 'consider_columns_type': ['including'],
+        #                         'score_consider_columns_type': ['excluding'], 'measure_suggestions': None,
+        #                         'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'],
+        #                         'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+        #                                              'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+        #                         'analysis_type': ['Dimension'], 'score_consider_columns': None}
+        # }
+        config = configJson["config"]
+        job_config = configJson["job_config"]
+        # configJsonObj = configparser.ParserConfig(configJson)
+        # print configJsonObj
+        # configJsonObj.set_json_params()
+        # dataframe_context = ContextSetter(configJsonObj)
+        # dataframe_context.set_params()
     else:
         return "not a base string"
 
-    analysistype = dataframe_context.get_analysis_type()
-    appid = dataframe_context.get_app_id()
-    print "ANALYSIS TYPE : ", analysistype
-    monitor_api = dataframe_context.get_monitor_api()
-    scripts_to_run = dataframe_context.get_scripts_to_run()
-    if scripts_to_run==None:
-        scripts_to_run = []
-    #Load the dataframe
-    df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-    print "FILE LOADED: ", dataframe_context.get_input_file()
+    # analysistype = dataframe_context.get_analysis_type()
+    # appid = dataframe_context.get_app_id()
+    # print "ANALYSIS TYPE : ", analysistype
+    # monitor_api = dataframe_context.get_monitor_api()
+    # scripts_to_run = dataframe_context.get_scripts_to_run()
+    # if scripts_to_run==None:
+    #     scripts_to_run = []
+    # #Load the dataframe
+    # df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+    # print "FILE LOADED: ", dataframe_context.get_input_file()
+
+    analysistype = "metaData"
     if analysistype == "metaData":
         print "HOHOHO"
         print "starting Metadata"
+        df = DataLoader.load_csv_file(spark,config["filepath"])
+        meta_data_class = MetaDataScript(df,spark)
+        meta_data_object = meta_data_class.run()
+        metaDataJson = json.dumps(meta_data_object, default=lambda o: o.__dict__)
+        print metaDataJson
+
     else:
         df_helper = DataFrameHelper(df, dataframe_context)
         df_helper.set_params()
