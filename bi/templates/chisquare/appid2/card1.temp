@@ -122,13 +122,13 @@ Key segments of {{top_target}}
 PARAHEADER
 When it comes to <b>{{top_target}},
 {% if worst_top_share | length == 1 %}
-  segment {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant segment</b> since only {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  segment {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant segment</b> since {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of its total observations are into {{top_target}} category.
 {% elif worst_top_share | length == 2 %}
-  both segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> seems to be the least dominant segment with only {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  both segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> seems to be the least dominant segment with {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of their total observations from each of the categories.
 {% elif worst_top_share | length > 2 %}
-  there are {{worst_top_share|length}} {{plural_colname}} including segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> which are the least dominant segment with only {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  there are {{worst_top_share|length}} {{plural_colname}} including segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> which are the least dominant segment with {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of their total observations from each of the categories.
 {% endif %}
 {% if best_top_share | length ==1 %}

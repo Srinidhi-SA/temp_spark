@@ -8,6 +8,8 @@ from bi.common.datafilterer import DataFrameFilterer
 from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
 
+from bi.algorithms import utils as MLUtils
+
 """
 Decision Tree
 """
@@ -187,24 +189,8 @@ class DecisionTrees:
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self.calculate_frequencies(), self._important_vars)
-        for column in all_dimensions:
-            print column
-            print '*'*140
-            mapping_dict[column] = dict(enumerate(self._data_frame.select(column).distinct().rdd.map(lambda x: str(x[0])).collect()))
-        # for c in mapping_dict:
-        #     name = c
-        #     reverseMap = {v: k for k, v in mapping_dict[c].iteritems()}
-        #     udf = UserDefinedFunction(lambda x: reverseMap[x], StringType())
-        #     self._data_frame = self._data_frame.select(*[udf(column).alias(name) if column == name else column for column in self._data_frame.columns])
 
-        # converting spark dataframe to pandas for transformation and then back to spark dataframe
-        pandasDataFrame = self._data_frame.toPandas()
-        for key in mapping_dict:
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: 'None' if x==None else x)
-            reverseMap = {v: k for k, v in mapping_dict[key].iteritems()}
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: reverseMap[x])
-        # sqlCtx = SQLContext(self._spark)
-        self._data_frame = self._spark.createDataFrame(pandasDataFrame)
+        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
 
         for k,v in mapping_dict.items():
             temp = {}

@@ -141,7 +141,7 @@ class LinearRegressionNarrative:
             chart_data['table2']['heading'] = 'Average '+self._result_column
             chart_data['table2']['data'] = table_data[ranked_dimensions[1]]
         else:
-            data_dict['dim2'] = ''
+            data_dict['dim2'] = {'num_levels':0}
             chart_data['table2'] = ''
 
         # dimension_data_dict['ranked_dimensions'] = ranked_dimensions
@@ -347,8 +347,12 @@ class LinearRegressionNarrative:
             temp_dict["highest_impact_level"] = highest_coeff[val]
             temp_dict["lowest_impact_level"] = lowest_coeff[val]
             dimension_data_dict[val] = temp_dict
+        print '*'*100
+        print 'TOP 2 DIMS  :  ',top2_dims
+        print 'Dimension Data Dict  :  ',dimension_data_dict
         dimension_data_dict[top2_dims[0]]["rank"] = 1
-        dimension_data_dict[top2_dims[1]]["rank"] = 2
+        if len(top2_dims)>1:
+            dimension_data_dict[top2_dims[1]]["rank"] = 2
         return dimension_data_dict
 
     def generateGroupedMeasureDataDict(self,measure_column):

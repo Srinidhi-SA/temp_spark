@@ -47,7 +47,7 @@ decreases
 {{target}} by  {{dim1["lowest_impact_level"][1] | round(2)}} units for one unit increase in {{measure}}.
 
 PARASEPARATOR
-
+{% if dim2["num_levels"]>0 %}
 {{dim2["dimension"]}}
 
 PARAHEADER
@@ -93,3 +93,4 @@ However, {{dim2["lowest_impact_level"][0]}} {{dim2["dimension"]}} is the least a
   decreases
 {% endif %}
 {{target}} by  {{dim2["lowest_impact_level"][1] | round(2)}} units for one unit increase in {{measure}}.
+{% endif %}
