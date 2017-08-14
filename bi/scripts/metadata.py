@@ -8,7 +8,7 @@ import sys
 from bi.common import DataLoader
 from bi.common import DataWriter
 from bi.common import MetaDataHelper
-from bi.common import utils
+from bi.common import utils as CommonUtils
 
 
 # from bi.common import ContextSetter
@@ -23,7 +23,7 @@ def get_argument_parser():
 #if __name__ == '__main__':
 def main(inputPath,resultPath):
     APP_NAME = "DataFrame Metadata"
-    spark = utils.get_spark_session(app_name=APP_NAME)
+    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     CSV_FILE = inputPath #arguments.input
     RESULT_FILE = resultPath#arguments.result

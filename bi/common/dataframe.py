@@ -60,6 +60,8 @@ class DataFrameHelper:
         print "Setting the dataframe"
         self.columns = [field.name for field in self._data_frame.schema.fields]
         self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
+        if self.ignorecolumns == None:
+            self.ignorecolumns = []
         self.utf8columns = self._df_context.get_utf8_columns()
         self.resultcolumn = self._df_context.get_result_column()
         self.consider_columns = self._df_context.get_consider_columns()
@@ -116,9 +118,10 @@ class DataFrameHelper:
         # self._data_frame = self.df_filterer.get_filtered_data_frame()
         self.date_settings = self._df_context.get_date_settings()
         self.columns = [field.name for field in self._data_frame.schema.fields]
-        for colmn in self.date_settings.keys():
-            if colmn in self.columns:
-                self.change_to_date(colmn, self.date_settings[colmn][0])
+        if self.date_settings != None:
+            for colmn in self.date_settings.keys():
+                if colmn in self.columns:
+                    self.change_to_date(colmn, self.date_settings[colmn][0])
 
         #self.date_filter = self._df_context.get_date_filters()
         #for colmn in self.date_filter.keys():

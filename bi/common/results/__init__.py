@@ -34,6 +34,8 @@ from frequency_dimensions import FreqDimensionResult
 
 from decision_tree import DecisionTreeResult
 
+from metadata import DfMetaData,MetaData,ColumnData,ColumnHeader
+
 __all__ = [
     # anova
     'AnovaColumnValueGroupStats', 'AnovaResult', 'ColumnValueGroup',
@@ -50,5 +52,8 @@ __all__ = [
     # chisquare
     'ChiSquareResult', 'FreqDimensionResult', 'DecisionTreeResult',
     # two_way_anova
-    'DFTwoWayAnovaResult', 'MeasureAnovaResult', 'TwoWayAnovaResult' , 'OneWayAnovaResult','TopDimensionStats','TrendResult','Trend_Dimenion_Result'
+    'DFTwoWayAnovaResult', 'MeasureAnovaResult', 'TwoWayAnovaResult' , 'OneWayAnovaResult','TopDimensionStats','TrendResult','Trend_Dimenion_Result',
+
+    #MetaData
+    'DfMetaData','MetaData','ColumnData','ColumnHeader',
 ]

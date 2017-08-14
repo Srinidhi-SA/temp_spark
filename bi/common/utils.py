@@ -1,4 +1,6 @@
 import math
+import json
+import requests
 from math import *
 from re import sub
 
@@ -205,6 +207,24 @@ def get_level_count_dict(df,categorical_columns,separator,output_type="string",d
         return separator.join(out)
     else:
         return count_dict
+
+def send_message_API(monitor_api, task, message, complete, progress):
+    url = monitor_api
+    message_dict = {}
+    message_dict['task'] = task
+    message_dict['message'] = message
+    message_dict['complete'] = complete
+    message_dict['progress'] = progress
+    #r = requests.post(url, data=json.dumps(message_dict))
+    #print json.loads(r.content)['message'] + " for ", task +'\n'
+
+def convert_python_object_to_json(object):
+    return json.dumps(object, default=lambda o: o.__dict__)
+
+def save_result_json(url,jsonData):
+    url += "set_result"
+    res = requests.put(url=url,data=jsonData)
+    return res
 
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

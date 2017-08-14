@@ -10,12 +10,13 @@ from progress import JobStatusResult
 from writemode import WriteMode
 from context import ContextSetter
 from datafilterer import DataFrameFilterer
-from metahelper import MetaDataHelper
+# from metahelper import MetaDataHelper
 from datafilterhelper import DataFilterHelper
 from filtercontext import FilterContextSetter
 from context import ContextSetter
 from resultloader import ResultSetter
 from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
+from metadatahelpernew import MetaDataHelper
 
 
 # Alpha levels corresponding to (90%, 95%, 99%, 99.9%, 99.99%, 99.999%, 99.9999%, 99.99999%)
@@ -35,10 +36,11 @@ __all__ = [
     'WriteMode',
     'ContextSetter'
     'DataFrameFilterer',
-    'MetaDataHelper',
+    # 'MetaDataHelper',
     'DataFilterHelper',
     'FilterContextSetter',
     'ContextSetter',
     'ResultSetter',
-    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData'
+    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData',
+    'MetaDataHelper'
 ]
