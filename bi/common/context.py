@@ -70,10 +70,11 @@ class ContextSetter:
             self.scoreconsidercolumns = self.COLUMN_SETTINGS.get('score_consider_columns')
         if "consider_columns_type" in columnSettingKeys:
             self.considercolumnstype = self.COLUMN_SETTINGS.get('consider_columns_type')
-        if self.considercolumnstype == ["including"]:
-            if self.resultcolumn != None and self.considercolumns != None:
-                self.considercolumns.append(self.resultcolumn)
-                self.considercolumns = list(set(self.considercolumns))
+        if self.considercolumnstype != None:
+            if self.considercolumnstype == ["including"]:
+                if self.resultcolumn != None and self.considercolumns != None:
+                    self.considercolumns.append(self.resultcolumn)
+                    self.considercolumns = list(set(self.considercolumns))
 
         if "script_to_run" in columnSettingKeys:
             self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
