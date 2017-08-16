@@ -62,39 +62,39 @@ def main(configJson):
         dataframe_context = ContextSetter(config_obj)
         dataframe_context.set_params()
     else:
-        configJson = {
-            'FILE_SETTINGS': {
-                              'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
-                              'levelcounts': ['GG|~|34|~|HH|~|4'],
-                              'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
-                              'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
-                              'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'],
-                              'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
-                              'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
-                                                'Dimension vs. Dimension', 'Measure vs. Measure'],
-                              'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']
-                              },
-            'COLUMN_SETTINGS': {
-                                'polarity': ['positive'], 'consider_columns_type': ['including'],
-                                'score_consider_columns_type': ['excluding'], 'measure_suggestions': None,
-                                'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'],
-                                'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-                                                     'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                'analysis_type': ['Dimension'], 'score_consider_columns': None
-                                } }
-        configJson = {
-            "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/metadata_with_date.csv']},
-                    'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-                    },
-            "job_config":{
-                "job_type":"metaData",
-                "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                "set_result": {
-                    "method": "PUT",
-                    "action": "result"
-                  },
-            }}
+        # configJson = {
+        #     'FILE_SETTINGS': {
+        #                       'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
+        #                       'levelcounts': ['GG|~|34|~|HH|~|4'],
+        #                       'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
+        #                       'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
+        #                       'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'],
+        #                       'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
+        #                       'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
+        #                                         'Dimension vs. Dimension', 'Measure vs. Measure'],
+        #                       'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']
+        #                       },
+        #     'COLUMN_SETTINGS': {
+        #                         'polarity': ['positive'], 'consider_columns_type': ['including'],
+        #                         'score_consider_columns_type': ['excluding'], 'measure_suggestions': None,
+        #                         'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'],
+        #                         'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+        #                                              'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+        #                         'analysis_type': ['Dimension'], 'score_consider_columns': None
+        #                         } }
+        # configJson = {
+        #     "config":{
+        #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/metadata_with_date.csv']},
+        #             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+        #             },
+        #     "job_config":{
+        #         "job_type":"metaData",
+        #         "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+        #         "set_result": {
+        #             "method": "PUT",
+        #             "action": "result"
+        #           },
+        #     }}
         config = configJson["config"]
         job_config = configJson["job_config"]
         configJsonObj = configparser.ParserConfig(config)
