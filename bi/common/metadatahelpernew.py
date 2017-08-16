@@ -66,7 +66,10 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             chart_data[column] = self.get_binned_stat(df,column,col_stat)
-            output[column] = col_stat
+            modified_col_stat = []
+            for k,v in col_stat.items():
+                modified_col_stat.append({"name":k,"value":v})
+            output[column] = modified_col_stat
         return output,chart_data
 
     def calculate_dimension_column_stats(self,df,dimension_columns):
@@ -93,7 +96,10 @@ class MetaDataHelper():
                 levelCountWithoutNull.pop(None)
             col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
             col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
-            output[column] = col_stat
+            modified_col_stat = []
+            for k,v in col_stat.items():
+                modified_col_stat.append({"name":k,"value":v})
+            output[column] = modified_col_stat
             chart_data[column] = dimension_chart_data_sorted
         return output,chart_data
 

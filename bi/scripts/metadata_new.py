@@ -1,5 +1,6 @@
 import json
 import random
+import uuid
 import datetime as dt
 
 from pyspark.sql import functions as FN
@@ -64,8 +65,10 @@ class MetaDataScript:
         utf8ColumnSuggestion = []
         dateTimeSuggestions = {}
         for column in self._data_frame.columns:
-            headers.append(ColumnHeader(name=column,slug=None))
+            random_slug = uuid.uuid4().hex
+            headers.append(ColumnHeader(name=column,slug=random_slug))
             data = ColumnData()
+            data.set_slug(random_slug)
             data.set_name(column)
             data.set_column_type(self._column_type_dict[column])
 
