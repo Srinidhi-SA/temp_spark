@@ -31,7 +31,7 @@ class RegressionNarrative:
         all_coeff = [(x,self.all_coefficients[x]) for x in self.all_coefficients.keys()]
         all_coeff = sorted(all_coeff,key = lambda x:abs(x[1]["coefficient"]),reverse = True)
         self._all_coeffs = all_coeff
-        self.significant_measures = [x[0] for x in all_coeff[:3]]
+        self.significant_measures = [x[0] for x in all_coeff if x[1]['p_value']<=0.05]
         self.narratives = {"heading": self.result_column + "Performance Report",
                            "main_card":{},
                            "cards":[]
