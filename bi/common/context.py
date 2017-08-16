@@ -68,7 +68,7 @@ class ContextSetter:
             self.considercolumns = self.COLUMN_SETTINGS.get('consider_columns')
         if "score_consider_columns" in columnSettingKeys:
             self.scoreconsidercolumns = self.COLUMN_SETTINGS.get('score_consider_columns')
-        if "consider_columns_type" in columnSettingKeysL:
+        if "consider_columns_type" in columnSettingKeys:
             self.considercolumnstype = self.COLUMN_SETTINGS.get('consider_columns_type')
         if self.considercolumnstype == ["including"]:
             if self.resultcolumn != None and self.considercolumns != None:
