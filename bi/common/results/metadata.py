@@ -70,6 +70,12 @@ class ColumnData:
     def set_column_type(self,data):
         self.columnType = data
 
+    def set_level_count_to_null(self):
+        self.columnStats["LevelCount"] = None
+
+    def set_chart_data_to_null(self):
+        self.chartData = {}
+
 
 class ColumnHeader:
     def __init__(self,name = None,slug = None):
