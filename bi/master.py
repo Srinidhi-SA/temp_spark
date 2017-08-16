@@ -117,7 +117,7 @@ def main(configJson):
         print metaDataJson
         url = configJson["job_config"]["job_url"]
         url += "set_result"
-        return {"data":metaDataJson,"url":url}
+        # return {"data":metaDataJson,"url":url}
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         # print response
     else:
