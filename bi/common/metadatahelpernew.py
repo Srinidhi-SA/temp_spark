@@ -134,8 +134,8 @@ class MetaDataHelper():
         ignore = False
         total_rows = df.count()
         modifiedColStat = {}
-        for k,v in colStat.items():
-            modifiedColStat[k] = v
+        for obj in colStat:
+            modifiedColStat[obj["name"]] = obj["value"]
         colStat = modifiedColStat
         if dataType == "Measure":
             if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or (colStat["numberOfUniqueValues"]==1):
