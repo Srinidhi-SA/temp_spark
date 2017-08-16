@@ -1,7 +1,7 @@
 
 import random
 import math
-import datetime as dt
+from datetime import datetime
 import pandas as pd
 
 from pyspark.ml.feature import Bucketizer
@@ -77,22 +77,82 @@ class MetaDataHelper():
         summary_df = df.describe().toPandas()
         for column in dimension_columns:
             col_stat = {}
-            col_stat["LevelCount"] = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
-
-            if None in col_stat["LevelCount"].keys():
-                col_stat["numberOfNulls"] = col_stat["LevelCount"][None]
+            levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+            col_stat["LevelCount"] = levelCount
+            if None in levelCount.keys():
+                col_stat["numberOfNulls"] = levelCount[None]
                 col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
             else:
                 col_stat["numberOfNulls"] = 0
                 col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-            col_stat["numberOfUniqueValues"] = len(col_stat["LevelCount"].keys())
-            levelCountWithoutNull = col_stat["LevelCount"]
-            dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in col_stat["LevelCount"].items()]
+            col_stat["numberOfUniqueValues"] = len(levelCount.keys())
+            levelCountWithoutNull = levelCount
+            dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
             dimension_chart_data_sorted = sorted(dimension_chart_data,key=lambda x:x["value"])
-            if None in col_stat["LevelCount"]:
+            if None in levelCount:
                 levelCountWithoutNull.pop(None)
-            col_stat["MaxLevel"] = max(levelCountWithoutNull,key=col_stat["LevelCount"].get)
-            col_stat["MinLevel"] = min(levelCountWithoutNull,key=col_stat["LevelCount"].get)
+            col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
+            col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
             output[column] = col_stat
             chart_data[column] = dimension_chart_data_sorted
         return output,chart_data
+
+
+    def get_datetime_suggestions(self,df,col_name):
+        output = {}
+        date_time_suggestions = {}
+        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
+        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
+        row_vals = df.select(col_name).distinct().na.drop().collect()
+        # row_vals = df.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+        x = row_vals[0][col_name]
+        for format1 in formats:
+            try:
+                t = datetime.strptime(x,format1)
+                # if (format1 in dual_checks):
+                #     for x1 in row_vals:
+                #         x = x1[dims]
+                #         try:
+                #             t = dt.datetime.strptime(x,format1)
+                #         except ValueError as err:
+                #             format1 = '%d'+format1[2]+'%m'+format1[5:]
+                #             break
+                output[col_name] = format1
+                break
+            except ValueError as err:
+                pass
+        return output
+
+
+    def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
+        ignore = False
+        total_rows = df.count()
+        if dataType == "Measure":
+            if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or (colStat["numberOfUniqueValues"]==1):
+                ignore = True
+            elif abs(colStat["max"]-colStat["min"]+1-total_rows) <= 0.01*total_rows:
+                ignore =True
+            elif abs(colStat["numberOfNotNulls"]-colStat["numberOfUniqueValues"]) <= 0.01*colStat["numberOfNotNulls"]:
+                if abs(colStat["numberOfNotNulls"]-colStat["max"]+colStat["min"])<= 0.01*colStat["numberOfNotNulls"] or \
+                    abs(total_rows-colStat["max"]+colStat["min"])<= 0.01*total_rows:
+                    ignore = True
+        elif dataType == "Dimension":
+            if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or \
+                (colStat["numberOfUniqueValues"]<=1) or \
+                (colStat["numberOfNulls"]>0 and colStat["numberOfUniqueValues"]==2):
+                ignore = True
+            elif colStat["numberOfUniqueValues"] > max_levels:
+                ignore = True
+
+        return ignore
+
+
+    def get_utf8_suggestions(self,colStat):
+        utf8 = False
+        levels = colStat["LevelCount"].keys()
+        for val in levels:
+            if val:
+                if any([ord(char)>127 for char in val]):
+                    utf8 = True
+                    break
+        return utf8

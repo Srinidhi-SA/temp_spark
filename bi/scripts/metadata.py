@@ -7,7 +7,7 @@ import sys
 
 from bi.common import DataLoader
 from bi.common import DataWriter
-from bi.common import MetaDataHelper
+from bi.common.metahelper import MetaDataHelper
 from bi.common import utils as CommonUtils
 
 
@@ -35,11 +35,12 @@ def main(inputPath,resultPath):
         meta_helper.get_formats()
     print "File loaded: ", CSV_FILE
     meta_data = CommonUtils.as_dict(meta_helper)
+    print  meta_data
+
     meta_data = json.dumps(meta_data)
-    # print  meta_data
     print '-'*20
 
-    DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)
+    # DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)
      #spark.stop()
 
 if __name__ == '__main__':
