@@ -3,6 +3,7 @@
 
 import random
 import json
+import re
 from humanize import intcomma
 
 from pyspark.mllib.stat.test import ChiSqTestResult
@@ -21,6 +22,7 @@ class ContingencyTable:
     def __init__(self, column_one_values, column_two_values):
         self.column_one_values = column_one_values
         self.column_two_values = column_two_values
+        self._col2_order = range(len(column_two_values))
         self.table = [[0 for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
         self.table_percent = [[0 for j in range(0,len(column_two_values))] \
@@ -35,6 +37,44 @@ class ContingencyTable:
 
     def get_column_one_levels(self):
         return self.column_one_values
+
+    def update_col2_order(self):
+        new_order = []
+        names = list(self.column_two_values)
+        names_converted = [re.sub('[^0-9.-]','',i.split()[0]) for i in names]
+        try:
+            names_enumerated = [(i[0],float(i[1])) for i in enumerate(names_converted) if i[1]!='']
+            names_enumerated = sorted(names_enumerated, key=lambda x: x[1])
+        except:
+            return
+        if len(names)-len(names_enumerated)>2 or len(names)<4:
+            return
+        other_keys = [(i[0],i[1].lower()) for i in enumerate(names_converted) if i[1]=='']
+        key1 = ['below','less','lesser']
+        key2 = ['above','more','higher']
+        if len(other_keys)==0:
+            self._col2_order = [i[0] for i in names_enumerated]
+        elif len(other_keys)==1:
+            if self.column_two_values[other_keys[0][0]].split()[0].lower() in key1:
+                new_order.append(other_keys[0][0])
+                new_order = new_order + [i[0] for i in names_enumerated]
+                self._col2_order = new_order
+            elif self.column_two_values[other_keys[0][0]].split()[0].lower() in key2:
+                new_order = [i[0] for i in names_enumerated]
+                new_order.append(other_keys[0][0])
+                self._col2_order = new_order
+        elif len(other_keys)==2:
+            if self.column_two_values[other_keys[0][0]].split()[0].lower() in key1 and  self.column_two_values[other_keys[1][0]].split()[0].lower() in key2:
+                new_order.append(other_keys[0][0])
+                new_order = new_order + [i[0] for i in names_enumerated]
+                new_order.append(other_keys[1][0])
+                self._col2_order = new_order
+            elif self.column_two_values[other_keys[1][0]].split()[0].lower() in key1 and  self.column_two_values[other_keys[0][0]].split()[0].lower() in key2:
+                new_order.append(other_keys[1][0])
+                new_order = new_order + [i[0] for i in names_enumerated]
+                new_order.append(other_keys[0][0])
+                self._col2_order = new_order
+        self.column_two_values = [self.column_two_values[i] for i in self._col2_order]
 
     def update_splits(self,splits):
         splits = [intcomma(int(i)) if int(i)==i else intcomma(round(i,2)) for i in splits]
@@ -80,7 +120,7 @@ class ContingencyTable:
             raise BIException('Row for: "%s" should have %d values, but has %d values only', \
                               column_one_value, len(self.column_two_values), len(row_data))
         index = self.column_one_values.index(column_one_value)
-        self.table[index] = row_data
+        self.table[index] = [row_data[i] for i in self._col2_order]
 
     def get_total(self):
         return sum([sum(row_data) for row_data in self.table])
