@@ -133,6 +133,10 @@ class MetaDataHelper():
     def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
         ignore = False
         total_rows = df.count()
+        modifiedColStat = {}
+        for k,v in colStat.items():
+            modifiedColStat[k] = v
+        colStat = modifiedColStat
         if dataType == "Measure":
             if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or (colStat["numberOfUniqueValues"]==1):
                 ignore = True
