@@ -1,7 +1,5 @@
 import sys
 import time
-import json
-import requests
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -13,9 +11,6 @@ from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import ContextSetter
 from bi.common import ResultSetter
-from bi.common import NarrativesTree
-
-from bi.algorithms import utils as MLUtils
 
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -32,105 +27,60 @@ from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 from bi.scripts.executive_summary import ExecutiveSummaryScript
+from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
-from bi.scripts.metadata_new import MetaDataScript
+
 
 
 from parser import configparser
 from pyspark.sql.functions import col, udf
 
 
+def send_message_API(monitor_api, task, message, complete, progress):
+    url = monitor_api
+    message_dict = {}
+    message_dict['task'] = task
+    message_dict['message'] = message
+    message_dict['complete'] = complete
+    message_dict['progress'] = progress
+    #r = requests.post(url, data=json.dumps(message_dict))
+    #print json.loads(r.content)['message'] + " for ", task +'\n'
+
 
 #if __name__ == '__main__':
-def main(configJson):
-    # return "{}".format(type(configJson))
+def main(confFilePath):
     start_time = time.time()
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     # Setting The Config Parameters
-    #sys.argv[1]
-
-    # if isinstance(configJson, basestring):
-    #     config_file = configJson
-    #     config = ConfigParser.ConfigParser()
-    #     config.optionxform=str
-    #     config.read(config_file)
-    #     config_obj = configparser.ParserConfig(config)
-    #     config_obj.set_params()
-    #     # Setting the Dataframe Context
-    #     dataframe_context = ContextSetter(config_obj)
-    #     dataframe_context.set_params()
-    # else:
-        # configJson = {
-        #     'FILE_SETTINGS': {'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
-        #                       'levelcounts': ['GG|~|34|~|HH|~|4'],
-        #                       'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
-        #                       'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
-        #                       'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'], 'train_test_split': ['0.8'],
-        #                       'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
-        #                       'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
-        #                                         'Dimension vs. Dimension', 'Measure vs. Measure'],
-        #                       'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']},
-        #     'COLUMN_SETTINGS': {'polarity': ['positive'], 'consider_columns_type': ['including'],
-        #                         'score_consider_columns_type': ['excluding'], 'measure_suggestions': None,
-        #                         'date_format': None, 'ignore_column_suggestions': None, 'result_column': ['Status'],
-        #                         'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-        #                                              'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-        #                         'analysis_type': ['Dimension'], 'score_consider_columns': None}
-        # }
-    configJson ={
-        "config":{
-                'FILE_SETTINGS': {'inputfile': ['file:////home/marlabs/codebase/mAdvisor-api/config/media/datasets/IRIS.csv']},
-                'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-                },
-        "job_config":{
-            "job_type":"metaData",
-            "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-            "set_result": {
-                "method": "PUT",
-                "action": "result"
-              },
-        }
-    }
-
-
-    config = configJson["config"]
-    job_config = configJson["job_config"]
-    configJsonObj = configparser.ParserConfig(config)
-    configJsonObj.set_json_params()
-    dataframe_context = ContextSetter(configJsonObj)
+    config_file = confFilePath#sys.argv[1]
+    config = ConfigParser.ConfigParser()
+    config.optionxform=str
+    config.read(config_file)
+    config_obj = configparser.ParserConfig(config)
+    config_obj.set_params()
+    # Setting the Dataframe Context
+    dataframe_context = ContextSetter(config_obj)
     dataframe_context.set_params()
-    job_type = job_config["job_type"]
+    analysistype = dataframe_context.get_analysis_type()
+    appid = dataframe_context.get_app_id()
+    print "ANALYSIS TYPE : ", analysistype
+    monitor_api = dataframe_context.get_monitor_api()
+    scripts_to_run = dataframe_context.get_scripts_to_run()
+    if scripts_to_run==None:
+        scripts_to_run = []
     #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
     print "FILE LOADED: ", dataframe_context.get_input_file()
-
-    if job_type == "metaData":
-        print "starting Metadata"
-        # df = DataLoader.load_csv_file(spark,config["filepath"])
-        meta_data_class = MetaDataScript(df,spark)
-        meta_data_object = meta_data_class.run()
-        metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-        print metaDataJson
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
-        print response
-    else:
-        analysistype = dataframe_context.get_analysis_type()
-        print "ANALYSIS TYPE : ", analysistype
-        scripts_to_run = dataframe_context.get_scripts_to_run()
-        if scripts_to_run==None:
-            scripts_to_run = []
-        appid = dataframe_context.get_app_id()
-        df_helper = DataFrameHelper(df, dataframe_context)
-        df_helper.set_params()
-        df = df_helper.get_data_frame()
-        measure_columns = df_helper.get_numeric_columns()
-        dimension_columns = df_helper.get_string_columns()
-        #Initializing the result_setter
-        result_setter = ResultSetter(df,dataframe_context)
-        story_narrative = NarrativesTree()
+    df_helper = DataFrameHelper(df, dataframe_context)
+    df_helper.set_params()
+    df = df_helper.get_data_frame()
+    measure_columns = df_helper.get_numeric_columns()
+    dimension_columns = df_helper.get_string_columns()
+    #Initializing the result_setter
+    result_setter = ResultSetter(df,dataframe_context)
 
     data_load_time = time.time() - start_time
     script_start_time = time.time()
@@ -138,13 +88,13 @@ def main(configJson):
 
     if analysistype == 'Dimension':
         print "STARTING DIMENSION ANALYSIS ..."
-        story_narrative.set_name("Dimension analysis")
         df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
+
         if ('Descriptive analysis' in scripts_to_run):
             try:
                 fs = time.time()
-                freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative)
+                freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark)
                 freq_obj.Run()
                 print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
                 send_message_API(monitor_api, "FrequencyAnalysis", "FrequencyAnalysis Done", True, 100)
@@ -161,7 +111,7 @@ def main(configJson):
         if ('Dimension vs. Dimension' in scripts_to_run):
             try:
                 fs = time.time()
-                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative)
+                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark)
                 chisquare_obj.Run()
                 print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "ChiSquare", "ChiSquare Done", True, 100)
@@ -183,7 +133,7 @@ def main(configJson):
                     df_helper.drop_ignore_columns()
                 df_helper.fill_na_dimension_nulls()
                 df = df_helper.get_data_frame()
-                decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative)
+                decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark)
                 decision_tree_obj.Run()
                 print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 send_message_API(monitor_api, "DecisionTrees", "DecisionTrees Done", True, 100)
@@ -199,7 +149,7 @@ def main(configJson):
 
         try:
             fs = time.time()
-            trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark)
             trend_obj.Run()
             print "Trend Analysis Done in ", time.time() - fs, " seconds."
             send_message_API(monitor_api, "Trend", "Trend Done", True, 100)
@@ -211,9 +161,6 @@ def main(configJson):
             print "#####ERROR#####"*5
             print e
             print "#####ERROR#####"*5
-
-        # print CommonUtils.convert_python_object_to_json(story_narrative)
-        # print CommonUtils.as_dict(story_narrative)
 
     elif analysistype == 'Measure':
         print "STARTING MEASURE ANALYSIS ..."
