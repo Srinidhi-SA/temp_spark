@@ -294,7 +294,7 @@ class TimeSeriesNarrative:
                         self._result_setter.update_executive_summary_data(forecastDataDict)
                         summary3 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'trend_narrative_card3.temp',forecastDataDict)
-                        self.narratives["card1"]["paragraphs"][1]['content']=self.narratives["card1"]["paragraphs"][1]['content']+summary3
+                        self.narratives["card1"]["paragraphs"][1]['content'][0]=self.narratives["card1"]["paragraphs"][1]['content'][0]+summary3
                         # self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
                         self.narratives["card1"]["chart"] = {"data":prediction_data,"format":"%b-%y"}
 
