@@ -159,6 +159,10 @@ class MetaDataHelper():
 
     def get_utf8_suggestions(self,colStat):
         utf8 = False
+        modifiedColStat = {}
+        for obj in colStat:
+            modifiedColStat[obj["name"]] = obj["value"]
+        colStat = modifiedColStat
         levels = colStat["LevelCount"].keys()
         for val in levels:
             if val:
