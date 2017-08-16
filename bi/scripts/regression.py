@@ -24,7 +24,7 @@ class RegressionScript:
         regression_result_obj = LinearRegression(self._data_frame, self._dataframe_helper, self._dataframe_context).fit(self._dataframe_context.get_result_column())
         regression_result = utils.as_dict(regression_result_obj)
 
-        #print 'Regression result: %s' % (json.dumps(regression_result, indent=2))
+        # print 'Regression result: %s' % (json.dumps(regression_result, indent=2))
         DataWriter.write_dict_as_json(self._spark, regression_result, self._dataframe_context.get_result_file()+'Regression/')
 
 

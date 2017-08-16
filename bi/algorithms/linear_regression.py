@@ -1,5 +1,7 @@
 from pyspark.ml.linalg import DenseVector
 from pyspark.ml.regression import LinearRegression as LR
+from pyspark.sql.functions import  col, udf
+from pyspark.ml.linalg import Vectors, VectorUDT
 
 from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult
@@ -47,30 +49,34 @@ class LinearRegression:
         if len(set(input_columns) - set(self._dataframe_helper.get_numeric_columns())) != 0:
             raise BIException('At least one of the input columns %r is not a measure column' % (input_columns,))
 
+        all_measures = input_columns+[output_column]
+
         # TODO: ensure no duplicates are present in input_columns
+        p_values = []
+        coefficients = []
+        intercepts = []
+        rmses = []
+        r2s = []
+        sample_data_dict={}
+        func = udf(lambda x: DenseVector([x]),VectorUDT())
         regression_result = RegressionResult(output_column, input_columns)
-        training_df = self._data_frame.rdd.map(lambda row: \
-                                                   (float(row[output_column]),
-                                                    DenseVector([float(row[col]) for col in input_columns]))).toDF()
-        lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
-                elasticNetParam=1.0, labelCol=LinearRegression.LABEL_COLUMN_NAME,
-                featuresCol=LinearRegression.FEATURES_COLUMN_NAME)
-        lr_model = lr.fit(training_df)
-        lr_summary = lr_model.evaluate(training_df)
-        #regression_result.set_params(intercept=lr_model.intercept, coefficients=lr_model.coefficients,
-        #                              rmse=lr_summary.rootMeanSquaredError, r2=lr_summary.r2,
-        #                              t_values=lr_summary.tValues, p_values=lr_summary.pValues)
-
-        # TODO: pass t_values and p_values
-        coefficients = [float(i) for i in lr_model.coefficients.values]
-        if not any([coeff != 0 for coeff in coefficients]):
-            return None
-        sample_data_dict = {}
-        for col in input_columns:
-            # sample_data_dict[col] = self._dataframe_helper.get_sample_data(col, output_column, self._sample_size)
-            sample_data_dict[col] = None
-
-        regression_result.set_params(intercept=float(lr_model.intercept), coefficients=coefficients,
-                                      rmse=float(lr_summary.rootMeanSquaredError), r2=float(lr_summary.r2),sample_data_dict=sample_data_dict)
+        training_df = self._data_frame.select(*(func(c).alias(c) if c!=output_column else col(c) for c in all_measures))
+        for input_col in input_columns:
+            lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
+                    labelCol=output_column,featuresCol=input_col,fitIntercept=True, solver='normal')
+            lr_model = lr.fit(training_df)
+            lr_summary = lr_model.evaluate(training_df)
+            try:
+                p_values.append(lr_model.summary.pValues[0])
+            except:
+                print '|'*140
+                p_values.append(1.0)
+            coefficients.append(float(lr_model.coefficients[0]))
+            intercepts.append(float(lr_model.intercept))
+            rmses.append(float(lr_summary.rootMeanSquaredError))
+            r2s.append(float(lr_summary.r2))
+            sample_data_dict[input_col] = None
+        regression_result.set_params(intercept=intercepts, coefficients=coefficients,p_values = p_values,
+                                      rmse=rmses, r2=r2s,sample_data_dict=sample_data_dict)
 
         return regression_result
