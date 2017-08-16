@@ -21,66 +21,79 @@ class ContextSetter:
         self.ignorecolumns = []
         self.MODELFEATURES = []
         self.appid = None
+        self.considercolumnstype = None
 
     def set_params(self):
-        self.FILE_SETTING_KEYS = self._config_obj.get_file_settings()
-        file_setting_keys = self.FILE_SETTING_KEYS.keys()
-        self.CSV_FILE = self._config_obj.get_file_settings()['inputfile'][0]
-        if "narratives_file" in file_setting_keys:
-            self.NARRATIVES_FILE = self._config_obj.get_file_settings()['narratives_file'][0]
-        if "result_file" in file_setting_keys:
-            self.RESULT_FILE = self._config_obj.get_file_settings()['result_file'][0]
-        if "monitor_api" in file_setting_keys:
-            self.MONITOR_API = self._config_obj.get_file_settings()['monitor_api'][0]
-        if "train_test_split" in file_setting_keys:
-            self.train_test_split = self._config_obj.get_file_settings()['train_test_split'][0]
-        if "modelpath" in file_setting_keys:
-            self.MODEL_PATH = self._config_obj.get_file_settings()['modelpath'][0]
-        if "scorepath" in file_setting_keys:
-            self.SCORE_PATH = self._config_obj.get_file_settings()['scorepath'][0]
-        if "foldername" in file_setting_keys:
-            self.FOLDERS = self._config_obj.get_file_settings()['foldername'][0]
-        if "modelname" in file_setting_keys:
-            self.MODELS = self._config_obj.get_file_settings()['modelname'][0]
-        if "modelfeatures" in file_setting_keys:
-            self.MODELFEATURES = self._config_obj.get_file_settings()['modelfeatures'][0].split(self._column_separator)
-        if "levelcounts" in file_setting_keys:
-            self.levelcounts = self._config_obj.get_file_settings()['levelcounts'][0].split(self._column_separator)
+        self.FILE_SETTINGS = self._config_obj.get_file_settings()
+        self.COLUMN_SETTINGS = self._config_obj.get_column_settings()
+        fileSettingKeys = self.FILE_SETTINGS.keys()
+        columnSettingKeys = self.COLUMN_SETTINGS.keys()
+        # return {"file":self.FILE_SETTINGS,"column":self.COLUMN_SETTINGS}
+
+        self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
+        if "narratives_file" in fileSettingKeys:
+            self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
+        if "result_file" in fileSettingKeys:
+            self.RESULT_FILE =self.FILE_SETTINGS['result_file'][0]
+        if "monitor_api" in fileSettingKeys:
+            self.MONITOR_API =self.FILE_SETTINGS['monitor_api'][0]
+        if "train_test_split" in fileSettingKeys:
+            self.train_test_split =self.FILE_SETTINGS['train_test_split'][0]
+        if "modelpath" in fileSettingKeys:
+            self.MODEL_PATH =self.FILE_SETTINGS['modelpath'][0]
+        if "scorepath" in fileSettingKeys:
+            self.SCORE_PATH =self.FILE_SETTINGS['scorepath'][0]
+        if "foldername" in fileSettingKeys:
+            self.FOLDERS =self.FILE_SETTINGS['foldername'][0]
+        if "modelname" in fileSettingKeys:
+            self.MODELS =self.FILE_SETTINGS['modelname'][0]
+        if "modelfeatures" in fileSettingKeys:
+            self.MODELFEATURES =self.FILE_SETTINGS['modelfeatures'][0].split(self._column_separator)
+        if "levelcounts" in fileSettingKeys:
+            self.levelcounts =self.FILE_SETTINGS['levelcounts'][0].split(self._column_separator)
             self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
 
-        column_setting_keys = self._config_obj.get_column_settings().keys()
-        if "app_id" in column_setting_keys:
-            self.appid = self._config_obj.get_column_settings()['app_id'][0].strip()
-        if "result_column" in column_setting_keys:
-            self.resultcolumn = self._config_obj.get_column_settings()['result_column'][0].strip()
-        if "analysis_type" in column_setting_keys:
-            self.analysistype = self._config_obj.get_column_settings()['analysis_type'][0].strip()
-        # self.ignorecolumns = self._config_obj.get_column_settings().get('ignore_column_suggestions')
-        #
-        # self.utf8columns = self._config_obj.get_column_settings().get('utf8_columns')
-        #
-        # if self.ignorecolumns!=None:
-        #     self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
-        # self.considercolumns = self._config_obj.get_column_settings().get('consider_columns')
-        # self.scoreconsidercolumns = self._config_obj.get_column_settings().get('score_consider_columns')
-        #
+        if "app_id" in columnSettingKeys:
+            self.appid = self.COLUMN_SETTINGS['app_id'][0].strip()
+        if "result_column" in columnSettingKeys:
+            self.resultcolumn = self.COLUMN_SETTINGS['result_column'][0].strip()
+        if "analysis_type" in columnSettingKeys:
+            self.analysistype = self.COLUMN_SETTINGS['analysis_type'][0].strip()
+        if "ignore_column_suggestions" in columnSettingKeys:
+            self.ignorecolumns = self.COLUMN_SETTINGS.get('ignore_column_suggestions')
+        if "utf8_columns" in columnSettingKeys:
+            self.utf8columns = self.COLUMN_SETTINGS.get('utf8_columns')
+        if self.ignorecolumns!=None:
+            self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
+        if "consider_columns" in columnSettingKeys:
+            self.considercolumns = self.COLUMN_SETTINGS.get('consider_columns')
+        if "score_consider_columns" in columnSettingKeys:
+            self.scoreconsidercolumns = self.COLUMN_SETTINGS.get('score_consider_columns')
+        if "consider_columns_type" in columnSettingKeys:
+            self.considercolumnstype = self.COLUMN_SETTINGS.get('consider_columns_type')
+
+        if self.considercolumnstype == ["including"]:
+            if self.resultcolumn != None and self.considercolumns != None:
+                self.considercolumns.append(self.resultcolumn)
+                self.considercolumns = list(set(self.considercolumns))
+
+        if "script_to_run" in columnSettingKeys:
+            self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
+        else:
+            self.scripts_to_run = []
+        if "date_columns" in columnSettingKeys:
+            self.date_columns = self.COLUMN_SETTINGS.get('date_columns')
+        if "date_format" in columnSettingKeys:
+            self.date_format = self.COLUMN_SETTINGS.get('date_format')
+        if "measure_suggestions" in columnSettingKeys:
+            self.measure_suggestions = self.COLUMN_SETTINGS.get('measure_suggestions')
+        if "score_consider_columns_type" in columnSettingKeys:
+            self.scoreconsidercolumnstype = self.COLUMN_SETTINGS.get('score_consider_columns_type')
+
         # self.dimension_filter = self._config_obj.get_dimension_filters()
         # self.measure_filter = self._config_obj.get_measure_filters()
         # self.date_filter = self._config_obj.get_date_filters()
         # self.string_to_date_columns = self._config_obj.get_date_settings()
-        # self.considercolumnstype = self._config_obj.get_column_settings().get('consider_columns_type')
-        # if self.considercolumnstype == ["including"]:
-        #     if self.resultcolumn != None and self.considercolumns != None:
-        #         self.considercolumns.append(self.resultcolumn)
-        #         self.considercolumns = list(set(self.considercolumns))
-        if "script_to_run" in column_setting_keys:
-            self.scripts_to_run = self._config_obj.get_file_settings().get('script_to_run')
-        else:
-            self.scripts_to_run = []
-        # self.date_columns = self._config_obj.get_column_settings().get('date_columns')
-        # self.date_format = self._config_obj.get_column_settings().get('date_format')
-        # self.measure_suggestions = self._config_obj.get_column_settings().get('measure_suggestions')
-        # self.scoreconsidercolumnstype = self._config_obj.get_column_settings().get('score_consider_columns_type')
 
     def get_column_separator(self):
         return self._column_separator
