@@ -100,7 +100,7 @@ def main(configJson):
         configJsonObj = configparser.ParserConfig(config)
         configJsonObj.set_json_params()
         dataframe_context = ContextSetter(configJsonObj)
-        return dataframe_context.set_params()
+        dataframe_context.set_params()
         jobType = job_config["job_type"]
 
     #Load the dataframe
