@@ -333,12 +333,15 @@ def get_streak_data(df,trendString,maxRuns,trend,dataLevel):
             streak_start_index = streak_start_index-1
         streak_end_index = streak_start_index + maxRuns["P"]
         # print streak_start_index,streak_end_index
+        if streak_end_index == df.shape[0]:
+            streak_end_index = streak_end_index-1
     else:
         streak_start_index = trendString.index("P"*maxRuns["P"])
         if streak_start_index != 0:
             streak_start_index = streak_start_index-1
         streak_end_index = streak_start_index + maxRuns["P"]
-
+        if streak_end_index == df.shape[0]:
+            streak_end_index = streak_end_index-1
     end_streak_value = round(df["value"][streak_end_index],2)
     start_streak_value = round(df["value"][streak_start_index],2)
     if dataLevel == "day":
@@ -443,9 +446,9 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
         k["total"] = k.sum(axis=1)
         k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k.index))
         k = k.sort_values(by="rank", ascending=True)
+        k.to_csv("/home/gulshan/Desktop/dd1.csv")
         max_index = list(k.index).index(max_time)
         # print k.head()
-        # print max_index,columns,column_levels
         for level in column_levels:
             data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
             data_dict["contribution"] = round(float(np.sum(k[level]))*100/np.sum(k["total"]),2)
