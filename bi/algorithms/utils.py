@@ -41,7 +41,6 @@ def bucket_all_measures(df, measure_columns, dimension_columns):
         # splits_new = [min_,splits[1],splits[3],max_]
         diff = (max_ - min_)*1.0
         splits_new = [min_,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_]
-        print '-'*20, splits_new, '-'*20
         bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
         bucketizer.setSplits(splits_new)
         df = bucketizer.transform(df)
