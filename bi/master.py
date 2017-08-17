@@ -207,9 +207,11 @@ def main(configJson):
                 print e
                 print "#####ERROR#####"*5
 
-            response = CommonUtils.convert_python_object_to_json(story_narrative)
+            dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # print CommonUtils.as_dict(story_narrative)
+            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
             return response
+            
         elif analysistype == 'Measure':
             print "STARTING MEASURE ANALYSIS ..."
             df_helper.remove_null_rows(dataframe_context.get_result_column())
