@@ -40,7 +40,6 @@ from bi.scripts.metadata_new import MetaDataScript
 from parser import configparser
 from pyspark.sql.functions import col, udf
 
-
 #if __name__ == '__main__':
 def main(configJson):
     start_time = time.time()
@@ -63,41 +62,43 @@ def main(configJson):
         dataframe_context.set_params()
     else:
         # configJson = {
-        #         "config":{
-        #                     'FILE_SETTINGS': {
-        #                                       'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
-        #                                       'levelcounts': ['GG|~|34|~|HH|~|4'],
-        #                                       'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
-        #                                       'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
-        #                                       'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'],
-        #                                       'train_test_split': ['0.8'],
-        #                                       'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
-        #                                       'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
-        #                                                         'Dimension vs. Dimension', 'Measure vs. Measure'],
-        #                                       'inputfile': ['file:///home/gulshan/marlabs/datasets/Subaru_churn_data.csv']
-        #                                       },
-        #                     'COLUMN_SETTINGS': {
-        #                                         'polarity': ['positive'],
-        #                                         'consider_columns_type': ['including'],
-        #                                         'score_consider_columns_type': ['excluding'],
-        #                                         'measure_suggestions': None,
-        #                                         'date_format': None,
-        #                                         'ignore_column_suggestions': None,
-        #                                         'result_column': ['Status'],
-        #                                         'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-        #                                                              'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-        #                                         'analysis_type': ['Dimension'],
-        #                                         'score_consider_columns': None
-        #                                         }
-        #                  },
-        #         "job_config":{
-        #                         "job_type":"story",
-        #                         "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-        #                         "set_result": {
-        #                             "method": "PUT",
-        #                             "action": "result"
-        #                           },
-        #                      }
+        #                 "config":{
+        #                             'FILE_SETTINGS': {
+        #                                               'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
+        #                                               'levelcounts': ['GG|~|34|~|HH|~|4'],
+        #                                               'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
+        #                                               'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
+        #                                               'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'],
+        #                                               'train_test_split': ['0.8'],
+        #                                               'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
+        #                                               'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
+        #                                                                 'Dimension vs. Dimension', 'Measure vs. Measure','Trend'],
+        #                                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+        #                                               },
+        #                             'COLUMN_SETTINGS': {
+        #                                                 'polarity': ['positive'],
+        #                                                 'consider_columns_type': ['excluding'],
+        #                                                 'score_consider_columns_type': ['excluding'],
+        #                                                 'measure_suggestions': None,
+        #                                                 'date_format': None,
+        #                                                 'date_columns':["Date"],
+        #                                                 'ignore_column_suggestions': None,
+        #                                                 'result_column': ['Platform'],
+        #                                                 'consider_columns':[],
+        #                                                 # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+        #                                                 #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+        #                                                 'analysis_type': ['Dimension'],
+        #                                                 'score_consider_columns': None
+        #                                                 }
+        #                          },
+        #                 "job_config":{
+        #                                 "job_type":"story",
+        #                                 "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+        #                                 "set_result": {
+        #                                     "method": "PUT",
+        #                                     "action": "result"
+        #                                   },
+        #                              }
         #             }
         # configJson = {
         #     "config":{
@@ -212,18 +213,18 @@ def main(configJson):
                 print "Predictive modeling Not in Scripts to run"
 
             if ('Trend' in scripts_to_run):
-                # try:
-                fs = time.time()
-                trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
-                trend_obj.Run()
-                print "Trend Analysis Done in ", time.time() - fs, " seconds."
+                try:
+                    fs = time.time()
+                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+                    trend_obj.Run()
+                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-                # except Exception as e:
-                #     DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
-                #     print "Trend Script Failed"
-                #     print "#####ERROR#####"*5
-                #     print e
-                #     print "#####ERROR#####"*5
+                except Exception as e:
+                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
+                    print "Trend Script Failed"
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
 
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
