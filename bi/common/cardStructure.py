@@ -148,6 +148,21 @@ class HtmlData:
     def get_data_type(self):
         return self.dataType
 
+class TableData:
+
+    def __init__(self,data=None):
+        self.dataType = "table"
+        self.data = data
+
+    def set_data(self,data):
+        self.data = data
+
+    def get_data(self):
+        return self.data
+
+    def get_data_type(self):
+        return self.dataType
+
 
 class C3ChartData:
 
