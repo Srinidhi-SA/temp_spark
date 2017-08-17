@@ -20,8 +20,6 @@ class DecisionTrees:
     #@accepts(object, DataFrame)
     def __init__(self, data_frame, df_helper, df_context, spark):
         self._spark = spark
-        self._data_frame = data_frame
-        self._data_frame1 = data_frame
         #df_helper = DataFrameHelper(data_frame)
         #self._data_frame_filterer = DataFrameFilterer(data_frame)
         self._measure_columns = df_helper.get_numeric_columns()
@@ -30,6 +28,8 @@ class DecisionTrees:
         if self._date_column_suggestions != None:
             if len(self._date_column_suggestions) >0 :
                 self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions))
+        self._data_frame = data_frame
+        self._data_frame1 = data_frame
         self._mapping_dict = {}
         self._new_rules = {}
         self._total = {}

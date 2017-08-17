@@ -1,6 +1,6 @@
 from pyspark.ml.linalg import DenseVector
 from pyspark.ml.regression import LinearRegression as LR
-from pyspark.sql.functions import  col, udf
+from pyspark.sql.functions import  col, udf, count
 from pyspark.ml.linalg import Vectors, VectorUDT
 
 from bi.common.exception import BIException
@@ -62,6 +62,13 @@ class LinearRegression:
         regression_result = RegressionResult(output_column, input_columns)
         training_df = self._data_frame.select(*(func(c).alias(c) if c!=output_column else col(c) for c in all_measures))
         for input_col in input_columns:
+            if training_df.select(input_col).distinct().count() < 2:
+                p_values.append(1.0)
+                coefficients.append(0.0)
+                intercepts.append(0.0)
+                r2s.append(0.0)
+                sample_data_dict[input_col]=None
+                continue
             lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
                     labelCol=output_column,featuresCol=input_col,fitIntercept=True, solver='normal')
             lr_model = lr.fit(training_df)
