@@ -3,8 +3,8 @@ import operator
 import os
 
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree
-
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
 
@@ -83,7 +83,6 @@ class DimensionColumnNarrative:
 
         dimensionSummaryCard.set_summary_html(summary)
         # dimensionSummaryCard.set_quote_html
-
         self._story_narrative.add_a_card(dimensionSummaryCard)
 
     def _generate_analysis(self):
@@ -92,12 +91,16 @@ class DimensionColumnNarrative:
         json_freq_dict = json.dumps(freq_dict)
         freq_dict = json.loads(freq_dict)
         colname = self._colname
+        freq_data = []
+        for k,v in freq_dict[colname][colname].items():
+            freq_data.append({"key":v,"value":freq_dict[colname]["count"][k]})
+        freq_data = sorted(freq_data,key=lambda x:x["value"],reverse=True)
         data_dict = {"colname":self._colname}
         data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']
-
         max_key = max(count,key=count.get)
         min_key = min(count, key=count.get)
+        data_dict["blockSplitter"] = self._blockSplitter
         data_dict["max"] = {"key":freq_dict[colname][colname][max_key],"val":count[max_key]}
         data_dict["min"] = {"key":freq_dict[colname][colname][min_key],"val":count[min_key]}
         data_dict["keys"] = freq_dict[colname][colname].values()
@@ -143,8 +146,16 @@ class DimensionColumnNarrative:
         output2 = NarrativesUtils.get_template_output(self._base_dir,\
                                                 'dimension_distribution2.temp',data_dict)
         output2 = NarrativesUtils.block_splitter(output2,self._blockSplitter)
-        lines.append(output1)
-        lines.append(output2)
+        chart_data = NormalChartData(data=freq_data)
+        chart_json = ChartJson()
+        chart_json.set_data(chart_data)
+        chart_json.set_chart_type("bar")
+        # chart_json.set_axes({"x"})
+        lines += output1
+        lines += [C3ChartData(data=chart_json)]
+        lines += output2
+        # add the bubble data
+        # print lines
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)
         self._dimensionSummaryNode.set_name("Summary")
@@ -159,7 +170,6 @@ class DimensionColumnNarrative:
         data_dict = {"colname":self._colname}
         data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']
-
         max_key = max(count,key=count.get)
         min_key = min(count, key=count.get)
         data_dict["max"] = {"key":freq_dict[colname][colname][max_key],"val":count[max_key]}
