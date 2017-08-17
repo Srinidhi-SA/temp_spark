@@ -19,6 +19,11 @@ class ContextSetter:
         self.MONITOR_API = ""
         self.analysistype = ""
         self.ignorecolumns = []
+        self.utf8columns = []
+        self.considercolumns = []
+        self.considercolumnstype = []
+        self.measure_suggestions = []
+        self.string_to_date_columns = {}
         self.MODELFEATURES = []
         self.appid = None
         self.considercolumnstype = None

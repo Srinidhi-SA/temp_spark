@@ -71,7 +71,7 @@ class ColumnData:
         self.columnType = data
 
     def set_level_count_to_null(self):
-        self.columnStats["LevelCount"] = None
+        self.columnStat = [obj if obj["name"] != "LevelCount"] else {"name":obj["name"],"value":None} for obj in self.columnStat]
 
     def set_chart_data_to_null(self):
         self.chartData = {}
