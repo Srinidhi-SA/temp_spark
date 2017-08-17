@@ -6,9 +6,10 @@ import json
 import numpy as np
 import pandas as pd
 
-from pyspark.sql.functions import mean, stddev, col, sum, count
+from pyspark.sql.functions import mean, stddev, col, sum, count, min, max
 from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
 from pyspark.sql.types import StringType
+from pyspark.sql.types import DoubleType
 from pyspark.ml.clustering import KMeans
 
 from pyspark.ml import Pipeline
@@ -19,10 +20,25 @@ import functools
 from pyspark.ml.feature import OneHotEncoder
 from pyspark.ml.pipeline import PipelineModel
 from pyspark.ml.feature import IndexToString, StringIndexer
+from pyspark.ml.feature import Bucketizer
+from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
 
-
+def bucket_all_measures(df, measure_columns, dimension_columns):
+    df = df.select(measure_columns+dimension_columns)
+    for measure_column in measure_columns:
+        quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
+                                                       outputCol='quantile',
+                                                       relativeError=0.01)
+        splits = quantile_discretizer.fit(df1).getSplits()
+        min_,max_ = df.agg(min(measure_column).alias('min'), max(measure_column).alias('max')).collect()[0]
+        splits_new = [min_,splits[1],splits[3],max_]
+        bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+        df = bucketizer.transform(df1)
+        df = df.select([c for c in df.columns if c!=measure_column])
+        df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
+    return df
 
 def generate_random_number_array(df):
     out = [random.random() for idx in range(df.shape[0])]
