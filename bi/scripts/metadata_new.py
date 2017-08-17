@@ -31,9 +31,9 @@ class MetaDataScript:
         self._timestamp_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
         self._column_type_dict = dict(\
-                                        zip(self._numeric_columns,["Measure"]*len(self._numeric_columns))+\
-                                        zip(self._string_columns,["Dimension"]*len(self._string_columns))+\
-                                        zip(self._timestamp_columns,["TimeDimension"]*len(self._timestamp_columns))\
+                                        zip(self._numeric_columns,["measure"]*len(self._numeric_columns))+\
+                                        zip(self._string_columns,["dimension"]*len(self._string_columns))+\
+                                        zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))\
                                      )
 
 
@@ -74,17 +74,17 @@ class MetaDataScript:
 
             columnStat = []
             columnChartData = None
-            if self._column_type_dict[column] == "Measure":
+            if self._column_type_dict[column] == "measure":
                 data.set_column_stats(measureColumnStat[column])
                 data.set_column_chart(measureCharts[column])
-            elif self._column_type_dict[column] == "Dimension":
+            elif self._column_type_dict[column] == "dimension":
                 data.set_column_stats(dimensionColumnStat[column])
                 data.set_column_chart(dimensionCharts[column])
-            if self._column_type_dict[column] == "Measure":
-                ignoreSuggestion = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"Measure",measureColumnStat[column],max_levels=self._max_levels)
+            if self._column_type_dict[column] == "measure":
+                ignoreSuggestion = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
-            elif self._column_type_dict[column] == "Dimension":
+            elif self._column_type_dict[column] == "dimension":
                 utf8Suggestion = helper_instance.get_utf8_suggestions(dimensionColumnStat[column])
                 dateColumn = helper_instance.get_datetime_suggestions(self._data_frame,column)
                 if dateColumn != {}:
@@ -93,7 +93,7 @@ class MetaDataScript:
                     data.set_chart_data_to_null()
                 if utf8Suggestion:
                     utf8ColumnSuggestion.append(column)
-                ignoreSuggestion = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"Dimension",dimensionColumnStat[column],max_levels=self._max_levels)
+                ignoreSuggestion = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
             columnData.append(data)

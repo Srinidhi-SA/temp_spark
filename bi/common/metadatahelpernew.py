@@ -137,7 +137,7 @@ class MetaDataHelper():
         for obj in colStat:
             modifiedColStat[obj["name"]] = obj["value"]
         colStat = modifiedColStat
-        if dataType == "Measure":
+        if dataType == "measure":
             if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or (colStat["numberOfUniqueValues"]==1):
                 ignore = True
             elif abs(colStat["max"]-colStat["min"]+1-total_rows) <= 0.01*total_rows:
@@ -146,7 +146,7 @@ class MetaDataHelper():
                 if abs(colStat["numberOfNotNulls"]-colStat["max"]+colStat["min"])<= 0.01*colStat["numberOfNotNulls"] or \
                     abs(total_rows-colStat["max"]+colStat["min"])<= 0.01*total_rows:
                     ignore = True
-        elif dataType == "Dimension":
+        elif dataType == "dimension":
             if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or \
                 (colStat["numberOfUniqueValues"]<=1) or \
                 (colStat["numberOfNulls"]>0 and colStat["numberOfUniqueValues"]==2):
