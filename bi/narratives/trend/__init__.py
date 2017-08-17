@@ -42,6 +42,7 @@ class TimeSeriesNarrative:
             dateColumnFormatDict =  df_helper.get_datetime_format(suggested_date_column)
             if suggested_date_column in dateColumnFormatDict:
                 existingDateFormat = dateColumnFormatDict[suggested_date_column]
+                # print existingDateFormat
                 self._dateFormatDetected = True
             if df_context.get_requested_date_format() != None:
                 requestedDateFormat = df_context.get_requested_date_format()[0]
@@ -121,7 +122,9 @@ class TimeSeriesNarrative:
                     self._date_suggestion_columns = self._td_columns
                 else:
                     self._date_suggestion_columns += self._td_columns
-
+        # print self._durationString
+        # print self._dataLevel
+        # print self._existingDateFormat
         if self._trend_subsection=="regression":
             if self._date_suggestion_columns != None:
                 if self._dateFormatDetected:
