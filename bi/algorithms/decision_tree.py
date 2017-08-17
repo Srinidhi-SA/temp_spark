@@ -193,7 +193,8 @@ class DecisionTrees:
         self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
         print '*'*420
         print mapping_dict
-        standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
+        # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
+        standard_measure_index = {0.0:'Low',1.0:'Below Average',2.0:'Average',3.0:'Above Average',4.0:'High'}
         for measure in all_measures:
             mapping_dict[measure] = standard_measure_index
 
@@ -209,7 +210,7 @@ class DecisionTrees:
         for c in columns_without_dimension:
             cat_feature_info.append(self._data_frame.select(c).distinct().count())
         for c in all_measures:
-            cat_feature_info.append(3)
+            cat_feature_info.append(5)
         columns_without_dimension = columns_without_dimension+all_measures
         all_measures = []
         if len(cat_feature_info)>0:

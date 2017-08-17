@@ -29,16 +29,19 @@ from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestM
 def bucket_all_measures(df, measure_columns, dimension_columns):
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns])
     for measure_column in measure_columns:
-        quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
-                                                       outputCol='quantile',
-                                                       relativeError=0.01)
-        splits = quantile_discretizer.fit(df).getSplits()
+        # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
+        #                                                outputCol='quantile',
+        #                                                relativeError=0.01)
+        # splits = quantile_discretizer.fit(df).getSplits()
         min_,max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
-        if len(splits)<5:
-            diff = (max_ - min_)*1.0
-            splits = [None,min_+diff*0.25,min_+diff*0.5,min_+diff*0.75,None]
-        print measure_column, min_, max_,splits
-        splits_new = [min_,splits[1],splits[3],max_]
+        # if len(splits)<5:
+        #     diff = (max_ - min_)*1.0
+        #     splits = [None,min_+diff*0.25,min_+diff*0.5,min_+diff*0.75,None]
+        # print measure_column, min_, max_,splits
+        # splits_new = [min_,splits[1],splits[3],max_]
+        diff = (max_ - min_)*1.0
+        splits_new = [min_,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_]
+        print '-'*20, splits_new, '-'*20
         bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
         bucketizer.setSplits(splits_new)
         df = bucketizer.transform(df)
