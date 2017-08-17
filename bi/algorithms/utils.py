@@ -6,6 +6,7 @@ import json
 import numpy as np
 import pandas as pd
 
+from pyspark.sql import functions as FN
 from pyspark.sql.functions import mean, stddev, col, sum, count, min, max
 from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
 from pyspark.sql.types import StringType
@@ -26,16 +27,21 @@ from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
 
 def bucket_all_measures(df, measure_columns, dimension_columns):
-    df = df.select(measure_columns+dimension_columns)
+    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns])
     for measure_column in measure_columns:
         quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
                                                        outputCol='quantile',
                                                        relativeError=0.01)
-        splits = quantile_discretizer.fit(df1).getSplits()
-        min_,max_ = df.agg(min(measure_column).alias('min'), max(measure_column).alias('max')).collect()[0]
+        splits = quantile_discretizer.fit(df).getSplits()
+        min_,max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
+        if len(splits)<5:
+            diff = (max_ - min_)*1.0
+            splits = [None,min_+diff*0.25,min_+diff*0.5,min_+diff*0.75,None]
+        print measure_column, min_, max_,splits
         splits_new = [min_,splits[1],splits[3],max_]
         bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
-        df = bucketizer.transform(df1)
+        bucketizer.setSplits(splits_new)
+        df = bucketizer.transform(df)
         df = df.select([c for c in df.columns if c!=measure_column])
         df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
     return df

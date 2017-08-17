@@ -28,8 +28,8 @@ class DecisionTrees:
         if self._date_column_suggestions != None:
             if len(self._date_column_suggestions) >0 :
                 self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions))
-        self._data_frame = data_frame
-        self._data_frame1 = data_frame
+        self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns)
+        self._data_frame1 = self._data_frame
         self._mapping_dict = {}
         self._new_rules = {}
         self._total = {}
@@ -191,6 +191,11 @@ class DecisionTrees:
         decision_tree_result.set_freq_distribution(self.calculate_frequencies(), self._important_vars)
 
         self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
+        print '*'*420
+        print mapping_dict
+        standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
+        for measure in all_measures:
+            mapping_dict[measure] = standard_measure_index
 
         for k,v in mapping_dict.items():
             temp = {}
@@ -203,6 +208,10 @@ class DecisionTrees:
 
         for c in columns_without_dimension:
             cat_feature_info.append(self._data_frame.select(c).distinct().count())
+        for c in all_measures:
+            cat_feature_info.append(3)
+        columns_without_dimension = columns_without_dimension+all_measures
+        all_measures = []
         if len(cat_feature_info)>0:
             max_length = max(cat_feature_info)
         else:
