@@ -111,8 +111,11 @@ def main(configJson):
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
         print metaDataJson
+        # url = configJson["job_config"]["job_url"]
+        # url += "set_result"
+        # return {"data":metaDataJson,"url":url}
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
-        # print response
+        return response
     else:
         analysistype = dataframe_context.get_analysis_type()
         print "ANALYSIS TYPE : ", analysistype
@@ -200,9 +203,9 @@ def main(configJson):
                 print e
                 print "#####ERROR#####"*5
 
-            print CommonUtils.convert_python_object_to_json(story_narrative)
+            response = CommonUtils.convert_python_object_to_json(story_narrative)
             # print CommonUtils.as_dict(story_narrative)
-
+            return response
         elif analysistype == 'Measure':
             print "STARTING MEASURE ANALYSIS ..."
             df_helper.remove_null_rows(dataframe_context.get_result_column())

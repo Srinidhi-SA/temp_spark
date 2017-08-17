@@ -98,7 +98,7 @@ class MetaDataScript:
                     ignoreColumnSuggestions.append(column)
             columnData.append(data)
 
-        ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys())+set(utf8ColumnSuggestion))
+        ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys()))+utf8ColumnSuggestion
         metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
         metaData.append(MetaData(name="dateTimeSuggestions",value = dateTimeSuggestions,display=False))

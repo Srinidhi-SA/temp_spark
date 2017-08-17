@@ -133,6 +133,10 @@ class MetaDataHelper():
     def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
         ignore = False
         total_rows = df.count()
+        modifiedColStat = {}
+        for obj in colStat:
+            modifiedColStat[obj["name"]] = obj["value"]
+        colStat = modifiedColStat
         if dataType == "Measure":
             if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or (colStat["numberOfUniqueValues"]==1):
                 ignore = True
@@ -155,6 +159,10 @@ class MetaDataHelper():
 
     def get_utf8_suggestions(self,colStat):
         utf8 = False
+        modifiedColStat = {}
+        for obj in colStat:
+            modifiedColStat[obj["name"]] = obj["value"]
+        colStat = modifiedColStat
         levels = colStat["LevelCount"].keys()
         for val in levels:
             if val:
