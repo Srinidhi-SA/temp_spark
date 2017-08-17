@@ -6,7 +6,9 @@ from bi.common.utils import accepts
 from chisquare import ChiSquareAnalysis
 from chisquare_app2 import ChiSquareAnalysisApp2
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 
 class ChiSquareNarratives:
     print "Starting Narratives"
@@ -65,15 +67,27 @@ class ChiSquareNarratives:
             chart['data'] = effect_size_dict
             chart['label_text']={'x':'Dimensions',
                                 'y':'Effect Size (Cramers-V)'}
+
+            chart_data = []
+            for k,v in effect_size_dict.items():
+                chart_data.append({"key":k,"value":v})
+            print chart_data
+            chart_data = sorted(chart_data,key=lambda x:x["value"],reverse=True)
+            chart_json = ChartJson()
+            chart_json.set_data(chart_data)
+            chart_json.set_chart_type("bar")
+            chart_json.set_label_text({'x':'Dimensions','y':'Effect Size (Cramers-V)'})
+
             self.narratives['main_card']['chart']=chart
 
 
             main_card = NormalCard()
             header = "Strength of association between "+target_dimension+" and other dimensions"
-            main_card_data = [{"dataType":"html","data":header}]
-            main_card_data.append({"dataType":"c3Chart","data":chart})
-            main_card_data.append({"dataType":"html","data":NarrativesUtils.get_template_output(self._base_dir,'main_card.temp',data_dict)})
-
+            main_card_data = [HtmlData(data=header)]
+            main_card_data.append(C3ChartData(data=chart_json))
+            main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,'main_card.temp',data_dict)
+            main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
+            main_card_data += main_card_narrative
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("main_card")
             chiSquareNode.add_a_card(main_card)

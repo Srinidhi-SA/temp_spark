@@ -4,8 +4,8 @@ import random
 import numpy
 from pyspark.sql.functions import col
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree
-
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class ChiSquareAnalysis:
@@ -204,8 +204,10 @@ class ChiSquareAnalysis:
         output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict),self._blockSplitter)
         card1Data = []
         card1Heading = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
-        card1Data.append({"dataType":"html","data":card1Heading})
+        card1Data.append(HtmlData(data=card1Heading))
         card1Data += output
+
+        
         card1Table = {"dataType":"html","data":self._table}
         card1Chart =  {"dataType":"c3Chart","data":self.generate_card1_chart()}
         card1Data.append(card1Table)
@@ -423,4 +425,5 @@ class ChiSquareAnalysis:
                 'label':self._analysed_dimension,
                 'data1':data1
               }
+        print out
         return out
