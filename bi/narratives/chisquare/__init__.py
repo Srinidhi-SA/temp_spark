@@ -71,7 +71,6 @@ class ChiSquareNarratives:
             chart_data = []
             for k,v in effect_size_dict.items():
                 chart_data.append({"key":k,"value":v})
-            print chart_data
             chart_data = sorted(chart_data,key=lambda x:x["value"],reverse=True)
             chart_json = ChartJson()
             chart_json.set_data(chart_data)

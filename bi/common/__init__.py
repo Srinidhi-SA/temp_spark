@@ -15,7 +15,7 @@ from datafilterhelper import DataFilterHelper
 from filtercontext import FilterContextSetter
 from context import ContextSetter
 from resultloader import ResultSetter
-from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
+from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
 from metadatahelpernew import MetaDataHelper
 from charts import ScatterChartData,NormalChartData,ChartJson
 
@@ -42,7 +42,7 @@ __all__ = [
     'FilterContextSetter',
     'ContextSetter',
     'ResultSetter',
-    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData',
+    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData','TableData',
     'MetaDataHelper',
     'ScatterChartData','NormalChartData','ChartJson'
 ]

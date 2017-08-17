@@ -148,13 +148,14 @@ class DimensionColumnNarrative:
         output2 = NarrativesUtils.block_splitter(output2,self._blockSplitter)
         chart_data = NormalChartData(data=freq_data)
         chart_json = ChartJson()
-        chart_json.set_data(chart_data)
+        chart_json.set_data(chart_data.get_data())
         chart_json.set_chart_type("bar")
         # chart_json.set_axes({"x"})
         lines += output1
         lines += [C3ChartData(data=chart_json)]
         lines += output2
-        # add the bubble data
+        bubble_data = "<div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(largest_per,largest_text,smallest_per,smallest_text)
+        lines.append(HtmlData(data=bubble_data))
         # print lines
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)

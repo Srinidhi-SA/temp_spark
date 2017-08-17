@@ -36,6 +36,7 @@ class ChartJson:
         self.data = data
         self.axes = axes
         self.label_text = label_text
+        self.legend = legend
         self.chart_type = chart_type
         self.types = types
 
