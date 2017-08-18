@@ -24,8 +24,8 @@ from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
 
-def bucket_all_measures(df, measure_columns, dimension_columns):
-    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns])
+def bucket_all_measures(df, measure_columns, dimension_columns,target_measure=[]):
+    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns+target_measure])
     for measure_column in measure_columns:
         # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
         #                                                outputCol='quantile',
