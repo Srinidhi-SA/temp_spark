@@ -63,12 +63,16 @@ class NormalCard:
         self.name = name
         self.slug = slug
         self.cardData = list(cardData)
+        self.cardWidth = 100
 
     def set_card_data(self,data):
         self.cardData = data
 
     def set_card_name(self,name):
         self.name = name
+
+    def set_card_width(self,data):
+        self.cardWidth = data
 
     def insert_card_data(self,idx,data):
         self.cardData.insert(idx,data)
@@ -82,6 +86,7 @@ class NormalCard:
     def get_card_type(self):
         return self.cardType
 
+
 class SummaryCard:
     """
     Defines the structure for a Summary Card
@@ -92,6 +97,7 @@ class SummaryCard:
         self.cardType = "summary"
         self.name = name
         self.slug = slug
+        self.cardWidth = 100
         self.cardData = {
                             "noOfDimensions":None,
                             "noOfMeasures":None,
@@ -120,6 +126,9 @@ class SummaryCard:
 
     def set_card_name(self,name):
         self.name = name
+
+    def set_card_width(self,data):
+        self.cardWidth = data
 
     def insert_card_data(self,idx,data):
         self.cardData.insert(idx,data)

@@ -23,11 +23,8 @@ class DecisionTreeNarrative:
             self.new_table[keys]={}
             self.new_table[keys]['rules'] = self.table[keys]
             self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
-            first_col = [""]*len(self.new_table[keys]['rules'])
-            first_col[0] = keys
-            keyTable = zip(first_col,self.new_table[keys]['rules'],self.new_table[keys]['probability'])
-            keyTable = [list(obj) for obj in keyTable]
-            self.card1Table += keyTable
+            keyTable = [keys,self.new_table[keys]['rules'],self.new_table[keys]['probability']]
+            self.card1Table.append(keyTable)
 
     @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree)
     def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative):
@@ -101,7 +98,7 @@ class DecisionTreeNarrative:
         main_card_data.append(HtmlData(data=self._decision_tree_raw))
         main_card_table = TableData()
         main_card_table.set_table_data(self.card1Table)
-        main_card_table.set_table_type("normal")
+        main_card_table.set_table_type("decisionTreeTable")
         main_card_data.append(main_card_table)
         main_card.set_card_data(main_card_data)
         main_card.set_card_name("main_card")
