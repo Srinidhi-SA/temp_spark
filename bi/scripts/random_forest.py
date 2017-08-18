@@ -25,8 +25,9 @@ from bi.common import NormalCard,SummaryCard,NarrativesTree
 
 
 class RandomForestScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter):
         self._prediction_narrative = prediction_narrative
+        self._result_setter = result_setter
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -73,9 +74,18 @@ class RandomForestScript:
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
 
-        self._modelSummaryNode = NarrativesTree()
-        main_card = NormalCard()
-        self._prediction_narrative.add_a_node(self._modelSummaryNode)
+
+        self._result_setter.set_model_summary({"randomForest":self._model_summary})
+        rfCard1 = NormalCard()
+        rfcard1Data = []
+        rfcard1Data.append(HtmlData(data="<h5>Summary</h5>"))
+        rfcard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
+        rfcard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
+
+
+        rfCard2 = NormalCard()
+        self._prediction_narrative.add_a_card(rfCard1)
+        self._prediction_narrative.add_a_card(rfCard2)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
