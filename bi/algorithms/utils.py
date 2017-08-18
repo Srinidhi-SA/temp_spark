@@ -24,6 +24,9 @@ from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
 
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 def bucket_all_measures(df, measure_columns, dimension_columns):
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns])
     for measure_column in measure_columns:
@@ -442,3 +445,14 @@ def fill_missing_values(df,replacement_dict):
     """
     df = df.fillna(replacement_dict)
     return df
+
+
+def get_model_comparison(collated_summary):
+    algos = collated_summary.keys()
+    out = []
+
+    # modelTable = TableData()
+    # modelTable.set_table_data(confusion_matrix_data)
+    # modelTable.set_table_type("confusionMatrix")
+    # modelTable.set_table_top_header("Actual")
+    # modelTable.set_table_left_header("Predicted")

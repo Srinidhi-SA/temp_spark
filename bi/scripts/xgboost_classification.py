@@ -1,5 +1,7 @@
 import json
 import time
+import collections
+
 
 try:
     import cPickle as pickle
@@ -18,9 +20,14 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 
 class XgboostScript:
-    def __init__(self, data_frame, df_helper,df_context, spark):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter):
+        self._prediction_narrative = prediction_narrative
+        self._result_setter = result_setter
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -67,6 +74,50 @@ class XgboostScript:
 
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
+
+        prediction_split_dict = dict(collections.Counter(objs["predicted"]))
+        prediction_split_array = []
+        for k,v in prediction_split_dict.items():
+            prediction_split_array.append([k,v])
+        prediction_split_array = sorted(prediction_split_array,key=lambda x:x[1],reverse=True)
+        total = len(objs["predicted"])
+        prediction_split_array = [[val[0],round(float(val[1])*100/total,2)] for val in prediction_split_array]
+        self._result_setter.set_model_summary({"xgboost":self._model_summary})
+        xgbCard1 = NormalCard()
+        xgbCard1Data = []
+        xgbCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
+        xgbCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
+        xgbCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
+        xgbCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
+        for val in prediction_split_array:
+            xgbCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
+        xgbCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(self._model_summary["algorithm_name"])))
+        xgbCard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(self._model_summary["total_trees"])))
+        xgbCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(self._model_summary["total_rules"])))
+        xgbCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
+        xgbCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
+
+        confusion_matrix = self._model_summary["confusion_matrix"]
+        levels = confusion_matrix.keys()
+        confusion_matrix_data = [[""]+levels]
+
+        for outer in levels:
+            inner_list = [outer]
+            for inner in levels:
+                inner_list.append(confusion_matrix[outer][inner])
+            confusion_matrix_data.append(inner_list)
+
+        xgbCard2 = NormalCard()
+        xgbCard2Data = []
+        xgbCard2Data.append(HtmlData(data="<h6>Confusion Matrix</h6>"))
+        card2Table = TableData()
+        card2Table.set_table_data(confusion_matrix_data)
+        card2Table.set_table_type("confusionMatrix")
+        card2Table.set_table_top_header("Actual")
+        card2Table.set_table_left_header("Predicted")
+        rdCard2Data.append(card2Table)
+        self._prediction_narrative.add_a_card(xgbCard1)
+        self._prediction_narrative.add_a_card(xgbCard2)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
