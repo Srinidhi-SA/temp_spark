@@ -30,6 +30,7 @@ from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
+from bi.common import NarrativesTree
 
 
 
@@ -68,11 +69,11 @@ def main(configJson):
         #                                               'train_test_split': ['0.8'],
         #                                               'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
         #                                               'script_to_run': ['Descriptive analysis',
-        #                                                                 # 'Measure vs. Dimension',
-        #                                                                 # 'Dimension vs. Dimension',
+        #                                                                 'Measure vs. Dimension',
+        #                                                                 'Dimension vs. Dimension',
         #                                                                 'Predictive modeling',
         #                                                                 # 'Measure vs. Measure',
-        #                                                                 # 'Trend'
+        #                                                                 'Trend'
         #                                                                 ],
         #                                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
         #                                               },
