@@ -8,7 +8,7 @@ from bi.common.utils import accepts
 from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
 from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
@@ -18,11 +18,16 @@ class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2
 
     def _get_new_table(self):
+        self.card1Table = []
         for keys in self.table.keys():
             self.new_table[keys]={}
             self.new_table[keys]['rules'] = self.table[keys]
             self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
-            self.card1Table = zip()
+            first_col = [""]*len(self.new_table[keys]['rules'])
+            first_col[0] = keys
+            keyTable = zip(first_col,self.new_table[keys]['rules'],self.new_table[keys]['probability'])
+            keyTable = [list(obj) for obj in keyTable]
+            self.card1Table += keyTable
 
     @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree)
     def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative):
@@ -32,15 +37,9 @@ class DecisionTreeNarrative:
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
-        print decision_tree_rules.get_decision_rules()
-        print "$"*30
-        print decision_tree_rules
-        print "%"*20
         self._decision_tree_json = CommonUtils.as_dict(decision_tree_rules)
         self._decision_tree_raw = {"tree":{"children":None}}
         self._decision_tree_raw['tree']["children"] = self._decision_tree_json['tree']["children"]
-        print self._decision_tree_raw
-        print "$"*20
         self.table = decision_tree_rules.get_table()
         self.new_table={}
         self.succesful_predictions=decision_tree_rules.get_success()
@@ -57,6 +56,7 @@ class DecisionTreeNarrative:
         self.decisionTreeNode = NarrativesTree()
         self.decisionTreeNode.set_name("Decision-Tree")
         self._generate_narratives()
+        self._story_narrative.add_a_node(self.decisionTreeNode)
 
 
     def _generate_narratives(self):
@@ -84,13 +84,12 @@ class DecisionTreeNarrative:
         data_dict['success'] = self.success_percent
         data_dict['significant_vars'] = list(set(itertools.chain.from_iterable(self._important_vars.values())))
         data_dict['significant_vars'] = self._important_vars
-        print '*'*16
-        print data_dict['rules']
-        print self.new_table
+        # print '*'*16
+        # print data_dict['rules']
+        # print self.new_table
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_tree_card2.temp',data_dict))
         self.card2_chart = self._target_distribution
-        print self._target_distribution
 
         self.dropdownComment = NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_rule_summary.temp',data_dict)
@@ -100,18 +99,26 @@ class DecisionTreeNarrative:
         main_card_narrative = [HtmlData(data=main_card_narrative)]
         main_card_data += main_card_narrative
         main_card_data.append(HtmlData(data=self._decision_tree_raw))
+        main_card_table = TableData()
+        main_card_table.set_table_data(self.card1Table)
+        main_card_table.set_table_type("normal")
+        main_card_data.append(main_card_table)
         main_card.set_card_data(main_card_data)
         main_card.set_card_name("main_card")
-
         card2 = NormalCard()
         card2Data = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_tree_card2.temp',data_dict),self._blockSplitter)
-        card2Data.insert(1,C3ChartData(data=self._target_distribution))
+        card2ChartData = []
+        for k,v in self._target_distribution.items():
+            card2ChartData.append({"key":k,"value":v})
+        card2ChartData = NormalChartData(data=card2ChartData)
+        card2ChartJson = ChartJson()
+        card2ChartJson.set_data(card2ChartData.get_data())
+        card2ChartJson.set_chart_type("bar")
+        card2Data.insert(1,C3ChartData(data=card2ChartJson))
         card2.set_card_data(card2Data)
-
         self.decisionTreeNode.add_a_card(main_card)
         self.decisionTreeNode.add_a_card(card2)
-
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
                                         'decision_tree_summary.temp',data_dict)
 
