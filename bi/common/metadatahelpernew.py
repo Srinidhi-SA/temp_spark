@@ -68,7 +68,7 @@ class MetaDataHelper():
             chart_data[column] = self.get_binned_stat(df,column,col_stat)
             modified_col_stat = []
             for k,v in col_stat.items():
-                modified_col_stat.append({"name":k,"value":v})
+                modified_col_stat.append({"name":k,"value":v,"display":True})
             output[column] = modified_col_stat
         return output,chart_data
 
