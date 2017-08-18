@@ -30,6 +30,7 @@ from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
+from bi.common import NarrativesTree
 
 
 

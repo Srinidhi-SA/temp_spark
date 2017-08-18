@@ -117,6 +117,7 @@ class DecisionTreeNarrative:
         card2ChartJson.set_chart_type("bar")
         card2Data.insert(1,C3ChartData(data=card2ChartJson))
         card2.set_card_data(card2Data)
+        card2.set_card_name("card2")
         self.decisionTreeNode.add_a_card(main_card)
         self.decisionTreeNode.add_a_card(card2)
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
