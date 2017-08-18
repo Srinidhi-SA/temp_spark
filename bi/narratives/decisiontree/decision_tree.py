@@ -18,7 +18,7 @@ class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2
 
     def _get_new_table(self):
-        self.card1Table = []
+        self.card1Table = [["PREDICTION","RULES","PERCENTAGE"]]
         for keys in self.table.keys():
             self.new_table[keys]={}
             self.new_table[keys]['rules'] = self.table[keys]
