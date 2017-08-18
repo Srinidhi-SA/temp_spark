@@ -39,6 +39,7 @@ class ChartJson:
         self.legend = legend
         self.chart_type = chart_type
         self.types = types
+        self.axisRotation = False
 
     def set_data(self,data):
         """
@@ -46,6 +47,9 @@ class ChartJson:
         """
         self.data = data
 
+    def set_axis_rotation(self,data):
+        self.axisRotation = data
+        
     def set_axes(self,data):
         self.axes = data
 

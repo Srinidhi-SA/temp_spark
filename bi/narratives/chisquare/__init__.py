@@ -76,7 +76,8 @@ class ChiSquareNarratives:
             chart_json.set_data(chart_data)
             chart_json.set_chart_type("bar")
             chart_json.set_label_text({'x':'Dimensions','y':'Effect Size (Cramers-V)'})
-
+            chart_json.set_axis_rotation(True)
+            chart_json.set_axes({"x":"key","y":"value"})
             self.narratives['main_card']['chart']=chart
 
 
@@ -90,7 +91,7 @@ class ChiSquareNarratives:
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("main_card")
             chiSquareNode.add_a_card(main_card)
-
+            chiSquareNode.set_name("Chi-Square")
             dimensionNode = NarrativesTree()
 
             if self._appid=='2' and num_significant_variables>5:

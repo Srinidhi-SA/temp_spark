@@ -112,6 +112,7 @@ class DecisionTreeNarrative:
         card2ChartJson = ChartJson()
         card2ChartJson.set_data(card2ChartData.get_data())
         card2ChartJson.set_chart_type("bar")
+        card2ChartJson.set_axes("x":"key","y":"value")
         card2Data.insert(1,C3ChartData(data=card2ChartJson))
         card2.set_card_data(card2Data)
         card2.set_card_name("card2")
