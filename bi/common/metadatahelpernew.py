@@ -98,7 +98,10 @@ class MetaDataHelper():
             col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
             modified_col_stat = []
             for k,v in col_stat.items():
-                modified_col_stat.append({"name":k,"value":v})
+                if k != "LevelCount":
+                    modified_col_stat.append({"name":k,"value":v,"display":True})
+                else:
+                    modified_col_stat.append({"name":k,"value":v,"display":False})
             output[column] = modified_col_stat
             chart_data[column] = dimension_chart_data_sorted
         return output,chart_data
