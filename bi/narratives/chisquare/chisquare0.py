@@ -197,9 +197,6 @@ class ChiSquareAnalysis:
 
 
         output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
-        print '*'*300
-        print output
-        print '!'*300
         self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
         self.card1['paragraphs'] = output
         self.card1['chart']=[]

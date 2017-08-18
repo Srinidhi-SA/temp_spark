@@ -18,7 +18,7 @@ class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2
 
     def _get_new_table(self):
-        self.card1Table = []
+        self.card1Table = [["PREDICTION","RULES","PERCENTAGE"]]
         for keys in self.table.keys():
             self.new_table[keys]={}
             self.new_table[keys]['rules'] = self.table[keys]
@@ -93,7 +93,6 @@ class DecisionTreeNarrative:
         main_card = NormalCard()
         main_card_data = []
         main_card_narrative = NarrativesUtils.block_splitter(self.dropdownComment,self._blockSplitter)
-        main_card_narrative = [HtmlData(data=main_card_narrative)]
         main_card_data += main_card_narrative
         main_card_data.append(TreeData(data=self._decision_tree_raw))
         main_card_table = TableData()
@@ -112,6 +111,7 @@ class DecisionTreeNarrative:
         card2ChartJson = ChartJson()
         card2ChartJson.set_data(card2ChartData.get_data())
         card2ChartJson.set_chart_type("bar")
+        card2ChartJson.set_axes({"x":"key","y":"value"})
         card2Data.insert(1,C3ChartData(data=card2ChartJson))
         card2.set_card_data(card2Data)
         card2.set_card_name("card2")

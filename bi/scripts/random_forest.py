@@ -73,9 +73,9 @@ class RandomForestScript:
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
 
-        self._summaryNode = NarrativesTree()
+        self._modelSummaryNode = NarrativesTree()
         main_card = NormalCard()
-        self._prediction_narrative.add_a_node(self._summaryNode)
+        self._prediction_narrative.add_a_node(self._modelSummaryNode)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary

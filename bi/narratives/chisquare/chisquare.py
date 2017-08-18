@@ -46,6 +46,7 @@ class ChiSquareAnalysis:
                 self._base_dir += "appid2/"
         self._generate_narratives()
         self._dimensionNode.add_cards([self.card1,self.card2,self.card4])
+        self._dimensionNode.set_name("Chi-Square")
 
     def get_dimension_node(self):
         return self._dimensionNode
