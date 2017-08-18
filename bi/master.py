@@ -58,16 +58,11 @@ def main(configJson):
         dataframe_context = ContextSetter(config_obj)
         dataframe_context.set_params()
     else:
+
+
         # configJson = {
         #                 "config":{
         #                             'FILE_SETTINGS': {
-        #                                               'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
-        #                                               'levelcounts': ['GG|~|34|~|HH|~|4'],
-        #                                               'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
-        #                                               'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
-        #                                               'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'],
-        #                                               'train_test_split': ['0.8'],
-        #                                               'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
         #                                               'script_to_run': ['Descriptive analysis',
         #                                                                 'Measure vs. Dimension',
         #                                                                 'Dimension vs. Dimension',
@@ -177,7 +172,7 @@ def main(configJson):
                     print e
                     print "#####ERROR#####"*5
             else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'FreqDimension/')
+                #DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'FreqDimension/')
                 print "Descriptive analysis Not in Scripts to run "
 
             if ('Dimension vs. Dimension' in scripts_to_run):
@@ -188,12 +183,11 @@ def main(configJson):
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     print "ChiSquare Analysis Failed "
-                    DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
+                    #DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
             else:
-                DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
                 print "Dimension vs. Dimension Not in Scripts to run "
 
             if ('Predictive modeling' in scripts_to_run):
@@ -212,22 +206,20 @@ def main(configJson):
                     print e
                     print "#####ERROR#####"*5
             else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTree/')
                 print "Predictive modeling Not in Scripts to run"
 
             if ('Trend' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
-                    trend_obj.Run()
-                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
+                # try:
+                fs = time.time()
+                trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+                trend_obj.Run()
+                print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-                except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
-                    print "Trend Script Failed"
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # except Exception as e:
+                #     print "Trend Script Failed"
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
@@ -247,8 +239,6 @@ def main(configJson):
                     descr_stats_obj.Run()
                     print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
                     print 'Descriptive Failed'
                     print "#####ERROR#####"*5
                     print e
@@ -260,7 +250,6 @@ def main(configJson):
                     histogram_obj.Run()
                     print "Histogram Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
@@ -270,15 +259,11 @@ def main(configJson):
                     d_histogram_obj.Run()
                     print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Density_Histogram/')
                     print 'Density Histogram Failed'
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-            else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
+
             if df_helper.ignorecolumns != None:
                 df_helper.drop_ignore_columns()
             measure_columns = df_helper.get_numeric_columns()
@@ -295,14 +280,9 @@ def main(configJson):
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     print 'Anova Failed'
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-            else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 try:
@@ -317,7 +297,6 @@ def main(configJson):
                         regression_obj.Run()
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:
-                        DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
                         print 'Regression Failed'
                         print "#####ERROR#####"*5
                         print e
@@ -325,17 +304,12 @@ def main(configJson):
 
                 except Exception as e:
                     print 'Correlation Failed. Regression not executed'
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Correlation/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Regression/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
 
             else:
                 print 'Regression not in Scripts to run'
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Correlation/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
 
             try:
                 fs = time.time()
@@ -344,7 +318,6 @@ def main(configJson):
                 print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
             except Exception as e:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
                 print "Trend Script Failed"
                 print "#####ERROR#####"*5
                 print e
@@ -361,7 +334,6 @@ def main(configJson):
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
                 print "Decision Tree Regression Script Failed"
             try:
                 fs = time.time()
@@ -372,7 +344,6 @@ def main(configJson):
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'ExecutiveSummary/')
                 print "Executive Summary Script Failed"
 
     elif jobType == 'prediction':

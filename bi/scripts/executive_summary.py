@@ -18,4 +18,4 @@ class ExecutiveSummaryScript:
         executive_summary_obj = ExecutiveSummaryNarrative(self._dataframe_helper,self._dataframe_context,self._result_setter,self._spark)
         executive_summary = CommonUtils.as_dict(executive_summary_obj)
         # print 'Narratives: %s' % (json.dumps(executive_summary, indent=2))
-        DataWriter.write_dict_as_json(self._spark, executive_summary, self._dataframe_context.get_narratives_file()+'ExecutiveSummary/')
+        # DataWriter.write_dict_as_json(self._spark, executive_summary, self._dataframe_context.get_narratives_file()+'ExecutiveSummary/')
