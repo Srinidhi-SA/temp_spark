@@ -18,12 +18,15 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.common import NormalCard,SummaryCard,NarrativesTree
+
 
 
 
 
 class RandomForestScript:
-    def __init__(self, data_frame, df_helper,df_context, spark):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative):
+        self._prediction_narrative = prediction_narrative
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -69,6 +72,10 @@ class RandomForestScript:
 
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
+
+        self._summaryNode = NarrativesTree()
+        main_card = NormalCard()
+        self._prediction_narrative.add_a_node(self._summaryNode)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary

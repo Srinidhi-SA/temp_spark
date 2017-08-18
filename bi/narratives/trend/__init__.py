@@ -6,6 +6,8 @@ from dateutil.relativedelta import relativedelta
 
 from bi.narratives import utils as NarrativesUtils
 from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 
 from trend_narratives import TrendNarrative
 
@@ -417,13 +419,13 @@ class TimeSeriesNarrative:
                             card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
                         chart_data[level] = card1chartdata
 
-                    labels = {"y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
+                    labels = {"x":"Time","y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
                     c3Chart = {
                                "data":chart_data,
                                "format":"%b-%y",
                                "label":labels,
                                "label_text":{
-                                             "x":"Time Duration",
+                                             "x":"Time",
                                              "y":"Percentage of "+labels["y"],
                                              "y2":"Percentage of "+labels["y2"]
                                              }
@@ -431,7 +433,21 @@ class TimeSeriesNarrative:
 
 
                     c3_chart["data"] = c3Chart
-                    cardData1.insert(1,c3_chart)
+
+                    multiLineData = []
+                    for idx in range(len(chart_data[top2levels[0]])):
+                        key = chart_data[top2levels[0]][idx]["key"]
+                        value = chart_data[top2levels[0]][idx]["value"]
+                        value1 = chart_data[top2levels[1]][idx]["value"]
+                        multiLineData.append({"key":key,top2levels[0]:value,top2levels[1]:value1})
+                    chartData = NormalChartData(multiLineData)
+                    chartJson = ChartJson()
+                    chartJson.set_data(chartData.get_data())
+                    chartJson.set_label_text(c3Chart["label_text"])
+                    chartJson.set_legend(c3Chart["label"])
+                    chartJson.set_chart_type("line")
+                    chartJson.set_axes(labels)
+                    cardData1.insert(1,chartJson)
                     trendCard = NormalCard(name="Trend",slug=None,cardData = cardData1)
                     trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
                     self._story_narrative.add_a_node(trendStoryNode)

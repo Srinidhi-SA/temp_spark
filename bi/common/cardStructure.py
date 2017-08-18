@@ -150,12 +150,24 @@ class HtmlData:
 
 class TableData:
 
-    def __init__(self,data=None):
+    def __init__(self,data={}):
         self.dataType = "table"
         self.data = data
 
     def set_data(self,data):
         self.data = data
+
+    def set_table_data(self,data):
+        self.data["tableData"] = data
+
+    def set_table_type(self,data):
+        self.data["tableType"] = data
+
+    def set_table_top_header(self,data):
+        self.data["topHeader"] = data
+
+    def set_table_left_header(self,data):
+        self.data["leftHeader"] = data
 
     def get_data(self):
         return self.data

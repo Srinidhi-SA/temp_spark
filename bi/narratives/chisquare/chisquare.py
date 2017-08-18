@@ -4,8 +4,8 @@ import random
 import numpy
 from pyspark.sql.functions import col
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree
-
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class ChiSquareAnalysis:
@@ -208,12 +208,22 @@ class ChiSquareAnalysis:
         output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict),self._blockSplitter)
         card1Data = []
         card1Heading = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
-        card1Data.append({"dataType":"html","data":card1Heading})
+        card1Data.append(HtmlData(data=card1Heading))
+
+        table1Data = self.generate_card1_table1()
+        card1Table1 = TableData()
+        card1Table1.set_table_type("heatMap")
+        card1Table1.set_table_data(table1Data)
+
+        table2Data = self.generate_card1_table2()
+        card1Table2 = TableData()
+        card1Table2.set_table_type("normal")
+        card1Table2.set_table_data(table2Data["data1"])
+
+        card1Data.append(card1Table1)
+        card1Data.append(card1Table2)
         card1Data += output
-        card1Table = {"dataType":"html","data":self._table}
-        card1Chart =  {"dataType":"c3Chart","data":self.generate_card1_chart()}
-        card1Data.append(card1Table)
-        card1Data.append(card1Chart)
+
         self.card1.set_card_data(card1Data)
         self.card1.set_card_name(self._analysed_dimension)
 
@@ -341,24 +351,42 @@ class ChiSquareAnalysis:
         card2Data = []
         card2Heading = 'Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
         chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
-
+        card2ChartData = NormalChartData(data=chart["data"])
+        card2ChartJson = ChartJson()
+        card2ChartJson.set_data(card2ChartData.get_data())
+        card2ChartJson.set_chart_type("combination")
+        card2ChartJson.set_types({"total":"bar","percentage":"line"})
+        card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
+        card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
         output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict),self._blockSplitter)
-        card2Data.append({"dataType":"html","data":card2Heading})
-        card2Data.append({"dataType":"c3Chart","data":chart})
-        card2Data.append({"dataType":"html","data":bubble})
+
+        card2Data.append(HtmlData(data=card2Heading))
+        card2Data.append(C3ChartData(data=card2ChartJson))
         card2Data += output2
+        card2BubbleData = "<div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+        card2Data.append(HtmlData(data=card2BubbleData))
+
         self.card2.set_card_data(card2Data)
         self.card2.set_card_name(self._analysed_dimension)
 
         card4Data = []
         card4Heading ='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
         chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
+        card4ChartData = NormalChartData(data=chart["data"])
+        card4ChartJson = ChartJson()
+        card4ChartJson.set_data(card4ChartData.get_data())
+        card4ChartJson.set_chart_type("combination")
+        card4ChartJson.set_types({"total":"bar","percentage":"line"})
+        card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
+        card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
         output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict),self._blockSplitter)
 
-        card4Data.append({"dataType":"html","data":card4Heading})
-        card4Data.append({"dataType":"c3Chart","data":chart})
-        card4Data.append({"dataType":"html","data":bubble})
+        card4Data.append(HtmlData(data=card4Heading))
+        card4Data.append(C3ChartData(data=card4ChartJson))
         card4Data += output4
+        card4BubbleData = "<div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+        card4Data.append(HtmlData(data=card4BubbleData))
+
         self.card4.set_card_data(card4Data)
         self.card4.set_card_name(self._analysed_dimension)
 
@@ -378,10 +406,12 @@ class ChiSquareAnalysis:
         data['total'] = dict(zip(levels,__target_contributions))
         __target_percentages = [x*100.0/y for x,y in zip(__target_contributions,levels_count)]
         data['percentage'] = dict(zip(levels,__target_percentages))
-        c3_data = [levels,__target_contributions,__target_percentages]
+        chartData = []
+        for val in zip(levels,__target_contributions,__target_percentages):
+            chartData.append({"key":val[0],"total":val[1],"percentage":val[2]})
+        # c3_data = [levels,__target_contributions,__target_percentages]
         chart_data = {'label':label,
-                                'data':data,
-                                'c3_data':c3_data}
+                                'data':chartData}
         bubble_data1 = {}
         bubble_data2 = {}
         bubble_data1['value'] = str(round(max(__target_contributions)*100.0/sum(__target_contributions),1))+'%'
@@ -395,7 +425,16 @@ class ChiSquareAnalysis:
         bubble_data = [bubble_data1,bubble_data2]
         return chart_data, bubble_data
 
-    def generate_card1_chart(self):
+    def generate_card1_table1(self):
+        table_percent_by_column = self._table.table_percent_by_column
+        column_two_values = self._table.column_two_values
+        header_row = [self._analysed_dimension] + self._table.get_column_one_levels()
+        other_rows = zip(column_two_values,table_percent_by_column[0],table_percent_by_column[1])
+        other_rows = [list(tup) for tup in other_rows]
+        table_data = header_row+other_rows
+        return table_data
+
+    def generate_card1_table2(self):
         table = self._table.table
         table_percent = self._table.table_percent
         table_percent_by_row = self._table.table_percent_by_row

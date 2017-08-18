@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import pattern
 from datetime import datetime
+from bi.common import HtmlData
 
 # def round_number(num, digits=2, as_string=True):
 #     millions = 0
@@ -80,7 +81,8 @@ def block_splitter(summary,blockSeparator):
     output = []
     paragraphs = summary.split(blockSeparator)
     for val in paragraphs:
-        output.append({"dataType":"html","data":val})
+        # output.append({"dataType":"html","data":val})
+        output.append(HtmlData(data=val))
     return output
 
 def clean_narratives(output):

@@ -77,7 +77,7 @@ def main(configJson):
         #                                                 'score_consider_columns_type': ['excluding'],
         #                                                 'measure_suggestions': None,
         #                                                 'date_format': None,
-        #                                                 'date_columns':["Date"],
+        #                                                 'date_columns':["Month"],
         #                                                 'ignore_column_suggestions': None,
         #                                                 'result_column': ['Platform'],
         #                                                 'consider_columns':[],
@@ -146,12 +146,13 @@ def main(configJson):
         df = df_helper.get_data_frame()
         measure_columns = df_helper.get_numeric_columns()
         dimension_columns = df_helper.get_string_columns()
-        #Initializing the result_setter
-        result_setter = ResultSetter(df,dataframe_context)
-        story_narrative = NarrativesTree()
+
 
 
     if jobType == "story":
+        #Initializing the result_setter
+        result_setter = ResultSetter(df,dataframe_context)
+        story_narrative = NarrativesTree()
         if analysistype == 'Dimension':
             print "STARTING DIMENSION ANALYSIS ..."
             story_narrative.set_name("Dimension analysis")
@@ -369,6 +370,7 @@ def main(configJson):
                 print "Executive Summary Script Failed"
 
     elif jobType == 'prediction':
+        prediction_narrative = NarrativesTree()
         df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
@@ -380,8 +382,8 @@ def main(configJson):
 
         try:
             st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark)
-            # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
+            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark, prediction_narrative)
+            # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative)
             rf_obj.Train()
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
@@ -392,8 +394,8 @@ def main(configJson):
 
         try:
             st = time.time()
-            lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
-            # lr_obj = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)
+            lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark, prediction_narrative)
+            # lr_obj = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative)
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
@@ -404,7 +406,7 @@ def main(configJson):
 
         try:
             st = time.time()
-            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark)
+            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark, prediction_narrative)
             xgb_obj.Train()
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
