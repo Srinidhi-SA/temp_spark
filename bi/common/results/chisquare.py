@@ -23,6 +23,7 @@ class ContingencyTable:
         self.column_one_values = column_one_values
         self.column_two_values = column_two_values
         self._col2_order = range(len(column_two_values))
+        self.category_type = 'Nominal'
         self.table = [[0 for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
         self.table_percent = [[0 for j in range(0,len(column_two_values))] \
@@ -74,6 +75,7 @@ class ContingencyTable:
                 new_order = new_order + [i[0] for i in names_enumerated]
                 new_order.append(other_keys[0][0])
                 self._col2_order = new_order
+        self.category_type = 'Ordinal'
         self.column_two_values = [self.column_two_values[i] for i in self._col2_order]
 
     def update_splits(self,splits):
@@ -92,6 +94,7 @@ class ContingencyTable:
     def update_col2_names(self, splits):
         bin_names = self.get_bin_names(splits)
         self.column_two_values = [bin_names[int(float(i))] for i in self.column_two_values]
+        self.category_type = 'Ordinal'
 
     def get_row_total(self):
         return [sum(row_data) for row_data in self.table]

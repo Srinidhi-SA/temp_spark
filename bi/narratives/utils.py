@@ -448,7 +448,7 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
         k["total"] = k.sum(axis=1)
         k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k.index))
         k = k.sort_values(by="rank", ascending=True)
-        k.to_csv("/home/gulshan/Desktop/dd1.csv")
+        # k.to_csv("/home/gulshan/Desktop/dd1.csv")
         max_index = list(k.index).index(max_time)
         # print k.head()
         for level in column_levels:
