@@ -80,6 +80,7 @@ def paragraph_splitter(summary):
 def block_splitter(summary,blockSeparator):
     output = []
     paragraphs = summary.split(blockSeparator)
+    paragraphs = ["{}{}{}".format("<p>",val,"</p>") for val in paragraphs]
     for val in paragraphs:
         # output.append({"dataType":"html","data":val})
         output.append(HtmlData(data=val))

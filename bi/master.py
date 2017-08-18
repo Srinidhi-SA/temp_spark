@@ -47,74 +47,74 @@ def main(configJson):
     #sys.argv[1]
     # job_type = {"metaData","signal","prediction","scoring"}
 
-    if isinstance(configJson, basestring):
-        config_file = configJson
-        config = ConfigParser.ConfigParser()
-        config.optionxform=str
-        config.read(config_file)
-        config_obj = configparser.ParserConfig(config)
-        config_obj.set_params()
-        # Setting the Dataframe Context
-        dataframe_context = ContextSetter(config_obj)
-        dataframe_context.set_params()
-    else:
+    # if isinstance(configJson, basestring):
+    #     config_file = configJson
+    #     config = ConfigParser.ConfigParser()
+    #     config.optionxform=str
+    #     config.read(config_file)
+    #     config_obj = configparser.ParserConfig(config)
+    #     config_obj.set_params()
+    #     # Setting the Dataframe Context
+    #     dataframe_context = ContextSetter(config_obj)
+    #     dataframe_context.set_params()
+    # else:
 
 
-        # configJson = {
-        #                 "config":{
-        #                             'FILE_SETTINGS': {
-        #                                               'script_to_run': ['Descriptive analysis',
-        #                                                                 'Measure vs. Dimension',
-        #                                                                 'Dimension vs. Dimension',
-        #                                                                 'Predictive modeling',
-        #                                                                 # 'Measure vs. Measure',
-        #                                                                 'Trend'
-        #                                                                 ],
-        #                                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
-        #                                               },
-        #                             'COLUMN_SETTINGS': {
-        #                                                 'polarity': ['positive'],
-        #                                                 'consider_columns_type': ['excluding'],
-        #                                                 'date_format': None,
-        #                                                 'date_columns':["Month"],
-        #                                                 'ignore_column_suggestions': ["Order Date"],
-        #                                                 'result_column': ['Platform'],
-        #                                                 'consider_columns':[],
-        #                                                 # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-        #                                                 #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-        #                                                 'analysis_type': ['Dimension'],
-        #                                                 'score_consider_columns': None
-        #                                                 }
-        #                          },
-        #                 "job_config":{
-        #                                 "job_type":"story",
-        #                                 "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-        #                                 "set_result": {
-        #                                     "method": "PUT",
-        #                                     "action": "result"
-        #                                   },
-        #                              }
-        #             }
-        # configJson = {
-        #     "config":{
-        #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
-        #             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-        #             },
-        #     "job_config":{
-        #         "job_type":"metaData",
-        #         "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-        #         "set_result": {
-        #             "method": "PUT",
-        #             "action": "result"
-        #           },
-        #     }}
-        config = configJson["config"]
-        job_config = configJson["job_config"]
-        configJsonObj = configparser.ParserConfig(config)
-        configJsonObj.set_json_params()
-        dataframe_context = ContextSetter(configJsonObj)
-        dataframe_context.set_params()
-        jobType = job_config["job_type"]
+    configJson = {
+                    "config":{
+                                'FILE_SETTINGS': {
+                                                  'script_to_run': ['Descriptive analysis',
+                                                                    'Measure vs. Dimension',
+                                                                    'Dimension vs. Dimension',
+                                                                    'Predictive modeling',
+                                                                    # 'Measure vs. Measure',
+                                                                    'Trend'
+                                                                    ],
+                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                  },
+                                'COLUMN_SETTINGS': {
+                                                    'polarity': ['positive'],
+                                                    'consider_columns_type': ['excluding'],
+                                                    'date_format': None,
+                                                    'date_columns':["Month"],
+                                                    'ignore_column_suggestions': ["Order Date"],
+                                                    'result_column': ['Platform'],
+                                                    'consider_columns':[],
+                                                    # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+                                                    #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+                                                    'analysis_type': ['Dimension'],
+                                                    'score_consider_columns': None
+                                                    }
+                             },
+                    "job_config":{
+                                    "job_type":"story",
+                                    "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                                    "set_result": {
+                                        "method": "PUT",
+                                        "action": "result"
+                                      },
+                                 }
+                }
+    # configJson = {
+    #     "config":{
+    #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
+    #             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+    #             },
+    #     "job_config":{
+    #         "job_type":"metaData",
+    #         "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+    #         "set_result": {
+    #             "method": "PUT",
+    #             "action": "result"
+    #           },
+    #     }}
+    config = configJson["config"]
+    job_config = configJson["job_config"]
+    configJsonObj = configparser.ParserConfig(config)
+    configJsonObj.set_json_params()
+    dataframe_context = ContextSetter(configJsonObj)
+    dataframe_context.set_params()
+    jobType = job_config["job_type"]
 
     #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
