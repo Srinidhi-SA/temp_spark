@@ -124,26 +124,25 @@ def main(configJson):
     #sys.argv[1]
     # job_type = {"metaData","signal","prediction","scoring"}
 
-    # if isinstance(configJson, basestring):
-    #     config_file = configJson
-    #     config = ConfigParser.ConfigParser()
-    #     config.optionxform=str
-    #     config.read(config_file)
-    #     config_obj = configparser.ParserConfig(config)
-    #     config_obj.set_params()
-    #     # Setting the Dataframe Context
-    #     dataframe_context = ContextSetter(config_obj)
-    #     dataframe_context.set_params()
-    # else:
-
-    configJson = testConfigs["prediction"]
-    config = configJson["config"]
-    job_config = configJson["job_config"]
-    configJsonObj = configparser.ParserConfig(config)
-    configJsonObj.set_json_params()
-    dataframe_context = ContextSetter(configJsonObj)
-    dataframe_context.set_params()
-    jobType = job_config["job_type"]
+    if isinstance(configJson, basestring):
+        config_file = configJson
+        config = ConfigParser.ConfigParser()
+        config.optionxform=str
+        config.read(config_file)
+        config_obj = configparser.ParserConfig(config)
+        config_obj.set_params()
+        # Setting the Dataframe Context
+        dataframe_context = ContextSetter(config_obj)
+        dataframe_context.set_params()
+    else:
+        # configJson = testConfigs["prediction"]
+        config = configJson["config"]
+        job_config = configJson["job_config"]
+        configJsonObj = configparser.ParserConfig(config)
+        configJsonObj.set_json_params()
+        dataframe_context = ContextSetter(configJsonObj)
+        dataframe_context.set_params()
+        jobType = job_config["job_type"]
 
     #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
@@ -419,7 +418,15 @@ def main(configJson):
             print e
             print "#####ERROR#####"*5
 
+
         collated_summary = result_setter.get_model_summary()
+
+        card1 = NormalCard()
+        card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
+        card1Data.append(HtmlData(data = MLUtils.get_total_models(collated_summary)))
+        card1.set_card_data(card1Data)
+        prediction_narrative.insert_card_at_given_index(card1,0)
+
         card2 = NormalCard()
         card2_elements = MLUtils.get_model_comparison(collated_summary)
         card2Data = [card2_elements[0],card2_elements[1]]

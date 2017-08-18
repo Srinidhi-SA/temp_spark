@@ -495,3 +495,16 @@ def get_feature_importance(collated_summary):
     chart_json.set_axes({"x":"key","y":"value"})
     card3Chart = C3ChartData(data=chart_json)
     return card3Chart
+
+def get_total_models(collated_summary):
+    algos = collated_summary.keys()
+    n_model = 0
+    algorithm_name = []
+    for val in algos:
+        trees = collated_summary[val].get("total_trees")
+        algorithm_name.append(collated_summary[val].get("algorithm_name"))
+        if trees:
+            n_model += trees
+    output = "<p>mAdvisor has built {} models using {} algorithms ({}) to predict {} and \
+        has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["target_variable"])
+    return output
