@@ -207,17 +207,17 @@ def main(configJson):
                 print "Predictive modeling Not in Scripts to run"
 
             if ('Trend' in scripts_to_run):
-                # try:
-                fs = time.time()
-                trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
-                trend_obj.Run()
-                print "Trend Analysis Done in ", time.time() - fs, " seconds."
+                try:
+                    fs = time.time()
+                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+                    trend_obj.Run()
+                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-                # except Exception as e:
-                #     print "Trend Script Failed"
-                #     print "#####ERROR#####"*5
-                #     print e
-                #     print "#####ERROR#####"*5
+                except Exception as e:
+                    print "Trend Script Failed"
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
 
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
