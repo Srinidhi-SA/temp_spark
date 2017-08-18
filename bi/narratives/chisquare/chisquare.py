@@ -220,7 +220,8 @@ class ChiSquareAnalysis:
         card1Table2 = TableData()
         card1Table2.set_table_type("normal")
         card1Table2.set_table_data(table2Data["data1"])
-
+        # print card1Table1.get_data()
+        # print card1Table2.get_data()
         card1Data.append(card1Table1)
         card1Data.append(card1Table2)
         card1Data += output

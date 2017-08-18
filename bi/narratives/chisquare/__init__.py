@@ -93,6 +93,7 @@ class ChiSquareNarratives:
             chiSquareNode.add_a_card(main_card)
             chiSquareNode.set_name("Chi-Square")
             dimensionNode = NarrativesTree()
+            dimensionNode.set_name("dimensions")
 
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]

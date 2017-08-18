@@ -75,8 +75,6 @@ def main(configJson):
         #                             'COLUMN_SETTINGS': {
         #                                                 'polarity': ['positive'],
         #                                                 'consider_columns_type': ['excluding'],
-        #                                                 'score_consider_columns_type': ['excluding'],
-        #                                                 'measure_suggestions': None,
         #                                                 'date_format': None,
         #                                                 'date_columns':["Month"],
         #                                                 'ignore_column_suggestions': ["Order Date"],
