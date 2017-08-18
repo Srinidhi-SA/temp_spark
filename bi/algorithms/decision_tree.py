@@ -8,6 +8,8 @@ from bi.common.datafilterer import DataFrameFilterer
 from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
 
+from bi.algorithms import utils as MLUtils
+
 """
 Decision Tree
 """
@@ -18,8 +20,6 @@ class DecisionTrees:
     #@accepts(object, DataFrame)
     def __init__(self, data_frame, df_helper, df_context, spark):
         self._spark = spark
-        self._data_frame = data_frame
-        self._data_frame1 = data_frame
         #df_helper = DataFrameHelper(data_frame)
         #self._data_frame_filterer = DataFrameFilterer(data_frame)
         self._measure_columns = df_helper.get_numeric_columns()
@@ -28,6 +28,8 @@ class DecisionTrees:
         if self._date_column_suggestions != None:
             if len(self._date_column_suggestions) >0 :
                 self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions))
+        self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns)
+        self._data_frame1 = self._data_frame
         self._mapping_dict = {}
         self._new_rules = {}
         self._total = {}
@@ -187,22 +189,14 @@ class DecisionTrees:
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self.calculate_frequencies(), self._important_vars)
-        for column in all_dimensions:
-            mapping_dict[column] = dict(enumerate(self._data_frame.select(column).distinct().rdd.map(lambda x: str(x[0])).collect()))
-        # for c in mapping_dict:
-        #     name = c
-        #     reverseMap = {v: k for k, v in mapping_dict[c].iteritems()}
-        #     udf = UserDefinedFunction(lambda x: reverseMap[x], StringType())
-        #     self._data_frame = self._data_frame.select(*[udf(column).alias(name) if column == name else column for column in self._data_frame.columns])
 
-        # converting spark dataframe to pandas for transformation and then back to spark dataframe
-        pandasDataFrame = self._data_frame.toPandas()
-        for key in mapping_dict:
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: 'None' if x==None else x)
-            reverseMap = {v: k for k, v in mapping_dict[key].iteritems()}
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: reverseMap[x])
-        # sqlCtx = SQLContext(self._spark)
-        self._data_frame = self._spark.createDataFrame(pandasDataFrame)
+        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
+        print '*'*420
+        print mapping_dict
+        # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
+        standard_measure_index = {0.0:'Low',1.0:'Below Average',2.0:'Average',3.0:'Above Average',4.0:'High'}
+        for measure in all_measures:
+            mapping_dict[measure] = standard_measure_index
 
         for k,v in mapping_dict.items():
             temp = {}
@@ -215,6 +209,10 @@ class DecisionTrees:
 
         for c in columns_without_dimension:
             cat_feature_info.append(self._data_frame.select(c).distinct().count())
+        for c in all_measures:
+            cat_feature_info.append(5)
+        columns_without_dimension = columns_without_dimension+all_measures
+        all_measures = []
         if len(cat_feature_info)>0:
             max_length = max(cat_feature_info)
         else:

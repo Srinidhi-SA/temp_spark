@@ -1,6 +1,7 @@
 from functools import reduce
 import json
 import datetime as dt
+# import dateparser
 import pandas as pd
 from datetime import datetime
 from pyspark.sql import DataFrame
@@ -46,8 +47,9 @@ class DataFrameHelper:
             DataFrameHelper.DIMENSION_COLUMNS: {},
             DataFrameHelper.TIME_DIMENSION_COLUMNS: {}
         }
-        self.ignorecolumns = ""
-        self.consider_columns = ""
+        self.ignorecolumns = []
+        self.consider_columns = []
+
         self._df_context = df_context
         self.measure_suggestions = []
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
@@ -325,8 +327,8 @@ class DataFrameHelper:
         elif self.considercolumnstype[0] == 'including':
             if self.consider_columns != None:
                 self.consider_columns = self.consider_columns + [self.resultcolumn]
-                self.consider_columns = list(set(self.columns) - set(self.consider_columns))
-                self._data_frame = reduce(DataFrame.drop, self.consider_columns, self._data_frame)
+                self.drop_columns = list(set(self.columns) - set(self.consider_columns))
+                self._data_frame = reduce(DataFrame.drop, self.drop_columns, self._data_frame)
                 self.columns = [field.name for field in self._data_frame.schema.fields]
         self._update_meta()
 
@@ -424,7 +426,8 @@ class DataFrameHelper:
         dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
 
         for dims in self.string_columns:
-            row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+            # row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+            row_vals = self._data_frame.select(dims).na.drop().distinct().collect()
             x = row_vals[0][dims]
             for format1 in formats:
                 try:
@@ -441,6 +444,9 @@ class DataFrameHelper:
                     break
                 except ValueError as err:
                     pass
+        print '^'*290
+        print self.date_time_suggestions
+        print '^'*290
 
     def has_date_suggestions(self):
         if len(self.date_time_suggestions)>0:
@@ -460,6 +466,7 @@ class DataFrameHelper:
 
     def change_to_date(self, colname, format1):
         func = udf(lambda x: datetime.strptime(x, format1), DateType())
+        # func = udf(lambda x: dateparser.parse(x),DateType())
         #self._data_frame = self._data_frame.withColumn(colname, func(col(colname)))
         self._data_frame = self._data_frame.select(*[func(column).alias(colname) if column==colname else column for column in self._data_frame.columns])
         #return self._data_frame.collect()

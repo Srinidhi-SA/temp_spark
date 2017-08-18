@@ -16,13 +16,13 @@ class NarrativesTree:
     """
 
     def __init__(self,name=None, slug=None, listOfNodes=[], listOfCards=[]):
-        self.name = name
-        self.slug = slug
+        self.name = '' if name==None else str(name)
+        self.slug = '' if slug==None else str(slug)
         self.listOfNodes = list(listOfNodes)
         self.listOfCards = list(listOfCards)
 
     def set_name(self,name):
-        self.name = name
+        self.name = str(name)
 
     def add_a_node(self,newNode):
         self.listOfNodes.append(newNode)

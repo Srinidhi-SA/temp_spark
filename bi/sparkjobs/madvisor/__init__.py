@@ -10,7 +10,7 @@ class JobScript(SparkJob):
             job_data = config.get('cfgpath')
         else:
             problems.append('Missing cfgpath data')
-	    if len(problems) == 0:
+        if len(problems) == 0:
             return job_data
         else:
             return build_problems(problems)

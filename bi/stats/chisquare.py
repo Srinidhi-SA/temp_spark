@@ -70,7 +70,7 @@ class ChiSquare:
 
         chisquare_result.set_params(result)
 
-        freq_table = self._get_contingency_table_of_freq(pivot_table)
+        freq_table = self._get_contingency_table_of_freq(pivot_table, need_sorting = True)
         freq_table.set_tables()
         chisquare_result.set_table_result(freq_table)
 
@@ -125,7 +125,7 @@ class ChiSquare:
         return chisquare_result
 
 
-    def _get_contingency_table_of_freq(self, pivot_table):
+    def _get_contingency_table_of_freq(self, pivot_table, need_sorting=False):
         '''
 
         :param pivot_table:
@@ -141,6 +141,8 @@ class ChiSquare:
             column_one_values.append(row[0])
 
         contigency_table = ContingencyTable(column_one_values, column_two_values)
+        if need_sorting:
+            contigency_table.update_col2_order()
         for row in rows:
             column_one_val = row[0]
             contigency_table.add_row(column_one_val, [float(value) for value in row[1:]])

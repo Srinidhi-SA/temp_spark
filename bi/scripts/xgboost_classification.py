@@ -108,7 +108,8 @@ class XgboostScript:
         df["predicted_probability"] = score["predicted_probability"]
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column
-
+        if result_column in df.columns:
+            df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
         CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))

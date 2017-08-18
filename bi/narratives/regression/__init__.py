@@ -31,7 +31,7 @@ class RegressionNarrative:
         all_coeff = [(x,self.all_coefficients[x]) for x in self.all_coefficients.keys()]
         all_coeff = sorted(all_coeff,key = lambda x:abs(x[1]["coefficient"]),reverse = True)
         self._all_coeffs = all_coeff
-        self.significant_measures = [x[0] for x in all_coeff[:3]]
+        self.significant_measures = [x[0] for x in all_coeff if x[1]['p_value']<=0.05]
         self.narratives = {"heading": self.result_column + "Performance Report",
                            "main_card":{},
                            "cards":[]
@@ -78,9 +78,9 @@ class RegressionNarrative:
             card0 = {"paragraphs":card1paragraphs}
             card0["charts"] = {}
             card0['charts']['chart2']={}
-            card0['charts']['chart2']['data']=card1data["chart_data"]
-            card0['charts']['chart2']['heading'] = ''
-            card0['charts']['chart2']['labels'] = {}
+            # card0['charts']['chart2']['data']=card1data["chart_data"]
+            # card0['charts']['chart2']['heading'] = ''
+            # card0['charts']['chart2']['labels'] = {}
             card0['charts']['chart1']={}
             card0["heading"] = card1heading
             measure_column_cards['card0'] = card0
@@ -98,21 +98,23 @@ class RegressionNarrative:
                                                         "base_dir":self._base_dir
                                                         })
             trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark)
-            card2 =  trend_narratives_obj.get_regression_trend_card_data()
-            if card2:
-                measure_column_cards['card2'] = card2
-
-
-            card3 = {}
+            # card2 =  trend_narratives_obj.get_regression_trend_card_data()
+            # if card2:
+            #     measure_column_cards['card2'] = card2
+            #
+            #
+            # card3 = {}
             card4data = regression_narrative_obj.generate_card4_data(self.result_column,measure_column)
-            card4heading = "Sensitivity Analysis: Effect of "+self.result_column+" on Segments of "+measure_column
+            # card4heading = "Sensitivity Analysis: Effect of "+self.result_column+" on Segments of "+measure_column
             card4narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                                 'regression_card4.temp',card4data)
             card4paragraphs = NarrativesUtils.paragraph_splitter(card4narrative)
-            card3 = {"paragraphs":card4paragraphs}
-            card3["charts"] = card4data["charts"]
-            card3["heading"] = card4heading
-            measure_column_cards['card3'] = card3
+            # card3 = {"paragraphs":card4paragraphs}
+            card0['paragraphs'] = card1paragraphs+card4paragraphs
+            # card3["charts"] = card4data["charts"]
+            card0['charts']['chart2'] = card4data["charts"]
+            # card3["heading"] = card4heading
+            # measure_column_cards['card3'] = card3
 
             self.narratives['cards'].append(measure_column_cards)
 
@@ -120,7 +122,7 @@ class RegressionNarrative:
                 card4data.pop("charts")
                 self._result_setter.update_executive_summary_data(card4data)
             count += 1
-
+        self._result_setter.set_trend_section_completion_status(True)
 
 
     def run_regression_for_dimension_levels(self):

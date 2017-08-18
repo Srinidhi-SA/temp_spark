@@ -6,42 +6,10 @@ mAdvisor has analyzed the dataset and it contains<b>
 {% endif %}
 
 {% if ignorecolumns|length == 1%}
-  Of these <b>{{ignorecolumns|length}}</b> variable is omitted, since it is not fit for the analysis.
+  There is <b>one variable</b> that has been excluded from the analysis due to its relative insignificance.
 {% elif ignorecolumns|length > 1 %}
-  Of these <b>{{ignorecolumns|length | intcomma}}</b> variables are omitted, since these are not fit for the analysis.
+  There are <b>{{ignorecolumns|length | intcomma}} variables</b> that have been excluded from the analysis due to their relative insignificance.
 {%endif%}
-
-The consolidated dataset has
-{% if n_c == 1 %}
-    <b>only one variable</b>: {{ m[0] }}.
-{% elif n_c == 2 %} <b>just two variables</b>:
-    {% if m|length == 2 %}
-        <b>{{m[0]}} and {{m[1]}} (both measures).
-    {% elif d|length == 1%}
-        <b>{{m[0]}}(measure) and {{d[0]}}(dimension).
-    {% elif td|length == 1%}
-        <b>{{m[0]}}(measure) and {{td[0]}}(time-dimension).
-    {% endif %}
-{% elif n_c == 3 and m|length == 3 %}
-    <b>three varibles </b>{{m[0]}}, {{m[1]}}, and {{m[2]}}(all measures).
-{% else %}
-    {% if td|length > 0%}
-      {{m|length|intcomma}} measures,{{d|length|intcomma}} dimension, and {{td|length|intcomma}} time dimension.
-    {% else %}
-      {% if m|length > 1%}
-         {{m|length}} measures
-      {% else %}
-         {{m|length}} measure
-      {% endif %}
-      and {{d|length}}
-      {% if d|length > 1%}
-         dimensions.
-      {% else %}
-         dimension.
-      {% endif %}
-    {% endif %}
-
-{% endif %}
 
 Please click next to find the insights from our
 {% if m|length == 1 %}

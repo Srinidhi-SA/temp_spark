@@ -1,7 +1,5 @@
 import sys
 import time
-import json
-import requests
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -13,9 +11,6 @@ from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import ContextSetter
 from bi.common import ResultSetter
-from bi.common import NarrativesTree
-
-from bi.algorithms import utils as MLUtils
 
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -32,9 +27,10 @@ from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 from bi.scripts.executive_summary import ExecutiveSummaryScript
+from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
-from bi.scripts.metadata_new import MetaDataScript
+
 
 
 from parser import configparser
