@@ -8,7 +8,7 @@ from bi.common.utils import accepts
 from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
 from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
@@ -95,7 +95,7 @@ class DecisionTreeNarrative:
         main_card_narrative = NarrativesUtils.block_splitter(self.dropdownComment,self._blockSplitter)
         main_card_narrative = [HtmlData(data=main_card_narrative)]
         main_card_data += main_card_narrative
-        main_card_data.append(HtmlData(data=self._decision_tree_raw))
+        main_card_data.append(TreeData(data=self._decision_tree_raw))
         main_card_table = TableData()
         main_card_table.set_table_data(self.card1Table)
         main_card_table.set_table_type("decisionTreeTable")
