@@ -1,11 +1,10 @@
 Predicting the Drivers of {{dimension_name}}
-PARAHEADER
-PARASEPARATOR
+{{blockSplitter}}
 {% for target in rules %}
   {% if significant_vars[target]|length >= 1 %}
     {{target}}
-    PARAHEADER
   {% endif %}
+  {{blockSplitter}}
   {% if significant_vars[target]|length == 1 %}
     Key variable that characterize the segment of {{target}} {{dimension_name}} is {{significant_vars[target][0]}}.
   {% elif significant_vars[target]|length == 2 %}
@@ -13,6 +12,7 @@ PARASEPARATOR
   {% elif significant_vars[target]|length > 2 %}
     Key variables that characterize the segment of {{target}} {{dimension_name}} includes {{significant_vars[target][0]}}, {{significant_vars[target][1]}} and {{significant_vars[target][2]}}.
   {% endif %}
+  {{blockSplitter}}
   {% if rules[target]|length >= 1 %}
     <ul>
       {% for rule in rules[target] %}
@@ -20,5 +20,4 @@ PARASEPARATOR
       {% endfor %}
     </ul>
   {% endif %}
-  PARASEPARATOR
 {% endfor %}

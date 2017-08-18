@@ -67,8 +67,13 @@ def main(configJson):
         #                                               'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'],
         #                                               'train_test_split': ['0.8'],
         #                                               'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
-        #                                               'script_to_run': ['Descriptive analysis', 'Measure vs. Dimension',
-        #                                                                 'Dimension vs. Dimension', 'Measure vs. Measure','Trend'],
+        #                                               'script_to_run': ['Descriptive analysis',
+        #                                                                 # 'Measure vs. Dimension',
+        #                                                                 # 'Dimension vs. Dimension',
+        #                                                                 'Predictive modeling',
+        #                                                                 # 'Measure vs. Measure',
+        #                                                                 # 'Trend'
+        #                                                                 ],
         #                                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
         #                                               },
         #                             'COLUMN_SETTINGS': {
@@ -78,7 +83,7 @@ def main(configJson):
         #                                                 'measure_suggestions': None,
         #                                                 'date_format': None,
         #                                                 'date_columns':["Month"],
-        #                                                 'ignore_column_suggestions': None,
+        #                                                 'ignore_column_suggestions': ["Order Date"],
         #                                                 'result_column': ['Platform'],
         #                                                 'consider_columns':[],
         #                                                 # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
@@ -98,7 +103,7 @@ def main(configJson):
         #             }
         # configJson = {
         #     "config":{
-        #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/metadata_with_date.csv']},
+        #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
         #             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
         #             },
         #     "job_config":{
