@@ -8,19 +8,17 @@ import pandas as pd
 
 from pyspark.sql import functions as FN
 from pyspark.sql.functions import mean, stddev, col, sum, count, min, max
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
 from pyspark.sql.types import StringType
 from pyspark.sql.types import DoubleType
 from pyspark.ml.clustering import KMeans
 
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer
+from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer, IndexToString
 
 import numpy as np
 import functools
 from pyspark.ml.feature import OneHotEncoder
 from pyspark.ml.pipeline import PipelineModel
-from pyspark.ml.feature import IndexToString, StringIndexer
 from pyspark.ml.feature import Bucketizer
 from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import monotonically_increasing_id
