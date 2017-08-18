@@ -31,6 +31,7 @@ from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
 from bi.common import NarrativesTree
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 
 
 
@@ -40,27 +41,8 @@ from pyspark.sql.functions import col, udf
 #if __name__ == '__main__':
 def main(configJson):
     start_time = time.time()
-    APP_NAME = 'mAdvisor'
-    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
-    spark.sparkContext.setLogLevel("ERROR")
-    # Setting The Config Parameters
-    #sys.argv[1]
-    # job_type = {"metaData","signal","prediction","scoring"}
-
-    # if isinstance(configJson, basestring):
-    #     config_file = configJson
-    #     config = ConfigParser.ConfigParser()
-    #     config.optionxform=str
-    #     config.read(config_file)
-    #     config_obj = configparser.ParserConfig(config)
-    #     config_obj.set_params()
-    #     # Setting the Dataframe Context
-    #     dataframe_context = ContextSetter(config_obj)
-    #     dataframe_context.set_params()
-    # else:
-
-
-    configJson = {
+    testConfigs = {
+                "story" :{
                     "config":{
                                 'FILE_SETTINGS': {
                                                   'script_to_run': ['Descriptive analysis',
@@ -94,20 +76,67 @@ def main(configJson):
                                         "action": "result"
                                       },
                                  }
+                  },
+                "metaData" : {
+                    "config":{
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
+                            'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+                            },
+                    "job_config":{
+                        "job_type":"metaData",
+                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
+                },
+                "prediction":{
+                    "config":{
+                            'FILE_SETTINGS': {
+                                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv'],
+                                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/"],
+                                    'train_test_split' : [0.8]
+                                    },
+                            'COLUMN_SETTINGS': {
+                                'analysis_type': ['prediction'],
+                                'result_column': ['Opportunity Result'],
+                                'consider_columns_type': ['excluding'],
+                                'consider_columns':[],
+
+                            }
+                            },
+                    "job_config":{
+                        "job_type":"prediction",
+                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
+
                 }
-    # configJson = {
-    #     "config":{
-    #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
-    #             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-    #             },
-    #     "job_config":{
-    #         "job_type":"metaData",
-    #         "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-    #         "set_result": {
-    #             "method": "PUT",
-    #             "action": "result"
-    #           },
-    #     }}
+    }
+    APP_NAME = 'mAdvisor'
+    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
+    spark.sparkContext.setLogLevel("ERROR")
+    # Setting The Config Parameters
+    #sys.argv[1]
+    # job_type = {"metaData","signal","prediction","scoring"}
+
+    # if isinstance(configJson, basestring):
+    #     config_file = configJson
+    #     config = ConfigParser.ConfigParser()
+    #     config.optionxform=str
+    #     config.read(config_file)
+    #     config_obj = configparser.ParserConfig(config)
+    #     config_obj.set_params()
+    #     # Setting the Dataframe Context
+    #     dataframe_context = ContextSetter(config_obj)
+    #     dataframe_context.set_params()
+    # else:
+
+    configJson = testConfigs["prediction"]
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
@@ -170,7 +199,6 @@ def main(configJson):
                     print e
                     print "#####ERROR#####"*5
             else:
-                #DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'FreqDimension/')
                 print "Descriptive analysis Not in Scripts to run "
 
             if ('Dimension vs. Dimension' in scripts_to_run):
@@ -181,7 +209,6 @@ def main(configJson):
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     print "ChiSquare Analysis Failed "
-                    #DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
@@ -393,7 +420,22 @@ def main(configJson):
             print "#####ERROR#####"*5
 
         collated_summary = result_setter.get_model_summary()
+        card2 = NormalCard()
+        card2_elements = MLUtils.get_model_comparison(collated_summary)
+        card2Data = [card2_elements[0],card2_elements[1]]
+        card2.set_card_data(card2Data)
+        prediction_narrative.insert_card_at_given_index(card2,1)
 
+        card3 = NormalCard()
+        card3Data = [HtmlData(data="<h2>Feature Importance</h2>")]
+        card3Data.append(MLUtils.get_feature_importance(collated_summary))
+        card3.set_card_data(card3Data)
+        prediction_narrative.insert_card_at_given_index(card3,2)
+
+        modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
+        print modelResult
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],modelResult)
+        return response
 
     elif jobType == 'scoring':
         st = time.time()

@@ -5,6 +5,8 @@ import json
 
 import numpy as np
 import pandas as pd
+import operator
+import __builtin__
 
 from pyspark.sql import functions as FN
 from pyspark.sql.functions import mean, stddev, col, sum, count, min, max
@@ -188,7 +190,10 @@ def calculate_overall_precision_recall(actual,predicted):
     for val in val_counts_predicted.keys():
         prediction_split[val] = round(val_counts_predicted[val]*100/float(len(predicted)),2)
     val_counts = df["actual"].value_counts().to_dict()
-    positive_class = max(val_counts,key=val_counts.get)
+    val_counts_tuple = tuple(val_counts.items())
+    # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
+    positive_class = __builtin__.max(val_counts,key=val_counts.get)
+    # positive_class = max(val_counts.iteritems(), key=operator.itemgetter(1))[0]
 
     class_precision_recall = calculate_precision_recall(actual,predicted)
     output = {"precision":0,"recall":0,"classwise_stats":class_precision_recall,"prediction_split":prediction_split,"positive_class":positive_class}
@@ -448,11 +453,45 @@ def fill_missing_values(df,replacement_dict):
 
 
 def get_model_comparison(collated_summary):
+    summary = []
     algos = collated_summary.keys()
-    out = []
+    out = [[""]+algos]
+    first_column = ["Precision","Recall","Accuracy"]
+    data_keys = ["model_precision","model_recall","model_accuracy"]
+    summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
+    map_dict = dict(zip(first_column,data_keys))
+    for key in first_column:
+        row = []
+        for val in algos:
+            row.append(collated_summary[val][map_dict[key]])
+        out.append([key]+row)
+        max_index = __builtin__.max(xrange(len(row)), key = lambda x: row[x])
+        summary.append(["Best "+key,algos[max_index]])
+    runtime = []
+    for val in algos:
+        runtime.append(collated_summary[val]["runtime_in_seconds"])
+    max_runtime_index = __builtin__.max(xrange(len(runtime)), key = lambda x: runtime[x])
+    summary.append(["Best Runtime",algos[max_runtime_index]])
+    inner_html = []
+    for val in summary:
+        inner_html.append("<li>{} : {}</li>".format(val[0],val[1]))
+    summary_html = "<ul>{}{}{}{}</ul>".format(inner_html[0],inner_html[1],inner_html[2],inner_html[3])
+    summaryData = HtmlData(data = summary_html)
 
-    # modelTable = TableData()
-    # modelTable.set_table_data(confusion_matrix_data)
-    # modelTable.set_table_type("confusionMatrix")
-    # modelTable.set_table_top_header("Actual")
-    # modelTable.set_table_left_header("Predicted")
+    modelTable = TableData()
+    modelTable.set_table_data(out)
+    modelTable.set_table_type("circularChartTable")
+    return modelTable,summaryData
+
+def get_feature_importance(collated_summary):
+    feature_importance = collated_summary["randomforest"]["feature_importance"]
+    feature_importance_list = [[k,v] for k,v in feature_importance.items()]
+    sorted_feature_importance_list = sorted(feature_importance_list,key = lambda x:x[1],reverse=True)
+    feature_importance_data = [{"name":x[0],"value":x[1]} for x in sorted_feature_importance_list]
+    chart_data = NormalChartData(data=feature_importance_data)
+    chart_json = ChartJson()
+    chart_json.set_data(chart_data.get_data())
+    chart_json.set_chart_type("bar")
+    chart_json.set_axes({"x":"key","y":"value"})
+    card3Chart = C3ChartData(data=chart_json)
+    return card3Chart

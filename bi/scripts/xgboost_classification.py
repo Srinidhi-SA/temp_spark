@@ -55,7 +55,7 @@ class XgboostScript:
         # confusion matrix keys are the predicted class
         self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
-        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
+        # self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
 
         self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
@@ -96,6 +96,7 @@ class XgboostScript:
         xgbCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(self._model_summary["total_rules"])))
         xgbCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
         xgbCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
+        xgbCard1.set_card_data(xgbCard1Data)
 
         confusion_matrix = self._model_summary["confusion_matrix"]
         levels = confusion_matrix.keys()
@@ -115,7 +116,8 @@ class XgboostScript:
         card2Table.set_table_type("confusionMatrix")
         card2Table.set_table_top_header("Actual")
         card2Table.set_table_left_header("Predicted")
-        rdCard2Data.append(card2Table)
+        xgbCard2Data.append(card2Table)
+        xgbCard2.set_card_data(xgbCard2Data)
         self._prediction_narrative.add_a_card(xgbCard1)
         self._prediction_narrative.add_a_card(xgbCard2)
 

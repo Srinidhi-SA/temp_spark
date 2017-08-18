@@ -57,7 +57,7 @@ class RandomForestScript:
         # confusion matrix keys are the predicted class
         self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
         self._model_summary["feature_importance"] = objs["feature_importance"]
-        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
+        # self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
         self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
         self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
@@ -85,18 +85,19 @@ class RandomForestScript:
         prediction_split_array = [[val[0],round(float(val[1])*100/total,2)] for val in prediction_split_array]
         self._result_setter.set_model_summary({"randomforest":self._model_summary})
         rfCard1 = NormalCard()
-        rfcard1Data = []
-        rfcard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        rfcard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
-        rfcard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
-        rfcard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
+        rfCard1Data = []
+        rfCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
+        rfCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
+        rfCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
+        rfCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         for val in prediction_split_array:
-            rfcard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
-        rfcard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(self._model_summary["algorithm_name"])))
-        rfcard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(self._model_summary["total_trees"])))
-        rfcard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(self._model_summary["total_rules"])))
-        rfcard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
-        rfcard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
+            rfCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
+        rfCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(self._model_summary["algorithm_name"])))
+        rfCard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(self._model_summary["total_trees"])))
+        rfCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(self._model_summary["total_rules"])))
+        rfCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
+        rfCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
+        rfCard1.set_card_data(rfCard1Data)
 
         confusion_matrix = self._model_summary["confusion_matrix"]
         levels = confusion_matrix.keys()
@@ -116,7 +117,8 @@ class RandomForestScript:
         card2Table.set_table_type("confusionMatrix")
         card2Table.set_table_top_header("Actual")
         card2Table.set_table_left_header("Predicted")
-        rdCard2Data.append(card2Table)
+        rfCard2Data.append(card2Table)
+        rfCard2.set_card_data(rfCard2Data)
         self._prediction_narrative.add_a_card(rfCard1)
         self._prediction_narrative.add_a_card(rfCard2)
 

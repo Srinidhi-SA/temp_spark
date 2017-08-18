@@ -19,7 +19,7 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,NormalCard
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
@@ -107,6 +107,7 @@ class LogisticRegressionScript:
         lrCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(self._model_summary["algorithm_name"])))
         lrCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
         lrCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
+        lrCard1.set_card_data(lrCard1Data)
 
         confusion_matrix = self._model_summary["confusion_matrix"]
         levels = confusion_matrix.keys()
@@ -126,7 +127,9 @@ class LogisticRegressionScript:
         card2Table.set_table_type("confusionMatrix")
         card2Table.set_table_top_header("Actual")
         card2Table.set_table_left_header("Predicted")
-        rdCard2Data.append(card2Table)
+        lrCard2Data.append(card2Table)
+        lrCard2.set_card_data(lrCard2Data)
+
         self._prediction_narrative.add_a_card(lrCard1)
         self._prediction_narrative.add_a_card(lrCard2)
 
