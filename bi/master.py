@@ -107,7 +107,7 @@ def main(configJson):
         #             }
         # configJson = {
         #     "config":{
-        #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/metadata_with_date.csv']},
+        #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
         #             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
         #             },
         #     "job_config":{
