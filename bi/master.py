@@ -52,7 +52,8 @@ def main(configJson):
                                                                     # 'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
-                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                'inputfile': ['file:///home/hadoop/trend_gulshan.csv']
+                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
@@ -70,7 +71,7 @@ def main(configJson):
                              },
                     "job_config":{
                                     "job_type":"story",
-                                    "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                                    "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
                                     "set_result": {
                                         "method": "PUT",
                                         "action": "result"
