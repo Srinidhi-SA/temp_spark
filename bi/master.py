@@ -30,6 +30,7 @@ from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
+from bi.scripts.metadata_new import MetaDataScript
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 
@@ -56,12 +57,13 @@ def main(configJson):
                 "story" :{
                     "config":{
                                 'FILE_SETTINGS': {
-                                                  'script_to_run': ['Descriptive analysis',
-                                                                    'Measure vs. Dimension',
+                                                  'script_to_run': [
+                                                                    # 'Descriptive analysis',
+                                                                    # 'Measure vs. Dimension',
                                                                     'Dimension vs. Dimension',
-                                                                    'Predictive modeling',
+                                                                    # 'Predictive modeling',
                                                                     # 'Measure vs. Measure',
-                                                                    'Trend'
+                                                                    # 'Trend'
                                                                     ],
                                                 # 'inputfile': ['file:///home/hadoop/trend_gulshan.csv']
                                                   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
@@ -91,7 +93,7 @@ def main(configJson):
                   },
                 "metaData" : {
                     "config":{
-                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv']},
                             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                             },
                     "job_config":{
@@ -162,7 +164,7 @@ def main(configJson):
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     # configJson = configtree_to_dict(configJson)
-    # configJson = testConfigs["story"]
+    configJson = testConfigs["metaData"]
     print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]

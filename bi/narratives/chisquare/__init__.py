@@ -109,10 +109,4 @@ class ChiSquareNarratives:
                     card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result,dimensionNode)
                     self.narratives['cards'].append(card)
                     chiSquareNode.add_a_node(card.get_dimension_node())
-
-                    dimension_node = card.get_dimension_node()
-                    print dimension_node.get_card_count()
-                    all_cards = dimension_node.get_all_cards()
-                    print all_cards[0].get_card_data()
-                    print 
         self._story_narrative.add_a_node(chiSquareNode)
