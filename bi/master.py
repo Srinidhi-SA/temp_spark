@@ -166,62 +166,6 @@ def main(configJson):
     #sys.argv[1]
     # job_type = {"metaData","signal","prediction","scoring"}
 
-    # if isinstance(configJson, basestring):
-    #     config_file = configJson
-    #     config = ConfigParser.ConfigParser()
-    #     config.optionxform=str
-    #     config.read(config_file)
-    #     config_obj = configparser.ParserConfig(config)
-    #     config_obj.set_params()
-    #     # Setting the Dataframe Context
-    #     dataframe_context = ContextSetter(config_obj)
-    #     dataframe_context.set_params()
-    # else:
-    # testConfigs = {}
-    # testConfigs["story"] = {
-    #     "config": {
-    #         "COLUMN_SETTINGS": {
-    #             "polarity": [
-    #                 "positive"
-    #             ],
-    #             "consider_columns_type": [
-    #                 "excluding"
-    #             ],
-    #             "date_format": None,
-    #             "ignore_column_suggestions": [
-    #                 "Order Date"
-    #             ],
-    #             "result_column": [
-    #                 "Platform"
-    #             ],
-    #             "consider_columns": [],
-    #             "analysis_type": [
-    #                 "Dimension"
-    #             ]
-    #         },
-    #         "FILE_SETTINGS": {
-    #             "script_to_run": [
-    #                 "Descriptive analysis",
-    #                 "Measure vs. Dimension",
-    #                 "Dimension vs. Dimension",
-    #                 "Predictive modeling",
-    #                 "Trend"
-    #             ],
-    #             "inputfile": [
-    #                 "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
-    #             ]
-    #         }
-    #     },
-    #     "job_config":{
-    #                     "job_type":"story",
-    #                     "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
-    #                     "set_result": {
-    #                         "method": "PUT",
-    #                         "action": "result"
-    #                       },
-    #                  }
-    # }
-
     # configJson = configtree_to_dict(configJson)
     # configJson = testConfigs["story"]
     config = configJson["config"]
