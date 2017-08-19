@@ -115,6 +115,35 @@ def main(configJson):
                           },
                     }
 
+                },
+                "scoring":{
+                    "config":{
+                            'FILE_SETTINGS': {
+                                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_test.csv'],
+                                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/RandomForest/TrainedModels/model.pkl"],
+                                    'scorepath': ["file:///home/gulshan/marlabs/test1/algos/output"],
+                                    'train_test_split' : [0.8],
+                                    'levelcounts' : "GG|~|34|~|HH|~|4"
+                                    },
+                            'COLUMN_SETTINGS': {
+                                'analysis_type': ['scoring'],
+                                'result_column': ['Opportunity Result'],
+                                'consider_columns_type': ['excluding'],
+                                'consider_columns':[],
+                                'score_consider_columns_type': ['excluding'],
+                                'score_consider_columns':[],
+
+                            }
+                            },
+                    "job_config":{
+                        "job_type":"scoring",
+                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
+
                 }
     }
     APP_NAME = 'mAdvisor'
@@ -124,25 +153,25 @@ def main(configJson):
     #sys.argv[1]
     # job_type = {"metaData","signal","prediction","scoring"}
 
-    if isinstance(configJson, basestring):
-        config_file = configJson
-        config = ConfigParser.ConfigParser()
-        config.optionxform=str
-        config.read(config_file)
-        config_obj = configparser.ParserConfig(config)
-        config_obj.set_params()
-        # Setting the Dataframe Context
-        dataframe_context = ContextSetter(config_obj)
-        dataframe_context.set_params()
-    else:
-        # configJson = testConfigs["prediction"]
-        config = configJson["config"]
-        job_config = configJson["job_config"]
-        configJsonObj = configparser.ParserConfig(config)
-        configJsonObj.set_json_params()
-        dataframe_context = ContextSetter(configJsonObj)
-        dataframe_context.set_params()
-        jobType = job_config["job_type"]
+    # if isinstance(configJson, basestring):
+    #     config_file = configJson
+    #     config = ConfigParser.ConfigParser()
+    #     config.optionxform=str
+    #     config.read(config_file)
+    #     config_obj = configparser.ParserConfig(config)
+    #     config_obj.set_params()
+    #     # Setting the Dataframe Context
+    #     dataframe_context = ContextSetter(config_obj)
+    #     dataframe_context.set_params()
+    # else:
+    configJson = testConfigs["scoring"]
+    config = configJson["config"]
+    job_config = configJson["job_config"]
+    configJsonObj = configparser.ParserConfig(config)
+    configJsonObj.set_json_params()
+    dataframe_context = ContextSetter(configJsonObj)
+    dataframe_context.set_params()
+    jobType = job_config["job_type"]
 
     #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
@@ -446,6 +475,9 @@ def main(configJson):
 
     elif jobType == 'scoring':
         st = time.time()
+        story_narrative = NarrativesTree()
+        story_narrative.set_name("scores")
+        result_setter = ResultSetter(df,dataframe_context)
         model_path = dataframe_context.get_model_path()
         result_column = dataframe_context.get_result_column()
         if result_column in df.columns:
@@ -455,23 +487,28 @@ def main(configJson):
 
         if "RandomForest" in model_path:
             df = df.toPandas()
-            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "XGBoost" in model_path:
             df = df.toPandas()
-            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
+            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "LogisticRegression" in model_path:
             df = df.toPandas()
-            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
+            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
+
+        scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
+        print scoreSummary
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
+        return response
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."

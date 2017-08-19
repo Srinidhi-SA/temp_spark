@@ -146,7 +146,7 @@ def calculate_predicted_probability(probability_array):
     out = []
     if len(probability_array[0]) > 1:
         for val in probability_array:
-            out.append(max(val))
+            out.append(__builtin__.max(val))
         return out
     else:
         return probability_array
