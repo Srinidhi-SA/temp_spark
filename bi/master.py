@@ -1,5 +1,6 @@
 import sys
 import time
+import json
 from pyhocon.tool import HOCONConverter
 
 reload(sys)
@@ -164,7 +165,7 @@ def main(configJson):
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-    configJson = HOCONConverter.to_json(configJson)
+    configJson = json.loads(HOCONConverter.to_json(configJson))
     # configJson = testConfigs["metaData"]
     print configJson
     config = configJson["config"]
