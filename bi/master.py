@@ -38,6 +38,18 @@ from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from parser import configparser
 from pyspark.sql.functions import col, udf
 
+def configtree_to_dict(configJson):
+    out={}
+    config = {}
+    job_config = {}
+    for k,v in configJson["config"].items():
+        config[k] = v
+    for k,v in configJson["job_config"].items():
+        job_config[k] = v
+    out["config"] = config
+    out["job_config"] = job_config
+
+    return out
 #if __name__ == '__main__':
 def main(configJson):
     start_time = time.time()
@@ -52,8 +64,8 @@ def main(configJson):
                                                                     # 'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
-                                                'inputfile': ['file:///home/hadoop/trend_gulshan.csv']
-                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                # 'inputfile': ['file:///home/hadoop/trend_gulshan.csv']
+                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
@@ -165,7 +177,53 @@ def main(configJson):
     #     dataframe_context = ContextSetter(config_obj)
     #     dataframe_context.set_params()
     # else:
-    configJson = testConfigs["story"]
+    # testConfigs = {}
+    # testConfigs["story"] = {
+    #     "config": {
+    #         "COLUMN_SETTINGS": {
+    #             "polarity": [
+    #                 "positive"
+    #             ],
+    #             "consider_columns_type": [
+    #                 "excluding"
+    #             ],
+    #             "date_format": None,
+    #             "ignore_column_suggestions": [
+    #                 "Order Date"
+    #             ],
+    #             "result_column": [
+    #                 "Platform"
+    #             ],
+    #             "consider_columns": [],
+    #             "analysis_type": [
+    #                 "Dimension"
+    #             ]
+    #         },
+    #         "FILE_SETTINGS": {
+    #             "script_to_run": [
+    #                 "Descriptive analysis",
+    #                 "Measure vs. Dimension",
+    #                 "Dimension vs. Dimension",
+    #                 "Predictive modeling",
+    #                 "Trend"
+    #             ],
+    #             "inputfile": [
+    #                 "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
+    #             ]
+    #         }
+    #     },
+    #     "job_config":{
+    #                     "job_type":"story",
+    #                     "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
+    #                     "set_result": {
+    #                         "method": "PUT",
+    #                         "action": "result"
+    #                       },
+    #                  }
+    # }
+
+    configJson = configtree_to_dict(configJson)
+    # configJson = testConfigs["story"]
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
