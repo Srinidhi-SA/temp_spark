@@ -64,8 +64,8 @@ def main(configJson):
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['Dimension'],
-                                                    'score_consider_columns': None
+                                                    'analysis_type': ['Dimension']
+                                                    # 'score_consider_columns': None
                                                     }
                              },
                     "job_config":{
@@ -153,25 +153,25 @@ def main(configJson):
     #sys.argv[1]
     # job_type = {"metaData","signal","prediction","scoring"}
 
-    if isinstance(configJson, basestring):
-        config_file = configJson
-        config = ConfigParser.ConfigParser()
-        config.optionxform=str
-        config.read(config_file)
-        config_obj = configparser.ParserConfig(config)
-        config_obj.set_params()
-        # Setting the Dataframe Context
-        dataframe_context = ContextSetter(config_obj)
-        dataframe_context.set_params()
-    else:
-        # configJson = testConfigs["story"]
-        config = configJson["config"]
-        job_config = configJson["job_config"]
-        configJsonObj = configparser.ParserConfig(config)
-        configJsonObj.set_json_params()
-        dataframe_context = ContextSetter(configJsonObj)
-        dataframe_context.set_params()
-        jobType = job_config["job_type"]
+    # if isinstance(configJson, basestring):
+    #     config_file = configJson
+    #     config = ConfigParser.ConfigParser()
+    #     config.optionxform=str
+    #     config.read(config_file)
+    #     config_obj = configparser.ParserConfig(config)
+    #     config_obj.set_params()
+    #     # Setting the Dataframe Context
+    #     dataframe_context = ContextSetter(config_obj)
+    #     dataframe_context.set_params()
+    # else:
+    configJson = testConfigs["story"]
+    config = configJson["config"]
+    job_config = configJson["job_config"]
+    configJsonObj = configparser.ParserConfig(config)
+    configJsonObj.set_json_params()
+    dataframe_context = ContextSetter(configJsonObj)
+    dataframe_context.set_params()
+    jobType = job_config["job_type"]
 
     #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
