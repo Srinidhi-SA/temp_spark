@@ -123,7 +123,7 @@ class XgboostScript:
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
-        CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
+        # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
 
     def Predict(self):
@@ -165,7 +165,7 @@ class XgboostScript:
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
-        CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
+        # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
         print "STARTING DIMENSION ANALYSIS ..."
         columns_to_keep = []
@@ -199,11 +199,11 @@ class XgboostScript:
             result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
             df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
+            # CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
             # Narratives
             narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
             narratives = CommonUtils.as_dict(narratives_obj)
-            CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
+            # CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
             print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
         except:
             print "Frequency Analysis Failed "
@@ -215,10 +215,10 @@ class XgboostScript:
             df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
             # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-            CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
+            # CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
             chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
             # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
+            # CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
             print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
         except:
             print "ChiSquare Analysis Failed "
