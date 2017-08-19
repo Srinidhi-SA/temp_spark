@@ -164,7 +164,7 @@ def main(configJson):
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     # configJson = configtree_to_dict(configJson)
-    configJson = testConfigs["metaData"]
+    # configJson = testConfigs["metaData"]
     print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
