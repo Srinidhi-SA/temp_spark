@@ -222,7 +222,7 @@ def main(configJson):
     #                  }
     # }
 
-    configJson = configtree_to_dict(configJson)
+    # configJson = configtree_to_dict(configJson)
     # configJson = testConfigs["story"]
     config = configJson["config"]
     job_config = configJson["job_config"]
