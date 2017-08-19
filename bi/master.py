@@ -161,7 +161,7 @@ def main(configJson):
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-    configJson = configtree_to_dict(configJson)
+    # configJson = configtree_to_dict(configJson)
     # configJson = testConfigs["story"]
     print configJson
     config = configJson["config"]
