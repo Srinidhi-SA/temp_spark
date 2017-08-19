@@ -42,13 +42,12 @@ def configtree_to_dict(configJson):
     out={}
     config = {}
     job_config = {}
-    for k,v in configJson["config"].items():
+    for k,v in configJson._dictionary.items():
         config[k] = v
-    for k,v in configJson["job_config"].items():
-        job_config[k] = v
+    # for k,v in configJson._dictionary.items():
+    #     job_config[k] = v
     out["config"] = config
     out["job_config"] = job_config
-
     return out
 #if __name__ == '__main__':
 def main(configJson):
@@ -162,12 +161,9 @@ def main(configJson):
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-    # Setting The Config Parameters
-    #sys.argv[1]
-    # job_type = {"metaData","signal","prediction","scoring"}
-
-    # configJson = configtree_to_dict(configJson)
+    configJson = configtree_to_dict(configJson)
     # configJson = testConfigs["story"]
+    print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
