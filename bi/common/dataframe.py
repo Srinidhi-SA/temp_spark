@@ -67,7 +67,6 @@ class DataFrameHelper:
         self.resultcolumn = self._df_context.get_result_column()
         self.consider_columns = self._df_context.get_consider_columns()
         self.considercolumnstype = self._df_context.get_consider_columns_type()
-
         ##################################################################
         #####Ignoring the columns which user want to keep for the analysis
         #####Also removing any utf8 columns from consider columns

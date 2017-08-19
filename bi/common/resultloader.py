@@ -12,6 +12,7 @@ class ResultSetter:
         self.trend_subsection_name = None
         self.trend_subsection_data = None
         self.trend_subsection_complete = False
+        self.model_summary = {}
 
     # def set_params(self):
     #     self.columns = [field.name for field in self._data_frame.schema.fields]
@@ -30,6 +31,12 @@ class ResultSetter:
     def set_trend_section_completion_status(self,status):
         self.trend_subsection_complete = status
 
+    def set_model_summary(self,data):
+        """data will be a key value dictionary
+        {"model_name":"model_summary"}
+        """
+        self.model_summary.update(data)
+
     def get_trend_section_name(self):
         return self.trend_subsection_name
 
@@ -41,3 +48,6 @@ class ResultSetter:
 
     def get_trend_section_completion_status(self):
         return self.trend_subsection_complete
+
+    def get_model_summary(self):
+        return self.model_summary

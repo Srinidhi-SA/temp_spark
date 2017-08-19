@@ -31,6 +31,7 @@ from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
 from bi.common import NarrativesTree
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 
 
 
@@ -40,6 +41,112 @@ from pyspark.sql.functions import col, udf
 #if __name__ == '__main__':
 def main(configJson):
     start_time = time.time()
+    testConfigs = {
+                "story" :{
+                    "config":{
+                                'FILE_SETTINGS': {
+                                                  'script_to_run': ['Descriptive analysis',
+                                                                    'Measure vs. Dimension',
+                                                                    'Dimension vs. Dimension',
+                                                                    'Predictive modeling',
+                                                                    # 'Measure vs. Measure',
+                                                                    'Trend'
+                                                                    ],
+                                                'inputfile': ['file:///home/hadoop/trend_gulshan.csv']
+                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                  },
+                                'COLUMN_SETTINGS': {
+                                                    'polarity': ['positive'],
+                                                    'consider_columns_type': ['excluding'],
+                                                    'date_format': None,
+                                                    'date_columns':["Month"],
+                                                    'ignore_column_suggestions': ["Order Date"],
+                                                    'result_column': ['Deal_Type'],
+                                                    'consider_columns':[],
+                                                    # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+                                                    #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+                                                    'analysis_type': ['Dimension']
+                                                    # 'score_consider_columns': None
+                                                    }
+                             },
+                    "job_config":{
+                                    "job_type":"story",
+                                    "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
+                                    "set_result": {
+                                        "method": "PUT",
+                                        "action": "result"
+                                      },
+                                 }
+                  },
+                "metaData" : {
+                    "config":{
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
+                            'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+                            },
+                    "job_config":{
+                        "job_type":"metaData",
+                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
+                },
+                "prediction":{
+                    "config":{
+                            'FILE_SETTINGS': {
+                                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv'],
+                                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/"],
+                                    'train_test_split' : [0.8]
+                                    },
+                            'COLUMN_SETTINGS': {
+                                'analysis_type': ['prediction'],
+                                'result_column': ['Opportunity Result'],
+                                'consider_columns_type': ['excluding'],
+                                'consider_columns':[],
+
+                            }
+                            },
+                    "job_config":{
+                        "job_type":"prediction",
+                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
+
+                },
+                "scoring":{
+                    "config":{
+                            'FILE_SETTINGS': {
+                                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_test.csv'],
+                                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/RandomForest/TrainedModels/model.pkl"],
+                                    'scorepath': ["file:///home/gulshan/marlabs/test1/algos/output"],
+                                    'train_test_split' : [0.8],
+                                    'levelcounts' : "GG|~|34|~|HH|~|4"
+                                    },
+                            'COLUMN_SETTINGS': {
+                                'analysis_type': ['scoring'],
+                                'result_column': ['Opportunity Result'],
+                                'consider_columns_type': ['excluding'],
+                                'consider_columns':[],
+                                'score_consider_columns_type': ['excluding'],
+                                'score_consider_columns':[],
+
+                            }
+                            },
+                    "job_config":{
+                        "job_type":"scoring",
+                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
+
+                }
+    }
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
@@ -47,81 +154,25 @@ def main(configJson):
     #sys.argv[1]
     # job_type = {"metaData","signal","prediction","scoring"}
 
-    if isinstance(configJson, basestring):
-        config_file = configJson
-        config = ConfigParser.ConfigParser()
-        config.optionxform=str
-        config.read(config_file)
-        config_obj = configparser.ParserConfig(config)
-        config_obj.set_params()
-        # Setting the Dataframe Context
-        dataframe_context = ContextSetter(config_obj)
-        dataframe_context.set_params()
-    else:
-        # configJson = {
-        #                 "config":{
-        #                             'FILE_SETTINGS': {
-        #                                               'monitor_api': ['http://52.77.216.14/api/errand/1/log_status'],
-        #                                               'levelcounts': ['GG|~|34|~|HH|~|4'],
-        #                                               'narratives_file': ['file:///home/gulshan/marlabs/test2/algos/kill/'],
-        #                                               'scorepath': ['file:///home/gulshan/marlabs/test1/algos/output'],
-        #                                               'modelpath': ['file:///home/gulshan/marlabs/test1/algos/'],
-        #                                               'train_test_split': ['0.8'],
-        #                                               'result_file': ['file:///home/gulshan/marlabs/test1/algos/kill/'],
-        #                                               'script_to_run': ['Descriptive analysis',
-        #                                                                 'Measure vs. Dimension',
-        #                                                                 'Dimension vs. Dimension',
-        #                                                                 'Predictive modeling',
-        #                                                                 # 'Measure vs. Measure',
-        #                                                                 'Trend'
-        #                                                                 ],
-        #                                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
-        #                                               },
-        #                             'COLUMN_SETTINGS': {
-        #                                                 'polarity': ['positive'],
-        #                                                 'consider_columns_type': ['excluding'],
-        #                                                 'score_consider_columns_type': ['excluding'],
-        #                                                 'measure_suggestions': None,
-        #                                                 'date_format': None,
-        #                                                 'date_columns':["Month"],
-        #                                                 'ignore_column_suggestions': ["Order Date"],
-        #                                                 'result_column': ['Platform'],
-        #                                                 'consider_columns':[],
-        #                                                 # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-        #                                                 #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-        #                                                 'analysis_type': ['Dimension'],
-        #                                                 'score_consider_columns': None
-        #                                                 }
-        #                          },
-        #                 "job_config":{
-        #                                 "job_type":"story",
-        #                                 "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-        #                                 "set_result": {
-        #                                     "method": "PUT",
-        #                                     "action": "result"
-        #                                   },
-        #                              }
-        #             }
-        # configJson = {
-        #     "config":{
-        #             'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
-        #             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-        #             },
-        #     "job_config":{
-        #         "job_type":"metaData",
-        #         "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-        #         "set_result": {
-        #             "method": "PUT",
-        #             "action": "result"
-        #           },
-        #     }}
-        config = configJson["config"]
-        job_config = configJson["job_config"]
-        configJsonObj = configparser.ParserConfig(config)
-        configJsonObj.set_json_params()
-        dataframe_context = ContextSetter(configJsonObj)
-        dataframe_context.set_params()
-        jobType = job_config["job_type"]
+    # if isinstance(configJson, basestring):
+    #     config_file = configJson
+    #     config = ConfigParser.ConfigParser()
+    #     config.optionxform=str
+    #     config.read(config_file)
+    #     config_obj = configparser.ParserConfig(config)
+    #     config_obj.set_params()
+    #     # Setting the Dataframe Context
+    #     dataframe_context = ContextSetter(config_obj)
+    #     dataframe_context.set_params()
+    # else:
+    configJson = testConfigs["story"]
+    config = configJson["config"]
+    job_config = configJson["job_config"]
+    configJsonObj = configparser.ParserConfig(config)
+    configJsonObj.set_json_params()
+    dataframe_context = ContextSetter(configJsonObj)
+    dataframe_context.set_params()
+    jobType = job_config["job_type"]
 
     #Load the dataframe
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
@@ -177,7 +228,6 @@ def main(configJson):
                     print e
                     print "#####ERROR#####"*5
             else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'FreqDimension/')
                 print "Descriptive analysis Not in Scripts to run "
 
             if ('Dimension vs. Dimension' in scripts_to_run):
@@ -188,12 +238,10 @@ def main(configJson):
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     print "ChiSquare Analysis Failed "
-                    DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
             else:
-                DataWriter.write_dict_as_json(spark, {'narratives':{'main_card':{},'cards':[]}}, dataframe_context.get_narratives_file()+'ChiSquare/')
                 print "Dimension vs. Dimension Not in Scripts to run "
 
             if ('Predictive modeling' in scripts_to_run):
@@ -212,7 +260,6 @@ def main(configJson):
                     print e
                     print "#####ERROR#####"*5
             else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTree/')
                 print "Predictive modeling Not in Scripts to run"
 
             if ('Trend' in scripts_to_run):
@@ -223,7 +270,6 @@ def main(configJson):
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
                 except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
                     print "Trend Script Failed"
                     print "#####ERROR#####"*5
                     print e
@@ -247,8 +293,6 @@ def main(configJson):
                     descr_stats_obj.Run()
                     print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
                     print 'Descriptive Failed'
                     print "#####ERROR#####"*5
                     print e
@@ -260,7 +304,6 @@ def main(configJson):
                     histogram_obj.Run()
                     print "Histogram Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
@@ -270,15 +313,11 @@ def main(configJson):
                     d_histogram_obj.Run()
                     print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Density_Histogram/')
                     print 'Density Histogram Failed'
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-            else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DescrStats/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'DescrStats/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Histogram/')
+
             if df_helper.ignorecolumns != None:
                 df_helper.drop_ignore_columns()
             measure_columns = df_helper.get_numeric_columns()
@@ -295,14 +334,9 @@ def main(configJson):
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     print 'Anova Failed'
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-            else:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'OneWayAnova/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'OneWayAnova/')
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 try:
@@ -317,7 +351,6 @@ def main(configJson):
                         regression_obj.Run()
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:
-                        DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
                         print 'Regression Failed'
                         print "#####ERROR#####"*5
                         print e
@@ -325,17 +358,12 @@ def main(configJson):
 
                 except Exception as e:
                     print 'Correlation Failed. Regression not executed'
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Correlation/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
-                    DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Regression/')
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
 
             else:
                 print 'Regression not in Scripts to run'
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_result_file()+'Correlation/')
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Regression/')
 
             try:
                 fs = time.time()
@@ -344,7 +372,6 @@ def main(configJson):
                 print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
             except Exception as e:
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'Trend/')
                 print "Trend Script Failed"
                 print "#####ERROR#####"*5
                 print e
@@ -361,7 +388,6 @@ def main(configJson):
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'DecisionTreeReg/')
                 print "Decision Tree Regression Script Failed"
             try:
                 fs = time.time()
@@ -372,11 +398,12 @@ def main(configJson):
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
-                DataWriter.write_dict_as_json(spark, {}, dataframe_context.get_narratives_file()+'ExecutiveSummary/')
                 print "Executive Summary Script Failed"
 
     elif jobType == 'prediction':
         prediction_narrative = NarrativesTree()
+        prediction_narrative.set_name("models")
+        result_setter = ResultSetter(df,dataframe_context)
         df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
@@ -388,8 +415,8 @@ def main(configJson):
 
         try:
             st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark, prediction_narrative)
-            # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative)
+            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
+            # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
             rf_obj.Train()
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
@@ -400,8 +427,8 @@ def main(configJson):
 
         try:
             st = time.time()
-            lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark, prediction_narrative)
-            # lr_obj = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative)
+            lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
+            # lr_obj = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
@@ -412,7 +439,7 @@ def main(configJson):
 
         try:
             st = time.time()
-            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark, prediction_narrative)
+            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
             xgb_obj.Train()
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
@@ -421,8 +448,37 @@ def main(configJson):
             print e
             print "#####ERROR#####"*5
 
+
+        collated_summary = result_setter.get_model_summary()
+
+        card1 = NormalCard()
+        card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
+        card1Data.append(HtmlData(data = MLUtils.get_total_models(collated_summary)))
+        card1.set_card_data(card1Data)
+        prediction_narrative.insert_card_at_given_index(card1,0)
+
+        card2 = NormalCard()
+        card2_elements = MLUtils.get_model_comparison(collated_summary)
+        card2Data = [card2_elements[0],card2_elements[1]]
+        card2.set_card_data(card2Data)
+        prediction_narrative.insert_card_at_given_index(card2,1)
+
+        card3 = NormalCard()
+        card3Data = [HtmlData(data="<h2>Feature Importance</h2>")]
+        card3Data.append(MLUtils.get_feature_importance(collated_summary))
+        card3.set_card_data(card3Data)
+        prediction_narrative.insert_card_at_given_index(card3,2)
+
+        modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
+        print modelResult
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],modelResult)
+        return response
+
     elif jobType == 'scoring':
         st = time.time()
+        story_narrative = NarrativesTree()
+        story_narrative.set_name("scores")
+        result_setter = ResultSetter(df,dataframe_context)
         model_path = dataframe_context.get_model_path()
         result_column = dataframe_context.get_result_column()
         if result_column in df.columns:
@@ -432,23 +488,28 @@ def main(configJson):
 
         if "RandomForest" in model_path:
             df = df.toPandas()
-            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark)
+            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "XGBoost" in model_path:
             df = df.toPandas()
-            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark)
+            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "LogisticRegression" in model_path:
             df = df.toPandas()
-            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark)
+            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
+
+        scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
+        print scoreSummary
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
+        return response
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."

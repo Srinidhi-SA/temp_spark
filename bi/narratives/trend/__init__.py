@@ -419,7 +419,7 @@ class TimeSeriesNarrative:
                             card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
                         chart_data[level] = card1chartdata
 
-                    labels = {"x":"Time","y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
+                    labels = {"x":"key","y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
                     c3Chart = {
                                "data":chart_data,
                                "format":"%b-%y",

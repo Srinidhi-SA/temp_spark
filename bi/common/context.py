@@ -23,6 +23,7 @@ class ContextSetter:
         self.considercolumns = []
         self.considercolumnstype = []
         self.measure_suggestions = []
+        self.date_columns = []
         self.string_to_date_columns = {}
         self.MODELFEATURES = []
         self.appid = None
@@ -61,7 +62,7 @@ class ContextSetter:
             self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
         else:
             self.scripts_to_run = []
-            
+
         if "app_id" in columnSettingKeys:
             self.appid = self.COLUMN_SETTINGS['app_id'][0].strip()
         if "result_column" in columnSettingKeys:

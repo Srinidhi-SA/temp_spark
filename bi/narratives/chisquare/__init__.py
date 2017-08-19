@@ -91,8 +91,9 @@ class ChiSquareNarratives:
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("main_card")
             chiSquareNode.add_a_card(main_card)
-            chiSquareNode.set_name("Chi-Square")
+            chiSquareNode.set_name("Chi-Square-Main-Card")
             dimensionNode = NarrativesTree()
+            dimensionNode.set_name(target_dimension)
 
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
@@ -109,4 +110,9 @@ class ChiSquareNarratives:
                     self.narratives['cards'].append(card)
                     chiSquareNode.add_a_node(card.get_dimension_node())
 
+                    dimension_node = card.get_dimension_node()
+                    print dimension_node.get_card_count()
+                    all_cards = dimension_node.get_all_cards()
+                    print all_cards[0].get_card_data()
+                    print 
         self._story_narrative.add_a_node(chiSquareNode)
