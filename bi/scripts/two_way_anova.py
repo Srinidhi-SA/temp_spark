@@ -22,6 +22,6 @@ class TwoWayAnovaScript:
         anova_narratives_obj = AnovaNarratives(df_anova_obj,self._dataframe_helper,self._result_setter)
         anova_narratives = CommonUtils.as_dict(anova_narratives_obj)
         # print anova_narratives
-        DataWriter.write_dict_as_json(self._spark, {'RESULT':json.dumps(df_anova_result['result'])}, self._dataframe_context.get_result_file()+'OneWayAnova/')
-        DataWriter.write_dict_as_json(self._spark, {'narratives':json.dumps(anova_narratives['narratives'])}, self._dataframe_context.get_narratives_file()+'OneWayAnova/')
+        # DataWriter.write_dict_as_json(self._spark, {'RESULT':json.dumps(df_anova_result['result'])}, self._dataframe_context.get_result_file()+'OneWayAnova/')
+        # DataWriter.write_dict_as_json(self._spark, {'narratives':json.dumps(anova_narratives['narratives'])}, self._dataframe_context.get_narratives_file()+'OneWayAnova/')
         #print "Narratives: %s" % (json.dumps(anova_narratives, indent=2))

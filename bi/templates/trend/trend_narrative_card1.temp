@@ -1,10 +1,10 @@
 How {{measure}} is Changing over Time
-PARAHEADER
+{{blockSplitter}}
 This section provides insights on how {{measure}} is performing over time and
 captures the most significant moments that defined the overall pattern or trend
 over the observation period.
 
-PARASEPARATOR
+{{blockSplitter}}
 
 The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
 {% if overall_growth > 0 %}
@@ -20,7 +20,7 @@ The total {{measure}} </b> were {{total}} for the last {{durationString}},
  with the <b> average {{measure}} per {{dataLevel}} being {{average_value|round_number}}</b>.
 
 
-PARASEPARATOR
+{{blockSplitter}}
 
 {% if trend == "positive" %}
   Driven by the strong increase, {{measure}} seems to be on <b> positive trend </b>

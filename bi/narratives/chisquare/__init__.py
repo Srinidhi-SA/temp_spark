@@ -92,12 +92,14 @@ class ChiSquareNarratives:
             main_card.set_card_name("main_card")
             chiSquareNode.add_a_card(main_card)
             chiSquareNode.set_name("Chi-Square-Main-Card")
-            dimensionNode = NarrativesTree()
-            dimensionNode.set_name(target_dimension)
 
+            print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
             for analysed_dimension in significant_variables:
+                print analysed_dimension
+                dimensionNode = NarrativesTree()
+                dimensionNode.set_name(target_dimension)
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
                     # print "APPID 2 is used"

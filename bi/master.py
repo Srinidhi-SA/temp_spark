@@ -1,7 +1,7 @@
 import sys
 import time
 import json
-from pyhocon.tool import HOCONConverter
+# from pyhocon.tool import HOCONConverter
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -60,12 +60,12 @@ def main(configJson):
                     "config":{
                                 'FILE_SETTINGS': {
                                                   'script_to_run': [
-                                                                    # 'Descriptive analysis',
-                                                                    # 'Measure vs. Dimension',
+                                                                    'Descriptive analysis',
+                                                                    'Measure vs. Dimension',
                                                                     'Dimension vs. Dimension',
-                                                                    # 'Predictive modeling',
-                                                                    # 'Measure vs. Measure',
-                                                                    # 'Trend'
+                                                                    'Predictive modeling',
+                                                                    'Measure vs. Measure',
+                                                                    'Trend'
                                                                     ],
                                                 # 'inputfile': ['file:///home/hadoop/trend_gulshan.csv']
                                                   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
@@ -76,11 +76,11 @@ def main(configJson):
                                                     'date_format': None,
                                                     'date_columns':["Month"],
                                                     'ignore_column_suggestions': ["Order Date"],
-                                                    'result_column': ['Deal_Type'],
+                                                    'result_column': ['Sales'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['Dimension']
+                                                    'analysis_type': ['Measure']
                                                     # 'score_consider_columns': None
                                                     }
                              },
@@ -165,8 +165,9 @@ def main(configJson):
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-    configJson = json.loads(HOCONConverter.to_json(configJson))
-    # configJson = testConfigs["metaData"]
+
+    # configJson = json.loads(HOCONConverter.to_json(configJson))
+    configJson = testConfigs["story"]
     print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
@@ -246,6 +247,19 @@ def main(configJson):
             else:
                 print "Dimension vs. Dimension Not in Scripts to run "
 
+            if ('Trend' in scripts_to_run):
+                try:
+                    fs = time.time()
+                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+                    trend_obj.Run()
+                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
+
+                except Exception as e:
+                    print "Trend Script Failed"
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
+
             if ('Predictive modeling' in scripts_to_run):
                 try:
                     fs = time.time()
@@ -264,18 +278,7 @@ def main(configJson):
             else:
                 print "Predictive modeling Not in Scripts to run"
 
-            if ('Trend' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
-                    trend_obj.Run()
-                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-                except Exception as e:
-                    print "Trend Script Failed"
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
 
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
@@ -289,36 +292,36 @@ def main(configJson):
             df = df_helper.get_data_frame()
 
             if ('Descriptive analysis' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark)
-                    descr_stats_obj.Run()
-                    print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print 'Descriptive Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # try:
+                fs = time.time()
+                descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark)
+                descr_stats_obj.Run()
+                print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     print 'Descriptive Failed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
-                try:
-                    fs = time.time()
-                    histogram_obj = HistogramsScript(df, df_helper, dataframe_context, spark)
-                    histogram_obj.Run()
-                    print "Histogram Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-                try:
-                    fs = time.time()
-                    d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
-                    d_histogram_obj.Run()
-                    print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print 'Density Histogram Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # try:
+                fs = time.time()
+                histogram_obj = HistogramsScript(df, df_helper, dataframe_context, spark)
+                histogram_obj.Run()
+                print "Histogram Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
+                # try:
+                fs = time.time()
+                d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
+                d_histogram_obj.Run()
+                print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     print 'Density Histogram Failed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             if df_helper.ignorecolumns != None:
                 df_helper.drop_ignore_columns()
@@ -327,57 +330,57 @@ def main(configJson):
             df = df_helper.get_data_frame()
             #df = df.na.drop(subset=dataframe_context.get_result_column())
             if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
-                try:
-                    fs = time.time()
-                    # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                    # one_way_anova_obj.Run()
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark)
-                    two_way_obj.Run()
-                    print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print 'Anova Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # try:
+                fs = time.time()
+                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+                # one_way_anova_obj.Run()
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark)
+                two_way_obj.Run()
+                print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     print 'Anova Failed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
-                try:
-                    fs = time.time()
-                    correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
-                    correlations = correlation_obj.Run()
-                    print "Correlation Analysis Done in ", time.time() - fs ," seconds."
-                    try:
-                        df = df.na.drop(subset=measure_columns)
-                        fs = time.time()
-                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations)
-                        regression_obj.Run()
-                        print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                    except Exception as e:
-                        print 'Regression Failed'
-                        print "#####ERROR#####"*5
-                        print e
-                        print "#####ERROR#####"*5
+                # try:
+                fs = time.time()
+                correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
+                correlations = correlation_obj.Run()
+                print "Correlation Analysis Done in ", time.time() - fs ," seconds."
+                # try:
+                df = df.na.drop(subset=measure_columns)
+                fs = time.time()
+                regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                regression_obj.Run()
+                print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     print 'Regression Failed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
-                except Exception as e:
-                    print 'Correlation Failed. Regression not executed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # except Exception as e:
+                #     print 'Correlation Failed. Regression not executed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             else:
                 print 'Regression not in Scripts to run'
 
-            try:
-                fs = time.time()
-                trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark)
-                trend_obj.Run()
-                print "Trend Analysis Done in ", time.time() - fs, " seconds."
+            # try:
+            fs = time.time()
+            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
+            trend_obj.Run()
+            print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-            except Exception as e:
-                print "Trend Script Failed"
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
+            # except Exception as e:
+            #     print "Trend Script Failed"
+            #     print "#####ERROR#####"*5
+            #     print e
+            #     print "#####ERROR#####"*5
 
             try:
                 fs = time.time()

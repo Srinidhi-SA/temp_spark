@@ -242,25 +242,34 @@ class TimeSeriesNarrative:
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
                         self._result_setter.update_executive_summary_data(dataDict)
                         self.narratives["SectionHeading"] = self._result_column+" Performance Report"
+                        dataDict.update({"blockSplitter":self._blockSplitter})
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'trend_narrative_card1.temp',dataDict)
                         summary2 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'trend_narrative_card2.temp',dataDict)
-
-                        self.narratives["card1"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary1)
+                        measureTrendCard1 = NormalCard()
+                        measureTrendcard1Data = NarrativesUtils.block_splitter(summary1)
+                        bubbledata = dataDict["bubbleData"]
+                        card1BubbleData = '<h2 class="text-center"><span>{}%</span><br/><small>{}</small></h2><h2 class="text-center"><span>{}%</span><br/><small>{}</small></h2>'.format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
                         self.narratives["card1"]["bubbleData"] = dataDict["bubbleData"]
                         self.narratives["card1"]["chart"] = ""
                         self.narratives["card1"]["paragraphs"]=self.narratives["card1"]["paragraphs"]+ NarrativesUtils.paragraph_splitter(summary2)[:2]
                         # self.narratives["card2"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary2)
                         # self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
                         # self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
-
                         # grouped_data["key"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
                         # trend_chart_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
                         trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
-                        card1chartdata = trend_chart_data
-                        card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
+                        card1chartdata = {"actual":[],"predicted":[]}
+
+                        if self._dataLevel == "day":
+                            card1chartdata["actual"] = [{"key":str(val["key"]),"value":val["value"]} for val in card1chartdata]
+                        elif self._dataLevel == "month":
+                            card1chartdata["actual"] = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
+
+
+
                         self.narratives["card1"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
                         if self._duration<365:
                             prediction_window = 3
@@ -268,17 +277,37 @@ class TimeSeriesNarrative:
                             prediction_window = 6
                         predicted_values = trend_narrative_obj.get_forecast_values(grouped_data["value"],prediction_window)[len(grouped_data["value"]):]
                         predicted_values = [round(x,self._num_significant_digits) for x in predicted_values]
+
+
+                        forecasted_data = []
+                        forecasted_data.append(card1chartdata["actual"][-1])
+                        forecasted_dates = []
+                        forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%b-%y")
+                        for val in range(prediction_window):
+                            if self._dataLevel == "month":
+                                key = forecast_start_time+relativedelta(months=1)
+                                forecasted_dates.append(key)
+                            elif self._dataLevel == "day":
+                                key = forecast_start_time+relativedelta(days=1)
+                                forecasted_dates.append(key)
+                        forecasted_list = zip(forecasted_dates,predicted_values)
+                        forecasted_list = [{"key":val[0].strftime("%b-%y"),"value":val[1]} for val in forecasted_list]
+                        forecasted_data += forecasted_list
+                        card1chartdata["predicted"] = forecasted_data
+
                         prediction_data = [{"key":x["key"],"value":x["value"]} for x in trend_chart_data]
                         last_val = prediction_data[-1]
                         last_val.update({"predicted_value":last_val["value"]})
                         prediction_data[-1] = last_val
+
                         for val in range(prediction_window):
                             dataLevel = dataDict["dataLevel"]
-                            if dataLevel == "month":
+                            if self._dataLevel == "month":
                                 last_key = prediction_data[-1]["key"]
                                 key = last_key+relativedelta(months=1)
                                 prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
-                            else:
+                                forecasted_data.append({"key":key,"value":predicted_values[val]})
+                            elif self._dataLevel == "day":
                                 last_key = prediction_data[-1]["key"]
                                 key = last_key+relativedelta(days=1)
                                 prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
@@ -288,6 +317,7 @@ class TimeSeriesNarrative:
                             val["key"] = val["key"].strftime("%b-%y")
                             prediction_data.append(val)
 
+                        print prediction_data
                         forecastDataDict = {"startForecast":predicted_values[0],
                                             "endForecast":predicted_values[prediction_window-1],
                                             "measure":dataDict["measure"],

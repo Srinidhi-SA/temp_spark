@@ -13,8 +13,9 @@ from bi.narratives.trend import TimeSeriesNarrative
 
 
 class RegressionNarrative:
-    def __init__(self, df_helper, df_context, result_setter, spark, df_regression_result, correlations):
+    def __init__(self, df_helper, df_context, result_setter, spark, df_regression_result, correlations,story_narrative):
         self._result_setter = result_setter
+        self._story_narrative = story_narrative
         self._df_regression_result = df_regression_result
         self._correlations = correlations
         self._dataframe_helper = df_helper
@@ -97,7 +98,7 @@ class RegressionNarrative:
                                                         "measure_column":measure_column,
                                                         "base_dir":self._base_dir
                                                         })
-            trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark)
+            trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark, self._story_narrative)
             # card2 =  trend_narratives_obj.get_regression_trend_card_data()
             # if card2:
             #     measure_column_cards['card2'] = card2
