@@ -50,7 +50,7 @@ class RandomForestScript:
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
         objs = random_forest_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
 
-        model_filepath = model_path+"/RandomForest/TrainedModels/model.pkl"
+        model_filepath = model_path+"/RandomForest/model.pkl"
         summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
@@ -144,10 +144,11 @@ class RandomForestScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
-        score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
+        score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
         if score_data_path.startswith("file"):
             score_data_path = score_data_path[7:]
         trained_model_path = self._dataframe_context.get_model_path()
+        trained_model_path += "/model.pkl"
         if trained_model_path.startswith("file"):
             trained_model_path = trained_model_path[7:]
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"

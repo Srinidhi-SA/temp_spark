@@ -128,9 +128,9 @@ class TimeSeriesNarrative:
                     self._date_suggestion_columns = self._td_columns
                 else:
                     self._date_suggestion_columns += self._td_columns
-        # print self._durationString
-        # print self._dataLevel
-        # print self._existingDateFormat
+        print self._durationString
+        print self._dataLevel
+        print self._existingDateFormat
         if self._trend_subsection=="regression":
             if self._date_suggestion_columns != None:
                 if self._dateFormatDetected:
@@ -179,7 +179,8 @@ class TimeSeriesNarrative:
 
 
         if self._analysistype=="Measure":
-            self._startMeasureTrend = self._result_setter.get_trend_section_completion_status()
+            # self._startMeasureTrend = self._result_setter.get_trend_section_completion_status()
+            self._startMeasureTrend = True
             if self._startMeasureTrend == True:
                 self.narratives = {"SectionHeading":"",
                                    "card1":{},
@@ -189,12 +190,6 @@ class TimeSeriesNarrative:
                 if self._date_suggestion_columns != None:
 
                     if self._dateFormatDetected:
-                        # grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
-                        # grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                        # grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
-                        # grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                        # grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
-                        # grouped_data = grouped_data.toPandas()
 
                         if self._dataLevel == "day":
                             grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
@@ -217,18 +212,9 @@ class TimeSeriesNarrative:
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
 
-                        # pandasDf = df_helper.get_data_frame().toPandas()
-                        # pandasDf[self._date_column_suggested] = pandasDf[self._date_column_suggested].apply(lambda x:datetime.strptime(x,self._existingDateFormat))
-                        # pandasDf[self._date_column_suggested] = pandasDf[self._date_column_suggested].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
-
-                        # grouped_data = df_helper.get_aggregate_data(self._date_column_suggested,self._result_column,
-                        #                                                 existingDateFormat=self._existingDateFormat,
-                        #                                                 requestedDateFormat=self._requestedDateFormat)
                         significant_dimensions = df_helper.get_significant_dimension()
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
-                        # grouped_data = trend_narrative_obj.formatDateColumn(grouped_data,self._requestedDateFormat)
-                        # grouped_data = grouped_data.sort_values(by='key', ascending=True)
-                        # grouped_data["value"] = grouped_data["value"].apply(lambda x: round(x,self._num_significant_digits))
+
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         # # update reference time with max value
                         reference_time = dataDict["reference_time"]
@@ -241,36 +227,29 @@ class TimeSeriesNarrative:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
                         self._result_setter.update_executive_summary_data(dataDict)
-                        self.narratives["SectionHeading"] = self._result_column+" Performance Report"
                         dataDict.update({"blockSplitter":self._blockSplitter})
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'trend_narrative_card1.temp',dataDict)
                         summary2 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'trend_narrative_card2.temp',dataDict)
-                        measureTrendCard1 = NormalCard()
-                        measureTrendcard1Data = NarrativesUtils.block_splitter(summary1)
+                        measureTrendCard = NormalCard()
+                        measureTrendcard1Data = NarrativesUtils.block_splitter(summary1,self._blockSplitter)
+                        measureTrendcard2Data = NarrativesUtils.block_splitter(summary2,self._blockSplitter)
+                        # print measureTrendcard1Data
+
                         bubbledata = dataDict["bubbleData"]
                         card1BubbleData = '<h2 class="text-center"><span>{}%</span><br/><small>{}</small></h2><h2 class="text-center"><span>{}%</span><br/><small>{}</small></h2>'.format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
-                        self.narratives["card1"]["bubbleData"] = dataDict["bubbleData"]
-                        self.narratives["card1"]["chart"] = ""
-                        self.narratives["card1"]["paragraphs"]=self.narratives["card1"]["paragraphs"]+ NarrativesUtils.paragraph_splitter(summary2)[:2]
-                        # self.narratives["card2"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary2)
-                        # self.narratives["card2"]["table1"] = dataDict["table_data"]["increase"]
-                        # self.narratives["card2"]["table2"] = dataDict["table_data"]["decrease"]
-                        # grouped_data["key"] = grouped_data["key"].apply(lambda x: month_dict[x.month]+"-"+str(x.year))
-                        # trend_chart_data = grouped_data[["key","value"]].groupby("key").agg(sum).reset_index()
+                        # print card1BubbleData
+
                         trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
                         card1chartdata = {"actual":[],"predicted":[]}
 
                         if self._dataLevel == "day":
-                            card1chartdata["actual"] = [{"key":str(val["key"]),"value":val["value"]} for val in card1chartdata]
+                            card1chartdata["actual"] = [{"key":str(val["key"]),"value":val["value"]} for val in trend_chart_data]
                         elif self._dataLevel == "month":
-                            card1chartdata["actual"] = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
+                            card1chartdata["actual"] = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in trend_chart_data]
 
-
-
-                        self.narratives["card1"]["chart"] = {"data":card1chartdata,"format":"%b-%y"}
                         if self._duration<365:
                             prediction_window = 3
                         else:
@@ -278,69 +257,80 @@ class TimeSeriesNarrative:
                         predicted_values = trend_narrative_obj.get_forecast_values(grouped_data["value"],prediction_window)[len(grouped_data["value"]):]
                         predicted_values = [round(x,self._num_significant_digits) for x in predicted_values]
 
-
                         forecasted_data = []
                         forecasted_data.append(card1chartdata["actual"][-1])
                         forecasted_dates = []
                         forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%b-%y")
                         for val in range(prediction_window):
                             if self._dataLevel == "month":
-                                key = forecast_start_time+relativedelta(months=1)
+                                key = forecast_start_time+relativedelta(months=1+val)
                                 forecasted_dates.append(key)
                             elif self._dataLevel == "day":
-                                key = forecast_start_time+relativedelta(days=1)
+                                key = forecast_start_time+relativedelta(days=1+val)
                                 forecasted_dates.append(key)
                         forecasted_list = zip(forecasted_dates,predicted_values)
+
                         forecasted_list = [{"key":val[0].strftime("%b-%y"),"value":val[1]} for val in forecasted_list]
                         forecasted_data += forecasted_list
                         card1chartdata["predicted"] = forecasted_data
+                        print json.dumps(card1chartdata,indent=2)
+                        card1chartdata = ScatterChartData(data=card1chartdata)
+                        chartJson = ChartJson()
+                        chartJson.set_data(card1chartdata.get_data())
+                        # chartJson.set_label_text()
+                        chartJson.set_legend({"actual":"Observed","predicted":"Forecast"})
+                        chartJson.set_chart_type("scatter_line")
+                        chartJson.set_axes({"x":"key","y":"value"})
+                        measureTrendcard1Data.insert(1,C3ChartData(data=chartJson))
+                        measureTrendcard1Data.append(HtmlData(data=card1BubbleData))
+                        cardData = measureTrendcard1Data+measureTrendcard2Data
+                        measureTrendCard.set_card_data(cardData)
+                        measureTrendCard.set_card_name("measure trend")
+                        trendStoryNode = NarrativesTree("Trend",None,[],[measureTrendCard])
+                        self._story_narrative.add_a_node(trendStoryNode)
 
-                        prediction_data = [{"key":x["key"],"value":x["value"]} for x in trend_chart_data]
-                        last_val = prediction_data[-1]
-                        last_val.update({"predicted_value":last_val["value"]})
-                        prediction_data[-1] = last_val
+                        # prediction_data = [{"key":x["key"],"value":x["value"]} for x in trend_chart_data]
+                        # last_val = prediction_data[-1]
+                        # last_val.update({"predicted_value":last_val["value"]})
+                        # prediction_data[-1] = last_val
+                        #
+                        # for val in range(prediction_window):
+                        #     dataLevel = dataDict["dataLevel"]
+                        #     if self._dataLevel == "month":
+                        #         last_key = prediction_data[-1]["key"]
+                        #         key = last_key+relativedelta(months=1)
+                        #         prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
+                        #         forecasted_data.append({"key":key,"value":predicted_values[val]})
+                        #     elif self._dataLevel == "day":
+                        #         last_key = prediction_data[-1]["key"]
+                        #         key = last_key+relativedelta(days=1)
+                        #         prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
+                        # prediction_data_copy = prediction_data
+                        # prediction_data = []
+                        # for val in prediction_data_copy:
+                        #     val["key"] = val["key"].strftime("%b-%y")
+                        #     prediction_data.append(val)
 
-                        for val in range(prediction_window):
-                            dataLevel = dataDict["dataLevel"]
-                            if self._dataLevel == "month":
-                                last_key = prediction_data[-1]["key"]
-                                key = last_key+relativedelta(months=1)
-                                prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
-                                forecasted_data.append({"key":key,"value":predicted_values[val]})
-                            elif self._dataLevel == "day":
-                                last_key = prediction_data[-1]["key"]
-                                key = last_key+relativedelta(days=1)
-                                prediction_data.append({"key":key,"predicted_value":predicted_values[val]})
-                        prediction_data_copy = prediction_data
-                        prediction_data = []
-                        for val in prediction_data_copy:
-                            val["key"] = val["key"].strftime("%b-%y")
-                            prediction_data.append(val)
-
-                        print prediction_data
-                        forecastDataDict = {"startForecast":predicted_values[0],
-                                            "endForecast":predicted_values[prediction_window-1],
-                                            "measure":dataDict["measure"],
-                                            "forecast":True,
-                                            "forecast_percentage": round((predicted_values[prediction_window-1]-predicted_values[0])/predicted_values[0],self._num_significant_digits),
-                                            "prediction_window_text": str(prediction_window) + " months"
-                                            }
-
-                        self._result_setter.update_executive_summary_data(forecastDataDict)
-                        summary3 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'trend_narrative_card3.temp',forecastDataDict)
-                        self.narratives["card1"]["paragraphs"][1]['content'][0]=self.narratives["card1"]["paragraphs"][1]['content'][0]+summary3
-                        # self.narratives["card3"]["paragraphs"] = NarrativesUtils.paragraph_splitter(summary3)
-                        self.narratives["card1"]["chart"] = {"data":prediction_data,"format":"%b-%y"}
+                        # forecastDataDict = {"startForecast":predicted_values[0],
+                        #                     "endForecast":predicted_values[prediction_window-1],
+                        #                     "measure":dataDict["measure"],
+                        #                     "forecast":True,
+                        #                     "forecast_percentage": round((predicted_values[prediction_window-1]-predicted_values[0])/predicted_values[0],self._num_significant_digits),
+                        #                     "prediction_window_text": str(prediction_window) + " months"
+                        #                     }
+                        #
+                        # self._result_setter.update_executive_summary_data(forecastDataDict)
+                        # summary3 = NarrativesUtils.get_template_output(self._base_dir,\
+                                                                        # 'trend_narrative_card3.temp',forecastDataDict)
 
                     else:
-                        self._result_setter.update_executive_summary_data({"trend_present":False})
+                        # self._result_setter.update_executive_summary_data({"trend_present":False})
                         print "Trend Analysis for Measure Failed"
                         print "#"*20+"Trend Analysis Error"+"#"*20
                         print "No date format for the date column %s was detected." %(self._date_column_suggested)
                         print "#"*60
                 else:
-                    self._result_setter.update_executive_summary_data({"trend_present":False})
+                    # self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"
                     print "#"*20+"Trend Analysis Error"+"#"*20
                     print "No date column present for Trend Analysis."

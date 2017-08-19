@@ -1,5 +1,5 @@
 Overview
-PARAHEADER
+{{blockSplitter}}
 {% if n_sig_measures == 1 %}
   {{measure_column}} is the only <b>significant influencer</b> of {{result_column}}
   and it explains a great magnitude of change in {{result_column}}.

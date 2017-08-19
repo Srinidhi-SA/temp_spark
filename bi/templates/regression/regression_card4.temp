@@ -1,12 +1,12 @@
 Sensitivity Analysis
 
-PARAHEADER
+{{blockSplitter}}
 
 {{measure_column}} seems to have a remarkable impact on various segments of {{result_column}}
 observations. The chart above shows four quadrants based on the distribution of {{result_column}}
 (high vs. low) and marketing cost (high vs. low).
 
-PARASEPARATOR
+{{blockSplitter}}
 
 {% if freq["high1high2"]|length == 1 %}
   <b>High {{result_column}} with High {{measure_column}}</b>: The {{result_column}} observations
@@ -24,7 +24,7 @@ PARASEPARATOR
   It accounts for about {{contribution["high1high2"]}} of the total population.
 {% endif %}
 
-PARASEPARATOR
+{{blockSplitter}}
 
 {% if freq["low1low2"]|length == 1 %}
   <b>Low {{result_column}} with Low {{measure_column}}</b>: {{result_column}}
@@ -42,7 +42,7 @@ PARASEPARATOR
   They cover nearly {{contribution["low1low2"]}} of the total population.
 {% endif %}
 
-PARASEPARATOR
+{{blockSplitter}}
 
 {% if freq["high1low2"]|length == 1 %}
   <b>High {{result_column}} with Low {{measure_column}}</b>: Nearly {{contribution["high1low2"]}} of the total
@@ -58,7 +58,7 @@ PARASEPARATOR
   ,{{freq["high1low2"][1][2]}} ({{freq["high1low2"][1][0]}}) and {{freq["high1low2"][2][2]}} ({{freq["high1low2"][2][0]}}).
 {% endif %}
 
-PARASEPARATOR
+{{blockSplitter}}
 
 {% if freq["low1high2"]|length == 1 %}
   <b>Low {{result_column}} with High {{measure_column}}</b>: The segment,which is least effective

@@ -10,6 +10,9 @@ from linear_regression import LinearRegressionNarrative
 from bi.narratives import utils as NarrativesUtils
 from bi.narratives.trend import TimeSeriesNarrative
 
+from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 
 
 class RegressionNarrative:
@@ -20,8 +23,9 @@ class RegressionNarrative:
         self._correlations = correlations
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._blockSplitter = "|~NEWBLOCK~|"
 
-        self._result_setter.set_trend_section_name("regression")
+        # self._result_setter.set_trend_section_name("regression")
         self._date_columns = df_context.get_date_column_suggestions()
 
         self._spark = spark
@@ -66,16 +70,42 @@ class RegressionNarrative:
         self.narratives["main_card"]['chart']['label'] = {'x':'Measure Name',
                                                             'y': 'Change in ' + self.result_column + ' per unit increase'}
 
+        main_card = NormalCard()
+        main_card_header = HtmlData(data = 'Key Measures that affect ' + self.result_column)
+        main_card_paragraphs = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
+        main_card_chart_data = [{"key":val[0],"value":val[1]} for val in zip([i for i,j in self._all_coeffs],[j['coefficient'] for i,j in self._all_coeffs])]
+        main_card_chart = NormalChartData(data=main_card_chart_data)
+        mainCardChartJson = ChartJson()
+        mainCardChartJson.set_data(main_card_chart.get_data())
+        mainCardChartJson.set_label_text({'x':'Measure Name','y': 'Change in ' + self.result_column + ' per unit increase'})
+        mainCardChartJson.set_chart_type("bar")
+        mainCardChartJson.set_axes({"x":"key","y":"value"})
+        main_card.set_card_data(data = [main_card_header]+main_card_paragraphs+[C3ChartData(data=mainCardChartJson)])
+        main_card.set_card_name("regression main card")
+        regressionNode = NarrativesTree("Regression",None,[],[main_card])
+
+
         count = 0
         for measure_column in self.significant_measures:
+            sigMeasureNode = NarrativesTree()
+            sigMeasureNode.set_name(measure_column)
+            measureCard1 = NormalCard()
+            measureCard1.set_card_name(str(measure_column)+":-card1")
+            measureCard1Data = []
+            measureCard2 = NormalCard()
+            measureCard2.set_card_name(str(measure_column)+":-card2")
+            measureCard2Data = []
+
             measure_column_cards = {}
             card0 = {}
             card1data = regression_narrative_obj.generate_card1_data(measure_column)
             card1heading = "Impact of "+measure_column+" on "+self.result_column
+            measureCard1Header = HtmlData(data=card1heading)
+            card1data.update({"blockSplitter":self._blockSplitter})
             card1narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                             'regression_card1.temp',card1data)
 
-            card1paragraphs = NarrativesUtils.paragraph_splitter(card1narrative)
+            card1paragraphs = NarrativesUtils.block_splitter(card1narrative,self._blockSplitter)
             card0 = {"paragraphs":card1paragraphs}
             card0["charts"] = {}
             card0['charts']['chart2']={}
@@ -86,19 +116,42 @@ class RegressionNarrative:
             card0["heading"] = card1heading
             measure_column_cards['card0'] = card0
 
+            measureCard1Header = HtmlData(data=card1heading)
+            measureCard1Data += [measureCard1Header]
+            measureCard1para = card1paragraphs
+            measureCard1Data += measureCard1para
+
             card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
             card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                             'regression_card2.temp',card2data)
-            card2paragraphs = NarrativesUtils.paragraph_splitter(card2narrative)
+            card2paragraphs = NarrativesUtils.block_splitter(card2narrative,self._blockSplitter)
             card1 = {'tables': card2table, 'paragraphs' : card2paragraphs,
                         'heading' : 'Key Areas where ' + measure_column + ' matters'}
             measure_column_cards['card1'] = card1
 
-            self._result_setter.set_trend_section_data({"result_column":self.result_column,
-                                                        "measure_column":measure_column,
-                                                        "base_dir":self._base_dir
-                                                        })
-            trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark, self._story_narrative)
+            measureCard2Data += card2paragraphs
+            if "table1" in card2table:
+                table1data = regression_narrative_obj.convert_table_data(card2table["table1"])
+                card2Table1 = TableData()
+                card2Table1.set_table_data(table1data)
+                card2Table1.set_table_type("normal")
+                card2Table1.set_table_top_header(card2table["table1"]["heading"])
+                measureCard2Data.insert(2,card2Table1)
+            elif "table2" in card2table:
+                table2data = regression_narrative_obj.convert_table_data(card2table["table2"])
+                card2Table2 = TableData()
+                card2Table2.set_table_data(table1data)
+                card2Table2.set_table_type("normal")
+                card2Table2.set_table_top_header(card2table["table2"]["heading"])
+                measureCard2Data.insert(5,card2Table2)
+
+
+
+            # self._result_setter.set_trend_section_data({"result_column":self.result_column,
+            #                                             "measure_column":measure_column,
+            #                                             "base_dir":self._base_dir
+            #                                             })
+            # trend_narratives_obj = TimeSeriesNarrative(self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark, self._story_narrative)
             # card2 =  trend_narratives_obj.get_regression_trend_card_data()
             # if card2:
             #     measure_column_cards['card2'] = card2
@@ -106,16 +159,15 @@ class RegressionNarrative:
             #
             # card3 = {}
             card4data = regression_narrative_obj.generate_card4_data(self.result_column,measure_column)
+            card4data.update({"blockSplitter":self._blockSplitter})
             # card4heading = "Sensitivity Analysis: Effect of "+self.result_column+" on Segments of "+measure_column
             card4narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                                 'regression_card4.temp',card4data)
-            card4paragraphs = NarrativesUtils.paragraph_splitter(card4narrative)
+            card4paragraphs = NarrativesUtils.block_splitter(card4narrative,self._blockSplitter)
             # card3 = {"paragraphs":card4paragraphs}
             card0['paragraphs'] = card1paragraphs+card4paragraphs
-            # card3["charts"] = card4data["charts"]
-            card0['charts']['chart2'] = card4data["charts"]
-            # card3["heading"] = card4heading
-            # measure_column_cards['card3'] = card3
+            card4paragraphs.insert(2,C3ChartData(data=card4data["charts"]))
+            measureCard1Data += card4paragraphs
 
             self.narratives['cards'].append(measure_column_cards)
 
@@ -123,7 +175,11 @@ class RegressionNarrative:
                 card4data.pop("charts")
                 self._result_setter.update_executive_summary_data(card4data)
             count += 1
-        self._result_setter.set_trend_section_completion_status(True)
+            measureCard1.set_card_data(measureCard1Data)
+            measureCard2.set_card_data(measureCard2Data)
+            sigMeasureNode.add_cards([measureCard1,measureCard2])
+        # self._result_setter.set_trend_section_completion_status(True)
+        self._story_narrative.add_a_node(sigMeasureNode)
 
 
     def run_regression_for_dimension_levels(self):

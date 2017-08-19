@@ -6,6 +6,9 @@ from bi.common.results import DecisionTreeResult
 from bi.common.utils import accepts
 from bi.common import ResultSetter
 from bi.narratives import utils as NarrativesUtils
+from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 
 
 class DecisionTreeRegNarrative:

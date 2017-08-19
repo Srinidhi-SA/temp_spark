@@ -1,6 +1,6 @@
 {{dim1["dimension"]}}
 
-PARAHEADER
+{{blockSplitter}}
 
 {% if dim1["num_levels"] == 2 %}
 There are two categories within {{dim1["dimension"]}} ({{dim1["levels"][0]}} and {{dim1["levels"][1]}}).
@@ -13,7 +13,7 @@ There are {{dim1["num_levels"]}} categories within {{dim1["dimension"]}} (includ
 The following table displays how average {{target}} vary across {{dim1["dimension"]}}
 and segments of {{measure}}.
 
-PARASEPARATOR
+{{blockSplitter}}
 
 {{dim1["dimension"]}} has significant influence on {{target}} and the impact of {{measure}}
 on {{target}} shows interesting variations across {{dim1["dimension"]}}.
@@ -46,11 +46,11 @@ decreases
 {% endif %}
 {{target}} by  {{dim1["lowest_impact_level"][1] | round(2) | intcomma}} units for one unit increase in {{measure}}.
 
-PARASEPARATOR
+{{blockSplitter}}
 {% if dim2["num_levels"]>0 %}
 {{dim2["dimension"]}}
 
-PARAHEADER
+{{blockSplitter}}
 
 {% if dim2["num_levels"] == 2 %}
 There are two categories within {{dim1["dimension"]}} ({{dim2["levels"][0]}} and {{dim2["levels"][1]}}).
@@ -63,7 +63,7 @@ There are {{dim2["num_levels"]}} categories within {{dim1["dimension"]}} (includ
 The following table displays how average {{target}} vary across {{dim2["dimension"]}}
 and segments of {{measure}}.
 
-PARASEPARATOR
+{{blockSplitter}}
 The relationship between {{measure}} and {{target}} is also significantly influenced by {{dim2["dimension"]}}.
 For instance, {{dim2["dimension"]}}, {{dim2["highest_average"]}} seems to have the average {{target}}
 that is higher than the other categories.

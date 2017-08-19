@@ -508,3 +508,25 @@ def get_total_models(collated_summary):
     output = "<p>mAdvisor has built {} models using {} algorithms ({}) to predict {} and \
         has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["target_variable"])
     return output
+
+def create_model_folders(model_slug,basefoldername,subfolders=[]):
+    home_dir = os.path.expanduser("~")
+    filepath = home_dir+"/"+basefoldername
+    if not os.path.isdir(filepath):
+        os.mkdir(filepath)
+    if os.path.isdir(filepath+"/"+model_slug):
+        shutil.rmtree(filepath+"/"+model_slug)
+    os.mkdir(filepath+"/"+model_slug)
+    for foldername in subfolders:
+        os.mkdir(filepath+"/"+model_slug+"/"+foldername)
+    return filepath+"/"+model_slug+"/"
+
+def create_scored_data_folder(score_slug,basefoldername):
+    home_dir = os.path.expanduser("~")
+    filepath = home_dir+"/"+basefoldername
+    if not os.path.isdir(filepath):
+        os.mkdir(filepath)
+    if os.path.isdir(filepath+"/"+score_slug):
+        shutil.rmtree(filepath+"/"+score_slug)
+    os.mkdir(filepath+"/"+score_slug)
+    return filepath+"/"+score_slug+"/"

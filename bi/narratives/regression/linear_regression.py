@@ -3,6 +3,7 @@ import re
 import json
 import operator
 from collections import OrderedDict
+import numpy as np
 
 from bi.common.utils import accepts
 from bi.common.results.regression import RegressionResult
@@ -134,7 +135,7 @@ class LinearRegressionNarrative:
             chart_data['table1']['data'] = table_data[ranked_dimensions[0]]
         else:
             data_dict['dim1'] = ''
-            chart_data['table'] = ''
+            chart_data['table1'] = ''
         if len(ranked_dimensions)>1:
             data_dict['dim2'] = dimension_data_dict[ranked_dimensions[1]]
             chart_data['table2'] = {}
@@ -432,3 +433,22 @@ class LinearRegressionNarrative:
         cluster_data_dict["grp_data"] = grp_data
         cluster_data_dict["chart_data"] = chart_data
         return cluster_data_dict
+
+
+
+    def headers_to_cols(self,data):
+        headers = sorted(data.keys())
+        out = []
+        for key in headers:
+            out.append(data[key])
+        return out
+
+    def convert_table_data(self,tabledata):
+        column_data = []
+        first_col = self.headers_to_cols(tabledata["data"]["header"][0])
+        other_cols = [self.headers_to_cols(obj) for obj in tabledata["data"]["tableData"]]
+        column_data.append(first_col)
+        column_data += other_cols
+        out = np.column_stack(column_data)
+        out = [list(row) for row in out]
+        return out

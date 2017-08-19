@@ -29,6 +29,13 @@ class ContextSetter:
         self.appid = None
         self.considercolumnstype = None
 
+    def set_model_path(self,data):
+        print data
+        self.MODEL_PATH = data
+
+    def set_score_path(self,data):
+        self.SCORE_PATH = data
+
     def set_params(self):
         self.FILE_SETTINGS = self._config_obj.get_file_settings()
         self.COLUMN_SETTINGS = self._config_obj.get_column_settings()
