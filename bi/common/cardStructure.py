@@ -165,8 +165,8 @@ class HtmlData:
 
 class TreeData:
 
-    def __init__(self,data=None):
-        self.dataType = "tree"
+    def __init__(self,data=None, datatype = 'tree'):
+        self.dataType = datatype
         self.data = data
 
     def set_data(self,data):
