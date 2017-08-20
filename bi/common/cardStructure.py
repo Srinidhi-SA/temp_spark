@@ -57,13 +57,21 @@ class NarrativesTree:
     def reorder_nodes(self,ordered_node_list):
         orderedNodeList = []
         nodeList = self.listOfNodes
+        print nodeList
         existingName = [node.get_name() for node in nodeList]
+        print existingName
         for val in ordered_node_list:
+            print val
             try:
                 index_value = existingName.index(44)
+                print index_value
+                print nodeList[index_value]
+                orderedNodeList.append(nodeList[index_value])
             except ValueError:
                 index_value = -1
-            orderedNodeList.append()
+        print orderedNodeList
+        self.listOfNodes = orderedNodeList
+        print self.listOfNodes
 
 
 class NormalCard:

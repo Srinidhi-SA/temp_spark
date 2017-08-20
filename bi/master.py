@@ -172,7 +172,7 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
-    # configJson = testConfigs["story"]
+    configJson = testConfigs["story"]
     print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
@@ -283,8 +283,8 @@ def main(configJson):
             else:
                 print "Predictive modeling Not in Scripts to run"
 
-
-
+            ordered_node_name_list = ["Overview","Trend","Association","Prediction"]
+            # story_narrative.reorder_nodes(ordered_node_name_list)
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
             print dimensionResult
