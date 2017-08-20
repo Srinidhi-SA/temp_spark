@@ -33,13 +33,18 @@ class DfMetaData:
 
 
 class MetaData:
-    def __init__(self,name=None,value=None,display=True):
+    def __init__(self,name=None,value=None,display=True,displayName=None):
         self.name = name
         self.value = value
         self.display = display
+        self.displayName = displayName
+
 
     def set_name(self,data):
         self.name = data
+
+    def set_display_name(self,data):
+        self.displayName = data
 
     def set_value(self,data):
         self.value = data

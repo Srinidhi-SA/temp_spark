@@ -42,9 +42,22 @@ class MetaDataScript:
 
     def run(self):
         metaData = []
-        metaData.append(MetaData(name="measures",value=1,display=True))
-        metaData.append(MetaData(name="dimensions",value=2,display=True))
-        metaData.append(MetaData(name="timeDimension",value=0,display=True))
+        if len(self._numeric_columns) > 1:
+            metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measures"))
+        else:
+            metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measure"))
+        if len(self._string_columns) > 1:
+            metaData.append(MetaData(name="dimensions",value=len(self._string_columns),display=True,displayName="Dimensions"))
+        else:
+            metaData.append(MetaData(name="dimensions",value=len(self._string_columns),display=True,displayName="Dimension"))
+        if len(self._timestamp_columns) > 1:
+            metaData.append(MetaData(name="timeDimension",value=len(self._timestamp_columns),display=True,displayName="Time Dimensions"))
+        else:
+            metaData.append(MetaData(name="timeDimension",value=len(self._timestamp_columns),display=True,displayName="Time Dimension"))
+
+        metaData.append(MetaData(name="noOfColumns",value=self.total_columns,display=True,displayName="Columns"))
+        metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
+
         metaData.append(MetaData(name="measureColumns",value = self._numeric_columns,display=False))
         metaData.append(MetaData(name="dimensionColumns",value = self._string_columns,display=False))
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
