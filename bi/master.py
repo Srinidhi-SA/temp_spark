@@ -36,6 +36,7 @@ from bi.scripts.metadata_new import MetaDataScript
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 
+import traceback
 
 
 from parser import configparser
@@ -53,7 +54,9 @@ def configtree_to_dict(configJson):
     out["job_config"] = job_config
     return out
 #if __name__ == '__main__':
+LOGGER = []
 def main(configJson):
+    global LOGGER
     start_time = time.time()
     testConfigs = {
                 "story" :{
@@ -208,15 +211,18 @@ def main(configJson):
         measure_columns = df_helper.get_numeric_columns()
         dimension_columns = df_helper.get_string_columns()
 
-
+    LOGGER.append("jobtype: {}".format(jobType))
 
     if jobType == "story":
         #Initializing the result_setter
         result_setter = ResultSetter(df,dataframe_context)
         story_narrative = NarrativesTree()
         story_narrative.set_name("{} Performance Report".format(dataframe_context.get_result_column()))
+        LOGGER.append("analysistype {}".format(analysistype))
+
         if analysistype == 'dimension':
             print "STARTING DIMENSION ANALYSIS ..."
+            LOGGER.append("STARTING DIMENSION ANALYSIS ...")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
 
@@ -320,18 +326,24 @@ def main(configJson):
             return response
 
         elif analysistype == 'measure':
+
             print "STARTING MEASURE ANALYSIS ..."
+            LOGGER.append("STARTING MEASURE ANALYSIS ...")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
             story_narrative.set_name("Measure analysis")
-
+            LOGGER.append("scripts_to_run:: {}".format(",".join(scripts_to_run)))
             if ('Descriptive analysis' in scripts_to_run):
                 try:
                     fs = time.time()
+
                     descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                    LOGGER.append("DescriptiveStats Analysis  Starting")
                     descr_stats_obj.Run()
+                    LOGGER.append("DescriptiveStats Analysis Done in {} seconds.".format(time.time() - fs ))
                     print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
+                    LOGGER.append("got exception {}".format(e))
                     print 'Descriptive Failed'
                     print "#####ERROR#####"*5
                     print e
@@ -378,6 +390,7 @@ def main(configJson):
                     print "#####ERROR#####"*5
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
+                LOGGER.append("Starting Measure Vs. Measure analysis")
                 try:
                     fs = time.time()
                     correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
@@ -390,12 +403,18 @@ def main(configJson):
                         regression_obj.Run()
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:
+
+                        LOGGER.append("got exception {}".format(e))
+                        LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+
                         print 'Regression Failed'
                         print "#####ERROR#####"*5
                         print e
                         print "#####ERROR#####"*5
 
                 except Exception as e:
+                    LOGGER.append("got exception {}".format(e))
+                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
                     print 'Correlation Failed. Regression not executed'
                     print "#####ERROR#####"*5
                     print e
@@ -411,6 +430,8 @@ def main(configJson):
                 print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
             except Exception as e:
+                LOGGER.append("got exception {}".format(e))
+                LOGGER.append("detailed exception {}".format(traceback.format_exc()))
                 print "Trend Script Failed"
                 print "#####ERROR#####"*5
                 print e
@@ -425,6 +446,8 @@ def main(configJson):
                 dt_reg.Run()
                 print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
             except Exception as e:
+                LOGGER.append("got exception {}".format(e))
+                LOGGER.append("detailed exception {}".format(traceback.format_exc()))
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
@@ -444,7 +467,7 @@ def main(configJson):
             # dimensionResult = CommonUtils.as_dict(story_narrative)
             print measureResult
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],measureResult)
-            return response
+            # return response
 
     elif jobType == 'prediction':
         prediction_narrative = NarrativesTree()
@@ -471,6 +494,8 @@ def main(configJson):
             rf_obj.Train()
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
+            LOGGER.append("got exception {}".format(e))
+            LOGGER.append("detailed exception {}".format(traceback.format_exc()))
             print "Random Forest Model Failed"
             print "#####ERROR#####"*5
             print e
@@ -483,6 +508,8 @@ def main(configJson):
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
+            LOGGER.append("got exception {}".format(e))
+            LOGGER.append("detailed exception {}".format(traceback.format_exc()))
             print "Logistic Regression Model Failed"
             print "#####ERROR#####"*5
             print e
@@ -494,6 +521,8 @@ def main(configJson):
             xgb_obj.Train()
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
+            LOGGER.append("got exception {}".format(e))
+            LOGGER.append("detailed exception {}".format(traceback.format_exc()))
             print "Xgboost Model Failed"
             print "#####ERROR#####"*5
             print e
@@ -523,7 +552,7 @@ def main(configJson):
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         print modelResult
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],modelResult)
-        return response
+        # return response
 
     elif jobType == 'scoring':
         st = time.time()
@@ -572,11 +601,12 @@ def main(configJson):
         scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
-        return response
+        # return response
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."
     #spark.stop()
+    return (" "+ "="*100 + " ").join(LOGGER)
 
 if __name__ == '__main__':
     main(sys.argv[1])
