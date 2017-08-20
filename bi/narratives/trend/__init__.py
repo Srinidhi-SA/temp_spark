@@ -471,6 +471,7 @@ class TimeSeriesNarrative:
                     trendCard = NormalCard(name="Trend Analysis",slug=None,cardData = cardData1)
                     trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
                     self._story_narrative.add_a_node(trendStoryNode)
+                    self._result_setter.set_trend_node(trendStoryNode)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"

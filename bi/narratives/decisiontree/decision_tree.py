@@ -27,8 +27,9 @@ class DecisionTreeNarrative:
             self.card1Table.append(keyTable)
 
     @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree)
-    def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative):
+    def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative,result_setter):
         self._story_narrative = story_narrative
+        self._result_setter = result_setter
         self._blockSplitter = "|~NEWBLOCK~|"
         self._column_name = column_name.lower()
         self._colname = column_name
@@ -54,7 +55,7 @@ class DecisionTreeNarrative:
         self.decisionTreeNode.set_name("Prediction")
         self._generate_narratives()
         self._story_narrative.add_a_node(self.decisionTreeNode)
-
+        self._result_setter.set_decision_tree_node(self.decisionTreeNode)
 
     def _generate_narratives(self):
         self._generate_summary()

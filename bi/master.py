@@ -76,11 +76,11 @@ def main(configJson):
                                                     'date_format': None,
                                                     'date_columns':["Month"],
                                                     'ignore_column_suggestions': ["Order Date"],
-                                                    'result_column': ['Platform'],
+                                                    'result_column': ['Sales'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['dimension']
+                                                    'analysis_type': ['measure']
                                                     # 'score_consider_columns': None
                                                     }
                              },
@@ -170,7 +170,7 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
-    # configJson = testConfigs["story"]
+    configJson = testConfigs["story"]
     print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
@@ -285,7 +285,27 @@ def main(configJson):
             # story_narrative.reorder_nodes(ordered_node_name_list)
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
-            print dimensionResult
+            # print dimensionResult
+            headNode = result_setter.get_head_node()
+            if headNode != None:
+                headNode = CommonUtils.convert_python_object_to_json(headNode)
+            dimensionNode = result_setter.get_dimension_node()
+            if dimensionNode != None:
+                dimensionNode = CommonUtils.convert_python_object_to_json(dimensionNode)
+                headNode["listOfNodes"].append(dimensionNode)
+            chisquareNode = result_setter.get_chisquare_node()
+            if chisquareNode != None:
+                chisquareNode = CommonUtils.convert_python_object_to_json(chisquareNode)
+                headNode["listOfNodes"].append(chisquareNode)
+            trendNode = result_setter.get_trend_node()
+            if trendNode != None:
+                trendNode = CommonUtils.convert_python_object_to_json(trendNode)
+                headNode["listOfNodes"].append(trendNode)
+            decisionTreeNode = result_setter.get_decision_tree_node()
+            if decisionTreeNode != None:
+                decisionTreeNode = CommonUtils.convert_python_object_to_json(decisionTreeNode)
+                headNode["listOfNodes"].append(decisionTreeNode)
+            print headNode
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
             return response
 
@@ -353,17 +373,17 @@ def main(configJson):
                     correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
                     correlations = correlation_obj.Run()
                     print "Correlation Analysis Done in ", time.time() - fs ," seconds."
-                    try:
-                        df = df.na.drop(subset=measure_columns)
-                        fs = time.time()
-                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
-                        regression_obj.Run()
-                        print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                    except Exception as e:
-                        print 'Regression Failed'
-                        print "#####ERROR#####"*5
-                        print e
-                        print "#####ERROR#####"*5
+                    # try:
+                    df = df.na.drop(subset=measure_columns)
+                    fs = time.time()
+                    regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                    regression_obj.Run()
+                    print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                    # except Exception as e:
+                    #     print 'Regression Failed'
+                    #     print "#####ERROR#####"*5
+                    #     print e
+                    #     print "#####ERROR#####"*5
 
                 except Exception as e:
                     print 'Correlation Failed. Regression not executed'

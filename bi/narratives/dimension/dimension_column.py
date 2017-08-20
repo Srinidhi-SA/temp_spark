@@ -8,8 +8,9 @@ from bi.common import ScatterChartData,NormalChartData,ChartJson
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
 
-    def __init__(self, column_name, df_helper, df_context, freq_dimension_stats,story_narrative):
+    def __init__(self, column_name, df_helper, df_context, freq_dimension_stats,story_narrative,result_setter):
         self._story_narrative = story_narrative
+        self._result_setter = result_setter
         self._column_name = column_name.lower()
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
@@ -33,8 +34,12 @@ class DimensionColumnNarrative:
         self._blockSplitter = "|~NEWBLOCK~|"
         self._dimensionSummaryNode = NarrativesTree()
         self._dimensionSummaryNode.set_name("Overview")
+        self._headNode = NarrativesTree()
+        self._headNode.set_name("Overview")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
+
+        self._result_setter.set_head_node(self._headNode.)
 
     def _generate_narratives(self):
         if self.appid != None:
@@ -85,6 +90,7 @@ class DimensionColumnNarrative:
         dimensionSummaryCard.set_card_name("overall summary card")
         # dimensionSummaryCard.set_quote_html
         self._story_narrative.add_a_card(dimensionSummaryCard)
+        self._headNode.add_a_card(dimensionSummaryCard)
 
     def _generate_analysis(self):
         lines = []

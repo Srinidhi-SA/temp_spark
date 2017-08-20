@@ -13,8 +13,9 @@ from bi.common import ScatterChartData,NormalChartData,ChartJson
 class ChiSquareNarratives:
     print "Starting Narratives"
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
-    def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative):
+    def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative,result_setter):
         self._story_narrative = story_narrative
+        self._result_setter = result_setter
         self._blockSplitter = "|~NEWBLOCK~|"
         self._data_frame = data_frame
         self._df_helper = df_helper
@@ -111,3 +112,4 @@ class ChiSquareNarratives:
                     self.narratives['cards'].append(card)
                     chiSquareNode.add_a_node(card.get_dimension_node())
         self._story_narrative.add_a_node(chiSquareNode)
+        self._result_setter.set_chisquare_node(chiSquareNode)
