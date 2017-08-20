@@ -24,6 +24,8 @@ class ChiSquareNarratives:
         self._df_chisquare_result = df_chisquare_result.get_result()
         self.narratives = {}
         self._appid = df_context.get_app_id()
+        self._chiSquareNode = NarrativesTree()
+        self._chiSquareNode.set_name("Association")
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
         if self._appid != None:
@@ -33,9 +35,8 @@ class ChiSquareNarratives:
                 self._base_dir += "appid2/"
         self._generate_narratives()
 
+
     def _generate_narratives(self):
-        chiSquareNode = NarrativesTree()
-        chiSquareNode.set_name("Association")
         for target_dimension in self._df_chisquare_result.keys():
 
             target_chisquare_result = self._df_chisquare_result[target_dimension]
@@ -91,15 +92,15 @@ class ChiSquareNarratives:
             main_card_data += main_card_narrative
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Key Influencers")
-            chiSquareNode.add_a_card(main_card)
+            self._chiSquareNode.add_a_card(main_card)
 
             print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
             for analysed_dimension in significant_variables:
                 print analysed_dimension
-                dimensionNode = NarrativesTree()
-                dimensionNode.set_name(target_dimension)
+                # dimensionNode = NarrativesTree()
+                # dimensionNode.set_name(target_dimension)
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
                     # print "APPID 2 is used"
@@ -108,8 +109,8 @@ class ChiSquareNarratives:
                     self.narratives['cards'].append(card)
 
                 else:
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result,dimensionNode)
-                    self.narratives['cards'].append(card)
-                    chiSquareNode.add_a_node(card.get_dimension_node())
-        self._story_narrative.add_a_node(chiSquareNode)
-        self._result_setter.set_chisquare_node(chiSquareNode)
+                    target_dimension_card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
+                    self.narratives['cards'].append(target_dimension_card)
+                    self._chiSquareNode.add_a_node(target_dimension_card.get_dimension_node())
+        self._story_narrative.add_a_node(self._chiSquareNode)
+        self._result_setter.set_chisquare_node(self._chiSquareNode)

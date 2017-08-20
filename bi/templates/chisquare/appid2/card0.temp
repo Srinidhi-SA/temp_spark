@@ -1,4 +1,4 @@
-
+<p class = "txt-justify">
 <ul>
   <li>
     The <b>percentage of {{second_target}}</b> is the <b>lowest for the segment {{levels[worst_second_share]}}</b> ({{second_target_shares[worst_second_share] | round}}%).
@@ -64,3 +64,4 @@
     </li>
     {% endif %}
   {% endfor %}
+</p>

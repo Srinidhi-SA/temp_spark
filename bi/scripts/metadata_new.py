@@ -38,7 +38,7 @@ class MetaDataScript:
                                         zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
                                         zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
                                      )
-
+        print self._column_type_dict
 
     def run(self):
         metaData = []

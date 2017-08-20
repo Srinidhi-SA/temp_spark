@@ -74,8 +74,8 @@ def main(configJson):
                                                     'polarity': ['positive'],
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
-                                                    'date_columns':["Month"],
-                                                    'ignore_column_suggestions': ["Order Date"],
+                                                    'date_columns':["new_date"],
+                                                    'ignore_column_suggestions': [],
                                                     'result_column': ['Sales'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
@@ -97,7 +97,7 @@ def main(configJson):
                   },
                 "metaData" : {
                     "config":{
-                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_test3.csv']},
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
                             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                             },
                     "job_config":{
@@ -171,7 +171,6 @@ def main(configJson):
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
     configJson = testConfigs["story"]
-    print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
@@ -225,7 +224,7 @@ def main(configJson):
             if ('Descriptive analysis' in scripts_to_run):
                 try:
                     fs = time.time()
-                    freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative)
+                    freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
                     freq_obj.Run()
                     print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
                 except Exception as e:
@@ -239,7 +238,7 @@ def main(configJson):
             if ('Dimension vs. Dimension' in scripts_to_run):
                 try:
                     fs = time.time()
-                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative)
+                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
                     chisquare_obj.Run()
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -251,17 +250,17 @@ def main(configJson):
                 print "Dimension vs. Dimension Not in Scripts to run "
 
             if ('Trend' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
-                    trend_obj.Run()
-                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
+                # try:
+                fs = time.time()
+                trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+                trend_obj.Run()
+                print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-                except Exception as e:
-                    print "Trend Script Failed"
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # except Exception as e:
+                #     print "Trend Script Failed"
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
@@ -270,7 +269,7 @@ def main(configJson):
                         df_helper.drop_ignore_columns()
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
-                    decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative)
+                    decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
                     decision_tree_obj.Run()
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -286,26 +285,32 @@ def main(configJson):
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
             # print dimensionResult
+
             headNode = result_setter.get_head_node()
             if headNode != None:
-                headNode = CommonUtils.convert_python_object_to_json(headNode)
-            dimensionNode = result_setter.get_dimension_node()
+                headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+            dimensionNode = result_setter.get_distribution_node()
             if dimensionNode != None:
-                dimensionNode = CommonUtils.convert_python_object_to_json(dimensionNode)
-                headNode["listOfNodes"].append(dimensionNode)
+                # dimensionNode = json.loads(CommonUtils.convert_python_object_to_json(dimensionNode))
+                # headNode["listOfNodes"].append(dimensionNode)
+                headNode.add_a_node(dimensionNode)
             chisquareNode = result_setter.get_chisquare_node()
             if chisquareNode != None:
-                chisquareNode = CommonUtils.convert_python_object_to_json(chisquareNode)
-                headNode["listOfNodes"].append(chisquareNode)
+                # chisquareNode = json.loads(CommonUtils.convert_python_object_to_json(chisquareNode))
+                # headNode["listOfNodes"].append(chisquareNode)
+                headNode.add_a_node(chisquareNode)
             trendNode = result_setter.get_trend_node()
             if trendNode != None:
-                trendNode = CommonUtils.convert_python_object_to_json(trendNode)
-                headNode["listOfNodes"].append(trendNode)
+                # trendNode = json.loads(CommonUtils.convert_python_object_to_json(trendNode))
+                # headNode["listOfNodes"].append(trendNode)
+                headNode.add_a_node(trendNode)
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
-                decisionTreeNode = CommonUtils.convert_python_object_to_json(decisionTreeNode)
-                headNode["listOfNodes"].append(decisionTreeNode)
-            print headNode
+                # decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(decisionTreeNode))
+                # headNode["listOfNodes"].append(decisionTreeNode)
+                headNode.add_a_node(decisionTreeNode)
+            print "DSADSAD"
+            # print headNode
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
             return response
 

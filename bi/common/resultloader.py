@@ -62,7 +62,6 @@ class ResultSetter:
         """
         self.model_summary.update(data)
 
-    def
 
     def get_trend_section_name(self):
         return self.trend_subsection_name

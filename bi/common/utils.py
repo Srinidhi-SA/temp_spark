@@ -220,7 +220,19 @@ def send_message_API(monitor_api, task, message, complete, progress):
     #print json.loads(r.content)['message'] + " for ", task +'\n'
 
 def convert_python_object_to_json(object):
-    return json.dumps(object, default=lambda o: o.__dict__)
+    out = json.dumps(object, default=lambda o: o.__dict__)
+    return out
+
+def byteify(input):
+    if isinstance(input, dict):
+        return dict([(byteify(key), byteify(value)) for key, value in input.iteritems()])
+    elif isinstance(input, list):
+        return [byteify(element) for element in input]
+    elif isinstance(input, unicode):
+        return input.encode('utf-8')
+    else:
+        return input
+
 
 def save_result_json(url,jsonData):
     url += "set_result"

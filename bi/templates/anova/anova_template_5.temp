@@ -1,4 +1,4 @@
-
+<p class = "txt-justify">
 {% if num_leaders_club==1 %}
   <b>Leaders Club</b> -  Only 1 {{dimension}}, {{leaders_club[0]}}, feature in the Leaders Club signalling healthy trend in terms of revenue contribution as well as growth.
 {% elif num_leaders_club==2 %}
@@ -30,3 +30,4 @@
 {% elif num_red_alert > 2 %}
   <b>Red Alert</b> - {{num_red_alert}} {{dimension|pluralize}}, including {{red_alert[0]}}, {{red_alert[1]}} and {{red_alert[2]}} are not performing well both in terms of {{target}} contribution and growth.
 {% endif %}
+</p>

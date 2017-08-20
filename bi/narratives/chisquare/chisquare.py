@@ -9,9 +9,10 @@ from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None,target_chisquare_result=None,dimensionNode = None):
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None,target_chisquare_result=None):
         self._blockSplitter = "|~NEWBLOCK~|"
-        self._dimensionNode = dimensionNode
+        self._dimensionNode = NarrativesTree()
+        self._dimensionNode.set_name(target_dimension)
         self._data_frame = data_frame
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension

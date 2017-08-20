@@ -10,6 +10,7 @@ from bi.common import utils as CommonUtils
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import ResultSetter
 
 
 
@@ -26,7 +27,7 @@ class DecisionTreeNarrative:
             keyTable = [keys,self.new_table[keys]['rules'],self.new_table[keys]['probability']]
             self.card1Table.append(keyTable)
 
-    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree)
+    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree,ResultSetter)
     def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative,result_setter):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
@@ -51,11 +52,11 @@ class DecisionTreeNarrative:
         self.dropdownComment = None
         self.dropdownValues = None
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
-        self.decisionTreeNode = NarrativesTree()
-        self.decisionTreeNode.set_name("Prediction")
+        self._decisionTreeNode = NarrativesTree()
+        self._decisionTreeNode.set_name("Prediction")
         self._generate_narratives()
-        self._story_narrative.add_a_node(self.decisionTreeNode)
-        self._result_setter.set_decision_tree_node(self.decisionTreeNode)
+        self._story_narrative.add_a_node(self._decisionTreeNode)
+        self._result_setter.set_decision_tree_node(self._decisionTreeNode)
 
     def _generate_narratives(self):
         self._generate_summary()
@@ -116,8 +117,8 @@ class DecisionTreeNarrative:
         card2Data.insert(1,C3ChartData(data=card2ChartJson))
         card2.set_card_data(card2Data)
         card2.set_card_name("Decision Rules for {}".format(self._colname))
-        self.decisionTreeNode.add_a_card(main_card)
-        self.decisionTreeNode.add_a_card(card2)
+        self._decisionTreeNode.add_a_card(main_card)
+        self._decisionTreeNode.add_a_card(card2)
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
                                         'decision_tree_summary.temp',data_dict)
 

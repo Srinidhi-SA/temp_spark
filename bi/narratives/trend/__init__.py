@@ -40,27 +40,42 @@ class TimeSeriesNarrative:
         self._regression_trend_card = None
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._blockSplitter = "|~NEWBLOCK~|"
+        self._trend_on_td_column = False
 
 
         if self._date_suggestion_columns != None:
             suggested_date_column = self._date_suggestion_columns[0]
             existingDateFormat = None
-            dateColumnFormatDict =  df_helper.get_datetime_format(suggested_date_column)
-            if suggested_date_column in dateColumnFormatDict:
-                existingDateFormat = dateColumnFormatDict[suggested_date_column]
-                # print existingDateFormat
+            if suggested_date_column not in self._td_columns:
+                dateColumnFormatDict =  df_helper.get_datetime_format(suggested_date_column)
+                if suggested_date_column in dateColumnFormatDict:
+                    existingDateFormat = dateColumnFormatDict[suggested_date_column]
+                    # print existingDateFormat
+                    self._dateFormatDetected = True
+                if df_context.get_requested_date_format() != None:
+                    requestedDateFormat = df_context.get_requested_date_format()[0]
+                else:
+                    requestedDateFormat = None
+                if requestedDateFormat != None:
+                    requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
+                else:
+                    requestedDateFormat = existingDateFormat
+            else:
+                self._trend_on_td_column = True
+                existingDateFormat = "%Y-%m-%d"
                 self._dateFormatDetected = True
-            if df_context.get_requested_date_format() != None:
-                requestedDateFormat = df_context.get_requested_date_format()[0]
-            else:
-                requestedDateFormat = None
-            if requestedDateFormat != None:
-                requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
-            else:
-                requestedDateFormat = existingDateFormat
+                if df_context.get_requested_date_format() != None:
+                    requestedDateFormat = df_context.get_requested_date_format()[0]
+                else:
+                    requestedDateFormat = None
+                if requestedDateFormat != None:
+                    requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
+                else:
+                    requestedDateFormat = existingDateFormat
         else:
             if self._td_columns != None:
                 if len(self._td_columns) > 0:
+                    self._trend_on_td_column = True
                     suggested_date_column = self._td_columns[0]
                     existingDateFormat = "%Y-%m-%d"
                     self._dateFormatDetected = True
@@ -83,7 +98,7 @@ class TimeSeriesNarrative:
 
         if self._existingDateFormat:
 
-            if self._date_suggestion_columns != None:
+            if self._date_suggestion_columns != None and self._trend_on_td_column == False:
                 date_format = self._existingDateFormat
                 string_to_date = udf(lambda x: datetime.strptime(x,date_format), DateType())
                 date_to_month_year = udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
@@ -96,7 +111,6 @@ class TimeSeriesNarrative:
                 self._data_frame = self._data_frame.withColumn("year_month", udf(lambda x:x.date().strftime("%b-%y"),StringType())(self._date_column_suggested))
                 self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
                 self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
-
             id_max = self._data_frame.select(max("_id_")).first()[0]
             first_date = self._data_frame.select("suggestedDate").first()[0]
             last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
@@ -453,12 +467,14 @@ class TimeSeriesNarrative:
 
 
                     c3_chart["data"] = c3Chart
-
                     multiLineData = []
                     for idx in range(len(chart_data[top2levels[0]])):
                         key = chart_data[top2levels[0]][idx]["key"]
                         value = chart_data[top2levels[0]][idx]["value"]
-                        value1 = chart_data[top2levels[1]][idx]["value"]
+                        try:
+                            value1 = chart_data[top2levels[1]][idx]["value"]
+                        except:
+                            value1 = 0
                         multiLineData.append({"key":key,top2levels[0]:value,top2levels[1]:value1})
                     chartData = NormalChartData(multiLineData)
                     chartJson = ChartJson()

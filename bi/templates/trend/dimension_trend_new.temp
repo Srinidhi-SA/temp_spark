@@ -1,11 +1,13 @@
-How {{target_column}} is Changing over Time
+<h3>How {{target_column}} is Changing over Time</h3>
 {{blockSplitter}}
+<p class="txt-justify">
 This section provides insights on how {{target_column}} categories are trending over time and captures the most significant moments that defined the overall pattern or trend over the observation period.
-
+</p>
 {{blockSplitter}}
 {% if level_index == 0 %}
-  {{measure}}
+  <h4>{{measure}}</h4>
   {{blockSplitter}}
+  <p class="txt-justify">
   {% if overall_growth >= 1 %}
     The percentage of {{measure}} <b>increased</b> from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
@@ -25,9 +27,9 @@ This section provides insights on how {{target_column}} categories are trending 
     amounts to a total of {{bucket_count}}, which is almost {{bucket_ratio_string}} of the overall
     {{measure}} for the {{durationString}} period.
   {% endif %}
-
+  </p>
   {{blockSplitter}}
-
+  <p class="txt-justify">
   {{measure}} category hit a peak of <b>{{peakValue}}%</b> in <b>{{peakTime}}</b>,
   when the total number of {{measure}} observations was {{max_count}}.
 
@@ -39,11 +41,12 @@ This section provides insights on how {{target_column}} categories are trending 
   The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
   <b>{{highest_contributing_level_increase}}</b> percentage points ({{highest_contributing_level_range}})
   compared to rest of the observation period.
-
+  </p>
 {% elif level_index == 1%}
 
-  {{measure}}
+  <h4>{{measure}}</h4>
   {{blockSplitter}}
+  <p class="txt-justify">
   {% if overall_growth >= 0 and overall_growth <= 5 %}
     There was a moderate <b>increase</b> in {{measure}}, as it increased from <b> {{start_value|abs}}% </b> in {{start_time}}
     to <b>{{end_value|abs}}%</b> in {{end_time}}.
@@ -69,9 +72,9 @@ This section provides insights on how {{target_column}} categories are trending 
     amounts to a total of {{bucket_count}}, which is almost {{bucket_ratio_string}} of the overall
     {{measure}} for the {{durationString}} period.
   {% endif %}
-
+  </p>
   {{blockSplitter}}
-
+  <p class="txt-justify">
   The percentage of {{measure}} hit a peak of {{peakValue}}% in {{peakTime}},
   when the total number of {{measure}} observations was {{max_count}}.
 
@@ -83,5 +86,5 @@ This section provides insights on how {{target_column}} categories are trending 
   The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
   <b>{{highest_contributing_level_increase}}</b> percentage points ({{highest_contributing_level_range}})
   compared to rest of the observation period.
-
+  </p>
 {% endif %}
