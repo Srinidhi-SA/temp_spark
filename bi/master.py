@@ -45,27 +45,29 @@ def main(configJson):
                 "story" :{
                     "config":{
                                 'FILE_SETTINGS': {
-                                                  'script_to_run': ['Descriptive analysis',
+                                                  'script_to_run': [ #'Descriptive analysis',
                                                                     'Measure vs. Dimension',
-                                                                    'Dimension vs. Dimension',
-                                                                    'Predictive modeling',
+                                                                    # 'Dimension vs. Dimension',
+                                                                    # 'Predictive modeling',
                                                                     # 'Measure vs. Measure',
-                                                                    'Trend'
+                                                                    # 'Trend'
                                                                     ],
-                                                'inputfile': ['file:///home/hadoop/trend_gulshan.csv']
+                                                'inputfile': ['file:///home/yasar/3.csv'],
+                                                'result_file':['file:///home/hadoop/3_Result/'],
+                                                'narratives_file':['file:///home/hadoop/3_Narrative/']
                                                 #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
-                                                    'date_columns':["Month"],
-                                                    'ignore_column_suggestions': ["Order Date"],
-                                                    'result_column': ['Deal_Type'],
+                                                    'date_columns':["Date"],
+                                                    'ignore_column_suggestions': [],
+                                                    'result_column': ['Price'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['Dimension']
+                                                    'analysis_type': ['Measure']
                                                     # 'score_consider_columns': None
                                                     }
                              },
@@ -127,10 +129,11 @@ def main(configJson):
                                     'levelcounts' : "GG|~|34|~|HH|~|4"
                                     },
                             'COLUMN_SETTINGS': {
-                                'analysis_type': ['scoring'],
-                                'result_column': ['Opportunity Result'],
+                                'analysis_type': ['Dimension'],
+                                'result_column': ['Price'],
                                 'consider_columns_type': ['excluding'],
                                 'consider_columns':[],
+                                'date_columns':['Date'],
                                 'score_consider_columns_type': ['excluding'],
                                 'score_consider_columns':[],
 
@@ -289,7 +292,7 @@ def main(configJson):
             if ('Descriptive analysis' in scripts_to_run):
                 try:
                     fs = time.time()
-                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark)
+                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     descr_stats_obj.Run()
                     print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -329,7 +332,7 @@ def main(configJson):
                     fs = time.time()
                     # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
                     # one_way_anova_obj.Run()
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark)
+                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     two_way_obj.Run()
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -399,6 +402,12 @@ def main(configJson):
                 print e
                 print "#####ERROR#####"*5
                 print "Executive Summary Script Failed"
+
+        measureResult = CommonUtils.convert_python_object_to_json(story_narrative)
+        # dimensionResult = CommonUtils.as_dict(story_narrative)
+        print measureResult
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],measureResult)
+        return response
 
     elif jobType == 'prediction':
         prediction_narrative = NarrativesTree()

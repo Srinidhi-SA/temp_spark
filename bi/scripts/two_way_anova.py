@@ -7,7 +7,8 @@ from bi.stats import TwoWayAnova
 
 
 class TwoWayAnovaScript:
-    def __init__(self, data_frame, df_helper, df_context, result_setter, spark):
+    def __init__(self, data_frame, df_helper, df_context, result_setter, spark,story_narrative):
+        self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
@@ -19,7 +20,7 @@ class TwoWayAnovaScript:
         df_anova_result = CommonUtils.as_dict(df_anova_obj)
         # print 'RESULT: %s' % (json.dumps(df_anova_result, indent=2))
 
-        anova_narratives_obj = AnovaNarratives(df_anova_obj,self._dataframe_helper,self._result_setter)
+        anova_narratives_obj = AnovaNarratives(df_anova_obj,self._dataframe_helper,self._result_setter,self._story_narrative)
         anova_narratives = CommonUtils.as_dict(anova_narratives_obj)
         # print anova_narratives
         DataWriter.write_dict_as_json(self._spark, {'RESULT':json.dumps(df_anova_result['result'])}, self._dataframe_context.get_result_file()+'OneWayAnova/')
