@@ -67,16 +67,16 @@ def main(configJson):
                                                                     'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
-                                                #   'inputfile': ['file:///home/yasar/3.csv']
-                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                  'inputfile': ['file:///home/yasar/3.csv']
+                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
-                                                    'date_columns':["Month"],
-                                                    'ignore_column_suggestions': ["Order Date"],
-                                                    'result_column': ['Platform'],
+                                                    'date_columns':["Date"],
+                                                    'ignore_column_suggestions': [],
+                                                    'result_column': ['Loan_Property'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],

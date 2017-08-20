@@ -1,7 +1,7 @@
-Overview
+<h4>Overview</h4>
 
-PARAHEADER
-
+{{blockSplitter}}
+<p class = "txt-justify">
 {% if num_significant == 1 %}
   {{colname}} is <b>the only significant influencer</b> of {{target}} and displays significant variation
   in distribution of {{target}} categories.
@@ -36,10 +36,11 @@ PARAHEADER
     <b>{{bottom_levels| length}} {{plural_colname}}, including segment {{bottom_levels[0]}} and segment {{bottom_levels[1]}}</b> are the smallest with the least number of the total observations.
   {% endif %}
 {% endif %}
-
-PARASEPARATOR
-Key segments of {{second_target}}
-PARAHEADER
+</p>
+{{blockSplitter}}
+<h4>Key segments of {{second_target}}</h4>
+{{blockSplitter}}
+<p class = "txt-justify">
 The <b>percentage of {{second_target}}</b> is the <b>
 {% if worst_second_share | length == 1 %}
   lowest for the segment {{levels[worst_second_share[0]]}}</b> ({{second_target_shares[worst_second_share[0]] | round(1)}}%).
@@ -116,10 +117,11 @@ higher than the overall {{second_target}} rate.
     {%endif%}
   {% endif %}
 {% endif %}
-
-PARASEPARATOR
-Key segments of {{top_target}}
-PARAHEADER
+</p>
+{{blockSplitter}}
+<h4>Key segments of {{top_target}}</h4>
+{{blockSplitter}}
+<p class = "txt-justify">
 When it comes to <b>{{top_target}},
 {% if worst_top_share | length == 1 %}
   segment {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant segment</b> since {{top_target_shares[worst_top_share[0]] | round(1)}}%
@@ -177,3 +179,4 @@ When it comes to <b>{{top_target}},
     {%endif%}
   {% endif %}
 {% endif %}
+</p>

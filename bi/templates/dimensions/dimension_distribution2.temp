@@ -1,3 +1,4 @@
+<p class = "txt-justify">
 {% if keys|length >= 3 and kv_75 == 1 and n_uniq != 1 %}
   {{kv_75_cat[0]}} alone account for <b>more than
   three quarters</b> ({{percent_contr|round_number}}%) of the overall observations.
@@ -73,3 +74,4 @@
 {% elif keys|length == 2 and largest_per > 53.0 %}
   The segment {{max['key']}} accounts for {{largest_per}}% of the overall observations.
 {% endif %}
+</p>
