@@ -90,7 +90,7 @@ class DimensionColumnNarrative:
         dimensionSummaryCard.set_card_name("overall summary card")
         # dimensionSummaryCard.set_quote_html
         self._story_narrative.add_a_card(dimensionSummaryCard)
-        # self._headNode.add_a_card(dimensionSummaryCard)
+        self._headNode.add_a_card(dimensionSummaryCard)
 
     def _generate_analysis(self):
         lines = []

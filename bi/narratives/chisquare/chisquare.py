@@ -21,7 +21,7 @@ class ChiSquareAnalysis:
         self._target_chisquare_result = target_chisquare_result
 
         self._num_analysed_variables = num_analysed_variables
-        self._table = chisquare_result.get_contingency_table()
+        self._chiSquareTable = chisquare_result.get_contingency_table()
 
         significant_variables=list(set(significant_variables)-set([analysed_dimension]))
         significant_variables = list(set(significant_variables)-set(measure_columns))
@@ -58,11 +58,11 @@ class ChiSquareAnalysis:
         analysed_dimension = self._analysed_dimension
         significant_variables = self._significant_variables
         num_analysed_variables = self._num_analysed_variables
-        table = self._table
-        total = self._table.get_total()
+        table = self._chiSquareTable
+        total = self._chiSquareTable.get_total()
 
-        levels = self._table.get_column_two_levels()
-        level_counts = self._table.get_column_total()
+        levels = self._chiSquareTable.get_column_two_levels()
+        level_counts = self._chiSquareTable.get_column_total()
         levels_count_sum = sum(level_counts)
         levels_percentages = [i*100.0/levels_count_sum for i in level_counts]
         sorted_levels = sorted(zip(level_counts,levels),reverse=True)
@@ -73,8 +73,8 @@ class ChiSquareAnalysis:
         bottom_dim_contribution = sorted_levels[-1][0]
         bottom_dims = [y for x,y in sorted_levels if x==bottom_dim_contribution]
 
-        target_levels = self._table.get_column_one_levels()
-        target_counts = self._table.get_row_total()
+        target_levels = self._chiSquareTable.get_column_one_levels()
+        target_counts = self._chiSquareTable.get_row_total()
         sorted_target_levels = sorted(zip(target_counts,target_levels),reverse=True)
         top_target_count, top_target = sorted_target_levels[0]
         second_target_count, second_target = sorted_target_levels[1]
@@ -208,26 +208,26 @@ class ChiSquareAnalysis:
 
         data_dict["blockSplitter"] = self._blockSplitter
         output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict),self._blockSplitter)
-        card1Data = []
-        card1Heading = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
-        card1Data.append(HtmlData(data=card1Heading))
+        targetDimCard1Data = []
+        targetDimcard1Heading = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
+        targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
 
-        table1Data = self.generate_card1_table1()
-        card1Table1 = TableData()
-        card1Table1.set_table_type("heatMap")
-        card1Table1.set_table_data(table1Data)
+        targetDimTable1Data = self.generate_card1_table1()
+        targetDimCard1Table1 = TableData()
+        targetDimCard1Table1.set_table_type("heatMap")
+        targetDimCard1Table1.set_table_data(targetDimTable1Data)
 
-        table2Data = self.generate_card1_table2()
-        card1Table2 = TableData()
-        card1Table2.set_table_type("normal")
-        card1Table2.set_table_data(table2Data["data1"])
-        # print card1Table1.get_data()
+        targetDimTable2Data = self.generate_card1_table2()
+        targetDimCard1Table2 = TableData()
+        targetDimCard1Table2.set_table_type("normal")
+        targetDimCard1Table2.set_table_data(targetDimTable2Data["data1"])
+        # print targetDimCard1Table1.get_data()
         # print card1Table2.get_data()
-        card1Data.append(card1Table1)
-        card1Data.append(card1Table2)
-        card1Data += output
+        targetDimCard1Data.append(targetDimCard1Table1)
+        targetDimCard1Data.append(targetDimCard1Table2)
+        targetDimCard1Data += output
 
-        self._card1.set_card_data(card1Data)
+        self._card1.set_card_data(targetDimCard1Data)
         self._card1.set_card_name("{}: Relationship with {}".format(self._analysed_dimension,self._target_dimension))
 
         self._key_factors_contributions = {}
@@ -245,8 +245,8 @@ class ChiSquareAnalysis:
 
         if self._chisquare_result.get_splits():
             splits = self._chisquare_result.get_splits()
-            idx = self._table.get_bin_names(splits).index(second_target_top_dims[0])
-            idx1 = self._table.get_bin_names(splits).index(top_target_top_dims[0])
+            idx = self._chiSquareTable.get_bin_names(splits).index(second_target_top_dims[0])
+            idx1 = self._chiSquareTable.get_bin_names(splits).index(top_target_top_dims[0])
             splits[len(splits)-1] = splits[len(splits)-1]+1
             df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
                                 filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
@@ -429,21 +429,21 @@ class ChiSquareAnalysis:
         return chart_data, bubble_data
 
     def generate_card1_table1(self):
-        table_percent_by_column = self._table.table_percent_by_column
-        column_two_values = self._table.column_two_values
-        header_row = [self._analysed_dimension] + self._table.get_column_one_levels()
+        table_percent_by_column = self._chiSquareTable.table_percent_by_column
+        column_two_values = self._chiSquareTable.column_two_values
+        header_row = [self._analysed_dimension] + self._chiSquareTable.get_column_one_levels()
         other_rows = zip(column_two_values,table_percent_by_column[0],table_percent_by_column[1])
         other_rows = [list(tup) for tup in other_rows]
         table_data = header_row+other_rows
         return table_data
 
     def generate_card1_table2(self):
-        table = self._table.table
-        table_percent = self._table.table_percent
-        table_percent_by_row = self._table.table_percent_by_row
-        table_percent_by_column = self._table.table_percent_by_column
-        target_levels = self._table.get_column_one_levels()
-        dim_levels = self._table.get_column_two_levels()
+        table = self._chiSquareTable.table
+        table_percent = self._chiSquareTable.table_percent
+        table_percent_by_row = self._chiSquareTable.table_percent_by_row
+        table_percent_by_column = self._chiSquareTable.table_percent_by_column
+        target_levels = self._chiSquareTable.get_column_one_levels()
+        dim_levels = self._chiSquareTable.get_column_two_levels()
 
         header1 = [self._analysed_dimension] + target_levels + ['Total']
         header = ['State','Active','Churn','Total'] #TODO remove

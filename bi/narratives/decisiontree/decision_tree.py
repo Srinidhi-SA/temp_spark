@@ -19,13 +19,13 @@ class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2
 
     def _get_new_table(self):
-        self.card1Table = [["PREDICTION","RULES","PERCENTAGE"]]
-        for keys in self.table.keys():
-            self.new_table[keys]={}
-            self.new_table[keys]['rules'] = self.table[keys]
-            self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
-            keyTable = [keys,self.new_table[keys]['rules'],self.new_table[keys]['probability']]
-            self.card1Table.append(keyTable)
+        self._decisionTreeCard1Table = [["PREDICTION","RULES","PERCENTAGE"]]
+        for keys in self._table.keys():
+            self._new_table[keys]={}
+            self._new_table[keys]['rules'] = self._table[keys]
+            self._new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
+            keyTable = [keys,self._new_table[keys]['rules'],self._new_table[keys]['probability']]
+            self._decisionTreeCard1Table.append(keyTable)
 
     @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree,ResultSetter)
     def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative,result_setter):
@@ -39,8 +39,8 @@ class DecisionTreeNarrative:
         self._decision_tree_json = CommonUtils.as_dict(decision_tree_rules)
         self._decision_tree_raw = {"tree":{"children":None}}
         self._decision_tree_raw['tree']["children"] = self._decision_tree_json['tree']["children"]
-        self.table = decision_tree_rules.get_table()
-        self.new_table={}
+        self._table = decision_tree_rules.get_table()
+        self._new_table={}
         self.succesful_predictions=decision_tree_rules.get_success()
         self.total_predictions=decision_tree_rules.get_total()
         self.success_percent= decision_tree_rules.get_success_percent()
@@ -67,7 +67,7 @@ class DecisionTreeNarrative:
         data_dict = {"dimension_name":self._colname}
         data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
         data_dict["significant_vars"] = []
-        rules_dict = self.table
+        rules_dict = self._table
         self.condensedTable={}
         for target in rules_dict.keys():
             self.condensedTable[target]=[]
@@ -85,7 +85,7 @@ class DecisionTreeNarrative:
         data_dict['significant_vars'] = self._important_vars
         # print '*'*16
         # print data_dict['rules']
-        # print self.new_table
+        # print self._new_table
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_tree_card2.temp',data_dict))
         self.card2_chart = self._target_distribution
@@ -98,7 +98,7 @@ class DecisionTreeNarrative:
         main_card_data += main_card_narrative
         main_card_data.append(TreeData(data=self._decision_tree_raw))
         main_card_table = TableData()
-        main_card_table.set_table_data(self.card1Table)
+        main_card_table.set_table_data(self._decisionTreeCard1Table)
         main_card_table.set_table_type("decisionTreeTable")
         main_card_data.append(main_card_table)
         main_card.set_card_data(main_card_data)

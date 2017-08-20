@@ -63,24 +63,24 @@ def main(configJson):
                                                                     'Descriptive analysis',
                                                                     'Measure vs. Dimension',
                                                                     'Dimension vs. Dimension',
-                                                                    'Predictive modeling',
+                                                                    # 'Predictive modeling',
                                                                     'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
                                                 #   'inputfile': ['file:///home/yasar/3.csv']
-                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv'],
+                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
-                                                    'date_columns':["new_date"],
+                                                    'date_columns':["new_date","Month","Order Date"],
                                                     'ignore_column_suggestions': [],
-                                                    'result_column': ['Sales'],
+                                                    'result_column': ['Source'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['measure']
+                                                    'analysis_type': ['dimension']
                                                     # 'score_consider_columns': None
                                                     }
                              },
@@ -169,8 +169,7 @@ def main(configJson):
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
 
-    # configJson = json.loads(HOCONConverter.to_json(configJson))
-    configJson = testConfigs["story"]
+    # configJson = testConfigs["story"]
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
@@ -291,27 +290,32 @@ def main(configJson):
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
             dimensionNode = result_setter.get_distribution_node()
             if dimensionNode != None:
-                # dimensionNode = json.loads(CommonUtils.convert_python_object_to_json(dimensionNode))
-                # headNode["listOfNodes"].append(dimensionNode)
-                headNode.add_a_node(dimensionNode)
+                dimensionNode = json.loads(CommonUtils.convert_python_object_to_json(dimensionNode))
+                headNode["listOfNodes"].append(dimensionNode)
+                # headNode.add_a_node(dimensionNode)
             chisquareNode = result_setter.get_chisquare_node()
             if chisquareNode != None:
-                # chisquareNode = json.loads(CommonUtils.convert_python_object_to_json(chisquareNode))
-                # headNode["listOfNodes"].append(chisquareNode)
-                headNode.add_a_node(chisquareNode)
+                chisquareNode = json.loads(CommonUtils.convert_python_object_to_json(chisquareNode))
+                print "$"*100
+                headNode["listOfNodes"].append(chisquareNode)
+                print chisquareNode
+                print "$"*100
+                # headNode.add_a_node(chisquareNode)
             trendNode = result_setter.get_trend_node()
             if trendNode != None:
-                # trendNode = json.loads(CommonUtils.convert_python_object_to_json(trendNode))
-                # headNode["listOfNodes"].append(trendNode)
-                headNode.add_a_node(trendNode)
+                trendNode = json.loads(CommonUtils.convert_python_object_to_json(trendNode))
+                headNode["listOfNodes"].append(trendNode)
+                # headNode.add_a_node(trendNode)
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
-                # decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(decisionTreeNode))
-                # headNode["listOfNodes"].append(decisionTreeNode)
-                headNode.add_a_node(decisionTreeNode)
-            print "DSADSAD"
-            # print headNode
-            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
+                decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(decisionTreeNode))
+                headNode["listOfNodes"].append(decisionTreeNode)
+                # headNode.add_a_node(decisionTreeNode)
+
+            print json.dumps(headNode,indent=2)
+            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],headNode)
+            # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
+
             return response
 
         elif analysistype == 'measure':
@@ -359,18 +363,18 @@ def main(configJson):
             df = df_helper.get_data_frame()
             #df = df.na.drop(subset=dataframe_context.get_result_column())
             if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
-                # try:
-                fs = time.time()
-                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                # one_way_anova_obj.Run()
-                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                two_way_obj.Run()
-                print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-                # except Exception as e:
-                #     print 'Anova Failed'
-                #     print "#####ERROR#####"*5
-                #     print e
-                #     print "#####ERROR#####"*5
+                try:
+                    fs = time.time()
+                    # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+                    # one_way_anova_obj.Run()
+                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                    two_way_obj.Run()
+                    print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+                except Exception as e:
+                    print 'Anova Failed'
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 try:
@@ -399,17 +403,17 @@ def main(configJson):
             else:
                 print 'Regression not in Scripts to run'
 
-            # try:
-            fs = time.time()
-            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
-            trend_obj.Run()
-            print "Trend Analysis Done in ", time.time() - fs, " seconds."
+            try:
+                fs = time.time()
+                trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
+                trend_obj.Run()
+                print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-            # except Exception as e:
-            #     print "Trend Script Failed"
-            #     print "#####ERROR#####"*5
-            #     print e
-            #     print "#####ERROR#####"*5
+            except Exception as e:
+                print "Trend Script Failed"
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
 
 
             try:
