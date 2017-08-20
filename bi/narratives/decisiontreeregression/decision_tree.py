@@ -101,7 +101,7 @@ class DecisionTreeRegNarrative:
                                         'decision_tree_summary.temp',data_dict)
         lines = []
         lines += NarrativesUtils.block_splitter(self.subheader,self._blockSplitter)
-        tableData = {'tableDate':TableData(data=self.card1Table),'tableType':'decisionTreeTable'}
+        tableData = TableData(data={"tableType" : "decisionTreeTable",'tableData':self.card1Table})
         lines += [TreeData(data=self._decision_rules_dict),tableData]
         self._decisionTreeCard1.add_card_data(lines)
         executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],
