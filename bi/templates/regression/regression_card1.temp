@@ -1,5 +1,6 @@
-Overview
+<h4>Overview</h4>
 {{blockSplitter}}
+<p class="txt-justify">
 {% if n_sig_measures == 1 %}
   {{measure_column}} is the only <b>significant influencer</b> of {{result_column}}
   and it explains a great magnitude of change in {{result_column}}.
@@ -32,3 +33,4 @@ Overview
 {% elif coefficient < 0%}
   An incremental unit change in {{measure_column}} corresponds to an average decrease in {{result_column}} by {{coefficient}} units.
 {% endif %}
+</p>

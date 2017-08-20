@@ -1,3 +1,4 @@
+<p class = "txt-justify">
 {% if num_significant_dimensions==1 %}
   High contribution of {{target}} from {{dimension}} is characterized by the influence of {{significant_dimensions[0]}}.
 {% elif num_significant_dimensions==2 %}
@@ -40,3 +41,4 @@
   Also, the top {{num_top3_contributors}} {{significant_dimensions[2]}} contribute to
   {{top3_contribution}}% of {{target}} from {{top_dimension}}.
 {% endif %}
+</p>

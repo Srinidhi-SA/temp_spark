@@ -101,22 +101,25 @@ class OneWayAnovaNarratives:
                         label_text={'x':x,'y':y,'y2':y2}, legend={'x':x,'y':y,'y2':y2},
                         chart_type = 'line')
 
-    def _get_card3_scatterchart(self,share,growth,label,category_legend):
-        groups = {'Leaders Club':[],
-                    'Playing Safe':[],
-                    'Opportunity Bay':[],
-                    'Red Alert':[]}
-        for s,g,l,c in zip(share,growth,label,category_legend):
-            groups[c].append({'share':s,'growth':g,'level':l})
-        return ChartJson(data=groups, axes={'x':'share','y':'growth','y2':'level'},
-                        label_text={'x':'Share','y':'Growth','y2':self._dimension_column_capitalized},
-                        legend=dict(zip(groups.keys(),groups.keys())),
-                        chart_type="scatter")
+    # def _get_card3_scatterchart(self,share,growth,label,category_legend):
+    #     groups = {'Leaders Club':[],
+    #                 'Playing Safe':[],
+    #                 'Opportunity Bay':[],
+    #                 'Red Alert':[]}
+    #     for s,g,l,c in zip(share,growth,label,category_legend):
+    #         groups[c].append({'share':s,'growth':g,'level':l})
+    #     return ChartJson(data=groups, axes={'x':'share','y':'growth','y2':'level'},
+    #                     label_text={'x':'Share','y':'Growth','y2':self._dimension_column_capitalized},
+    #                     legend=dict(zip(groups.keys(),groups.keys())),
+    #                     chart_type="scatter")
+
+    def _get_card3_scatterchart(self,data_c3):
+        return ChartJson(data = NormalChartData(data_c3).get_data(), chart_type='scatter_tooltip')
 
     def _generate_card1(self):
         self._anovaCard1 = NormalCard(name='Impact on '+self._measure_column_capitalized)
         lines = []
-        lines += NarrativesUtils.block_splitter('<h2>'+self._measure_column_capitalized+': Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized+'</h2>',self._blockSplitter)
+        lines += NarrativesUtils.block_splitter('<h3>'+self._measure_column_capitalized+': Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized+'</h3>',self._blockSplitter)
         self.card1 = Card('Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized)
         dim_table = self._one_way_anova_result.get_dim_table()
         keys = dim_table['levels']
@@ -263,7 +266,7 @@ class OneWayAnovaNarratives:
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.temp',data_dict))
         lines = []
-        lines += NarrativesUtils.block_splitter('<h2>'+output['header']+'</h2>',self._blockSplitter)
+        lines += NarrativesUtils.block_splitter('<h4>'+output['header']+'</h4>',self._blockSplitter)
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
         self._anovaCard1.add_card_data(lines)
@@ -449,7 +452,7 @@ class OneWayAnovaNarratives:
             'content' : 'Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.'})
         lines = []
 
-        lines += NarrativesUtils.block_splitter('<h2>'+self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix</h2><br>'+
+        lines += NarrativesUtils.block_splitter('<h3>'+self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix</h3><br>'+
                                                 'Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.',
                                                 self._blockSplitter)
         grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
@@ -479,12 +482,13 @@ class OneWayAnovaNarratives:
         label = [i[2] for i in all_data]
         category_legend = [i[3] for i in all_data]
 
-        lines += [C3ChartData(self._get_card3_scatterchart(share,growth,label,category_legend))]
+        # lines += [C3ChartData(self._get_card3_scatterchart(share,growth,label,category_legend))]
 
         data_c3 = [['Growth'] + growth,
                     ['Share'] + share,
                     [self._dimension_column] + label,
                     ['Category'] + category_legend]
+        lines += [C3ChartData(self._get_card3_scatterchart(data_c3))]
 
         chart_data = chart(data=data, labels={})
         chart_data.add_data_c3(data_c3)

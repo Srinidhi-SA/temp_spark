@@ -60,8 +60,8 @@ def main(configJson):
                     "config":{
                                 'FILE_SETTINGS': {
                                                   'script_to_run': [
-                                                                    'Descriptive analysis',
-                                                                    'Measure vs. Dimension',
+                                                                    # 'Descriptive analysis',
+                                                                    # 'Measure vs. Dimension',
                                                                     # 'Dimension vs. Dimension',
                                                                     'Predictive modeling',
                                                                     # 'Measure vs. Measure',

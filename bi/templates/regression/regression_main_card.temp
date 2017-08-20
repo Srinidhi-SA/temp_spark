@@ -1,3 +1,4 @@
+<p class="txt-justify">
 {% if n_s_m > 3 %}
   There are <b>{{n_m}} measures</b> in the dataset and <b>{{n_s_m}} of them</b> (including {{sm[0]}},
   {{sm[1]}},{{sm[2]}}, etc.) have <b>significant influence</b> on {{cm}}.
@@ -41,3 +42,4 @@
   Let us take a deeper look at some of the most important Measures that explain remarkable amount
   of change in {{cm}}.
 {% endif %}
+</p>

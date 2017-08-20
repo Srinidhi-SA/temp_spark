@@ -1,11 +1,12 @@
-How {{measure}} is Changing over Time
+<h3>How {{measure}} is Changing over Time</h3>
 {{blockSplitter}}
+<p class="txt-justify">
 This section provides insights on how {{measure}} is performing over time and
 captures the most significant moments that defined the overall pattern or trend
 over the observation period.
-
+</p>
 {{blockSplitter}}
-
+<p class="txt-justify">
 The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
 {% if overall_growth > 0 %}
   The values of {{measure}} have <b> grown by {{overall_growth|abs}}% </b> during
@@ -18,10 +19,10 @@ The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
 {% endif %}
 The total {{measure}} </b> were {{total}} for the last {{durationString}},
  with the <b> average {{measure}} per {{dataLevel}} being {{average_value|round_number}}</b>.
-
+</p>
 
 {{blockSplitter}}
-
+<p class="txt-justify">
 {% if trend == "positive" %}
   Driven by the strong increase, {{measure}} seems to be on <b> positive trend </b>
   which is statistically significant.
@@ -36,3 +37,4 @@ The total {{measure}} </b> were {{total}} for the last {{durationString}},
 {% else %}
   However, the {{measure}} figures are <b> likely to follow a seasonal pattern </b> during this period.
 {% endif %}
+</p>
