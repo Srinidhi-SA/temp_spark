@@ -1,4 +1,5 @@
 {% if skew > 0.1 or skew < -0.1 %}
+  <p class = "txt-justify">
   The top {{q4_cont}}% of the observations (High segment) account for about {{q4_frac}}%
   of the total {{col_name}} ({{total}}), i.e. {{q4_sum}}.
   However, the overall {{col_name}} from the bottom quartile ({{q1_cont}}% of observations
@@ -7,4 +8,5 @@
   segment is {{q4_mean}}, which is {{q4_overall_mean}}X as big as the overall
   average sales per observation ({{avg}}) and {{q4_q1_mean}}
   times bigger than the average from Low segment.
+  </p>
 {% endif %}

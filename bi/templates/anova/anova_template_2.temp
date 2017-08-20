@@ -1,3 +1,4 @@
+<p class = "txt-justify">
 {% if num_significant_dimensions ==1 %}
   The chart above displays the <b>impact of {{significant_dimensions[0]}}</b> on {{target}},
   as measured by effect size.
@@ -8,3 +9,4 @@
   Let us take a deeper look at some of the most important dimensions that show significant amount of
   difference in average {{target}}.
 {% endif %}
+</p>

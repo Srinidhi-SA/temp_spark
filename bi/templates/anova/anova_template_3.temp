@@ -1,3 +1,4 @@
+<p class = "txt-justify">
 {% if uniformly_distributed %}
   {{measure_name}} contribution from each of the {{plural_dimension_name}} seems to be similar.
 {% else %}
@@ -38,3 +39,4 @@
     {% endif %}
   {% endif %}
 {% endif %}
+</p>

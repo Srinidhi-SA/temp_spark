@@ -1,3 +1,4 @@
+<p class = "txt-justify">
 {% if rows == 1 %}
       The {{col_name}} variable has only one observation, i.e {{total}}
   {% elif rows == 2 %}
@@ -18,3 +19,4 @@
                  and {{r}} observations with <b>extremely high</b> {{col_name}} figures.
       {% endif %}
   {% endif %}
+</p>

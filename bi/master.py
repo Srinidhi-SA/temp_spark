@@ -58,34 +58,32 @@ def main(configJson):
     testConfigs = {
                 "story" :{
                     "config":{
-                        'FILE_SETTINGS': {
-                               'script_to_run': [
-                                                'Descriptive analysis',
-                                                'Measure vs. Dimension',
-                                                'Dimension vs. Dimension',
-                                                'Predictive modeling',
-                                                'Measure vs. Measure',
-                                                'Trend'
-                                                ],
-                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv'],
-                            #    'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_test3.csv']
-                                },
-                        'COLUMN_SETTINGS': {
-                                'polarity': ['positive'],
-                                'consider_columns_type': ['excluding'],
-                                'date_format': None,
-                                'date_columns':["Month"],
-                                'ignore_column_suggestions': ["Order Date"],
-                                # "ignore_column_suggestions":['Avg Visit Duration', 'Days to Resolve', '% Share of Heineken Lager Beer', 'Cleanliness', 'Outlet ID', 'Issue Category', 'Visibility_to_Cosumer', 'Outlet', 'Accessible_to_consumer', 'Working_Condition', 'Issue Status', 'Resultion Status', 'Outlet'],
-                                'result_column': ['Sales'],
-                                # 'result_column': ['Segment'],
-                                'consider_columns':[],
-                                # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-                                #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                'analysis_type': ['measure']
-                                # 'score_consider_columns': None
-                                }
-                        },
+                                'FILE_SETTINGS': {
+                                                  'script_to_run': [
+                                                                    # 'Descriptive analysis',
+                                                                    # 'Measure vs. Dimension',
+                                                                    # 'Dimension vs. Dimension',
+                                                                    'Predictive modeling',
+                                                                    # 'Measure vs. Measure',
+                                                                    'Trend'
+                                                                    ],
+                                                  'inputfile': ['file:///home/yasar/3.csv']
+                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                  },
+                                'COLUMN_SETTINGS': {
+                                                    'polarity': ['positive'],
+                                                    'consider_columns_type': ['excluding'],
+                                                    'date_format': None,
+                                                    'date_columns':["Date"],
+                                                    'ignore_column_suggestions': [],
+                                                    'result_column': ['Price'],
+                                                    'consider_columns':[],
+                                                    # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+                                                    #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+                                                    'analysis_type': ['Measure']
+                                                    # 'score_consider_columns': None
+                                                    }
+                             },
                     "job_config":{
                                     "job_type":"story",
                                     # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",

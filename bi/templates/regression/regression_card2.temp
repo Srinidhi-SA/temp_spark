@@ -1,7 +1,7 @@
-{{dim1["dimension"]}}
+<h4>{{dim1["dimension"]}}</h4>
 
 {{blockSplitter}}
-
+<p class="txt-justify">
 {% if dim1["num_levels"] == 2 %}
 There are two categories within {{dim1["dimension"]}} ({{dim1["levels"][0]}} and {{dim1["levels"][1]}}).
 {% elif dim1["num_levels"] == 3 %}
@@ -12,9 +12,9 @@ There are {{dim1["num_levels"]}} categories within {{dim1["dimension"]}} (includ
 
 The following table displays how average {{target}} vary across {{dim1["dimension"]}}
 and segments of {{measure}}.
-
+</p>
 {{blockSplitter}}
-
+<p class="txt-justify">
 {{dim1["dimension"]}} has significant influence on {{target}} and the impact of {{measure}}
 on {{target}} shows interesting variations across {{dim1["dimension"]}}.
 
@@ -45,13 +45,13 @@ increases
 decreases
 {% endif %}
 {{target}} by  {{dim1["lowest_impact_level"][1] | round(2) | intcomma}} units for one unit increase in {{measure}}.
-
+</p>
 {{blockSplitter}}
 {% if dim2["num_levels"]>0 %}
-{{dim2["dimension"]}}
+<h4>{{dim2["dimension"]}}</h4>
 
 {{blockSplitter}}
-
+<p class="txt-justify">
 {% if dim2["num_levels"] == 2 %}
 There are two categories within {{dim1["dimension"]}} ({{dim2["levels"][0]}} and {{dim2["levels"][1]}}).
 {% elif dim2["num_levels"] == 3 %}
@@ -62,8 +62,9 @@ There are {{dim2["num_levels"]}} categories within {{dim1["dimension"]}} (includ
 
 The following table displays how average {{target}} vary across {{dim2["dimension"]}}
 and segments of {{measure}}.
-
+</p>
 {{blockSplitter}}
+<p class="txt-justify">
 The relationship between {{measure}} and {{target}} is also significantly influenced by {{dim2["dimension"]}}.
 For instance, {{dim2["dimension"]}}, {{dim2["highest_average"]}} seems to have the average {{target}}
 that is higher than the other categories.
@@ -94,3 +95,4 @@ However, {{dim2["lowest_impact_level"][0]}} {{dim2["dimension"]}} is the least a
 {% endif %}
 {{target}} by  {{dim2["lowest_impact_level"][1] | round(2) | intcomma}} units for one unit increase in {{measure}}.
 {% endif %}
+</p>

@@ -1,3 +1,4 @@
+<p class = "txt-justify">
 {% if num_dimensions==num_significant_dimensions %}
   {% if num_dimensions == 0 %}
     There are no dimension variables in the dataset.
@@ -45,3 +46,4 @@
     show significant difference in {{target}} values across categories.
   {% endif %}
 {% endif %}
+</p>

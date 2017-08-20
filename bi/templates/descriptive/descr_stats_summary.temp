@@ -1,3 +1,4 @@
+<p class = "lead txt-justify">
 mAdvisor has analyzed the dataset and it contains<b>
 {% if n_t == 1%}
   {{n_t | intcomma}}</b> variable and <b>{{observations | round_number}}</b> observations.
@@ -21,3 +22,4 @@ Please click next to find the insights from our
 {% elif n_c > 2 %}
   factoring the other variables.
 {% endif %}
+</p>

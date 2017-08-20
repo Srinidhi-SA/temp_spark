@@ -1,3 +1,4 @@
+<p class="txt-justify">
 The dataset contains {{measure}} figures for a period of {{durationString}}.
 
 {% if overall_growth > 0 %}
@@ -34,3 +35,4 @@ The dataset contains {{measure}} figures for a period of {{durationString}}.
 {% endif %}
 
 Driven by the strong {{trend}} growth, {{measure}} seem to be on <b>{{trend}} trend</b>.
+</p>
