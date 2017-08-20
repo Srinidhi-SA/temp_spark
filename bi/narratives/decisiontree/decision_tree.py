@@ -51,7 +51,7 @@ class DecisionTreeNarrative:
         self.dropdownValues = None
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
         self.decisionTreeNode = NarrativesTree()
-        self.decisionTreeNode.set_name("Decision-Tree")
+        self.decisionTreeNode.set_name("Prediction")
         self._generate_narratives()
         self._story_narrative.add_a_node(self.decisionTreeNode)
 
@@ -100,7 +100,7 @@ class DecisionTreeNarrative:
         main_card_table.set_table_type("decisionTreeTable")
         main_card_data.append(main_card_table)
         main_card.set_card_data(main_card_data)
-        main_card.set_card_name("main_card_decision_tree")
+        main_card.set_card_name("Predicting Key Drivers of {}".format(self._colname))
         card2 = NormalCard()
         card2Data = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,\
                                                     'decision_tree_card2.temp',data_dict),self._blockSplitter)
@@ -114,7 +114,7 @@ class DecisionTreeNarrative:
         card2ChartJson.set_axes({"x":"key","y":"value"})
         card2Data.insert(1,C3ChartData(data=card2ChartJson))
         card2.set_card_data(card2Data)
-        card2.set_card_name("card2_decision_tree")
+        card2.set_card_name("Decision Rules for {}".format(self._colname))
         self.decisionTreeNode.add_a_card(main_card)
         self.decisionTreeNode.add_a_card(card2)
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\

@@ -86,7 +86,9 @@ def main(configJson):
                              },
                     "job_config":{
                                     "job_type":"story",
-                                    "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
+                                    # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
+                                    "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
+
                                     "set_result": {
                                         "method": "PUT",
                                         "action": "result"
@@ -95,7 +97,7 @@ def main(configJson):
                   },
                 "metaData" : {
                     "config":{
-                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv']},
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_test3.csv']},
                             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                             },
                     "job_config":{
@@ -168,8 +170,8 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
-    configJson = testConfigs["story"]
-    # print configJson
+    # configJson = testConfigs["story"]
+    print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
@@ -214,9 +216,9 @@ def main(configJson):
         #Initializing the result_setter
         result_setter = ResultSetter(df,dataframe_context)
         story_narrative = NarrativesTree()
-        if analysistype == 'Dimension':
+        story_narrative.set_name("{} Performance Report".format(dataframe_context.get_result_column()))
+        if analysistype == 'dimension':
             print "STARTING DIMENSION ANALYSIS ..."
-            story_narrative.set_name("Dimension analysis")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
 
@@ -287,7 +289,7 @@ def main(configJson):
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
             return response
 
-        elif analysistype == 'Measure':
+        elif analysistype == 'measure':
             print "STARTING MEASURE ANALYSIS ..."
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()

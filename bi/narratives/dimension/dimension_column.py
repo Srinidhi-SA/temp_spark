@@ -32,6 +32,7 @@ class DimensionColumnNarrative:
         self._dataframe_helper = df_helper
         self._blockSplitter = "|~NEWBLOCK~|"
         self._dimensionSummaryNode = NarrativesTree()
+        self._dimensionSummaryNode.set_name("Overview")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
 
@@ -81,6 +82,7 @@ class DimensionColumnNarrative:
         dimensionSummaryCard.set_no_of_time_dimensions(data_dict["n_td"])
 
         dimensionSummaryCard.set_summary_html(summary)
+        dimensionSummaryCard.set_card_name("overall summary card")
         # dimensionSummaryCard.set_quote_html
         self._story_narrative.add_a_card(dimensionSummaryCard)
 
@@ -154,12 +156,11 @@ class DimensionColumnNarrative:
         lines += output1
         lines += [C3ChartData(data=chart_json)]
         lines += output2
-        bubble_data = "<div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(largest_per,largest_text,smallest_per,smallest_text)
+        bubble_data = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(largest_per,largest_text,smallest_per,smallest_text)
         lines.append(HtmlData(data=bubble_data))
         # print lines
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)
-        self._dimensionSummaryNode.set_name("Summary")
         return lines
 
     def _generate_analysis2(self):

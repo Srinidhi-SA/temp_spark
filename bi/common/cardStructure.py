@@ -54,6 +54,17 @@ class NarrativesTree:
     def get_node_count(self):
         return len(self.listOfNodes)
 
+    def reorder_nodes(self,ordered_node_list):
+        orderedNodeList = []
+        nodeList = self.listOfNodes
+        existingName = [node.get_name() for node in nodeList]
+        for val in ordered_node_list:
+            try:
+                index_value = existingName.index(44)
+            except ValueError:
+                index_value = -1
+            orderedNodeList.append()
+
 
 class NormalCard:
     """

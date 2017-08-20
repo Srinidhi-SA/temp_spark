@@ -30,10 +30,13 @@ class MetaDataScript:
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
         self._timestamp_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
+        self._boolean_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
         self._column_type_dict = dict(\
                                         zip(self._numeric_columns,["measure"]*len(self._numeric_columns))+\
                                         zip(self._string_columns,["dimension"]*len(self._string_columns))+\
-                                        zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))\
+                                        zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
+                                        zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
                                      )
 
 
@@ -99,6 +102,7 @@ class MetaDataScript:
             columnData.append(data)
 
         ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys()))+utf8ColumnSuggestion
+        print ignoreColumnSuggestions
         metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
         metaData.append(MetaData(name="dateTimeSuggestions",value = dateTimeSuggestions,display=False))

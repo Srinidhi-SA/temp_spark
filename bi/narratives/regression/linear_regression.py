@@ -291,7 +291,7 @@ class LinearRegressionNarrative:
             data_obj[col].append(obj)
         scatterData.set_data(data_obj)
         scatterChart = ChartJson()
-        scatterChart.set_data(scatterData)
+        scatterChart.set_data(scatterData.get_data())
         scatterChart.set_legend(plot_labels)
         scatterChart.set_label_text({"x":col1,"y":col2})
         scatterChart.set_axes({"x":col1,"y":col2})

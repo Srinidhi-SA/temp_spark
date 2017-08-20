@@ -34,7 +34,7 @@ class ChiSquareNarratives:
 
     def _generate_narratives(self):
         chiSquareNode = NarrativesTree()
-        chiSquareNode.set_name("Chi-Square")
+        chiSquareNode.set_name("Association")
         for target_dimension in self._df_chisquare_result.keys():
 
             target_chisquare_result = self._df_chisquare_result[target_dimension]
@@ -82,16 +82,15 @@ class ChiSquareNarratives:
 
 
             main_card = NormalCard()
-            header = "Strength of association between "+target_dimension+" and other dimensions"
+            header = "<h3>Strength of association between "+target_dimension+" and other dimensions</h3>"
             main_card_data = [HtmlData(data=header)]
             main_card_data.append(C3ChartData(data=chart_json))
             main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,'main_card.temp',data_dict)
             main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
             main_card_data += main_card_narrative
             main_card.set_card_data(main_card_data)
-            main_card.set_card_name("main_card")
+            main_card.set_card_name("Key Influencers")
             chiSquareNode.add_a_card(main_card)
-            chiSquareNode.set_name("Chi-Square-Main-Card")
 
             print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:
