@@ -134,14 +134,14 @@ class RegressionNarrative:
                 table1data = regression_narrative_obj.convert_table_data(card2table["table1"])
                 card2Table1 = TableData()
                 card2Table1.set_table_data(table1data)
-                card2Table1.set_table_type("normal")
+                card2Table1.set_table_type("heatMap")
                 card2Table1.set_table_top_header(card2table["table1"]["heading"])
                 measureCard2Data.insert(2,card2Table1)
             elif "table2" in card2table:
                 table2data = regression_narrative_obj.convert_table_data(card2table["table2"])
                 card2Table2 = TableData()
                 card2Table2.set_table_data(table1data)
-                card2Table2.set_table_type("normal")
+                card2Table2.set_table_type("heatMap")
                 card2Table2.set_table_top_header(card2table["table2"]["heading"])
                 measureCard2Data.insert(5,card2Table2)
 
