@@ -60,27 +60,27 @@ def main(configJson):
                     "config":{
                                 'FILE_SETTINGS': {
                                                   'script_to_run': [
-                                                                    'Descriptive analysis',
+                                                                    # 'Descriptive analysis',
                                                                     'Measure vs. Dimension',
-                                                                    'Dimension vs. Dimension',
-                                                                    'Predictive modeling',
-                                                                    'Measure vs. Measure',
-                                                                    'Trend'
+                                                                    # 'Dimension vs. Dimension',
+                                                                    # 'Predictive modeling',
+                                                                    # 'Measure vs. Measure',
+                                                                    # 'Trend'
                                                                     ],
-                                                  'inputfile': ['file:///home/yasar/3.csv']
+                                                  'inputfile': ['file:///home/yasar/1.csv']
                                                 #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
-                                                    'date_columns':["Date"],
+                                                    'date_columns':[],
                                                     'ignore_column_suggestions': [],
-                                                    'result_column': ['Loan_Property'],
+                                                    'result_column': ['Price'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['dimension']
+                                                    'analysis_type': ['measure']
                                                     # 'score_consider_columns': None
                                                     }
                              },

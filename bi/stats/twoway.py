@@ -33,15 +33,18 @@ class TwoWayAnova:
         self._data_frame_helper = df_helper
         self._measure_columns = self._data_frame_helper.get_numeric_columns()
         self._dimension_columns = self._data_frame_helper.get_string_columns()
+        self._timestamp_columns = self._data_frame_helper.get_timestamp_columns()
         self._df_rows = self._data_frame_helper.get_num_rows()
         self.top_dimension_result = {}
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._dateFormatDetected = False
         self.trend_result = ''
+        self._existingDateFormat=None
+        self._requestedDateFormat = '%m-%d-%Y'
         self.get_primary_time_dimension(df_context)
 
     def get_aggregated_by_date(self, aggregate_column, measure_column, existingDateFormat = None, \
-                                requestedDateFormat = None, on_subset = False):
+                                requestedDateFormat = None, on_subset = False,use_timestamp=False):
         if on_subset:
             data_frame = self._df_subset.na.drop(subset=aggregate_column)
         else:
@@ -51,32 +54,40 @@ class TwoWayAnova:
             # data_frame = data_frame.select(*[func(column).alias(aggregate_column) if column==aggregate_column else column for column in self._data_frame.columns])
             # subset_data = data_frame.select(aggregate_column,measure_column)
             agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
-            try:
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
-            except:
-                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            if not use_timestamp:
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                except:
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            else:
+                agg_data['date_col']=agg_data[aggregate_column]
             agg_data = agg_data.sort_values('date_col')
             agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
             agg_data.columns = ["Date","measure","date_col"]
             agg_data = agg_data[['Date','measure']]
         elif existingDateFormat != None:
             agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
-            try:
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
-            except:
-                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            if not use_timestamp:
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                except:
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            else:
+                agg_data['date_col']=agg_data[aggregate_column]
             agg_data = agg_data.sort_values('date_col')
             agg_data.columns = ["Date","measure","date_col"]
             agg_data = agg_data[['Date','measure']]
         else:
             agg_data = data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","measure"]
+            agg_data = agg_data.sort_values('Date')
+            agg_data = agg_data[['Date','measure']]
         return agg_data
 
     def get_aggregated_by_date_and_dimension(self, aggregate_column, measure_column, dimension_column,\
-                                existingDateFormat = None, requestedDateFormat = None):
+                                existingDateFormat = None, requestedDateFormat = None,use_timestamp=False):
         data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if existingDateFormat != None and requestedDateFormat != None:
             func = udf(lambda x: datetime.strptime(x,existingDateFormat).strftime(requestedDateFormat), StringType())
@@ -84,38 +95,54 @@ class TwoWayAnova:
             # subset_data = data_frame.select(aggregate_column,measure_column, dimension_column, aggregate_column)
             agg_data = data_frame.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","dimension","measure"]
-            try:
-                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
-            except:
-                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
-                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
+            if use_timestamp:
+                agg_data['date_col'] = agg_data['Date']
+            else:
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
+                except:
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
             agg_data['Date'] = agg_data['date_col'].dt.strftime(requestedDateFormat)
+            agg_data = agg_data[["Date","dimension","measure"]]
+        elif existingDateFormat != None:
+            agg_data = data_frame.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
+            agg_data.columns = ["Date","dimension","measure"]
+            if use_timestamp:
+                agg_data['date_col'] = agg_data['Date']
+            else:
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
+                except:
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
+            agg_data = agg_data.sort_values('date_col')
             agg_data = agg_data[["Date","dimension","measure"]]
         else:
             agg_data = data_frame.groupBy([aggregate_column,dimension_column]).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["Date","dimension","measure"]
-            try:
-                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
-            except:
-                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
-                agg_data['date_col'] = pd.to_datetime(agg_data['Date'], format = existingDateFormat)
-            agg_data = agg_data.sort_values('date_col')
-            agg_data = agg_data[["Date","dimension","measure"]]
+            agg_data = agg_data.sort_values('Date')
         grouped_data = agg_data.groupby('dimension').agg({'measure' : ['first', 'last', 'sum']}).reset_index()
         return grouped_data
 
-    def initialise_trend_object(self, measure):
-        agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
+    def initialise_trend_object(self, measure, use_timestamp=False):
+        if use_timestamp:
+            agg_data_frame = self.get_aggregated_by_date(self._timestamp_columns[0], measure, \
+                                                        None, self._requestedDateFormat,
+                                                        use_timestamp=True)
+            self.trend_result = TrendResult(agg_data_frame, self._timestamp_columns[0], measure)
+        else:
+            agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
                                                     self._existingDateFormat, self._requestedDateFormat)
-        self.trend_result = TrendResult(agg_data_frame, self._primary_date, measure)
+            self.trend_result = TrendResult(agg_data_frame, self._primary_date, measure)
 
     def get_primary_time_dimension(self, df_context):
         # timestamp_columns = self._data_frame_helper.get_timestamp_columns()
         date_suggestion_cols = df_context.get_date_column_suggestions()
         # if len(timestamp_columns)>0:
         #     self._primary_date = timestamp_columns[0]
-        if date_suggestion_cols != None:
+        if date_suggestion_cols != None and len(date_suggestion_cols)>0:
             self._primary_date = date_suggestion_cols[0]
             self.get_date_conversion_formats(df_context)
         else:
@@ -157,6 +184,10 @@ class TwoWayAnova:
             self._anova_result = MeasureAnovaResult(var[0],sst)
             if self._dateFormatDetected:
                 self.initialise_trend_object(m)
+            elif len(self._timestamp_columns)>0:
+                self._primary_date = self._timestamp_columns[0]
+                self._dateFormatDetected=True
+                self.initialise_trend_object(m,use_timestamp=True)
             self.test_against(m, dimensions_to_test)
             self._anova_result.set_TrendResult(self.trend_result)
             DF_Anova_Result.add_measure_result(m,self._anova_result)
@@ -217,11 +248,18 @@ class TwoWayAnova:
 
     def set_trend_result(self, measure, dimension, agg_dimension):
         if not self.trend_result.subset_df.has_key(agg_dimension):
-            agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
-                                                    self._existingDateFormat, self._requestedDateFormat,True)
+            if self._primary_date in self._timestamp_columns:
+                agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
+                                                    None, self._requestedDateFormat,True,
+                                                    use_timestamp=self._primary_date in self._timestamp_columns)
+            else:
+                agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
+                                                    self._existingDateFormat, self._requestedDateFormat,True,
+                                                    use_timestamp=False)
             self.trend_result.add_subset_df(agg_data_frame,agg_dimension, self._top_dimension)
         agg_data_frame_dimension = self.get_aggregated_by_date_and_dimension(self._primary_date, measure, dimension,\
-                                                                self._existingDateFormat, self._requestedDateFormat)
+                                                                self._existingDateFormat, self._requestedDateFormat,
+                                                                use_timestamp=self._primary_date in self._timestamp_columns)
         self.trend_result.add_trend_result(dimension,agg_data_frame_dimension)
 
     def test_against(self,measure, dimensions):
