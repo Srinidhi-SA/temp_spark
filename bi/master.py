@@ -172,9 +172,9 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
-    configJson = testConfigs["story"]
+    # configJson = testConfigs["story"]
     print configJson
-    # config = configJson["config"]
+    config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
