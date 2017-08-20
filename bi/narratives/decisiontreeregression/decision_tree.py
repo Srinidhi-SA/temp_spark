@@ -6,22 +6,28 @@ from bi.common.results import DecisionTreeResult
 from bi.common.utils import accepts
 from bi.common import ResultSetter
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
+from bi.common import utils as CommonUtils
+from bi.common import NarrativesTree
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
-
 
 
 class DecisionTreeRegNarrative:
     MAX_FRACTION_DIGITS = 2
 
     def _get_new_table(self):
+        self.card1Table = [["PREDICTION","RULES","PERCENTAGE"]]
         for keys in self.table.keys():
             self.new_table[keys]={}
             self.new_table[keys]['rules'] = self.table[keys]
             self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
+            keyTable = [keys,self.new_table[keys]['rules'],self.new_table[keys]['probability']]
+            self.card1Table.append(keyTable)
 
-    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ResultSetter)
-    def __init__(self, column_name, decision_tree_rules,df_helper,result_setter):
+    # @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ResultSetter)
+    def __init__(self, column_name, decision_tree_rules,df_helper,result_setter,story_narrative):
+        self._story_narrative = story_narrative
+        self._blockSplitter = "|~NEWBLOCK~|"
         self._result_setter = result_setter
         self._column_name = column_name.lower()
         self._colname = column_name
@@ -40,11 +46,17 @@ class DecisionTreeRegNarrative:
         self.dropdownComment = None
         self.dropdownValues = None
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
+        self._decisionTreeNode = NarrativesTree()
+        self._decisionTreeNode.set_name("Decision Tree Regression")
         self._generate_narratives()
+        self._story_narrative.add_a_node(self._decisionTreeNode)
 
 
     def _generate_narratives(self):
+        self._decisionTreeCard1 = NormalCard()
+        self._decisionTreeCard2 = NormalCard(name = 'Key Rules used for prediction')
         self._generate_summary()
+        self._decisionTreeNode.add_cards([self._decisionTreeCard1,self._decisionTreeCard2])
 
     def _generate_summary(self):
         rules = self._decision_rules_dict
@@ -65,6 +77,10 @@ class DecisionTreeRegNarrative:
                 rules1 = self._generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
                 self.condensedTable[target].append(rules1)
         self.dropdownValues = rules_dict.keys()
+        lines2 = []
+        lines2 += NarrativesUtils.block_splitter('Most Significant Rules for Price :',self._blockSplitter)
+        lines2 += [TreeData(data=self.condensedTable,datatype='dropdown')]
+        self._decisionTreeCard2.add_card_data(lines2)
         data_dict['rules_list_high'] = self.condensedTable['High']
         data_dict['rules_list_low'] = self.condensedTable['Low']
         data_dict['count_percent_high'] = NarrativesUtils.round_number(self._target_distribution['High']['count_percent'],2)
@@ -83,6 +99,11 @@ class DecisionTreeRegNarrative:
                                         'mean': self._capitalized_column_name+' Avg'}}
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
                                         'decision_tree_summary.temp',data_dict)
+        lines = []
+        lines += NarrativesUtils.block_splitter(self.subheader,self._blockSplitter)
+        tableData = {'tableDate':TableData(data=self.card1Table),'tableType':'decisionTreeTable'}
+        lines += [TreeData(data=self._decision_rules_dict),tableData]
+        self._decisionTreeCard1.add_card_data(lines)
         executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],
                                   "average_high_group" : data_dict["average_high_group"],
                                   "average_overall" : data_dict["average_overall"],
