@@ -67,8 +67,8 @@ def main(configJson):
                                                 'Measure vs. Measure',
                                                 'Trend'
                                                 ],
-                            #    'inputfile': ['file:///home/hadoop/trend_gulshan.csv'],
-                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                               'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv'],
+                            #    'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_test3.csv']
                                 },
                         'COLUMN_SETTINGS': {
                                 'polarity': ['positive'],
@@ -76,11 +76,13 @@ def main(configJson):
                                 'date_format': None,
                                 'date_columns':["Month"],
                                 'ignore_column_suggestions': ["Order Date"],
-                                'result_column': ['Platform'],
+                                # "ignore_column_suggestions":['Avg Visit Duration', 'Days to Resolve', '% Share of Heineken Lager Beer', 'Cleanliness', 'Outlet ID', 'Issue Category', 'Visibility_to_Cosumer', 'Outlet', 'Accessible_to_consumer', 'Working_Condition', 'Issue Status', 'Resultion Status', 'Outlet'],
+                                'result_column': ['Sales'],
+                                # 'result_column': ['Segment'],
                                 'consider_columns':[],
                                 # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                 #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                'analysis_type': ['dimension']
+                                'analysis_type': ['measure']
                                 # 'score_consider_columns': None
                                 }
                         },
@@ -168,7 +170,7 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
-    # configJson = testConfigs["story"]
+    configJson = testConfigs["story"]
     print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]

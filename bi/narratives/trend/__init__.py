@@ -285,7 +285,7 @@ class TimeSeriesNarrative:
                         measureTrendcard1Data.append(HtmlData(data=card1BubbleData))
                         cardData = measureTrendcard1Data+measureTrendcard2Data
                         measureTrendCard.set_card_data(cardData)
-                        measureTrendCard.set_card_name("measure trend")
+                        measureTrendCard.set_card_name("Trend Analysis")
                         trendStoryNode = NarrativesTree("Trend",None,[],[measureTrendCard])
                         self._story_narrative.add_a_node(trendStoryNode)
 
