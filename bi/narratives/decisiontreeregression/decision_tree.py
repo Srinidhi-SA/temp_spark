@@ -46,15 +46,15 @@ class DecisionTreeRegNarrative:
         self.dropdownComment = None
         self.dropdownValues = None
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
-        self._decisionTreeNode = NarrativesTree()
+        self._decisionTreeNode = NarrativesTree(name='Prediction')
         self._decisionTreeNode.set_name("Decision Tree Regression")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._decisionTreeNode)
 
 
     def _generate_narratives(self):
-        self._decisionTreeCard1 = NormalCard()
-        self._decisionTreeCard2 = NormalCard(name = 'Key Rules used for prediction')
+        self._decisionTreeCard1 = NormalCard(name = 'Predicting key drivers of '+self._capitalized_column_name)
+        self._decisionTreeCard2 = NormalCard(name = 'Decision Rules of '+self._capitalized_column_name)
         self._generate_summary()
         self._decisionTreeNode.add_cards([self._decisionTreeCard1,self._decisionTreeCard2])
 
