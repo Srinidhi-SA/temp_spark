@@ -1,3 +1,4 @@
+<p class="txt-justify">
 {% if num_significant_variables>=1 %}
   {% if num_variables == 1 %}
     {{analysed_dimension[0]}} is the only factor in the dataset and it has significant association with {{target}}.
@@ -30,3 +31,4 @@
   The chart above displays the<b> impact of key dimensions </b> on {{target}}, as measured by effect size.
 {% endif %}
 Let us take a deeper look at some of the most important relationships.
+</p>

@@ -88,7 +88,9 @@ def main(configJson):
                         },
                     "job_config":{
                                     "job_type":"story",
-                                    "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
+                                    # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
+                                    "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
+
                                     "set_result": {
                                         "method": "PUT",
                                         "action": "result"
@@ -170,9 +172,9 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
-    # configJson = testConfigs["story"]
+    configJson = testConfigs["story"]
     print configJson
-    config = configJson["config"]
+    # config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
