@@ -34,7 +34,7 @@ class ChiSquareNarratives:
 
     def _generate_narratives(self):
         chiSquareNode = NarrativesTree()
-        chiSquareNode.set_name("Chi-Square")
+        chiSquareNode.set_name("Association")
         for target_dimension in self._df_chisquare_result.keys():
 
             target_chisquare_result = self._df_chisquare_result[target_dimension]
@@ -89,7 +89,7 @@ class ChiSquareNarratives:
             main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
             main_card_data += main_card_narrative
             main_card.set_card_data(main_card_data)
-            main_card.set_card_name("Chi-Square-Main-Card")
+            main_card.set_card_name("Key Influencers")
             chiSquareNode.add_a_card(main_card)
 
             print "target_dimension",target_dimension

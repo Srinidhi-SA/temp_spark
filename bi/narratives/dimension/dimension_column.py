@@ -32,7 +32,7 @@ class DimensionColumnNarrative:
         self._dataframe_helper = df_helper
         self._blockSplitter = "|~NEWBLOCK~|"
         self._dimensionSummaryNode = NarrativesTree()
-        self._dimensionSummaryNode.set_name("Distribution")
+        self._dimensionSummaryNode.set_name("Overview")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
 

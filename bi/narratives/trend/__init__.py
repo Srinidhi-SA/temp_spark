@@ -468,7 +468,7 @@ class TimeSeriesNarrative:
                     chartJson.set_chart_type("line")
                     chartJson.set_axes(labels)
                     cardData1.insert(1,C3ChartData(data=chartJson))
-                    trendCard = NormalCard(name="Trend",slug=None,cardData = cardData1)
+                    trendCard = NormalCard(name="Trend Analysis",slug=None,cardData = cardData1)
                     trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
                     self._story_narrative.add_a_node(trendStoryNode)
                 else:
