@@ -60,35 +60,35 @@ def main(configJson):
                     "config":{
                                 'FILE_SETTINGS': {
                                                   'script_to_run': [
-                                                                    # 'Descriptive analysis',
-                                                                    # 'Measure vs. Dimension',
-                                                                    # 'Dimension vs. Dimension',
+                                                                    'Descriptive analysis',
+                                                                    'Measure vs. Dimension',
+                                                                    'Dimension vs. Dimension',
                                                                     'Predictive modeling',
-                                                                    # 'Measure vs. Measure',
+                                                                    'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
-                                                  'inputfile': ['file:///home/yasar/3.csv']
-                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                #   'inputfile': ['file:///home/yasar/3.csv']
+                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
-                                                    'date_columns':["Date"],
-                                                    'ignore_column_suggestions': [],
-                                                    'result_column': ['Price'],
+                                                    'date_columns':["Month"],
+                                                    'ignore_column_suggestions': ["Order Date"],
+                                                    'result_column': ['Platform'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['Measure']
+                                                    'analysis_type': ['dimension']
                                                     # 'score_consider_columns': None
                                                     }
                              },
                     "job_config":{
                                     "job_type":"story",
                                     # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
-                                    "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
-
+                                    # "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
+                                    "job_url":"",
                                     "set_result": {
                                         "method": "PUT",
                                         "action": "result"
@@ -170,7 +170,7 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
 
     # configJson = json.loads(HOCONConverter.to_json(configJson))
-    configJson = testConfigs["story"]
+    # configJson = testConfigs["story"]
     print configJson
     config = configJson["config"]
     job_config = configJson["job_config"]
