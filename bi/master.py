@@ -76,11 +76,11 @@ def main(configJson):
                                                     'date_format': None,
                                                     'date_columns':["Month"],
                                                     'ignore_column_suggestions': ["Order Date"],
-                                                    'result_column': ['Sales'],
+                                                    'result_column': ['Platform'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['Measure']
+                                                    'analysis_type': ['Dimension']
                                                     # 'score_consider_columns': None
                                                     }
                              },
