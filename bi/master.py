@@ -293,6 +293,11 @@ def main(configJson):
                 dimensionNode = json.loads(CommonUtils.convert_python_object_to_json(dimensionNode))
                 headNode["listOfNodes"].append(dimensionNode)
                 # headNode.add_a_node(dimensionNode)
+            trendNode = result_setter.get_trend_node()
+            if trendNode != None:
+                trendNode = json.loads(CommonUtils.convert_python_object_to_json(trendNode))
+                headNode["listOfNodes"].append(trendNode)
+                # headNode.add_a_node(trendNode)
             chisquareNode = result_setter.get_chisquare_node()
             if chisquareNode != None:
                 chisquareNode = json.loads(CommonUtils.convert_python_object_to_json(chisquareNode))
@@ -301,11 +306,7 @@ def main(configJson):
                 print chisquareNode
                 print "$"*100
                 # headNode.add_a_node(chisquareNode)
-            trendNode = result_setter.get_trend_node()
-            if trendNode != None:
-                trendNode = json.loads(CommonUtils.convert_python_object_to_json(trendNode))
-                headNode["listOfNodes"].append(trendNode)
-                # headNode.add_a_node(trendNode)
+
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
                 decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(decisionTreeNode))
