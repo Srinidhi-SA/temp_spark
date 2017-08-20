@@ -86,7 +86,7 @@ class OneWayAnovaNarratives:
         data = []
         for key in total:
             data.append({'dimension':key, 'total': total[key], 'average':average[key]})
-        return ChartJson(data = NormalChartData(data),axes={'x':'dimension','y':'total','y2':'average'},
+        return ChartJson(data = NormalChartData(data).get_data(),axes={'x':'dimension','y':'total','y2':'average'},
                          label_text={'x':self._dimension_column_capitalized,
                                      'y':'Total '+self._measure_column_capitalized,
                                      'y2':'Average '+self._measure_column_capitalized},
@@ -97,7 +97,7 @@ class OneWayAnovaNarratives:
         data_c3 = []
         for row in zip(data[x],data[y],data[y2]):
             data_c3.append(dict(zip(key_list,row)))
-        return ChartJson(data = NormalChartData(data_c3),axes={'x':'k2','y':'k2','z':'k3'},
+        return ChartJson(data = NormalChartData(data_c3).get_data(),axes={'x':'k2','y':'k2','z':'k3'},
                         label_text={'x':x,'y':y,'y2':y2}, legend={'x':x,'y':y,'y2':y2},
                         chart_type = 'line')
 
@@ -114,8 +114,9 @@ class OneWayAnovaNarratives:
                         chart_type="scatter")
 
     def _generate_card1(self):
-        self._anovaCard1 = NormalCard(name='Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized)
+        self._anovaCard1 = NormalCard(name='Impact on '+self._measure_column_capitalized)
         lines = []
+        lines += NarrativesUtils.block_splitter('<h2>'+self._measure_column_capitalized+': Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized+'</h2>',self._blockSplitter)
         self.card1 = Card('Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized)
         dim_table = self._one_way_anova_result.get_dim_table()
         keys = dim_table['levels']
@@ -442,12 +443,14 @@ class OneWayAnovaNarratives:
                 return 'Red Alert'
 
     def _generate_card3(self):
-        self._anovaCard3 = NormalCard(name = self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix')
+        self._anovaCard3 = NormalCard(name = self._dimension_column_capitalized + '- Decision Matrix')
         self.card3 = Card(self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix')
         self.card3.add_paragraph({'header': '',
             'content' : 'Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.'})
         lines = []
-        lines += NarrativesUtils.block_splitter('Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.',
+
+        lines += NarrativesUtils.block_splitter('<h2>'+self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix</h2><br>'+
+                                                'Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.',
                                                 self._blockSplitter)
         grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
         grouped_data_frame['increase'] = (grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100/grouped_data_frame['measure']['first']

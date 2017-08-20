@@ -41,14 +41,14 @@ class AnovaNarratives:
 
     def _generate_narratives(self):
         self._anovaNodes = NarrativesTree()
-        self._anovaNodes.set_name("Anova")
+        self._anovaNodes.set_name("Performance")
         for measure_column in self._df_anova_result.get_measure_columns():
             measure_anova_result = self._df_anova_result.result[measure_column]
             significant_dimensions_dict, insignificant_dimensions = measure_anova_result.get_OneWayAnovaSignificantDimensions()
             significant_dimensions = [k for k,v in sorted(significant_dimensions_dict.items(), key=lambda x: -x[1])]
             num_significant_dimensions = len(significant_dimensions)
             num_insignificant_dimensions = len(insignificant_dimensions)
-            mainCard = NormalCard(name = "%s Performance Analysis" % (measure_column))
+            mainCard = NormalCard(name = "Overview of Key Factors")
             data_c3 = []
             for sig_dim in significant_dimensions:
                 data_c3.append({'dimension':sig_dim, 'effect_size':significant_dimensions_dict[sig_dim]})
@@ -73,7 +73,8 @@ class AnovaNarratives:
             output1['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.temp',data_dict)
             lines = []
             lines += NarrativesUtils.block_splitter(output['content'],self._blockSplitter)
-            chart_json = ChartJson(data = NormalChartData(data_c3),axes={'x':'dimension','y':'effect_size'},
+            data_c3 = NormalChartData(data_c3)
+            chart_json = ChartJson(data = data_c3.get_data(),axes={'x':'dimension','y':'effect_size'},
                                     label_text={'x':'','y':'Effect Size'},chart_type='bar')
             chart_json.set_axis_rotation(True)
             lines += [C3ChartData(chart_json)]
@@ -95,7 +96,7 @@ class AnovaNarratives:
             self.narratives['cards'].append({'card1':'', 'card2':'', 'card3':''})
         self.narratives['variables'] = significant_dimensions
         for dimension in significant_dimensions:
-            dimensionNode = NarrativesTree(name = 'Anova - '+dimension)
+            dimensionNode = NarrativesTree(name = 'For - '+dimension)
             anova_dimension_result = measure_anova_result.get_anova_result(dimension)
             narratives = OneWayAnovaNarratives(measure, dimension, anova_dimension_result, anova_trend_result,self._result_setter,dimensionNode)
             self._anovaNodes.add_a_node(dimensionNode)

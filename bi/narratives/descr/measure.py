@@ -20,7 +20,7 @@ class MeasureColumnNarrative:
         self._dataframe_context = df_context
         self.title = None
         self.heading = self._capitalized_column_name + ' Performance Analysis'
-        self.sub_heading = "Distribution Analysis"
+        self.sub_heading = "Distribution of " + self._capitalized_column_name
         self.summary = None
         self._analysis1 = None
         self._analysis2 = None
@@ -43,7 +43,7 @@ class MeasureColumnNarrative:
             data_c3.append({'bin_name':'< '+ humanize.intcomma(bin['end_value']),
                             'count':bin['num_records']})
         data_c3 = NormalChartData(data_c3)
-        return ChartJson(data_c3, axes={'x':'bin_name','y':'count'},label_text={'x':'','y':'# of Observations'},chart_type='bar')
+        return ChartJson(data=data_c3.get_data(), axes={'x':'bin_name','y':'count'},label_text={'x':'','y':'# of Observations'},chart_type='bar')
 
     def _generate_narratives(self):
         lines = []
@@ -67,7 +67,7 @@ class MeasureColumnNarrative:
             lines += NarrativesUtils.block_splitter(new_paragraph,self._blockSplitter)
         measureCard1 = NormalCard(name=self.sub_heading,slug=None,cardData = lines)
         self._measureSummaryNode.add_a_card(measureCard1)
-        self._measureSummaryNode.set_name("Summary")
+        self._measureSummaryNode.set_name("Overview")
         # if self.card2 != '':
         #     # measureCard2 = NormalCard(name=self.card2['data']['heading'])
         #     self._measureSummaryNode
@@ -97,7 +97,7 @@ class MeasureColumnNarrative:
         }
         self.summary = NarrativesUtils.get_template_output(self._base_dir,\
                                         'descr_stats_summary.temp',data_dict)
-        MeasureSummaryCard = SummaryCard(name=self.title,slug=None,cardData = None)
+        MeasureSummaryCard = SummaryCard(name='Summary',slug=None,cardData = None)
         MeasureSummaryCard.set_no_of_measures(data_dict["n_m"])
         MeasureSummaryCard.set_no_of_dimensions(data_dict["n_d"])
         MeasureSummaryCard.set_no_of_time_dimensions(data_dict["n_td"])
