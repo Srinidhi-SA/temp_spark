@@ -68,7 +68,7 @@ def main(configJson):
                                                                     'Trend'
                                                                     ],
                                                 #   'inputfile': ['file:///home/yasar/3.csv']
-                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']
+                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv'],
                                                   },
                                 'COLUMN_SETTINGS': {
                                                     'polarity': ['positive'],
@@ -250,17 +250,17 @@ def main(configJson):
                 print "Dimension vs. Dimension Not in Scripts to run "
 
             if ('Trend' in scripts_to_run):
-                # try:
-                fs = time.time()
-                trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
-                trend_obj.Run()
-                print "Trend Analysis Done in ", time.time() - fs, " seconds."
+                try:
+                    fs = time.time()
+                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+                    trend_obj.Run()
+                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-                # except Exception as e:
-                #     print "Trend Script Failed"
-                #     print "#####ERROR#####"*5
-                #     print e
-                #     print "#####ERROR#####"*5
+                except Exception as e:
+                    print "Trend Script Failed"
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
@@ -359,18 +359,18 @@ def main(configJson):
             df = df_helper.get_data_frame()
             #df = df.na.drop(subset=dataframe_context.get_result_column())
             if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
-                try:
-                    fs = time.time()
-                    # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                    # one_way_anova_obj.Run()
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                    two_way_obj.Run()
-                    print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print 'Anova Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # try:
+                fs = time.time()
+                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+                # one_way_anova_obj.Run()
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                two_way_obj.Run()
+                print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     print 'Anova Failed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 try:
@@ -378,17 +378,17 @@ def main(configJson):
                     correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
                     correlations = correlation_obj.Run()
                     print "Correlation Analysis Done in ", time.time() - fs ," seconds."
-                    # try:
-                    df = df.na.drop(subset=measure_columns)
-                    fs = time.time()
-                    regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
-                    regression_obj.Run()
-                    print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                    # except Exception as e:
-                    #     print 'Regression Failed'
-                    #     print "#####ERROR#####"*5
-                    #     print e
-                    #     print "#####ERROR#####"*5
+                    try:
+                        df = df.na.drop(subset=measure_columns)
+                        fs = time.time()
+                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                        regression_obj.Run()
+                        print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                    except Exception as e:
+                        print 'Regression Failed'
+                        print "#####ERROR#####"*5
+                        print e
+                        print "#####ERROR#####"*5
 
                 except Exception as e:
                     print 'Correlation Failed. Regression not executed'
@@ -399,17 +399,17 @@ def main(configJson):
             else:
                 print 'Regression not in Scripts to run'
 
-            try:
-                fs = time.time()
-                trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
-                trend_obj.Run()
-                print "Trend Analysis Done in ", time.time() - fs, " seconds."
+            # try:
+            fs = time.time()
+            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
+            trend_obj.Run()
+            print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-            except Exception as e:
-                print "Trend Script Failed"
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
+            # except Exception as e:
+            #     print "Trend Script Failed"
+            #     print "#####ERROR#####"*5
+            #     print e
+            #     print "#####ERROR#####"*5
 
 
             try:

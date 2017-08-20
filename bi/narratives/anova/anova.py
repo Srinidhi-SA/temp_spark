@@ -76,7 +76,7 @@ class OneWayAnovaNarratives:
             if self._card3_required:
                 self._generate_card3()
         self._dimensionNode.add_a_card(self._anovaCard1)
-        if self._card3_required:
+        if self._card3_required and self._trend_result != '':
             self._dimensionNode.add_a_card(self._anovaCard3)
 
     def _generate_title(self):
