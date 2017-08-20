@@ -61,7 +61,7 @@ class ChiSquare:
 
         chisquare_result = ChiSquareResult()
 
-        pivot_table = self._data_frame.stat.crosstab(dimension_name, dimension_column_name)
+        pivot_table = self._data_frame.stat.crosstab("{}".format(dimension_name), dimension_column_name)
         # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns) - 1, rdd)
@@ -101,7 +101,7 @@ class ChiSquare:
         # bucketedData = bucketizer.transform(df)
         bucketedData = bucketizer.transform(df.na.drop(subset=measure_column_name))
 
-        pivot_table = bucketedData.stat.crosstab(dimension_name, 'bucketedColumn')
+        pivot_table = bucketedData.stat.crosstab("{}".format(dimension_name), 'bucketedColumn')
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
         result = Statistics.chiSqTest(data_matrix)
