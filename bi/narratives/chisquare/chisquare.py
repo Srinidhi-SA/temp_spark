@@ -33,9 +33,9 @@ class ChiSquareAnalysis:
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
         # self.appid = appid
 
-        self.card1 = NormalCard()
-        self.card2 = NormalCard()
-        self.card4 = NormalCard()
+        self._card1 = NormalCard()
+        self._card2 = NormalCard()
+        self._card4 = NormalCard()
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
         if appid != None:
@@ -45,7 +45,7 @@ class ChiSquareAnalysis:
             elif self._appid == "2":
                 self._base_dir += "appid2/"
         self._generate_narratives()
-        self._dimensionNode.add_cards([self.card1,self.card2,self.card4])
+        self._dimensionNode.add_cards([self._card1,self._card2,self._card4])
         self._dimensionNode.set_name("{} Chi-Square".format(analysed_dimension))
 
     def get_dimension_node(self):
@@ -226,8 +226,8 @@ class ChiSquareAnalysis:
         card1Data.append(card1Table2)
         card1Data += output
 
-        self.card1.set_card_data(card1Data)
-        self.card1.set_card_name("card 1 of {}".format(self._analysed_dimension))
+        self._card1.set_card_data(card1Data)
+        self._card1.set_card_name("card 1 of {}".format(self._analysed_dimension))
 
         self._key_factors_contributions = {}
         # for key_dim in self._second_level_dimensions:
@@ -368,8 +368,8 @@ class ChiSquareAnalysis:
         card2BubbleData = "<div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
         card2Data.append(HtmlData(data=card2BubbleData))
 
-        self.card2.set_card_data(card2Data)
-        self.card2.set_card_name("card 2 of {}".format(self._analysed_dimension))
+        self._card2.set_card_data(card2Data)
+        self._card2.set_card_name("card 2 of {}".format(self._analysed_dimension))
 
         card4Data = []
         card4Heading ='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
@@ -389,8 +389,8 @@ class ChiSquareAnalysis:
         card4BubbleData = "<div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
         card4Data.append(HtmlData(data=card4BubbleData))
 
-        self.card4.set_card_data(card4Data)
-        self.card4.set_card_name("card 3 of {}".format(self._analysed_dimension))
+        self._card4.set_card_data(card4Data)
+        self._card4.set_card_name("card 3 of {}".format(self._analysed_dimension))
 
         # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
         # self.card0['paragraphs'] = output0
