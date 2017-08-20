@@ -90,7 +90,7 @@ class RegressionNarrative:
             sigMeasureNode = NarrativesTree()
             sigMeasureNode.set_name("For {}:".format(measure_column))
             measureCard1 = NormalCard()
-            measureCard1.set_card_name("{}: Impact on {}".format(measure_column,self.result_column))
+            measureCard1.set_card_name("<h3>{}: Impact on {}</h3>".format(measure_column,self.result_column))
             measureCard1Data = []
             measureCard2 = NormalCard()
             measureCard2.set_card_name("Key Areas where it Matters")
