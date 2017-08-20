@@ -178,7 +178,7 @@ class TimeSeriesNarrative:
                 print "NO DATE COLUMNS PRESENT"
 
 
-        if self._analysistype=="Measure":
+        if self._analysistype=="measure":
             # self._startMeasureTrend = self._result_setter.get_trend_section_completion_status()
             self._startMeasureTrend = True
             if self._startMeasureTrend == True:
@@ -338,7 +338,7 @@ class TimeSeriesNarrative:
             else:
                 print "overall Trend not Started YET"
 
-        elif self._analysistype == "Dimension":
+        elif self._analysistype == "dimension":
             self.narratives = {
                                "card0":{}
                                }

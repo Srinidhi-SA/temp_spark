@@ -89,9 +89,8 @@ class ChiSquareNarratives:
             main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
             main_card_data += main_card_narrative
             main_card.set_card_data(main_card_data)
-            main_card.set_card_name("main_card")
+            main_card.set_card_name("Chi-Square-Main-Card")
             chiSquareNode.add_a_card(main_card)
-            chiSquareNode.set_name("Chi-Square-Main-Card")
 
             print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:
