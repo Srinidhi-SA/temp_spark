@@ -166,7 +166,8 @@ class RegressionNarrative:
             card4paragraphs = NarrativesUtils.block_splitter(card4narrative,self._blockSplitter)
             # card3 = {"paragraphs":card4paragraphs}
             card0['paragraphs'] = card1paragraphs+card4paragraphs
-            card4paragraphs.insert(2,C3ChartData(data=card4data["charts"]))
+            card4Chart = card4data["charts"]
+            card4paragraphs.insert(2,C3ChartData(data=card4Chart))
             measureCard1Data += card4paragraphs
 
             self.narratives['cards'].append(measure_column_cards)

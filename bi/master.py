@@ -142,10 +142,11 @@ def main(configJson):
                                     'levelcounts' : "GG|~|34|~|HH|~|4"
                                     },
                             'COLUMN_SETTINGS': {
-                                'analysis_type': ['scoring'],
-                                'result_column': ['Opportunity Result'],
+                                'analysis_type': ['Dimension'],
+                                'result_column': ['Price'],
                                 'consider_columns_type': ['excluding'],
                                 'consider_columns':[],
+                                'date_columns':['Date'],
                                 'score_consider_columns_type': ['excluding'],
                                 'score_consider_columns':[],
 
@@ -295,7 +296,7 @@ def main(configJson):
             if ('Descriptive analysis' in scripts_to_run):
                 try:
                     fs = time.time()
-                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark)
+                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     descr_stats_obj.Run()
                     print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -335,7 +336,7 @@ def main(configJson):
                     fs = time.time()
                     # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
                     # one_way_anova_obj.Run()
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark)
+                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     two_way_obj.Run()
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:

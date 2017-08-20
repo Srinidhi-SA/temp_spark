@@ -2,6 +2,7 @@ import os
 import re
 import json
 import operator
+import random
 from collections import OrderedDict
 import numpy as np
 
@@ -14,6 +15,8 @@ from bi.algorithms import LinearRegression
 from bi.narratives import utils as NarrativesUtils
 from bi.stats.util import Stats
 from bi.common import utils as CommonUtils
+from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 
 import pyspark.sql.functions as FN
 from pyspark.sql.functions import avg
@@ -278,11 +281,26 @@ class LinearRegressionNarrative:
         # plot_labels = ["Labels"]+labels
         plot_labels = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],labels))
         all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]))
-        col2_data = [col2_data[0]]+[i[0] for i in all_data]
-        col1_data = [col1_data[0]]+[i[1] for i in all_data]
-        color_data = [color_data[0]]+[i[2] for i in all_data]
-
-        data_dict["charts"]["data"] = [col2_data,col1_data,color_data,plot_labels]
+        my_randoms = random.sample(xrange(len(col1_data)), 200)
+        sampled_data = [all_data[i] for i in my_randoms]
+        scatterData = ScatterChartData()
+        data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
+        for val in sampled_data:
+            col = val[2]
+            obj = {col1:val[1],col2:val[0]}
+            data_obj[col].append(obj)
+        scatterData.set_data(data_obj)
+        scatterChart = ChartJson()
+        scatterChart.set_data(scatterData)
+        scatterChart.set_legend(plot_labels)
+        scatterChart.set_label_text({"x":col1,"y":col2})
+        scatterChart.set_axes({"x":col1,"y":col2})
+        scatterChart.set_chart_type("scatter")
+        # col2_data = [col2_data[0]]+[i[0] for i in all_data]
+        # col1_data = [col1_data[0]]+[i[1] for i in all_data]
+        # color_data = [color_data[0]]+[i[2] for i in all_data]
+        # data_dict["charts"]["data"] = [col2_data,col1_data,color_data,plot_labels]
+        data_dict["charts"] = scatterChart
         return data_dict
 
 

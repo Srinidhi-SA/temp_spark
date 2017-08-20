@@ -74,6 +74,9 @@ class FivePointSummary:
     def get_q1_split(self):
         return self.splits.get(FivePointSummary.Q1)
 
+    def get_q2_split(self):
+        return self.splits.get(FivePointSummary.Q2)
+
     def get_q3_split(self):
         return self.splits.get(FivePointSummary.Q3)
 

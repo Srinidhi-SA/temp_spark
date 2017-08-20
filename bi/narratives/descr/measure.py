@@ -1,13 +1,16 @@
 import os
+import humanize
 
 from bi.narratives import utils as NarrativesUtils
-
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
+from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 class MeasureColumnNarrative:
 
     MAX_FRACTION_DIGITS = 2
 
-    def __init__(self, column_name, measure_descr_stats, df_helper, df_context, result_setter):
+    def __init__(self, column_name, measure_descr_stats, df_helper, df_context, result_setter, story_narrative):
+        self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._column_name = column_name.lower()
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
@@ -24,18 +27,50 @@ class MeasureColumnNarrative:
         self.analysis = None
         self.take_away = None
         self.card2 = ''
+        self._blockSplitter = "|~NEWBLOCK~|"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/descriptive/"
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())
         self.num_dimensions = len(self._dataframe_helper.get_string_columns())
         self.num_time_dimensions = len(self._dataframe_helper.get_timestamp_columns())
+        self._measureSummaryNode = NarrativesTree()
         self._generate_narratives()
+        self._story_narrative.add_a_node(self._measureSummaryNode)
 
+    def _get_c3_histogram(self):
+        data = self._measure_descr_stats.get_histogram()
+        data_c3 = []
+        for bin in data:
+            data_c3.append({'bin_name':'< '+ humanize.intcomma(bin['end_value']),
+                            'count':bin['num_records']})
+        data_c3 = NormalChartData(data_c3)
+        return ChartJson(data_c3, axes={'x':'bin_name','y':'count'},label_text={'x':'','y':'# of Observations'},chart_type='bar')
 
     def _generate_narratives(self):
+        lines = []
         self._generate_title()
         self._generate_summary()
         self._analysis1 = self._generate_analysis_para1()
         self._analysis2 = self._generate_analysis_para2()
+        lines += NarrativesUtils.block_splitter(self._analysis1,self._blockSplitter)
+        lines += [C3ChartData(self._get_c3_histogram())]
+        self._tableData = [['Minimum','Quartile 1','Median','Quartile 3','Maximum'],
+                            [NarrativesUtils.round_number(self._measure_descr_stats.get_min()),
+                             NarrativesUtils.round_number(self._five_point_summary_stats.get_q1_split()),
+                             NarrativesUtils.round_number(self._five_point_summary_stats.get_q2_split()),
+                             NarrativesUtils.round_number(self._five_point_summary_stats.get_q3_split()),
+                             NarrativesUtils.round_number(self._measure_descr_stats.get_max())]]
+        lines += [TableData({'tableType':'normal','tableData':self._tableData})]
+        lines += NarrativesUtils.block_splitter(self._analysis2,self._blockSplitter)
+        if self.card2 != '':
+            new_paragraph = '<h2>'+self.card2['data']['heading']+ '</h2><br>'
+            new_paragraph += self.card2['data']['content']
+            lines += NarrativesUtils.block_splitter(new_paragraph,self._blockSplitter)
+        measureCard1 = NormalCard(name=self.sub_heading,slug=None,cardData = lines)
+        self._measureSummaryNode.add_a_card(measureCard1)
+        self._measureSummaryNode.set_name("Summary")
+        # if self.card2 != '':
+        #     # measureCard2 = NormalCard(name=self.card2['data']['heading'])
+        #     self._measureSummaryNode
         self.analysis = [self._analysis1, self._analysis2]
         self.take_away = self._generate_take_away()
 
@@ -62,6 +97,12 @@ class MeasureColumnNarrative:
         }
         self.summary = NarrativesUtils.get_template_output(self._base_dir,\
                                         'descr_stats_summary.temp',data_dict)
+        MeasureSummaryCard = SummaryCard(name=self.title,slug=None,cardData = None)
+        MeasureSummaryCard.set_no_of_measures(data_dict["n_m"])
+        MeasureSummaryCard.set_no_of_dimensions(data_dict["n_d"])
+        MeasureSummaryCard.set_no_of_time_dimensions(data_dict["n_td"])
+        MeasureSummaryCard.set_summary_html(NarrativesUtils.block_splitter(self.summary,self._blockSplitter))
+        self._story_narrative.add_a_card(MeasureSummaryCard)
 
     def _generate_analysis_para1(self):
         output = ''

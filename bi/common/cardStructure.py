@@ -38,7 +38,7 @@ class NarrativesTree:
 
     def insert_card_at_given_index(self,data,idx):
         self.listOfCards.insert(idx,data)
-    
+
     def get_name(self):
         return self.name
 
@@ -69,7 +69,10 @@ class NormalCard:
         self.cardWidth = 100
 
     def set_card_data(self,data):
-        self.cardData = data
+        self.cardData = list(data)
+
+    def add_card_data(self,data):
+        self.cardData += list(data)
 
     def set_card_name(self,name):
         self.name = name
