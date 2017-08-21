@@ -37,6 +37,7 @@ class AnovaNarratives:
         self._generate_narratives()
         self._story_narrative.add_a_node(self._anovaNodes)
         #self._generate_take_away()
+        self._result_setter.set_anova_node(self._anovaNodes)
 
 
     def _generate_narratives(self):

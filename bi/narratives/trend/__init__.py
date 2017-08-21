@@ -303,6 +303,7 @@ class TimeSeriesNarrative:
                         measureTrendCard.set_card_name("Trend Analysis")
                         trendStoryNode = NarrativesTree("Trend",None,[],[measureTrendCard])
                         self._story_narrative.add_a_node(trendStoryNode)
+                        self._result_setter.set_trend_node(trendStoryNode)
 
                         # prediction_data = [{"key":x["key"],"value":x["value"]} for x in trend_chart_data]
                         # last_val = prediction_data[-1]

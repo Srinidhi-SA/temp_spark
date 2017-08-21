@@ -33,8 +33,12 @@ class MeasureColumnNarrative:
         self.num_dimensions = len(self._dataframe_helper.get_string_columns())
         self.num_time_dimensions = len(self._dataframe_helper.get_timestamp_columns())
         self._measureSummaryNode = NarrativesTree()
+        self._headNode = NarrativesTree()
+        self._headNode.set_name("Overview")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._measureSummaryNode)
+        self._result_setter.set_head_node(self._headNode)
+        self._result_setter.set_distribution_node(self._measureSummaryNode)
 
     def _get_c3_histogram(self):
         data = self._measure_descr_stats.get_histogram()
@@ -103,6 +107,7 @@ class MeasureColumnNarrative:
         MeasureSummaryCard.set_no_of_time_dimensions(data_dict["n_td"])
         MeasureSummaryCard.set_summary_html(NarrativesUtils.block_splitter(self.summary,self._blockSplitter))
         self._story_narrative.add_a_card(MeasureSummaryCard)
+        self._headNode.add_a_card(MeasureSummaryCard)
 
     def _generate_analysis_para1(self):
         output = ''

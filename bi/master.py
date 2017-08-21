@@ -67,7 +67,7 @@ def main(configJson):
                                                                     'Measure vs. Dimension',
                                                                     'Dimension vs. Dimension',
                                                                     'Predictive modeling',
-                                                                    # 'Measure vs. Measure',
+                                                                    'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
                                                 #   'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],
@@ -460,9 +460,30 @@ def main(configJson):
 
             measureResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
-            print measureResult
-            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],measureResult)
-            # return response
+            # print measureResult
+            # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],measureResult)
+            headNode = result_setter.get_head_node()
+            if headNode != None:
+                headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+            distributionNode = result_setter.get_distribution_node()
+            if distributionNode != None:
+                headNode["listOfNodes"].append(distributionNode)
+            trendNode = result_setter.get_trend_node()
+            if trendNode != None:
+                headNode["listOfNodes"].append(trendNode)
+            anovaNode = result_setter.get_anova_node()
+            if anovaNode != None:
+                headNode["listOfNodes"].append(anovaNode)
+            regressionNode = result_setter.get_regression_node()
+            if regressionNode != None:
+                headNode["listOfNodes"].append(regressionNode)
+            decisionTreeNode = result_setter.get_decision_tree_node()
+            if decisionTreeNode != None:
+                headNode["listOfNodes"].append(decisionTreeNode)
+
+            print json.dumps(headNode,indent=2)
+            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
+            return response
 
     elif jobType == 'prediction':
         prediction_narrative = NarrativesTree()

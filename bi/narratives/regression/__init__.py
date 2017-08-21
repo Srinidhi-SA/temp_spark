@@ -46,6 +46,9 @@ class RegressionNarrative:
 
         self._dim_regression = self.run_regression_for_dimension_levels()
         self.generate_narratives()
+        self._regressionNode = NarrativesTree()
+        self._regressionNode.set_name("Influencers")
+        self._result_setter.set_regression_node(self._regressionNode)
 
 
 
@@ -82,7 +85,7 @@ class RegressionNarrative:
         mainCardChartJson.set_axes({"x":"key","y":"value"})
         main_card.set_card_data(data = [main_card_header]+main_card_paragraphs+[C3ChartData(data=mainCardChartJson)])
         main_card.set_card_name("Key Influencers")
-        regressionNode = NarrativesTree("Influencers",None,[],[main_card])
+        self._regressionNode.add_a_card(main_card)
 
 
         count = 0
@@ -179,9 +182,9 @@ class RegressionNarrative:
             measureCard1.set_card_data(measureCard1Data)
             measureCard2.set_card_data(measureCard2Data)
             sigMeasureNode.add_cards([measureCard1,measureCard2])
-            regressionNode.add_a_node(sigMeasureNode)
+            self._regressionNode.add_a_node(sigMeasureNode)
         # self._result_setter.set_trend_section_completion_status(True)
-        self._story_narrative.add_a_node(regressionNode)
+        self._story_narrative.add_a_node(self._regressionNode)
 
 
     def run_regression_for_dimension_levels(self):
