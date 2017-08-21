@@ -30,7 +30,6 @@ class ContextSetter:
         self.considercolumnstype = None
 
     def set_model_path(self,data):
-        print data
         self.MODEL_PATH = data
 
     def set_score_path(self,data):
