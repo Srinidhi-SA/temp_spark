@@ -284,11 +284,16 @@ class LinearRegressionNarrative:
         my_randoms = random.sample(xrange(len(col1_data)), 200)
         sampled_data = [all_data[i] for i in my_randoms]
         scatterData = ScatterChartData()
-        data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
+        # data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
+        data_obj = dict(zip(labels,[[],[],[],[]]))
+
         # legend_map = dict(zip(labels,['#DD2E1F','#7C5BBB','#00AEB3','#EC640C']))
         for val in sampled_data:
             col = val[2]
             obj = {col1:val[1],col2:val[0]}
+            print plot_labels
+            print col
+            print plot_labels[col]
             key = plot_labels[col]
             data_obj[key].append(obj)
         scatterData.set_data(data_obj)

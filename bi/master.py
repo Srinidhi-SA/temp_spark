@@ -70,7 +70,7 @@ def main(configJson):
                                                                     'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
-                                                #   'inputfile': ['file:///home/yasar/3.csv'],
+                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],
                                                   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
                                                   },
                                 'COLUMN_SETTINGS': {
@@ -78,12 +78,14 @@ def main(configJson):
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
                                                     'date_columns':["new_date","Month","Order Date"],
+                                                    # 'date_columns':["Month"],
                                                     'ignore_column_suggestions': [],
+                                                    # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
                                                     'result_column': ['Platform'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['dimension']
+                                                    'analysis_type': ['dimension'],
                                                     # 'score_consider_columns': None
                                                     }
                              },
@@ -101,12 +103,13 @@ def main(configJson):
                   },
                 "metaData" : {
                     "config":{
-                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan.csv']},
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_data.csv']},
                             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                             },
                     "job_config":{
                         "job_type":"metaData",
-                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "job_url":"",
                         "set_result": {
                             "method": "PUT",
                             "action": "result"
@@ -368,82 +371,82 @@ def main(configJson):
             df = df_helper.get_data_frame()
             #df = df.na.drop(subset=dataframe_context.get_result_column())
             if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
-                try:
-                    fs = time.time()
-                    # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                    # one_way_anova_obj.Run()
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                    two_way_obj.Run()
-                    print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print 'Anova Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # try:
+                fs = time.time()
+                # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
+                # one_way_anova_obj.Run()
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                two_way_obj.Run()
+                print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     print 'Anova Failed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 LOGGER.append("Starting Measure Vs. Measure analysis")
-                try:
-                    fs = time.time()
-                    correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
-                    correlations = correlation_obj.Run()
-                    print "Correlation Analysis Done in ", time.time() - fs ," seconds."
-                    try:
-                        df = df.na.drop(subset=measure_columns)
-                        fs = time.time()
-                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
-                        regression_obj.Run()
-                        print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                    except Exception as e:
-
-                        LOGGER.append("got exception {}".format(e))
-                        LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-
-                        print 'Regression Failed'
-                        print "#####ERROR#####"*5
-                        print e
-                        print "#####ERROR#####"*5
-
-                except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    print 'Correlation Failed. Regression not executed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-
-            else:
-                print 'Regression not in Scripts to run'
-
-            try:
+                # try:
                 fs = time.time()
-                trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
-                trend_obj.Run()
-                print "Trend Analysis Done in ", time.time() - fs, " seconds."
-
-            except Exception as e:
-                LOGGER.append("got exception {}".format(e))
-                LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                print "Trend Script Failed"
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
-
-
-            try:
+                correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
+                correlations = correlation_obj.Run()
+                print "Correlation Analysis Done in ", time.time() - fs ," seconds."
+                # try:
+                df = df.na.drop(subset=measure_columns)
                 fs = time.time()
-                df_helper.fill_na_dimension_nulls()
-                df = df_helper.get_data_frame()
-                dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                dt_reg.Run()
-                print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-            except Exception as e:
-                LOGGER.append("got exception {}".format(e))
-                LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
-                print "Decision Tree Regression Script Failed"
+                regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                regression_obj.Run()
+                print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                    # except Exception as e:
+                    #
+                    #     LOGGER.append("got exception {}".format(e))
+                    #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                    #
+                    #     print 'Regression Failed'
+                    #     print "#####ERROR#####"*5
+                    #     print e
+                    #     print "#####ERROR#####"*5
+
+                # except Exception as e:
+                #     LOGGER.append("got exception {}".format(e))
+                #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                #     print 'Correlation Failed. Regression not executed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
+
+            # else:
+            #     print 'Regression not in Scripts to run'
+
+            # try:
+            fs = time.time()
+            trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
+            trend_obj.Run()
+            print "Trend Analysis Done in ", time.time() - fs, " seconds."
+
+            # except Exception as e:
+            #     LOGGER.append("got exception {}".format(e))
+            #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+            #     print "Trend Script Failed"
+            #     print "#####ERROR#####"*5
+            #     print e
+            #     print "#####ERROR#####"*5
+
+
+            # try:
+            fs = time.time()
+            df_helper.fill_na_dimension_nulls()
+            df = df_helper.get_data_frame()
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+            dt_reg.Run()
+            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+            # except Exception as e:
+            #     LOGGER.append("got exception {}".format(e))
+            #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+            #     print "#####ERROR#####"*5
+            #     print e
+            #     print "#####ERROR#####"*5
+            #     print "Decision Tree Regression Script Failed"
             # try:
             #     fs = time.time()
             #     exec_obj = ExecutiveSummaryScript(df_helper,dataframe_context,result_setter,spark)

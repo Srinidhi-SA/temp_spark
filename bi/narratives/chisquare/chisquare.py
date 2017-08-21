@@ -209,25 +209,25 @@ class ChiSquareAnalysis:
         data_dict["blockSplitter"] = self._blockSplitter
         output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict),self._blockSplitter)
         targetDimCard1Data = []
-        targetDimcard1Heading = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
+        targetDimcard1Heading = '<h3>Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension+"</h3>"
 
         targetDimTable1Data = self.generate_card1_table1()
         targetDimCard1Table1 = TableData()
         targetDimCard1Table1.set_table_type("heatMap")
         targetDimCard1Table1.set_table_data(targetDimTable1Data)
+        print targetDimTable1Data
 
-        targetDimTable2Data = self.generate_card1_table2()
-        targetDimCard1Table2 = TableData()
-        targetDimCard1Table2.set_table_type("normal")
-        targetDimCard1Table2.set_table_data(targetDimTable2Data["data1"])
+        # targetDimTable2Data = self.generate_card1_table2()
+        # print "Table 2"
+        # print targetDimTable2Data
+        # targetDimCard1Table2 = TableData()
+        # targetDimCard1Table2.set_table_type("normal")
+        # targetDimCard1Table2.set_table_data(targetDimTable2Data["data1"])
 
         targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
         targetDimCard1Data.append(targetDimCard1Table1)
         # targetDimCard1Data.append(targetDimCard1Table2)
         targetDimCard1Data += output
-        # targetDimCard1Data = [HtmlData(data=targetDimcard1Heading),\
-        #                       {"data":targetDimCard1Table1.get_data(),"dataType":targetDimCard1Table1.get_data_type()},\
-        #                       {"data":targetDimCard1Table2.get_data(),"dataType":targetDimCard1Table2.get_data_type()}] + output
 
         self._card1.set_card_data(targetDimCard1Data)
         self._card1.set_card_name("{}: Relationship with {}".format(self._analysed_dimension,self._target_dimension))
@@ -354,7 +354,7 @@ class ChiSquareAnalysis:
         # print data_dict['distribution_second']
         # print data_dict['random_card2']
         card2Data = []
-        card2Heading = 'Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension
+        card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
         chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
         card2ChartData = NormalChartData(data=chart["data"])
         card2ChartJson = ChartJson()
@@ -368,14 +368,14 @@ class ChiSquareAnalysis:
         card2Data.append(HtmlData(data=card2Heading))
         card2Data.append(C3ChartData(data=card2ChartJson))
         card2Data += output2
-        card2BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+        card2BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
         card2Data.append(HtmlData(data=card2BubbleData))
 
         self._card2.set_card_data(card2Data)
         self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
 
         card4Data = []
-        card4Heading ='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
+        card4Heading ='<h3>Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension+"</h3>"
         chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
         card4ChartData = NormalChartData(data=chart["data"])
         card4ChartJson = ChartJson()
@@ -389,7 +389,7 @@ class ChiSquareAnalysis:
         card4Data.append(HtmlData(data=card4Heading))
         card4Data.append(C3ChartData(data=card4ChartJson))
         card4Data += output4
-        card4BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}%</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+        card4BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
         card4Data.append(HtmlData(data=card4BubbleData))
 
         self._card4.set_card_data(card4Data)
