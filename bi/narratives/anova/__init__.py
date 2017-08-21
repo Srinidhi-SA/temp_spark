@@ -96,7 +96,7 @@ class AnovaNarratives:
             self.narratives['cards'].append({'card1':'', 'card2':'', 'card3':''})
         self.narratives['variables'] = significant_dimensions
         for dimension in significant_dimensions:
-            dimensionNode = NarrativesTree(name = 'dimension)
+            dimensionNode = NarrativesTree(name = dimension)
             anova_dimension_result = measure_anova_result.get_anova_result(dimension)
             narratives = OneWayAnovaNarratives(measure, dimension, anova_dimension_result, anova_trend_result,self._result_setter,dimensionNode)
             self._anovaNodes.add_a_node(dimensionNode)
