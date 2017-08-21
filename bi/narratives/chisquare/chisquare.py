@@ -210,7 +210,6 @@ class ChiSquareAnalysis:
         output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict),self._blockSplitter)
         targetDimCard1Data = []
         targetDimcard1Heading = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
-        targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
 
         targetDimTable1Data = self.generate_card1_table1()
         targetDimCard1Table1 = TableData()
@@ -221,12 +220,13 @@ class ChiSquareAnalysis:
         targetDimCard1Table2 = TableData()
         targetDimCard1Table2.set_table_type("normal")
         targetDimCard1Table2.set_table_data(targetDimTable2Data["data1"])
-        # print targetDimCard1Table1.get_data()
-        # print card1Table2.get_data()
+
+        targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
         targetDimCard1Data.append(targetDimCard1Table1)
-        targetDimCard1Data.append(targetDimCard1Table2)
-        # print targetDimCard1Data
-        targetDimCard1Data += output
+        # targetDimCard1Data.append(targetDimCard1Table2)
+        # targetDimCard1Data = [HtmlData(data=targetDimcard1Heading),\
+        #                       {"data":targetDimCard1Table1.get_data(),"dataType":targetDimCard1Table1.get_data_type()},\
+        #                       {"data":targetDimCard1Table2.get_data(),"dataType":targetDimCard1Table2.get_data_type()}] + output
 
         self._card1.set_card_data(targetDimCard1Data)
         self._card1.set_card_name("{}: Relationship with {}".format(self._analysed_dimension,self._target_dimension))
@@ -436,7 +436,6 @@ class ChiSquareAnalysis:
         other_rows = zip(column_two_values,table_percent_by_column[0],table_percent_by_column[1])
         other_rows = [list(tup) for tup in other_rows]
         table_data = header_row+other_rows
-        print table_data
         return table_data
 
     def generate_card1_table2(self):
