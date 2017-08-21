@@ -50,7 +50,7 @@ class DecisionTreeRegNarrative:
         # self._decisionTreeNode.set_name("Decision Tree Regression")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._decisionTreeNode)
-        self._result_setter.set_decision_tree_node(self._regressionNode)
+        self._result_setter.set_decision_tree_node(self._decisionTreeNode)
 
 
     def _generate_narratives(self):

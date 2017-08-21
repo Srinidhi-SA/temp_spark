@@ -45,8 +45,8 @@ class RegressionNarrative:
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
 
         self._dim_regression = self.run_regression_for_dimension_levels()
-        self.generate_narratives()
         self._regressionNode = NarrativesTree()
+        self.generate_narratives()
         self._regressionNode.set_name("Influencers")
         self._result_setter.set_regression_node(self._regressionNode)
 
