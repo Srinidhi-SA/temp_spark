@@ -98,7 +98,7 @@ class ContextSetter:
         if "date_columns" in columnSettingKeys:
             self.date_columns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('date_columns')]
         if "date_format" in columnSettingKeys:
-            self.date_format = "{}".format(self.COLUMN_SETTINGS.get('date_format'))
+            self.date_format = self.COLUMN_SETTINGS.get('date_format')
         if "measure_suggestions" in columnSettingKeys:
             self.measure_suggestions = self.COLUMN_SETTINGS.get('measure_suggestions')
         if "score_consider_columns_type" in columnSettingKeys:

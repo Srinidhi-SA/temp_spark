@@ -40,6 +40,7 @@ class DimensionColumnNarrative:
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
 
         self._result_setter.set_head_node(self._headNode)
+        self._result_setter.set_distribution_node(self._dimensionSummaryNode)
 
     def _generate_narratives(self):
         if self.appid != None:
