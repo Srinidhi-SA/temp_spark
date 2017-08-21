@@ -291,9 +291,6 @@ class LinearRegressionNarrative:
         for val in sampled_data:
             col = val[2]
             obj = {col1:val[1],col2:val[0]}
-            print plot_labels
-            print col
-            print plot_labels[col]
             key = plot_labels[col]
             data_obj[key].append(obj)
         scatterData.set_data(data_obj)
