@@ -17,6 +17,8 @@ class ResultSetter:
         self.chisquareNode = None
         self.trendNode = None
         self.decisionTreeNode = None
+        self.regressionNode = None
+        self.anovaNode = None
         self.headNode = None
 
     # def set_params(self):
@@ -32,6 +34,10 @@ class ResultSetter:
         self.distributionNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_decision_tree_node(self,node):
         self.decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(node))
+    def set_anova_node(self,node):
+        self.anovaNode = json.loads(CommonUtils.convert_python_object_to_json(node))
+    def set_regression_node(self,node):
+        self.regressionNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def get_head_node(self):
         return self.headNode
     def get_trend_node(self):
@@ -42,6 +48,10 @@ class ResultSetter:
         return self.distributionNode
     def get_decision_tree_node(self):
         return self.decisionTreeNode
+    def get_anova_node(self):
+        return self.anovaNode
+    def get_regression_node(self):
+        return self.regressionNode
 
     def update_executive_summary_data(self,data_dict):
         if data_dict != None:

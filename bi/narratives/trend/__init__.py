@@ -235,10 +235,9 @@ class TimeSeriesNarrative:
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel
                         dataDict["durationString"] = self._durationString
+                        dataDict["significant_dimensions"] = significant_dimensions.keys()
                         if len(significant_dimensions.keys()) > 0:
                             xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
-                            print "xtraData"*10
-                            print xtraData
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
@@ -424,6 +423,7 @@ class TimeSeriesNarrative:
                         # print json.dumps(dataDict,indent=2)
                         significant_dimensions = df_helper.get_chisquare_significant_dimension()
                         reference_time = dataDict["reference_time"]
+                        dataDict["significant_dimensions"] = significant_dimensions.keys()
                         if len(significant_dimensions.keys()) > 0:
                             xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
                             if xtraData != None:

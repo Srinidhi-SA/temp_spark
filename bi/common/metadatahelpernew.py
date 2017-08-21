@@ -59,7 +59,7 @@ class MetaDataHelper():
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
             for k,v in col_stat.items():
                 if "." in v:
-                    col_stat[k] = float(v)
+                    col_stat[k] = round(float(v),2)
                 else:
                     col_stat[k] = int(v)
             col_stat["numberOfNulls"] = total_count - int(col_stat["count"])

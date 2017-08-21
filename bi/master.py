@@ -67,7 +67,7 @@ def main(configJson):
                                                                     'Measure vs. Dimension',
                                                                     'Dimension vs. Dimension',
                                                                     'Predictive modeling',
-                                                                    'Measure vs. Measure',
+                                                                    # 'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
                                                 #   'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],

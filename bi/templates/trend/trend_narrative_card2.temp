@@ -27,34 +27,37 @@ However, there are also few {{dataLevel}} when {{measure}} was lagging and didn'
  {{lowest_contributing_variable}}</b>, which observed a decline of over
   {{lowest_contributing_level_decrease}} percentage points ({{lowest_contributing_level_range}}).
 </p>
-{{blockSplitter}}
 
-<h4>Significant factors that drive increase in {{measure}}</h4>
 {{blockSplitter}}
-<p class="txt-justify">
-<ul>
-<li>
-  {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
-   as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
-   overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
-</li>
-</ul>
-{{blockSplitter}}
+{% if significant_dimensions|length >0 %}
+  <h4>Significant factors that drive increase in {{measure}}</h4>
+  {{blockSplitter}}
+  <p class="txt-justify">
+    <ul>
+    <li>
+      {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
+       as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
+       overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
+    </li>
+    </ul>
 
-Significant factors that drag {{measure}} down
-{{blockSplitter}}
-<ul>
-<li>
-  {{negativeHighestSigDimension}} has been an area of concern,
-  as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
-   shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
-</li>
-{% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
-<li>
-{{negativeSecondHighestSigDimension}} has been an area of concern,
-as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
- shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
-</li>
+  {{blockSplitter}}
+
+  Significant factors that drag {{measure}} down
+  {{blockSplitter}}
+    <ul>
+    <li>
+      {{negativeHighestSigDimension}} has been an area of concern,
+      as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
+       shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
+    </li>
+    {% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
+      <li>
+      {{negativeSecondHighestSigDimension}} has been an area of concern,
+      as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
+       shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
+      </li>
+    {% endif %}
+    </ul>
+  </p>
 {% endif %}
-</ul>
-</p>
