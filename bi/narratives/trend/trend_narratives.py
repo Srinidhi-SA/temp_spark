@@ -151,8 +151,8 @@ class TrendNarrative:
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict)
 
         dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
-        # print "#"*20
-        # print dim_data
+        print "#"*20
+        print dim_data
         if level_cont_dict != None:
             if bucket_data != None:
                 level_cont_dict.update(bucket_data)

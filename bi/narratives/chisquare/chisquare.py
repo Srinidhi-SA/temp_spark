@@ -436,7 +436,7 @@ class ChiSquareAnalysis:
         header_row = [self._analysed_dimension] + self._chiSquareTable.get_column_one_levels()
         other_rows = zip(column_two_values,table_percent_by_column[0],table_percent_by_column[1])
         other_rows = [list(tup) for tup in other_rows]
-        table_data = header_row+other_rows
+        table_data = [header_row]+other_rows
         return table_data
 
     def generate_card1_table2(self):
