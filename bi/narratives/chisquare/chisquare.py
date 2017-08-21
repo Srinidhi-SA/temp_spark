@@ -224,6 +224,7 @@ class ChiSquareAnalysis:
         targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
         targetDimCard1Data.append(targetDimCard1Table1)
         # targetDimCard1Data.append(targetDimCard1Table2)
+        targetDimCard1Data += output
         # targetDimCard1Data = [HtmlData(data=targetDimcard1Heading),\
         #                       {"data":targetDimCard1Table1.get_data(),"dataType":targetDimCard1Table1.get_data_type()},\
         #                       {"data":targetDimCard1Table2.get_data(),"dataType":targetDimCard1Table2.get_data_type()}] + output
