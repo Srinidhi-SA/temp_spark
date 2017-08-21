@@ -70,7 +70,7 @@ def main(configJson):
                                                                     'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
-                                                #   'inputfile': ['file:///home/yasar/3.csv']
+                                                #   'inputfile': ['file:///home/yasar/3.csv'],
                                                   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
                                                   },
                                 'COLUMN_SETTINGS': {
@@ -79,7 +79,7 @@ def main(configJson):
                                                     'date_format': None,
                                                     'date_columns':["new_date","Month","Order Date"],
                                                     'ignore_column_suggestions': [],
-                                                    'result_column': ['Source'],
+                                                    'result_column': ['Platform'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
@@ -91,8 +91,8 @@ def main(configJson):
                                     "job_type":"story",
                                     # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
                                     # "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
-                                    "job_url": "http://192.168.33.94:9012/api/job/insight-adult-dimen-test-b6rim5juu3-hrswfad8w9/",
-                                    # "job_url":"",
+                                    # "job_url": "http://192.168.33.94:9012/api/job/insight-adult-dimen-test-b6rim5juu3-hrswfad8w9/",
+                                    "job_url":"",
                                     "set_result": {
                                         "method": "PUT",
                                         "action": "result"

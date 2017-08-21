@@ -47,7 +47,7 @@ class DecisionTreeRegNarrative:
         self.dropdownValues = None
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
         self._decisionTreeNode = NarrativesTree(name='Prediction')
-        self._decisionTreeNode.set_name("Decision Tree Regression")
+        # self._decisionTreeNode.set_name("Decision Tree Regression")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._decisionTreeNode)
 

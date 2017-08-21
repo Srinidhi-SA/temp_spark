@@ -285,10 +285,12 @@ class LinearRegressionNarrative:
         sampled_data = [all_data[i] for i in my_randoms]
         scatterData = ScatterChartData()
         data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
+        # legend_map = dict(zip(labels,['#DD2E1F','#7C5BBB','#00AEB3','#EC640C']))
         for val in sampled_data:
             col = val[2]
             obj = {col1:val[1],col2:val[0]}
-            data_obj[col].append(obj)
+            key = plot_labels[col]
+            data_obj[key].append(obj)
         scatterData.set_data(data_obj)
         scatterChart = ChartJson()
         scatterChart.set_data(scatterData.get_data())
