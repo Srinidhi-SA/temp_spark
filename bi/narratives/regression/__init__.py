@@ -71,7 +71,7 @@ class RegressionNarrative:
                                                             'y': 'Change in ' + self.result_column + ' per unit increase'}
 
         main_card = NormalCard()
-        main_card_header = HtmlData(data = 'Key Measures that affect ' + self.result_column)
+        main_card_header = HtmlData(data = '<h3>Key Measures that affect ' + self.result_column+"</h3>")
         main_card_paragraphs = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
         main_card_chart_data = [{"key":val[0],"value":val[1]} for val in zip([i for i,j in self._all_coeffs],[j['coefficient'] for i,j in self._all_coeffs])]
         main_card_chart = NormalChartData(data=main_card_chart_data)
@@ -81,16 +81,16 @@ class RegressionNarrative:
         mainCardChartJson.set_chart_type("bar")
         mainCardChartJson.set_axes({"x":"key","y":"value"})
         main_card.set_card_data(data = [main_card_header]+main_card_paragraphs+[C3ChartData(data=mainCardChartJson)])
-        main_card.set_card_name("regression main card")
+        main_card.set_card_name("Key Influencers")
         regressionNode = NarrativesTree("Influencers",None,[],[main_card])
 
 
         count = 0
         for measure_column in self.significant_measures:
             sigMeasureNode = NarrativesTree()
-            sigMeasureNode.set_name("For {}:".format(measure_column))
+            sigMeasureNode.set_name(measure_column)
             measureCard1 = NormalCard()
-            measureCard1.set_card_name("<h3>{}: Impact on {}</h3>".format(measure_column,self.result_column))
+            measureCard1.set_card_name("{}: Impact on {}".format(measure_column,self.result_column))
             measureCard1Data = []
             measureCard2 = NormalCard()
             measureCard2.set_card_name("Key Areas where it Matters")
@@ -99,7 +99,7 @@ class RegressionNarrative:
             measure_column_cards = {}
             card0 = {}
             card1data = regression_narrative_obj.generate_card1_data(measure_column)
-            card1heading = "Impact of "+measure_column+" on "+self.result_column
+            card1heading = "<h3>Impact of "+measure_column+" on "+self.result_column+"</h3>"
             measureCard1Header = HtmlData(data=card1heading)
             card1data.update({"blockSplitter":self._blockSplitter})
             card1narrative = NarrativesUtils.get_template_output(self._base_dir,\
