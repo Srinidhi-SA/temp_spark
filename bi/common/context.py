@@ -73,17 +73,17 @@ class ContextSetter:
         if "app_id" in columnSettingKeys:
             self.appid = self.COLUMN_SETTINGS['app_id'][0].strip()
         if "result_column" in columnSettingKeys:
-            self.resultcolumn = self.COLUMN_SETTINGS['result_column'][0].strip()
+            self.resultcolumn = "{}".format(self.COLUMN_SETTINGS['result_column'][0].strip())
         if "analysis_type" in columnSettingKeys:
             self.analysistype = self.COLUMN_SETTINGS['analysis_type'][0].strip()
         if "ignore_column_suggestions" in columnSettingKeys:
-            self.ignorecolumns = self.COLUMN_SETTINGS.get('ignore_column_suggestions')
+            self.ignorecolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('ignore_column_suggestions')]
         if "utf8_columns" in columnSettingKeys:
             self.utf8columns = self.COLUMN_SETTINGS.get('utf8_columns')
         if self.ignorecolumns!=None:
-            self.ignorecolumns = list(set(self.ignorecolumns)-set([self.resultcolumn]))
+            self.ignorecolumns = ["{}".format(col) for col in list(set(self.ignorecolumns)-set([self.resultcolumn]))]
         if "consider_columns" in columnSettingKeys:
-            self.considercolumns = self.COLUMN_SETTINGS.get('consider_columns')
+            self.considercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('consider_columns')]
         if "score_consider_columns" in columnSettingKeys:
             self.scoreconsidercolumns = self.COLUMN_SETTINGS.get('score_consider_columns')
         if "consider_columns_type" in columnSettingKeys:
@@ -96,9 +96,9 @@ class ContextSetter:
 
 
         if "date_columns" in columnSettingKeys:
-            self.date_columns = self.COLUMN_SETTINGS.get('date_columns')
+            self.date_columns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('date_columns')]
         if "date_format" in columnSettingKeys:
-            self.date_format = self.COLUMN_SETTINGS.get('date_format')
+            self.date_format = "{}".format(self.COLUMN_SETTINGS.get('date_format'))
         if "measure_suggestions" in columnSettingKeys:
             self.measure_suggestions = self.COLUMN_SETTINGS.get('measure_suggestions')
         if "score_consider_columns_type" in columnSettingKeys:
