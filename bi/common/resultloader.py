@@ -1,5 +1,5 @@
 from bi.common import utils as CommonUtils
-
+import json
 
 class ResultSetter:
     """
@@ -23,15 +23,15 @@ class ResultSetter:
     #     self.columns = [field.name for field in self._data_frame.schema.fields]
     #     self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
     def set_head_node(self,node):
-        self.headNode = node
+        self.headNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_trend_node(self,node):
-        self.trendNode = node
+        self.trendNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_chisquare_node(self,node):
-        self.chisquareNode = node
+        self.chisquareNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_distribution_node(self,node):
-        self.distributionNode = node
+        self.distributionNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_decision_tree_node(self,node):
-        self.decisionTreeNode = node
+        self.decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def get_head_node(self):
         return self.headNode
     def get_trend_node(self):

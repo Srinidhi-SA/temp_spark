@@ -63,7 +63,7 @@ def main(configJson):
                                                                     'Descriptive analysis',
                                                                     'Measure vs. Dimension',
                                                                     'Dimension vs. Dimension',
-                                                                    # 'Predictive modeling',
+                                                                    'Predictive modeling',
                                                                     'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
@@ -290,28 +290,17 @@ def main(configJson):
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
             dimensionNode = result_setter.get_distribution_node()
             if dimensionNode != None:
-                dimensionNode = json.loads(CommonUtils.convert_python_object_to_json(dimensionNode))
                 headNode["listOfNodes"].append(dimensionNode)
-                # headNode.add_a_node(dimensionNode)
             trendNode = result_setter.get_trend_node()
             if trendNode != None:
-                trendNode = json.loads(CommonUtils.convert_python_object_to_json(trendNode))
                 headNode["listOfNodes"].append(trendNode)
-                # headNode.add_a_node(trendNode)
             chisquareNode = result_setter.get_chisquare_node()
             if chisquareNode != None:
-                chisquareNode = json.loads(CommonUtils.convert_python_object_to_json(chisquareNode))
-                print "$"*100
                 headNode["listOfNodes"].append(chisquareNode)
-                print chisquareNode
-                print "$"*100
-                # headNode.add_a_node(chisquareNode)
 
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
-                decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(decisionTreeNode))
                 headNode["listOfNodes"].append(decisionTreeNode)
-                # headNode.add_a_node(decisionTreeNode)
 
             print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],headNode)
