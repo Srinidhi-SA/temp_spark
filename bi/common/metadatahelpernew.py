@@ -146,9 +146,12 @@ class MetaDataHelper():
             elif abs(colStat["max"]-colStat["min"]+1-total_rows) <= 0.01*total_rows:
                 ignore =True
             elif abs(colStat["numberOfNotNulls"]-colStat["numberOfUniqueValues"]) <= 0.01*colStat["numberOfNotNulls"]:
-                if abs(colStat["numberOfNotNulls"]-colStat["max"]+colStat["min"])<= 0.01*colStat["numberOfNotNulls"] or \
-                    abs(total_rows-colStat["max"]+colStat["min"])<= 0.01*total_rows:
+                if abs(colStat["numberOfNotNulls"]-colStat["numberOfUniqueValues"]) == 0:
                     ignore = True
+                else:
+                    if abs(colStat["numberOfNotNulls"]-colStat["max"]+colStat["min"])<= 0.01*colStat["numberOfNotNulls"] or \
+                        abs(total_rows-colStat["max"]+colStat["min"])<= 0.01*total_rows:
+                        ignore = True
         elif dataType == "dimension":
             if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or \
                 (colStat["numberOfUniqueValues"]<=1) or \

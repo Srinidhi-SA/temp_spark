@@ -70,7 +70,7 @@ def main(configJson):
                                                                     # 'Measure vs. Measure',
                                                                     'Trend'
                                                                     ],
-                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_data_cleaned.csv'],
+                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv'],
                                                 #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
                                                   },
                                 'COLUMN_SETTINGS': {
@@ -78,14 +78,14 @@ def main(configJson):
                                                     'consider_columns_type': ['excluding'],
                                                     'date_format': None,
                                                     # 'date_columns':["new_date","Month","Order Date"],
-                                                    'date_columns':["Month"],
-                                                    # 'ignore_column_suggestions': [],
-                                                    'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
-                                                    'result_column': ['Sales'],
+                                                    'date_columns':[],
+                                                    'ignore_column_suggestions': ["User ID"],
+                                                    # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
+                                                    'result_column': ['Performance'],
                                                     'consider_columns':[],
                                                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                                                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['measure'],
+                                                    'analysis_type': ['dimension'],
                                                     # 'score_consider_columns': None
                                                     }
                              },
@@ -103,7 +103,7 @@ def main(configJson):
                   },
                 "metaData" : {
                     "config":{
-                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_data.csv']},
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv']},
                             'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                             },
                     "job_config":{
