@@ -43,8 +43,8 @@ class ChartJson:
         self.chart_type = chart_type
         self.types = types
         self.axisRotation = False
-        self.yAxisNumberFormat = '.2s'
-        self.y2AxisNumberFormat = '.2s'
+        # self.yAxisNumberFormat = '.2s'
+        # self.y2AxisNumberFormat = ''
 
 
     def set_data(self,data):
