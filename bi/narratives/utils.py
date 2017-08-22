@@ -450,22 +450,26 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
         k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k.index))
         k = k.sort_values(by="rank", ascending=True)
         # k.to_csv("/home/gulshan/Desktop/dd1.csv")
-        max_index = list(k.index).index(max_time)
-        # print k.head()
+        if max_time in list(k.index):
+            max_index = list(k.index).index(max_time)
+        else:
+            max_index = None
         for level in column_levels:
-            data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
-            data_dict["contribution"] = round(float(np.sum(k[level]))*100/np.sum(k["total"]),2)
-            data = list(k[level])
-            data_dict["growth"] = round((data[-1]-data[0])*100/data[0],2)
-            k[level] = (k[level]/k["total"])*100
-            data = list(k[level])
-            data_dict["overall_avg"] = round(np.mean(data),2)
-            data_dict["max_avg"] = round(np.max(data),2)
-            data_dict["min_avg"] = round(np.min(data),2)
-            del(data[max_index])
-            data_dict["excluding_avg"] = round(np.mean(data),2)
-            data_dict["diff"] = round(data_dict["max_avg"] - data_dict["excluding_avg"],2)
-            out[column_name][level] = data_dict
+            if level != None:
+                data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
+                data_dict["contribution"] = round(float(np.sum(k[level]))*100/np.sum(k["total"]),2)
+                data = list(k[level])
+                data_dict["growth"] = round((data[-1]-data[0])*100/data[0],2)
+                k[level] = (k[level]/k["total"])*100
+                data = list(k[level])
+                data_dict["overall_avg"] = round(np.mean(data),2)
+                data_dict["max_avg"] = round(np.max(data),2)
+                data_dict["min_avg"] = round(np.min(data),2)
+                if max_index:
+                    del(data[max_index])
+                data_dict["excluding_avg"] = round(np.mean(data),2)
+                data_dict["diff"] = round(data_dict["max_avg"] - data_dict["excluding_avg"],2)
+                out[column_name][level] = data_dict
     return {"summary":out,"pivot":k}
 
 def get_level_cont_dict(level_cont):

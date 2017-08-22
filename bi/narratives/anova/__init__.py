@@ -52,7 +52,7 @@ class AnovaNarratives:
             mainCard = NormalCard(name = "Overview of Key Factors")
             data_c3 = []
             for sig_dim in significant_dimensions:
-                data_c3.append({'dimension':sig_dim, 'effect_size':significant_dimensions_dict[sig_dim]})
+                data_c3.append({'dimension':sig_dim, 'effect_size':float(significant_dimensions_dict[sig_dim])})
             self.narratives = {}
             self.narratives[AnovaNarratives.KEY_HEADING] = "%s Performance Analysis" % (measure_column,)
             self.narratives['main_card'] = {}
@@ -87,6 +87,7 @@ class AnovaNarratives:
             effect_size_chart = { 'heading' : '',
                                   'labels' : {'Dimension':'Effect Size'},
                                   'data' : significant_dimensions_dict}
+            print significant_dimensions_dict
             self.narratives['main_card'][AnovaNarratives.KEY_CHART]['effect_size'] = effect_size_chart
             self._generate_dimension_narratives(significant_dimensions, measure_anova_result, measure_column)
 

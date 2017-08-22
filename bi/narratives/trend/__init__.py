@@ -43,7 +43,7 @@ class TimeSeriesNarrative:
         self._trend_on_td_column = False
 
 
-        if self._date_suggestion_columns != None:
+        if self._date_suggestion_columns != None and len(self._date_suggestion_columns) > 0:
             suggested_date_column = self._date_suggestion_columns[0]
             existingDateFormat = None
             if suggested_date_column not in self._td_columns:
