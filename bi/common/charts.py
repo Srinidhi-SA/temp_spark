@@ -32,6 +32,9 @@ class NormalChartData:
             return []
 
 class ChartJson:
+    """
+    formats = ['.2s','$','$,.2s','.2f']
+    """
     def __init__(self, data = None, axes = {}, label_text = {}, legend = {}, chart_type = None, types = None):
         self.data = data
         self.axes = axes
@@ -40,8 +43,9 @@ class ChartJson:
         self.chart_type = chart_type
         self.types = types
         self.axisRotation = False
-        self.yAxisNumberFormat = "set_format_m"
-        self.y2AxisNumberFormat = "set_format_m"
+        self.yAxisNumberFormat = '.2s'
+        self.y2AxisNumberFormat = '.2s'
+
 
     def set_data(self,data):
         """

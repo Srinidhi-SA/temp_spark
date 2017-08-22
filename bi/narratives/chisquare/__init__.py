@@ -80,7 +80,7 @@ class ChiSquareNarratives:
             chart_json.set_label_text({'x':'Dimensions','y':'Effect Size (Cramers-V)'})
             chart_json.set_axis_rotation(True)
             chart_json.set_axes({"x":"key","y":"value"})
-            # chart_json.set_yaxis_number_format()
+            chart_json.set_yaxis_number_format(".2f")
             self.narratives['main_card']['chart']=chart
 
 
