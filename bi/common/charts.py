@@ -40,6 +40,8 @@ class ChartJson:
         self.chart_type = chart_type
         self.types = types
         self.axisRotation = False
+        self.yAxisNumberFormat = "set_format_m"
+        self.y2AxisNumberFormat = "set_format_m"
 
     def set_data(self,data):
         """
@@ -49,7 +51,7 @@ class ChartJson:
 
     def set_axis_rotation(self,data):
         self.axisRotation = data
-        
+
     def set_axes(self,data):
         self.axes = data
 
@@ -65,6 +67,12 @@ class ChartJson:
     def set_types(self,data):
         """ this is only used in combination charts"""
         self.types = data
+
+    def set_yaxis_number_format(self,data):
+        self.yAxisNumberFormat = data
+
+    def set_y2axis_number_format(self,data):
+        self.y2AxisNumberFormat = data
 
 
 """
