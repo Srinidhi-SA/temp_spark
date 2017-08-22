@@ -315,7 +315,7 @@ def main(configJson):
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
 
-            # print json.dumps(headNode,indent=2)
+            print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
 
             # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)

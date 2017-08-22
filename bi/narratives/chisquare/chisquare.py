@@ -1,11 +1,13 @@
 import operator
 import os
+import json
 import random
 import numpy
 from pyspark.sql.functions import col
 from bi.narratives import utils as NarrativesUtils
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import utils as CommonUtils
 
 
 class ChiSquareAnalysis:
@@ -50,7 +52,8 @@ class ChiSquareAnalysis:
         self._dimensionNode.set_name("{}".format(analysed_dimension))
 
     def get_dimension_node(self):
-        return self._dimensionNode
+        # return self._dimensionNode
+        return json.loads(CommonUtils.convert_python_object_to_json(self._dimensionNode))
 
     def _generate_narratives(self):
         chisquare_result = self._chisquare_result
