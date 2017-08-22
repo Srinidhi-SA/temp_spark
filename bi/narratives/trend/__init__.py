@@ -88,16 +88,13 @@ class TimeSeriesNarrative:
                     else:
                         requestedDateFormat = existingDateFormat
 
-
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/trend/"
         if self._dateFormatDetected:
             self._requestedDateFormat = requestedDateFormat
             self._existingDateFormat = existingDateFormat
             self._date_column_suggested = suggested_date_column
-
         if self._existingDateFormat:
-
             if self._date_suggestion_columns != None and self._trend_on_td_column == False:
                 date_format = self._existingDateFormat
                 string_to_date = udf(lambda x: datetime.strptime(x,date_format), DateType())
@@ -142,9 +139,9 @@ class TimeSeriesNarrative:
                     self._date_suggestion_columns = self._td_columns
                 else:
                     self._date_suggestion_columns += self._td_columns
-        print self._durationString
-        print self._dataLevel
-        print self._existingDateFormat
+            print self._durationString
+            print self._dataLevel
+            print self._existingDateFormat
         if self._trend_subsection=="regression":
             if self._date_suggestion_columns != None:
                 if self._dateFormatDetected:
@@ -495,7 +492,8 @@ class TimeSeriesNarrative:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"
                     print "#"*20+"Trend Analysis Error"+"#"*20
-                    print "No date format for the date column %s was detected." %(self._date_column_suggested)
+                    if self._date_column_suggested:
+                        print "No date format for the date column %s was detected." %(self._date_column_suggested)
                     print "#"*60
             else:
                 self._result_setter.update_executive_summary_data({"trend_present":False})

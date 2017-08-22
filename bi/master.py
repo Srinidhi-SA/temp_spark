@@ -271,6 +271,8 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
+            else:
+                print "Trend not in scripts to run"
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
@@ -313,7 +315,7 @@ def main(configJson):
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
 
-            print json.dumps(headNode,indent=2)
+            # print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
 
             # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)

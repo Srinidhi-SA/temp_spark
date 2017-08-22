@@ -434,7 +434,8 @@ class ChiSquareAnalysis:
         table_percent_by_column = self._chiSquareTable.table_percent_by_column
         column_two_values = self._chiSquareTable.column_two_values
         header_row = [self._analysed_dimension] + self._chiSquareTable.get_column_one_levels()
-        other_rows = zip(column_two_values,table_percent_by_column[0],table_percent_by_column[1])
+        all_columns = [column_two_values]+table_percent_by_column
+        other_rows = zip(*all_columns)
         other_rows = [list(tup) for tup in other_rows]
         table_data = [header_row]+other_rows
         return table_data

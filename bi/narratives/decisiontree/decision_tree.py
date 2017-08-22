@@ -37,8 +37,9 @@ class DecisionTreeNarrative:
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
         self._decision_tree_json = CommonUtils.as_dict(decision_tree_rules)
-        self._decision_tree_raw = {"tree":{"children":None}}
-        self._decision_tree_raw['tree']["children"] = self._decision_tree_json['tree']["children"]
+        self._decision_tree_raw = self._decision_rules_dict
+        # self._decision_tree_raw = {"tree":{"children":None}}
+        # self._decision_tree_raw['tree']["children"] = self._decision_tree_json['tree']["children"]
         self._table = decision_tree_rules.get_table()
         self._new_table={}
         self.succesful_predictions=decision_tree_rules.get_success()
