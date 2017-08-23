@@ -172,7 +172,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["story"]
+    # configJson = testConfigs["prediction"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -661,7 +661,9 @@ def main(configJson):
             print "Could Not Load the Model for Scoring"
 
         # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
-        scoreSummary = CommonUtils.convert_python_object_to_json(result_setter.get_score_card())
+        storyNode = NarrativesTree()
+        storyNode.add_a_card(result_setter.get_score_card())
+        scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
         return response
