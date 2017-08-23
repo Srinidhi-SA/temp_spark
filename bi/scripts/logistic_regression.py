@@ -100,7 +100,7 @@ class LogisticRegressionScript:
         self._result_setter.set_model_summary({"logistic":self._model_summary})
         lrCard1 = NormalCard()
         lrCard1Data = []
-        lrCard1Data.append(HtmlData(data="<h4>Logistic Regression</h4>"))
+        lrCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>Logistic Regression</h4>"))
         lrCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
         lrCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
         lrCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
@@ -124,7 +124,7 @@ class LogisticRegressionScript:
 
         lrCard2 = NormalCard()
         lrCard2Data = []
-        lrCard2Data.append(HtmlData(data="<h5>Confusion Matrix</h5>"))
+        lrCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10' >Confusion Matrix</h5>"))
         card2Table = TableData()
         card2Table.set_table_data(confusion_matrix_data)
         card2Table.set_table_type("confusionMatrix")

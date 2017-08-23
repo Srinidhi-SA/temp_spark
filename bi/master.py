@@ -54,10 +54,10 @@ def main(configJson):
                         'Measure vs. Dimension',
                         'Dimension vs. Dimension',
                         'Predictive modeling',
-                        'Measure vs. Measure',
+                        # 'Measure vs. Measure',
                         'Trend'
                     ],
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/superstore_v2.csv'],
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
                     # 'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
                 },
                 'COLUMN_SETTINGS': {
@@ -65,8 +65,8 @@ def main(configJson):
                     'consider_columns_type': ['excluding'],
                     'date_format': None,
                     # 'date_columns':["new_date","Month","Order Date"],
-                    'date_columns':["Order Date"],
-                    'ignore_column_suggestions': ["State","Customer Name"],
+                    'date_columns':["Month"],
+                    'ignore_column_suggestions': ["Region","Outlet"],
                     # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
                     'result_column': ['Sales'],
                     'consider_columns':[],
@@ -161,7 +161,7 @@ def main(configJson):
             },
             "job_config":{
                 "job_type":"prediction",
-                "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                "job_url": "http://34.196.204.54:9012/api/job/score-hiohoyuo-bn1ofiupv0-j0irk37cob/set_result/",
                 "set_result": {
                     "method": "PUT",
                     "action": "result"
@@ -170,7 +170,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["prediction"]
+    # configJson = testConfigs["story"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -385,35 +385,35 @@ def main(configJson):
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 LOGGER.append("Starting Measure Vs. Measure analysis")
-                # try:
-                fs = time.time()
-                correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
-                correlations = correlation_obj.Run()
-                print "Correlation Analysis Done in ", time.time() - fs ," seconds."
+                try:
+                    fs = time.time()
+                    correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
+                    correlations = correlation_obj.Run()
+                    print "Correlation Analysis Done in ", time.time() - fs ," seconds."
 
-                # try:
-                df = df.na.drop(subset=measure_columns)
-                fs = time.time()
-                regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
-                regression_obj.Run()
-                print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                    # except Exception as e:
-                    #
-                    #     LOGGER.append("got exception {}".format(e))
-                    #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    #
-                    #     print 'Regression Failed'
-                    #     print "#####ERROR#####"*5
-                    #     print e
-                    #     print "#####ERROR#####"*5
+                    try:
+                        df = df.na.drop(subset=measure_columns)
+                        fs = time.time()
+                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                        regression_obj.Run()
+                        print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                    except Exception as e:
 
-                # except Exception as e:
-                #     LOGGER.append("got exception {}".format(e))
-                #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                #     print 'Correlation Failed. Regression not executed'
-                #     print "#####ERROR#####"*5
-                #     print e
-                #     print "#####ERROR#####"*5
+                        LOGGER.append("got exception {}".format(e))
+                        LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+
+                        print 'Regression Failed'
+                        print "#####ERROR#####"*5
+                        print e
+                        print "#####ERROR#####"*5
+
+                except Exception as e:
+                    LOGGER.append("got exception {}".format(e))
+                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                    print 'Correlation Failed. Regression not executed'
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
 
             else:
                 print 'Regression not in Scripts to run'
@@ -433,20 +433,20 @@ def main(configJson):
                     print "#####ERROR#####"*5
 
             if ('Predictive modeling' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    df_helper.fill_na_dimension_nulls()
-                    df = df_helper.get_data_frame()
-                    dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                    dt_reg.Run()
-                    print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-                    print "Decision Tree Regression Script Failed"
+                # try:
+                fs = time.time()
+                df_helper.fill_na_dimension_nulls()
+                df = df_helper.get_data_frame()
+                dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                dt_reg.Run()
+                print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     LOGGER.append("got exception {}".format(e))
+                #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
+                #     print "Decision Tree Regression Script Failed"
             # try:
             #     fs = time.time()
             #     exec_obj = ExecutiveSummaryScript(df_helper,dataframe_context,result_setter,spark)
@@ -564,7 +564,7 @@ def main(configJson):
 
 
         card3 = NormalCard()
-        card3Data = [HtmlData(data="<h5>Feature Importance</h5>")]
+        card3Data = [HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h5>")]
         card3Data.append(MLUtils.get_feature_importance(collated_summary))
         card3.set_card_data(card3Data)
         # prediction_narrative.insert_card_at_given_index(card3,2)

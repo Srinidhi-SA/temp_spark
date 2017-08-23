@@ -285,8 +285,10 @@ class TimeSeriesNarrative:
                                 key = forecast_start_time+relativedelta(days=1+val)
                                 forecasted_dates.append(key)
                         forecasted_list = zip(forecasted_dates,predicted_values)
-
-                        forecasted_list = [{"key":val[0].strftime("%b-%y"),"value":val[1]} for val in forecasted_list]
+                        if self._dataLevel == "month":
+                            forecasted_list = [{"key":val[0].strftime("%b-%y"),"value":val[1]} for val in forecasted_list]
+                        elif self._dataLevel == "day":
+                            forecasted_list = [{"key":val[0].strftime("%Y-%m-%d"),"value":val[1]} for val in forecasted_list]
                         forecasted_data += forecasted_list
                         card1chartdata["predicted"] = forecasted_data
                         print json.dumps(card1chartdata,indent=2)
