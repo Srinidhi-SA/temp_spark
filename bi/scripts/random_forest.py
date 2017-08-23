@@ -144,12 +144,13 @@ class RandomForestScript:
         level_counts_train = self._dataframe_context.get_level_count_dict()
         cat_cols = self._dataframe_helper.get_string_columns()
         level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,cat_cols,self._dataframe_context.get_column_separator(),output_type="dict")
-        for key in level_counts_train:
-            if key in level_counts_score:
-                if level_counts_train[key] != level_counts_score[key]:
+        if level_counts_train != {}:
+            for key in level_counts_train:
+                if key in level_counts_score:
+                    if level_counts_train[key] != level_counts_score[key]:
+                        dataSanity = False
+                else:
                     dataSanity = False
-            else:
-                dataSanity = False
 
         random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()

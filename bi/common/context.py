@@ -21,13 +21,12 @@ class ContextSetter:
         self.ignorecolumns = []
         self.utf8columns = []
         self.considercolumns = []
-        self.considercolumnstype = []
+        self.considercolumnstype = ["excluding"]
         self.measure_suggestions = []
         self.date_columns = []
         self.string_to_date_columns = {}
         self.MODELFEATURES = []
         self.appid = None
-        self.considercolumnstype = None
         self.algorithmslug = []
         self.levelcount_dict = {}
 
@@ -62,10 +61,21 @@ class ContextSetter:
         if "modelname" in fileSettingKeys:
             self.MODELS =self.FILE_SETTINGS['modelname'][0]
         if "modelfeatures" in fileSettingKeys:
-            self.MODELFEATURES =self.FILE_SETTINGS['modelfeatures'][0].split(self._column_separator)
+            modelfeaturedata = self.FILE_SETTINGS['modelfeatures']
+            if modelfeaturedata != None and len(modelfeaturedata) > 0:
+                modelfeaturedata = modelfeaturedata[0]
+                if self._column_separator in modelfeaturedata:
+                    self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
+
         if "levelcounts" in fileSettingKeys:
-            self.levelcounts =self.FILE_SETTINGS['levelcounts'][0].split(self._column_separator)
-            self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
+            levelcountdata = self.FILE_SETTINGS['levelcounts']
+            if levelcountdata != None and len(levelcountdata) > 0:
+                levelcountdata = levelcountdata[0]
+                if self._column_separator in levelcountdata:
+                    self.levelcounts =self.FILE_SETTINGS['levelcounts'][0].split(self._column_separator)
+                    self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
+                else:
+                    self.levelcount_dict = {}
         if "script_to_run" in fileSettingKeys:
             self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
         else:

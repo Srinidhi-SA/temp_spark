@@ -469,12 +469,12 @@ def get_model_comparison(collated_summary):
             row.append(100*(collated_summary[val][map_dict[key]]))
         out.append([key]+row)
         max_index = __builtin__.max(xrange(len(row)), key = lambda x: row[x])
-        summary.append(["Best "+key,algos[max_index]])
+        summary.append(["Best "+key,algos_dict(algos[max_index])])
     runtime = []
     for val in algos:
         runtime.append(collated_summary[val]["runtime_in_seconds"])
     max_runtime_index = __builtin__.max(xrange(len(runtime)), key = lambda x: runtime[x])
-    summary.append(["Best Runtime",algos[max_runtime_index]])
+    summary.append(["Best Runtime",algos_dict(algos[max_runtime_index])])
     inner_html = []
     for val in summary:
         inner_html.append("<li>{} : {}</li>".format(val[0],val[1]))
@@ -484,7 +484,6 @@ def get_model_comparison(collated_summary):
     modelTable = TableData()
     modelTable.set_table_data(out)
     modelTable.set_table_type("circularChartTable")
-    print
     return modelTable,summaryData
 
 def get_feature_importance(collated_summary):
