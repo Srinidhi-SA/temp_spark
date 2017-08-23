@@ -78,6 +78,33 @@ class NormalCard:
     """
     Defines the structure for a normal Card
     cardData is always an array of HtmlData or C3ChartData
+
+    ## Normal Card
+      - Normal card will have 2 components
+        1. html component
+    	2. c3Charts
+
+    ```json
+    {
+    	"cardType": "normal",
+    	"name": "Sales Analysis",
+    	"slug": "jdsdsdsds",
+    	"cardData": [
+    		{
+    			"dataType": "html",
+    			"data": "html content with <b>tags</b>"
+    		},
+    		{
+    			"dataType": "c3Chart",
+    			"data":  "chartjson object to be added"
+    		},
+    		{
+    			"dataType": "html",
+    			"data": "html content with <b>tags</b>"
+    		}
+    	]
+    }
+    ```
     """
 
     def __init__(self,name=None,slug=None,cardData = []):
@@ -116,6 +143,21 @@ class SummaryCard:
     """
     Defines the structure for a Summary Card
     cardData is always an array of HtmlData or C3ChartData
+    # Sample Object
+    ```json
+        {
+            "cardType": "summary",
+        	"name": "Sales Analysis",
+        	"slug": "jdsdsdsds",
+        	"cardData": {
+                    "noOfDimensions": 8,
+                    "noOfMeasures": 10,
+                    "noOfTimeDimensions": 2,
+                    "summaryHtml": "summary with HTML <b>tags</b>",
+                    "quotesHtml": "Quote that comes on the right side"
+                }
+        }
+    ```
     """
 
     def __init__(self,name=None,slug=None,cardData = {}):

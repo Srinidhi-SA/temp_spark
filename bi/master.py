@@ -37,147 +37,134 @@ from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 
 import traceback
-
-
 from parser import configparser
 from pyspark.sql.functions import col, udf
 
-def configtree_to_dict(configJson):
-    out={}
-    config = {}
-    job_config = {}
-    for k,v in configJson._dictionary.items():
-        config[k] = v
-    # for k,v in configJson._dictionary.items():
-    #     job_config[k] = v
-    out["config"] = config
-    out["job_config"] = job_config
-    return out
 #if __name__ == '__main__':
 LOGGER = []
 def main(configJson):
     global LOGGER
     start_time = time.time()
     testConfigs = {
-                "story" :{
-                    "config":{
-                                'FILE_SETTINGS': {
-                                                  'script_to_run': [
-                                                                    'Descriptive analysis',
-                                                                    'Measure vs. Dimension',
-                                                                    'Dimension vs. Dimension',
-                                                                    'Predictive modeling',
-                                                                    # 'Measure vs. Measure',
-                                                                    'Trend'
-                                                                    ],
-                                                  'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv'],
-                                                #   'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
-                                                  },
-                                'COLUMN_SETTINGS': {
-                                                    'polarity': ['positive'],
-                                                    'consider_columns_type': ['excluding'],
-                                                    'date_format': None,
-                                                    # 'date_columns':["new_date","Month","Order Date"],
-                                                    'date_columns':[],
-                                                    'ignore_column_suggestions': ["User ID"],
-                                                    # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
-                                                    'result_column': ['Performance'],
-                                                    'consider_columns':[],
-                                                    # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-                                                    #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                                                    'analysis_type': ['dimension'],
-                                                    # 'score_consider_columns': None
-                                                    }
-                             },
-                    "job_config":{
-                                    "job_type":"story",
-                                    # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
-                                    # "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
-                                    # "job_url": "http://192.168.33.94:9012/api/job/insight-adult-dimen-test-b6rim5juu3-hrswfad8w9/",
-                                    "job_url":"",
-                                    "set_result": {
-                                        "method": "PUT",
-                                        "action": "result"
-                                      },
-                                 }
+        "story" :{
+            "config":{
+                'FILE_SETTINGS': {
+                    'script_to_run': [
+                        'Descriptive analysis',
+                        'Measure vs. Dimension',
+                        'Dimension vs. Dimension',
+                        'Predictive modeling',
+                        # 'Measure vs. Measure',
+                        'Trend'
+                    ],
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv'],
+                    # 'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
+                },
+                'COLUMN_SETTINGS': {
+                    'polarity': ['positive'],
+                    'consider_columns_type': ['excluding'],
+                    'date_format': None,
+                    # 'date_columns':["new_date","Month","Order Date"],
+                    'date_columns':[],
+                    'ignore_column_suggestions': ["User ID"],
+                    # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
+                    'result_column': ['Performance'],
+                    'consider_columns':[],
+                    # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
+                    #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
+                    'analysis_type': ['dimension'],
+                    # 'score_consider_columns': None
+                    }
+                },
+            "job_config":{
+                            "job_type":"story",
+                            # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
+                            # "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
+                            # "job_url": "http://192.168.33.94:9012/api/job/insight-adult-dimen-test-b6rim5juu3-hrswfad8w9/",
+                            "job_url":"",
+                            "set_result": {
+                                "method": "PUT",
+                                "action": "result"
+                              },
+                         }
+          },
+        "metaData" : {
+            "config":{
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv']},
+                    'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+                    },
+            "job_config":{
+                "job_type":"metaData",
+                # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                "job_url":"",
+                "set_result": {
+                    "method": "PUT",
+                    "action": "result"
                   },
-                "metaData" : {
-                    "config":{
-                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv']},
-                            'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-                            },
-                    "job_config":{
-                        "job_type":"metaData",
-                        # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                        "job_url":"",
-                        "set_result": {
-                            "method": "PUT",
-                            "action": "result"
-                          },
-                    }
+            }
+        },
+        "prediction":{
+            "config":{
+                'FILE_SETTINGS': {
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv'],
+                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/"],
+                    'train_test_split' : [0.8]
                 },
-                "prediction":{
-                    "config":{
-                            'FILE_SETTINGS': {
-                                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv'],
-                                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/"],
-                                    'train_test_split' : [0.8]
-                                    },
-                            'COLUMN_SETTINGS': {
-                                'analysis_type': ['prediction'],
-                                'result_column': ['Opportunity Result'],
-                                'consider_columns_type': ['excluding'],
-                                'consider_columns':[],
-
-                            }
-                            },
-                    "job_config":{
-                        "job_type":"prediction",
-                        # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                        "set_result": {
-                            "method": "PUT",
-                            "action": "result"
-                          },
-                    }
-
-                },
-                "scoring":{
-                    "config":{
-                            'FILE_SETTINGS': {
-                                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_test.csv'],
-                                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/RandomForest/TrainedModels/model.pkl"],
-                                    'scorepath': ["file:///home/gulshan/marlabs/test1/algos/output"],
-                                    'train_test_split' : [0.8],
-                                    'levelcounts' : "GG|~|34|~|HH|~|4"
-                                    },
-                            'COLUMN_SETTINGS': {
-                                'analysis_type': ['Dimension'],
-                                'result_column': ['Price'],
-                                'consider_columns_type': ['excluding'],
-                                'consider_columns':[],
-                                'date_columns':['Date'],
-                                'score_consider_columns_type': ['excluding'],
-                                'score_consider_columns':[],
-
-                            }
-                            },
-                    "job_config":{
-                        "job_type":"scoring",
-                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                        "set_result": {
-                            "method": "PUT",
-                            "action": "result"
-                          },
-                    }
-
+                'COLUMN_SETTINGS': {
+                    'analysis_type': ['prediction'],
+                    'result_column': ['Opportunity Result'],
+                    'consider_columns_type': ['excluding'],
+                    'consider_columns':[],
                 }
+            },
+            "job_config":{
+                "job_type":"prediction",
+                # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                "set_result": {
+                    "method": "PUT",
+                    "action": "result"
+                  },
+            }
+        },
+        "scoring":{
+            "config":{
+                'FILE_SETTINGS': {
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_test.csv'],
+                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/RandomForest/TrainedModels/model.pkl"],
+                    'scorepath': ["file:///home/gulshan/marlabs/test1/algos/output"],
+                    'train_test_split' : [0.8],
+                    'levelcounts' : "GG|~|34|~|HH|~|4",
+                    'modelfeatures' : "Session ID|~|Order Value|~|Discount|~|Profit|",
+                    "algo_name":"DSA",
+                },
+                'COLUMN_SETTINGS': {
+                    'analysis_type': ['Dimension'],
+                    'result_column': ['Price'],
+                    'consider_columns_type': ['excluding'],
+                    'consider_columns':[],
+                    'date_columns':['Date'],
+                    'score_consider_columns_type': ['excluding'],
+                    'score_consider_columns':[],
+                }
+            },
+            "job_config":{
+                "job_type":"scoring",
+                "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                "set_result": {
+                    "method": "PUT",
+                    "action": "result"
+                  },
+            }
+        }
     }
+    ####### used to overwrite the passed config arguments to test locally ######
+    # configJson = testConfigs["story"]
+    ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-
-    # configJson = testConfigs["story"]
+    ######################### Creating the configs #############################
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
@@ -185,8 +172,7 @@ def main(configJson):
     dataframe_context = ContextSetter(configJsonObj)
     dataframe_context.set_params()
     jobType = job_config["job_type"]
-
-    #Load the dataframe
+    ########################## Load the dataframe ##############################
     df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time

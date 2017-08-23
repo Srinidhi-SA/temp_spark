@@ -78,7 +78,7 @@ class AnovaNarratives:
             chart_json = ChartJson(data = data_c3.get_data(),axes={'x':'dimension','y':'effect_size'},
                                     label_text={'x':'','y':'Effect Size'},chart_type='bar')
             chart_json.set_axis_rotation(True)
-            # chart_json.set_yaxis_number_format(".2f")
+            chart_json.set_yaxis_number_format(".2f")
             lines += [C3ChartData(chart_json)]
             lines += NarrativesUtils.block_splitter(output1['content'],self._blockSplitter)
             mainCard.set_card_data(lines)
