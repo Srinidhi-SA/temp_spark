@@ -665,9 +665,9 @@ def main(configJson):
         # storyNode.add_a_card(result_setter.get_score_card())
         storycard = result_setter.get_score_card()
         storyNode = {"listOfCards":[storycard],"listOfNodes":[],"name":None,"slug":None}
-        scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
-        print scoreSummary
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
+        # scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
+        print storyNode
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],storyNode)
         return response
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
