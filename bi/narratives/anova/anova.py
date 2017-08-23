@@ -103,6 +103,7 @@ class OneWayAnovaNarratives:
                         label_text={'x':"Time",'y':"y",'y2':"y2"}, legend={'x':x,'y':y,'y2':y2},
                         chart_type = 'line')
         json_chart.set_y2axis_number_format("0.2s")
+        return json_chart
 
 
     # def _get_card3_scatterchart(self,share,growth,label,category_legend):
