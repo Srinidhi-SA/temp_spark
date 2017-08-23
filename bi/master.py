@@ -497,8 +497,8 @@ def main(configJson):
         df = df.toPandas()
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         df_helper.set_train_test_data(df)
-        # model_slug = dataframe_context.get_model_slug()
-        model_slug = "slug1"
+        model_slug = dataframe_context.get_model_path()
+        # model_slug = "slug1"
         basefoldername = "mAdvisorModels"
         model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=["RandomForest","LogisticRegression","Xgboost"])
         dataframe_context.set_model_path(model_file_path)
