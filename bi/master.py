@@ -661,8 +661,10 @@ def main(configJson):
             print "Could Not Load the Model for Scoring"
 
         # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
-        storyNode = NarrativesTree()
-        storyNode.add_a_card(result_setter.get_score_card())
+        # storyNode = NarrativesTree()
+        # storyNode.add_a_card(result_setter.get_score_card())
+        storycard = result_setter.get_score_card()
+        storyNode = {"listOfCards":[storycard],"listOfNodes":[],"name":None,"slug":None}
         scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
