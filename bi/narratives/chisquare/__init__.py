@@ -105,7 +105,6 @@ class ChiSquareNarratives:
                     # self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
                     card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
                     self.narratives['cards'].append(card)
-
                 else:
                     target_dimension_card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
                     self.narratives['cards'].append(target_dimension_card)

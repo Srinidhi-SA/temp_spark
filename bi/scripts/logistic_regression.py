@@ -34,6 +34,7 @@ class LogisticRegressionScript:
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
         self._column_separator = "|~|"
+        self._slug = "LogisticRegression123"
 
     def Train(self):
         st = time.time()
@@ -132,6 +133,12 @@ class LogisticRegressionScript:
 
         self._prediction_narrative.add_a_card(lrCard1)
         self._prediction_narrative.add_a_card(lrCard2)
+        modelSummaryJson = {
+            "dropdown":{"name":"Logistic Regression","accuracy":self._model_summary["model_accuracy"],"slug":self._slug},
+            "levelcount":[self._model_summary["level_counts"]],
+            "modelFeatures":[self._model_summary["trained_model_features"]],
+        }
+        self._result_setter.set_logistic_regression_model_summary(modelSummaryJson)
 
         # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 

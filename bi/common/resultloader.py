@@ -20,10 +20,26 @@ class ResultSetter:
         self.regressionNode = None
         self.anovaNode = None
         self.headNode = None
+        self.randomForestModelSummary = None
+        self.xgboostModelSummary = None
+        self.logisticRegressionModelSummary = None
 
     # def set_params(self):
     #     self.columns = [field.name for field in self._data_frame.schema.fields]
     #     self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
+    def set_random_forest_model_summary(self,data):
+        self.randomForestModelSummary = data
+    def set_xgboost_model_summary(self,data):
+        self.xgboostModelSummary = data
+    def set_logistic_regression_model_summary(self,data):
+        self.logisticRegressionModelSummary = data
+    def get_random_forest_model_summary(self):
+        return self.randomForestModelSummary
+    def get_xgboost_model_summary(self):
+        return self.xgboostModelSummary
+    def get_logistic_regression_model_summary(self):
+        return self.logisticRegressionModelSummary
+
     def set_head_node(self,node):
         self.headNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_trend_node(self,node):

@@ -20,7 +20,7 @@ from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import ScatterChartData,NormalChartData,ChartJson,ModelSummary
 
 
 
@@ -36,6 +36,7 @@ class RandomForestScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
         self._score_summary = {}
+        self._slug = "RandomForest12"
 
     def Train(self):
         st = time.time()
@@ -72,7 +73,6 @@ class RandomForestScript:
         self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
         cat_cols = list(set(categorical_columns)-set([result_column]))
         self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
-
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
 
@@ -121,6 +121,12 @@ class RandomForestScript:
         rfCard2.set_card_data(rfCard2Data)
         self._prediction_narrative.add_a_card(rfCard1)
         self._prediction_narrative.add_a_card(rfCard2)
+        modelSummaryJson = {
+            "dropdown":{"name":"Random Forest","accuracy":self._model_summary["model_accuracy"],"slug":self._slug},
+            "levelcount":[self._model_summary["level_counts"]],
+            "modelFeatures":[],
+        }
+        self._result_setter.set_random_forest_model_summary(modelSummaryJson)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary

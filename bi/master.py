@@ -34,7 +34,7 @@ from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
 from bi.scripts.metadata_new import MetaDataScript
 from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 
 import traceback
 from parser import configparser
@@ -54,10 +54,10 @@ def main(configJson):
                         'Measure vs. Dimension',
                         'Dimension vs. Dimension',
                         'Predictive modeling',
-                        # 'Measure vs. Measure',
+                        'Measure vs. Measure',
                         'Trend'
                     ],
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv'],
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/superstore_v2.csv'],
                     # 'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
                 },
                 'COLUMN_SETTINGS': {
@@ -65,14 +65,14 @@ def main(configJson):
                     'consider_columns_type': ['excluding'],
                     'date_format': None,
                     # 'date_columns':["new_date","Month","Order Date"],
-                    'date_columns':[],
-                    'ignore_column_suggestions': ["User ID"],
+                    'date_columns':["Order Date"],
+                    'ignore_column_suggestions': ["State","Customer Name"],
                     # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
-                    'result_column': ['Performance'],
+                    'result_column': ['Sales'],
                     'consider_columns':[],
                     # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
                     #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                    'analysis_type': ['dimension'],
+                    'analysis_type': ['measure'],
                     # 'score_consider_columns': None
                     }
                 },
@@ -90,7 +90,7 @@ def main(configJson):
           },
         "metaData" : {
             "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/wearables.csv']},
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/superstore_v2.csv']},
                     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                     },
             "job_config":{
@@ -385,35 +385,35 @@ def main(configJson):
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 LOGGER.append("Starting Measure Vs. Measure analysis")
-                try:
-                    fs = time.time()
-                    correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
-                    correlations = correlation_obj.Run()
-                    print "Correlation Analysis Done in ", time.time() - fs ," seconds."
+                # try:
+                fs = time.time()
+                correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
+                correlations = correlation_obj.Run()
+                print "Correlation Analysis Done in ", time.time() - fs ," seconds."
 
-                    try:
-                        df = df.na.drop(subset=measure_columns)
-                        fs = time.time()
-                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
-                        regression_obj.Run()
-                        print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                    except Exception as e:
+                # try:
+                df = df.na.drop(subset=measure_columns)
+                fs = time.time()
+                regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                regression_obj.Run()
+                print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                    # except Exception as e:
+                    #
+                    #     LOGGER.append("got exception {}".format(e))
+                    #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                    #
+                    #     print 'Regression Failed'
+                    #     print "#####ERROR#####"*5
+                    #     print e
+                    #     print "#####ERROR#####"*5
 
-                        LOGGER.append("got exception {}".format(e))
-                        LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-
-                        print 'Regression Failed'
-                        print "#####ERROR#####"*5
-                        print e
-                        print "#####ERROR#####"*5
-
-                except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    print 'Correlation Failed. Regression not executed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # except Exception as e:
+                #     LOGGER.append("got exception {}".format(e))
+                #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                #     print 'Correlation Failed. Regression not executed'
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             else:
                 print 'Regression not in Scripts to run'
@@ -566,8 +566,28 @@ def main(configJson):
         prediction_narrative.insert_card_at_given_index(card3,2)
 
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
-        print modelResult
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],modelResult)
+        # print modelResult
+        modelJsonOutput = ModelSummary()
+        modelJsonOutput.set_model_summary(json.loads(modelResult))
+
+        rfModelSummary = result_setter.get_random_forest_model_summary()
+        lrModelSummary = result_setter.get_logistic_regression_model_summary()
+        xgbModelSummary = result_setter.get_xgboost_model_summary()
+        model_dropdowns = []
+        model_configs = {"target_variable":[result_column]}
+        model_features = {}
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
+            if obj != {}:
+                model_dropdowns.append(obj["dropdown"])
+                model_configs["targetVariableLevelcount"] = obj["levelcount"]
+                model_configs["modelFeatures"] = {}
+                model_configs["modelFeatures"][obj["dropdown"]["slug"]] = obj["modelFeatures"]
+
+        modelJsonOutput.set_model_dropdown(model_dropdowns)
+        modelJsonOutput.set_model_config(model_configs)
+        modelJsonOutput = modelJsonOutput.get_json_data()
+        print modelJsonOutput
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],modelJsonOutput)
         # return response
 
     elif jobType == 'prediction':

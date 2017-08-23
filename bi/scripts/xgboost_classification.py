@@ -34,6 +34,7 @@ class XgboostScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
+        self._slug = "XGBoost1234"
 
     def Train(self):
         st = time.time()
@@ -120,6 +121,12 @@ class XgboostScript:
         xgbCard2.set_card_data(xgbCard2Data)
         self._prediction_narrative.add_a_card(xgbCard1)
         self._prediction_narrative.add_a_card(xgbCard2)
+        modelSummaryJson = {
+            "dropdown":{"name":"Xgboost","accuracy":self._model_summary["model_accuracy"],"slug":self._slug},
+            "levelcount":[self._model_summary["level_counts"]],
+            "modelFeatures":[],
+        }
+        self._result_setter.set_xgboost_model_summary(modelSummaryJson)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
