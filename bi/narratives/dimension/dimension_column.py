@@ -173,7 +173,9 @@ class DimensionColumnNarrative:
         lines.append(HtmlData(data=bubble_data))
         # print lines
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
-        self._result_setter.set_score_card(dimensionCard1)
+
+        score_card = {"cardType":"normal","name":"Summary","slug":None,"cardData":lines,"cardWidth":100}
+        self._result_setter.set_score_card(score_card)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)
         return lines
 
