@@ -141,20 +141,20 @@ def main(configJson):
         "prediction":{
             "config":{
                 'FILE_SETTINGS': {
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_test.csv'],
-                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/RandomForest/TrainedModels/model.pkl"],
-                    'scorepath': ["file:///home/gulshan/marlabs/test1/algos/output"],
-                    'train_test_split' : [0.8],
-                    'levelcounts' : "GG|~|34|~|HH|~|4",
-                    'modelfeatures' : "Session ID|~|Order Value|~|Discount|~|Profit|",
-                    "algo_name":"DSA",
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/adult_test.csv'],
+                    'modelpath': ["ANKUSH"],
+                    'scorepath': ["DDDDD"],
+                    # 'train_test_split' : [0.8],
+                    'levelcounts' : ["GG|~|34|~|HH|~|4"],
+                    'modelfeatures' : ["Session ID|~|Order Value|~|Discount|~|Profit|"],
+                    "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
                 },
                 'COLUMN_SETTINGS': {
                     'analysis_type': ['Dimension'],
-                    'result_column': ['Price'],
+                    'result_column': ['class_label'],
                     'consider_columns_type': ['excluding'],
-                    'consider_columns':[],
-                    'date_columns':['Date'],
+                    # 'consider_columns':[],
+                    # 'date_columns':['Date'],
                     'score_consider_columns_type': ['excluding'],
                     'score_consider_columns':[],
                 }
@@ -170,7 +170,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["metaData"]
+    # configJson = testConfigs["prediction"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -500,7 +500,8 @@ def main(configJson):
         model_slug = dataframe_context.get_model_path()
         # model_slug = "slug1"
         basefoldername = "mAdvisorModels"
-        model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=["RandomForest","LogisticRegression","Xgboost"])
+        subfolders = MLUtils.slug_model_mapping().keys()
+        model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=subfolders)
         dataframe_context.set_model_path(model_file_path)
 
         try:
@@ -596,6 +597,7 @@ def main(configJson):
         story_narrative.set_name("scores")
         result_setter = ResultSetter(df,dataframe_context)
         model_path = dataframe_context.get_model_path()
+        print "model path",model_path
         result_column = dataframe_context.get_result_column()
         if result_column in df.columns:
             df_helper.remove_null_rows(result_column)
@@ -603,29 +605,34 @@ def main(configJson):
         df = df_helper.fill_missing_values(df)
         # model_slug = dataframe_context.get_model_slug()
         model_slug = model_path
-        score_slug = "slug1"
+        score_slug = dataframe_context.get_score_path()
+        print "score_slug",score_slug
         # score_slug = dataframe_context.get_score_slug()
         basefoldername = "mAdvisorScores"
         score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
         algorithm_name_list = ["randomforest","xgboost","logisticregression"]
-        algorithm_name = "randomforest"
+        # algorithm_name = "randomforest"
+        algorithm_name = dataframe_context.get_algorithm_slug()[0]
+        print "algorithm_name",algorithm_name
         model_path = score_file_path.split(basefoldername)[0]+"/mAdvisorModels/"+model_slug+"/"+algorithm_name
-        print model_path
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
+        dataframe_context.set_model_path(model_path)
 
-        if "randomforest" in model_path:
+        selected_model_for_prediction = [MLUtils.slug_model_mapping()[algorithm_name]]
+        print selected_model_for_prediction
+        if "randomforest" in selected_model_for_prediction:
             df = df.toPandas()
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
-        elif "xgboost" in model_path:
+        elif "xgboost" in selected_model_for_prediction:
             df = df.toPandas()
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
-        elif "logisticregression" in model_path:
+        elif "logisticregression" in selected_model_for_prediction:
             df = df.toPandas()
             trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)

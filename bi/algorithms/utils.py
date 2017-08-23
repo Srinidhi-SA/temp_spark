@@ -544,6 +544,6 @@ def slug_model_mapping():
     object = {
                 random_slug+"rf":"randomforest",
                 random_slug+"lr":"logisticregression",
-                random_slug+"xgb":,"xgboost"
+                random_slug+"xgb":"xgboost"
                 }
     return object

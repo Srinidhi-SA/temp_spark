@@ -50,8 +50,8 @@ class XgboostScript:
         clf_xgb = xgboost_obj.initiate_xgboost_classifier()
         objs = xgboost_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,[])
 
-        model_filepath = model_path+"/Xgboost/model.pkl"
-        summary_filepath = model_path+"/XGBoost/ModelSummary/summary.json"
+        model_filepath = model_path+"/"+self._slug+"/model.pkl"
+        summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
         # confusion matrix keys are the predicted class

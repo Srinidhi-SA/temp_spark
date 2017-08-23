@@ -29,6 +29,7 @@ class ContextSetter:
         self.appid = None
         self.considercolumnstype = None
         self.algorithmslug = []
+        self.levelcount_dict = {}
 
     def set_model_path(self,data):
         self.MODEL_PATH = data

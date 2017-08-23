@@ -67,8 +67,8 @@ class LogisticRegressionScript:
         clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
         objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])
 
-        model_filepath = model_path+"/LogisticRegression/model.pkl"
-        summary_filepath = model_path+"/LogisticRegression/ModelSummary/summary.json"
+        model_filepath = model_path+"/"+self._slug+"/model.pkl"
+        summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
         # confusion matrix keys are the predicted class
