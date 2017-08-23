@@ -96,10 +96,14 @@ class OneWayAnovaNarratives:
         key_list = ['k1','k2','k3']
         data_c3 = []
         for row in zip(data[x],data[y],data[y2]):
-            data_c3.append(dict(zip(key_list,row)))
-        return ChartJson(data = NormalChartData(data_c3).get_data(),axes={'x':'k2','y':'k2','z':'k3'},
-                        label_text={'x':x,'y':y,'y2':y2}, legend={'x':x,'y':y,'y2':y2},
+            row_data = dict(zip(key_list,row))
+            row_data["k1"] = str(row_data["k1"].to_datetime().date())
+            data_c3.append(row_data)
+        print data_c3
+        return ChartJson(data = NormalChartData(data_c3).get_data(),axes={'x':'k1','y':'k2','y2':'k3'},
+                        label_text={'x':"Time",'y':"y",'y2':"y2"}, legend={'x':x,'y':y,'y2':y2},
                         chart_type = 'line')
+
 
     # def _get_card3_scatterchart(self,share,growth,label,category_legend):
     #     groups = {'Leaders Club':[],

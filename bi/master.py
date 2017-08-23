@@ -55,7 +55,7 @@ def main(configJson):
                         # 'Dimension vs. Dimension',
                         # 'Predictive modeling',
                         # 'Measure vs. Measure',
-                        'Trend'
+                        # 'Trend'
                     ],
                     'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
                     # 'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
@@ -172,7 +172,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["prediction"]
+    # configJson = testConfigs["story"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
