@@ -588,7 +588,7 @@ def main(configJson):
         modelJsonOutput = modelJsonOutput.get_json_data()
         print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],modelJsonOutput)
-        # return response
+        return response
 
     elif jobType == 'prediction':
         st = time.time()
