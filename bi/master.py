@@ -51,11 +51,11 @@ def main(configJson):
                 'FILE_SETTINGS': {
                     'script_to_run': [
                         'Descriptive analysis',
-                        'Measure vs. Dimension',
-                        'Dimension vs. Dimension',
+                        # 'Measure vs. Dimension',
+                        # 'Dimension vs. Dimension',
                         'Predictive modeling',
                         # 'Measure vs. Measure',
-                        'Trend'
+                        # 'Trend'
                     ],
                     'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
                     # 'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
@@ -148,6 +148,7 @@ def main(configJson):
                     'levelcounts' : [],
                     'modelfeatures' : [],
                     "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
+                    "app_id":2
                 },
                 'COLUMN_SETTINGS': {
                     'analysis_type': ['Dimension'],
@@ -433,20 +434,21 @@ def main(configJson):
                     print "#####ERROR#####"*5
 
             if ('Predictive modeling' in scripts_to_run):
-                # try:
-                fs = time.time()
-                df_helper.fill_na_dimension_nulls()
-                df = df_helper.get_data_frame()
-                dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                dt_reg.Run()
-                print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-                # except Exception as e:
-                #     LOGGER.append("got exception {}".format(e))
-                #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                #     print "#####ERROR#####"*5
-                #     print e
-                #     print "#####ERROR#####"*5
-                #     print "Decision Tree Regression Script Failed"
+                try:
+                    LOGGER.append("starting dtree")
+                    fs = time.time()
+                    df_helper.fill_na_dimension_nulls()
+                    df = df_helper.get_data_frame()
+                    dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                    dt_reg.Run()
+                    print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+                except Exception as e:
+                    LOGGER.append("got exception {}".format(e))
+                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
+                    print "Decision Tree Regression Script Failed"
             # try:
             #     fs = time.time()
             #     exec_obj = ExecutiveSummaryScript(df_helper,dataframe_context,result_setter,spark)
@@ -480,7 +482,7 @@ def main(configJson):
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
-
+            # print json.dumps(decisionTreeNode,indent=2)
             # print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
             return response

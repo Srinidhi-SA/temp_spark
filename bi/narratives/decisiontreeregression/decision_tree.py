@@ -65,8 +65,10 @@ class DecisionTreeRegNarrative:
         data_dict = {"dimension_name":self._colname}
         data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
         data_dict["significant_vars"] = []
-        data_dict['significant_vars_high'] = self._important_vars['High']
-        data_dict['significant_vars_low'] = self._important_vars['Low']
+        if "High" in self._important_vars:
+            data_dict['significant_vars_high'] = self._important_vars['High']
+        if "Low" in self._important_vars:
+            data_dict['significant_vars_low'] = self._important_vars['Low']
         rules_dict = self.table
         self.condensedTable={}
         for target in rules_dict.keys():
@@ -82,14 +84,19 @@ class DecisionTreeRegNarrative:
         lines2 += NarrativesUtils.block_splitter('Most Significant Rules for Price :',self._blockSplitter)
         lines2 += [TreeData(data=self.condensedTable,datatype='dropdown')]
         self._decisionTreeCard2.add_card_data(lines2)
-        data_dict['rules_list_high'] = self.condensedTable['High']
-        data_dict['rules_list_low'] = self.condensedTable['Low']
-        data_dict['count_percent_high'] = NarrativesUtils.round_number(self._target_distribution['High']['count_percent'],2)
-        data_dict['sum_percent_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum_percent'],2)
-        data_dict['sum_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum'],2)
-        data_dict['count_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['count_percent'],2)
-        data_dict['sum_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['sum_percent'],2)
-        data_dict['average_high_group'] = self._target_distribution['High']['sum']*1.0/self._target_distribution['High']['count']
+        if "High" in self.condensedTable:
+            data_dict['rules_list_high'] = self.condensedTable['High']
+        if "Low" in self.condensedTable:
+            data_dict['rules_list_low'] = self.condensedTable['Low']
+        print self._target_distribution.keys()
+        if "High" in self._target_distribution:
+            data_dict['count_percent_high'] = NarrativesUtils.round_number(self._target_distribution['High']['count_percent'],2)
+            data_dict['sum_percent_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum_percent'],2)
+            data_dict['sum_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum'],2)
+            data_dict['average_high_group'] = self._target_distribution['High']['sum']*1.0/self._target_distribution['High']['count']
+        if "Low" in self._target_distribution:
+            data_dict['count_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['count_percent'],2)
+            data_dict['sum_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['sum_percent'],2)
         data_dict['average_overall'] = sum([self._target_distribution[i]['sum'] for i in self._target_distribution])*1.0/sum([self._target_distribution[i]['count'] for i in self._target_distribution])
         data_dict['high_vs_overall'] = data_dict['average_high_group']*100.0/data_dict['average_high_group'] - 100
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
@@ -105,12 +112,12 @@ class DecisionTreeRegNarrative:
         tableData = TableData(data={"tableType" : "decisionTreeTable",'tableData':self.card1Table})
         lines += [TreeData(data=self._decision_rules_dict),tableData]
         self._decisionTreeCard1.add_card_data(lines)
-        executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],
-                                  "average_high_group" : data_dict["average_high_group"],
-                                  "average_overall" : data_dict["average_overall"],
-                                  "high_vs_overall" : data_dict["high_vs_overall"]
-                                 }
-        self._result_setter.update_executive_summary_data(executive_summary_data)
+        # executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],
+        #                           "average_high_group" : data_dict["average_high_group"],
+        #                           "average_overall" : data_dict["average_overall"],
+        #                           "high_vs_overall" : data_dict["high_vs_overall"]
+        #                          }
+        # self._result_setter.update_executive_summary_data(executive_summary_data)
 
     def _generate_rules(self,target,rules, total, success, success_percent):
         colname = self._colname
