@@ -87,6 +87,7 @@ class XgboostScript:
         self._result_setter.set_model_summary({"xgboost":self._model_summary})
         xgbCard1 = NormalCard()
         xgbCard1Data = []
+        xgbCard1Data.append(HtmlData(data="<h4>XGBoost</h4>"))
         xgbCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
         xgbCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
         xgbCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
@@ -112,7 +113,7 @@ class XgboostScript:
 
         xgbCard2 = NormalCard()
         xgbCard2Data = []
-        xgbCard2Data.append(HtmlData(data="<h6>Confusion Matrix</h6>"))
+        xgbCard2Data.append(HtmlData(data="<h5>Confusion Matrix</h5>"))
         card2Table = TableData()
         card2Table.set_table_data(confusion_matrix_data)
         card2Table.set_table_type("confusionMatrix")

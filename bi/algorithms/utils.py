@@ -454,7 +454,11 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
-    out = [[""]+algos]
+    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression"}
+    out = []
+    for val in algos:
+        out.append(algos_dict[val])
+    out = [""]+out
     first_column = ["Precision","Recall","Accuracy"]
     data_keys = ["model_precision","model_recall","model_accuracy"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
@@ -474,7 +478,7 @@ def get_model_comparison(collated_summary):
     inner_html = []
     for val in summary:
         inner_html.append("<li>{} : {}</li>".format(val[0],val[1]))
-    summary_html = "<ul>{}{}{}{}</ul>".format(inner_html[0],inner_html[1],inner_html[2],inner_html[3])
+    summary_html = "<ul class='list-unstyled bullets_primary'>{}{}{}{}</ul>".format(inner_html[0],inner_html[1],inner_html[2],inner_html[3])
     summaryData = HtmlData(data = summary_html)
 
     modelTable = TableData()

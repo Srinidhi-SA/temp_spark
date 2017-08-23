@@ -88,6 +88,7 @@ class RandomForestScript:
         self._result_setter.set_model_summary({"randomforest":self._model_summary})
         rfCard1 = NormalCard()
         rfCard1Data = []
+        rfCard1Data.append(HtmlData(data="<h4>Random Forest</h4>"))
         rfCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
         rfCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
         rfCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
@@ -113,7 +114,7 @@ class RandomForestScript:
 
         rfCard2 = NormalCard()
         rfCard2Data = []
-        rfCard2Data.append(HtmlData(data="<h6>Confusion Matrix</h6>"))
+        rfCard2Data.append(HtmlData(data="<h5>Confusion Matrix</h5>"))
         rfcard2Table = TableData()
         rfcard2Table.set_table_data(confusion_matrix_data)
         rfcard2Table.set_table_type("confusionMatrix")

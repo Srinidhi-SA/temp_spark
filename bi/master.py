@@ -564,7 +564,7 @@ def main(configJson):
 
 
         card3 = NormalCard()
-        card3Data = [HtmlData(data="<h2>Feature Importance</h2>")]
+        card3Data = [HtmlData(data="<h5>Feature Importance</h5>")]
         card3Data.append(MLUtils.get_feature_importance(collated_summary))
         card3.set_card_data(card3Data)
         # prediction_narrative.insert_card_at_given_index(card3,2)
