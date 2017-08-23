@@ -492,6 +492,7 @@ def get_feature_importance(collated_summary):
     chart_json.set_data(chart_data.get_data())
     chart_json.set_chart_type("bar")
     chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_subchart(False)
     card3Chart = C3ChartData(data=chart_json)
     return card3Chart
 
@@ -530,8 +531,10 @@ def create_scored_data_folder(score_slug,basefoldername):
     os.mkdir(filepath+"/"+score_slug)
     return filepath+"/"+score_slug+"/"
 
-# def model_slug_dictionary():
-#     random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
-#     object = {
-#     "randomforest":random_slug+"rf",
-#                 }
+def model_slug_dictionary():
+    random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
+    object = {
+                "randomforest":random_slug+"rf",
+                "logisticregression":random_slug+"lr",
+                "xgboost":random_slug+"xgb"
+                }

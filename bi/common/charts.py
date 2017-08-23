@@ -184,6 +184,7 @@ class ChartJson:
         self.axisRotation = False
         self.yAxisNumberFormat = '.2s'
         self.y2AxisNumberFormat = ''
+        self.subchart = True
 
 
     def set_data(self,data):
@@ -216,3 +217,6 @@ class ChartJson:
 
     def set_y2axis_number_format(self,data):
         self.y2AxisNumberFormat = data
+
+    def set_subchart(self,data):
+        self.subchart = data
