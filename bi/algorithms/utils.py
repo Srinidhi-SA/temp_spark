@@ -458,7 +458,7 @@ def get_model_comparison(collated_summary):
     out = []
     for val in algos:
         out.append(algos_dict[val])
-    out = [""]+out
+    out = [[""]+out]
     first_column = ["Precision","Recall","Accuracy"]
     data_keys = ["model_precision","model_recall","model_accuracy"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
@@ -484,6 +484,7 @@ def get_model_comparison(collated_summary):
     modelTable = TableData()
     modelTable.set_table_data(out)
     modelTable.set_table_type("circularChartTable")
+    print
     return modelTable,summaryData
 
 def get_feature_importance(collated_summary):
