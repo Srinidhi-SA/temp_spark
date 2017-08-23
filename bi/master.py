@@ -103,22 +103,33 @@ def main(configJson):
                   },
             }
         },
-        "prediction":{
+        "training":{
             "config":{
                 'FILE_SETTINGS': {
                     'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv'],
+                    # Model Slug will go instead of model path
                     'modelpath': ["file:///home/gulshan/marlabs/test1/algos/"],
-                    'train_test_split' : [0.8]
+                    'train_test_split' : [0.8],
+                    'analysis_type' : ['training']
                 },
                 'COLUMN_SETTINGS': {
-                    'analysis_type': ['prediction'],
+                    'analysis_type': ['training'],
                     'result_column': ['Opportunity Result'],
                     'consider_columns_type': ['excluding'],
+                    'consider_columns':["Opportunity Number"],
+                    'polarity': ['positive'],
+                    'date_format': None,
+                    # 'date_columns':["new_date","Month","Order Date"],
+                    'date_columns':[],
+                    'ignore_column_suggestions': [],
+                    # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
+                    'dateTimeSuggestions' : [],
+                    'utf8ColumnSuggestion':[],
                     'consider_columns':[],
                 }
             },
             "job_config":{
-                "job_type":"prediction",
+                "job_type":"training",
                 # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
                 "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
                 "set_result": {
@@ -127,7 +138,7 @@ def main(configJson):
                   },
             }
         },
-        "scoring":{
+        "prediction":{
             "config":{
                 'FILE_SETTINGS': {
                     'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_test.csv'],
@@ -149,7 +160,7 @@ def main(configJson):
                 }
             },
             "job_config":{
-                "job_type":"scoring",
+                "job_type":"prediction",
                 "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
                 "set_result": {
                     "method": "PUT",
@@ -159,7 +170,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["story"]
+    # configJson = testConfigs["training"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -474,7 +485,7 @@ def main(configJson):
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
             return response
 
-    elif jobType == 'prediction':
+    elif jobType == 'training':
         prediction_narrative = NarrativesTree()
         prediction_narrative.set_name("models")
         result_setter = ResultSetter(df,dataframe_context)
@@ -559,7 +570,7 @@ def main(configJson):
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],modelResult)
         # return response
 
-    elif jobType == 'scoring':
+    elif jobType == 'prediction':
         st = time.time()
         story_narrative = NarrativesTree()
         story_narrative.set_name("scores")
