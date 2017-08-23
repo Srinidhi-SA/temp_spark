@@ -1,4 +1,4 @@
-<p class = "txt-justify">
+<p class="txt-justify">
 {% if num_significant_variables>=1 %}
   {% if num_variables == 1 %}
     {{analysed_dimension[0]}} is the only factor in the dataset and it has significant association with {{target}}.

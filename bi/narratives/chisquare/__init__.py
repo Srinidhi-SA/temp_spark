@@ -99,9 +99,6 @@ class ChiSquareNarratives:
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
             for analysed_dimension in significant_variables:
-                # print "%"*30
-                # print analysed_dimension
-                # print self._appid
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
                     print "APPID 2 is used"

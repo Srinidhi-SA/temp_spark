@@ -83,7 +83,10 @@ class ContextSetter:
         if "algorithmslug" in fileSettingKeys:
             self.algorithmslug = self.FILE_SETTINGS.get('algorithmslug')
         if "app_id" in columnSettingKeys:
-            self.appid = self.COLUMN_SETTINGS['app_id'][0].strip()
+            if self.COLUMN_SETTINGS['app_id'] != None and len(self.COLUMN_SETTINGS['app_id']) > 0:
+                self.appid = str(self.COLUMN_SETTINGS['app_id'][0])
+            else:
+                self.appid = None
         if "result_column" in columnSettingKeys:
             self.resultcolumn = "{}".format(self.COLUMN_SETTINGS['result_column'][0].strip())
         if "analysis_type" in columnSettingKeys:

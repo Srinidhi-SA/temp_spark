@@ -45,13 +45,19 @@ class DimensionColumnNarrative:
     def _generate_narratives(self):
         if self.appid != None:
             if self.appid == "1":
+                # self._generate_title()
+                # self._generate_summary()
+                # self.analysis = self._generate_analysis()
                 self._generate_title()
                 self._generate_summary()
-                self.analysis = self._generate_analysis()
+                self._generate_analysis()
             elif self.appid == "2":
+                # self._generate_title()
+                # self._generate_summary()
+                # self.analysis = self._generate_analysis2()
                 self._generate_title()
                 self._generate_summary()
-                self.analysis = self._generate_analysis2()
+                self._generate_analysis()
         else:
             self._generate_title()
             self._generate_summary()
@@ -167,6 +173,7 @@ class DimensionColumnNarrative:
         lines.append(HtmlData(data=bubble_data))
         # print lines
         dimensionCard1 = NormalCard(name=self.subheader,slug=None,cardData = lines)
+        self._result_setter.set_score_card(dimensionCard1)
         self._dimensionSummaryNode.add_a_card(dimensionCard1)
         return lines
 

@@ -41,15 +41,27 @@ class ChiSquareAnalysis:
         self._card4 = NormalCard()
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
+        self._appid=appid
         if appid != None:
-            self._appid=appid
             if self._appid == "1":
                 self._base_dir += "appid1/"
             elif self._appid == "2":
                 self._base_dir += "appid2/"
-        self._generate_narratives()
-        self._dimensionNode.add_cards([self._card1,self._card2,self._card4])
-        self._dimensionNode.set_name("{}".format(analysed_dimension))
+
+        if self._appid == None:
+            self._generate_narratives()
+            self._dimensionNode.add_cards([self._card1,self._card2,self._card4])
+            self._dimensionNode.set_name("{}".format(analysed_dimension))
+        elif self._appid == "2":
+            print "DSDASDSA"
+            self._generate_narratives()
+            self._dimensionNode.add_cards([self._card1])
+            self._dimensionNode.set_name("{}".format(analysed_dimension))
+        elif self._appid == "1":
+            print "DSDASDSA"
+            self._generate_narratives()
+            self._dimensionNode.add_cards([self._card1])
+            self._dimensionNode.set_name("{}".format(analysed_dimension))
 
     def get_dimension_node(self):
         # return self._dimensionNode
@@ -235,172 +247,173 @@ class ChiSquareAnalysis:
         self._card1.set_card_data(targetDimCard1Data)
         self._card1.set_card_name("{}: Relationship with {}".format(self._analysed_dimension,self._target_dimension))
 
-        self._key_factors_contributions = {}
-        # for key_dim in self._second_level_dimensions:
-        #     key_dim_table = self._target_chisquare_result[key_dim].contingency_table
-        #     col_1_index = key_dim_table.get_column_one_levels().index(second_target)
-        #     col_2_names = key_dim_table.get_column_two_levels()
-        #     contributions_percent = key_dim_table.table_percent_by_column[col_1_index]
-        #     sorted_contributions = sorted(zip(col_2_names,contributions_percent),key = lambda x: x[1],reverse=True)
-        #     self._key_factors_contributions[key_dim] = sorted_contributions[:2]
-        #
-        # print '*'*1200
-        # print 'KEY FACTOR CONTRIBUTION OF '+second_target
-        # print self._key_factors_contributions
+        if self._appid == None:
+            self._key_factors_contributions = {}
+            # for key_dim in self._second_level_dimensions:
+            #     key_dim_table = self._target_chisquare_result[key_dim].contingency_table
+            #     col_1_index = key_dim_table.get_column_one_levels().index(second_target)
+            #     col_2_names = key_dim_table.get_column_two_levels()
+            #     contributions_percent = key_dim_table.table_percent_by_column[col_1_index]
+            #     sorted_contributions = sorted(zip(col_2_names,contributions_percent),key = lambda x: x[1],reverse=True)
+            #     self._key_factors_contributions[key_dim] = sorted_contributions[:2]
+            #
+            # print '*'*1200
+            # print 'KEY FACTOR CONTRIBUTION OF '+second_target
+            # print self._key_factors_contributions
 
-        if self._chisquare_result.get_splits():
-            splits = self._chisquare_result.get_splits()
-            idx = self._chiSquareTable.get_bin_names(splits).index(second_target_top_dims[0])
-            idx1 = self._chiSquareTable.get_bin_names(splits).index(top_target_top_dims[0])
-            splits[len(splits)-1] = splits[len(splits)-1]+1
-            df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
-                                filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
+            if self._chisquare_result.get_splits():
+                splits = self._chisquare_result.get_splits()
+                idx = self._chiSquareTable.get_bin_names(splits).index(second_target_top_dims[0])
+                idx1 = self._chiSquareTable.get_bin_names(splits).index(top_target_top_dims[0])
+                splits[len(splits)-1] = splits[len(splits)-1]+1
+                df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
+                                    filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
+                                    select(self._second_level_dimensions).toPandas()
+                df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
+                                    filter(col(self._analysed_dimension)>=splits[idx1]).filter(col(self._analysed_dimension)<splits[idx1+1]).\
+                                    select(self._second_level_dimensions1).toPandas()
+                df_top_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx1]).\
+                            filter(col(self._analysed_dimension)<splits[idx1+1]).\
+                            select(self._second_level_dimensions1).toPandas()
+                df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
+                                filter(col(self._analysed_dimension)<splits[idx+1]).\
                                 select(self._second_level_dimensions).toPandas()
-            df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
-                                filter(col(self._analysed_dimension)>=splits[idx1]).filter(col(self._analysed_dimension)<splits[idx1+1]).\
-                                select(self._second_level_dimensions1).toPandas()
-            df_top_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx1]).\
-                        filter(col(self._analysed_dimension)<splits[idx1+1]).\
-                        select(self._second_level_dimensions1).toPandas()
-            df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
-                            filter(col(self._analysed_dimension)<splits[idx+1]).\
-                            select(self._second_level_dimensions).toPandas()
-        else:
-            df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
-                                filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+            else:
+                df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
+                                    filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                                    select(self._second_level_dimensions).toPandas()
+                df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
+                                    filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
+                                    select(self._second_level_dimensions1).toPandas()
+                df_top_dim = self._data_frame.filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
+                            select(self._second_level_dimensions1).toPandas()
+                df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
                                 select(self._second_level_dimensions).toPandas()
-            df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
-                                filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
-                                select(self._second_level_dimensions1).toPandas()
-            df_top_dim = self._data_frame.filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
-                        select(self._second_level_dimensions1).toPandas()
-            df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
-                            select(self._second_level_dimensions).toPandas()
-        distribution_second = []
-        for d in self._second_level_dimensions:
-            grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
-            contributions = df_second_dim.groupby(d).agg({d:'count'})
-            contribution_index = list(contributions.index)
-            contributions_val = contributions[d].tolist()
-            contributions_list = dict(zip(contribution_index,contributions_val))
-            index_list = list(grouped.index)
-            grouped_list = grouped[d].tolist()
-            contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
-            sum_ = grouped[d].sum()
-            diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
-            max_diff = diffs.index(max(diffs))
-            index_txt=''
-            if max_diff == 1:
-                index_txt = index_list[0]
-            elif max_diff == 2:
-                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-            elif max_diff>2:
-                index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-            distribution_second.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
-                                    'levels': index_list[:max_diff],'variation':random.randint(1,100),\
-                                    'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
+            distribution_second = []
+            for d in self._second_level_dimensions:
+                grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
+                contributions = df_second_dim.groupby(d).agg({d:'count'})
+                contribution_index = list(contributions.index)
+                contributions_val = contributions[d].tolist()
+                contributions_list = dict(zip(contribution_index,contributions_val))
+                index_list = list(grouped.index)
+                grouped_list = grouped[d].tolist()
+                contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
+                sum_ = grouped[d].sum()
+                diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
+                max_diff = diffs.index(max(diffs))
+                index_txt=''
+                if max_diff == 1:
+                    index_txt = index_list[0]
+                elif max_diff == 2:
+                    index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
+                elif max_diff>2:
+                    index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
+                distribution_second.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
+                                        'levels': index_list[:max_diff],'variation':random.randint(1,100),\
+                                        'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
-        distribution_top = []
-        for d in self._second_level_dimensions1:
-            grouped = df_top_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
-            contributions = df_top_dim.groupby(d).agg({d:'count'})
-            contribution_index = list(contributions.index)
-            contributions_val = contributions[d].tolist()
-            contributions_list = dict(zip(contribution_index,contributions_val))
-            index_list = list(grouped.index)
-            grouped_list = grouped[d].tolist()
-            contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
-            sum_ = grouped[d].sum()
-            diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
-            max_diff = diffs.index(max(diffs))
-            index_txt=''
-            if max_diff == 1:
-                index_txt = index_list[0]
-            elif max_diff == 2:
-                index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
-            elif max_diff>2:
-                index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
-            distribution_top.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
-                                    'levels': index_list[:max_diff],'variation':random.randint(1,100),\
-                                    'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
+            distribution_top = []
+            for d in self._second_level_dimensions1:
+                grouped = df_top_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
+                contributions = df_top_dim.groupby(d).agg({d:'count'})
+                contribution_index = list(contributions.index)
+                contributions_val = contributions[d].tolist()
+                contributions_list = dict(zip(contribution_index,contributions_val))
+                index_list = list(grouped.index)
+                grouped_list = grouped[d].tolist()
+                contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
+                sum_ = grouped[d].sum()
+                diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
+                max_diff = diffs.index(max(diffs))
+                index_txt=''
+                if max_diff == 1:
+                    index_txt = index_list[0]
+                elif max_diff == 2:
+                    index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
+                elif max_diff>2:
+                    index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
+                distribution_top.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
+                                        'levels': index_list[:max_diff],'variation':random.randint(1,100),\
+                                        'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
-        key_factors = ''
-        num_key_factors = len(self._second_level_dimensions)
+            key_factors = ''
+            num_key_factors = len(self._second_level_dimensions)
 
-        if len(self._second_level_dimensions)==3:
-            key_factors = ', '.join(self._second_level_dimensions[:2]) + ' and ' + self._second_level_dimensions[2]
-        elif len(self._second_level_dimensions)==2:
-            key_factors = ' and '.join(self._second_level_dimensions)
-        elif len(self._second_level_dimensions)==1:
-            key_factors = self._second_level_dimensions[0]
+            if len(self._second_level_dimensions)==3:
+                key_factors = ', '.join(self._second_level_dimensions[:2]) + ' and ' + self._second_level_dimensions[2]
+            elif len(self._second_level_dimensions)==2:
+                key_factors = ' and '.join(self._second_level_dimensions)
+            elif len(self._second_level_dimensions)==1:
+                key_factors = self._second_level_dimensions[0]
 
-        data_dict['num_key_factors'] = num_key_factors
-        data_dict['key_factors'] = key_factors
+            data_dict['num_key_factors'] = num_key_factors
+            data_dict['key_factors'] = key_factors
 
-        key_factors1 = ''
-        num_key_factors1 = len(self._second_level_dimensions1)
+            key_factors1 = ''
+            num_key_factors1 = len(self._second_level_dimensions1)
 
-        if len(self._second_level_dimensions1)==3:
-            key_factors1 = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
-        elif len(self._second_level_dimensions1)==2:
-            key_factors1 = ' and '.join(self._second_level_dimensions1)
-        elif len(self._second_level_dimensions1)==1:
-            key_factors1 = self._second_level_dimensions1[0]
+            if len(self._second_level_dimensions1)==3:
+                key_factors1 = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
+            elif len(self._second_level_dimensions1)==2:
+                key_factors1 = ' and '.join(self._second_level_dimensions1)
+            elif len(self._second_level_dimensions1)==1:
+                key_factors1 = self._second_level_dimensions1[0]
 
-        data_dict['num_key_factors1'] = num_key_factors1
-        data_dict['key_factors1'] = key_factors1
+            data_dict['num_key_factors1'] = num_key_factors1
+            data_dict['key_factors1'] = key_factors1
 
-        data_dict['distribution_top'] = distribution_top
-        data_dict['distribution_second'] = distribution_second
-        data_dict['random_card2'] = random.randint(1,100)
-        data_dict['random_card4'] = random.randint(1,100)
-        # print data_dict['distribution_second']
-        # print data_dict['random_card2']
-        card2Data = []
-        card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
-        chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
-        card2ChartData = NormalChartData(data=chart["data"])
-        card2ChartJson = ChartJson()
-        card2ChartJson.set_data(card2ChartData.get_data())
-        card2ChartJson.set_chart_type("combination")
-        card2ChartJson.set_types({"total":"bar","percentage":"line"})
-        card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
-        card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-        output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict),self._blockSplitter)
+            data_dict['distribution_top'] = distribution_top
+            data_dict['distribution_second'] = distribution_second
+            data_dict['random_card2'] = random.randint(1,100)
+            data_dict['random_card4'] = random.randint(1,100)
+            # print data_dict['distribution_second']
+            # print data_dict['random_card2']
+            card2Data = []
+            card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
+            chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
+            card2ChartData = NormalChartData(data=chart["data"])
+            card2ChartJson = ChartJson()
+            card2ChartJson.set_data(card2ChartData.get_data())
+            card2ChartJson.set_chart_type("combination")
+            card2ChartJson.set_types({"total":"bar","percentage":"line"})
+            card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
+            card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
+            output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict),self._blockSplitter)
 
-        card2Data.append(HtmlData(data=card2Heading))
-        card2Data.append(C3ChartData(data=card2ChartJson))
-        card2Data += output2
-        card2BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
-        card2Data.append(HtmlData(data=card2BubbleData))
+            card2Data.append(HtmlData(data=card2Heading))
+            card2Data.append(C3ChartData(data=card2ChartJson))
+            card2Data += output2
+            card2BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+            card2Data.append(HtmlData(data=card2BubbleData))
 
-        self._card2.set_card_data(card2Data)
-        self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
+            self._card2.set_card_data(card2Data)
+            self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
 
-        card4Data = []
-        card4Heading ='<h3>Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension+"</h3>"
-        chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
-        card4ChartData = NormalChartData(data=chart["data"])
-        card4ChartJson = ChartJson()
-        card4ChartJson.set_data(card4ChartData.get_data())
-        card4ChartJson.set_chart_type("combination")
-        card4ChartJson.set_types({"total":"bar","percentage":"line"})
-        card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
-        card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-        output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict),self._blockSplitter)
+            card4Data = []
+            card4Heading ='<h3>Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension+"</h3>"
+            chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
+            card4ChartData = NormalChartData(data=chart["data"])
+            card4ChartJson = ChartJson()
+            card4ChartJson.set_data(card4ChartData.get_data())
+            card4ChartJson.set_chart_type("combination")
+            card4ChartJson.set_types({"total":"bar","percentage":"line"})
+            card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
+            card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
+            output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict),self._blockSplitter)
 
-        card4Data.append(HtmlData(data=card4Heading))
-        card4Data.append(C3ChartData(data=card4ChartJson))
-        card4Data += output4
-        card4BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
-        card4Data.append(HtmlData(data=card4BubbleData))
+            card4Data.append(HtmlData(data=card4Heading))
+            card4Data.append(C3ChartData(data=card4ChartJson))
+            card4Data += output4
+            card4BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+            card4Data.append(HtmlData(data=card4BubbleData))
 
-        self._card4.set_card_data(card4Data)
-        self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,second_target))
+            self._card4.set_card_data(card4Data)
+            self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,second_target))
 
-        # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
-        # self.card0['paragraphs'] = output0
-        # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
+            # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
+            # self.card0['paragraphs'] = output0
+            # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
 
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):

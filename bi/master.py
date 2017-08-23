@@ -51,11 +51,11 @@ def main(configJson):
                 'FILE_SETTINGS': {
                     'script_to_run': [
                         'Descriptive analysis',
-                        # 'Measure vs. Dimension',
+                        'Measure vs. Dimension',
                         # 'Dimension vs. Dimension',
-                        'Predictive modeling',
+                        # 'Predictive modeling',
                         # 'Measure vs. Measure',
-                        # 'Trend'
+                        'Trend'
                     ],
                     'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
                     # 'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
@@ -157,7 +157,7 @@ def main(configJson):
                     # 'date_columns':['Date'],
                     'score_consider_columns_type': ['excluding'],
                     'score_consider_columns':[],
-                    "app_id":2
+                    "app_id":[2]
 
                 }
             },
@@ -660,8 +660,9 @@ def main(configJson):
         else:
             print "Could Not Load the Model for Scoring"
 
-        scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
-        # print scoreSummary
+        # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
+        scoreSummary = CommonUtils.convert_python_object_to_json(result_setter.get_score_card())
+        print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
         return response
 
