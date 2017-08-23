@@ -148,7 +148,6 @@ def main(configJson):
                     'levelcounts' : [],
                     'modelfeatures' : [],
                     "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
-                    "app_id":2
                 },
                 'COLUMN_SETTINGS': {
                     'analysis_type': ['Dimension'],
@@ -158,6 +157,8 @@ def main(configJson):
                     # 'date_columns':['Date'],
                     'score_consider_columns_type': ['excluding'],
                     'score_consider_columns':[],
+                    "app_id":2
+
                 }
             },
             "job_config":{
@@ -171,7 +172,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["story"]
+    # configJson = testConfigs["prediction"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -660,7 +661,7 @@ def main(configJson):
             print "Could Not Load the Model for Scoring"
 
         scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
-        print scoreSummary
+        # print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
         return response
 

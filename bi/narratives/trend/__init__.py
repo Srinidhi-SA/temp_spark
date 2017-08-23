@@ -250,7 +250,7 @@ class TimeSeriesNarrative:
                         # print measureTrendcard1Data
 
                         bubbledata = dataDict["bubbleData"]
-                        card1BubbleData = '<h2 class="text-center"><span>{}%</span><br/><small>{}</small></h2><h2 class="text-center"><span>{}%</span><br/><small>{}</small></h2>'.format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
+                        card1BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div>".format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
                         # print card1BubbleData
 
                         trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
