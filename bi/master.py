@@ -106,17 +106,17 @@ def main(configJson):
         "training":{
             "config":{
                 'FILE_SETTINGS': {
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/opportunity_train.csv'],
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],
                     # Model Slug will go instead of model path
-                    'modelpath': ["file:///home/gulshan/marlabs/test1/algos/"],
+                    'modelpath': ["dsdsadsa"],
                     'train_test_split' : [0.8],
                     'analysis_type' : ['training']
                 },
                 'COLUMN_SETTINGS': {
                     'analysis_type': ['training'],
-                    'result_column': ['Opportunity Result'],
+                    'result_column': ['class_label'],
                     'consider_columns_type': ['excluding'],
-                    'consider_columns':["Opportunity Number"],
+                    'consider_columns':[],
                     'polarity': ['positive'],
                     'date_format': None,
                     # 'date_columns':["new_date","Month","Order Date"],
