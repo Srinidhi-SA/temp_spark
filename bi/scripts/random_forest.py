@@ -223,7 +223,7 @@ class RandomForestScript:
             df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
             # CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._prediction_narrative)
+            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative)
             narratives = CommonUtils.as_dict(narratives_obj)
             # CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
             print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
@@ -242,7 +242,7 @@ class RandomForestScript:
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
             # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
             # CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative))
+            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter))
             # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
             # CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
             print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."

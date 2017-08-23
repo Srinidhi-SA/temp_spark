@@ -659,7 +659,7 @@ def main(configJson):
         scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
-        # return response
+        return response
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     print "Data Load Time : ", data_load_time, " seconds."
