@@ -97,7 +97,7 @@ class ContextSetter:
         if "consider_columns" in columnSettingKeys:
             self.considercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('consider_columns')]
         if "score_consider_columns" in columnSettingKeys:
-            self.scoreconsidercolumns = self.COLUMN_SETTINGS.get('score_consider_columns')
+            self.scoreconsidercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('score_consider_columns')]
         if "consider_columns_type" in columnSettingKeys:
             self.considercolumnstype = self.COLUMN_SETTINGS.get('consider_columns_type')
 
