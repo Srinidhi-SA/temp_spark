@@ -529,3 +529,9 @@ def create_scored_data_folder(score_slug,basefoldername):
         shutil.rmtree(filepath+"/"+score_slug)
     os.mkdir(filepath+"/"+score_slug)
     return filepath+"/"+score_slug+"/"
+
+# def model_slug_dictionary():
+#     random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
+#     object = {
+#     "randomforest":random_slug+"rf",
+#                 }

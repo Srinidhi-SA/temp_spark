@@ -12,7 +12,7 @@ class LinearRegression:
     LABEL_COLUMN_NAME = '_1'
     FEATURES_COLUMN_NAME = '_2'
 
-    MAX_ITERATIONS = 100
+    MAX_ITERATIONS = 5
     REGULARIZATION_PARAM = 0.1
 
     def __init__(self, data_frame, df_helper, df_context):

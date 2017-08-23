@@ -281,8 +281,11 @@ class LinearRegressionNarrative:
         # plot_labels = ["Labels"]+labels
         plot_labels = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],labels))
         all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]))
-        my_randoms = random.sample(xrange(len(col1_data)), 200)
-        sampled_data = [all_data[i] for i in my_randoms]
+        if len(col1_data) > 200:
+            my_randoms = random.sample(xrange(len(col1_data)), 200)
+            sampled_data = [all_data[i] for i in my_randoms]
+        else:
+            sampled_data = all_data
         scatterData = ScatterChartData()
         # data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
         data_obj = dict(zip(labels,[[],[],[],[]]))
