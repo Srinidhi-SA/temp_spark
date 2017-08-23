@@ -28,6 +28,7 @@ class ContextSetter:
         self.MODELFEATURES = []
         self.appid = None
         self.considercolumnstype = None
+        self.algorithmslug = []
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
@@ -68,7 +69,8 @@ class ContextSetter:
             self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
         else:
             self.scripts_to_run = []
-
+        if "algorithmslug" in fileSettingKeys:
+            self.algorithmslug = self.FILE_SETTINGS.get('algorithmslug')
         if "app_id" in columnSettingKeys:
             self.appid = self.COLUMN_SETTINGS['app_id'][0].strip()
         if "result_column" in columnSettingKeys:
@@ -107,6 +109,8 @@ class ContextSetter:
         # self.measure_filter = self._config_obj.get_measure_filters()
         # self.date_filter = self._config_obj.get_date_filters()
         # self.string_to_date_columns = self._config_obj.get_date_settings()
+    def get_algorithm_slug(self):
+        return self.algorithmslug
 
     def get_column_separator(self):
         return self._column_separator

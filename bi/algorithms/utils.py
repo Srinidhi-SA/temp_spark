@@ -491,7 +491,7 @@ def get_feature_importance(collated_summary):
     chart_json = ChartJson()
     chart_json.set_data(chart_data.get_data())
     chart_json.set_chart_type("bar")
-    chart_json.set_axes({"x":"key","y":"value"})
+    chart_json.set_axes({"x":"name","y":"value"})
     card3Chart = C3ChartData(data=chart_json)
     return card3Chart
 
