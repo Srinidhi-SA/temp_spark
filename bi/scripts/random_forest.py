@@ -114,12 +114,12 @@ class RandomForestScript:
         rfCard2 = NormalCard()
         rfCard2Data = []
         rfCard2Data.append(HtmlData(data="<h6>Confusion Matrix</h6>"))
-        card2Table = TableData()
-        card2Table.set_table_data(confusion_matrix_data)
-        card2Table.set_table_type("confusionMatrix")
-        card2Table.set_table_top_header("Actual")
-        card2Table.set_table_left_header("Predicted")
-        rfCard2Data.append(card2Table)
+        rfcard2Table = TableData()
+        rfcard2Table.set_table_data(confusion_matrix_data)
+        rfcard2Table.set_table_type("confusionMatrix")
+        rfcard2Table.set_table_top_header("Actual")
+        rfcard2Table.set_table_left_header("Predicted")
+        rfCard2Data.append(rfcard2Table)
         rfCard2.set_card_data(rfCard2Data)
         self._prediction_narrative.add_a_card(rfCard1)
         self._prediction_narrative.add_a_card(rfCard2)
@@ -129,6 +129,9 @@ class RandomForestScript:
             "modelFeatures":[],
         }
         self._result_setter.set_random_forest_model_summary(modelSummaryJson)
+        rfCard1 = json.loads(CommonUtils.convert_python_object_to_json(rfCard1))
+        rfCard2 = json.loads(CommonUtils.convert_python_object_to_json(rfCard2))
+        self._result_setter.set_rf_cards([rfCard1,rfCard2])
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary

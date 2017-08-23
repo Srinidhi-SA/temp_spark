@@ -140,7 +140,9 @@ class LogisticRegressionScript:
             "modelFeatures":[self._model_summary["trained_model_features"]],
         }
         self._result_setter.set_logistic_regression_model_summary(modelSummaryJson)
-
+        lrCard1 = json.loads(CommonUtils.convert_python_object_to_json(lrCard1))
+        lrCard2 = json.loads(CommonUtils.convert_python_object_to_json(lrCard2))
+        self._result_setter.set_lr_cards([lrCard1,lrCard2])
         # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
 

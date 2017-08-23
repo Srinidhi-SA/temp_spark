@@ -128,7 +128,9 @@ class XgboostScript:
             "modelFeatures":[],
         }
         self._result_setter.set_xgboost_model_summary(modelSummaryJson)
-
+        xgbCard1 = json.loads(CommonUtils.convert_python_object_to_json(xgbCard1))
+        xgbCard2 = json.loads(CommonUtils.convert_python_object_to_json(xgbCard2))
+        self._result_setter.set_xgb_cards([xgbCard1,xgbCard2])
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
         # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))

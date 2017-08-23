@@ -462,7 +462,7 @@ def get_model_comparison(collated_summary):
     for key in first_column:
         row = []
         for val in algos:
-            row.append(collated_summary[val][map_dict[key]])
+            row.append(100*(collated_summary[val][map_dict[key]]))
         out.append([key]+row)
         max_index = __builtin__.max(xrange(len(row)), key = lambda x: row[x])
         summary.append(["Best "+key,algos[max_index]])
@@ -493,6 +493,7 @@ def get_feature_importance(collated_summary):
     chart_json.set_chart_type("bar")
     chart_json.set_axes({"x":"name","y":"value"})
     chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format("0.2f")
     card3Chart = C3ChartData(data=chart_json)
     return card3Chart
 

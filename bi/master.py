@@ -170,7 +170,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["prediction"]
+    # configJson = testConfigs["training"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -552,22 +552,37 @@ def main(configJson):
         card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
         card1Data.append(HtmlData(data = MLUtils.get_total_models(collated_summary)))
         card1.set_card_data(card1Data)
-        prediction_narrative.insert_card_at_given_index(card1,0)
+        # prediction_narrative.insert_card_at_given_index(card1,0)
+        card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
 
         card2 = NormalCard()
         card2_elements = MLUtils.get_model_comparison(collated_summary)
         card2Data = [card2_elements[0],card2_elements[1]]
         card2.set_card_data(card2Data)
-        prediction_narrative.insert_card_at_given_index(card2,1)
+        # prediction_narrative.insert_card_at_given_index(card2,1)
+        card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
+
 
         card3 = NormalCard()
         card3Data = [HtmlData(data="<h2>Feature Importance</h2>")]
         card3Data.append(MLUtils.get_feature_importance(collated_summary))
         card3.set_card_data(card3Data)
-        prediction_narrative.insert_card_at_given_index(card3,2)
+        # prediction_narrative.insert_card_at_given_index(card3,2)
+        card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+
 
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
+        modelResult = json.loads(modelResult)
+        existing_cards = modelResult["listOfCards"]
+        existing_cards = result_setter.get_all_algos_cards()
+
+        # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
         # print modelResult
+        all_cards = [card1,card2,card3] + existing_cards
+
+        modelResult = NarrativesTree()
+        modelResult.add_cards(all_cards)
+        modelResult = CommonUtils.convert_python_object_to_json(modelResult)
         modelJsonOutput = ModelSummary()
         modelJsonOutput.set_model_summary(json.loads(modelResult))
 
@@ -587,7 +602,7 @@ def main(configJson):
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
         modelJsonOutput = modelJsonOutput.get_json_data()
-        print modelJsonOutput
+        # print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(modelJsonOutput))
         return response
 
