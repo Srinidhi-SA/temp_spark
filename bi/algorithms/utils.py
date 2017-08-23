@@ -531,10 +531,19 @@ def create_scored_data_folder(score_slug,basefoldername):
     os.mkdir(filepath+"/"+score_slug)
     return filepath+"/"+score_slug+"/"
 
-def model_slug_dictionary():
+def model_slug_mapping():
     random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
     object = {
                 "randomforest":random_slug+"rf",
                 "logisticregression":random_slug+"lr",
                 "xgboost":random_slug+"xgb"
                 }
+    return object
+def slug_model_mapping():
+    random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
+    object = {
+                random_slug+"rf":"randomforest",
+                random_slug+"lr":"logisticregression",
+                random_slug+"xgb":,"xgboost"
+                }
+    return object

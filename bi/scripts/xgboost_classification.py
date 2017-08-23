@@ -34,7 +34,8 @@ class XgboostScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
-        self._slug = "XGBoost1234"
+        self._model_slug_map = MLUtils.model_slug_mapping()
+        self._slug = self._model_slug_map["xgboost"]
 
     def Train(self):
         st = time.time()

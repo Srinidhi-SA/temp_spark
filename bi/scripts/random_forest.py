@@ -36,7 +36,8 @@ class RandomForestScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
         self._score_summary = {}
-        self._slug = "RandomForest12"
+        self._model_slug_map = MLUtils.model_slug_mapping()
+        self._slug = self._model_slug_map["randomforest"]
 
     def Train(self):
         st = time.time()

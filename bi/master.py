@@ -108,7 +108,7 @@ def main(configJson):
                 'FILE_SETTINGS': {
                     'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],
                     # Model Slug will go instead of model path
-                    'modelpath': ["dsdsadsa"],
+                    'modelpath': ["ANKUSH"],
                     'train_test_split' : [0.8],
                     'analysis_type' : ['training']
                 },
@@ -602,30 +602,30 @@ def main(configJson):
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
         # model_slug = dataframe_context.get_model_slug()
-        model_slug = "slug1"
+        model_slug = model_path
         score_slug = "slug1"
         # score_slug = dataframe_context.get_score_slug()
         basefoldername = "mAdvisorScores"
         score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
-        algorithm_name_list = ["RandomForest","XGBoost","LogisticRegression"]
-        algorithm_name = "RandomForest"
+        algorithm_name_list = ["randomforest","xgboost","logisticregression"]
+        algorithm_name = "randomforest"
         model_path = score_file_path.split(basefoldername)[0]+"/mAdvisorModels/"+model_slug+"/"+algorithm_name
         print model_path
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
 
-        if "RandomForest" in model_path:
+        if "randomforest" in model_path:
             df = df.toPandas()
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
-        elif "XGBoost" in model_path:
+        elif "xgboost" in model_path:
             df = df.toPandas()
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
-        elif "LogisticRegression" in model_path:
+        elif "logisticregression" in model_path:
             df = df.toPandas()
             trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
             # trainedModel = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)

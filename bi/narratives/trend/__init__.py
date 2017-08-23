@@ -272,7 +272,11 @@ class TimeSeriesNarrative:
                         forecasted_data = []
                         forecasted_data.append(card1chartdata["actual"][-1])
                         forecasted_dates = []
-                        forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%b-%y")
+                        # forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%b-%y")
+                        if self._dataLevel == "month":
+                            forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%b-%y")
+                        elif self._dataLevel == "day":
+                            forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%Y-%m-%d")
                         for val in range(prediction_window):
                             if self._dataLevel == "month":
                                 key = forecast_start_time+relativedelta(months=1+val)

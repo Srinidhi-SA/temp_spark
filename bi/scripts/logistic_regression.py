@@ -34,7 +34,8 @@ class LogisticRegressionScript:
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
         self._column_separator = "|~|"
-        self._slug = "LogisticRegression123"
+        self._model_slug_map = MLUtils.model_slug_mapping()
+        self._slug = self._model_slug_map["logisticregression"]
 
     def Train(self):
         st = time.time()
