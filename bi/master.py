@@ -625,6 +625,7 @@ def main(configJson):
         # score_slug = dataframe_context.get_score_slug()
         basefoldername = "mAdvisorScores"
         score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
+
         algorithm_name_list = ["randomforest","xgboost","logisticregression"]
         # algorithm_name = "randomforest"
         algorithm_name = dataframe_context.get_algorithm_slug()[0]
