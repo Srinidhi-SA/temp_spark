@@ -55,6 +55,15 @@ class MetaDataHelper():
         output = {}
         chart_data = {}
         summary_df = df.describe().toPandas()
+        displayNameDict = {"count":"Count",
+                            "mean":"Mean",
+                            "stddev":"Standard Deviation",
+                            "min":"Min",
+                            "max":"Max",
+                            "numberOfNulls":"Null Values",
+                            "numberOfUniqueValues":"Unique Values",
+                            "numberOfNotNulls":"Not Nulls"
+                            }
         for column in measure_columns:
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
             for k,v in col_stat.items():
@@ -68,7 +77,10 @@ class MetaDataHelper():
             chart_data[column] = self.get_binned_stat(df,column,col_stat)
             modified_col_stat = []
             for k,v in col_stat.items():
-                modified_col_stat.append({"name":k,"value":v,"display":True})
+                if k != "numberOfNotNulls":
+                    modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
+                else:
+                    modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
             output[column] = modified_col_stat
         return output,chart_data
 
@@ -78,6 +90,18 @@ class MetaDataHelper():
         output = {}
         chart_data = {}
         summary_df = df.describe().toPandas()
+        displayNameDict = {"count":"Count",
+                            "mean":"Mean",
+                            "stddev":"Standard Deviation",
+                            "min":"Min",
+                            "max":"Max",
+                            "numberOfNulls":"Null Values",
+                            "numberOfUniqueValues":"Unique Values",
+                            "numberOfNotNulls":"Not Nulls",
+                            "MaxLevel":"Max Level",
+                            "MinLevel":"Min Level",
+                            "LevelCount":"LevelCount"
+                            }
         for column in dimension_columns:
             col_stat = {}
             levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
@@ -98,10 +122,10 @@ class MetaDataHelper():
             col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
             modified_col_stat = []
             for k,v in col_stat.items():
-                if k != "LevelCount":
-                    modified_col_stat.append({"name":k,"value":v,"display":True})
+                if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls"]:
+                    modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
-                    modified_col_stat.append({"name":k,"value":v,"display":False})
+                    modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
             output[column] = modified_col_stat
             chart_data[column] = dimension_chart_data_sorted
         return output,chart_data

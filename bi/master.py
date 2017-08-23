@@ -170,7 +170,7 @@ def main(configJson):
         }
     }
     ####### used to overwrite the passed config arguments to test locally ######
-    # configJson = testConfigs["training"]
+    # configJson = testConfigs["metaData"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
