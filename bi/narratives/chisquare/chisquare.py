@@ -67,6 +67,9 @@ class ChiSquareAnalysis:
         # return self._dimensionNode
         return json.loads(CommonUtils.convert_python_object_to_json(self._dimensionNode))
 
+    def get_dimension_card1(self):
+        return self._card1
+
     def _generate_narratives(self):
         chisquare_result = self._chisquare_result
         target_dimension = self._target_dimension
@@ -246,7 +249,6 @@ class ChiSquareAnalysis:
 
         self._card1.set_card_data(targetDimCard1Data)
         self._card1.set_card_name("{}: Relationship with {}".format(self._analysed_dimension,self._target_dimension))
-
         if self._appid == None:
             self._key_factors_contributions = {}
             # for key_dim in self._second_level_dimensions:

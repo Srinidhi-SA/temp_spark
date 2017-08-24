@@ -26,16 +26,30 @@ class ResultSetter:
         self.rfcards = []
         self.lrcards = []
         self.xgbcards = []
-        self.scorecard = None
+        self.scorefreqcard = None
+        self.scorechicards = []
 
 
     # def set_params(self):
     #     self.columns = [field.name for field in self._data_frame.schema.fields]
     #     self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
-    def set_score_card(self,data):
-        self.scorecard = data
-    def get_score_card(self):
-        return self.scorecard
+    def get_score_cards(self):
+        if self.scorefreqcard != None:
+            return [self.scorefreqcard]+self.scorechicards
+        else:
+            return self.scorechicards
+    def set_score_freq_card(self,data):
+        self.scorefreqcard  = data
+        # self.scorefreqcard = json.loads(CommonUtils.convert_python_object_to_json(data))
+    def get_score_freq_card(self):
+        return self.scorefreqcard
+    def set_score_chi_cards(self,data):
+        self.scorechicards = data
+    def add_a_score_chi_card(self,data):
+        self.scorechicards.append(data)
+        # self.scorechicards.append(json.loads(CommonUtils.convert_python_object_to_json(data)))
+    def get_score_chi_cards(self):
+        return self.scorechicards
     def set_lr_cards(self,data):
         self.lrcards = data
     def set_rf_cards(self,data):

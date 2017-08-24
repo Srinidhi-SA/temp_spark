@@ -105,6 +105,14 @@ class ChiSquareNarratives:
                     # self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
                     card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
                     self.narratives['cards'].append(card)
+                    print card.get_dimension_card1()
+                    self._result_setter.add_a_score_chi_card(card.get_dimension_card1())
+                elif self._appid=='1':
+                    print "APPID 1 is used"
+                    # self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
+                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
+                    self.narratives['cards'].append(card)
+                    self._result_setter.add_a_score_chi_card(card.get_dimension_card1())
                 else:
                     target_dimension_card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
                     self.narratives['cards'].append(target_dimension_card)
