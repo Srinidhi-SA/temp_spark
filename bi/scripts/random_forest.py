@@ -142,8 +142,10 @@ class RandomForestScript:
         # Match with the level_counts and then clean the data
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
+        print level_counts_train
         cat_cols = self._dataframe_helper.get_string_columns()
         level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,cat_cols,self._dataframe_context.get_column_separator(),output_type="dict")
+        print level_counts_score
         if level_counts_train != {}:
             for key in level_counts_train:
                 if key in level_counts_score:
@@ -182,6 +184,8 @@ class RandomForestScript:
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
+        print "Predicted Columns"
+        print df.columns
         # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
 
@@ -201,7 +205,7 @@ class RandomForestScript:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
             columns_to_drop += ["predicted_probability"]
-        columns_to_drop = [x for x in columns_to_drop if x in df.columns]
+        columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
@@ -212,23 +216,24 @@ class RandomForestScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-            if narratives_file.startswith("file"):
-                narratives_file = narratives_file[7:]
-            result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            if result_file.startswith("file"):
-                result_file = result_file[7:]
-            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-            df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            # CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative)
-            narratives = CommonUtils.as_dict(narratives_obj)
-            # CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-            print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-        except:
-            print "Frequency Analysis Failed "
+        print df.columns
+        # try:
+        fs = time.time()
+        narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
+        if narratives_file.startswith("file"):
+            narratives_file = narratives_file[7:]
+        result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
+        if result_file.startswith("file"):
+            result_file = result_file[7:]
+        df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
+        df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
+        # CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
+        narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative)
+        narratives = CommonUtils.as_dict(narratives_obj)
+        # CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
+        print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+        # except:
+        #     print "Frequency Analysis Failed "
 
         # try:
         #     fs = time.time()
