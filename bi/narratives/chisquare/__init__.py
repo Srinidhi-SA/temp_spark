@@ -94,6 +94,7 @@ class ChiSquareNarratives:
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Key Influencers")
             self._chiSquareNode.add_a_card(main_card)
+            self._result_setter.add_a_score_chi_card(main_card)
 
             print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:

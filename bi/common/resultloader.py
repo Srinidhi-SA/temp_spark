@@ -35,9 +35,10 @@ class ResultSetter:
     #     self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
     def get_score_cards(self):
         if self.scorefreqcard != None:
-            return [self.scorefreqcard]+self.scorechicards
+            out = [self.scorefreqcard]+self.scorechicards
         else:
-            return self.scorechicards
+            out = self.scorechicards
+        return out[:5]
     def set_score_freq_card(self,data):
         self.scorefreqcard  = data
         # self.scorefreqcard = json.loads(CommonUtils.convert_python_object_to_json(data))
