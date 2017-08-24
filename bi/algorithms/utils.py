@@ -466,7 +466,7 @@ def get_model_comparison(collated_summary):
     for key in first_column:
         row = []
         for val in algos:
-            row.append(100*(collated_summary[val][map_dict[key]]))
+            row.append(round(100*(collated_summary[val][map_dict[key]]),2))
         out.append([key]+row)
         max_index = __builtin__.max(xrange(len(row)), key = lambda x: row[x])
         summary.append(["Best "+key,algos_dict[algos[max_index]]])

@@ -53,12 +53,10 @@ class ChiSquareAnalysis:
             self._dimensionNode.add_cards([self._card1,self._card2,self._card4])
             self._dimensionNode.set_name("{}".format(analysed_dimension))
         elif self._appid == "2":
-            print "DSDASDSA"
             self._generate_narratives()
             self._dimensionNode.add_cards([self._card1])
             self._dimensionNode.set_name("{}".format(analysed_dimension))
         elif self._appid == "1":
-            print "DSDASDSA"
             self._generate_narratives()
             self._dimensionNode.add_cards([self._card1])
             self._dimensionNode.set_name("{}".format(analysed_dimension))

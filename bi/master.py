@@ -278,7 +278,7 @@ def main(configJson):
                 },
                 "FILE_SETTINGS" : {
                     "algorithmslug" : [
-                        "f77631ce2ab24cf78c55bb6a5fce4db8rf"
+                        "f77631ce2ab24cf78c55bb6a5fce4db8xgb"
                     ],
                     "analysis_type" : [
                         "score"
