@@ -142,7 +142,7 @@ class RegressionNarrative:
                 card2Table1.set_table_type("heatMap")
                 card2Table1.set_table_top_header(card2table["table1"]["heading"])
                 measureCard2Data.insert(2,card2Table1)
-            elif "table2" in card2table:
+            if "table2" in card2table:
                 table2data = regression_narrative_obj.convert_table_data(card2table["table2"])
                 card2Table2 = TableData()
                 card2Table2.set_table_data(table1data)

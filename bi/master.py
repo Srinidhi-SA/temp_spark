@@ -51,10 +51,10 @@ def main(configJson):
                 'FILE_SETTINGS': {
                     'script_to_run': [
                         'Descriptive analysis',
-                        'Measure vs. Dimension',
+                        # 'Measure vs. Dimension',
                         # 'Dimension vs. Dimension',
                         # 'Predictive modeling',
-                        # 'Measure vs. Measure',
+                        'Measure vs. Measure',
                         # 'Trend'
                     ],
                     # 'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
@@ -624,8 +624,7 @@ def main(configJson):
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
-            # print json.dumps(decisionTreeNode,indent=2)
-            # print json.dumps(headNode,indent=2)
+            print json.dumps(headNode)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
             return response
 
