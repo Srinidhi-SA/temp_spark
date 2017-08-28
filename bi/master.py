@@ -175,77 +175,79 @@ def main(configJson):
 
     testConfigs = {
         "training":{
-                "config" : {
-                    "COLUMN_SETTINGS" : {
-                        "consider_columns" : [
-                            "Subgroup",
-                            "Group",
-                            "Region",
-                            "Market Route",
-                            "Size By Revenue",
-                            "Size By Employees",
-                            "Revenue",
-                            "Competitor Type",
-                            "Deal Size Category",
-                            "Opportunity Result",
-                            "Elapsed Day",
-                            "Sales Stage Change Count",
-                            "Closing Days",
-                            "Qualified Days",
-                            "Amount USD"
-                        ],
-                        "consider_columns_type" : [
-                            "including"
-                        ],
-                        "dateTimeSuggestions" : [
-                            {}
-                        ],
-                        "date_columns" : [],
-                        "date_format" : None,
-                        "ignore_column_suggestion" : [],
-                        "polarity" : [
-                            "positive"
-                        ],
-                        "result_column" : [
-                            "Opportunity Result"
-                        ],
-                        "utf8_column_suggestions" : []
-                    },
-                    "FILE_SETTINGS" : {
-                        "analysis_type" : [
-                            "training"
-                        ],
-                        "inputfile" : [
-                            "file:///home/gulshan/marlabs/datasets/Opportunity_train.csv"
-                        ],
-                        "modelpath" : [
-                            "new-model-kjrb9k38e1"
-                        ],
-                        "train_test_split" : [
-                            0.9
-                        ]
-                    }
+            "config" : {
+                "COLUMN_SETTINGS" : {
+                    "consider_columns" : [
+                        "Subgroup",
+                        "Group",
+                        "Region",
+                        "Market Route",
+                        "Size By Revenue",
+                        "Size By Employees",
+                        "Revenue",
+                        "Competitor Type",
+                        "Deal Size Category",
+                        "Opportunity Result",
+                        "Elapsed Day",
+                        "Sales Stage Change Count",
+                        "Closing Days",
+                        "Qualified Days",
+                        "Amount USD"
+                    ],
+                    "consider_columns_type" : [
+                        "including"
+                    ],
+                    "dateTimeSuggestions" : [
+                        {}
+                    ],
+                    "date_columns" : [],
+                    "date_format" : None,
+                    "ignore_column_suggestion" : [],
+                    "polarity" : [
+                        "positive"
+                    ],
+                    "result_column" : [
+                        "Opportunity Result"
+                    ],
+                    "utf8_column_suggestions" : []
                 },
-                "job_config" : {
-                    "get_config" : {
-                        "action" : "get_config",
-                        "method" : "GET"
-                    },
-                    "job_type" : "training",
-                    "job_url" : "http://34.196.204.54:9012/api/job/trainer-new-model-kjrb9k38e1-i5264kamha/",
-                    "set_result" : {
-                        "action" : "result",
-                        "method" : "PUT"
-                    }
+                "FILE_SETTINGS" : {
+                    "analysis_type" : [
+                        "training"
+                    ],
+                    "inputfile" : [
+                        "file:///home/gulshan/marlabs/datasets/Opportunity_train.csv"
+                    ],
+                    "modelpath" : [
+                        "opportunity-scoring-9bnwpew23j"
+                    ],
+                    "train_test_split" : [
+                        0.72
+                    ]
                 }
+            },
+            "job_config" : {
+                "get_config" : {
+                    "action" : "get_config",
+                    "method" : "GET"
+                },
+                "job_type" : "training",
+                "job_url" : "http://34.196.204.54:9012/api/job/trainer-opportunity-scoring-9bnwpew23j-8k8o4rcsuh/",
+                "set_result" : {
+                    "action" : "result",
+                    "method" : "PUT"
+                }
+            }
         },
         "prediction":{
             "config" : {
                 "COLUMN_SETTINGS" : {
+                    "app_id" : [
+                        1
+                    ],
                     "dateTimeSuggestions" : [
                         {}
                     ],
-                    "app_id":"2",
                     "date_columns" : [],
                     "date_format" : None,
                     "ignore_column_suggestion" : [],
@@ -278,7 +280,7 @@ def main(configJson):
                 },
                 "FILE_SETTINGS" : {
                     "algorithmslug" : [
-                        "f77631ce2ab24cf78c55bb6a5fce4db8xgb"
+                        "f77631ce2ab24cf78c55bb6a5fce4db8rf"
                     ],
                     "analysis_type" : [
                         "score"
@@ -286,15 +288,13 @@ def main(configJson):
                     "inputfile" : [
                         "file:///home/gulshan/marlabs/datasets/Opportunity_test.csv"
                     ],
-                    "levelcounts" : [
-                        "Size By Employees|~|5|~|Competitor Type|~|3|~|Revenue|~|5|~|Size By Revenue|~|5|~|Region|~|3|~|Group|~|4|~|Market Route|~|5|~|Deal Size Category|~|7|~|Subgroup|~|11"
-                    ],
-                    "modelfeatures" : [{}],
+                    "levelcounts" : [],
+                    "modelfeatures" : [],
                     "modelpath" : [
-                        "new-model-kjrb9k38e1"
+                        "opportunity-scoring-9bnwpew23j"
                     ],
                     "scorepath" : [
-                        "2-vxgivxfedu"
+                        "score-ufehtfv31y"
                     ]
                 }
             },
@@ -304,7 +304,7 @@ def main(configJson):
                     "method" : "GET"
                 },
                 "job_type" : "prediction",
-                "job_url" : "http://34.196.204.54:9012/api/job/score-2-vxgivxfedu-hq3kkplzvp/",
+                "job_url" : "http://34.196.204.54:9012/api/job/score-score-ufehtfv31y-12g2ccgwi9/",
                 "set_result" : {
                     "action" : "result",
                     "method" : "PUT"
