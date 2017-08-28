@@ -57,8 +57,8 @@ def main(configJson):
                         # 'Measure vs. Measure',
                         # 'Trend'
                     ],
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
-                    # 'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
+                    # 'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
+                    'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv'],
                 },
                 'COLUMN_SETTINGS': {
                     'polarity': ['positive'],
@@ -66,7 +66,8 @@ def main(configJson):
                     'date_format': None,
                     # 'date_columns':["new_date","Month","Order Date"],
                     'date_columns':["Month"],
-                    'ignore_column_suggestions': ["Region","Outlet"],
+                    'ignore_column_suggestions': [],
+                    # 'ignore_column_suggestions': ["Region","Outlet"],
                     # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
                     'result_column': ['Sales'],
                     'consider_columns':[],
@@ -173,146 +174,146 @@ def main(configJson):
     }
     ####### used to overwrite the passed config arguments to test locally ######
 
-    testConfigs = {
-        "training":{
-            "config" : {
-                "COLUMN_SETTINGS" : {
-                    "consider_columns" : [
-                        "Subgroup",
-                        "Group",
-                        "Region",
-                        "Market Route",
-                        "Size By Revenue",
-                        "Size By Employees",
-                        "Revenue",
-                        "Competitor Type",
-                        "Deal Size Category",
-                        "Opportunity Result",
-                        "Elapsed Day",
-                        "Sales Stage Change Count",
-                        "Closing Days",
-                        "Qualified Days",
-                        "Amount USD"
-                    ],
-                    "consider_columns_type" : [
-                        "including"
-                    ],
-                    "dateTimeSuggestions" : [
-                        {}
-                    ],
-                    "date_columns" : [],
-                    "date_format" : None,
-                    "ignore_column_suggestion" : [],
-                    "polarity" : [
-                        "positive"
-                    ],
-                    "result_column" : [
-                        "Opportunity Result"
-                    ],
-                    "utf8_column_suggestions" : []
-                },
-                "FILE_SETTINGS" : {
-                    "analysis_type" : [
-                        "training"
-                    ],
-                    "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/Opportunity_train.csv"
-                    ],
-                    "modelpath" : [
-                        "opportunity-scoring-9bnwpew23j"
-                    ],
-                    "train_test_split" : [
-                        0.72
-                    ]
-                }
-            },
-            "job_config" : {
-                "get_config" : {
-                    "action" : "get_config",
-                    "method" : "GET"
-                },
-                "job_type" : "training",
-                "job_url" : "http://34.196.204.54:9012/api/job/trainer-opportunity-scoring-9bnwpew23j-8k8o4rcsuh/",
-                "set_result" : {
-                    "action" : "result",
-                    "method" : "PUT"
-                }
-            }
-        },
-        "prediction":{
-            "config" : {
-                "COLUMN_SETTINGS" : {
-                    "app_id" : [
-                        1
-                    ],
-                    "dateTimeSuggestions" : [
-                        {}
-                    ],
-                    "date_columns" : [],
-                    "date_format" : None,
-                    "ignore_column_suggestion" : [],
-                    "polarity" : [
-                        "positive"
-                    ],
-                    "result_column" : [
-                        "Opportunity Result"
-                    ],
-                    "score_consider_columns" : [
-                        "Subgroup",
-                        "Group",
-                        "Region",
-                        "Market Route",
-                        "Size By Revenue",
-                        "Size By Employees",
-                        "Revenue",
-                        "Competitor Type",
-                        "Deal Size Category",
-                        "Elapsed Day",
-                        "Sales Stage Change Count",
-                        "Closing Days",
-                        "Qualified Days",
-                        "Amount USD"
-                    ],
-                    "score_consider_columns_type" : [
-                        "including"
-                    ],
-                    "utf8_column_suggestions" : []
-                },
-                "FILE_SETTINGS" : {
-                    "algorithmslug" : [
-                        "f77631ce2ab24cf78c55bb6a5fce4db8rf"
-                    ],
-                    "analysis_type" : [
-                        "score"
-                    ],
-                    "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/Opportunity_test.csv"
-                    ],
-                    "levelcounts" : [],
-                    "modelfeatures" : [],
-                    "modelpath" : [
-                        "opportunity-scoring-9bnwpew23j"
-                    ],
-                    "scorepath" : [
-                        "score-ufehtfv31y"
-                    ]
-                }
-            },
-            "job_config" : {
-                "get_config" : {
-                    "action" : "get_config",
-                    "method" : "GET"
-                },
-                "job_type" : "prediction",
-                "job_url" : "http://34.196.204.54:9012/api/job/score-score-ufehtfv31y-12g2ccgwi9/",
-                "set_result" : {
-                    "action" : "result",
-                    "method" : "PUT"
-                }
-            }
-        }
-    }
-    # configJson = testConfigs["prediction"]
+    # testConfigs = {
+    #     "training":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "consider_columns" : [
+    #                     "Subgroup",
+    #                     "Group",
+    #                     "Region",
+    #                     "Market Route",
+    #                     "Size By Revenue",
+    #                     "Size By Employees",
+    #                     "Revenue",
+    #                     "Competitor Type",
+    #                     "Deal Size Category",
+    #                     "Opportunity Result",
+    #                     "Elapsed Day",
+    #                     "Sales Stage Change Count",
+    #                     "Closing Days",
+    #                     "Qualified Days",
+    #                     "Amount USD"
+    #                 ],
+    #                 "consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {}
+    #                 ],
+    #                 "date_columns" : [],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Opportunity Result"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "analysis_type" : [
+    #                     "training"
+    #                 ],
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/Opportunity_train.csv"
+    #                 ],
+    #                 "modelpath" : [
+    #                     "opportunity-scoring-9bnwpew23j"
+    #                 ],
+    #                 "train_test_split" : [
+    #                     0.72
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "training",
+    #             "job_url" : "http://34.196.204.54:9012/api/job/trainer-opportunity-scoring-9bnwpew23j-8k8o4rcsuh/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     },
+    #     "prediction":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "app_id" : [
+    #                     1
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {}
+    #                 ],
+    #                 "date_columns" : [],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Opportunity Result"
+    #                 ],
+    #                 "score_consider_columns" : [
+    #                     "Subgroup",
+    #                     "Group",
+    #                     "Region",
+    #                     "Market Route",
+    #                     "Size By Revenue",
+    #                     "Size By Employees",
+    #                     "Revenue",
+    #                     "Competitor Type",
+    #                     "Deal Size Category",
+    #                     "Elapsed Day",
+    #                     "Sales Stage Change Count",
+    #                     "Closing Days",
+    #                     "Qualified Days",
+    #                     "Amount USD"
+    #                 ],
+    #                 "score_consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "algorithmslug" : [
+    #                     "f77631ce2ab24cf78c55bb6a5fce4db8rf"
+    #                 ],
+    #                 "analysis_type" : [
+    #                     "score"
+    #                 ],
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/Opportunity_test.csv"
+    #                 ],
+    #                 "levelcounts" : [],
+    #                 "modelfeatures" : [],
+    #                 "modelpath" : [
+    #                     "opportunity-scoring-9bnwpew23j"
+    #                 ],
+    #                 "scorepath" : [
+    #                     "score-ufehtfv31y"
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "prediction",
+    #             "job_url" : "http://34.196.204.54:9012/api/job/score-score-ufehtfv31y-12g2ccgwi9/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     }
+    # }
+    # configJson = testConfigs["story"]
     ######################### Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -747,7 +748,7 @@ def main(configJson):
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
         modelJsonOutput = modelJsonOutput.get_json_data()
-        # print modelJsonOutput
+        print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(modelJsonOutput))
         return response
 

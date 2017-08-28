@@ -100,9 +100,10 @@ class OneWayAnovaNarratives:
             row_data["k1"] = str(row_data["k1"].to_datetime().date())
             data_c3.append(row_data)
         json_chart =  ChartJson(data = NormalChartData(data_c3).get_data(),axes={'x':'k1','y':'k2','y2':'k3'},
-                        label_text={'x':"Time",'y':"y",'y2':"y2"}, legend={'x':x,'y':y,'y2':y2},
+                        label_text={'x':x,'y':y,'y2':y2}, legend={'k1':x,'k2':y,'k3':y2},
                         chart_type = 'line')
         json_chart.set_y2axis_number_format("0.2s")
+        json_chart.set_yaxis_number_format("0.2s")
         return json_chart
 
 
@@ -318,7 +319,6 @@ class OneWayAnovaNarratives:
         self.card1.add_chart('trend_chart',chart1)
         lines = []
         lines += [C3ChartData(self._get_c3chart_trend(data,'Time Period',total_measure,subset_measure))]
-
         overall_increase_percent = (agg_data_frame[total_measure].iloc[-1]*100/agg_data_frame[total_measure].iloc[0]) - 100
         subset_increase_percent = (subset_data_frame[subset_measure].iloc[-1]*100/subset_data_frame[subset_measure].iloc[0]) - 100
 

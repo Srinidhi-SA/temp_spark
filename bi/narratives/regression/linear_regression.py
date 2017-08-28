@@ -22,6 +22,8 @@ import pyspark.sql.functions as FN
 from pyspark.sql.functions import avg
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.types import DoubleType
+from pyspark.sql.functions import monotonically_increasing_id
+
 
 class LinearRegressionNarrative:
     STRONG_CORRELATION = 0.7
@@ -259,6 +261,15 @@ class LinearRegressionNarrative:
 
         data_dict["charts"] = {"heading":"","data":[]}
 
+        sample_rows = min(100.0, float(low1low2.count()))
+        low1low2 = low1low2.sample(False, sample_rows/low1low2.count(), seed = 50)
+        sample_rows = min(100.0, float(low1high2.count()))
+        low1high2 = low1high2.sample(False, sample_rows/low1high2.count(), seed = 50)
+        sample_rows = min(100.0, float(high1high2.count()))
+        high1high2 = high1high2.sample(False, sample_rows/high1high2.count(), seed = 50)
+        sample_rows = min(100.0, float(high1low2.count()))
+        high1low2 = high1low2.sample(False, sample_rows/high1low2.count(), seed = 50)
+
         low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
         low1low2_col2 = [x[0] for x in low1low2.select(col2).collect()]
         low1low2_color = ["#DD2E1F"]*len(low1low2_col2)
@@ -281,17 +292,13 @@ class LinearRegressionNarrative:
         # plot_labels = ["Labels"]+labels
         plot_labels = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],labels))
         all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]))
-        if len(col1_data) > 200:
-            my_randoms = random.sample(xrange(len(all_data)), 200)
-            sampled_data = [all_data[i] for i in my_randoms]
-        else:
-            sampled_data = all_data
+
         scatterData = ScatterChartData()
         # data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
         data_obj = dict(zip(labels,[[],[],[],[]]))
 
         # legend_map = dict(zip(labels,['#DD2E1F','#7C5BBB','#00AEB3','#EC640C']))
-        for val in sampled_data:
+        for val in all_data:
             col = val[2]
             obj = {col1:val[1],col2:val[0]}
             key = plot_labels[col]
@@ -309,8 +316,6 @@ class LinearRegressionNarrative:
         # data_dict["charts"]["data"] = [col2_data,col1_data,color_data,plot_labels]
         data_dict["charts"] = scatterChart
         return data_dict
-
-
 
     #### functions to calculate data dicts for different cards
 
