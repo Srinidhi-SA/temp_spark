@@ -1,5 +1,5 @@
 import os
-
+import json
 from bi.common import ContextSetter
 from bi.common.results import DFChiSquareResult
 from bi.common.utils import accepts
@@ -8,6 +8,7 @@ from chisquare_app2 import ChiSquareAnalysisApp2
 from bi.narratives import utils as NarrativesUtils
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import utils as CommonUtils
 
 
 class ChiSquareNarratives:
@@ -105,15 +106,15 @@ class ChiSquareNarratives:
                     print "APPID 2 is used"
                     # self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
                     card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
-                    self.narratives['cards'].append(card)
-                    print card.get_dimension_card1()
-                    self._result_setter.add_a_score_chi_card(card.get_dimension_card1())
+                    # self.narratives['cards'].append(card)
+                    self._result_setter.add_a_score_chi_card(json.loads(CommonUtils.convert_python_object_to_json(card.get_dimension_card1())))
+
                 elif self._appid=='1':
                     print "APPID 1 is used"
                     # self.narratives[target_dimension][analysed_dimension] = ChiSquareAnalysisApp2(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._appid)
                     card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
-                    self.narratives['cards'].append(card)
-                    self._result_setter.add_a_score_chi_card(card.get_dimension_card1())
+                    # self.narratives['cards'].append(card)
+                    self._result_setter.add_a_score_chi_card(json.loads(CommonUtils.convert_python_object_to_json(card.get_dimension_card1())))
                 else:
                     target_dimension_card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, None,target_chisquare_result)
                     self.narratives['cards'].append(target_dimension_card)
