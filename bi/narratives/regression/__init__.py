@@ -12,6 +12,7 @@ from bi.narratives.trend import TimeSeriesNarrative
 
 from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import utils as CommonUtils
 
 
 
@@ -127,6 +128,7 @@ class RegressionNarrative:
             measureCard1Data += measureCard1para
 
             card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
+            card2data.update({"blockSplitter":self._blockSplitter})
             card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                             'regression_card2.temp',card2data)
             card2paragraphs = NarrativesUtils.block_splitter(card2narrative,self._blockSplitter)
@@ -141,15 +143,20 @@ class RegressionNarrative:
                 card2Table1.set_table_data(table1data)
                 card2Table1.set_table_type("heatMap")
                 card2Table1.set_table_top_header(card2table["table1"]["heading"])
-                measureCard2Data.insert(2,card2Table1)
+                card2Table1Json = json.loads(CommonUtils.convert_python_object_to_json(card2Table1))
+                # measureCard2Data.insert(3,card2Table1)
+                measureCard2Data.insert(3,card2Table1Json)
+
             if "table2" in card2table:
                 table2data = regression_narrative_obj.convert_table_data(card2table["table2"])
                 card2Table2 = TableData()
-                card2Table2.set_table_data(table1data)
+                card2Table2.set_table_data(table2data)
                 card2Table2.set_table_type("heatMap")
                 card2Table2.set_table_top_header(card2table["table2"]["heading"])
-                measureCard2Data.insert(5,card2Table2)
-
+                # measureCard2Data.insert(5,card2Table2)
+                card2Table2Json = json.loads(CommonUtils.convert_python_object_to_json(card2Table2))
+                # measureCard2Data.append(card2Table2)
+                measureCard2Data.append(card2Table2Json)
 
 
             # self._result_setter.set_trend_section_data({"result_column":self.result_column,

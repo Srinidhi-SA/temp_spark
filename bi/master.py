@@ -175,6 +175,74 @@ def main(configJson):
     ####### used to overwrite the passed config arguments to test locally ######
 
     # testConfigs = {
+    #     "story":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "analysis_type" : [
+    #                     "measure"
+    #                 ],
+    #                 "consider_columns" : [
+    #                     "Month",
+    #                     "Deal_Type",
+    #                     "Price_Range",
+    #                     "Discount_Range",
+    #                     "Source",
+    #                     "Platform",
+    #                     "Buyer_Age",
+    #                     "Buyer_Gender",
+    #                     "Order Date",
+    #                     "Tenure_in_Days",
+    #                     "Sales",
+    #                     "Marketing_Cost",
+    #                     "Shipping_Cost",
+    #                     "Last_Transaction",
+    #                     "new_date"
+    #                 ],
+    #                 "consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {
+    #                         "Month" : "%b-%y",
+    #                         "Order Date" : "%d-%m-%Y"
+    #                     }
+    #                 ],
+    #                 "date_columns" : [
+    #                     "new_date"
+    #                 ],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Sales"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
+    #                 ],
+    #                 "script_to_run" : [
+    #                     "Descriptive analysis",
+    #                     "Measure vs. Dimension"
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "story",
+    #             "job_url" : "http://34.196.204.54:9012/api/job/insight-anova-trend-chart-test-tp8nqh6rpl-dbglag0rpg/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     },
     #     "training":{
     #         "config" : {
     #             "COLUMN_SETTINGS" : {
@@ -338,9 +406,6 @@ def main(configJson):
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
         print metaDataJson
-        # url = configJson["job_config"]["job_url"]
-        # url += "set_result"
-        # return {"data":metaDataJson,"url":url}
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         return response
     else:

@@ -291,7 +291,7 @@ class LinearRegressionNarrative:
         color_data = ["Colors"]+low1low2_color+low1high2_color+high1high2_color+high1low2_color
         # plot_labels = ["Labels"]+labels
         plot_labels = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],labels))
-        all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]))
+        all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]),key=lambda x:x[1])
 
         scatterData = ScatterChartData()
         # data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
