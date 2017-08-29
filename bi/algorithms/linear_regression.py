@@ -63,7 +63,9 @@ class LinearRegression:
         training_df = self._data_frame.select(*(func(c).alias(c) if c!=output_column else col(c) for c in all_measures))
         for input_col in input_columns:
             print "doing regression for:",input_col
-            if training_df.select(input_col).distinct().count() < 2:
+            level_count = training_df.select(input_col).distinct().count()
+            print level_count
+            if level_count < 2:
                 print "unique values less than 2"
                 p_values.append(1.0)
                 coefficients.append(0.0)
@@ -71,7 +73,6 @@ class LinearRegression:
                 r2s.append(0.0)
                 sample_data_dict[input_col]=None
                 continue
-            print "DSD"
             lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
                     labelCol=output_column,featuresCol=input_col,fitIntercept=True, solver='normal')
             lr_model = lr.fit(training_df)

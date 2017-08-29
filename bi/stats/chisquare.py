@@ -26,24 +26,32 @@ class ChiSquare:
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._dimension_columns = self._dataframe_helper.get_string_columns()
+        self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
+        self._date_column = self._dataframe_context.get_date_columns()
+        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
+        if self._date_column != None:
+            if len(self._date_column) >0 :
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
+        if len(self._date_column_suggestions) > 0:
+            if self._date_column_suggestions[0] != {}:
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
     def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=40):
         dimension = dimension_columns[0]
-        all_dimensions = self._dataframe_helper.get_string_columns()
-        all_measures = self._dataframe_helper.get_numeric_columns()
+        all_dimensions = self._dimension_columns
+        all_dimensions = [x for x in all_dimensions if x != dimension]
+        all_measures = self._measure_columns
         df_chisquare_result = DFChiSquareResult()
-        date_cols = self._dataframe_context.get_date_columns()
-        if date_cols == None:
-            date_cols = []
         for d in all_dimensions:
-            if d != dimension and d not in date_cols:
-                try:
-                    chisquare_result = self.test(dimension, d)
-                    df_chisquare_result.add_chisquare_result(dimension, d, chisquare_result)
-                except Exception, e:
-                    print repr(e), d
-                    continue
+            try:
+                chisquare_result = self.test(dimension, d)
+                df_chisquare_result.add_chisquare_result(dimension, d, chisquare_result)
+            except Exception, e:
+                print repr(e), d
+                continue
         for m in all_measures:
             try:
                 chisquare_result = self.test_measures(dimension, m)

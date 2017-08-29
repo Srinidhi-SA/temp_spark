@@ -27,8 +27,16 @@ class RegressionNarrative:
         self._blockSplitter = "|~NEWBLOCK~|"
 
         # self._result_setter.set_trend_section_name("regression")
-        self._date_columns = df_context.get_date_columns()
-
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._dimension_columns = self._dataframe_helper.get_string_columns()
+        self._date_column = self._dataframe_context.get_date_columns()
+        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
+        if self._date_column != None:
+            if len(self._date_column) >0 :
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
+        if len(self._date_column_suggestions) > 0:
+            if self._date_column_suggestions[0] != {}:
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
         self._spark = spark
         self.measures = []
         self.result_column = self._dataframe_helper.resultcolumn
@@ -204,11 +212,7 @@ class RegressionNarrative:
             sig_dims = sorted(sig_dims,key=lambda x:x[1],reverse=True)
             cat_columns = [x[0] for x in sig_dims[:5]]
         else:
-            cat_columns = self._dataframe_helper.get_string_columns()[:5]
-        if self._date_columns != None:
-            if len(self._date_columns) >0 :
-                cat_columns = list(set(cat_columns)-set(self._date_columns))
-
+            cat_columns = self._dimension_columns[:5]
         regression_result_dimension_cols = dict(zip(cat_columns,[{}]*len(cat_columns)))
         for col in cat_columns:
             column_levels = self._dataframe_helper.get_all_levels(col)

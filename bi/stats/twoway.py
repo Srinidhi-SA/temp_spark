@@ -31,11 +31,20 @@ class TwoWayAnova:
 
     def __init__(self, data_frame, df_helper, df_context):
         self._data_frame = data_frame
-        self._data_frame_helper = df_helper
-        self._measure_columns = self._data_frame_helper.get_numeric_columns()
-        self._dimension_columns = self._data_frame_helper.get_string_columns()
-        self._timestamp_columns = self._data_frame_helper.get_timestamp_columns()
-        self._df_rows = self._data_frame_helper.get_num_rows()
+        self._dataframe_helper = df_helper
+        self._dataframe_context = df_context
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._dimension_columns = self._dataframe_helper.get_string_columns()
+        self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
+        self._date_column = self._dataframe_context.get_date_columns()
+        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
+        if self._date_column != None:
+            if len(self._date_column) >0 :
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
+        if len(self._date_column_suggestions) > 0:
+            if self._date_column_suggestions[0] != {}:
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
+        self._df_rows = self._dataframe_helper.get_num_rows()
         self.top_dimension_result = {}
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._dateFormatDetected = False
@@ -140,7 +149,7 @@ class TwoWayAnova:
             self.trend_result = TrendResult(agg_data_frame, self._primary_date, measure)
 
     def get_primary_time_dimension(self, df_context):
-        # timestamp_columns = self._data_frame_helper.get_timestamp_columns()
+        # timestamp_columns = self._dataframe_helper.get_timestamp_columns()
         date_suggestion_cols = df_context.get_date_columns()
         # if len(timestamp_columns)>0:
         #     self._primary_date = timestamp_columns[0]
@@ -164,7 +173,7 @@ class TwoWayAnova:
             self._primary_date = None
 
     def get_date_conversion_formats(self, df_context):
-        dateColumnFormatDict =  self._data_frame_helper.get_datetime_format(self._primary_date)
+        dateColumnFormatDict =  self._dataframe_helper.get_datetime_format(self._primary_date)
         if self._primary_date in dateColumnFormatDict.keys():
             self._existingDateFormat = dateColumnFormatDict[self._primary_date]
             self._dateFormatDetected = True
@@ -187,9 +196,9 @@ class TwoWayAnova:
         dimensions = dimension_columns
         if dimension_columns is None:
             dimensions = self._dimension_columns
-        max_num_levels = min(max_num_levels, round(self._data_frame_helper.get_num_rows()**0.5))
+        max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
         DF_Anova_Result = DFTwoWayAnovaResult()
-        dimensions_to_test = [dim for dim in dimensions if self._data_frame_helper.get_num_unique_values(dim) <= max_num_levels]
+        dimensions_to_test = [dim for dim in dimensions if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         self._dimensions_to_test = dimensions_to_test
         for m in measures:
             #var = self._data_frame.select(col(m).alias('x'),(col(m)**2).alias('x2')).agg({'x':'count','x':'mean','x2':'sum'}).collect()
@@ -233,7 +242,7 @@ class TwoWayAnova:
         if self._anova_result.get_OneWayAnovaResult(dimension).is_statistically_significant(alpha = 0.05):
             self.test_anova_top_dimension(var, measure, dimension, sst)
             effect_size = self._anova_result.get_OneWayAnovaEffectSize(dimension)
-            self._data_frame_helper.add_significant_dimension(dimension,effect_size)
+            self._dataframe_helper.add_significant_dimension(dimension,effect_size)
 
     def test_anova_top_dimension(self, var, measure, dimension, sst):
         top_dimension = var.ix[var.total.argmax()]

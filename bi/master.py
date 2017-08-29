@@ -222,8 +222,11 @@ def main(configJson):
                     ],
                     "script_to_run" : [
                         "Descriptive analysis",
-                        "Predictive modeling",
-                        # "Trend"
+                        'Measure vs. Dimension',
+                        # "Predictive modeling",
+                        # 'Measure vs. Measure',
+                        # 'Dimension vs. Dimension',
+                        "Trend"
                     ]
                 }
             },
@@ -233,7 +236,7 @@ def main(configJson):
                     "method" : "GET"
                 },
                 "job_type" : "story",
-                "job_url" : "http://34.196.204.54:9012/api/job/insight-full-test-2-0f55nfpzut-qw8vg6c4s5/",
+                "job_url" : "",
                 "set_result" : {
                     "action" : "result",
                     "method" : "PUT"
