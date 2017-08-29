@@ -28,7 +28,7 @@ class DecisionTreeRegression:
         #self._data_frame_filterer = DataFrameFilterer(data_frame)
         self._measure_columns = data_frame_helper.get_numeric_columns()
         self._dimension_columns = data_frame_helper.get_string_columns()
-        self.date_columns = df_context.get_date_column_suggestions()
+        self.date_columns = df_context.get_date_columns()
         if self.date_columns != None:
             self._dimension_columns = list(set(self._dimension_columns)-set(self.date_columns))
         self._mapping_dict = {}

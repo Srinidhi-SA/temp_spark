@@ -30,7 +30,7 @@ class TimeSeriesNarrative:
         self._dateFormatDetected = False
         self._requestedDateFormat = None
         self._existingDateFormat = None
-        self._date_suggestion_columns = df_context.get_date_column_suggestions()
+        self._date_suggestion_columns = df_context.get_date_columns()
         # self._date_suggestion_columns = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._td_columns = df_helper.get_timestamp_columns()

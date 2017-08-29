@@ -27,7 +27,7 @@ class TimeSeriesCalculations:
 
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._dateFormatDetected = False
-        self._date_suggestion_columns = df_context.get_date_column_suggestions()
+        self._date_suggestion_columns = df_context.get_date_columns()
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._td_columns = df_helper.get_timestamp_columns()
         self._result_column = df_context.get_result_column()

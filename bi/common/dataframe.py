@@ -139,7 +139,7 @@ class DataFrameHelper:
         # from bi.algorithms import utils as MLUtils
         result_column = self._df_context.get_result_column()
         train_test_ratio = float(self._df_context.get_train_test_split())
-        date_suggestion_columns = self._df_context.get_date_column_suggestions()
+        date_suggestion_columns = self._df_context.get_date_columns()
         print "DATE suggestions",date_suggestion_columns
         if date_suggestion_columns == None:
             date_suggestion_columns = []

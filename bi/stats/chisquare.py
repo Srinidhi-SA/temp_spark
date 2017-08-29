@@ -33,7 +33,7 @@ class ChiSquare:
         all_dimensions = self._dataframe_helper.get_string_columns()
         all_measures = self._dataframe_helper.get_numeric_columns()
         df_chisquare_result = DFChiSquareResult()
-        date_cols = self._dataframe_context.get_date_column_suggestions()
+        date_cols = self._dataframe_context.get_date_columns()
         if date_cols == None:
             date_cols = []
         for d in all_dimensions:

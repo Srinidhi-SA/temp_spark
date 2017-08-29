@@ -141,7 +141,7 @@ class TwoWayAnova:
 
     def get_primary_time_dimension(self, df_context):
         # timestamp_columns = self._data_frame_helper.get_timestamp_columns()
-        date_suggestion_cols = df_context.get_date_column_suggestions()
+        date_suggestion_cols = df_context.get_date_columns()
         # if len(timestamp_columns)>0:
         #     self._primary_date = timestamp_columns[0]
         if date_suggestion_cols != None and len(date_suggestion_cols)>0:

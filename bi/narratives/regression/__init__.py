@@ -27,7 +27,7 @@ class RegressionNarrative:
         self._blockSplitter = "|~NEWBLOCK~|"
 
         # self._result_setter.set_trend_section_name("regression")
-        self._date_columns = df_context.get_date_column_suggestions()
+        self._date_columns = df_context.get_date_columns()
 
         self._spark = spark
         self.measures = []

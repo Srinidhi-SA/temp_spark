@@ -36,7 +36,7 @@ class OneWayAnova:
         dimensions = dimension_columns
         if dimension_columns is None:
             dimensions = self._dataframe_helper.get_string_columns()
-            date_columns = self._dataframe_context.get_date_column_suggestions()
+            date_columns = self._dataframe_context.get_date_columns()
             if date_columns != None:
                 dimensions = list(set(dimensions)-set(date_columns))
 

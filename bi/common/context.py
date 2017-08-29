@@ -29,6 +29,7 @@ class ContextSetter:
         self.appid = None
         self.algorithmslug = []
         self.levelcount_dict = {}
+        self.dateTimeSuggestions = []
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
@@ -118,6 +119,8 @@ class ContextSetter:
             self.measure_suggestions = self.COLUMN_SETTINGS.get('measure_suggestions')
         if "score_consider_columns_type" in columnSettingKeys:
             self.scoreconsidercolumnstype = self.COLUMN_SETTINGS.get('score_consider_columns_type')
+        if "dateTimeSuggestions" in columnSettingKeys:
+            self.dateTimeSuggestions = self.COLUMN_SETTINGS.get('dateTimeSuggestions')
 
         # self.dimension_filter = self._config_obj.get_dimension_filters()
         # self.measure_filter = self._config_obj.get_measure_filters()
@@ -189,7 +192,7 @@ class ContextSetter:
     def get_date_filters(self):
         return self.date_filter
 
-    def get_date_column_suggestions(self):
+    def get_date_columns(self):
         return self.date_columns
 
     def get_requested_date_format(self):
@@ -209,3 +212,6 @@ class ContextSetter:
 
     def get_app_id(self):
         return self.appid
+
+    def get_datetime_suggestions(self):
+        return self.dateTimeSuggestions
