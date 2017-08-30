@@ -200,13 +200,14 @@ class DecisionTreeRegression:
             mapping_dict[k] = temp
         self._mapping_dict = mapping_dict
 
-    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
-    def test_all(self, measure_columns=None, dimension_columns=None):
+    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
+    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=50):
         if dimension_columns is None:
             dimensions = self._dimension_columns
         self._target_dimension = measure_columns[0]
         dimension = self._target_dimension
-        all_dimensions = self._dimension_columns
+        max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
+        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         all_measures = [x for x in self._measure_columns if x!=self._target_dimension]
         self.transform_data_frames()
         decision_tree_result = DecisionTreeResult()

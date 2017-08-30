@@ -178,14 +178,15 @@ class DecisionTrees:
 
 
 
-    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
-    def test_all(self, measure_columns=None, dimension_columns=None):
+    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
+    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=50):
         measures = measure_columns
         if measure_columns is None:
             measures = self._measure_columns
         self._target_dimension = dimension_columns[0]
         dimension = self._target_dimension
-        all_dimensions = self._dimension_columns
+        max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
+        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
         cat_feature_info = []
         columns_without_dimension = list(x for x in all_dimensions if x != dimension)
