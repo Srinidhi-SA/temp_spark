@@ -53,7 +53,7 @@ class MetaData:
         self.display = boolData
 
 class ColumnData:
-    def __init__(self,name=None,slug=None,columnStats={},chartData={},columnType = None):
+    def __init__(self,name=None,slug=None,columnStats=[],chartData={},columnType = None):
         self.name = name
         self.slug = None
         self.columnStats = columnStats
