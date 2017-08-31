@@ -205,6 +205,8 @@ class LinearRegressionNarrative:
 
         col1_mean = Stats.mean(self._data_frame,col1)
         col2_mean = Stats.mean(self._data_frame,col2)
+        print col1,col2
+        print col1_mean,col2_mean
         low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) < col2_mean)
         low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) >= col2_mean)
         high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) >= col2_mean)
@@ -213,6 +215,10 @@ class LinearRegressionNarrative:
         contribution = {}
         freq = {}
         elasticity_dict = {}
+        print "low1low2:", low1low2.count()
+        print "low1high2:", low1high2.count()
+        print "high1high2:", high1high2.count()
+        print "high1low2:", high1low2.count()
 
         freq["low1low2"] = self.get_freq_dict(low1low2,cat_columns)[:3]
         freq["low1high2"] = self.get_freq_dict(low1high2,cat_columns)[:3]
@@ -325,9 +331,13 @@ class LinearRegressionNarrative:
         for val in column_tuple:
             freq_df = df.groupby(val[0]).count().toPandas()
             freq_dict = dict(zip(freq_df[val[0]],freq_df["count"]))
-            max_level = max(freq_dict,key=freq_dict.get)
-            max_val = freq_dict[max_level]
-            output.append((val[0],freq_dict,max_level,max_val))
+            if freq_dict != {}:
+                max_level = max(freq_dict,key=freq_dict.get)
+                max_val = freq_dict[max_level]
+                output.append((val[0],freq_dict,max_level,max_val))
+            else:
+                print freq_dict
+                print df.select(val[0]).toPandas()
         sorted_output = sorted(output,key=lambda x:x[3],reverse=True)
         return sorted_output
 
@@ -370,6 +380,8 @@ class LinearRegressionNarrative:
             lowest_coeff[dim] = coeff_list[-1]
             all_coeff_list.append([coeff_list[0],dim])
         all_coeff_list = sorted(all_coeff_list,key=lambda x:abs(x[0][1]),reverse=True)
+        print "all_coeff_list"
+        print all_coeff_list
         top2_dims = [x[1] for x in all_coeff_list[:2]]
         dimension_data_dict = dict(zip(top2_dims,[{}]*len(top2_dims)))
         for val in top2_dims:

@@ -92,8 +92,8 @@ class ContextSetter:
             self.resultcolumn = "{}".format(self.COLUMN_SETTINGS['result_column'][0].strip())
         if "analysis_type" in columnSettingKeys:
             self.analysistype = self.COLUMN_SETTINGS['analysis_type'][0].strip()
-        if "ignore_column_suggestions" in columnSettingKeys:
-            self.ignorecolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('ignore_column_suggestions')]
+        if "ignore_column_suggestion" in columnSettingKeys:
+            self.ignorecolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('ignore_column_suggestion')]
         if "utf8_columns" in columnSettingKeys:
             self.utf8columns = self.COLUMN_SETTINGS.get('utf8_columns')
         if self.ignorecolumns!=None:

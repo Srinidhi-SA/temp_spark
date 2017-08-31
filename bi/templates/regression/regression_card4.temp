@@ -4,7 +4,7 @@
 <p class="txt-justify">
 {{measure_column}} seems to have a remarkable impact on various segments of {{result_column}}
 observations. The chart above shows four quadrants based on the distribution of {{result_column}}
-(high vs. low) and marketing cost (high vs. low).
+(high vs. low) and {{measure_column}} (high vs. low).
 </p>
 {{blockSplitter}}
 <p class="txt-justify">

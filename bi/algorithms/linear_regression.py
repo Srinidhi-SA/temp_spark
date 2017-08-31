@@ -62,11 +62,11 @@ class LinearRegression:
         regression_result = RegressionResult(output_column, input_columns)
         training_df = self._data_frame.select(*(func(c).alias(c) if c!=output_column else col(c) for c in all_measures))
         for input_col in input_columns:
-            print "doing regression for:",input_col
+            # print "doing regression for:",input_col
             level_count = training_df.select(input_col).distinct().count()
-            print level_count
+            # print level_count
             if level_count < 2:
-                print "unique values less than 2"
+                # print "unique values less than 2"
                 p_values.append(1.0)
                 coefficients.append(0.0)
                 intercepts.append(0.0)
@@ -80,7 +80,7 @@ class LinearRegression:
             try:
                 p_values.append(lr_model.summary.pValues[0])
             except:
-                print '|'*140
+                # print '|'*140
                 p_values.append(1.0)
             coefficients.append(float(lr_model.coefficients[0]))
             intercepts.append(float(lr_model.intercept))

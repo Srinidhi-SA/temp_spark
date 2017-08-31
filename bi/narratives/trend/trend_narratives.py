@@ -57,13 +57,23 @@ class TrendNarrative:
         dataDict["bubbleData"] = [{"value":"","text":""},{"value":"","text":""}]
         dataDict["overall_growth"] = round((df["value"].iloc[-1]-df["value"].iloc[0])*100/float(df["value"].iloc[0]),self._num_significant_digits)
         dataDict["bubbleData"][0]["value"] = str(abs(dataDict["overall_growth"]))+"%"
-        dataDict["bubbleData"][0]["text"] = "Overall growth in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
+        if dataDict["overall_growth"] >= 0:
+            dataDict["bubbleData"][0]["text"] = "Overall growth in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
+        else:
+            dataDict["bubbleData"][0]["text"] = "Overall decline in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
+
         max_growth_index = np.argmax(df["perChange"])
         dataDict["bubbleData"][1]["value"] = str(abs(round(list(df["perChange"])[max_growth_index],self._num_significant_digits)))+"%"
-        if dataDict["dataLevel"] == "day":
-            dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
-        elif dataDict["dataLevel"] == "month":
-            dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["year_month"])[max_growth_index])
+        if list(df["perChange"])[max_growth_index] >= 0:
+            if dataDict["dataLevel"] == "day":
+                dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
+            elif dataDict["dataLevel"] == "month":
+                dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,list(df["year_month"])[max_growth_index])
+        else:
+            if dataDict["dataLevel"] == "day":
+                dataDict["bubbleData"][1]["text"] = "Largest decline in %s happened in %s"%(self._measure_column ,list(df["key"])[max_growth_index])
+            elif dataDict["dataLevel"] == "month":
+                dataDict["bubbleData"][1]["text"] = "Largest decline in %s happened in %s"%(self._measure_column ,list(df["year_month"])[max_growth_index])
 
         # print dataDict["bubbleData"]
         dataDict["start_value"] = round(df["value"].iloc[0],self._num_significant_digits)
@@ -87,7 +97,8 @@ class TrendNarrative:
             dataDict["peakTime"] = df["year_month"][peak_index]
             dataDict["lowestTime"] = df["year_month"][low_index]
             dataDict["reference_time"] = dataDict["peakTime"]
-
+        print dataDict["overall_growth"]
+        print "%#"*20
         if dataDict["overall_growth"] < 0:
             dataDict["overall_growth_text"] = "negative growth"
         else:

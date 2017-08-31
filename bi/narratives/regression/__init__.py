@@ -94,6 +94,7 @@ class RegressionNarrative:
         mainCardChartJson.set_label_text({'x':'Measure Name','y': 'Change in ' + self.result_column + ' per unit increase'})
         mainCardChartJson.set_chart_type("bar")
         mainCardChartJson.set_axes({"x":"key","y":"value"})
+        mainCardChartJson.set_yaxis_number_format(".2f")
         main_card.set_card_data(data = [main_card_header]+main_card_paragraphs+[C3ChartData(data=mainCardChartJson)])
         main_card.set_card_name("Key Influencers")
         self._regressionNode.add_a_card(main_card)
@@ -205,19 +206,26 @@ class RegressionNarrative:
 
 
     def run_regression_for_dimension_levels(self):
-
+        print "Running regression for Dimension Levels"
         significant_dimensions = self._dataframe_helper.get_significant_dimension()
+        print "significant_dimensions:",significant_dimensions
         if significant_dimensions != {}:
             sig_dims = [(x,significant_dimensions[x]) for x in significant_dimensions.keys()]
             sig_dims = sorted(sig_dims,key=lambda x:x[1],reverse=True)
             cat_columns = [x[0] for x in sig_dims[:5]]
         else:
             cat_columns = self._dimension_columns[:5]
+        cat_columns= [x for x in cat_columns if x != "Agent Name"]
+        print "Running regression for below 5 dimensions"
+        print cat_columns
         regression_result_dimension_cols = dict(zip(cat_columns,[{}]*len(cat_columns)))
         for col in cat_columns:
+            print "For Column:",col
             column_levels = self._dataframe_helper.get_all_levels(col)
             level_regression_result = dict(zip(column_levels,[{}]*len(column_levels)))
+            print "No of levels in this column",len(column_levels)
             for level in column_levels:
+                print "Filtering data for level:",level
                 filtered_df = self._dataframe_helper.filter_dataframe(col,level)
                 result = LinearRegression(filtered_df, self._dataframe_helper, self._dataframe_context).fit(self._dataframe_context.get_result_column())
                 if result == None:
