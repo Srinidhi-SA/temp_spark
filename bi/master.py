@@ -677,7 +677,7 @@ def main(configJson):
     #         }
     #         }
     # }
-    # configJson = testConfigs["metaData"]
+    # configJson = testConfigs["story"]
     ######################## Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
