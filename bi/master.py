@@ -91,7 +91,7 @@ def main(configJson):
           },
         "metaData" : {
             "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/Health_Care_Callcentre.csv']},
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/client_data.csv']},
                     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                     },
             "job_config":{
@@ -172,284 +172,512 @@ def main(configJson):
             }
         }
     }
-    ####### used to overwrite the passed config arguments to test locally ######
+    ###### used to overwrite the passed config arguments to test locally ######
 
-    testConfigs = {
-        # "story":{
-        #     "config" : {
-        #         "COLUMN_SETTINGS" : {
-        #             "analysis_type" : [
-        #                 "measure"
-        #             ],
-        #             "consider_columns" : [
-        #                 "Month",
-        #                 "Deal_Type",
-        #                 "Source",
-        #                 "Platform",
-        #                 "Buyer_Age",
-        #                 "Buyer_Gender",
-        #                 "Order Date",
-        #                 "Tenure_in_Days",
-        #                 "Sales",
-        #                 "Last_Transaction",
-        #                 "new_date"
-        #             ],
-        #             "consider_columns_type" : [
-        #                 "including"
-        #             ],
-        #             "dateTimeSuggestions" : [
-        #                 {
-        #                     "Month" : "%b-%y",
-        #                     "Order Date" : "%d-%m-%Y"
-        #                 }
-        #             ],
-        #             "date_columns" : [
-        #                 "new_date"
-        #             ],
-        #             "date_format" : None,
-        #             "ignore_column_suggestion" : [],
-        #             "polarity" : [
-        #                 "positive"
-        #             ],
-        #             "result_column" : [
-        #                 "Sales"
-        #             ],
-        #             "utf8_column_suggestions" : []
-        #         },
-        #         "FILE_SETTINGS" : {
-        #             "inputfile" : [
-        #                 "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
-        #             ],
-        #             "script_to_run" : [
-        #                 "Descriptive analysis",
-        #                 'Measure vs. Dimension',
-        #                 # "Predictive modeling",
-        #                 # 'Measure vs. Measure',
-        #                 # 'Dimension vs. Dimension',
-        #                 "Trend"
-        #             ]
-        #         }
-        #     },
-        #     "job_config" : {
-        #         "get_config" : {
-        #             "action" : "get_config",
-        #             "method" : "GET"
-        #         },
-        #         "job_type" : "story",
-        #         "job_url" : "",
-        #         "set_result" : {
-        #             "action" : "result",
-        #             "method" : "PUT"
-        #         }
-        #     }
-        # },
-        "story":{
-        "config" : {
-            "COLUMN_SETTINGS" : {
-                "analysis_type" : [
-                    "measure"
-                ],
-                "consider_columns" : [
-                    "Education",
-                    "Top Organisation",
-                    "Agent Name",
-                    "Call Type",
-                    "State",
-                    "Region",
-                    "Agent Experience",
-                    "Rating",
-                    "Agent Age",
-                    "Top Plan Provider",
-                    "Number of Calls",
-                    "1st Time callers",
-                    "No of resolved case",
-                    "Call date"
-                ],
-                "consider_columns_type" : [
-                    "including"
-                ],
-                "dateTimeSuggestions" : [
-                    {}
-                ],
-                "date_columns" : [
-                    "Call date"
-                ],
-                "date_format" : None,
-                "ignore_column_suggestion" : [
-                    "Agent Name",
-                    "State"
-                ],
-                "polarity" : [
-                    "positive"
-                ],
-                "result_column" : [
-                    "Number of Calls"
-                ],
-                "utf8_column_suggestions" : []
-            },
-            "FILE_SETTINGS" : {
-                "inputfile" : [
-                    "file:///home/gulshan/marlabs/datasets/Callcentre3.csv"
-                    ],
-                "script_to_run" : [
-                    "Descriptive analysis",
-                    "Measure vs. Dimension",
-                    "Trend"
-                ]
-            }
-        },
-        "job_config" : {
-            "get_config" : {
-                "action" : "get_config",
-                "method" : "GET"
-            },
-            "job_type" : "story",
-            "job_url" : "http://i/job/insight-call-centre-analysis-v3-qtvziiyszm-7qmhc24pn6/",
-            "set_result" : {
-                "action" : "result",
-                "method" : "PUT"
-            }
-        }
-    },
-        "training":{
-            "config" : {
-                "COLUMN_SETTINGS" : {
-                    "consider_columns" : [
-                        "Subgroup",
-                        "Group",
-                        "Region",
-                        "Market Route",
-                        "Size By Revenue",
-                        "Size By Employees",
-                        "Revenue",
-                        "Competitor Type",
-                        "Deal Size Category",
-                        "Opportunity Result",
-                        "Elapsed Day",
-                        "Sales Stage Change Count",
-                        "Closing Days",
-                        "Qualified Days",
-                        "Amount USD"
-                    ],
-                    "consider_columns_type" : [
-                        "including"
-                    ],
-                    "dateTimeSuggestions" : [
-                        {}
-                    ],
-                    "date_columns" : [],
-                    "date_format" : None,
-                    "ignore_column_suggestion" : [],
-                    "polarity" : [
-                        "positive"
-                    ],
-                    "result_column" : [
-                        "Opportunity Result"
-                    ],
-                    "utf8_column_suggestions" : []
-                },
-                "FILE_SETTINGS" : {
-                    "analysis_type" : [
-                        "training"
-                    ],
-                    "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/Opportunity_train.csv"
-                    ],
-                    "modelpath" : [
-                        "opportunity-scoring-9bnwpew23j"
-                    ],
-                    "train_test_split" : [
-                        0.72
-                    ]
-                }
-            },
-            "job_config" : {
-                "get_config" : {
-                    "action" : "get_config",
-                    "method" : "GET"
-                },
-                "job_type" : "training",
-                "job_url" : "http://34.196.204.54:9012/api/job/trainer-opportunity-scoring-9bnwpew23j-8k8o4rcsuh/",
-                "set_result" : {
-                    "action" : "result",
-                    "method" : "PUT"
-                }
-            }
-        },
-        "prediction":{
-            "config" : {
-                "COLUMN_SETTINGS" : {
-                    "app_id" : [
-                        1
-                    ],
-                    "dateTimeSuggestions" : [
-                        {}
-                    ],
-                    "date_columns" : [],
-                    "date_format" : None,
-                    "ignore_column_suggestion" : [],
-                    "polarity" : [
-                        "positive"
-                    ],
-                    "result_column" : [
-                        "Opportunity Result"
-                    ],
-                    "score_consider_columns" : [
-                        "Subgroup",
-                        "Group",
-                        "Region",
-                        "Market Route",
-                        "Size By Revenue",
-                        "Size By Employees",
-                        "Revenue",
-                        "Competitor Type",
-                        "Deal Size Category",
-                        "Elapsed Day",
-                        "Sales Stage Change Count",
-                        "Closing Days",
-                        "Qualified Days",
-                        "Amount USD"
-                    ],
-                    "score_consider_columns_type" : [
-                        "including"
-                    ],
-                    "utf8_column_suggestions" : []
-                },
-                "FILE_SETTINGS" : {
-                    "algorithmslug" : [
-                        "f77631ce2ab24cf78c55bb6a5fce4db8rf"
-                    ],
-                    "analysis_type" : [
-                        "score"
-                    ],
-                    "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/Opportunity_test.csv"
-                    ],
-                    "levelcounts" : [],
-                    "modelfeatures" : [],
-                    "modelpath" : [
-                        "opportunity-scoring-9bnwpew23j"
-                    ],
-                    "scorepath" : [
-                        "score-ufehtfv31y"
-                    ]
-                }
-            },
-            "job_config" : {
-                "get_config" : {
-                    "action" : "get_config",
-                    "method" : "GET"
-                },
-                "job_type" : "prediction",
-                "job_url" : "http://34.196.204.54:9012/api/job/score-score-ufehtfv31y-12g2ccgwi9/",
-                "set_result" : {
-                    "action" : "result",
-                    "method" : "PUT"
-                }
-            }
-        }
-    }
-    # configJson = testConfigs["story"]
+    # testConfigs = {
+    #     "story":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "analysis_type" : [
+    #                     "measure"
+    #                 ],
+    #                 "consider_columns" : [
+    #                     "Month",
+    #                     "Deal_Type",
+    #                     "Source",
+    #                     "Platform",
+    #                     "Buyer_Age",
+    #                     "Buyer_Gender",
+    #                     "Order Date",
+    #                     "Tenure_in_Days",
+    #                     "Sales",
+    #                     "Last_Transaction",
+    #                     "new_date"
+    #                 ],
+    #                 "consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {
+    #                         "Month" : "%b-%y",
+    #                         "Order Date" : "%d-%m-%Y"
+    #                     }
+    #                 ],
+    #                 "date_columns" : [
+    #                     "new_date"
+    #                 ],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Sales"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
+    #                 ],
+    #                 "script_to_run" : [
+    #                     "Descriptive analysis",
+    #                     'Measure vs. Dimension',
+    #                     # "Predictive modeling",
+    #                     # 'Measure vs. Measure',
+    #                     # 'Dimension vs. Dimension',
+    #                     "Trend"
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "story",
+    #             "job_url" : "",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     },
+    #     "story":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "analysis_type" : [
+    #                     "measure"
+    #                 ],
+    #                 "consider_columns" : [
+    #                     "Education",
+    #                     "Top Organisation",
+    #                     "Agent Name",
+    #                     "Call Type",
+    #                     "State",
+    #                     "Region",
+    #                     "Agent Experience",
+    #                     "Rating",
+    #                     "Agent Age",
+    #                     "Top Plan Provider",
+    #                     "Number of Calls",
+    #                     "1st Time callers",
+    #                     "No of resolved case",
+    #                     "Call date"
+    #                 ],
+    #                 "consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {}
+    #                 ],
+    #                 "date_columns" : [
+    #                     "Call date"
+    #                 ],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [
+    #                     "Agent Name",
+    #                     "State"
+    #                 ],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Number of Calls"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/Callcentre4.csv"
+    #                     ],
+    #                 "script_to_run" : [
+    #                     "Descriptive analysis",
+    #                     "Measure vs. Dimension",
+    #                     "Measure vs. Measure",
+    #                     "Predictive model",
+    #                     "Trend"
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "story",
+    #             "job_url" : "http://i/job/insight-call-centre-analysis-v3-qtvziiyszm-7qmhc24pn6/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     },
+    #     "training":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "consider_columns" : [
+    #                     "Subgroup",
+    #                     "Group",
+    #                     "Region",
+    #                     "Market Route",
+    #                     "Size By Revenue",
+    #                     "Size By Employees",
+    #                     "Revenue",
+    #                     "Competitor Type",
+    #                     "Deal Size Category",
+    #                     "Opportunity Result",
+    #                     "Elapsed Day",
+    #                     "Sales Stage Change Count",
+    #                     "Closing Days",
+    #                     "Qualified Days",
+    #                     "Amount USD"
+    #                 ],
+    #                 "consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {}
+    #                 ],
+    #                 "date_columns" : [],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Opportunity Result"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "analysis_type" : [
+    #                     "training"
+    #                 ],
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/Opportunity_train.csv"
+    #                 ],
+    #                 "modelpath" : [
+    #                     "opportunity-scoring-9bnwpew23j"
+    #                 ],
+    #                 "train_test_split" : [
+    #                     0.72
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "training",
+    #             "job_url" : "http://34.196.204.54:9012/api/job/trainer-opportunity-scoring-9bnwpew23j-8k8o4rcsuh/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     },
+    #     "prediction":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "app_id" : [
+    #                     1
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {}
+    #                 ],
+    #                 "date_columns" : [],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Opportunity Result"
+    #                 ],
+    #                 "score_consider_columns" : [
+    #                     "Subgroup",
+    #                     "Group",
+    #                     "Region",
+    #                     "Market Route",
+    #                     "Size By Revenue",
+    #                     "Size By Employees",
+    #                     "Revenue",
+    #                     "Competitor Type",
+    #                     "Deal Size Category",
+    #                     "Elapsed Day",
+    #                     "Sales Stage Change Count",
+    #                     "Closing Days",
+    #                     "Qualified Days",
+    #                     "Amount USD"
+    #                 ],
+    #                 "score_consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "algorithmslug" : [
+    #                     "f77631ce2ab24cf78c55bb6a5fce4db8rf"
+    #                 ],
+    #                 "analysis_type" : [
+    #                     "score"
+    #                 ],
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/Opportunity_test.csv"
+    #                 ],
+    #                 "levelcounts" : [],
+    #                 "modelfeatures" : [],
+    #                 "modelpath" : [
+    #                     "opportunity-scoring-9bnwpew23j"
+    #                 ],
+    #                 "scorepath" : [
+    #                     "score-ufehtfv31y"
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "prediction",
+    #             "job_url" : "http://34.196.204.54:9012/api/job/score-score-ufehtfv31y-12g2ccgwi9/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     },
+    #     "training":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "consider_columns" : [
+    #                     "BusinessTravel",
+    #                     "Department",
+    #                     "Education",
+    #                     "EducationField",
+    #                     "EnvironmentSatisfaction",
+    #                     "Gender",
+    #                     "JobInvolvement",
+    #                     "JobRole",
+    #                     "JobSatisfaction",
+    #                     "MaritalStatus",
+    #                     "Over18",
+    #                     "OverTime",
+    #                     "PerformanceRating",
+    #                     "RelationshipSatisfaction",
+    #                     "WorkLifeBalance",
+    #                     "Attrition",
+    #                     "Age",
+    #                     "DailyRate",
+    #                     "DistanceFromHome",
+    #                     "EmployeeCount",
+    #                     "EmployeeNumber",
+    #                     "HourlyRate",
+    #                     "JobLevel",
+    #                     "MonthlyIncome",
+    #                     "MonthlyRate",
+    #                     "NumCompaniesWorked",
+    #                     "PercentSalaryHike",
+    #                     "StandardHours",
+    #                     "StockOptionLevel",
+    #                     "TotalWorkingYears",
+    #                     "TrainingTimesLastYear",
+    #                     "YearsAtCompany",
+    #                     "YearsInCurrentRole",
+    #                     "YearsSinceLastPromotion",
+    #                     "YearsWithCurrManager"
+    #                 ],
+    #                 "consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {}
+    #                 ],
+    #                 "date_columns" : [],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [
+    #                     "EmployeeCount",
+    #                     "StandardHours",
+    #                     "EmployeeNumber",
+    #                     "Over18"
+    #                 ],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Attrition"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "analysis_type" : [
+    #                     "training"
+    #                 ],
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/EmployeeAttrition_Train.csv"
+    #                 ],
+    #                 "modelpath" : [
+    #                     "attrition-gulshan-44ik5bjdt8"
+    #                 ],
+    #                 "train_test_split" : [
+    #                     0.71
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "training",
+    #             "job_url" : "http://34.196.204.54:9012/api/job/trainer-attrition-gulshan-44ik5bjdt8-flqzktpfzx/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #     },
+    #     "prediction":{
+    #         "config" : {
+    #             "COLUMN_SETTINGS" : {
+    #                 "app_id" : [
+    #                     1
+    #                 ],
+    #                 "dateTimeSuggestions" : [
+    #                     {}
+    #                 ],
+    #                 "date_columns" : [],
+    #                 "date_format" : None,
+    #                 "ignore_column_suggestion" : [
+    #                     "EmployeeCount",
+    #                     "StandardHours",
+    #                     "EmployeeNumber",
+    #                     "Over18"
+    #                 ],
+    #                 "polarity" : [
+    #                     "positive"
+    #                 ],
+    #                 "result_column" : [
+    #                     "Attrition"
+    #                 ],
+    #                 "consider_columns" : [
+    #                     "BusinessTravel",
+    #                     "Department",
+    #                     "Education",
+    #                     "EducationField",
+    #                     "EnvironmentSatisfaction",
+    #                     "Gender",
+    #                     "JobInvolvement",
+    #                     "JobRole",
+    #                     "JobSatisfaction",
+    #                     "MaritalStatus",
+    #                     "Over18",
+    #                     "OverTime",
+    #                     "PerformanceRating",
+    #                     "RelationshipSatisfaction",
+    #                     "WorkLifeBalance",
+    #                     "Age",
+    #                     "DailyRate",
+    #                     "DistanceFromHome",
+    #                     "EmployeeCount",
+    #                     "EmployeeNumber",
+    #                     "HourlyRate",
+    #                     "JobLevel",
+    #                     "MonthlyIncome",
+    #                     "MonthlyRate",
+    #                     "NumCompaniesWorked",
+    #                     "PercentSalaryHike",
+    #                     "StandardHours",
+    #                     "StockOptionLevel",
+    #                     "TotalWorkingYears",
+    #                     "TrainingTimesLastYear",
+    #                     "YearsAtCompany",
+    #                     "YearsInCurrentRole",
+    #                     "YearsSinceLastPromotion",
+    #                     "YearsWithCurrManager"
+    #                 ],
+    #                 "consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "score_consider_columns" : [
+    #                     "BusinessTravel",
+    #                     "Department",
+    #                     "Education",
+    #                     "EducationField",
+    #                     "EnvironmentSatisfaction",
+    #                     "Gender",
+    #                     "JobInvolvement",
+    #                     "JobRole",
+    #                     "JobSatisfaction",
+    #                     "MaritalStatus",
+    #                     "Over18",
+    #                     "OverTime",
+    #                     "PerformanceRating",
+    #                     "RelationshipSatisfaction",
+    #                     "WorkLifeBalance",
+    #                     "Age",
+    #                     "DailyRate",
+    #                     "DistanceFromHome",
+    #                     "EmployeeCount",
+    #                     "EmployeeNumber",
+    #                     "HourlyRate",
+    #                     "JobLevel",
+    #                     "MonthlyIncome",
+    #                     "MonthlyRate",
+    #                     "NumCompaniesWorked",
+    #                     "PercentSalaryHike",
+    #                     "StandardHours",
+    #                     "StockOptionLevel",
+    #                     "TotalWorkingYears",
+    #                     "TrainingTimesLastYear",
+    #                     "YearsAtCompany",
+    #                     "YearsInCurrentRole",
+    #                     "YearsSinceLastPromotion",
+    #                     "YearsWithCurrManager"
+    #                 ],
+    #                 "score_consider_columns_type" : [
+    #                     "including"
+    #                 ],
+    #                 "utf8_column_suggestions" : []
+    #             },
+    #             "FILE_SETTINGS" : {
+    #                 "algorithmslug" : [
+    #                     "f77631ce2ab24cf78c55bb6a5fce4db8rf"
+    #                 ],
+    #                 "analysis_type" : [
+    #                     "score"
+    #                 ],
+    #                 "inputfile" : [
+    #                     "file:///home/gulshan/marlabs/datasets/EmployeeAttrition_Test.csv"
+    #                 ],
+    #                 "levelcounts" : [],
+    #                 "modelfeatures" : [],
+    #                 "modelpath" : [
+    #                     "attrition-gulshan-44ik5bjdt8"
+    #                 ],
+    #                 "scorepath" : [
+    #                     "attrition-score-kxnbufg39v"
+    #                 ]
+    #             }
+    #         },
+    #         "job_config" : {
+    #             "get_config" : {
+    #                 "action" : "get_config",
+    #                 "method" : "GET"
+    #             },
+    #             "job_type" : "prediction",
+    #             "job_url" : "http://34.196.204.54:9012/api/job/score-attrition-score-kxnbufg39v-8zkfvynoad/",
+    #             "set_result" : {
+    #                 "action" : "result",
+    #                 "method" : "PUT"
+    #             }
+    #         }
+    #         }
+    # }
+    # configJson = testConfigs["metaData"]
     ######################## Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -596,7 +824,6 @@ def main(configJson):
             return response
 
         elif analysistype == 'measure':
-
             print "STARTING MEASURE ANALYSIS ..."
             LOGGER.append("STARTING MEASURE ANALYSIS ...")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
@@ -658,39 +885,41 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-
+            print measure_columns
+            print "DSDA"
+            print scripts_to_run
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
+
                 LOGGER.append("Starting Measure Vs. Measure analysis")
-                # try:
-                fs = time.time()
-                correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
-                correlations = correlation_obj.Run()
-                print "Correlation Analysis Done in ", time.time() - fs ," seconds."
+                try:
+                    fs = time.time()
+                    correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
+                    correlations = correlation_obj.Run()
+                    print "Correlation Analysis Done in ", time.time() - fs ," seconds."
 
-                # try:
-                df = df.na.drop(subset=measure_columns)
-                fs = time.time()
-                regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
-                regression_obj.Run()
-                print "Regression Analysis Done in ", time.time() - fs, " seconds."
-                #     except Exception as e:
-                #
-                #         LOGGER.append("got exception {}".format(e))
-                #         LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                #
-                #         print 'Regression Failed'
-                #         print "#####ERROR#####"*5
-                #         print e
-                #         print "#####ERROR#####"*5
-                #
-                # except Exception as e:
-                #     LOGGER.append("got exception {}".format(e))
-                #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                #     print 'Correlation Failed. Regression not executed'
-                #     print "#####ERROR#####"*5
-                #     print e
-                #     print "#####ERROR#####"*5
+                    try:
+                        df = df.na.drop(subset=measure_columns)
+                        fs = time.time()
+                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                        regression_obj.Run()
+                        print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                    except Exception as e:
 
+                        LOGGER.append("got exception {}".format(e))
+                        LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+
+                        print 'Regression Failed'
+                        print "#####ERROR#####"*5
+                        print e
+                        print "#####ERROR#####"*5
+
+                except Exception as e:
+                    LOGGER.append("got exception {}".format(e))
+                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                    print 'Correlation Failed. Regression not executed'
+                    print "#####ERROR#####"*5
+                    print e
+                    print "#####ERROR#####"*5
             else:
                 print 'Regression not in Scripts to run'
             if ('Trend' in scripts_to_run):

@@ -185,6 +185,7 @@ class ChartJson:
         self.yAxisNumberFormat = '.2s'
         self.y2AxisNumberFormat = ''
         self.subchart = True
+        self.show_legend = False 
 
 
     def set_data(self,data):

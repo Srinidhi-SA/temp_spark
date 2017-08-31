@@ -64,14 +64,17 @@ class MetaDataScript:
 
         columnData = []
         headers = []
-        sampleData = self._data_frame.sample(False, float(100)/self._total_rows, seed=420)
-        if len(self._timestamp_columns) > 0:
-            for colname in self._timestamp_columns:
-                print colname
-                sampleData = sampleData.withColumn(colname, sampleData[colname].cast(StringType()))
+        if self._data_frame.count() > 100:
+            sampleData = self._data_frame.sample(False, float(100)/self._total_rows, seed=420)
+            if len(self._timestamp_columns) > 0:
+                for colname in self._timestamp_columns:
+                    print colname
+                    sampleData = sampleData.withColumn(colname, sampleData[colname].cast(StringType()))
+                    sampleData = sampleData.toPandas().values.tolist()
+            else:
                 sampleData = sampleData.toPandas().values.tolist()
         else:
-            sampleData = sampleData.toPandas().values.tolist()
+            sampleData = self._data_frame.toPandas().values.tolist()
 
         helper_instance = MetaDataHelper(self._data_frame)
         measureColumnStat,measureCharts = helper_instance.calculate_measure_column_stats(self._data_frame,self._numeric_columns)

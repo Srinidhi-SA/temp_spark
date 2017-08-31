@@ -61,8 +61,11 @@ class DataFrameHelper:
         print "Setting the dataframe"
         self.columns = [field.name for field in self._data_frame.schema.fields]
         self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
+        print self.ignorecolumns
         if self.ignorecolumns == None:
             self.ignorecolumns = []
+        print self.ignorecolumns
+        print "ignore columns dsad"
         self.utf8columns = self._df_context.get_utf8_columns()
         self.resultcolumn = self._df_context.get_result_column()
         self.consider_columns = self._df_context.get_consider_columns()
@@ -93,9 +96,13 @@ class DataFrameHelper:
         ##################################################################
         #####dropping or keeping columns based on ignore or consider column
         ##################################################################
+        print self.ignorecolumns
+        print "GGHH"
+        print "now update meta 1"
         self.drop_ignore_columns()
+        print self.ignorecolumns
         self._subset_data()
-
+        print self.ignorecolumns
         #self.df_filterer = DataFrameFilterer(self._data_frame)
         #self.dimension_filter = self._df_context.get_dimension_filters()
 
@@ -127,6 +134,8 @@ class DataFrameHelper:
         #for colmn in self.date_filter.keys():
         #    self.df_filterer.dates_between(colmn, dt.date(int(self.date_filter[colmn][2]),int(self.date_filter[colmn][1]),int(self.date_filter[colmn][0])),
         #                                        dt.date(int(self.date_filter[colmn][5]),int(self.date_filter[colmn][4]),int(self.date_filter[colmn][3])))
+        print "DDDDD"
+        print "update meta final"
         self._update_meta()
         self._populate_column_data()
 
@@ -193,6 +202,7 @@ class DataFrameHelper:
         self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
         self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
+        print self.numeric_columns
         self.string_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
 
@@ -329,6 +339,7 @@ class DataFrameHelper:
                 self.drop_columns = list(set(self.columns) - set(self.consider_columns))
                 self._data_frame = reduce(DataFrame.drop, self.drop_columns, self._data_frame)
                 self.columns = [field.name for field in self._data_frame.schema.fields]
+        print "update meta 2"
         self._update_meta()
 
 
