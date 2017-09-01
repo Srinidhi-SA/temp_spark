@@ -33,10 +33,10 @@
 
 {% if num_top3_contributors==1 %}
   Among the {{significant_dimensions[2]}}, {{top3_contributors[0][1]}} has got the major chunk
-  of {{target}} from {{top_dimension}}, accounting for {{top3_contribution}}.
+  of {{target}} from {{top_dimension}}, accounting for {{top3_contribution}}%.
 {% elif num_top3_contributors==2 %}
   Among the {{significant_dimensions[2]}}, {{top3_contributors[0][1]}} and {{top3_contributors[1][1]}}
-  has got the major chunk of {{target}} from {{top_dimension}}, accounting for {{top3_contribution}}.
+  has got the major chunk of {{target}} from {{top_dimension}}, accounting for {{top3_contribution}}%.
 {% elif num_top3_contributors > 2 %}
   Also, the top {{num_top3_contributors}} {{significant_dimensions[2]}} contribute to
   {{top3_contribution}}% of {{target}} from {{top_dimension}}.

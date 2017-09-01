@@ -44,7 +44,13 @@ from pyspark.sql.functions import col, udf
 LOGGER = []
 def main(configJson):
     global LOGGER
-    start_time = time.time()
+    environment = None
+    args = []
+    # for arg in argv:
+        # args.append(arg)
+    # if args[0] == "local":
+        # environment = "local"
+    # if environment == "local":
     testConfigs = {
         "story" :{
             "config":{
@@ -678,7 +684,9 @@ def main(configJson):
     #         }
     # }
     # configJson = testConfigs["story"]
+
     ######################## Craeting Spark Session ###########################
+    start_time = time.time()
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")

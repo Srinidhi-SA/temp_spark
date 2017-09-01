@@ -372,7 +372,7 @@ class LinearRegressionNarrative:
         for dim in dims:
             levels = data[dim].keys()
             try:
-                coeff_list = [(x,data[dim][x]["coeff"][measure_col]["coefficient"]) if (isinstance(data[dim][x]['coeff'],dict) and data[dim][x]["coeff"].has_key(measure_col)) else (x,0.0) for x in levels ]
+                coeff_list = [(x,round(data[dim][x]["coeff"][measure_col]["coefficient"],2)) if (isinstance(data[dim][x]['coeff'],dict) and data[dim][x]["coeff"].has_key(measure_col)) else (x,0.0) for x in levels ]
             except:
                 continue
             coeff_list = sorted(coeff_list,key=lambda x:abs(x[1]),reverse=True)

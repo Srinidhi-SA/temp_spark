@@ -4,9 +4,9 @@
   of the total {{col_name}} ({{total}}), i.e. {{q4_sum}}.
   However, the overall {{col_name}} from the bottom quartile ({{q1_cont}}% of observations
   low {{col_name}}) amounts to {{q1_sum}}, which is just {{q1_frac}}% of the total.
-  Quite interestingly, the average {{col_name}} per observations the top performing
-  segment is {{q4_mean}}, which is {{q4_overall_mean}}X as big as the overall
-  average sales per observation ({{avg}}) and {{q4_q1_mean}}
-  times bigger than the average from Low segment.
+  Quite interestingly, the average {{col_name}} per observations for the top performing
+  segment is {{q4_mean}}, which is {{q4_overall_mean}} times that of the overall
+  average {{col_name}} per observation ({{avg}}) and {{q4_q1_mean}}
+  times that of the mean value from Low segment.
   </p>
 {% endif %}
