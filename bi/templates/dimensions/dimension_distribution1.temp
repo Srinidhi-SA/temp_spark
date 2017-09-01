@@ -1,4 +1,4 @@
-<p class="lead txt-justify">
+<p class="txt-justify">
 {% if keys|length == 1 %}
   The {{colname}} variable has only one value, i.e. {{keys[0]}}.
 {% elif keys|length == 2 and n_uniq == 1  %}

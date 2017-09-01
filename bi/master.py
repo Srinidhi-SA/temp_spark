@@ -97,7 +97,7 @@ def main(configJson):
           },
         "metaData" : {
             "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/client_data.csv']},
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv']},
                     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                     },
             "job_config":{
@@ -683,7 +683,7 @@ def main(configJson):
     #         }
     #         }
     # }
-    # configJson = testConfigs["story"]
+    # configJson = testConfigs["metaData"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
