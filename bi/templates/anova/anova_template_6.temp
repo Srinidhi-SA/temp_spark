@@ -7,7 +7,7 @@
   with respect to the overall growth.
 {% elif subset_increase_percent >= 1.5*overall_increase_percent %}
   The growth rate of {{target}} for {{top_dimension}} has overperformed the overall growth rate.
-{% elif corretation > 0.6 %}
+{% elif correlation > 0.6 %}
   {{target}} contribution from {{top_dimension}} is predominantly in line with the overall {{target}} growth.
 {% endif %}
 

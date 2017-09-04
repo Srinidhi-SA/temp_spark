@@ -44,60 +44,78 @@ from pyspark.sql.functions import col, udf
 LOGGER = []
 def main(configJson):
     global LOGGER
-    environment = None
-    args = []
-    # for arg in argv:
-        # args.append(arg)
-    # if args[0] == "local":
-        # environment = "local"
-    # if environment == "local":
+    deployEnv = None
+    debugMode = True
     testConfigs = {
         "story" :{
-            "config":{
-                'FILE_SETTINGS': {
-                    'script_to_run': [
-                        'Descriptive analysis',
-                        'Measure vs. Dimension',
-                        # 'Dimension vs. Dimension',
-                        'Predictive modeling',
-                        'Measure vs. Measure',
-                        'Trend'
+            "config" : {
+                "COLUMN_SETTINGS" : {
+                    "analysis_type" : [
+                        "measure"
                     ],
-                    # 'inputfile': ['file:///home/gulshan/marlabs/datasets/Sales_UB_v3.csv'],
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/superstore_v2_tejas.csv'],
+                    "consider_columns" : [
+                        "Brand",
+                        "Distribution Channel",
+                        "Sales Office Description",
+                        "Sales Group Description",
+                        "Material Description",
+                        "Sales Office Code",
+                        "Sold Qty in Costing Unit",
+                        "Units",
+                        "Sales",
+                        "Price = Value/Sold Qty",
+                        "Date"
+                    ],
+                    "consider_columns_type" : [
+                        "including"
+                    ],
+                    "dateTimeSuggestions" : [
+                        {}
+                    ],
+                    "date_columns" : [
+                        "Date"
+                    ],
+                    "date_format" : None,
+                    "ignore_column_suggestion" : [],
+                    "polarity" : [
+                        "positive"
+                    ],
+                    "result_column" : [
+                        "Sales"
+                    ],
+                    "utf8_column_suggestions" : []
                 },
-                'COLUMN_SETTINGS': {
-                    'polarity': ['positive'],
-                    'consider_columns_type': ['excluding'],
-                    'date_format': None,
-                    # 'date_columns':["new_date","Month","Order Date"],
-                    'date_columns':[],
-                    'ignore_column_suggestions': ["Order Date"],
-                    # 'ignore_column_suggestions': ["Region","Outlet"],
-                    # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
-                    'result_column': ['Sales'],
-                    'consider_columns':[],
-                    # 'consider_columns': ['Date', 'Gender', 'Education', 'Model', 'Free service count',
-                    #                      'Free service labour cost', 'Status'], 'date_columns': ['Date'],
-                    'analysis_type': ['measure'],
-                    # 'score_consider_columns': None
-                    }
+                "FILE_SETTINGS" : {
+                    "inputfile" : [
+                        "file:///home/gulshan/marlabs/datasets/bidco_data_v3.csv"
+                    ],
+                    "script_to_run" : [
+                        "Descriptive analysis",
+                        "Measure vs. Dimension",
+                        "Measure vs. Measure",
+                        "Predictive modeling",
+                        "Trend"
+                    ]
+                }
+            },
+            "job_config" : {
+                "get_config" : {
+                    "action" : "get_config",
+                    "method" : "GET"
                 },
-            "job_config":{
-                            "job_type":"story",
-                            # "job_url": "http://34.196.204.54:9012/api/job/insight-winter-is-coming-eic37ggik1-mjsqu2nvlo/",
-                            # "job_url": "http://34.196.204.54:9012/api/job/insight-measure_check_1-ha6rkphong-cx01jezouw/",
-                            # "job_url": "http://192.168.33.94:9012/api/job/insight-adult-dimen-test-b6rim5juu3-hrswfad8w9/",
-                            "job_url":"",
-                            "set_result": {
-                                "method": "PUT",
-                                "action": "result"
-                              },
-                         }
-          },
+                "job_type" : "story",
+                # "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-bidco-test-1-ckzac9utgb-0ws1c9jcvh/",
+                "job_url" : "ht",
+                "set_result" : {
+                    "action" : "result",
+                    "method" : "PUT"
+                }
+            },
+            "deployEnv":"local"
+        },
         "metaData" : {
             "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv']},
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/bidco_data_v3.csv']},
                     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                     },
             "job_config":{
@@ -108,7 +126,8 @@ def main(configJson):
                     "method": "PUT",
                     "action": "result"
                   },
-            }
+            },
+            "deployEnv":"local"
         },
         "training":{
             "config":{
@@ -683,7 +702,8 @@ def main(configJson):
     #         }
     #         }
     # }
-    # configJson = testConfigs["metaData"]
+    if "deployEnv" not in configJson:
+        configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
@@ -893,11 +913,8 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-            print measure_columns
-            print "DSDA"
-            print scripts_to_run
-            if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
 
+            if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 LOGGER.append("Starting Measure Vs. Measure analysis")
                 try:
                     fs = time.time()

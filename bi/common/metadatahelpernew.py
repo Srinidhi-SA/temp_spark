@@ -183,7 +183,6 @@ class MetaDataHelper():
                 ignore = True
             elif colStat["numberOfUniqueValues"] > max_levels:
                 ignore = True
-
         return ignore
 
 
