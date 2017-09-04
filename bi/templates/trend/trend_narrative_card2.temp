@@ -30,34 +30,44 @@ However, there are also few {{dataLevel}} when {{measure}} was lagging and didn'
 
 {{blockSplitter}}
 {% if significant_dimensions|length >0 %}
-  <h4>Significant factors that drive increase in {{measure}}</h4>
-  {{blockSplitter}}
-  <p class="txt-justify">
-    <ul>
-    <li>
-      {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
-       as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
-       overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
-    </li>
-    </ul>
+  {% if HighestSigDimension %}
+    <h4>Significant factors that drive increase in {{measure}}</h4>
+    {{blockSplitter}}
+    <p class="txt-justify">
+      <ul>
+        <li>
+          {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
+           as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
+           overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
+        </li>
+      </ul>
+  {% endif %}
 
   {{blockSplitter}}
 
-  <h4>Significant factors that drag {{measure}} down</h4>
-  {{blockSplitter}}
-    <ul>
-    <li>
-      {{negativeHighestSigDimension}} has been an area of concern,
-      as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
-       shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
-    </li>
-    {% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
-      <li>
-      {{negativeSecondHighestSigDimension}} has been an area of concern,
-      as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
-       shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
-      </li>
-    {% endif %}
-    </ul>
+  {% if negativeHighestSigDimension %}
+    <h4>Significant factors that drag {{measure}} down</h4>
+    {{blockSplitter}}
+      <ul>
+        <li>
+          {{negativeHighestSigDimension}} has been an area of concern,
+          {% if negativeHighestSigDimensionL1 != None and negativeHighestSigDimensionL2 != None %}
+            as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
+             shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
+          {% elif negativeHighestSigDimensionL1 != None %}
+            as {{negativeHighestSigDimensionL1[0]}} shrunk over {{negativeHighestSigDimensionL1[1]}}%.
+          {% elif negativeHighestSigDimensionL2 != None %}
+            as {{negativeHighestSigDimensionL2[0]}} shrunk over {{negativeHighestSigDimensionL2[1]}}%.
+          {% endif %}
+        </li>
+        {% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
+          <li>
+            {{negativeSecondHighestSigDimension}} has been an area of concern,
+            as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
+             shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
+          </li>
+        {% endif %}
+      </ul>
+  {% endif %}
   </p>
 {% endif %}

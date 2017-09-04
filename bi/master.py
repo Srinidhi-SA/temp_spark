@@ -92,8 +92,8 @@ def main(configJson):
                     "script_to_run" : [
                         "Descriptive analysis",
                         "Measure vs. Dimension",
-                        "Measure vs. Measure",
-                        "Predictive modeling",
+                        # "Measure vs. Measure",
+                        # "Predictive modeling",
                         "Trend"
                     ]
                 }
@@ -702,7 +702,7 @@ def main(configJson):
     #         }
     #         }
     # }
-    if "deployEnv" not in configJson:
+    if "deployEnv" in configJson:
         configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
