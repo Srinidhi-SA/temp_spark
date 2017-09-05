@@ -83,7 +83,7 @@ def main(configJson):
                         }
                     ],
                     "date_columns" : [],
-                    "date_format" : null,
+                    "date_format" : None,
                     "ignore_column_suggestion" : [
                         "Category"
                     ],
@@ -869,7 +869,6 @@ def main(configJson):
             if ('Descriptive analysis' in scripts_to_run):
                 try:
                     fs = time.time()
-
                     descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     LOGGER.append("DescriptiveStats Analysis  Starting")
                     descr_stats_obj.Run()
