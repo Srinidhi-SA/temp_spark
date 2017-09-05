@@ -53,11 +53,11 @@ decreases
 {{blockSplitter}}
 <p class="txt-justify">
 {% if dim2["num_levels"] == 2 %}
-There are two categories within {{dim1["dimension"]}} ({{dim2["levels"][0]}} and {{dim2["levels"][1]}}).
+There are two categories within {{dim2["dimension"]}} ({{dim2["levels"][0]}} and {{dim2["levels"][1]}}).
 {% elif dim2["num_levels"] == 3 %}
-There are three categories within {{dim1["dimension"]}} ({{dim2["levels"][0]}}, {{dim2["levels"][1]}} and {{dim2["levels"][2]}}).
+There are three categories within {{dim2["dimension"]}} ({{dim2["levels"][0]}}, {{dim2["levels"][1]}} and {{dim2["levels"][2]}}).
 {% elif dim2["num_levels"] > 3 %}
-There are {{dim2["num_levels"]}} categories within {{dim1["dimension"]}} (including {{dim2["levels"][0]}}, {{dim2["levels"][1]}} and {{dim2["levels"][2]}}).
+There are {{dim2["num_levels"]}} categories within {{dim2["dimension"]}} (including {{dim2["levels"][0]}}, {{dim2["levels"][1]}} and {{dim2["levels"][2]}}).
 {% endif %}
 
 The following table displays how average {{target}} vary across {{dim2["dimension"]}}

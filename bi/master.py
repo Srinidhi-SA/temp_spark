@@ -54,56 +54,48 @@ def main(configJson):
                         "measure"
                     ],
                     "consider_columns" : [
-                        "Date",
-                        "Distribution Channel",
                         "Sales Office",
-                        "Sales Group",
-                        "Category",
                         "Brand",
-                        "Material_Group_Descr__c",
-                        "Prod_Hier_Cat2_Descr__c",
-                        "Prod_Hier_Cat3_Descr__c",
-                        "Prod_Hier_Cat4_Descr__c",
-                        "Product Description",
-                        "% Gross Margin",
-                        "% Gross Margin Numeric Value",
-                        "Sales Office Code",
-                        "Product Code",
-                        "Sold Qty in Costing Unit",
-                        "Sales In MT",
-                        "Sales In Value",
-                        "Price = Value/Sold Qty"
+                        "Category",
+                        "Sub Category",
+                        "Product",
+                        "Sales Quantity",
+                        "Sales Value",
+                        "Gross Margin",
+                        "Date"
                     ],
                     "consider_columns_type" : [
                         "including"
                     ],
                     "dateTimeSuggestions" : [
-                        {
-                            "Date" : "%m-%d-%Y"
-                        }
+                        {}
                     ],
-                    "date_columns" : [],
+                    "date_columns" : [
+                        "Date"
+                    ],
                     "date_format" : None,
-                    "ignore_column_suggestion" : [
-                        "Category"
-                    ],
+                    "ignore_column_suggestion" : [],
                     "polarity" : [
                         "positive"
                     ],
                     "result_column" : [
-                        "Sold Qty in Costing Unit"
+                        "Sales Quantity"
                     ],
                     "utf8_column_suggestions" : []
                 },
                 "FILE_SETTINGS" : {
                     "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/BIDCO.csv"
+                        "file:///home/gulshan/marlabs/datasets/BIDCO_Local_v4.csv"
                     ],
                     "script_to_run" : [
                         "Descriptive analysis",
                         "Measure vs. Dimension",
-                        "Measure vs. Measure",
-                        "Predictive modeling"
+                        "Predictive modeling",
+                        "Trend",
+                        "Descriptive analysis",
+                        "Measure vs. Dimension",
+                        "Predictive modeling",
+                        "Trend"
                     ]
                 }
             },
@@ -113,7 +105,7 @@ def main(configJson):
                     "method" : "GET"
                 },
                 "job_type" : "story",
-                "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-bidco-test-sunl0lrhq6-rfm7ldu6gr/",
+                "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-bidco-sales-znlfl79g9e-w1kb64gs73/",
                 "set_result" : {
                     "action" : "result",
                     "method" : "PUT"
@@ -955,19 +947,19 @@ def main(configJson):
             else:
                 print 'Regression not in Scripts to run'
             if ('Trend' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
-                    trend_obj.Run()
-                    print "Trend Analysis Done in ", time.time() - fs, " seconds."
+                # try:
+                fs = time.time()
+                trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
+                trend_obj.Run()
+                print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
-                except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    print "Trend Script Failed"
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                # except Exception as e:
+                #     LOGGER.append("got exception {}".format(e))
+                #     LOGGER.append("detailed exception {}".format(traceback.format_exc()))
+                #     print "Trend Script Failed"
+                #     print "#####ERROR#####"*5
+                #     print e
+                #     print "#####ERROR#####"*5
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
