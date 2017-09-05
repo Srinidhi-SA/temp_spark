@@ -54,47 +54,56 @@ def main(configJson):
                         "measure"
                     ],
                     "consider_columns" : [
-                        "Brand",
+                        "Date",
                         "Distribution Channel",
-                        "Sales Office Description",
-                        "Sales Group Description",
-                        "Material Description",
+                        "Sales Office",
+                        "Sales Group",
+                        "Category",
+                        "Brand",
+                        "Material_Group_Descr__c",
+                        "Prod_Hier_Cat2_Descr__c",
+                        "Prod_Hier_Cat3_Descr__c",
+                        "Prod_Hier_Cat4_Descr__c",
+                        "Product Description",
+                        "% Gross Margin",
+                        "% Gross Margin Numeric Value",
                         "Sales Office Code",
+                        "Product Code",
                         "Sold Qty in Costing Unit",
-                        "Units",
-                        "Sales",
-                        "Price = Value/Sold Qty",
-                        "Date"
+                        "Sales In MT",
+                        "Sales In Value",
+                        "Price = Value/Sold Qty"
                     ],
                     "consider_columns_type" : [
                         "including"
                     ],
                     "dateTimeSuggestions" : [
-                        {}
+                        {
+                            "Date" : "%m-%d-%Y"
+                        }
                     ],
-                    "date_columns" : [
-                        "Date"
+                    "date_columns" : [],
+                    "date_format" : null,
+                    "ignore_column_suggestion" : [
+                        "Category"
                     ],
-                    "date_format" : None,
-                    "ignore_column_suggestion" : [],
                     "polarity" : [
                         "positive"
                     ],
                     "result_column" : [
-                        "Sales"
+                        "Sold Qty in Costing Unit"
                     ],
                     "utf8_column_suggestions" : []
                 },
                 "FILE_SETTINGS" : {
                     "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/bidco_data_v3.csv"
+                        "file:///home/gulshan/marlabs/datasets/BIDCO.csv"
                     ],
                     "script_to_run" : [
                         "Descriptive analysis",
                         "Measure vs. Dimension",
-                        # "Measure vs. Measure",
-                        # "Predictive modeling",
-                        "Trend"
+                        "Measure vs. Measure",
+                        "Predictive modeling"
                     ]
                 }
             },
@@ -104,8 +113,7 @@ def main(configJson):
                     "method" : "GET"
                 },
                 "job_type" : "story",
-                # "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-bidco-test-1-ckzac9utgb-0ws1c9jcvh/",
-                "job_url" : "ht",
+                "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-bidco-test-sunl0lrhq6-rfm7ldu6gr/",
                 "set_result" : {
                     "action" : "result",
                     "method" : "PUT"
@@ -115,7 +123,7 @@ def main(configJson):
         },
         "metaData" : {
             "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/bidco_data_v3.csv']},
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/BIDCO.csv']},
                     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                     },
             "job_config":{
@@ -702,8 +710,8 @@ def main(configJson):
     #         }
     #         }
     # }
-    if "deployEnv" in configJson:
-        configJson = testConfigs["story"]
+    # if "deployEnv" in configJson:
+    # configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
