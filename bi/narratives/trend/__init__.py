@@ -110,10 +110,16 @@ class TimeSeriesNarrative:
                 self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
             id_max = self._data_frame.select(max("_id_")).first()[0]
             first_date = self._data_frame.select("suggestedDate").first()[0]
-            print first_date
             print id_max
+            print self._data_frame.printSchema()
             print self._data_frame.where(col("_id_") == id_max).show()
-            last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
+            #####  This is a Temporary fix
+            pandas_df = self._data_frame.toPandas()
+            pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
+            last_date = pandas_df["suggestedDate"].iloc[-1]
+            # last_date = self._data_frame.where(col("_id_") == 1666447310999).select("suggestedDate").first()[0]
+            # last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
+
             self._dataRange = (last_date-first_date).days
 
             if self._dataRange <= 180:
