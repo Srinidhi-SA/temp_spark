@@ -118,7 +118,7 @@ class TimeSeriesNarrative:
                 last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
             except:
                 print "ENTERING EXCEPT BLOCK"
-                pandas_df = self._data_frame.toPandas()
+                pandas_df = self._data_frame.select(["_id_","suggestedDate"]).toPandas()
                 pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
                 last_date = pandas_df["suggestedDate"].iloc[-1]
 
