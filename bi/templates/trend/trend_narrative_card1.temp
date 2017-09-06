@@ -17,7 +17,7 @@ The dataset contains {{measure}} figures for a <b>{{durationString}}</b> period.
   the same time, from {{start_value|round_number}} in {{start_time}} to
   {{end_value|round_number}} in {{end_time}}.
 {% endif %}
-The total {{measure}} </b> were {{total}} for the last {{durationString}},
+The total {{measure}} </b> were {{total|round_number}} for the last {{durationString}},
  with the <b> average {{measure}} per {{dataLevel}} being {{average_value|round_number}}</b>.
 </p>
 

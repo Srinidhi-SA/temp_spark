@@ -111,14 +111,22 @@ class TimeSeriesNarrative:
             id_max = self._data_frame.select(max("_id_")).first()[0]
             first_date = self._data_frame.select("suggestedDate").first()[0]
             print id_max
-            print self._data_frame.printSchema()
             print self._data_frame.where(col("_id_") == id_max).show()
             #####  This is a Temporary fix
-            pandas_df = self._data_frame.toPandas()
-            pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
-            last_date = pandas_df["suggestedDate"].iloc[-1]
-            # last_date = self._data_frame.where(col("_id_") == 1666447310999).select("suggestedDate").first()[0]
-            # last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
+            try:
+                print "TRY BLOCK STARTED"
+                last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
+            except:
+                print "ENTERING EXCEPT BLOCK"
+                pandas_df = self._data_frame.toPandas()
+                pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
+                last_date = pandas_df["suggestedDate"].iloc[-1]
+
+            if last_date == None:
+                print "Entered IF Last date none"
+                pandas_df = self._data_frame.toPandas()
+                pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
+                last_date = pandas_df["suggestedDate"].iloc[-1]
 
             self._dataRange = (last_date-first_date).days
 

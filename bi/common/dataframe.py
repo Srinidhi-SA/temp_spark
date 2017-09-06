@@ -193,7 +193,6 @@ class DataFrameHelper:
         self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
         self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
-        print self.numeric_columns
         self.string_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
 

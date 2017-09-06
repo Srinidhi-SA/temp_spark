@@ -2,10 +2,10 @@
 {{blockSplitter}}
 <p class="txt-justify">
 {% if peakStreakDuration >= 2%}
-  The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}, which resulted after
+  The {{measure}} figures hit a peak of {{peakValue|round_number}} in {{peakTime}}, which resulted after
   <b>a continuous streak of growth for {{peakStreakDuration}} {{dataLevel}}s </b> ending at {{peakTime}}.
 {% else %}
-  The {{measure}} figures hit a peak of {{peakValue}} in {{peakTime}}.
+  The {{measure}} figures hit a peak of {{peakValue|round_number}} in {{peakTime}}.
 {% endif %}
 The most significant factor that fuelled this strong run is the {{highest_contributing_variable}},
  {{highest_contributing_level}}.
@@ -17,10 +17,10 @@ compared to rest of the observation period.
 <p class="txt-justify">
 However, there are also few {{dataLevel}} when {{measure}} was lagging and didn't do very well.
 {% if lowStreakDuration >= 2%}
-  The most notable among them was {{lowestTime}} and values for {{measure}} dropped to {{lowestValue}}
-  from {{lowStreakBeginValue}} in {{lowStreakBeginMonth}}.
+  The most notable among them was {{lowestTime}} and values for {{measure}} dropped to {{lowestValue|round_number}}
+  from {{lowStreakBeginValue|round_number}} in {{lowStreakBeginMonth}}.
 {% else %}
-  The most notable among them was {{lowestTime}} and values for {{measure}} dropped to {{lowestValue}}.
+  The most notable among them was {{lowestTime}} and values for {{measure}} dropped to {{lowestValue|round_number}}.
 {% endif %}
 
  This was primarily due to <b>sharp decline in {{measure}} from {{lowest_contributing_level}}
