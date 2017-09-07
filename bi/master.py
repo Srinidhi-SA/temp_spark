@@ -89,7 +89,7 @@ def main(configJson):
                     ],
                     "script_to_run" : [
                         "Descriptive analysis",
-                        "Measure vs. Dimension",
+                        "Measure vs. Measure",
                         "Predictive modeling",
                         "Trend",
                         "Descriptive analysis",
@@ -703,7 +703,7 @@ def main(configJson):
     #         }
     # }
     # if "deployEnv" in configJson:
-    # configJson = testConfigs["metaData"]
+    # configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()

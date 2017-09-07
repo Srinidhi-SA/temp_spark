@@ -137,7 +137,7 @@ class RegressionNarrative:
             measureCard1para = card1paragraphs
             measureCard1Data += measureCard1para
 
-            if _run_dimension_level_regression:
+            if self._run_dimension_level_regression:
                 self._dim_regression = self.run_regression_for_dimension_levels()
                 card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
                 card2data.update({"blockSplitter":self._blockSplitter})
@@ -202,8 +202,9 @@ class RegressionNarrative:
                 self._result_setter.update_executive_summary_data(card4data)
             count += 1
             measureCard1.set_card_data(measureCard1Data)
-            measureCard2.set_card_data(measureCard2Data)
-            sigMeasureNode.add_cards([measureCard1,measureCard2])
+            # measureCard2.set_card_data(measureCard2Data)
+            # sigMeasureNode.add_cards([measureCard1,measureCard2])
+            sigMeasureNode.add_cards([measureCard1])
             self._regressionNode.add_a_node(sigMeasureNode)
         # self._result_setter.set_trend_section_completion_status(True)
         self._story_narrative.add_a_node(self._regressionNode)
