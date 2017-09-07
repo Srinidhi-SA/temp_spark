@@ -54,8 +54,9 @@ class RegressionNarrative:
                         }
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/regression/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
+        self._run_dimension_level_regression = False
 
-        self._dim_regression = self.run_regression_for_dimension_levels()
+        # self._dim_regression = self.run_regression_for_dimension_levels()
         self._regressionNode = NarrativesTree()
         self.generate_narratives()
         self._regressionNode.set_name("Influencers")
@@ -136,36 +137,39 @@ class RegressionNarrative:
             measureCard1para = card1paragraphs
             measureCard1Data += measureCard1para
 
-            card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
-            card2data.update({"blockSplitter":self._blockSplitter})
-            card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
+            if _run_dimension_level_regression:
+                self._dim_regression = self.run_regression_for_dimension_levels()
+                card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
+                card2data.update({"blockSplitter":self._blockSplitter})
+                card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
                                                             'regression_card2.temp',card2data)
-            card2paragraphs = NarrativesUtils.block_splitter(card2narrative,self._blockSplitter)
-            card1 = {'tables': card2table, 'paragraphs' : card2paragraphs,
+                card2paragraphs = NarrativesUtils.block_splitter(card2narrative,self._blockSplitter)
+
+                card1 = {'tables': card2table, 'paragraphs' : card2paragraphs,
                         'heading' : 'Key Areas where ' + measure_column + ' matters'}
-            measure_column_cards['card1'] = card1
+                measure_column_cards['card1'] = card1
 
-            measureCard2Data += card2paragraphs
-            if "table1" in card2table:
-                table1data = regression_narrative_obj.convert_table_data(card2table["table1"])
-                card2Table1 = TableData()
-                card2Table1.set_table_data(table1data)
-                card2Table1.set_table_type("heatMap")
-                card2Table1.set_table_top_header(card2table["table1"]["heading"])
-                card2Table1Json = json.loads(CommonUtils.convert_python_object_to_json(card2Table1))
-                # measureCard2Data.insert(3,card2Table1)
-                measureCard2Data.insert(3,card2Table1Json)
+                measureCard2Data += card2paragraphs
+                if "table1" in card2table:
+                    table1data = regression_narrative_obj.convert_table_data(card2table["table1"])
+                    card2Table1 = TableData()
+                    card2Table1.set_table_data(table1data)
+                    card2Table1.set_table_type("heatMap")
+                    card2Table1.set_table_top_header(card2table["table1"]["heading"])
+                    card2Table1Json = json.loads(CommonUtils.convert_python_object_to_json(card2Table1))
+                    # measureCard2Data.insert(3,card2Table1)
+                    measureCard2Data.insert(3,card2Table1Json)
 
-            if "table2" in card2table:
-                table2data = regression_narrative_obj.convert_table_data(card2table["table2"])
-                card2Table2 = TableData()
-                card2Table2.set_table_data(table2data)
-                card2Table2.set_table_type("heatMap")
-                card2Table2.set_table_top_header(card2table["table2"]["heading"])
-                # measureCard2Data.insert(5,card2Table2)
-                card2Table2Json = json.loads(CommonUtils.convert_python_object_to_json(card2Table2))
-                # measureCard2Data.append(card2Table2)
-                measureCard2Data.append(card2Table2Json)
+                if "table2" in card2table:
+                    table2data = regression_narrative_obj.convert_table_data(card2table["table2"])
+                    card2Table2 = TableData()
+                    card2Table2.set_table_data(table2data)
+                    card2Table2.set_table_type("heatMap")
+                    card2Table2.set_table_top_header(card2table["table2"]["heading"])
+                    # measureCard2Data.insert(5,card2Table2)
+                    card2Table2Json = json.loads(CommonUtils.convert_python_object_to_json(card2Table2))
+                    # measureCard2Data.append(card2Table2)
+                    measureCard2Data.append(card2Table2Json)
 
 
             # self._result_setter.set_trend_section_data({"result_column":self.result_column,
