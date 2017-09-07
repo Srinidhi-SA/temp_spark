@@ -118,8 +118,12 @@ class MetaDataHelper():
             dimension_chart_data_sorted = sorted(dimension_chart_data,key=lambda x:x["value"])
             if None in levelCount:
                 levelCountWithoutNull.pop(None)
-            col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
-            col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
+            if levelCountWithoutNull != {}:
+                col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
+                col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
+            else:
+                col_stat["MaxLevel"] = None
+                col_stat["MinLevel"] = None
             modified_col_stat = []
             for k,v in col_stat.items():
                 if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls"]:
@@ -138,52 +142,93 @@ class MetaDataHelper():
         dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
         row_vals = df.select(col_name).distinct().na.drop().collect()
         # row_vals = df.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
-        x = row_vals[0][col_name]
-        for format1 in formats:
+        if len(row_vals) > 0:
+            x = row_vals[0][col_name]
+            for format1 in formats:
+                try:
+                    t = datetime.strptime(x,format1)
+                    # if (format1 in dual_checks):
+                    #     for x1 in row_vals:
+                    #         x = x1[dims]
+                    #         try:
+                    #             t = dt.datetime.strptime(x,format1)
+                    #         except ValueError as err:
+                    #             format1 = '%d'+format1[2]+'%m'+format1[5:]
+                    #             break
+                    output[col_name] = format1
+                    break
+                except ValueError as err:
+                    pass
+        return output
+
+    def get_datetime_format(self,columnVector):
+        """
+        suggest candidate for datetime column.
+        checks against a list of datetime formats
+
+        Arguments:
+        columnVector -- an array of strings of any size.
+
+        Return:
+        detectedFormat -- datetime format
+        """
+        detectedFormat = None
+        availableDateTimeFormat = CommonUtils.dateTimeFormatsSupported()["formats"]
+        x = columnVector[0]
+        for dt_format in availableDateTimeFormat:
             try:
-                t = datetime.strptime(x,format1)
-                # if (format1 in dual_checks):
-                #     for x1 in row_vals:
-                #         x = x1[dims]
-                #         try:
-                #             t = dt.datetime.strptime(x,format1)
-                #         except ValueError as err:
-                #             format1 = '%d'+format1[2]+'%m'+format1[5:]
-                #             break
-                output[col_name] = format1
+                t = datetime.strptime(x,dt_format)
+                detectedFormat = dt_format
                 break
             except ValueError as err:
                 pass
-        return output
+        return detectedFormat
 
 
     def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
         ignore = False
+        reason = None
         total_rows = df.count()
         modifiedColStat = {}
         for obj in colStat:
             modifiedColStat[obj["name"]] = obj["value"]
         colStat = modifiedColStat
         if dataType == "measure":
-            if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or (colStat["numberOfUniqueValues"]==1):
+            if (colStat["numberOfUniqueValues"]==1):
                 ignore = True
-            elif abs(colStat["max"]-colStat["min"]+1-total_rows) <= 0.01*total_rows:
-                ignore =True
-            elif abs(colStat["numberOfNotNulls"]-colStat["numberOfUniqueValues"]) <= 0.01*colStat["numberOfNotNulls"]:
-                if abs(colStat["numberOfNotNulls"]-colStat["numberOfUniqueValues"]) == 0:
+                reason = "Only one Unique Value"
+            if (colStat["numberOfNulls"] == 0):
+                if (colStat["numberOfUniqueValues"] == total_rows):
                     ignore = True
-                else:
-                    if abs(colStat["numberOfNotNulls"]-colStat["max"]+colStat["min"])<= 0.01*colStat["numberOfNotNulls"] or \
-                        abs(total_rows-colStat["max"]+colStat["min"])<= 0.01*total_rows:
-                        ignore = True
+                    reason = "Index column (all values are distinct)"
+            else:
+                if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]):
+                    ignore = True
+                    reason = "Count of Nulls More than Count of Not Nulls"
+                # handling cases where some ids will be missing
+                elif (colStat["numberOfNotNulls"] <= 0.01*colStat["numberOfUniqueValues"]):
+                    ignore = True
+                    reason = "Index Column(Most of Not Null Values are unique)"
+
         elif dataType == "dimension":
-            if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]) or \
-                (colStat["numberOfUniqueValues"]<=1) or \
-                (colStat["numberOfNulls"]>0 and colStat["numberOfUniqueValues"]==2):
+            if (colStat["numberOfUniqueValues"]==1):
                 ignore = True
-            elif colStat["numberOfUniqueValues"] > max_levels:
-                ignore = True
-        return ignore
+                reason = "Only one Unique Value"
+            if (colStat["numberOfNulls"] == 0):
+                if (colStat["numberOfUniqueValues"] == total_rows):
+                    ignore = True
+                    reason = "All values are distinct"
+            else:
+                if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]):
+                    ignore = True
+                    reason = "Count of Nulls More than Count of Not Nulls"
+                elif (colStat["numberOfNotNulls"]==1):
+                    ignore = True
+                    reason = "Only one Not Null value"
+                elif colStat["numberOfUniqueValues"] > max_levels:
+                    ignore = True
+                    reason = "Number of Levels are more than the defined thershold"
+        return ignore,reason
 
 
     def get_utf8_suggestions(self,colStat):

@@ -74,12 +74,10 @@ class OneWayAnovaNarratives:
         if self._trend_result != '':
             self._generate_card2()
             if self._card3_required:
-                # pass
                 self._generate_card3()
         self._dimensionNode.add_a_card(self._anovaCard1)
         if self._card3_required and self._trend_result != '':
             self._dimensionNode.add_a_card(self._anovaCard3)
-            # pass
 
     def _generate_title(self):
         self.title = 'Impact of %s on %s' % (self._dimension_column_capitalized, self._measure_column_capitalized)
@@ -506,8 +504,8 @@ class OneWayAnovaNarratives:
         chart_data.add_data_c3(data_c3)
         self.card3.add_chart('decision_matrix', chart_data)
         leaders_club = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Leaders Club'])
-        playing_safe = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Playing Safe'])
-        opportunity_bay = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Opportunity Bay'])
+        opportunity_bay = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Playing Safe'])
+        playing_safe = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Opportunity Bay'])
         red_alert = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Red Alert'])
         data_dict = {
                     'leaders_club' : leaders_club,

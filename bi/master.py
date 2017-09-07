@@ -115,7 +115,7 @@ def main(configJson):
         },
         "metaData" : {
             "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/3Yr_BIDCO.csv']},
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_data.csv']},
                     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                     },
             "job_config":{
@@ -703,7 +703,7 @@ def main(configJson):
     #         }
     # }
     # if "deployEnv" in configJson:
-    # configJson = testConfigs["story"]
+    # configJson = testConfigs["metaData"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()

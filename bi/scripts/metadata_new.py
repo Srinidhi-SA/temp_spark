@@ -18,6 +18,7 @@ from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
 class MetaDataScript:
     def __init__(self, data_frame, spark):
         self._data_frame = data_frame
+        print self._data_frame.show(10)
         self._spark = spark
         # self._file_name = file_name
         self.total_columns = len([field.name for field in self._data_frame.schema.fields])
@@ -81,6 +82,7 @@ class MetaDataScript:
         dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns)
 
         ignoreColumnSuggestions = []
+        ignoreColumnReason = []
         utf8ColumnSuggestion = []
         dateTimeSuggestions = {}
         for column in self._data_frame.columns:
@@ -100,29 +102,44 @@ class MetaDataScript:
                 data.set_column_stats(dimensionColumnStat[column])
                 data.set_column_chart(dimensionCharts[column])
             if self._column_type_dict[column] == "measure":
-                ignoreSuggestion = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
+                ignoreSuggestion,ignoreReason = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
+                    ignoreColumnReason.append(ignoreReason)
             elif self._column_type_dict[column] == "dimension":
                 utf8Suggestion = helper_instance.get_utf8_suggestions(dimensionColumnStat[column])
-                dateColumn = helper_instance.get_datetime_suggestions(self._data_frame,column)
-                if dateColumn != {}:
-                    dateTimeSuggestions.update(dateColumn)
+                # dateColumn = helper_instance.get_datetime_suggestions(self._data_frame,column)
+                uniqueVals = self._data_frame.select(column).distinct().na.drop().collect()
+                if len(uniqueVals) > 0:
+                    dateColumnFormat = helper_instance.get_datetime_format([uniqueVals[0][column]])
+                else:
+                    dateColumnFormat = None
+                if dateColumnFormat:
+                    dateTimeSuggestions.update({column:dateColumnFormat})
                     data.set_level_count_to_null()
                     data.set_chart_data_to_null()
                 if utf8Suggestion:
                     utf8ColumnSuggestion.append(column)
-                ignoreSuggestion = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
+                ignoreSuggestion,ignoreReason = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
+                    ignoreColumnReason.append(ignoreReason)
             columnData.append(data)
 
-        ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys()))+utf8ColumnSuggestion
-        print ignoreColumnSuggestions
+        for dateColumn in dateTimeSuggestions.keys():
+            if dateColumn in ignoreColumnSuggestions:
+                ignoreColIdx = ignoreColumnSuggestions.index(dateColumn)
+                ignoreColumnSuggestions.remove(dateColumn)
+                del(ignoreColumnReason[ignoreColIdx])
+        for utfCol in utf8ColumnSuggestion:
+            ignoreColumnSuggestions.append(utfCol)
+            ignoreColumnReason.append("utf8 values present")
+        # ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys()))+utf8ColumnSuggestion
+        print zip(ignoreColumnSuggestions,ignoreColumnReason)
         metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
+        metaData.append(MetaData(name="ignoreColumnReason",value = ignoreColumnReason,display=False))
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
         metaData.append(MetaData(name="dateTimeSuggestions",value = dateTimeSuggestions,display=False))
-
         dfMetaData = DfMetaData()
         dfMetaData.set_column_data(columnData)
         dfMetaData.set_header(headers)
