@@ -56,6 +56,8 @@ class ColumnData:
     def __init__(self,name=None,slug=None,columnStats=[],chartData={},columnType = None):
         self.name = name
         self.slug = None
+        self.ignoreSuggestionFlag = False
+        self.dateSuggestionFlag = False
         self.columnStats = columnStats
         self.chartData = chartData
         self.columnType = columnType
@@ -80,6 +82,12 @@ class ColumnData:
 
     def set_chart_data_to_null(self):
         self.chartData = {}
+
+    def set_ignore_suggestion_flag(self,data):
+        self.ignoreSuggestionFlag = data
+
+    def set_date_suggestion_flag(self,data):
+        self.dateSuggestionFlag = data
 
 
 class ColumnHeader:

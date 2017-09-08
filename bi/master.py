@@ -89,7 +89,7 @@ def main(configJson):
                     ],
                     "script_to_run" : [
                         "Descriptive analysis",
-                        "Measure vs. Dimension",
+                        "Measure vs. Measure",
                         "Predictive modeling",
                         "Trend",
                         "Descriptive analysis",
@@ -115,7 +115,7 @@ def main(configJson):
         },
         "metaData" : {
             "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/ub_data.csv']},
+                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv']},
                     'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
                     },
             "job_config":{
