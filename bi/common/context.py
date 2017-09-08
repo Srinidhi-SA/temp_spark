@@ -43,8 +43,10 @@ class ContextSetter:
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
         # return {"file":self.FILE_SETTINGS,"column":self.COLUMN_SETTINGS}
-
-        self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
+        
+        if self.FILE_SETTINGS['inputfile']:
+            self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
+            
         if "narratives_file" in fileSettingKeys:
             self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
         if "result_file" in fileSettingKeys:
