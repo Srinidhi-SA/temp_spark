@@ -57,13 +57,12 @@ def main(configJson):
                     ],
                     "consider_columns" : [
                         "Sales Office",
-                        "Brand",
-                        "Category",
-                        "Sub Category",
+                        "Product Category",
                         "Product",
-                        "Sales Quantity",
+                        "Quantity",
                         "Sales Value",
                         "Gross Margin",
+                        "Shipping Cost",
                         "Date"
                     ],
                     "consider_columns_type" : [
@@ -81,7 +80,7 @@ def main(configJson):
                         "positive"
                     ],
                     "result_column" : [
-                        "Sales Quantity"
+                        "Sales Value"
                     ],
                     "utf8_column_suggestions" : []
                 },
@@ -91,13 +90,8 @@ def main(configJson):
                     ],
                     "script_to_run" : [
                         "Descriptive analysis",
-                        "Measure vs. Measure",
-                        "Predictive modeling",
-                        "Trend",
-                        "Descriptive analysis",
                         "Measure vs. Dimension",
-                        "Predictive modeling",
-                        "Trend"
+                        "Measure vs. Measure"
                     ]
                 }
             },
@@ -107,13 +101,12 @@ def main(configJson):
                     "method" : "GET"
                 },
                 "job_type" : "story",
-                "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-bidco-sales-znlfl79g9e-w1kb64gs73/",
+                "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-marlabs2-47u7krs75g-7am210zyg7/",
                 "set_result" : {
                     "action" : "result",
                     "method" : "PUT"
                 }
-            },
-            "deployEnv":"local"
+            }
         },
         "metaData" : {
             "config":{
@@ -199,7 +192,7 @@ def main(configJson):
             }
         }
     }
-    # configJson = testConfigs["metaData"]
+    # configJson = testConfigs["story"]
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
     APP_NAME = 'mAdvisor'

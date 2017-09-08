@@ -493,19 +493,28 @@ class OneWayAnovaNarratives:
         category_legend = [i[3] for i in all_data]
 
         # lines += [C3ChartData(self._get_card3_scatterchart(share,growth,label,category_legend))]
-
+        modified_category_legend = []
+        for val in category_legend:
+            if val == "Playing Safe":
+                modified_category_legend.append("Opportunity Bay")
+            elif val == "Opportunity Bay":
+                modified_category_legend.append("Playing Safe")
+            else:
+                modified_category_legend.append(val)
+        category_legend = modified_category_legend
         data_c3 = [['Growth'] + growth,
                     ['Share'] + share,
                     [self._dimension_column] + label,
                     ['Category'] + category_legend]
+
         lines += [C3ChartData(self._get_card3_scatterchart(data_c3))]
 
         chart_data = chart(data=data, labels={})
         chart_data.add_data_c3(data_c3)
         self.card3.add_chart('decision_matrix', chart_data)
         leaders_club = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Leaders Club'])
-        opportunity_bay = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Playing Safe'])
-        playing_safe = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Opportunity Bay'])
+        playing_safe = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Playing Safe'])
+        opportunity_bay = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Opportunity Bay'])
         red_alert = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Red Alert'])
         data_dict = {
                     'leaders_club' : leaders_club,
