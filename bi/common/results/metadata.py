@@ -58,6 +58,7 @@ class ColumnData:
         self.slug = None
         self.ignoreSuggestionFlag = False
         self.dateSuggestionFlag = False
+        self.ignoreSuggestionMsg = None
         self.columnStats = columnStats
         self.chartData = chartData
         self.columnType = columnType
