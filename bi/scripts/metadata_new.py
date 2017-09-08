@@ -61,7 +61,6 @@ class MetaDataScript:
         metaData.append(MetaData(name="measureColumns",value = self._numeric_columns,display=False))
         metaData.append(MetaData(name="dimensionColumns",value = self._string_columns,display=False))
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
-
         columnData = []
         headers = []
         if self._data_frame.count() > 100:
@@ -69,11 +68,29 @@ class MetaDataScript:
             if len(self._timestamp_columns) > 0:
                 for colname in self._timestamp_columns:
                     sampleData = sampleData.withColumn(colname, sampleData[colname].cast(StringType()))
-                    sampleData = sampleData.toPandas().values.tolist()
+                sampleData = sampleData.toPandas()
+                for colname in self._timestamp_columns:
+                    timestams = sampleData[colname].apply(lambda x:x[11:])
+                    unique_timestamps = timestams.unique()
+                    if len(unique_timestamps) == 1 and unique_timestamps[0] == "00:00:00":
+                        sampleData[colname] = sampleData[colname].apply(lambda x:x[:10])
+                sampleData = sampleData.values.tolist()
             else:
                 sampleData = sampleData.toPandas().values.tolist()
         else:
-            sampleData = self._data_frame.toPandas().values.tolist()
+            sampleData = self._data_frame
+            if len(self._timestamp_columns) > 0:
+                for colname in self._timestamp_columns:
+                    sampleData = sampleData.withColumn(colname, sampleData[colname].cast(StringType()))
+                sampleData = sampleData.toPandas()
+                for colname in self._timestamp_columns:
+                    timestams = sampleData[colname].apply(lambda x:x[11:])
+                    unique_timestamps = timestams.unique()
+                    if len(unique_timestamps) == 1 and unique_timestamps[0] == "00:00:00":
+                        sampleData[colname] = sampleData[colname].apply(lambda x:x[:10])
+                sampleData = sampleData.values.tolist()
+            else:
+                sampleData = sampleData.toPandas().values.tolist()
 
         helper_instance = MetaDataHelper(self._data_frame)
         measureColumnStat,measureCharts = helper_instance.calculate_measure_column_stats(self._data_frame,self._numeric_columns)
