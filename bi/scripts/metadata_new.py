@@ -18,7 +18,6 @@ from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
 class MetaDataScript:
     def __init__(self, data_frame, spark):
         self._data_frame = data_frame
-        print self._data_frame.show(10)
         self._spark = spark
         # self._file_name = file_name
         self.total_columns = len([field.name for field in self._data_frame.schema.fields])
@@ -39,7 +38,7 @@ class MetaDataScript:
                                         zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
                                         zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
                                      )
-        print self._column_type_dict
+        # print self._column_type_dict
 
     def run(self):
         metaData = []
@@ -69,7 +68,6 @@ class MetaDataScript:
             sampleData = self._data_frame.sample(False, float(100)/self._total_rows, seed=420)
             if len(self._timestamp_columns) > 0:
                 for colname in self._timestamp_columns:
-                    print colname
                     sampleData = sampleData.withColumn(colname, sampleData[colname].cast(StringType()))
                     sampleData = sampleData.toPandas().values.tolist()
             else:
@@ -106,6 +104,9 @@ class MetaDataScript:
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
+                    data.set_ignore_suggestion_flag(True)
+                    data.set_ignore_suggestion_message(ignoreReason)
+
             elif self._column_type_dict[column] == "dimension":
                 utf8Suggestion = helper_instance.get_utf8_suggestions(dimensionColumnStat[column])
                 # dateColumn = helper_instance.get_datetime_suggestions(self._data_frame,column)
@@ -118,12 +119,17 @@ class MetaDataScript:
                     dateTimeSuggestions.update({column:dateColumnFormat})
                     data.set_level_count_to_null()
                     data.set_chart_data_to_null()
+                    data.set_date_suggestion_flag(True)
+
                 if utf8Suggestion:
                     utf8ColumnSuggestion.append(column)
                 ignoreSuggestion,ignoreReason = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
+                    data.set_ignore_suggestion_flag(True)
+                    data.set_ignore_suggestion_message(ignoreReason)
+
             columnData.append(data)
 
         for dateColumn in dateTimeSuggestions.keys():
@@ -135,7 +141,7 @@ class MetaDataScript:
             ignoreColumnSuggestions.append(utfCol)
             ignoreColumnReason.append("utf8 values present")
         # ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys()))+utf8ColumnSuggestion
-        print zip(ignoreColumnSuggestions,ignoreColumnReason)
+        # print zip(ignoreColumnSuggestions,ignoreColumnReason)
         metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
         metaData.append(MetaData(name="ignoreColumnReason",value = ignoreColumnReason,display=False))
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
