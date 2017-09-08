@@ -126,20 +126,36 @@ def main(configJson):
                     }
                 },
                 "metaData" : {
-                    "config":{
-                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv']},
-                            'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
-                            },
-                    "job_config":{
-                        "job_type":"metaData",
-                        # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                        "job_url":"",
-                        "set_result": {
-                            "method": "PUT",
-                            "action": "result"
-                          },
+                    "config" : {
+                        "COLUMN_SETTINGS" : {
+                            "analysis_type" : [
+                                "metaData"
+                            ]
+                        },
+                        "DATA_SOURCE" : {
+                            "datasource_details" : "",
+                            "datasource_type" : "fileUpload"
+                        },
+                        "DATE_SETTINGS" : {},
+                        "FILE_SETTINGS" : {
+                            "inputfile" : [
+                                "file:///home/gulshan/Desktop/Sample1.csv"
+                            ]
+                        }
                     },
-                    "deployEnv":"local"
+                    "job_config" : {
+                        "get_config" : {
+                            "action" : "get_config",
+                            "method" : "GET"
+                        },
+                        "job_name" : "Sample1.csv",
+                        "job_type" : "metaData",
+                        "job_url" : "http://34.196.204.54:9012/api/job/metadata-sample1csv-e2za8z9u26-o1f6wicswc/",
+                        "set_result" : {
+                            "action" : "result",
+                            "method" : "PUT"
+                        }
+                    }
                 },
                 "training":{
                     "config":{
@@ -209,7 +225,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["story"]
+            configJson = testConfigs["metaData"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
