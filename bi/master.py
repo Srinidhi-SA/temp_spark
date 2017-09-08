@@ -69,14 +69,20 @@ def main(configJson):
                                 "measure"
                             ],
                             "consider_columns" : [
-                                "Sales Office",
-                                "Product Category",
-                                "Product",
-                                "Quantity",
-                                "Sales Value",
-                                "Gross Margin",
-                                "Shipping Cost",
-                                "Date"
+                                "Education",
+                                "Top Organisation",
+                                "Agent Name",
+                                "Call Type",
+                                "State",
+                                "Region",
+                                "Agent Experience",
+                                "Rating",
+                                "Agent Age",
+                                "Top Plan Provider",
+                                "Number of Calls",
+                                "First call resolution",
+                                "Average Call duration (in Minutes)",
+                                "Call date"
                             ],
                             "consider_columns_type" : [
                                 "including"
@@ -85,7 +91,7 @@ def main(configJson):
                                 {}
                             ],
                             "date_columns" : [
-                                "Date"
+                                "Call date"
                             ],
                             "date_format" : None,
                             "ignore_column_suggestion" : [],
@@ -93,32 +99,33 @@ def main(configJson):
                                 "positive"
                             ],
                             "result_column" : [
-                                "Sales Value"
+                                "Number of Calls"
                             ],
                             "utf8_column_suggestions" : []
-                        },
-                        "FILE_SETTINGS" : {
-                            "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/BIDCO_Local_v4.csv"
-                            ],
-                            "script_to_run" : [
-                                "Descriptive analysis",
-                                "Measure vs. Dimension",
-                                "Measure vs. Measure"
-                            ]
                         },
                         "DATA_SOURCE" : {
                             "datasource_details" : "",
                             "datasource_type" : "fileUpload"
                         },
+                        "FILE_SETTINGS" : {
+                            "inputfile" : [
+                                "file:///home/gulshan/marlabs/datasets/Callcentre4.csv"
+                            ],
+                            "script_to_run" : [
+                                "Descriptive analysis",
+                                "Measure vs. Dimension",
+                                "Trend"
+                            ]
+                        }
                     },
                     "job_config" : {
                         "get_config" : {
                             "action" : "get_config",
                             "method" : "GET"
                         },
+                        "job_name" : "264-test1",
                         "job_type" : "story",
-                        "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-marlabs2-47u7krs75g-7am210zyg7/",
+                        "job_url" : "http://34.196.204.54:9012/api/job/master-264-test1-kszkof19i0-4gmp5vo73k/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -225,7 +232,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["metaData"]
+            configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()

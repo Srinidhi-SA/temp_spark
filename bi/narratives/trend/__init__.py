@@ -123,7 +123,7 @@ class TimeSeriesNarrative:
                 last_date = pandas_df["suggestedDate"].iloc[-1]
 
             if last_date == None:
-                print "Entered IF Last date none"
+                print "IF Last date none:-"
                 pandas_df = self._data_frame.toPandas()
                 pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
                 last_date = pandas_df["suggestedDate"].iloc[-1]

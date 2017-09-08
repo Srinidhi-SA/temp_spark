@@ -36,9 +36,14 @@ However, there are also few {{dataLevel}} when {{measure}} was lagging and didn'
     <p class="txt-justify">
       <ul>
         <li>
-          {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
-           as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
-           overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
+          {% if HighestSigDimensionL2[1] > 0%}
+            {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
+             as {{HighestSigDimensionL1[0]}} and {{HighestSigDimensionL2[0]}} witnessed the highest
+             overall growth rates of {{HighestSigDimensionL1[1]}}% and {{HighestSigDimensionL2[1]}}% respectively.
+          {% else %}
+            {{HighestSigDimension}} has been very instrumental in driving {{measure}} growth,
+            as {{HighestSigDimensionL1[0]}} witnessed the highest overall growth rates of {{HighestSigDimensionL1[1]}}% .
+          {% endif %}
         </li>
       </ul>
   {% endif %}
