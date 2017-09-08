@@ -25,3 +25,21 @@ class DataLoader:
         except Exception as e:
             print("couldn't connect to database")
         return df
+
+    
+    
+    @staticmethod
+    @accepts(SparkSession, basestring, basestring, basestring, basestring, basestring)
+    def create_dataframe_from_hana_connector(spark_session, jdbc_url, db_schema, table_name, user, password):
+        df = None
+        try:
+            df = spark_session.read.format("jdbc").option(
+                "url", jdbc_url).option("driver", "com.sap.db.jdbc.Driver").option(
+                "dbtable", table_name).option("user", user).option("password", password).load()
+        except Exception as e:
+            print("couldn't connect to hana")
+            raise e 
+        return df
+
+    
+    

@@ -219,9 +219,15 @@ def send_message_API(monitor_api, task, message, complete, progress):
     #r = requests.post(url, data=json.dumps(message_dict))
     #print json.loads(r.content)['message'] + " for ", task +'\n'
 
+def temp_convertor(x):
+    try:
+        return x.__dict__
+    except Exception as e:
+        return "{}".format(x)
+     
 def convert_python_object_to_json(object):
-    out = json.dumps(object, default=lambda o: o.__dict__)
-    return out
+    return json.dumps(object, default=temp_convertor)
+
 
 def byteify(input):
     if isinstance(input, dict):

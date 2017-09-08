@@ -1,6 +1,7 @@
 import sys
 import time
 import json
+from asn1crypto._ffi import null
 # from pyhocon.tool import HOCONConverter
 
 reload(sys)
@@ -214,7 +215,33 @@ def main(configJson):
     dataframe_context.set_params()
     jobType = job_config["job_type"]
     ########################## Load the dataframe ##############################
-    df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+    df = null
+    
+    
+
+    datasource_type = config.get("DATA_SOURCE").get("datasource_type")
+    
+    if "Hana" == datasource_type:
+    
+    
+        datasource_details = config.get("DATA_SOURCE").get("datasource_details")
+        
+        db_schema = datasource_details.get("schema")
+        table_name = datasource_details.get("tablename")
+        username = datasource_details.get("username")
+        password = datasource_details.get("password")
+        host = datasource_details.get("host")
+        port = datasource_details.get("port")
+        
+    
+        jdbc_url = "jdbc:sap://{}:{}/?currentschema={}".format(host, port, db_schema)
+        
+        df = DataLoader.create_dataframe_from_hana_connector(spark, jdbc_url, db_schema, table_name, username, password)
+        
+    if "fileUpload" ==  datasource_type:
+        df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+
+#     return df.collect()
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time
     script_start_time = time.time()
