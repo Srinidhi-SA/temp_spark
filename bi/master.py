@@ -1,6 +1,7 @@
 import sys
 import time
 import json
+import pyhocon
 from asn1crypto._ffi import null
 # from pyhocon.tool import HOCONConverter
 
@@ -45,155 +46,171 @@ from pyspark.sql.functions import col, udf
 LOGGER = []
 def main(configJson):
     global LOGGER
-    deployEnv = None
-    debugMode = True
+    deployEnv = False  # running the scripts from job-server env
+    debugMode = True   # runnning the scripts for local testing and development
+    cfgMode = False    # runnning the scripts by passing config.cfg path
 
-    ###### used to overwrite the passed config arguments to test locally #######
-    testConfigs = {
-        "story" :{
-            "config" : {
-                "COLUMN_SETTINGS" : {
-                    "analysis_type" : [
-                        "measure"
-                    ],
-                    "consider_columns" : [
-                        "Sales Office",
-                        "Product Category",
-                        "Product",
-                        "Quantity",
-                        "Sales Value",
-                        "Gross Margin",
-                        "Shipping Cost",
-                        "Date"
-                    ],
-                    "consider_columns_type" : [
-                        "including"
-                    ],
-                    "dateTimeSuggestions" : [
-                        {}
-                    ],
-                    "date_columns" : [
-                        "Date"
-                    ],
-                    "date_format" : None,
-                    "ignore_column_suggestion" : [],
-                    "polarity" : [
-                        "positive"
-                    ],
-                    "result_column" : [
-                        "Sales Value"
-                    ],
-                    "utf8_column_suggestions" : []
-                },
-                "FILE_SETTINGS" : {
-                    "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/BIDCO_Local_v4.csv"
-                    ],
-                    "script_to_run" : [
-                        "Descriptive analysis",
-                        "Measure vs. Dimension",
-                        "Measure vs. Measure"
-                    ]
-                }
-            },
-            "job_config" : {
-                "get_config" : {
-                    "action" : "get_config",
-                    "method" : "GET"
-                },
-                "job_type" : "story",
-                "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-marlabs2-47u7krs75g-7am210zyg7/",
-                "set_result" : {
-                    "action" : "result",
-                    "method" : "PUT"
-                }
-            }
-        },
-        "metaData" : {
-            "config":{
-                    'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv']},
-                    'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+    if isinstance(configJson,pyhocon.config_tree.ConfigTree):
+        deployEnv = True
+        debugMode = False
+    elif isinstance(configJson,basestring):
+        if configJson.endswith(".cfg"):
+            ######################## Running in cfgMode ########################
+            cfgMode = True
+            debugMode = False
+        else:
+            ######################## Running in debugMode ######################
+            print "Running in debugMode"
+            testConfigs = {
+                "story" :{
+                    "config" : {
+                        "COLUMN_SETTINGS" : {
+                            "analysis_type" : [
+                                "measure"
+                            ],
+                            "consider_columns" : [
+                                "Sales Office",
+                                "Product Category",
+                                "Product",
+                                "Quantity",
+                                "Sales Value",
+                                "Gross Margin",
+                                "Shipping Cost",
+                                "Date"
+                            ],
+                            "consider_columns_type" : [
+                                "including"
+                            ],
+                            "dateTimeSuggestions" : [
+                                {}
+                            ],
+                            "date_columns" : [
+                                "Date"
+                            ],
+                            "date_format" : None,
+                            "ignore_column_suggestion" : [],
+                            "polarity" : [
+                                "positive"
+                            ],
+                            "result_column" : [
+                                "Sales Value"
+                            ],
+                            "utf8_column_suggestions" : []
+                        },
+                        "FILE_SETTINGS" : {
+                            "inputfile" : [
+                                "file:///home/gulshan/marlabs/datasets/BIDCO_Local_v4.csv"
+                            ],
+                            "script_to_run" : [
+                                "Descriptive analysis",
+                                "Measure vs. Dimension",
+                                "Measure vs. Measure"
+                            ]
+                        },
+                        "DATA_SOURCE" : {
+                            "datasource_details" : "",
+                            "datasource_type" : "fileUpload"
+                        },
                     },
-            "job_config":{
-                "job_type":"metaData",
-                # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                "job_url":"",
-                "set_result": {
-                    "method": "PUT",
-                    "action": "result"
-                  },
-            },
-            "deployEnv":"local"
-        },
-        "training":{
-            "config":{
-                'FILE_SETTINGS': {
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],
-                    # Model Slug will go instead of model path
-                    'modelpath': ["ANKUSH"],
-                    'train_test_split' : [0.8],
-                    'analysis_type' : ['training']
+                    "job_config" : {
+                        "get_config" : {
+                            "action" : "get_config",
+                            "method" : "GET"
+                        },
+                        "job_type" : "story",
+                        "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-marlabs2-47u7krs75g-7am210zyg7/",
+                        "set_result" : {
+                            "action" : "result",
+                            "method" : "PUT"
+                        }
+                    }
                 },
-                'COLUMN_SETTINGS': {
-                    'analysis_type': ['training'],
-                    'result_column': ['class_label'],
-                    'consider_columns_type': ['excluding'],
-                    'consider_columns':[],
-                    'polarity': ['positive'],
-                    'date_format': None,
-                    # 'date_columns':["new_date","Month","Order Date"],
-                    'date_columns':[],
-                    'ignore_column_suggestions': [],
-                    # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
-                    'dateTimeSuggestions' : [],
-                    'utf8ColumnSuggestion':[],
-                    'consider_columns':[],
-                }
-            },
-            "job_config":{
-                "job_type":"training",
-                # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                "set_result": {
-                    "method": "PUT",
-                    "action": "result"
-                  },
-            }
-        },
-        "prediction":{
-            "config":{
-                'FILE_SETTINGS': {
-                    'inputfile': ['file:///home/gulshan/marlabs/datasets/adult_test.csv'],
-                    'modelpath': ["ANKUSH"],
-                    'scorepath': ["DDDDD"],
-                    # 'train_test_split' : [0.8],
-                    'levelcounts' : [],
-                    'modelfeatures' : [],
-                    "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
+                "metaData" : {
+                    "config":{
+                            'FILE_SETTINGS': {'inputfile': ['file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv']},
+                            'COLUMN_SETTINGS': {'analysis_type': ['metaData']}
+                            },
+                    "job_config":{
+                        "job_type":"metaData",
+                        # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "job_url":"",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    },
+                    "deployEnv":"local"
                 },
-                'COLUMN_SETTINGS': {
-                    'analysis_type': ['Dimension'],
-                    'result_column': ['class_label'],
-                    # 'consider_columns_type': ['excluding'],
-                    # 'consider_columns':[],
-                    # 'date_columns':['Date'],
-                    'score_consider_columns_type': ['excluding'],
-                    'score_consider_columns':[],
-                    "app_id":[2]
+                "training":{
+                    "config":{
+                        'FILE_SETTINGS': {
+                            'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],
+                            # Model Slug will go instead of model path
+                            'modelpath': ["ANKUSH"],
+                            'train_test_split' : [0.8],
+                            'analysis_type' : ['training']
+                        },
+                        'COLUMN_SETTINGS': {
+                            'analysis_type': ['training'],
+                            'result_column': ['class_label'],
+                            'consider_columns_type': ['excluding'],
+                            'consider_columns':[],
+                            'polarity': ['positive'],
+                            'date_format': None,
+                            # 'date_columns':["new_date","Month","Order Date"],
+                            'date_columns':[],
+                            'ignore_column_suggestions': [],
+                            # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
+                            'dateTimeSuggestions' : [],
+                            'utf8ColumnSuggestion':[],
+                            'consider_columns':[],
+                        }
+                    },
+                    "job_config":{
+                        "job_type":"training",
+                        # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
+                },
+                "prediction":{
+                    "config":{
+                        'FILE_SETTINGS': {
+                            'inputfile': ['file:///home/gulshan/marlabs/datasets/adult_test.csv'],
+                            'modelpath': ["ANKUSH"],
+                            'scorepath': ["DDDDD"],
+                            # 'train_test_split' : [0.8],
+                            'levelcounts' : [],
+                            'modelfeatures' : [],
+                            "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
+                        },
+                        'COLUMN_SETTINGS': {
+                            'analysis_type': ['Dimension'],
+                            'result_column': ['class_label'],
+                            # 'consider_columns_type': ['excluding'],
+                            # 'consider_columns':[],
+                            # 'date_columns':['Date'],
+                            'score_consider_columns_type': ['excluding'],
+                            'score_consider_columns':[],
+                            "app_id":[2]
 
+                        }
+                    },
+                    "job_config":{
+                        "job_type":"prediction",
+                        "job_url": "http://34.196.204.54:9012/api/job/score-hiohoyuo-bn1ofiupv0-j0irk37cob/set_result/",
+                        "set_result": {
+                            "method": "PUT",
+                            "action": "result"
+                          },
+                    }
                 }
-            },
-            "job_config":{
-                "job_type":"prediction",
-                "job_url": "http://34.196.204.54:9012/api/job/score-hiohoyuo-bn1ofiupv0-j0irk37cob/set_result/",
-                "set_result": {
-                    "method": "PUT",
-                    "action": "result"
-                  },
             }
-        }
-    }
-    # configJson = testConfigs["story"]
+            configJson = testConfigs["story"]
+
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
     APP_NAME = 'mAdvisor'
@@ -208,29 +225,19 @@ def main(configJson):
     dataframe_context.set_params()
     jobType = job_config["job_type"]
     ########################## Load the dataframe ##############################
-    df = null
-    
-    
-
+    df = None
     datasource_type = config.get("DATA_SOURCE").get("datasource_type")
-    
     if "Hana" == datasource_type:
-    
-    
         datasource_details = config.get("DATA_SOURCE").get("datasource_details")
-        
         db_schema = datasource_details.get("schema")
         table_name = datasource_details.get("tablename")
         username = datasource_details.get("username")
         password = datasource_details.get("password")
         host = datasource_details.get("host")
         port = datasource_details.get("port")
-        
-    
         jdbc_url = "jdbc:sap://{}:{}/?currentschema={}".format(host, port, db_schema)
-        
         df = DataLoader.create_dataframe_from_hana_connector(spark, jdbc_url, db_schema, table_name, username, password)
-        
+
     if "fileUpload" ==  datasource_type:
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
 
