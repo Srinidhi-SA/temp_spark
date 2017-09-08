@@ -86,6 +86,9 @@ class ColumnData:
     def set_ignore_suggestion_flag(self,data):
         self.ignoreSuggestionFlag = data
 
+    def set_ignore_suggestion_message(self,data):
+        self.ignoreSuggestionMsg = data
+
     def set_date_suggestion_flag(self,data):
         self.dateSuggestionFlag = data
 

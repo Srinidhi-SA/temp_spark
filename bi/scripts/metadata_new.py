@@ -107,6 +107,8 @@ class MetaDataScript:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
                     data.set_ignore_suggestion_flag(True)
+                    data.set_ignore_suggestion_message(ignoreReason)
+
             elif self._column_type_dict[column] == "dimension":
                 utf8Suggestion = helper_instance.get_utf8_suggestions(dimensionColumnStat[column])
                 # dateColumn = helper_instance.get_datetime_suggestions(self._data_frame,column)
@@ -128,6 +130,7 @@ class MetaDataScript:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
                     data.set_ignore_suggestion_flag(True)
+                    data.set_ignore_suggestion_message(ignoreReason)
 
             columnData.append(data)
 
