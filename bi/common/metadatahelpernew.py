@@ -12,6 +12,9 @@ from pyspark.sql.types import DateType, FloatType
 from pyspark.sql.types import StringType
 
 from bi.common import utils as CommonUtils
+from bi.common.charts import ChartJson,NormalChartData
+from bi.common.cardStructure import C3ChartData
+
 
 class MetaDataHelper():
 
@@ -74,7 +77,14 @@ class MetaDataHelper():
             col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
-            chart_data[column] = self.get_binned_stat(df,column,col_stat)
+            measure_chart_data = self.get_binned_stat(df,column,col_stat)
+            measure_chart_data = sorted(measure_chart_data,key=lambda x:x["value"])
+            measure_chart_obj = ChartJson(NormalChartData(measure_chart_data).get_data(),chart_type="bar")
+            measure_chart_obj.set_axes({"x":"name","y":"value"})
+            measure_chart_obj.set_subchart(False)
+            measure_chart_obj.set_hide_xtick(True)
+            measure_chart_obj.set_show_legend(False)
+            chart_data[column] = C3ChartData(data=measure_chart_obj)
             modified_col_stat = []
             for k,v in col_stat.items():
                 if k != "numberOfNotNulls":
@@ -115,7 +125,12 @@ class MetaDataHelper():
             col_stat["numberOfUniqueValues"] = len(levelCount.keys())
             levelCountWithoutNull = levelCount
             dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
-            dimension_chart_data_sorted = sorted(dimension_chart_data,key=lambda x:x["value"])
+            dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"])
+            dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
+            dimension_chart_obj.set_axes({"x":"name","y":"value"})
+            dimension_chart_obj.set_subchart(False)
+            dimension_chart_obj.set_hide_xtick(True)
+            dimension_chart_obj.set_show_legend(False)
             if None in levelCount:
                 levelCountWithoutNull.pop(None)
             if levelCountWithoutNull != {}:
@@ -131,7 +146,7 @@ class MetaDataHelper():
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
             output[column] = modified_col_stat
-            chart_data[column] = dimension_chart_data_sorted
+            chart_data[column] = C3ChartData(data=dimension_chart_obj)
         return output,chart_data
 
 

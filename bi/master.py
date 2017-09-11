@@ -146,7 +146,7 @@ def main(configJson):
                         "DATE_SETTINGS" : {},
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/Desktop/Sample1.csv"
+                                "file:///home/gulshan/marlabs/datasets/testignoresuggestions.csv"
                             ]
                         }
                     },
@@ -157,7 +157,8 @@ def main(configJson):
                         },
                         "job_name" : "Sample1.csv",
                         "job_type" : "metaData",
-                        "job_url" : "http://34.196.204.54:9012/api/job/metadata-sample1csv-e2za8z9u26-o1f6wicswc/",
+                        # "job_url" : "http://34.196.204.54:9012/api/job/metadata-sample1csv-e2za8z9u26-o1f6wicswc/",
+                        "job_url" : "",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -232,7 +233,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["story"]
+            configJson = testConfigs["metaData"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
@@ -263,6 +264,8 @@ def main(configJson):
 
     if "fileUpload" ==  datasource_type:
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+        # Dropping blank rows
+        df = df.dropna(how='all', thresh=None, subset=None)
 
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time
