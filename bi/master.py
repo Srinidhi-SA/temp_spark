@@ -248,6 +248,7 @@ def main(configJson):
     dataframe_context = ContextSetter(configJsonObj)
     dataframe_context.set_params()
     jobType = job_config["job_type"]
+    jobName = job_config["job_name"]
     ########################## Load the dataframe ##############################
     df = None
     datasource_type = config.get("DATA_SOURCE").get("datasource_type")
@@ -377,6 +378,7 @@ def main(configJson):
             headNode = result_setter.get_head_node()
             if headNode != None:
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+            headNode["name"] = jobName
             dimensionNode = result_setter.get_distribution_node()
             if dimensionNode != None:
                 headNode["listOfNodes"].append(dimensionNode)
@@ -542,6 +544,7 @@ def main(configJson):
             headNode = result_setter.get_head_node()
             if headNode != None:
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+            headNode["name"] = jobName
             distributionNode = result_setter.get_distribution_node()
             if distributionNode != None:
                 headNode["listOfNodes"].append(distributionNode)
