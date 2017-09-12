@@ -116,6 +116,7 @@ def main(configJson):
                             "script_to_run" : [
                                 "Descriptive analysis",
                                 "Measure vs. Dimension",
+                                "Dimension vs. Dimension",
                                 "Measure vs. Measure",
                                 "Predictive modeling",
                                 "Trend"

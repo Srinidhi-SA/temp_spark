@@ -189,10 +189,10 @@ class MetaDataHelper():
         """
         detectedFormat = None
         availableDateTimeFormat = CommonUtils.dateTimeFormatsSupported()["formats"]
-        x = columnVector[0]
+        sample1 = columnVector[0]
         for dt_format in availableDateTimeFormat:
             try:
-                t = datetime.strptime(x,dt_format)
+                t = datetime.strptime(sample1,dt_format)
                 detectedFormat = dt_format
                 break
             except ValueError as err:

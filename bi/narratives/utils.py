@@ -523,8 +523,6 @@ def calculate_bucket_data(grouped_data,dataLevel):
         df[str(val)] = df["value"].rolling(val).sum()/val
         temp_dict = {}
         temp_dict["id_max"] = df[str(val)].idxmax()
-        # print "YOYOYO"
-        # print "id max",temp_dict["id_max"]
         temp_dict["max_val"] = round(df.loc[temp_dict["id_max"],str(val)],2)
 
         if dataLevel == "day":

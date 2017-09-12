@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import json
 import operator
 import random
@@ -219,34 +220,49 @@ class LinearRegressionNarrative:
         print "low1high2:", low1high2.count()
         print "high1high2:", high1high2.count()
         print "high1low2:", high1low2.count()
-
         dfs = []
         labels = []
         if low1low2.count() > 0:
+            fs = time.time()
             freq["low1low2"] = self.get_freq_dict(low1low2,cat_columns)[:3]
+            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
             contribution["low1low2"] = str(round(low1low2.count()*100/self._data_frame.count()))+"%"
+            fs = time.time()
             elasticity_dict["low1low2"] = self.run_regression(low1low2,col2)
+            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
             dfs.append("low1low2")
             labels.append("Low %s with Low %s"%(col1,col2))
         if low1high2.count() > 0:
+            fs = time.time()
             freq["low1high2"] = self.get_freq_dict(low1high2,cat_columns)[:3]
+            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
             contribution["low1high2"] = str(round(low1high2.count()*100/self._data_frame.count()))+"%"
+            fs = time.time()
             elasticity_dict["low1high2"] = self.run_regression(low1high2,col2)
+            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
             dfs.append("low1high2")
             labels.append("Low %s with High %s"%(col1,col2))
         if high1high2.count() > 0:
+            fs = time.time()
             freq["high1high2"] = self.get_freq_dict(high1high2,cat_columns)[:3]
+            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
             contribution["high1high2"] = str(round(high1high2.count()*100/self._data_frame.count()))+"%"
+            fs = time.time()
             elasticity_dict["high1high2"] = self.run_regression(high1high2,col2)
+            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
             dfs.append("high1high2")
             labels.append("High %s with High %s"%(col1,col2))
         if high1low2.count() > 0:
+            fs = time.time()
             freq["high1low2"] = self.get_freq_dict(high1low2,cat_columns)[:3]
+            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
             contribution["high1low2"] = str(round(high1low2.count()*100/self._data_frame.count()))+"%"
+            fs = time.time()
             elasticity_dict["high1low2"] = self.run_regression(high1low2,col2)
+            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
             dfs.append("high1low2")
             labels.append("High %s with Low %s"%(col1,col2))
-
+        fs = time.time()
         # overall_coeff = self._regression_result.get_coeff(col2)
         overall_coeff = self._regression_result.get_all_coeff()[col2]["coefficient"]
         elasticity_value = overall_coeff * Stats.mean(self._data_frame,col1)/Stats.mean(self._data_frame,col2)
@@ -332,6 +348,7 @@ class LinearRegressionNarrative:
         scatterChart.set_axes({"x":col1,"y":col2})
         scatterChart.set_chart_type("scatter")
         data_dict["charts"] = scatterChart
+        print "dsa Analysis Done in ", time.time() - fs, " seconds."
         return data_dict
 
     #### functions to calculate data dicts for different cards

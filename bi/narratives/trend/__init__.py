@@ -34,6 +34,7 @@ class TimeSeriesNarrative:
         # self._selected_date_columns = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._td_columns = df_helper.get_timestamp_columns()
+        self._string_columns = df_helper.get_string_columns()
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
         self._trend_subsection = self._result_setter.get_trend_section_name()
@@ -41,6 +42,7 @@ class TimeSeriesNarrative:
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._blockSplitter = "|~NEWBLOCK~|"
         self._trend_on_td_column = False
+        self._number_of_dimensions_to_consider = 10
 
         if self._selected_date_columns != None and len(self._selected_date_columns) > 0:
             suggested_date_column = self._selected_date_columns[0]
@@ -235,18 +237,25 @@ class TimeSeriesNarrative:
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
 
-                        significant_dimensions = df_helper.get_significant_dimension()
+                        significant_dimensions = []
+                        significant_dimension_dict = df_helper.get_significant_dimension()
+                        if significant_dimension_dict != {} and significant_dimension_dict != None:
+                            significant_dimension_tuple = tuple(significant_dimension_dict.items())
+                            significant_dimension_tuple = sorted(significant_dimension_tuple,key=lambda x: x[1],reverse=True)
+                            significant_dimensions = [x[0] for x in significant_dimension_tuple[:self._number_of_dimensions_to_consider]]
+                        else:
+                            significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
+                        print "significant_dimensions",significant_dimensions
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
-
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         # # update reference time with max value
                         reference_time = dataDict["reference_time"]
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel
                         dataDict["durationString"] = self._durationString
-                        dataDict["significant_dimensions"] = significant_dimensions.keys()
-                        if len(significant_dimensions.keys()) > 0:
-                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
+                        dataDict["significant_dimensions"] = significant_dimensions
+                        if len(significant_dimensions) > 0:
+                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
@@ -443,7 +452,9 @@ class TimeSeriesNarrative:
                         if significant_dimension_dict != {} and significant_dimension_dict != None:
                             significant_dimension_tuple = tuple(significant_dimension_dict.items())
                             significant_dimension_tuple = sorted(significant_dimension_tuple,key=lambda x: x[1],reverse=True)
-                            significant_dimensions = [x[0] for x in significant_dimension_tuple[:20]]
+                            significant_dimensions = [x[0] for x in significant_dimension_tuple[:self._number_of_dimensions_to_consider]]
+                        else:
+                            significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
                         print "significant_dimensions",significant_dimensions
                         reference_time = dataDict["reference_time"]
                         dataDict["significant_dimensions"] = significant_dimensions
@@ -464,7 +475,7 @@ class TimeSeriesNarrative:
                         blocks = NarrativesUtils.block_splitter(trendStory,self._blockSplitter)
 
                         if idx != 0:
-                            cardData1 += blocks[1:]
+                            cardData1 += blocks[2:]
                         else:
                             cardData1 += blocks
 
