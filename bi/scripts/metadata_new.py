@@ -164,6 +164,8 @@ class MetaDataScript:
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
         metaData.append(MetaData(name="dateTimeSuggestions",value = dateTimeSuggestions,display=False))
         dfMetaData = DfMetaData()
+        print ignoreColumnSuggestions
+        print dateTimeSuggestions
         dfMetaData.set_column_data(columnData)
         dfMetaData.set_header(headers)
         dfMetaData.set_meta_data(metaData)

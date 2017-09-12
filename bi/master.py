@@ -69,29 +69,31 @@ def main(configJson):
                                 "measure"
                             ],
                             "consider_columns" : [
-                                "Education",
-                                "Top Organisation",
-                                "Agent Name",
-                                "Call Type",
-                                "State",
-                                "Region",
-                                "Agent Experience",
-                                "Rating",
-                                "Agent Age",
-                                "Top Plan Provider",
-                                "Number of Calls",
-                                "First call resolution",
-                                "Average Call duration (in Minutes)",
-                                "Call date"
+                                "Deal_Type",
+                                "Price_Range",
+                                "Discount_Range",
+                                "Source",
+                                "Platform",
+                                "Buyer_Age",
+                                "Buyer_Gender",
+                                "Tenure_in_Days",
+                                "Sales",
+                                "Marketing_Cost",
+                                "Shipping_Cost",
+                                "Last_Transaction",
+                                "new_date"
                             ],
                             "consider_columns_type" : [
                                 "including"
                             ],
                             "dateTimeSuggestions" : [
-                                {}
+                                {
+                                    "Month" : "%b-%y",
+                                    "Order Date" : "%d-%m-%Y"
+                                }
                             ],
                             "date_columns" : [
-                                "Call date"
+                                "new_date"
                             ],
                             "date_format" : None,
                             "ignore_column_suggestion" : [],
@@ -99,7 +101,7 @@ def main(configJson):
                                 "positive"
                             ],
                             "result_column" : [
-                                "Number of Calls"
+                                "Sales"
                             ],
                             "utf8_column_suggestions" : []
                         },
@@ -109,11 +111,13 @@ def main(configJson):
                         },
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/Callcentre4.csv"
+                                "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
                             ],
                             "script_to_run" : [
                                 "Descriptive analysis",
                                 "Measure vs. Dimension",
+                                "Measure vs. Measure",
+                                "Predictive modeling",
                                 "Trend"
                             ]
                         }
@@ -123,9 +127,9 @@ def main(configJson):
                             "action" : "get_config",
                             "method" : "GET"
                         },
-                        "job_name" : "264-test1",
+                        "job_name" : "mytest1",
                         "job_type" : "story",
-                        "job_url" : "http://34.196.204.54:9012/api/job/master-264-test1-kszkof19i0-4gmp5vo73k/",
+                        "job_url" : "http://34.196.204.54:9012/api/job/master-mytest1-wmuhnaxmri-e93euwew9p/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -146,7 +150,7 @@ def main(configJson):
                         "DATE_SETTINGS" : {},
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/testignoresuggestions.csv"
+                                "file:///home/gulshan/marlabs/datasets/test_only_dimensions.csv"
                             ]
                         }
                     },
@@ -233,7 +237,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["metaData"]
+            configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
@@ -267,17 +271,20 @@ def main(configJson):
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
         # Dropping blank rows
         df = df.dropna(how='all', thresh=None, subset=None)
+        print df.columns
 
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time
     script_start_time = time.time()
 
     if jobType == "metaData":
+        fs = time.time()
         print "starting Metadata"
         meta_data_class = MetaDataScript(df,spark)
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
         print metaDataJson
+        print "metaData Analysis Done in ", time.time() - fs, " seconds."
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         return response
     else:
@@ -393,7 +400,7 @@ def main(configJson):
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
 
-            print json.dumps(headNode,indent=2)
+            # print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
 
             # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)

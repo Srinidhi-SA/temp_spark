@@ -195,7 +195,6 @@ class DataFrameHelper:
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
         self.string_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
-
         self.timestamp_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
         self.num_rows = self._data_frame.count()
@@ -329,7 +328,6 @@ class DataFrameHelper:
                 self.drop_columns = list(set(self.columns) - set(self.consider_columns))
                 self._data_frame = reduce(DataFrame.drop, self.drop_columns, self._data_frame)
                 self.columns = [field.name for field in self._data_frame.schema.fields]
-        print "update meta 2"
         self._update_meta()
 
 
@@ -444,9 +442,7 @@ class DataFrameHelper:
                     break
                 except ValueError as err:
                     pass
-        print '^'*290
         print self.date_time_suggestions
-        print '^'*290
 
     def has_date_suggestions(self):
         if len(self.date_time_suggestions)>0:
@@ -479,17 +475,30 @@ class DataFrameHelper:
             date_time_suggestions = {}
             formats = CommonUtils.dateTimeFormatsSupported()["formats"]
             dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
-
-            row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
-            x = row_vals[0][colname]
+            # row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
+            row_vals = self._data_frame.select(colname).na.drop().distinct().collect()
+            sample1 = row_vals[0][colname]
+            sample2 = row_vals[-1][colname]
             for format1 in formats:
                 try:
-                    t = datetime.strptime(x,format1)
-                    date_time_suggestions[colname] = format1
-                    self._date_formats[colname] = format1
+                    t = datetime.strptime(sample1,format1)
+                    sample1_format = format1
                     break
                 except ValueError as err:
                     pass
+            for format1 in formats:
+                try:
+                    t = datetime.strptime(sample2,format1)
+                    sample2_format = format1
+                    break
+                except ValueError as err:
+                    pass
+            if sample1_format == sample2_format:
+                date_time_suggestions[colname] = sample1_format
+                self._date_formats[colname] = sample1_format
+            else:
+                date_time_suggestions[colname] = sample2_format
+                self._date_formats[colname] = sample2_format
         return date_time_suggestions
 
     def get_train_test_data(self):

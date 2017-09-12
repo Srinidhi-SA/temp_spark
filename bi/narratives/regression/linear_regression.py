@@ -220,31 +220,37 @@ class LinearRegressionNarrative:
         print "high1high2:", high1high2.count()
         print "high1low2:", high1low2.count()
 
-        freq["low1low2"] = self.get_freq_dict(low1low2,cat_columns)[:3]
-        freq["low1high2"] = self.get_freq_dict(low1high2,cat_columns)[:3]
-        freq["high1high2"] = self.get_freq_dict(high1high2,cat_columns)[:3]
-        freq["high1low2"] = self.get_freq_dict(high1low2,cat_columns)[:3]
-
-        contribution["low1low2"] = str(round(low1low2.count()*100/self._data_frame.count()))+"%"
-        contribution["low1high2"] = str(round(low1high2.count()*100/self._data_frame.count()))+"%"
-        contribution["high1high2"] = str(round(high1high2.count()*100/self._data_frame.count()))+"%"
-        contribution["high1low2"] = str(round(high1low2.count()*100/self._data_frame.count()))+"%"
-
-        elasticity_dict["low1low2"] = self.run_regression(low1low2,col2)
-        elasticity_dict["low1high2"] = self.run_regression(low1high2,col2)
-        elasticity_dict["high1high2"] = self.run_regression(high1high2,col2)
-        elasticity_dict["high1low2"] = self.run_regression(high1low2,col2)
+        dfs = []
+        labels = []
+        if low1low2.count() > 0:
+            freq["low1low2"] = self.get_freq_dict(low1low2,cat_columns)[:3]
+            contribution["low1low2"] = str(round(low1low2.count()*100/self._data_frame.count()))+"%"
+            elasticity_dict["low1low2"] = self.run_regression(low1low2,col2)
+            dfs.append("low1low2")
+            labels.append("Low %s with Low %s"%(col1,col2))
+        if low1high2.count() > 0:
+            freq["low1high2"] = self.get_freq_dict(low1high2,cat_columns)[:3]
+            contribution["low1high2"] = str(round(low1high2.count()*100/self._data_frame.count()))+"%"
+            elasticity_dict["low1high2"] = self.run_regression(low1high2,col2)
+            dfs.append("low1high2")
+            labels.append("Low %s with High %s"%(col1,col2))
+        if high1high2.count() > 0:
+            freq["high1high2"] = self.get_freq_dict(high1high2,cat_columns)[:3]
+            contribution["high1high2"] = str(round(high1high2.count()*100/self._data_frame.count()))+"%"
+            elasticity_dict["high1high2"] = self.run_regression(high1high2,col2)
+            dfs.append("high1high2")
+            labels.append("High %s with High %s"%(col1,col2))
+        if high1low2.count() > 0:
+            freq["high1low2"] = self.get_freq_dict(high1low2,cat_columns)[:3]
+            contribution["high1low2"] = str(round(high1low2.count()*100/self._data_frame.count()))+"%"
+            elasticity_dict["high1low2"] = self.run_regression(high1low2,col2)
+            dfs.append("high1low2")
+            labels.append("High %s with Low %s"%(col1,col2))
 
         # overall_coeff = self._regression_result.get_coeff(col2)
         overall_coeff = self._regression_result.get_all_coeff()[col2]["coefficient"]
         elasticity_value = overall_coeff * Stats.mean(self._data_frame,col1)/Stats.mean(self._data_frame,col2)
         data_dict["overall_elasticity"] = elasticity_value
-        dfs = ["low1low2","low1high2","high1high2","high1low2"]
-        labels = ["Low %s with Low %s"%(col1,col2),
-                  "Low %s with High %s"%(col1,col2),
-                  "High %s with High %s"%(col1,col2),
-                  "High %s with Low %s"%(col1,col2)
-                  ]
         label_dict = dict(zip(dfs,labels))
 
         data_dict["measure_column"] = col2
@@ -262,48 +268,57 @@ class LinearRegressionNarrative:
             else:
                 data_dict["inelastic_count"] += 1
                 data_dict["inelastic_grp_list"].append((label_dict[val],elastic_data["elasticity_value"]))
+
         data_dict["freq"] = freq
         data_dict["contribution"] = contribution
-
         data_dict["charts"] = {"heading":"","data":[]}
 
-        sample_rows = min(100.0, float(low1low2.count()))
-        low1low2 = low1low2.sample(False, sample_rows/low1low2.count(), seed = 50)
-        sample_rows = min(100.0, float(low1high2.count()))
-        low1high2 = low1high2.sample(False, sample_rows/low1high2.count(), seed = 50)
-        sample_rows = min(100.0, float(high1high2.count()))
-        high1high2 = high1high2.sample(False, sample_rows/high1high2.count(), seed = 50)
-        sample_rows = min(100.0, float(high1low2.count()))
-        high1low2 = high1low2.sample(False, sample_rows/high1low2.count(), seed = 50)
+        col1_data = [col1]
+        col2_data = [col2]
+        color_data = ["Colors"]
+        if low1low2.count() > 0:
+            sample_rows = min(100.0, float(low1low2.count()))
+            low1low2 = low1low2.sample(False, sample_rows/low1low2.count(), seed = 50)
+            low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
+            low1low2_col2 = [x[0] for x in low1low2.select(col2).collect()]
+            low1low2_color = ["#DD2E1F"]*len(low1low2_col2)
+            col1_data += low1low2_col1
+            col2_data += low1low2_col2
+            color_data += low1low2_color
+        if low1high2.count() > 0:
+            sample_rows = min(100.0, float(low1high2.count()))
+            low1high2 = low1high2.sample(False, sample_rows/low1high2.count(), seed = 50)
+            low1high2_col1 = [x[0] for x in low1high2.select(col1).collect()]
+            low1high2_col2 = [x[0] for x in low1high2.select(col2).collect()]
+            low1high2_color = ["#7C5BBB"]*len(low1high2_col2)
+            col1_data += low1high2_col1
+            col2_data += low1high2_col2
+            color_data += low1high2_color
+        if high1high2.count() > 0:
+            sample_rows = min(100.0, float(high1high2.count()))
+            high1high2 = high1high2.sample(False, sample_rows/high1high2.count(), seed = 50)
+            high1high2_col1 = [x[0] for x in high1high2.select(col1).collect()]
+            high1high2_col2 = [x[0] for x in high1high2.select(col2).collect()]
+            high1high2_color = ["#00AEB3"]*len(high1high2_col2)
+            col1_data += high1high2_col1
+            col2_data += high1high2_col2
+            color_data += high1high2_color
+        if high1low2.count() > 0:
+            sample_rows = min(100.0, float(high1low2.count()))
+            high1low2 = high1low2.sample(False, sample_rows/high1low2.count(), seed = 50)
+            high1low2_col1 = [x[0] for x in high1low2.select(col1).collect()]
+            high1low2_col2 = [x[0] for x in high1low2.select(col2).collect()]
+            high1low2_color = ["#EC640C"]*len(high1low2_col2)
+            col1_data += high1low2_col1
+            col2_data += high1low2_col2
+            color_data += high1low2_color
 
-        low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
-        low1low2_col2 = [x[0] for x in low1low2.select(col2).collect()]
-        low1low2_color = ["#DD2E1F"]*len(low1low2_col2)
 
-        low1high2_col1 = [x[0] for x in low1high2.select(col1).collect()]
-        low1high2_col2 = [x[0] for x in low1high2.select(col2).collect()]
-        low1high2_color = ["#7C5BBB"]*len(low1high2_col2)
-
-        high1high2_col1 = [x[0] for x in high1high2.select(col1).collect()]
-        high1high2_col2 = [x[0] for x in high1high2.select(col2).collect()]
-        high1high2_color = ["#00AEB3"]*len(high1high2_col2)
-
-        high1low2_col1 = [x[0] for x in high1low2.select(col1).collect()]
-        high1low2_col2 = [x[0] for x in high1low2.select(col2).collect()]
-        high1low2_color = ["#EC640C"]*len(high1low2_col2)
-
-        col1_data = [col1]+low1low2_col1+low1high2_col1+high1high2_col1+high1low2_col1
-        col2_data = [col2]+low1low2_col2+low1high2_col2+high1high2_col2+high1low2_col2
-        color_data = ["Colors"]+low1low2_color+low1high2_color+high1high2_color+high1low2_color
-        # plot_labels = ["Labels"]+labels
-        plot_labels = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],labels))
+        plot_labels = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'][:len(labels)],labels))
         all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]),key=lambda x:x[1])
 
         scatterData = ScatterChartData()
-        # data_obj = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'],[[],[],[],[]]))
-        data_obj = dict(zip(labels,[[],[],[],[]]))
-
-        # legend_map = dict(zip(labels,['#DD2E1F','#7C5BBB','#00AEB3','#EC640C']))
+        data_obj = dict(zip(labels,[[] for i in range(len(labels))]))
         for val in all_data:
             col = val[2]
             obj = {col1:val[1],col2:val[0]}
@@ -316,10 +331,6 @@ class LinearRegressionNarrative:
         scatterChart.set_label_text({"x":col1,"y":col2})
         scatterChart.set_axes({"x":col1,"y":col2})
         scatterChart.set_chart_type("scatter")
-        # col2_data = [col2_data[0]]+[i[0] for i in all_data]
-        # col1_data = [col1_data[0]]+[i[1] for i in all_data]
-        # color_data = [color_data[0]]+[i[2] for i in all_data]
-        # data_dict["charts"]["data"] = [col2_data,col1_data,color_data,plot_labels]
         data_dict["charts"] = scatterChart
         return data_dict
 

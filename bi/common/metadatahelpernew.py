@@ -78,7 +78,7 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             measure_chart_data = self.get_binned_stat(df,column,col_stat)
-            measure_chart_data = sorted(measure_chart_data,key=lambda x:x["value"])
+            measure_chart_data = sorted(measure_chart_data,key=lambda x:x["value"],reverse=True)
             measure_chart_obj = ChartJson(NormalChartData(measure_chart_data).get_data(),chart_type="bar")
             measure_chart_obj.set_axes({"x":"name","y":"value"})
             measure_chart_obj.set_subchart(False)
@@ -125,7 +125,7 @@ class MetaDataHelper():
             col_stat["numberOfUniqueValues"] = len(levelCount.keys())
             levelCountWithoutNull = levelCount
             dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
-            dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"])
+            dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
             dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
             dimension_chart_obj.set_axes({"x":"name","y":"value"})
             dimension_chart_obj.set_subchart(False)

@@ -509,6 +509,7 @@ def get_level_cont_dict(level_cont):
     return out_data
 
 def calculate_bucket_data(grouped_data,dataLevel):
+    print "calculating bucket data"
     df = grouped_data
     min_streak = 2
     max_streak = 9
@@ -522,6 +523,8 @@ def calculate_bucket_data(grouped_data,dataLevel):
         df[str(val)] = df["value"].rolling(val).sum()/val
         temp_dict = {}
         temp_dict["id_max"] = df[str(val)].idxmax()
+        # print "YOYOYO"
+        # print "id max",temp_dict["id_max"]
         temp_dict["max_val"] = round(df.loc[temp_dict["id_max"],str(val)],2)
 
         if dataLevel == "day":
@@ -562,6 +565,7 @@ def get_bucket_data_dict(bucket_dict):
     out["bucket_contribution"] = round(bucket_dict[key]["contribution"],2)
     out["bucket_start"] = bucket_dict[key]["start_streak"]
     out["bucket_end"] = bucket_dict[key]["end_streak"]
+    print "end_streak",bucket_dict[key]["end_streak"]
     out["bucket_start_value"] = bucket_dict[key]["start_streak_value"]
     out["bucket_end_value"] = bucket_dict[key]["end_streak_value"]
     out["bucket_duration"] = str(bucket_dict[key]["start_streak"])+" to "+str(bucket_dict[key]["end_streak"])
