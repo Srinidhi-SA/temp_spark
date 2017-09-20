@@ -239,77 +239,78 @@ def main(configJson):
                 }
             }
             configJson = testConfigs["metaData"]
-            # configJson = {
-            #   "config": {
-            #     "COLUMN_SETTINGS": {
-            #       "polarity": [
-            #         "positive"
-            #       ],
-            #       "date_format": None,
-            #       "utf8_column_suggestions": [
-            #
-            #       ],
-            #       "date_columns": [
-            #         "Month"
-            #       ],
-            #       "consider_columns": [
-            #         "Deal_Type",
-            #         "Source",
-            #         "Platform",
-            #         "Buyer_Age",
-            #         "Buyer_Gender",
-            #         "Tenure_in_Days",
-            #         "Sales",
-            #         "Last_Transaction",
-            #         "Month"
-            #       ],
-            #       "consider_columns_type": [
-            #         "including"
-            #       ],
-            #       "analysis_type": [
-            #         "measure"
-            #       ],
-            #       "result_column": [
-            #         "Sales"
-            #       ],
-            #       "ignore_column_suggestion": [
-            #
-            #       ],
-            #       "dateTimeSuggestions": [
-            #         {
-            #           "Order Date": "%d-%m-%Y",
-            #           "Month": "%b-%y"
-            #         }
-            #       ]
-            #     },
-            #     "DATA_SOURCE": {
-            #       "datasource_type": "fileUpload",
-            #       "datasource_details": ""
-            #     },
-            #     "FILE_SETTINGS": {
-            #       "script_to_run": [
-            #         "Descriptive analysis",
-            #         "Measure vs. Dimension"
-            #       ],
-            #       "inputfile": [
-            #             "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
-            #       ]
-            #     }
-            #   },
-            #   "job_config" : {
-            #       "get_config" : {
-            #           "action" : "get_config",
-            #           "method" : "GET"
-            #       },
-            #       "job_name" : "mytest1",
-            #       "job_type" : "story",
-            #       "job_url" : "http://34.196.204.54:9012/api/job/master-test-config-2-dzszvtem4l-rigfoorc5a/",
-            #       "set_result" : {
-            #           "action" : "result",
-            #           "method" : "PUT"
-            #       }
-            #   }
-            # }
+            configJson = {
+        "config" : {
+            "COLUMN_SETTINGS" : {
+                "analysis_type" : [
+                    "measure"
+                ],
+                "consider_columns" : [
+                    "Education",
+                    "Top Organization",
+                    "Agent Name",
+                    "Call Type",
+                    "State",
+                    "Region",
+                    "Agent Experience",
+                    "Agent Rating",
+                    "Agent Age",
+                    "Top Plan Provider",
+                    "Call Volume",
+                    "First call resolution",
+                    "Average Call duration (in Minutes)",
+                    "Call date"
+                ],
+                "consider_columns_type" : [
+                    "including"
+                ],
+                "dateTimeSuggestions" : [
+                    {}
+                ],
+                "date_columns" : [
+                    "Call date"
+                ],
+                "date_format" : None,
+                "ignore_column_suggestion" : [],
+                "polarity" : [
+                    "positive"
+                ],
+                "result_column" : [
+                    "Call Volume"
+                ],
+                "utf8_column_suggestions" : []
+            },
+            "DATA_SOURCE" : {
+                "datasource_details" : "",
+                "datasource_type" : "fileUpload"
+            },
+            "FILE_SETTINGS" : {
+                "inputfile" : [
+                    "file:///home/gulshan/marlabs/datasets/HealthCareCallcentre-V10.csv"
+                ],
+                "script_to_run" : [
+                    "Descriptive analysis",
+                    "Measure vs. Dimension",
+                    "Measure vs. Measure",
+                    "Predictive modeling",
+                    "Trend"
+                ]
+            }
+        },
+        "job_config" : {
+            "get_config" : {
+                "action" : "get_config",
+                "method" : "GET"
+            },
+            "job_name" : "Call Volume",
+            "job_type" : "story",
+            "job_url" : "http://34.196.204.54:9012/api/job/master-call-volume-eglpkksml9-scrf63sa22/",
+            "set_result" : {
+                "action" : "result",
+                "method" : "PUT"
+            }
+        }
+    }
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
