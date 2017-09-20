@@ -81,7 +81,7 @@ def main(configJson):
                                 "Marketing_Cost",
                                 "Shipping_Cost",
                                 "Last_Transaction",
-                                "new_date"
+                                "Order Date",
                             ],
                             "consider_columns_type" : [
                                 "including"
@@ -93,7 +93,7 @@ def main(configJson):
                                 }
                             ],
                             "date_columns" : [
-                                "new_date"
+                                "Order Date"
                             ],
                             "date_format" : None,
                             "ignore_column_suggestion" : [],
@@ -117,9 +117,9 @@ def main(configJson):
                                 "Descriptive analysis",
                                 "Measure vs. Dimension",
                                 "Dimension vs. Dimension",
-                                "Measure vs. Measure",
-                                "Predictive modeling",
-                                "Trend"
+                                # "Measure vs. Measure",
+                                # "Predictive modeling",
+                                # "Trend"
                             ]
                         }
                     },
@@ -238,7 +238,78 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["story"]
+            configJson = testConfigs["metaData"]
+            # configJson = {
+            #   "config": {
+            #     "COLUMN_SETTINGS": {
+            #       "polarity": [
+            #         "positive"
+            #       ],
+            #       "date_format": None,
+            #       "utf8_column_suggestions": [
+            #
+            #       ],
+            #       "date_columns": [
+            #         "Month"
+            #       ],
+            #       "consider_columns": [
+            #         "Deal_Type",
+            #         "Source",
+            #         "Platform",
+            #         "Buyer_Age",
+            #         "Buyer_Gender",
+            #         "Tenure_in_Days",
+            #         "Sales",
+            #         "Last_Transaction",
+            #         "Month"
+            #       ],
+            #       "consider_columns_type": [
+            #         "including"
+            #       ],
+            #       "analysis_type": [
+            #         "measure"
+            #       ],
+            #       "result_column": [
+            #         "Sales"
+            #       ],
+            #       "ignore_column_suggestion": [
+            #
+            #       ],
+            #       "dateTimeSuggestions": [
+            #         {
+            #           "Order Date": "%d-%m-%Y",
+            #           "Month": "%b-%y"
+            #         }
+            #       ]
+            #     },
+            #     "DATA_SOURCE": {
+            #       "datasource_type": "fileUpload",
+            #       "datasource_details": ""
+            #     },
+            #     "FILE_SETTINGS": {
+            #       "script_to_run": [
+            #         "Descriptive analysis",
+            #         "Measure vs. Dimension"
+            #       ],
+            #       "inputfile": [
+            #             "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
+            #       ]
+            #     }
+            #   },
+            #   "job_config" : {
+            #       "get_config" : {
+            #           "action" : "get_config",
+            #           "method" : "GET"
+            #       },
+            #       "job_name" : "mytest1",
+            #       "job_type" : "story",
+            #       "job_url" : "http://34.196.204.54:9012/api/job/master-test-config-2-dzszvtem4l-rigfoorc5a/",
+            #       "set_result" : {
+            #           "action" : "result",
+            #           "method" : "PUT"
+            #       }
+            #   }
+            # }
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
@@ -270,10 +341,9 @@ def main(configJson):
 
     if "fileUpload" ==  datasource_type:
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-        # Dropping blank rows
-        df = df.dropna(how='all', thresh=None, subset=None)
-        print df.columns
 
+    # Dropping blank rows
+    df = df.dropna(how='all', thresh=None, subset=None)
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time
     script_start_time = time.time()
@@ -316,19 +386,19 @@ def main(configJson):
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
 
-            if ('Descriptive analysis' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
-                    freq_obj.Run()
-                    print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-                except Exception as e:
-                    print "Frequency Analysis Failed "
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-            else:
-                print "Descriptive analysis Not in Scripts to run "
+            # if ('Descriptive analysis' in scripts_to_run):
+            try:
+                fs = time.time()
+                freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                freq_obj.Run()
+                print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+            except Exception as e:
+                print "Frequency Analysis Failed "
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
+            # else:
+            #     print "Descriptive analysis Not in Scripts to run "
 
             if ('Dimension vs. Dimension' in scripts_to_run):
                 try:
@@ -415,40 +485,40 @@ def main(configJson):
             df = df_helper.get_data_frame()
             story_narrative.set_name("Measure analysis")
             LOGGER.append("scripts_to_run:: {}".format(",".join(scripts_to_run)))
-            if ('Descriptive analysis' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                    LOGGER.append("DescriptiveStats Analysis  Starting")
-                    descr_stats_obj.Run()
-                    LOGGER.append("DescriptiveStats Analysis Done in {} seconds.".format(time.time() - fs ))
-                    print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    print 'Descriptive Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+            # if ('Descriptive analysis' in scripts_to_run):
+            try:
+                fs = time.time()
+                descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                LOGGER.append("DescriptiveStats Analysis  Starting")
+                descr_stats_obj.Run()
+                LOGGER.append("DescriptiveStats Analysis Done in {} seconds.".format(time.time() - fs ))
+                print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+            except Exception as e:
+                LOGGER.append("got exception {}".format(e))
+                print 'Descriptive Failed'
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
 
-                try:
-                    fs = time.time()
-                    histogram_obj = HistogramsScript(df, df_helper, dataframe_context, spark)
-                    histogram_obj.Run()
-                    print "Histogram Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-                try:
-                    fs = time.time()
-                    d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
-                    d_histogram_obj.Run()
-                    print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print 'Density Histogram Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+            try:
+                fs = time.time()
+                histogram_obj = HistogramsScript(df, df_helper, dataframe_context, spark)
+                histogram_obj.Run()
+                print "Histogram Analysis Done in ", time.time() - fs, " seconds."
+            except Exception as e:
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
+            try:
+                fs = time.time()
+                d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
+                d_histogram_obj.Run()
+                print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
+            except Exception as e:
+                print 'Density Histogram Failed'
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
 
             if df_helper.ignorecolumns != None:
                 df_helper.drop_ignore_columns()

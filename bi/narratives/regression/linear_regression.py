@@ -195,6 +195,7 @@ class LinearRegressionNarrative:
 
     def generate_card4_data(self,col1,col2):
         #col1 result_column col2 is measure column
+        fs = time.time()
         data_dict = {}
         significant_dimensions = self._dataframe_helper.get_significant_dimension()
         if significant_dimensions != {}:
@@ -220,6 +221,8 @@ class LinearRegressionNarrative:
         print "low1high2:", low1high2.count()
         print "high1high2:", high1high2.count()
         print "high1low2:", high1low2.count()
+        print "quadrant dataframe creation Done in ", time.time() - fs, " seconds."
+
         dfs = []
         labels = []
         if low1low2.count() > 0:

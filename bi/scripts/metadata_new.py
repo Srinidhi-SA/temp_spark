@@ -1,5 +1,6 @@
 import json
 import random
+import time
 import uuid
 import datetime as dt
 
@@ -17,6 +18,9 @@ from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
 
 class MetaDataScript:
     def __init__(self, data_frame, spark):
+        self._binned_stat_flag = True
+        self._level_count_flag = True
+        fs = time.time()
         self._data_frame = data_frame
         self._spark = spark
         # self._file_name = file_name
@@ -38,7 +42,7 @@ class MetaDataScript:
                                         zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
                                         zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
                                      )
-        # print self._column_type_dict
+        print "schema trendering takes",time.time()-fs
 
     def run(self):
         metaData = []
@@ -93,9 +97,15 @@ class MetaDataScript:
                 sampleData = sampleData.toPandas().values.tolist()
 
         helper_instance = MetaDataHelper(self._data_frame)
-        measureColumnStat,measureCharts = helper_instance.calculate_measure_column_stats(self._data_frame,self._numeric_columns)
-        dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns)
+        fs1 = time.time()
+        print "Count of Numeric columns",len(self._numeric_columns)
+        measureColumnStat,measureCharts = helper_instance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binned_stat_flag=self._binned_stat_flag)
+        print "time for measure stats",time.time()-fs1,"seconds"
+        fs2 = time.time()
+        dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns,level_count_flag=self._level_count_flag)
+        print "time for dimension stats",time.time()-fs2,"seconds"
 
+        fs = time.time()
         ignoreColumnSuggestions = []
         ignoreColumnReason = []
         utf8ColumnSuggestion = []
@@ -125,7 +135,10 @@ class MetaDataScript:
                     data.set_ignore_suggestion_message(ignoreReason)
 
             elif self._column_type_dict[column] == "dimension":
-                utf8Suggestion = helper_instance.get_utf8_suggestions(dimensionColumnStat[column])
+                if self._level_count_flag:
+                    utf8Suggestion = helper_instance.get_utf8_suggestions(dimensionColumnStat[column])
+                else:
+                    utf8Suggestion = False
                 # dateColumn = helper_instance.get_datetime_suggestions(self._data_frame,column)
                 uniqueVals = self._data_frame.select(column).distinct().na.drop().collect()
                 if len(uniqueVals) > 0:
@@ -148,7 +161,6 @@ class MetaDataScript:
                     data.set_ignore_suggestion_message(ignoreReason)
 
             columnData.append(data)
-
         for dateColumn in dateTimeSuggestions.keys():
             if dateColumn in ignoreColumnSuggestions:
                 ignoreColIdx = ignoreColumnSuggestions.index(dateColumn)
@@ -157,6 +169,7 @@ class MetaDataScript:
         for utfCol in utf8ColumnSuggestion:
             ignoreColumnSuggestions.append(utfCol)
             ignoreColumnReason.append("utf8 values present")
+        print "column suggestion in",time.time()-fs,"seconds"
         # ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys()))+utf8ColumnSuggestion
         # print zip(ignoreColumnSuggestions,ignoreColumnReason)
         metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
@@ -164,8 +177,6 @@ class MetaDataScript:
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
         metaData.append(MetaData(name="dateTimeSuggestions",value = dateTimeSuggestions,display=False))
         dfMetaData = DfMetaData()
-        print ignoreColumnSuggestions
-        print dateTimeSuggestions
         dfMetaData.set_column_data(columnData)
         dfMetaData.set_header(headers)
         dfMetaData.set_meta_data(metaData)
