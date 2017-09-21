@@ -157,13 +157,11 @@ class TrendNarrative:
         level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
 
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
-
+        print "bucket dict calculation started"
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict)
 
         dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
-        print "#"*20
-        print dim_data
         if level_cont_dict != None:
             if bucket_data != None:
                 level_cont_dict.update(bucket_data)

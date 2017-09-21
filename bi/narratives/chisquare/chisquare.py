@@ -384,7 +384,7 @@ class ChiSquareAnalysis:
             card2Data.append(HtmlData(data=card2Heading))
             card2Data.append(C3ChartData(data=card2ChartJson))
             card2Data += output2
-            card2BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+            card2BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
             card2Data.append(HtmlData(data=card2BubbleData))
 
             self._card2.set_card_data(card2Data)
@@ -405,7 +405,7 @@ class ChiSquareAnalysis:
             card4Data.append(HtmlData(data=card4Heading))
             card4Data.append(C3ChartData(data=card4ChartJson))
             card4Data += output4
-            card4BubbleData = "<div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'>><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+            card4BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
             card4Data.append(HtmlData(data=card4BubbleData))
 
             self._card4.set_card_data(card4Data)

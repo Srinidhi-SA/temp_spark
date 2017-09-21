@@ -112,18 +112,6 @@ class OneWayAnovaNarratives:
         return json_chart
 
 
-    # def _get_card3_scatterchart(self,share,growth,label,category_legend):
-    #     groups = {'Leaders Club':[],
-    #                 'Playing Safe':[],
-    #                 'Opportunity Bay':[],
-    #                 'Red Alert':[]}
-    #     for s,g,l,c in zip(share,growth,label,category_legend):
-    #         groups[c].append({'share':s,'growth':g,'level':l})
-    #     return ChartJson(data=groups, axes={'x':'share','y':'growth','y2':'level'},
-    #                     label_text={'x':'Share','y':'Growth','y2':self._dimension_column_capitalized},
-    #                     legend=dict(zip(groups.keys(),groups.keys())),
-    #                     chart_type="scatter")
-
     def _get_card3_scatterchart(self,data_c3):
         return ChartJson(data = NormalChartData(data_c3).get_data(), chart_type='scatter_tooltip')
 
@@ -492,7 +480,6 @@ class OneWayAnovaNarratives:
         label = [i[2] for i in all_data]
         category_legend = [i[3] for i in all_data]
 
-        # lines += [C3ChartData(self._get_card3_scatterchart(share,growth,label,category_legend))]
         modified_category_legend = []
         for val in category_legend:
             if val == "Playing Safe":
@@ -506,8 +493,9 @@ class OneWayAnovaNarratives:
                     ['Share'] + share,
                     [self._dimension_column] + label,
                     ['Category'] + category_legend]
-
-        lines += [C3ChartData(self._get_card3_scatterchart(data_c3))]
+        decisionMatrixChartJson = ChartJson(data = NormalChartData(data_c3).get_data(), chart_type='scatter_tooltip')
+        decisionMatrixChartJson.set_legend({"legendWillNotBeUsed":"legendWillNotBeUsed"})
+        lines += [C3ChartData(decisionMatrixChartJson)]
 
         chart_data = chart(data=data, labels={})
         chart_data.add_data_c3(data_c3)

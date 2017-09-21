@@ -30,10 +30,11 @@ class TimeSeriesNarrative:
         self._dateFormatDetected = False
         self._requestedDateFormat = None
         self._existingDateFormat = None
-        self._date_suggestion_columns = df_context.get_date_columns()
-        # self._date_suggestion_columns = None
+        self._selected_date_columns = df_context.get_date_columns()
+        # self._selected_date_columns = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._td_columns = df_helper.get_timestamp_columns()
+        self._string_columns = df_helper.get_string_columns()
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
         self._trend_subsection = self._result_setter.get_trend_section_name()
@@ -41,16 +42,15 @@ class TimeSeriesNarrative:
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._blockSplitter = "|~NEWBLOCK~|"
         self._trend_on_td_column = False
+        self._number_of_dimensions_to_consider = 10
 
-
-        if self._date_suggestion_columns != None and len(self._date_suggestion_columns) > 0:
-            suggested_date_column = self._date_suggestion_columns[0]
+        if self._selected_date_columns != None and len(self._selected_date_columns) > 0:
+            suggested_date_column = self._selected_date_columns[0]
             existingDateFormat = None
             if suggested_date_column not in self._td_columns:
-                dateColumnFormatDict =  df_helper.get_datetime_format(suggested_date_column)
+                dateColumnFormatDict =  df_context.get_datetime_suggestions()[0]
                 if suggested_date_column in dateColumnFormatDict:
                     existingDateFormat = dateColumnFormatDict[suggested_date_column]
-                    # print existingDateFormat
                     self._dateFormatDetected = True
                 if df_context.get_requested_date_format() != None:
                     requestedDateFormat = df_context.get_requested_date_format()[0]
@@ -95,7 +95,7 @@ class TimeSeriesNarrative:
             self._existingDateFormat = existingDateFormat
             self._date_column_suggested = suggested_date_column
         if self._existingDateFormat:
-            if self._date_suggestion_columns != None and self._trend_on_td_column == False:
+            if self._selected_date_columns != None and self._trend_on_td_column == False:
                 date_format = self._existingDateFormat
                 string_to_date = udf(lambda x: datetime.strptime(x,date_format), DateType())
                 date_to_month_year = udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
@@ -110,8 +110,6 @@ class TimeSeriesNarrative:
                 self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
             id_max = self._data_frame.select(max("_id_")).first()[0]
             first_date = self._data_frame.select("suggestedDate").first()[0]
-            print id_max
-            print self._data_frame.where(col("_id_") == id_max).show()
             #####  This is a Temporary fix
             try:
                 print "TRY BLOCK STARTED"
@@ -121,7 +119,6 @@ class TimeSeriesNarrative:
                 pandas_df = self._data_frame.select(["_id_","suggestedDate"]).toPandas()
                 pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
                 last_date = pandas_df["suggestedDate"].iloc[-1]
-
             if last_date == None:
                 print "IF Last date none:-"
                 pandas_df = self._data_frame.toPandas()
@@ -152,15 +149,15 @@ class TimeSeriesNarrative:
                     self._durationString = yr+" years"
 
             if self._td_columns != None:
-                if self._date_suggestion_columns == None:
-                    self._date_suggestion_columns = self._td_columns
+                if self._selected_date_columns == None:
+                    self._selected_date_columns = self._td_columns
                 else:
-                    self._date_suggestion_columns += self._td_columns
+                    self._selected_date_columns += self._td_columns
             print self._durationString
             print self._dataLevel
             print self._existingDateFormat
         if self._trend_subsection=="regression":
-            if self._date_suggestion_columns != None:
+            if self._selected_date_columns != None:
                 if self._dateFormatDetected:
                     trend_subsection_data = self._result_setter.get_trend_section_data()
                     measure_column = trend_subsection_data["measure_column"]
@@ -215,7 +212,7 @@ class TimeSeriesNarrative:
                                    "card2":{},
                                    "card3":{}
                                 }
-                if self._date_suggestion_columns != None:
+                if self._selected_date_columns != None:
 
                     if self._dateFormatDetected:
 
@@ -240,18 +237,25 @@ class TimeSeriesNarrative:
                         pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
                         pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
 
-                        significant_dimensions = df_helper.get_significant_dimension()
+                        significant_dimensions = []
+                        significant_dimension_dict = df_helper.get_significant_dimension()
+                        if significant_dimension_dict != {} and significant_dimension_dict != None:
+                            significant_dimension_tuple = tuple(significant_dimension_dict.items())
+                            significant_dimension_tuple = sorted(significant_dimension_tuple,key=lambda x: x[1],reverse=True)
+                            significant_dimensions = [x[0] for x in significant_dimension_tuple[:self._number_of_dimensions_to_consider]]
+                        else:
+                            significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
+                        print "significant_dimensions",significant_dimensions
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
-
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         # # update reference time with max value
                         reference_time = dataDict["reference_time"]
                         dataDict["duration"] = self._duration
                         dataDict["dataLevel"] = self._dataLevel
                         dataDict["durationString"] = self._durationString
-                        dataDict["significant_dimensions"] = significant_dimensions.keys()
-                        if len(significant_dimensions.keys()) > 0:
-                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
+                        dataDict["significant_dimensions"] = significant_dimensions
+                        if len(significant_dimensions) > 0:
+                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
@@ -268,7 +272,7 @@ class TimeSeriesNarrative:
 
                         bubbledata = dataDict["bubbleData"]
                         print bubbledata
-                        card1BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div>".format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
+                        card1BubbleData = "<div class='col-md-6 col-xs-12 xs-p-20'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div><div class='col-md-6 col-xs-12 xs-p-20'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div>".format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
                         # print card1BubbleData
 
                         trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
@@ -379,7 +383,7 @@ class TimeSeriesNarrative:
             self.narratives = {
                                "card0":{}
                                }
-            if self._date_suggestion_columns != None:
+            if self._selected_date_columns != None:
                 if self._dateFormatDetected:
                     result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
                     level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
@@ -443,14 +447,21 @@ class TimeSeriesNarrative:
                         dataDict["durationString"] = self._durationString
                         # grouped_data.to_csv("/home/gulshan/marlabs/datasets/grouped_data"+str(idx))
                         # print json.dumps(dataDict,indent=2)
-                        significant_dimensions = df_helper.get_chisquare_significant_dimension()
+                        significant_dimensions = []
+                        significant_dimension_dict = df_helper.get_chisquare_significant_dimension()
+                        if significant_dimension_dict != {} and significant_dimension_dict != None:
+                            significant_dimension_tuple = tuple(significant_dimension_dict.items())
+                            significant_dimension_tuple = sorted(significant_dimension_tuple,key=lambda x: x[1],reverse=True)
+                            significant_dimensions = [x[0] for x in significant_dimension_tuple[:self._number_of_dimensions_to_consider]]
+                        else:
+                            significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
+                        print "significant_dimensions",significant_dimensions
                         reference_time = dataDict["reference_time"]
-                        dataDict["significant_dimensions"] = significant_dimensions.keys()
-                        if len(significant_dimensions.keys()) > 0:
-                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions.keys(),self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
+                        dataDict["significant_dimensions"] = significant_dimensions
+                        if len(significant_dimensions) > 0:
+                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions,self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
                             if xtraData != None:
                                 dataDict.update(xtraData)
-
                         dimensionCount = trend_narrative_obj.generate_dimension_extra_narrative(grouped_data,dataDict,self._dataLevel)
                         if dimensionCount != None:
                             dataDict.update(dimensionCount)
@@ -464,7 +475,7 @@ class TimeSeriesNarrative:
                         blocks = NarrativesUtils.block_splitter(trendStory,self._blockSplitter)
 
                         if idx != 0:
-                            cardData1 += blocks[1:]
+                            cardData1 += blocks[2:]
                         else:
                             cardData1 += blocks
 
@@ -514,14 +525,14 @@ class TimeSeriesNarrative:
                     self._result_setter.set_trend_node(trendStoryNode)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
-                    print "Trend Analysis for Measure Failed"
+                    print "Trend Analysis for Dimension Failed"
                     print "#"*20+"Trend Analysis Error"+"#"*20
                     if self._date_column_suggested:
                         print "No date format for the date column %s was detected." %(self._date_column_suggested)
                     print "#"*60
             else:
                 self._result_setter.update_executive_summary_data({"trend_present":False})
-                print "Trend Analysis for Measure Failed"
+                print "Trend Analysis for Dimension Failed"
                 print "#"*20+"Trend Analysis Error"+"#"*20
                 print "No date column present for Trend Analysis."
                 print "#"*60

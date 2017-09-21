@@ -12,7 +12,7 @@ mAdvisor has analyzed the dataset and it contains<b>
   There are <b>{{ignorecolumns|length | intcomma}} variables</b> that have been excluded from the analysis due to their relative insignificance.
 {%endif%}
 
-Please click next to find the insights from our
+Please click on View Summary to find the insights from our
 {% if m|length == 1 %}
   distribution
 {%endif%}
