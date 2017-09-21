@@ -70,16 +70,16 @@ def main(configJson):
                             ],
                             "consider_columns" : [
                                 "Education",
-                                "Top Organisation",
+                                "Top Organization",
                                 "Agent Name",
                                 "Call Type",
                                 "State",
                                 "Region",
                                 "Agent Experience",
-                                "Rating",
+                                "Agent Rating",
                                 "Agent Age",
                                 "Top Plan Provider",
-                                "Number of Calls",
+                                "Call Volume",
                                 "First call resolution",
                                 "Average Call duration (in Minutes)",
                                 "Call date"
@@ -99,23 +99,25 @@ def main(configJson):
                                 "positive"
                             ],
                             "result_column" : [
-                                "Number of Calls"
+                                "Call Volume"
                             ],
                             "utf8_column_suggestions" : []
                         },
-                        "DATA_SOURCE" : {
-                            "datasource_details" : "",
-                            "datasource_type" : "fileUpload"
-                        },
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/Callcentre4.csv"
+                                "file:///home/gulshan/marlabs/datasets/HealthCareCallcentre-V10.csv"
                             ],
                             "script_to_run" : [
                                 "Descriptive analysis",
                                 "Measure vs. Dimension",
+                                "Measure vs. Measure",
+                                "Predictive modeling",
                                 "Trend"
                             ]
+                        },
+                        "DATA_SOURCE" : {
+                            "datasource_details" : "",
+                            "datasource_type" : "fileUpload"
                         }
                     },
                     "job_config" : {
@@ -123,9 +125,8 @@ def main(configJson):
                             "action" : "get_config",
                             "method" : "GET"
                         },
-                        "job_name" : "264-test1",
                         "job_type" : "story",
-                        "job_url" : "http://34.196.204.54:9012/api/job/master-264-test1-kszkof19i0-4gmp5vo73k/",
+                        "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-call-vol-analysis-atynelkqny-vufup3w9p1/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
