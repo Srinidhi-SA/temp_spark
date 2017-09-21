@@ -108,9 +108,10 @@ class RegressionNarrative:
             measureCard1 = NormalCard()
             measureCard1.set_card_name("{}: Impact on {}".format(measure_column,self.result_column))
             measureCard1Data = []
-            measureCard2 = NormalCard()
-            measureCard2.set_card_name("Key Areas where it Matters")
-            measureCard2Data = []
+            if self._run_dimension_level_regression:
+                measureCard2 = NormalCard()
+                measureCard2.set_card_name("Key Areas where it Matters")
+                measureCard2Data = []
 
             measure_column_cards = {}
             card0 = {}
@@ -138,6 +139,7 @@ class RegressionNarrative:
             measureCard1Data += measureCard1para
 
             if self._run_dimension_level_regression:
+                print "running narratives for key area dict"
                 self._dim_regression = self.run_regression_for_dimension_levels()
                 card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
                 card2data.update({"blockSplitter":self._blockSplitter})
@@ -202,8 +204,9 @@ class RegressionNarrative:
                 self._result_setter.update_executive_summary_data(card4data)
             count += 1
             measureCard1.set_card_data(measureCard1Data)
-            # measureCard2.set_card_data(measureCard2Data)
-            # sigMeasureNode.add_cards([measureCard1,measureCard2])
+            if self._run_dimension_level_regression:
+                measureCard2.set_card_data(measureCard2Data)
+                sigMeasureNode.add_cards([measureCard1,measureCard2])
             sigMeasureNode.add_cards([measureCard1])
             self._regressionNode.add_a_node(sigMeasureNode)
         # self._result_setter.set_trend_section_completion_status(True)

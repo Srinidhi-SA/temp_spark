@@ -69,31 +69,29 @@ def main(configJson):
                                 "measure"
                             ],
                             "consider_columns" : [
-                                "Deal_Type",
-                                "Price_Range",
-                                "Discount_Range",
-                                "Source",
-                                "Platform",
-                                "Buyer_Age",
-                                "Buyer_Gender",
-                                "Tenure_in_Days",
-                                "Sales",
-                                "Marketing_Cost",
-                                "Shipping_Cost",
-                                "Last_Transaction",
-                                "Order Date",
+                                "Education",
+                                "Top Organization",
+                                "Agent Name",
+                                "Call Type",
+                                "State",
+                                "Region",
+                                "Agent Experience",
+                                "Agent Rating",
+                                "Agent Age",
+                                "Top Plan Provider",
+                                "Call Volume",
+                                "First call resolution",
+                                "Average Call duration (in Minutes)",
+                                "Call date"
                             ],
                             "consider_columns_type" : [
                                 "including"
                             ],
                             "dateTimeSuggestions" : [
-                                {
-                                    "Month" : "%b-%y",
-                                    "Order Date" : "%d-%m-%Y"
-                                }
+                                {}
                             ],
                             "date_columns" : [
-                                "Order Date"
+                                "Call date"
                             ],
                             "date_format" : None,
                             "ignore_column_suggestion" : [],
@@ -101,26 +99,25 @@ def main(configJson):
                                 "positive"
                             ],
                             "result_column" : [
-                                "Sales"
+                                "Call Volume"
                             ],
                             "utf8_column_suggestions" : []
                         },
-                        "DATA_SOURCE" : {
-                            "datasource_details" : "",
-                            "datasource_type" : "fileUpload"
-                        },
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
+                                "file:///home/gulshan/marlabs/datasets/HealthCareCallcentre-V10.csv"
                             ],
                             "script_to_run" : [
                                 "Descriptive analysis",
                                 "Measure vs. Dimension",
-                                "Dimension vs. Dimension",
-                                # "Measure vs. Measure",
-                                # "Predictive modeling",
-                                # "Trend"
+                                "Measure vs. Measure",
+                                "Predictive modeling",
+                                "Trend"
                             ]
+                        },
+                        "DATA_SOURCE" : {
+                            "datasource_details" : "",
+                            "datasource_type" : "fileUpload"
                         }
                     },
                     "job_config" : {
@@ -128,9 +125,9 @@ def main(configJson):
                             "action" : "get_config",
                             "method" : "GET"
                         },
-                        "job_name" : "mytest1",
                         "job_type" : "story",
-                        "job_url" : "http://34.196.204.54:9012/api/job/master-mytest1-wmuhnaxmri-e93euwew9p/",
+                        "job_name" : "Call Vol Analysis",
+                        "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-call-vol-analysis-atynelkqny-vufup3w9p1/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -238,79 +235,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["metaData"]
-            configJson = {
-        "config" : {
-            "COLUMN_SETTINGS" : {
-                "analysis_type" : [
-                    "measure"
-                ],
-                "consider_columns" : [
-                    "Education",
-                    "Top Organization",
-                    "Agent Name",
-                    "Call Type",
-                    "State",
-                    "Region",
-                    "Agent Experience",
-                    "Agent Rating",
-                    "Agent Age",
-                    "Top Plan Provider",
-                    "Call Volume",
-                    "First call resolution",
-                    "Average Call duration (in Minutes)",
-                    "Call date"
-                ],
-                "consider_columns_type" : [
-                    "including"
-                ],
-                "dateTimeSuggestions" : [
-                    {}
-                ],
-                "date_columns" : [
-                    "Call date"
-                ],
-                "date_format" : None,
-                "ignore_column_suggestion" : [],
-                "polarity" : [
-                    "positive"
-                ],
-                "result_column" : [
-                    "Call Volume"
-                ],
-                "utf8_column_suggestions" : []
-            },
-            "DATA_SOURCE" : {
-                "datasource_details" : "",
-                "datasource_type" : "fileUpload"
-            },
-            "FILE_SETTINGS" : {
-                "inputfile" : [
-                    "file:///home/gulshan/marlabs/datasets/HealthCareCallcentre-V10.csv"
-                ],
-                "script_to_run" : [
-                    "Descriptive analysis",
-                    "Measure vs. Dimension",
-                    "Measure vs. Measure",
-                    "Predictive modeling",
-                    "Trend"
-                ]
-            }
-        },
-        "job_config" : {
-            "get_config" : {
-                "action" : "get_config",
-                "method" : "GET"
-            },
-            "job_name" : "Call Volume",
-            "job_type" : "story",
-            "job_url" : "http://34.196.204.54:9012/api/job/master-call-volume-eglpkksml9-scrf63sa22/",
-            "set_result" : {
-                "action" : "result",
-                "method" : "PUT"
-            }
-        }
-    }
+            configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
