@@ -37,7 +37,7 @@ from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScri
 from bi.scripts.metadata_new import MetaDataScript
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
-
+from bi.transformations import DataFrameFilterer
 import traceback
 from parser import configparser
 from pyspark.sql.functions import col, udf
@@ -118,7 +118,57 @@ def main(configJson):
                         "DATA_SOURCE" : {
                             "datasource_details" : "",
                             "datasource_type" : "fileUpload"
-                        }
+                        },
+                        "FILTER_SETTING":{
+            "measureColumnFilters" : [
+              {
+                "colname" : "col1",
+                "upperBound" : 34,
+                "lowerBound" : 3,
+                "filterType" : "valueRange"
+              },
+              {
+                "colname" : "col2",
+                "values" : [1,2,3,4],
+                "filterType" : "valueIn"
+              },
+              {
+                "colname" : "col2",
+                "values" : [1,2,3,4],
+                "filterType" : "valueNotIn"
+              }
+            ],
+            "dimensionColumnFilters" : [
+              {
+                "colname" : "col2",
+                "values" : [1,2,3,4],
+                "filterType" : "valueIn"
+              },
+              {
+                "colname" : "col2",
+                "values" : [1,2,3,4],
+                "filterType" : "valueNotIn"
+              }
+            ],
+            "timeDimensionColumnFilters" : [
+              {
+                "colname" : "col1",
+                "upperBound" : 34,
+                "lowerBound" : 3,
+                "filterType" : "valueRange"
+              },
+              {
+                "colname" : "col2",
+                "values" : [1,2,3,4],
+                "filterType" : "valueIn"
+              },
+              {
+                "colname" : "col2",
+                "values" : [1,2,3,4],
+                "filterType" : "valueNotIn"
+              }
+            ]
+        }
                     },
                     "job_config" : {
                         "get_config" : {
@@ -147,7 +197,7 @@ def main(configJson):
                         "DATE_SETTINGS" : {},
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/Desktop/Sample1.csv"
+                                "file:///home/gulshan/marlabs/datasets/test_only_measures.csv"
                             ]
                         }
                     },
@@ -265,9 +315,14 @@ def main(configJson):
     if "fileUpload" ==  datasource_type:
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
 
+    # Dropping blank rows
+    df = df.dropna(how='all', thresh=None, subset=None)
+
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time
     script_start_time = time.time()
+
+
 
     if jobType == "metaData":
         print "starting Metadata"
@@ -289,6 +344,20 @@ def main(configJson):
         df = df_helper.get_data_frame()
         measure_columns = df_helper.get_numeric_columns()
         dimension_columns = df_helper.get_string_columns()
+
+    if jobType == "subSetting":
+        print "starting subsetting"
+        subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
+        filtered_df = subsetting_class.applyFilter()
+        print filtered_df.show(4)
+        print "starting Metadata for the Filtered Dataframe"
+        meta_data_class = MetaDataScript(filtered_df,spark)
+        meta_data_object = meta_data_class.run()
+        metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
+        print metaDataJson
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
+        return response
+
 
     LOGGER.append("jobtype: {}".format(jobType))
 

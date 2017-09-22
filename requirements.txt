@@ -12,3 +12,4 @@ pattern==2.6
 pyenchant==1.6.8
 python-dateutil==2.6.0
 humanize==0.5.1
+pyhocon==0.3.36

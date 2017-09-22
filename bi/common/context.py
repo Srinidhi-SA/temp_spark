@@ -30,6 +30,9 @@ class ContextSetter:
         self.algorithmslug = []
         self.levelcount_dict = {}
         self.dateTimeSuggestions = []
+        self.dimension_filter = {}
+        self.measure_filter = {}
+        self.time_dimension_filter = {}
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
@@ -40,89 +43,102 @@ class ContextSetter:
     def set_params(self):
         self.FILE_SETTINGS = self._config_obj.get_file_settings()
         self.COLUMN_SETTINGS = self._config_obj.get_column_settings()
+        self.FILTER_SETTINGS = self._config_obj.get_filter_settings()
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
-        # return {"file":self.FILE_SETTINGS,"column":self.COLUMN_SETTINGS}
+        filterSettingKeys = self.FILTER_SETTINGS.keys()
 
-        if self.FILE_SETTINGS['inputfile']:
-            self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
+        if len(fileSettingKeys) > 0:
+            if self.FILE_SETTINGS['inputfile']:
+                self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
+            if "narratives_file" in fileSettingKeys:
+                self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
+            if "result_file" in fileSettingKeys:
+                self.RESULT_FILE =self.FILE_SETTINGS['result_file'][0]
+            if "monitor_api" in fileSettingKeys:
+                self.MONITOR_API =self.FILE_SETTINGS['monitor_api'][0]
+            if "train_test_split" in fileSettingKeys:
+                self.train_test_split =self.FILE_SETTINGS['train_test_split'][0]
+            if "modelpath" in fileSettingKeys:
+                self.MODEL_PATH =self.FILE_SETTINGS['modelpath'][0]
+            if "scorepath" in fileSettingKeys:
+                self.SCORE_PATH =self.FILE_SETTINGS['scorepath'][0]
+            if "foldername" in fileSettingKeys:
+                self.FOLDERS =self.FILE_SETTINGS['foldername'][0]
+            if "modelname" in fileSettingKeys:
+                self.MODELS =self.FILE_SETTINGS['modelname'][0]
+            if "modelfeatures" in fileSettingKeys:
+                modelfeaturedata = self.FILE_SETTINGS['modelfeatures']
+                if modelfeaturedata != None and len(modelfeaturedata) > 0:
+                    modelfeaturedata = modelfeaturedata[0]
+                    if self._column_separator in modelfeaturedata:
+                        self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
 
-        if "narratives_file" in fileSettingKeys:
-            self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
-        if "result_file" in fileSettingKeys:
-            self.RESULT_FILE =self.FILE_SETTINGS['result_file'][0]
-        if "monitor_api" in fileSettingKeys:
-            self.MONITOR_API =self.FILE_SETTINGS['monitor_api'][0]
-        if "train_test_split" in fileSettingKeys:
-            self.train_test_split =self.FILE_SETTINGS['train_test_split'][0]
-        if "modelpath" in fileSettingKeys:
-            self.MODEL_PATH =self.FILE_SETTINGS['modelpath'][0]
-        if "scorepath" in fileSettingKeys:
-            self.SCORE_PATH =self.FILE_SETTINGS['scorepath'][0]
-        if "foldername" in fileSettingKeys:
-            self.FOLDERS =self.FILE_SETTINGS['foldername'][0]
-        if "modelname" in fileSettingKeys:
-            self.MODELS =self.FILE_SETTINGS['modelname'][0]
-        if "modelfeatures" in fileSettingKeys:
-            modelfeaturedata = self.FILE_SETTINGS['modelfeatures']
-            if modelfeaturedata != None and len(modelfeaturedata) > 0:
-                modelfeaturedata = modelfeaturedata[0]
-                if self._column_separator in modelfeaturedata:
-                    self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
-
-        if "levelcounts" in fileSettingKeys:
-            levelcountdata = self.FILE_SETTINGS['levelcounts']
-            if levelcountdata != None and len(levelcountdata) > 0:
-                levelcountdata = levelcountdata[0]
-                if self._column_separator in levelcountdata:
-                    self.levelcounts =self.FILE_SETTINGS['levelcounts'][0].split(self._column_separator)
-                    self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
-                else:
-                    self.levelcount_dict = {}
-        if "script_to_run" in fileSettingKeys:
-            self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
-        else:
-            self.scripts_to_run = []
-        if "algorithmslug" in fileSettingKeys:
-            self.algorithmslug = self.FILE_SETTINGS.get('algorithmslug')
-        if "app_id" in columnSettingKeys:
-            if self.COLUMN_SETTINGS['app_id'] != None and len(self.COLUMN_SETTINGS['app_id']) > 0:
-                self.appid = str(self.COLUMN_SETTINGS['app_id'][0])
+            if "levelcounts" in fileSettingKeys:
+                levelcountdata = self.FILE_SETTINGS['levelcounts']
+                if levelcountdata != None and len(levelcountdata) > 0:
+                    levelcountdata = levelcountdata[0]
+                    if self._column_separator in levelcountdata:
+                        self.levelcounts =self.FILE_SETTINGS['levelcounts'][0].split(self._column_separator)
+                        self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
+                    else:
+                        self.levelcount_dict = {}
+            if "script_to_run" in fileSettingKeys:
+                self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
             else:
-                self.appid = None
-        if "result_column" in columnSettingKeys:
-            self.resultcolumn = "{}".format(self.COLUMN_SETTINGS['result_column'][0].strip())
-        if "analysis_type" in columnSettingKeys:
-            self.analysistype = self.COLUMN_SETTINGS['analysis_type'][0].strip()
-        if "ignore_column_suggestion" in columnSettingKeys:
-            self.ignorecolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('ignore_column_suggestion')]
-        if "utf8_columns" in columnSettingKeys:
-            self.utf8columns = self.COLUMN_SETTINGS.get('utf8_columns')
-        if self.ignorecolumns!=None:
-            self.ignorecolumns = ["{}".format(col) for col in list(set(self.ignorecolumns)-set([self.resultcolumn]))]
-        if "consider_columns" in columnSettingKeys:
-            self.considercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('consider_columns')]
-        if "score_consider_columns" in columnSettingKeys:
-            self.scoreconsidercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('score_consider_columns')]
-        if "consider_columns_type" in columnSettingKeys:
-            self.considercolumnstype = self.COLUMN_SETTINGS.get('consider_columns_type')
+                self.scripts_to_run = []
+            if "algorithmslug" in fileSettingKeys:
+                self.algorithmslug = self.FILE_SETTINGS.get('algorithmslug')
 
-        if self.considercolumnstype == ["including"]:
-            if self.resultcolumn != None and self.considercolumns != None:
-                self.considercolumns.append(self.resultcolumn)
-                self.considercolumns = list(set(self.considercolumns))
+        if len(columnSettingKeys) > 0:
+            if "app_id" in columnSettingKeys:
+                if self.COLUMN_SETTINGS['app_id'] != None and len(self.COLUMN_SETTINGS['app_id']) > 0:
+                    self.appid = str(self.COLUMN_SETTINGS['app_id'][0])
+                else:
+                    self.appid = None
+            if "result_column" in columnSettingKeys:
+                self.resultcolumn = "{}".format(self.COLUMN_SETTINGS['result_column'][0].strip())
+            if "analysis_type" in columnSettingKeys:
+                self.analysistype = self.COLUMN_SETTINGS['analysis_type'][0].strip()
+            if "ignore_column_suggestion" in columnSettingKeys:
+                self.ignorecolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('ignore_column_suggestion')]
+            if "utf8_columns" in columnSettingKeys:
+                self.utf8columns = self.COLUMN_SETTINGS.get('utf8_columns')
+            if self.ignorecolumns!=None:
+                self.ignorecolumns = ["{}".format(col) for col in list(set(self.ignorecolumns)-set([self.resultcolumn]))]
+            if "consider_columns" in columnSettingKeys:
+                self.considercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('consider_columns')]
+            if "score_consider_columns" in columnSettingKeys:
+                self.scoreconsidercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('score_consider_columns')]
+            if "consider_columns_type" in columnSettingKeys:
+                self.considercolumnstype = self.COLUMN_SETTINGS.get('consider_columns_type')
+
+            if self.considercolumnstype == ["including"]:
+                if self.resultcolumn != None and self.considercolumns != None:
+                    self.considercolumns.append(self.resultcolumn)
+                    self.considercolumns = list(set(self.considercolumns))
 
 
-        if "date_columns" in columnSettingKeys:
-            self.date_columns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('date_columns')]
-        if "date_format" in columnSettingKeys:
-            self.date_format = self.COLUMN_SETTINGS.get('date_format')
-        if "measure_suggestions" in columnSettingKeys:
-            self.measure_suggestions = self.COLUMN_SETTINGS.get('measure_suggestions')
-        if "score_consider_columns_type" in columnSettingKeys:
-            self.scoreconsidercolumnstype = self.COLUMN_SETTINGS.get('score_consider_columns_type')
-        if "dateTimeSuggestions" in columnSettingKeys:
-            self.dateTimeSuggestions = self.COLUMN_SETTINGS.get('dateTimeSuggestions')
+            if "date_columns" in columnSettingKeys:
+                self.date_columns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('date_columns')]
+            if "date_format" in columnSettingKeys:
+                self.date_format = self.COLUMN_SETTINGS.get('date_format')
+            if "measure_suggestions" in columnSettingKeys:
+                self.measure_suggestions = self.COLUMN_SETTINGS.get('measure_suggestions')
+            if "score_consider_columns_type" in columnSettingKeys:
+                self.scoreconsidercolumnstype = self.COLUMN_SETTINGS.get('score_consider_columns_type')
+            if "dateTimeSuggestions" in columnSettingKeys:
+                self.dateTimeSuggestions = self.COLUMN_SETTINGS.get('dateTimeSuggestions')
+
+        if len(filterSettingKeys) > 0:
+            if "dimensionColumnFilters" in filterSettingKeys:
+                self.dimension_filter = self.FILTER_SETTINGS.get("dimensionColumnFilters")
+            if "measureColumnFilters" in filterSettingKeys:
+                self.measure_filter = self.FILTER_SETTINGS.get("measureColumnFilters")
+            if "timeDimensionColumnFilters" in filterSettingKeys:
+                self.time_dimension_filter = self.FILTER_SETTINGS.get("timeDimensionColumnFilters")
+
+
 
         # self.dimension_filter = self._config_obj.get_dimension_filters()
         # self.measure_filter = self._config_obj.get_measure_filters()
@@ -184,6 +200,9 @@ class ContextSetter:
 
     def get_measure_filters(self):
         return self.measure_filter
+
+    def get_time_dimension_filters(self):
+        return self.time_dimension_filter
 
     def get_date_settings(self):
         return self.string_to_date_columns
