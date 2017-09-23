@@ -281,9 +281,71 @@ def main(configJson):
                             "action": "result"
                           },
                     }
-                }
+                },
+                "subSetting":{
+        "config" : {
+            "COLUMN_SETTINGS" : {
+                "analysis_type" : [
+                    "metaData"
+                ]
+            },
+            "DATA_SOURCE" : {
+                "datasource_details" : "",
+                "datasource_type" : "fileUpload"
+            },
+            "DATE_SETTINGS" : {},
+            "FILE_SETTINGS" : {
+                "inputfile" : [
+                    "file:///home/gulshan/marlabs/datasets/adult.csv"
+                ],
+                "outputfile" : [
+                    "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/test-subsetting-2dxco9ec50/myTestFile_bwsVTG8.csv"
+                ]
+            },
+            "FILTER_SETTINGS" : {
+                "dimensionColumnFilters" : [
+                    {
+                        "colname" : "workclass",
+                        "filterType" : "valueIn",
+                        "values" : [
+                            " Self-emp-not-inc",
+                            " Private"
+                        ]
+                    }
+                ],
+                "measureColumnFilters" : [
+                    {
+                        "colname" : "education-num",
+                        "filterType" : "valueRange",
+                        "lowerBound" : 10,
+                        "upperBound" : 14
+                    },
+                    {
+                        "colname" : "fnlwgt",
+                        "filterType" : "valueRange",
+                        "lowerBound" : 89814,
+                        "upperBound" : 273717
+                    }
+                ],
+                "timeDimensionColumnFilters" : []
             }
-            configJson = testConfigs["story"]
+        },
+        "job_config" : {
+            "get_config" : {
+                "action" : "get_config",
+                "method" : "GET"
+            },
+            "job_name" : "test subsetting",
+            "job_type" : "subSetting",
+            "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
+            "set_result" : {
+                "action" : "result",
+                "method" : "PUT"
+            }
+        }
+    }
+            }
+            configJson = testConfigs["subSetting"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
@@ -349,13 +411,12 @@ def main(configJson):
         print "starting subsetting"
         subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
         filtered_df = subsetting_class.applyFilter()
-        print filtered_df.show(4)
         print "starting Metadata for the Filtered Dataframe"
         meta_data_class = MetaDataScript(filtered_df,spark)
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-        print metaDataJson
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
+        print metaDataJson
         return response
 
 

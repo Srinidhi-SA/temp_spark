@@ -24,11 +24,11 @@ class DataFrameFilterer:
         if len(dimension_filters) > 0:
             for filter_dict in dimension_filters:
                 if filter_dict["filterType"] == "valueIn":
-                    self._data_frame = self.values_in(filter_dict["colname"],filter_dict["values"])
+                    self.values_in(filter_dict["colname"],filter_dict["values"])
         if len(measure_filters) > 0:
             for filter_dict in measure_filters:
                 if filter_dict["filterType"] == "valueRange":
-                    self._data_frame = self.values_between(filter_dict["colname"],\
+                    self.values_between(filter_dict["colname"],\
                                                            filter_dict["lowerBound"],\
                                                            filter_dict["upperBound"],\
                                                            greater_than_equal=1,\
