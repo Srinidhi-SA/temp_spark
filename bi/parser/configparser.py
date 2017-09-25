@@ -8,6 +8,7 @@ class ParserConfig():
         self.DimensionFilter = {}
         self.MeasureFilter = {}
         self.DateFilter = {}
+        self.FilterSettings = {}
 
     def get_dimension_filters(self):
         return self.DimensionFilter
@@ -59,6 +60,8 @@ class ParserConfig():
         self.FilterSettings = self.ConfigSectionMap('FILTER_SETTINGS')
 
     def set_json_params(self):
+        print type(self.config)
+        print self.config
         if 'FILE_SETTINGS' in self.config:
             self.FileSettings = self.config.get('FILE_SETTINGS')
         if 'COLUMN_SETTINGS' in self.config:

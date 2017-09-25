@@ -147,7 +147,7 @@ def main(configJson):
                         "DATE_SETTINGS" : {},
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/test_only_measures.csv"
+                                "file:///home/gulshan/marlabs/datasets/subsetting_test.csv"
                             ]
                         }
                     },
@@ -295,7 +295,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["subSetting"]
+            configJson = testConfigs["metaData"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
