@@ -15,6 +15,7 @@ class ContextSetter:
         self.CSV_FILE = ""
         self.RESULT_FILE = ""
         self.NARRATIVES_FILE = ""
+        self.OUTPUT_FILEPATH = ""
         self.resultcolumn = ""
         self.MONITOR_API = ""
         self.analysistype = ""
@@ -49,8 +50,10 @@ class ContextSetter:
         filterSettingKeys = self.FILTER_SETTINGS.keys()
 
         if len(fileSettingKeys) > 0:
-            if self.FILE_SETTINGS['inputfile']:
+            if "inputfile" in fileSettingKeys:
                 self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
+            if "outputfile" in fileSettingKeys:
+                self.OUTPUT_FILEPATH =self.FILE_SETTINGS['outputfile'][0]
             if "narratives_file" in fileSettingKeys:
                 self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
             if "result_file" in fileSettingKeys:
@@ -236,3 +239,6 @@ class ContextSetter:
 
     def get_datetime_suggestions(self):
         return self.dateTimeSuggestions
+        
+    def get_output_filepath(self):
+        return self.OUTPUT_FILEPATH

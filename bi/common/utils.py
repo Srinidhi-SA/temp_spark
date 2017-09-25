@@ -224,7 +224,7 @@ def temp_convertor(x):
         return x.__dict__
     except Exception as e:
         return "{}".format(x)
-     
+
 def convert_python_object_to_json(object):
     return json.dumps(object, default=temp_convertor)
 

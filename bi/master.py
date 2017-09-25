@@ -118,57 +118,7 @@ def main(configJson):
                         "DATA_SOURCE" : {
                             "datasource_details" : "",
                             "datasource_type" : "fileUpload"
-                        },
-                        "FILTER_SETTING":{
-            "measureColumnFilters" : [
-              {
-                "colname" : "col1",
-                "upperBound" : 34,
-                "lowerBound" : 3,
-                "filterType" : "valueRange"
-              },
-              {
-                "colname" : "col2",
-                "values" : [1,2,3,4],
-                "filterType" : "valueIn"
-              },
-              {
-                "colname" : "col2",
-                "values" : [1,2,3,4],
-                "filterType" : "valueNotIn"
-              }
-            ],
-            "dimensionColumnFilters" : [
-              {
-                "colname" : "col2",
-                "values" : [1,2,3,4],
-                "filterType" : "valueIn"
-              },
-              {
-                "colname" : "col2",
-                "values" : [1,2,3,4],
-                "filterType" : "valueNotIn"
-              }
-            ],
-            "timeDimensionColumnFilters" : [
-              {
-                "colname" : "col1",
-                "upperBound" : 34,
-                "lowerBound" : 3,
-                "filterType" : "valueRange"
-              },
-              {
-                "colname" : "col2",
-                "values" : [1,2,3,4],
-                "filterType" : "valueIn"
-              },
-              {
-                "colname" : "col2",
-                "values" : [1,2,3,4],
-                "filterType" : "valueNotIn"
-              }
-            ]
-        }
+                        }
                     },
                     "job_config" : {
                         "get_config" : {
@@ -283,67 +233,67 @@ def main(configJson):
                     }
                 },
                 "subSetting":{
-        "config" : {
-            "COLUMN_SETTINGS" : {
-                "analysis_type" : [
-                    "metaData"
-                ]
-            },
-            "DATA_SOURCE" : {
-                "datasource_details" : "",
-                "datasource_type" : "fileUpload"
-            },
-            "DATE_SETTINGS" : {},
-            "FILE_SETTINGS" : {
-                "inputfile" : [
-                    "file:///home/gulshan/marlabs/datasets/adult.csv"
-                ],
-                "outputfile" : [
-                    "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/test-subsetting-2dxco9ec50/myTestFile_bwsVTG8.csv"
-                ]
-            },
-            "FILTER_SETTINGS" : {
-                "dimensionColumnFilters" : [
-                    {
-                        "colname" : "workclass",
-                        "filterType" : "valueIn",
-                        "values" : [
-                            " Self-emp-not-inc",
-                            " Private"
-                        ]
-                    }
-                ],
-                "measureColumnFilters" : [
-                    {
-                        "colname" : "education-num",
-                        "filterType" : "valueRange",
-                        "lowerBound" : 10,
-                        "upperBound" : 14
+                    "config" : {
+                        "COLUMN_SETTINGS" : {
+                            "analysis_type" : [
+                                "metaData"
+                            ]
+                        },
+                        "DATA_SOURCE" : {
+                            "datasource_details" : "",
+                            "datasource_type" : "fileUpload"
+                        },
+                        "DATE_SETTINGS" : {},
+                        "FILE_SETTINGS" : {
+                            "inputfile" : [
+                                "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
+                            ],
+                            "outputfile" : [
+                                # "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/test-subsetting-2dxco9ec50/myTestFile_bwsVTG8.csv"
+                                "file:///home/gulshan/marlabs/csvout/data"
+                            ]
+                        },
+                        "FILTER_SETTINGS" : {
+                            "dimensionColumnFilters" : [
+                                {
+                                    "colname" : "Platform",
+                                    "filterType" : "valueIn",
+                                    "values" : [
+                                        "Desktop"
+                                    ]
+                                }
+                            ],
+                            "measureColumnFilters" : [
+                                # {
+                                #     "colname" : "Tenure_in_Days",
+                                #     "filterType" : "valueRange",
+                                #     "lowerBound" : 10,
+                                #     "upperBound" : 600
+                                # },
+                                # {
+                                #     "colname" : "Sales",
+                                #     "filterType" : "valueRange",
+                                #     "lowerBound" : 100,
+                                #     "upperBound" : 900
+                                # }
+                            ],
+                            "timeDimensionColumnFilters" : []
+                        }
                     },
-                    {
-                        "colname" : "fnlwgt",
-                        "filterType" : "valueRange",
-                        "lowerBound" : 89814,
-                        "upperBound" : 273717
+                    "job_config" : {
+                        "get_config" : {
+                            "action" : "get_config",
+                            "method" : "GET"
+                        },
+                        "job_name" : "test subsetting",
+                        "job_type" : "subSetting",
+                        "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
+                        "set_result" : {
+                            "action" : "result",
+                            "method" : "PUT"
+                        }
                     }
-                ],
-                "timeDimensionColumnFilters" : []
-            }
-        },
-        "job_config" : {
-            "get_config" : {
-                "action" : "get_config",
-                "method" : "GET"
-            },
-            "job_name" : "test subsetting",
-            "job_type" : "subSetting",
-            "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
-            "set_result" : {
-                "action" : "result",
-                "method" : "PUT"
-            }
-        }
-    }
+                }
             }
             configJson = testConfigs["subSetting"]
 
@@ -411,6 +361,12 @@ def main(configJson):
         print "starting subsetting"
         subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
         filtered_df = subsetting_class.applyFilter()
+        output_filepath = dataframe_context.get_output_filepath()
+        print output_filepath
+        # Write the subsetted file
+        # coalesce is memory consuming on the master node and is a bit slow
+        # filtered_df.coalesce(1).write.csv(output_filepath)
+        filtered_df.write.csv(output_filepath,mode="overwrite",header=True)
         print "starting Metadata for the Filtered Dataframe"
         meta_data_class = MetaDataScript(filtered_df,spark)
         meta_data_object = meta_data_class.run()
