@@ -245,5 +245,29 @@ def save_result_json(url,jsonData):
     res = requests.put(url=url,data=jsonData)
     return res
 
+def create_progress_message_object(sectionDict,name,timeTaken,completionStatus):
+    progressMessage = {
+        "name" : name,
+        "displayName" : sectionDict[name]["displayName"],
+        "timeTaken" : timeTaken,
+        "completionStatus" : completionStatus
+    }
+    return progressMessage
+
+# def create_progress_message_object(sectionDict,stageName,messageType,stageCompletionPercentage,globalCompletionPercentage):
+#     progressMessage = {
+#         "stageName" : stageName,
+#         "messageType" : messageType
+#         "shortExplanation" : sectionDict[name]["displayName"],
+#         "stageCompletionTimestamp" : time.time(),
+#         "globalCompletionPercentage" : globalCompletionStatus,
+#         "stageCompletionPercentage" : stageCompletionPercentage
+#     }
+#     return progressMessage
+
+def save_progress_message(url,jsonData):
+    res = requests.put(url=url,data=json.dumps(jsonData))
+    return res
+
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

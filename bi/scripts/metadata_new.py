@@ -17,13 +17,38 @@ from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
 
 
 class MetaDataScript:
-    def __init__(self, data_frame, spark):
+    def __init__(self, data_frame, spark, dataframe_context):
+        self._dataframe_context = dataframe_context
+        self._completionStatus = 0
+        self._start_time = time.time()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptSnippets = {
+            "schema":{
+                "displayName":"Loaded the data and Schema is Run",
+                "weight":10
+                },
+            "sampling":{
+                "displayName":"Sampling the dataframe",
+                "weight":10
+                },
+            "measurestats":{
+                "displayName":"calculating stats for measure columns",
+                "weight":25
+                },
+            "dimensionstats":{
+                "displayName":"calculating stats for dimension columns",
+                "weight":25
+                },
+            "suggestions":{
+                "displayName":"Ignore and Date Suggestions",
+                "weight":30
+                },
+            }
+
         self._binned_stat_flag = True
         self._level_count_flag = True
-        fs = time.time()
         self._data_frame = data_frame
         self._spark = spark
-        # self._file_name = file_name
         self.total_columns = len([field.name for field in self._data_frame.schema.fields])
         self._total_rows = self._data_frame.count()
         self._max_levels = min(200, round(self._total_rows**0.5))
@@ -42,9 +67,18 @@ class MetaDataScript:
                                         zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
                                         zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
                                      )
-        print "schema trendering takes",time.time()-fs
+
+        time_taken_schema = time.time()-self._start_time
+        self._completionStatus += self._scriptSnippets["schema"]["weight"]
+        print "schema trendering takes",time_taken_schema
+        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
+                                        "schema",\
+                                        time_taken_schema,\
+                                        self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
     def run(self):
+        self._start_time = time.time()
         metaData = []
         metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
         metaData.append(MetaData(name="noOfColumns",value=self.total_columns,display=True,displayName="Columns"))
@@ -95,17 +129,39 @@ class MetaDataScript:
                 sampleData = sampleData.values.tolist()
             else:
                 sampleData = sampleData.toPandas().values.tolist()
+        time_taken_sampling = time.time()-self._start_time
+        self._completionStatus += self._scriptSnippets["sampling"]["weight"]
+        print "sampling takes",time_taken_sampling
+        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
+                                        "sampling",\
+                                        time_taken_sampling,\
+                                        self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
         helper_instance = MetaDataHelper(self._data_frame)
-        fs1 = time.time()
+        self._start_time = time.time()
         print "Count of Numeric columns",len(self._numeric_columns)
         measureColumnStat,measureCharts = helper_instance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binned_stat_flag=self._binned_stat_flag)
-        print "time for measure stats",time.time()-fs1,"seconds"
-        fs2 = time.time()
-        dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns,level_count_flag=self._level_count_flag)
-        print "time for dimension stats",time.time()-fs2,"seconds"
+        time_taken_measurestats = time.time()-self._start_time
+        self._completionStatus += self._scriptSnippets["measurestats"]["weight"]
+        print "measure stats takes",time_taken_measurestats
+        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
+                                        "measurestats",\
+                                        time_taken_measurestats,\
+                                        self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
-        fs = time.time()
+        self._start_time = time.time()
+        dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns,level_count_flag=self._level_count_flag)
+        time_taken_dimensionstats = time.time()-self._start_time
+        self._completionStatus += self._scriptSnippets["dimensionstats"]["weight"]
+        print "dimension stats takes",time_taken_dimensionstats
+        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
+                                        "dimensionstats",\
+                                        time_taken_dimensionstats,\
+                                        self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._start_time = time.time()
         ignoreColumnSuggestions = []
         ignoreColumnReason = []
         utf8ColumnSuggestion = []
@@ -169,9 +225,7 @@ class MetaDataScript:
         for utfCol in utf8ColumnSuggestion:
             ignoreColumnSuggestions.append(utfCol)
             ignoreColumnReason.append("utf8 values present")
-        print "column suggestion in",time.time()-fs,"seconds"
-        # ignoreColumnSuggestions = list(set(ignoreColumnSuggestions)-set(dateTimeSuggestions.keys()))+utf8ColumnSuggestion
-        # print zip(ignoreColumnSuggestions,ignoreColumnReason)
+
         metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
         metaData.append(MetaData(name="ignoreColumnReason",value = ignoreColumnReason,display=False))
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
@@ -181,5 +235,14 @@ class MetaDataScript:
         dfMetaData.set_header(headers)
         dfMetaData.set_meta_data(metaData)
         dfMetaData.set_sample_data(sampleData)
+
+        time_taken_suggestions = time.time()-self._start_time
+        self._completionStatus += self._scriptSnippets["suggestions"]["weight"]
+        print "suggestions take",time_taken_suggestions
+        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
+                                        "suggestions",\
+                                        time_taken_suggestions,\
+                                        self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
         return dfMetaData

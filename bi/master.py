@@ -158,6 +158,7 @@ def main(configJson):
                         },
                         "job_name" : "Sample1.csv",
                         "job_type" : "metaData",
+                        "message_url" : "http://34.196.204.54:9012/api/messages/Dataset_trend_gulshancsv-h85lh79ybd_123/",
                         "job_url" : "http://34.196.204.54:9012/api/job/metadata-sample1csv-e2za8z9u26-o1f6wicswc/",
                         "set_result" : {
                             "action" : "result",
@@ -246,7 +247,7 @@ def main(configJson):
                         "DATE_SETTINGS" : {},
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
+                                "file:///home/gulshan/marlabs/datasets/subsetting_test.csv"
                             ],
                             "outputfile" : [
                                 # "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/test-subsetting-2dxco9ec50/myTestFile_bwsVTG8.csv"
@@ -256,12 +257,19 @@ def main(configJson):
                         "FILTER_SETTINGS" : {
                             "dimensionColumnFilters" : [
                                 {
-                                    "colname" : "Platform",
+                                    "colname" : "SEX",
                                     "filterType" : "valueIn",
                                     "values" : [
-                                        "Desktop"
+                                        "Male"
                                     ]
-                                }
+                                },
+                                {
+                                    "colname" : "MARRIAGE",
+                                    "filterType" : "valueIn",
+                                    "values" : [
+                                        "Others"
+                                    ]
+                                },
                             ],
                             "measureColumnFilters" : [
                                 # {
@@ -287,7 +295,9 @@ def main(configJson):
                         },
                         "job_name" : "test subsetting",
                         "job_type" : "subSetting",
-                        "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
+                        "job_url" : "",
+                        "message_url" : "",
+                        # "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -310,6 +320,8 @@ def main(configJson):
     dataframe_context = ContextSetter(configJsonObj)
     dataframe_context.set_params()
     jobType = job_config["job_type"]
+    messageUrl = configJson["job_config"]["message_url"]
+    dataframe_context.set_message_url(messageUrl)
     ########################## Load the dataframe ##############################
     df = None
     datasource_type = config.get("DATA_SOURCE").get("datasource_type")
@@ -338,7 +350,7 @@ def main(configJson):
 
     if jobType == "metaData":
         print "starting Metadata"
-        meta_data_class = MetaDataScript(df,spark)
+        meta_data_class = MetaDataScript(df,spark,dataframe_context)
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
         print metaDataJson
@@ -361,18 +373,21 @@ def main(configJson):
         print "starting subsetting"
         subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
         filtered_df = subsetting_class.applyFilter()
-        output_filepath = dataframe_context.get_output_filepath()
-        print output_filepath
-        # Write the subsetted file
-        # coalesce is memory consuming on the master node and is a bit slow
-        # filtered_df.coalesce(1).write.csv(output_filepath)
-        filtered_df.write.csv(output_filepath,mode="overwrite",header=True)
-        print "starting Metadata for the Filtered Dataframe"
-        meta_data_class = MetaDataScript(filtered_df,spark)
-        meta_data_object = meta_data_class.run()
-        metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
-        print metaDataJson
+        if filtered_df.count() > 0:
+            output_filepath = dataframe_context.get_output_filepath()
+            print output_filepath
+            # Write the subsetted file
+            # coalesce is memory consuming on the master node and is a bit slow
+            # filtered_df.coalesce(1).write.csv(output_filepath)
+            filtered_df.write.csv(output_filepath,mode="overwrite",header=True)
+            print "starting Metadata for the Filtered Dataframe"
+            meta_data_class = MetaDataScript(filtered_df,spark)
+            meta_data_object = meta_data_class.run()
+            metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
+            print metaDataJson
+            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
+        else:
+            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
         return response
 
 

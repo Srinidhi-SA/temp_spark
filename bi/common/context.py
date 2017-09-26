@@ -34,6 +34,7 @@ class ContextSetter:
         self.dimension_filter = {}
         self.measure_filter = {}
         self.time_dimension_filter = {}
+        self.message_url = ""
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
@@ -239,6 +240,12 @@ class ContextSetter:
 
     def get_datetime_suggestions(self):
         return self.dateTimeSuggestions
-        
+
     def get_output_filepath(self):
         return self.OUTPUT_FILEPATH
+
+    def set_message_url(self,data):
+        self.message_url = data
+
+    def get_message_url(self):
+        return self.message_url
