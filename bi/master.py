@@ -66,53 +66,56 @@ def main(configJson):
                     "config" : {
                         "COLUMN_SETTINGS" : {
                             "analysis_type" : [
-                                "measure"
+                                "dimension"
                             ],
                             "consider_columns" : [
-                                "Education",
-                                "Top Organization",
-                                "Agent Name",
-                                "Call Type",
-                                "State",
-                                "Region",
-                                "Agent Experience",
-                                "Agent Rating",
-                                "Agent Age",
-                                "Top Plan Provider",
-                                "Call Volume",
-                                "First call resolution",
-                                "Average Call duration (in Minutes)",
-                                "Call date"
+                                "Brand",
+                                "Sales Office Description",
+                                "Sales Group Description",
+                                "Material Description",
+                                "Sold Qty in Costing Unit",
+                                "Price = Value/Sold Qty",
+                                "Sales Office Code",
+                                "Units",
+                                "Sales"
                             ],
                             "consider_columns_type" : [
                                 "including"
                             ],
                             "dateTimeSuggestions" : [
-                                {}
+                                {"Date" : "%m/%d/%Y"}
                             ],
                             "date_columns" : [
-                                "Call date"
+                                "Month"
                             ],
                             "date_format" : None,
-                            "ignore_column_suggestion" : [],
+                            "ignore_column_suggestion" : [
+                                "Distribution Channel",
+                                "New Char Z"
+                            ],
                             "polarity" : [
                                 "positive"
                             ],
                             "result_column" : [
-                                "Call Volume"
+                                "Brand"
                             ],
                             "utf8_column_suggestions" : []
                         },
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/HealthCareCallcentre-V10.csv"
+                                "file:///home/gulshan/marlabs/datasets/BIDCO.csv"
                             ],
                             "script_to_run" : [
                                 "Descriptive analysis",
                                 "Measure vs. Dimension",
+                                # "Dimension vs. Dimension",
                                 "Measure vs. Measure",
                                 "Predictive modeling",
-                                "Trend"
+                                "Trend",
+                                "Descriptive analysis",
+                                "Trend",
+                                "Predictive modeling",
+                                # "Dimension vs. Dimension"
                             ]
                         },
                         "DATA_SOURCE" : {
@@ -125,8 +128,10 @@ def main(configJson):
                             "action" : "get_config",
                             "method" : "GET"
                         },
+                        "job_name" : "qsswwq",
                         "job_type" : "story",
-                        "job_url" : "http://madvisor.marlabsai.com:80/api/job/insight-call-vol-analysis-atynelkqny-vufup3w9p1/",
+                        "job_url" : "http://34.196.204.54:9012/api/job/master-qsswwq-7uwrs5avz0-3hckxy5xo2/",
+                        "message_url" : "http://34.196.204.54:9012/api/messages/Insight_qsswwq-7uwrs5avz0_123/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -305,7 +310,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["subSetting"]
+            configJson = testConfigs["story"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
@@ -362,6 +367,7 @@ def main(configJson):
         scripts_to_run = dataframe_context.get_scripts_to_run()
         if scripts_to_run==None:
             scripts_to_run = []
+        print scripts_to_run
         appid = dataframe_context.get_app_id()
         df_helper = DataFrameHelper(df, dataframe_context)
         df_helper.set_params()
@@ -406,7 +412,6 @@ def main(configJson):
             LOGGER.append("STARTING DIMENSION ANALYSIS ...")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
-
             try:
                 fs = time.time()
                 freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)

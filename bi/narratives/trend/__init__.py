@@ -404,8 +404,8 @@ class TimeSeriesNarrative:
                                         "initialization",\
                                         "info",\
                                         self._dimensionTrendScriptStages["initialization"]["summary"],\
-                                        self._completionStatus,\
-                                        self._completionStatus)
+                                        self._dimensionCompletionStatus,\
+                                        self._dimensionCompletionStatus)
             CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
 
@@ -558,8 +558,8 @@ class TimeSeriesNarrative:
                                                 "summarygeneration",\
                                                 "info",\
                                                 self._dimensionTrendScriptStages["summarygeneration"]["summary"],\
-                                                self._completionStatus,\
-                                                self._completionStatus)
+                                                self._dimensionCompletionStatus,\
+                                                self._dimensionCompletionStatus)
                     CommonUtils.save_progress_message(self._messageURL,progressMessage)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})

@@ -19,6 +19,7 @@ class ChiSquareNarratives:
         self._result_setter = result_setter
         self._blockSplitter = "|~NEWBLOCK~|"
         self._data_frame = data_frame
+        self._dataframe_context = df_context
         self._df_helper = df_helper
         self._measure_columns = df_helper.get_numeric_columns()
         self._df_chisquare = df_chisquare_result

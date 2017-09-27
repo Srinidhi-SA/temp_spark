@@ -67,6 +67,7 @@ class FreqDimensions:
                                     "completion",\
                                     "info",\
                                     self._scriptStages["completion"]["summary"],\
+                                    self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         return freq_dimension_result
