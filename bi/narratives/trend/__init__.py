@@ -384,7 +384,7 @@ class TimeSeriesNarrative:
                 print "overall Trend not Started YET"
 
         elif self._analysistype == "dimension":
-            self._dimensionCompletionStatus = 5
+            self._dimensionCompletionStatus = 50
             self._dimensionTrendScriptStages = {
                 "initialization":{
                     "summary":"Initialized the Frequency Narratives",
@@ -399,6 +399,17 @@ class TimeSeriesNarrative:
                     "weight":0
                     },
                 }
+            self._dimensionCompletionStatus += self._dimensionTrendScriptStages["initialization"]["weight"]
+            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                        "initialization",\
+                                        "info",\
+                                        self._dimensionTrendScriptStages["initialization"]["summary"],\
+                                        self._completionStatus,\
+                                        self._completionStatus)
+            CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
+
+
             self.narratives = {
                                "card0":{}
                                }
@@ -542,6 +553,14 @@ class TimeSeriesNarrative:
                     trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
                     self._story_narrative.add_a_node(trendStoryNode)
                     self._result_setter.set_trend_node(trendStoryNode)
+                    self._dimensionCompletionStatus += self._dimensionTrendScriptStages["summarygeneration"]["weight"]
+                    progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                                "summarygeneration",\
+                                                "info",\
+                                                self._dimensionTrendScriptStages["summarygeneration"]["summary"],\
+                                                self._completionStatus,\
+                                                self._completionStatus)
+                    CommonUtils.save_progress_message(self._messageURL,progressMessage)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Dimension Failed"
@@ -549,12 +568,17 @@ class TimeSeriesNarrative:
                     if self._date_column_suggested:
                         print "No date format for the date column %s was detected." %(self._date_column_suggested)
                     print "#"*60
+                    progressMessage = CommonUtils.create_progress_message_object("trend","failedState","error","trend Failed no datetime format detected",80,80)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
+
             else:
                 self._result_setter.update_executive_summary_data({"trend_present":False})
                 print "Trend Analysis for Dimension Failed"
                 print "#"*20+"Trend Analysis Error"+"#"*20
                 print "No date column present for Trend Analysis."
                 print "#"*60
+                progressMessage = CommonUtils.create_progress_message_object("trend","failedState","error","no date column",80,80)
+                CommonUtils.save_progress_message(messageURL,progressMessage)
 
     def set_regression_trend_card_data(self,data):
         self._regression_trend_card = data

@@ -395,6 +395,7 @@ def main(configJson):
 
     if jobType == "story":
         #Initializing the result_setter
+        messageURL = dataframe_context.get_message_url()
         result_setter = ResultSetter(df,dataframe_context)
         story_narrative = NarrativesTree()
         story_narrative.set_name("{} Performance Report".format(dataframe_context.get_result_column()))
