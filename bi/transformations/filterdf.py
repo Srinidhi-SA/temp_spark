@@ -14,10 +14,7 @@ class DataFrameFilterer:
         self._data_frame = dataframe
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-        self._completionStatus = 0
-        self._start_time = time.time()
-        self._messageURL = self._dataframe_context.get_message_url()
-
+        
         self._completionStatus = 0
         self._start_time = time.time()
         self._analysisName = "subsetting"

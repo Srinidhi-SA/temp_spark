@@ -5,8 +5,10 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from bi.narratives import utils as NarrativesUtils
+from bi.common import utils as CommonUtils
 from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 
 
 from trend_narratives import TrendNarrative
@@ -27,6 +29,8 @@ class TimeSeriesNarrative:
         self._spark = spark
         self._dataframe_context = df_context
 
+        self._analysisName = "trend"
+        self._messageURL = self._dataframe_context.get_message_url()
         self._dateFormatDetected = False
         self._requestedDateFormat = None
         self._existingDateFormat = None
@@ -380,6 +384,21 @@ class TimeSeriesNarrative:
                 print "overall Trend not Started YET"
 
         elif self._analysistype == "dimension":
+            self._dimensionCompletionStatus = 5
+            self._dimensionTrendScriptStages = {
+                "initialization":{
+                    "summary":"Initialized the Frequency Narratives",
+                    "weight":0
+                    },
+                "summarygeneration":{
+                    "summary":"summary generation finished",
+                    "weight":30
+                    },
+                "completion":{
+                    "summary":"Frequency Stats Narratives done",
+                    "weight":0
+                    },
+                }
             self.narratives = {
                                "card0":{}
                                }

@@ -417,7 +417,7 @@ def main(configJson):
                 print e
                 print "#####ERROR#####"*5
                 progressMessage = CommonUtils.create_progress_message_object("overview","failedState","error","Descriptive Failed",10,10)
-                CommonUtils.save_progress_message(self._messageURL,progressMessage)
+                CommonUtils.save_progress_message(messageURL,progressMessage)
 
 
             if ('Dimension vs. Dimension' in scripts_to_run):
@@ -431,13 +431,12 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-                    progressMessage = CommonUtils.create_progress_message_object("chiSquare","failedState","error","chiSquare Failed",10,10)
-                    CommonUtils.save_progress_message(self._messageURL,progressMessage)
+                    progressMessage = CommonUtils.create_progress_message_object("chiSquare","failedState","error","chiSquare Failed",50,50)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
             else:
                 print "Dimension vs. Dimension Not in Scripts to run "
-                progressMessage = CommonUtils.create_progress_message_object("chiSquare","notSelected","info","chiSquare Not in scripts to run",10,10)
-                CommonUtils.save_progress_message(self._messageURL,progressMessage)
-
+                progressMessage = CommonUtils.create_progress_message_object("chiSquare","notSelected","info","chiSquare Not in scripts to run",50,50)
+                CommonUtils.save_progress_message(messageURL,progressMessage)
 
 
             if ('Trend' in scripts_to_run):
@@ -452,8 +451,12 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
+                    progressMessage = CommonUtils.create_progress_message_object("trend","failedState","error","trend Failed",80,80)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
             else:
                 print "Trend not in scripts to run"
+                progressMessage = CommonUtils.create_progress_message_object("chiSquare","notSelected","info","trend not selected",80,80)
+                CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
@@ -470,8 +473,12 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
+                    progressMessage = CommonUtils.create_progress_message_object("decisionTree","failedState","error","decisionTree Failed",100,100)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
             else:
                 print "Predictive modeling Not in Scripts to run"
+                progressMessage = CommonUtils.create_progress_message_object("decisionTree","notSelected","info","decisionTree not selected",100,100)
+                CommonUtils.save_progress_message(messageURL,progressMessage)
 
             ordered_node_name_list = ["Overview","Trend","Association","Prediction"]
             # story_narrative.reorder_nodes(ordered_node_name_list)

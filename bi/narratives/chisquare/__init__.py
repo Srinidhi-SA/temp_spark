@@ -36,7 +36,6 @@ class ChiSquareNarratives:
                 self._base_dir += "appid2/"
 
         self._completionStatus = 40
-        self._start_time = time.time()
         self._analysisName = "descriptiveStatsNarratives"
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptStages = {
