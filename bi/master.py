@@ -296,8 +296,8 @@ def main(configJson):
                         "job_name" : "test subsetting",
                         "job_type" : "subSetting",
                         "job_url" : "",
-                        "message_url" : "",
-                        # "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
+                        "message_url" : "http://34.196.204.54:9012/api/messages/Dataset_trend_gulshancsv-h85lh79ybd_123/",
+                        "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -305,7 +305,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["metaData"]
+            configJson = testConfigs["subSetting"]
 
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
@@ -381,7 +381,7 @@ def main(configJson):
             # filtered_df.coalesce(1).write.csv(output_filepath)
             filtered_df.write.csv(output_filepath,mode="overwrite",header=True)
             print "starting Metadata for the Filtered Dataframe"
-            meta_data_class = MetaDataScript(filtered_df,spark)
+            meta_data_class = MetaDataScript(filtered_df,spark,dataframe_context)
             meta_data_object = meta_data_class.run()
             metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
             print metaDataJson

@@ -21,26 +21,27 @@ class MetaDataScript:
         self._dataframe_context = dataframe_context
         self._completionStatus = 0
         self._start_time = time.time()
+        self._analysisName = "metadata"
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptSnippets = {
+        self._scriptStages = {
             "schema":{
-                "displayName":"Loaded the data and Schema is Run",
-                "weight":10
+                "summary":"Loaded the data and Schema is Run",
+                "weight":15
                 },
             "sampling":{
-                "displayName":"Sampling the dataframe",
-                "weight":10
+                "summary":"Sampling the dataframe",
+                "weight":5
                 },
             "measurestats":{
-                "displayName":"calculating stats for measure columns",
+                "summary":"calculating stats for measure columns",
                 "weight":25
                 },
             "dimensionstats":{
-                "displayName":"calculating stats for dimension columns",
+                "summary":"calculating stats for dimension columns",
                 "weight":25
                 },
             "suggestions":{
-                "displayName":"Ignore and Date Suggestions",
+                "summary":"Ignore and Date Suggestions",
                 "weight":30
                 },
             }
@@ -49,7 +50,7 @@ class MetaDataScript:
         self._level_count_flag = True
         self._data_frame = data_frame
         self._spark = spark
-        self.total_columns = len([field.name for field in self._data_frame.schema.fields])
+        self._total_columns = len([field.name for field in self._data_frame.schema.fields])
         self._total_rows = self._data_frame.count()
         self._max_levels = min(200, round(self._total_rows**0.5))
 
@@ -69,19 +70,23 @@ class MetaDataScript:
                                      )
 
         time_taken_schema = time.time()-self._start_time
-        self._completionStatus += self._scriptSnippets["schema"]["weight"]
+        self._completionStatus += self._scriptStages["schema"]["weight"]
         print "schema trendering takes",time_taken_schema
-        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
-                                        "schema",\
-                                        time_taken_schema,\
-                                        self._completionStatus)
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "schema",\
+                                    "info",\
+                                    self._scriptStages["schema"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
+
 
     def run(self):
         self._start_time = time.time()
         metaData = []
         metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
-        metaData.append(MetaData(name="noOfColumns",value=self.total_columns,display=True,displayName="Columns"))
+        metaData.append(MetaData(name="noOfColumns",value=self._total_columns,display=True,displayName="Columns"))
         if len(self._numeric_columns) > 1:
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measures"))
         else:
@@ -130,12 +135,14 @@ class MetaDataScript:
             else:
                 sampleData = sampleData.toPandas().values.tolist()
         time_taken_sampling = time.time()-self._start_time
-        self._completionStatus += self._scriptSnippets["sampling"]["weight"]
+        self._completionStatus += self._scriptStages["sampling"]["weight"]
         print "sampling takes",time_taken_sampling
-        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
-                                        "sampling",\
-                                        time_taken_sampling,\
-                                        self._completionStatus)
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "sampling",\
+                                    "info",\
+                                    self._scriptStages["sampling"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
         helper_instance = MetaDataHelper(self._data_frame)
@@ -143,23 +150,27 @@ class MetaDataScript:
         print "Count of Numeric columns",len(self._numeric_columns)
         measureColumnStat,measureCharts = helper_instance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binned_stat_flag=self._binned_stat_flag)
         time_taken_measurestats = time.time()-self._start_time
-        self._completionStatus += self._scriptSnippets["measurestats"]["weight"]
+        self._completionStatus += self._scriptStages["measurestats"]["weight"]
         print "measure stats takes",time_taken_measurestats
-        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
-                                        "measurestats",\
-                                        time_taken_measurestats,\
-                                        self._completionStatus)
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "measurestats",\
+                                    "info",\
+                                    self._scriptStages["measurestats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
         self._start_time = time.time()
         dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns,level_count_flag=self._level_count_flag)
         time_taken_dimensionstats = time.time()-self._start_time
-        self._completionStatus += self._scriptSnippets["dimensionstats"]["weight"]
+        self._completionStatus += self._scriptStages["dimensionstats"]["weight"]
         print "dimension stats takes",time_taken_dimensionstats
-        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
-                                        "dimensionstats",\
-                                        time_taken_dimensionstats,\
-                                        self._completionStatus)
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "dimensionstats",\
+                                    "info",\
+                                    self._scriptStages["dimensionstats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._start_time = time.time()
         ignoreColumnSuggestions = []
@@ -237,12 +248,14 @@ class MetaDataScript:
         dfMetaData.set_sample_data(sampleData)
 
         time_taken_suggestions = time.time()-self._start_time
-        self._completionStatus += self._scriptSnippets["suggestions"]["weight"]
+        self._completionStatus += self._scriptStages["suggestions"]["weight"]
         print "suggestions take",time_taken_suggestions
-        progressMessage = CommonUtils.create_progress_message_object(self._scriptSnippets,\
-                                        "suggestions",\
-                                        time_taken_suggestions,\
-                                        self._completionStatus)
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "suggestions",\
+                                    "info",\
+                                    self._scriptStages["suggestions"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
         return dfMetaData

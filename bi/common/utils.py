@@ -1,6 +1,7 @@
 import os
 import math
 import json
+import time
 import requests
 from math import *
 from re import sub
@@ -254,16 +255,17 @@ def create_progress_message_object(sectionDict,name,timeTaken,completionStatus):
     }
     return progressMessage
 
-# def create_progress_message_object(sectionDict,stageName,messageType,stageCompletionPercentage,globalCompletionPercentage):
-#     progressMessage = {
-#         "stageName" : stageName,
-#         "messageType" : messageType
-#         "shortExplanation" : sectionDict[name]["displayName"],
-#         "stageCompletionTimestamp" : time.time(),
-#         "globalCompletionPercentage" : globalCompletionStatus,
-#         "stageCompletionPercentage" : stageCompletionPercentage
-#     }
-#     return progressMessage
+def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage):
+    progressMessage = {
+        "analysisName" : analysisName,
+        "stageName" : stageName,
+        "messageType" : messageType,
+        "shortExplanation" : shortExplanation,
+        "stageCompletionTimestamp" : time.time(),
+        "globalCompletionPercentage" : globalCompletionPercentage,
+        "stageCompletionPercentage" : stageCompletionPercentage
+    }
+    return progressMessage
 
 def save_progress_message(url,jsonData):
     res = requests.put(url=url,data=json.dumps(jsonData))

@@ -1,9 +1,11 @@
+import time
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType
 from bi.common.utils import accepts
 from bi.common import DataFilterHelper
+from bi.common import utils as CommonUtils
 #import bi.common.dataframe
 
 class DataFrameFilterer:
@@ -12,6 +14,28 @@ class DataFrameFilterer:
         self._data_frame = dataframe
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._completionStatus = 0
+        self._start_time = time.time()
+        self._messageURL = self._dataframe_context.get_message_url()
+
+        self._completionStatus = 0
+        self._start_time = time.time()
+        self._analysisName = "subsetting"
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptStages = {
+            "initialization":{
+                "summary":"initialized the filter parameters",
+                "weight":3
+                },
+            "dimensionfilters":{
+                "summary":"dimensionfilters is Run",
+                "weight":6
+                },
+            "measurefilters":{
+                "summary":"measurefilters is run",
+                "weight":6
+                },
+            }
 
     def applyFilter(self):
         """
@@ -21,10 +45,32 @@ class DataFrameFilterer:
         measure_filters = self._dataframe_context.get_measure_filters()
         time_dimension_filters = self._dataframe_context.get_time_dimension_filters()
 
+        self._completionStatus += self._scriptStages["initialization"]["weight"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
+
         if len(dimension_filters) > 0:
             for filter_dict in dimension_filters:
                 if filter_dict["filterType"] == "valueIn":
                     self.values_in(filter_dict["colname"],filter_dict["values"])
+
+        time_taken_dimensionfilters = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["dimensionfilters"]["weight"]
+        print "dimensionfilters takes",time_taken_dimensionfilters
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "dimensionfilters",\
+                                    "info",\
+                                    self._scriptStages["dimensionfilters"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
         if len(measure_filters) > 0:
             for filter_dict in measure_filters:
                 if filter_dict["filterType"] == "valueRange":
@@ -33,6 +79,16 @@ class DataFrameFilterer:
                                                            filter_dict["upperBound"],\
                                                            greater_than_equal=1,\
                                                            less_than_equal =1)
+        time_taken_measurefilters = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["measurefilters"]["weight"]
+        print "measurefilters takes",time_taken_measurefilters
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "measurefilters",\
+                                    "info",\
+                                    self._scriptStages["measurefilters"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
         return self._data_frame
 
     def values_between(self,colname,start_value, end_value, greater_than_equal = 0, less_than_equal=1):
