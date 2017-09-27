@@ -406,19 +406,19 @@ def main(configJson):
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
 
-            if ('Descriptive analysis' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
-                    freq_obj.Run()
-                    print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-                except Exception as e:
-                    print "Frequency Analysis Failed "
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-            else:
-                print "Descriptive analysis Not in Scripts to run "
+            try:
+                fs = time.time()
+                freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                freq_obj.Run()
+                print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+            except Exception as e:
+                print "Frequency Analysis Failed "
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
+                progressMessage = CommonUtils.create_progress_message_object("overview","failedState","error","Descriptive Failed",10,10)
+                CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
 
             if ('Dimension vs. Dimension' in scripts_to_run):
                 try:
@@ -431,8 +431,14 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
+                    progressMessage = CommonUtils.create_progress_message_object("chiSquare","failedState","error","chiSquare Failed",10,10)
+                    CommonUtils.save_progress_message(self._messageURL,progressMessage)
             else:
                 print "Dimension vs. Dimension Not in Scripts to run "
+                progressMessage = CommonUtils.create_progress_message_object("chiSquare","notSelected","info","chiSquare Not in scripts to run",10,10)
+                CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
+
 
             if ('Trend' in scripts_to_run):
                 try:

@@ -1,10 +1,14 @@
 import json
 import operator
 import os
+import time
 
 from bi.narratives import utils as NarrativesUtils
+from bi.common import utils as CommonUtils
+
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
 
@@ -36,11 +40,59 @@ class DimensionColumnNarrative:
         self._dimensionSummaryNode.set_name("Overview")
         self._headNode = NarrativesTree()
         self._headNode.set_name("Overview")
+
+        self._completionStatus = 5
+        self._start_time = time.time()
+        self._analysisName = "descriptiveStatsNarratives"
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Frequency Narratives",
+                "weight":0
+                },
+            "summarygeneration":{
+                "summary":"summary generation finished",
+                "weight":5
+                },
+            "completion":{
+                "summary":"Frequency Stats Narratives done",
+                "weight":0
+                },
+            }
+        self._completionStatus += self._scriptStages["initialization"]["weight"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
+
         self._generate_narratives()
+        self._completionStatus += self._scriptStages["summarygeneration"]["weight"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "summarygeneration",\
+                                    "info",\
+                                    self._scriptStages["summarygeneration"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
 
         self._result_setter.set_head_node(self._headNode)
         self._result_setter.set_distribution_node(self._dimensionSummaryNode)
+
+        self._completionStatus += self._scriptStages["completion"]["weight"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "completion",\
+                                    "info",\
+                                    self._scriptStages["completion"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
 
     def _generate_narratives(self):
         if self.appid != None:
