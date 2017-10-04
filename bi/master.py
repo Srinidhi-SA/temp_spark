@@ -312,6 +312,7 @@ def main(configJson):
             }
             configJson = testConfigs["story"]
 
+
     ######################## Craeting Spark Session ###########################
     start_time = time.time()
     APP_NAME = 'mAdvisor'
@@ -327,6 +328,7 @@ def main(configJson):
     jobType = job_config["job_type"]
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_message_url(messageUrl)
+    jobName = job_config["job_name"]
     ########################## Load the dataframe ##############################
     df = None
     datasource_type = config.get("DATA_SOURCE").get("datasource_type")
@@ -346,7 +348,6 @@ def main(configJson):
 
     # Dropping blank rows
     df = df.dropna(how='all', thresh=None, subset=None)
-
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time
     script_start_time = time.time()
@@ -354,11 +355,13 @@ def main(configJson):
 
 
     if jobType == "metaData":
+        fs = time.time()
         print "starting Metadata"
         meta_data_class = MetaDataScript(df,spark,dataframe_context)
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
         print metaDataJson
+        print "metaData Analysis Done in ", time.time() - fs, " seconds."
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         return response
     else:
@@ -495,6 +498,7 @@ def main(configJson):
             headNode = result_setter.get_head_node()
             if headNode != None:
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+            headNode["name"] = jobName
             dimensionNode = result_setter.get_distribution_node()
             if dimensionNode != None:
                 headNode["listOfNodes"].append(dimensionNode)
@@ -509,7 +513,7 @@ def main(configJson):
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
 
-            print json.dumps(headNode,indent=2)
+            # print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
 
             # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
@@ -523,40 +527,40 @@ def main(configJson):
             df = df_helper.get_data_frame()
             story_narrative.set_name("Measure analysis")
             LOGGER.append("scripts_to_run:: {}".format(",".join(scripts_to_run)))
-            if ('Descriptive analysis' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                    LOGGER.append("DescriptiveStats Analysis  Starting")
-                    descr_stats_obj.Run()
-                    LOGGER.append("DescriptiveStats Analysis Done in {} seconds.".format(time.time() - fs ))
-                    print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    print 'Descriptive Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+            # if ('Descriptive analysis' in scripts_to_run):
+            try:
+                fs = time.time()
+                descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                LOGGER.append("DescriptiveStats Analysis  Starting")
+                descr_stats_obj.Run()
+                LOGGER.append("DescriptiveStats Analysis Done in {} seconds.".format(time.time() - fs ))
+                print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+            except Exception as e:
+                LOGGER.append("got exception {}".format(e))
+                print 'Descriptive Failed'
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
 
-                try:
-                    fs = time.time()
-                    histogram_obj = HistogramsScript(df, df_helper, dataframe_context, spark)
-                    histogram_obj.Run()
-                    print "Histogram Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-                try:
-                    fs = time.time()
-                    d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
-                    d_histogram_obj.Run()
-                    print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    print 'Density Histogram Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+            try:
+                fs = time.time()
+                histogram_obj = HistogramsScript(df, df_helper, dataframe_context, spark)
+                histogram_obj.Run()
+                print "Histogram Analysis Done in ", time.time() - fs, " seconds."
+            except Exception as e:
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
+            try:
+                fs = time.time()
+                d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
+                d_histogram_obj.Run()
+                print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
+            except Exception as e:
+                print 'Density Histogram Failed'
+                print "#####ERROR#####"*5
+                print e
+                print "#####ERROR#####"*5
 
             if df_helper.ignorecolumns != None:
                 df_helper.drop_ignore_columns()
@@ -660,6 +664,7 @@ def main(configJson):
             headNode = result_setter.get_head_node()
             if headNode != None:
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+            headNode["name"] = jobName
             distributionNode = result_setter.get_distribution_node()
             if distributionNode != None:
                 headNode["listOfNodes"].append(distributionNode)
