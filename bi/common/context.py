@@ -36,6 +36,8 @@ class ContextSetter:
         self.time_dimension_filter = {}
         self.message_url = ""
         self.analysisList = []
+        self.existingColumnTransformsSettings = []
+        self.newColumnTransformsSettings = []
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
@@ -48,10 +50,12 @@ class ContextSetter:
         self.COLUMN_SETTINGS = self._config_obj.get_column_settings()
         self.FILTER_SETTINGS = self._config_obj.get_filter_settings()
         self.ADVANCE_SETTINGS = self._config_obj.get_advance_settings()
+        self.TRANSFORMATION_SETTINGS = self._config_obj.get_transformation_settings()
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
         filterSettingKeys = self.FILTER_SETTINGS.keys()
         advanceSettingKeys = self.ADVANCE_SETTINGS.keys()
+        transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
 
         if len(fileSettingKeys) > 0:
             if "inputfile" in fileSettingKeys:
@@ -151,6 +155,37 @@ class ContextSetter:
                 self.analysisList = [obj[name] for obj in analysis_array if obj["status"] == True]
             if "trendSettings" in advanceSettingKeys:
                 self.trendSettings = self.ADVANCE_SETTINGS["trendSettings"]
+
+        if len(transformSettingsKeys) > 0:
+            if "newColumns" in transformSettingsKeys:
+                newColumnActions = self.TRANSFORMATION_SETTINGS["newColumns"]
+
+            if "existingColumns" in transformSettingsKeys:
+                existingColumnActions = self.TRANSFORMATION_SETTINGS["existingColumns"]
+                validColumnActions = []
+                for transformObj in existingColumnActions:
+                    valid = False
+                    validColumnSetting = []
+                    for action in transformObj["columnSetting"]:
+                        if action["status"] == True:
+                            valid = True
+                            validColumnSetting.append(action)
+                    actionOrder = {"rename":1,"replace":0}
+                    print validColumnSetting
+                    validColumnSetting = sorted(validColumnSetting,key=lambda x:actionOrder[x["actionName"]])
+                    print validColumnSetting
+                    if valid:
+                        validObj = transformObj
+                        validObj["columnSetting"] = validColumnSetting
+                        validColumnActions.append(validObj)
+                self.existingColumnTransformsSettings = validColumnActions
+
+
+    def get_existing_column_transform_settings(self):
+        return self.existingColumnTransformsSettings
+
+    def get_new_column_transform_settings(self):
+        return self.newColumnTransformsSettings
 
 
     def get_analysis_list(self):

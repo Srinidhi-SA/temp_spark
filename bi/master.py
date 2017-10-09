@@ -38,6 +38,7 @@ from bi.scripts.metadata_new import MetaDataScript
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 from bi.transformations import DataFrameFilterer
+from bi.transformations import DataFrameTransformer
 import traceback
 from parser import configparser
 from pyspark.sql.functions import col, udf
@@ -292,6 +293,31 @@ def main(configJson):
                                     "upperBound" : "2014-02-01"
                                 }
                             ]
+                        },
+                        "TRANSFORMATION_SETTINGS" : {
+                            "existingColumns" : [
+                                    {
+                                        "name":"colToReplace",
+                                        "slug":None,
+                                        "columnSetting":
+                                                [
+                                                    {"actionName":"delete","displayName":"Delete Column","status":False},
+                                                    {"actionName":"rename","displayName":"Rename Column","status":True,"newName":"DDDDD"},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":True,"replacementValues":[{'##':'%'}]},
+                                                    {
+                                                      "actionName":"data_type",
+                                                      "displayName":"Change Datatype",
+                                                      "status":False,
+                                                      "listOfDataTypes":[
+                                                          {"name":"numeric","displayName":"Numeric","status":False},
+                                                          {"name":"text","displayName":"Text","status":False}
+                                                      ]
+                                                    }
+                                                  ]
+
+                                    },
+
+                                ]
                         }
                     },
                     "job_config" : {
@@ -393,16 +419,21 @@ def main(configJson):
         print "starting subsetting"
         subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
         filtered_df = subsetting_class.applyFilter()
-        print filtered_df.count()
         if filtered_df.count() > 0:
+            transform_class = DataFrameTransformer(filtered_df,df_helper,dataframe_context)
+            transform_class.applyTransformations()
+            transformed_df = transform_class.get_transformed_data_frame()
+        print transformed_df.count()
+        print transformed_df.show(4)
+        if transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print output_filepath
             # Write the subsetted file
             # coalesce is memory consuming on the master node and is a bit slow
             # filtered_df.coalesce(1).write.csv(output_filepath)
-            filtered_df.write.csv(output_filepath,mode="overwrite",header=True)
+            transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
             print "starting Metadata for the Filtered Dataframe"
-            meta_data_class = MetaDataScript(filtered_df,spark,dataframe_context)
+            meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
             meta_data_object = meta_data_class.run()
             metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
             print metaDataJson
