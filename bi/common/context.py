@@ -170,10 +170,8 @@ class ContextSetter:
                         if action["status"] == True:
                             valid = True
                             validColumnSetting.append(action)
-                    actionOrder = {"rename":1,"replace":0}
-                    print validColumnSetting
+                    actionOrder = {"delete":0,"rename":2,"replace":1,"data_type":3}
                     validColumnSetting = sorted(validColumnSetting,key=lambda x:actionOrder[x["actionName"]])
-                    print validColumnSetting
                     if valid:
                         validObj = transformObj
                         validObj["columnSetting"] = validColumnSetting

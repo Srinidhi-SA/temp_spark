@@ -1,7 +1,7 @@
 import time
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.functions import col, expr, when, UserDefinedFunction
+from pyspark.sql.functions import col, expr, when, udf
 from pyspark.sql.types import DoubleType,StringType,StructType
 from bi.common.utils import accepts
 from bi.common import DataFilterHelper
@@ -55,7 +55,12 @@ class DataFrameTransformer:
                             self.update_column_data(transformObj["name"],obj["replacementValues"])
                         if obj["actionName"] == "rename":
                             self.update_column_name(transformObj["name"],obj["newName"])
-                        # if obj["actionName"] == "data_type":
+                        if obj["actionName"] == "data_type":
+                            castDataType = [x["name"] for x in obj["listOfDataTypes"] if x["status"] == True][0]
+                            print self._data_frame.printSchema()
+                            castDataType = 'int'
+                            self.update_column_datatype(transformObj["name"],castDataType)
+                            print self._data_frame.printSchema()
 
 
 
@@ -101,11 +106,12 @@ class DataFrameTransformer:
     def update_column_data(self,column_name,replace_obj_list):
         for replace_obj in replace_obj_list:
             key=replace_obj.keys()[0]
-            udf = UserDefinedFunction(lambda x: x.replace(key,replace_obj[key]),StringType())
-            self._data_frame = self._data_frame.withColumn(column_name,udf(col(column_name)))
+            replace_values = udf(lambda x: x.replace(key,replace_obj[key]),StringType())
+            self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
 
     def update_column_datatype(self,column_name,data_type):
         print "hi udating column data type"
+        self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
         #TODO update data type as measure or dimension
 
     def update_column_name(self,old_column_name,new_column_name):

@@ -316,6 +316,46 @@ def main(configJson):
                                                   ]
 
                                     },
+                                    {
+                                        "name":"toDelete",
+                                        "slug":None,
+                                        "columnSetting":
+                                                [
+                                                    {"actionName":"delete","displayName":"Delete Column","status":True},
+                                                    {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{'##':'%'}]},
+                                                    {
+                                                      "actionName":"data_type",
+                                                      "displayName":"Change Datatype",
+                                                      "status":False,
+                                                      "listOfDataTypes":[
+                                                          {"name":"numeric","displayName":"Numeric","status":False},
+                                                          {"name":"text","displayName":"Text","status":False}
+                                                      ]
+                                                    }
+                                                  ]
+
+                                    },
+                                    {
+                                        "name":"CREDIT_BALANCE3",
+                                        "slug":None,
+                                        "columnSetting":
+                                                [
+                                                    {"actionName":"delete","displayName":"Delete Column","status":False},
+                                                    {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{'##':'%'}]},
+                                                    {
+                                                      "actionName":"data_type",
+                                                      "displayName":"Change Datatype",
+                                                      "status":True,
+                                                      "listOfDataTypes":[
+                                                          {"name":"int","displayName":"Numeric","status":True},
+                                                          {"name":"string","displayName":"Text","status":False}
+                                                      ]
+                                                    }
+                                                  ]
+
+                                    }
 
                                 ]
                         }
@@ -423,8 +463,6 @@ def main(configJson):
             transform_class = DataFrameTransformer(filtered_df,df_helper,dataframe_context)
             transform_class.applyTransformations()
             transformed_df = transform_class.get_transformed_data_frame()
-        print transformed_df.count()
-        print transformed_df.show(4)
         if transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print output_filepath
