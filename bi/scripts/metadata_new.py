@@ -40,6 +40,10 @@ class MetaDataScript:
                 "summary":"calculating stats for dimension columns",
                 "weight":25
                 },
+            "timedimensionstats":{
+                "summary":"calculating stats for time dimension columns",
+                "weight":0
+                },
             "suggestions":{
                 "summary":"Ignore and Date Suggestions",
                 "weight":30
@@ -172,6 +176,20 @@ class MetaDataScript:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
+        self._start_time = time.time()
+        timeDimensionColumnStat,timeDimensionCharts = helper_instance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        time_taken_tdstats = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["timedimensionstats"]["weight"]
+        print "time dimension stats takes",time_taken_tdstats
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "timedimensionstats",\
+                                    "info",\
+                                    self._scriptStages["timedimensionstats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
         self._start_time = time.time()
         ignoreColumnSuggestions = []
         ignoreColumnReason = []
@@ -193,6 +211,10 @@ class MetaDataScript:
             elif self._column_type_dict[column] == "dimension":
                 data.set_column_stats(dimensionColumnStat[column])
                 data.set_column_chart(dimensionCharts[column])
+            elif self._column_type_dict[column] == "datetime":
+                data.set_column_stats(timeDimensionColumnStat[column])
+                data.set_column_chart(timeDimensionCharts[column])
+
             if self._column_type_dict[column] == "measure":
                 ignoreSuggestion,ignoreReason = helper_instance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:

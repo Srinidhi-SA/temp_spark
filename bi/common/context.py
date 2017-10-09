@@ -35,6 +35,7 @@ class ContextSetter:
         self.measure_filter = {}
         self.time_dimension_filter = {}
         self.message_url = ""
+        self.analysisList = []
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
@@ -46,9 +47,11 @@ class ContextSetter:
         self.FILE_SETTINGS = self._config_obj.get_file_settings()
         self.COLUMN_SETTINGS = self._config_obj.get_column_settings()
         self.FILTER_SETTINGS = self._config_obj.get_filter_settings()
+        self.ADVANCE_SETTINGS = self._config_obj.get_advance_settings()
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
         filterSettingKeys = self.FILTER_SETTINGS.keys()
+        advanceSettingKeys = self.ADVANCE_SETTINGS.keys()
 
         if len(fileSettingKeys) > 0:
             if "inputfile" in fileSettingKeys:
@@ -142,12 +145,17 @@ class ContextSetter:
             if "timeDimensionColumnFilters" in filterSettingKeys:
                 self.time_dimension_filter = self.FILTER_SETTINGS.get("timeDimensionColumnFilters")
 
+        if len(advanceSettingKeys) > 0:
+            if "analysis" in advanceSettingKeys:
+                analysis_array = self.ADVANCE_SETTINGS["analysis"]
+                self.analysisList = [obj[name] for obj in analysis_array if obj["status"] == True]
+            if "trendSettings" in advanceSettingKeys:
+                self.trendSettings = self.ADVANCE_SETTINGS["trendSettings"]
 
 
-        # self.dimension_filter = self._config_obj.get_dimension_filters()
-        # self.measure_filter = self._config_obj.get_measure_filters()
-        # self.date_filter = self._config_obj.get_date_filters()
-        # self.string_to_date_columns = self._config_obj.get_date_settings()
+    def get_analysis_list(self):
+        return self.analysisList
+
     def get_algorithm_slug(self):
         return self.algorithmslug
 

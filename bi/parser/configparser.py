@@ -9,6 +9,7 @@ class ParserConfig():
         self.MeasureFilter = {}
         self.DateFilter = {}
         self.FilterSettings = {}
+        self.AdvanceSettings = {}
 
     def get_dimension_filters(self):
         return self.DimensionFilter
@@ -30,6 +31,9 @@ class ParserConfig():
 
     def get_filter_settings(self):
         return self.FilterSettings
+
+    def get_advance_settings(self):
+        return self.AdvanceSettings
 
     def ConfigSectionMap(self, section):
         dict1 = {}
@@ -66,3 +70,5 @@ class ParserConfig():
             self.ColumnSettings = self.config.get('COLUMN_SETTINGS')
         if 'FILTER_SETTINGS' in self.config:
             self.FilterSettings = self.config.get('FILTER_SETTINGS')
+        if "ADVANCE_SETTINGS" in self.config:
+            self.AdvanceSettings = self.config.get('ADVANCE_SETTINGS')

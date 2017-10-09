@@ -152,7 +152,7 @@ def main(configJson):
                         "DATE_SETTINGS" : {},
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/subsetting_test.csv"
+                                "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
                             ]
                         }
                     },
@@ -310,7 +310,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["story"]
+            configJson = testConfigs["metaData"]
 
 
     ######################## Craeting Spark Session ###########################
@@ -367,9 +367,19 @@ def main(configJson):
     else:
         analysistype = dataframe_context.get_analysis_type()
         print "ANALYSIS TYPE : ", analysistype
-        scripts_to_run = dataframe_context.get_scripts_to_run()
+        # scripts_to_run = dataframe_context.get_scripts_to_run()
+        scripts_to_run = dataframe_context.get_analysis_list()
         if scripts_to_run==None:
             scripts_to_run = []
+        scriptsMapping = {
+            "overview" : "Descriptive analysis",
+            "performance" : "Measure vs. Dimension",
+            "performance" : "Measure vs. Measure",
+            "prediction" : "Predictive modeling",
+            "trend" : "Trend",
+            "association" : "Dimension vs. Dimension"
+        }
+        scripts_to_run = [scriptsMapping[x] for x in scripts_to_run]
         print scripts_to_run
         appid = dataframe_context.get_app_id()
         df_helper = DataFrameHelper(df, dataframe_context)

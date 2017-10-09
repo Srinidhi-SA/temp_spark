@@ -271,5 +271,12 @@ def save_progress_message(url,jsonData):
     res = requests.put(url=url,data=json.dumps(jsonData))
     return res
 
+def keyWithMaxVal(dictObj):
+     """ a) create a list of the dict's keys and values;
+         b) return the key with the max value"""
+     v=list(dictObj.values())
+     k=list(dictObj.keys())
+     return k[v.index(max(v))]
+
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)
