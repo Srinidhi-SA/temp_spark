@@ -150,8 +150,6 @@ class MetaDataHelper():
                             "LevelCount":"LevelCount"
                             }
         for column in dimension_columns:
-            levelCountTest = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
-            print levelCountTest
             col_stat = {}
             if level_count_flag:
                 fs1 = time.time()

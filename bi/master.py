@@ -272,25 +272,26 @@ def main(configJson):
                                     "colname" : "MARRIAGE",
                                     "filterType" : "valueIn",
                                     "values" : [
-                                        "Others"
+                                        "Married"
                                     ]
-                                },
+                                }
                             ],
                             "measureColumnFilters" : [
-                                # {
-                                #     "colname" : "Tenure_in_Days",
-                                #     "filterType" : "valueRange",
-                                #     "lowerBound" : 10,
-                                #     "upperBound" : 600
-                                # },
-                                # {
-                                #     "colname" : "Sales",
-                                #     "filterType" : "valueRange",
-                                #     "lowerBound" : 100,
-                                #     "upperBound" : 900
-                                # }
+                                {
+                                    "colname" : "CREDIT_BALANCE2",
+                                    "filterType" : "valueRange",
+                                    "lowerBound" : 610,
+                                    "upperBound" : 8000
+                                }
                             ],
-                            "timeDimensionColumnFilters" : []
+                            "timeDimensionColumnFilters" : [
+                                {
+                                    "colname" : "new_date",
+                                    "filterType" : "valueRange",
+                                    "lowerBound" : "2013-12-01",
+                                    "upperBound" : "2014-02-01"
+                                }
+                            ]
                         }
                     },
                     "job_config" : {
@@ -310,7 +311,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["metaData"]
+            configJson = testConfigs["subSetting"]
 
 
     ######################## Craeting Spark Session ###########################
@@ -392,6 +393,7 @@ def main(configJson):
         print "starting subsetting"
         subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
         filtered_df = subsetting_class.applyFilter()
+        print filtered_df.count()
         if filtered_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print output_filepath

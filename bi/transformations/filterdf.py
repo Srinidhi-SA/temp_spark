@@ -14,7 +14,7 @@ class DataFrameFilterer:
         self._data_frame = dataframe
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-        
+
         self._completionStatus = 0
         self._start_time = time.time()
         self._analysisName = "subsetting"
@@ -26,12 +26,16 @@ class DataFrameFilterer:
                 },
             "dimensionfilters":{
                 "summary":"dimensionfilters is Run",
-                "weight":6
+                "weight":3
                 },
             "measurefilters":{
                 "summary":"measurefilters is run",
                 "weight":6
                 },
+            "datetimefilters":{
+                "summary":"Datetimefilter is run",
+                "weight":3
+                }
             }
 
     def applyFilter(self):
@@ -83,6 +87,25 @@ class DataFrameFilterer:
                                     "measurefilters",\
                                     "info",\
                                     self._scriptStages["measurefilters"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
+        if len(time_dimension_filters) > 0:
+            for filter_dict in time_dimension_filters:
+                if filter_dict["filterType"] == "valueRange":
+                    self.values_between(filter_dict["colname"],\
+                                                           filter_dict["lowerBound"],\
+                                                           filter_dict["upperBound"],\
+                                                           greater_than_equal=1,\
+                                                           less_than_equal =1)
+        time_taken_datetimefilters = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["datetimefilters"]["weight"]
+        print "datetimefilters takes",time_taken_datetimefilters
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "datetimefilters",\
+                                    "info",\
+                                    self._scriptStages["datetimefilters"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
