@@ -303,7 +303,7 @@ def main(configJson):
                                                 [
                                                     {"actionName":"delete","displayName":"Delete Column","status":False},
                                                     {"actionName":"rename","displayName":"Rename Column","status":True,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":True,"replacementValues":[{'##':'%'}]},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":True,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
                                                     {
                                                       "actionName":"data_type",
                                                       "displayName":"Change Datatype",
@@ -323,7 +323,7 @@ def main(configJson):
                                                 [
                                                     {"actionName":"delete","displayName":"Delete Column","status":True},
                                                     {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{'##':'%'}]},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
                                                     {
                                                       "actionName":"data_type",
                                                       "displayName":"Change Datatype",
@@ -343,7 +343,7 @@ def main(configJson):
                                                 [
                                                     {"actionName":"delete","displayName":"Delete Column","status":False},
                                                     {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{'##':'%'}]},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
                                                     {
                                                       "actionName":"data_type",
                                                       "displayName":"Change Datatype",
