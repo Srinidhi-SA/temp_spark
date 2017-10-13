@@ -105,10 +105,11 @@ class DataFrameTransformer:
 
     def update_column_data(self,column_name,replace_obj_list):
         for replace_obj in replace_obj_list:
-            key = replace_obj["valueToReplace"]
-            value = replace_obj["replacedValue"]
-            replace_values = udf(lambda x: x.replace(key,value),StringType())
-            self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+            if replace_obj["valueToReplace"] != "" and replace_obj["replacedValue"] != "":
+                key = replace_obj["valueToReplace"]
+                value = replace_obj["replacedValue"]
+                replace_values = udf(lambda x: x.replace(key,value),StringType())
+                self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
 
     def update_column_datatype(self,column_name,data_type):
         print "hi udating column data type"

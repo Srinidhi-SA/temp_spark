@@ -317,6 +317,30 @@ def main(configJson):
 
                                     },
                                     {
+                                        "name":"toReplace",
+                                        "slug":None,
+                                        "columnSetting":
+                                                [
+                                                    {"actionName":"delete","displayName":"Delete Column","status":False},
+                                                    {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":True,"replacementValues":[
+                                                            {"valueToReplace":'KKKKK',"replacedValue":'KKKkkk',"replaceType":"dad"},
+                                                            {"valueToReplace":'',"replacedValue":'',"replaceType":"dad"}
+                                                            ]
+                                                    },
+                                                    {
+                                                      "actionName":"data_type",
+                                                      "displayName":"Change Datatype",
+                                                      "status":False,
+                                                      "listOfDataTypes":[
+                                                          {"name":"numeric","displayName":"Numeric","status":False},
+                                                          {"name":"text","displayName":"Text","status":False}
+                                                      ]
+                                                    }
+                                                  ]
+
+                                    },
+                                    {
                                         "name":"toDelete",
                                         "slug":None,
                                         "columnSetting":
