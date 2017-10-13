@@ -303,7 +303,7 @@ def main(configJson):
                                                 [
                                                     {"actionName":"delete","displayName":"Delete Column","status":False},
                                                     {"actionName":"rename","displayName":"Rename Column","status":True,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":True,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
+                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
                                                     {
                                                       "actionName":"data_type",
                                                       "displayName":"Change Datatype",
@@ -323,9 +323,12 @@ def main(configJson):
                                                 [
                                                     {"actionName":"delete","displayName":"Delete Column","status":False},
                                                     {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":True,"replacementValues":[
-                                                            {"valueToReplace":'KKKKK',"replacedValue":'KKKkkk',"replaceType":"dad"},
-                                                            {"valueToReplace":'',"replacedValue":'',"replaceType":"dad"}
+                                                    {"actionName":"replace","displayName":"Replace Values","status":True,
+                                                    "replacementValues":[
+                                                            {"valueToReplace":'INDO-US',"replacedValue":'INDO-CHINA',"replaceType":"equals"},
+                                                            {"valueToReplace":'-',"replacedValue":'*',"replaceType":"contains"},
+                                                            {"valueToReplace":'INA',"replacedValue":'MOD',"replaceType":"endsWith"},
+                                                            {"valueToReplace":'INDO',"replacedValue":'HINDU',"replaceType":"startsWith"}
                                                             ]
                                                     },
                                                     {

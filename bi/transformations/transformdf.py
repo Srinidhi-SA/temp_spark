@@ -18,6 +18,7 @@ class DataFrameTransformer:
         self._start_time = time.time()
         self._analysisName = "transformation"
         self._messageURL = self._dataframe_context.get_message_url()
+        self._replaceTypeList = ["equals","contains","startsWith","endsWith"]
         self._scriptStages = {
             "initialization":{
                 "summary":"initialized the filter parameters",
@@ -108,8 +109,20 @@ class DataFrameTransformer:
             if replace_obj["valueToReplace"] != "" and replace_obj["replacedValue"] != "":
                 key = replace_obj["valueToReplace"]
                 value = replace_obj["replacedValue"]
-                replace_values = udf(lambda x: x.replace(key,value),StringType())
-                self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                replace_type = replace_obj["replaceType"]
+                if replace_type in self._replaceTypeList:
+                    if replace_type == "contains":
+                        replace_values = udf(lambda x: x.replace(key,value),StringType())
+                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                    if replace_type == "startsWith":
+                        replace_values = udf(lambda x: replace_obj["replacedValue"]+x[len(replace_obj["valueToReplace"]):] if x.startswith(replace_obj["valueToReplace"]) else x,StringType())
+                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                    if replace_type == "endsWith":
+                        replace_values = udf(lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x,StringType())
+                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                    if replace_type == "equals":
+                        replace_values = udf(lambda x: x.replace(key,value) if x==replace_obj["valueToReplace"] else x,StringType())
+                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
 
     def update_column_datatype(self,column_name,data_type):
         print "hi udating column data type"
