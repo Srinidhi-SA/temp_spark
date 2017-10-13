@@ -38,6 +38,14 @@ class ContextSetter:
         self.analysisList = []
         self.existingColumnTransformsSettings = []
         self.newColumnTransformsSettings = []
+        self.scriptsMapping = {
+            "overview" : "Descriptive analysis",
+            "performance" : "Measure vs. Dimension",
+            "performance" : "Measure vs. Measure",
+            "prediction" : "Predictive modeling",
+            "trend" : "Trend",
+            "association" : "Dimension vs. Dimension"
+        }
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
@@ -187,7 +195,10 @@ class ContextSetter:
 
 
     def get_analysis_list(self):
-        return self.analysisList
+        output = [self.scriptsMapping[x] for x in self.analysisList]
+        print "HDSDSD"
+        print output
+        return output
 
     def get_algorithm_slug(self):
         return self.algorithmslug

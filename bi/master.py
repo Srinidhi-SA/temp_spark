@@ -461,20 +461,11 @@ def main(configJson):
     else:
         analysistype = dataframe_context.get_analysis_type()
         print "ANALYSIS TYPE : ", analysistype
-        # scripts_to_run = dataframe_context.get_scripts_to_run()
-        scripts_to_run = dataframe_context.get_analysis_list()
+        scripts_to_run = dataframe_context.get_scripts_to_run()
+        # scripts_to_run = dataframe_context.get_analysis_list()
+        print scripts_to_run
         if scripts_to_run==None:
             scripts_to_run = []
-        scriptsMapping = {
-            "overview" : "Descriptive analysis",
-            "performance" : "Measure vs. Dimension",
-            "performance" : "Measure vs. Measure",
-            "prediction" : "Predictive modeling",
-            "trend" : "Trend",
-            "association" : "Dimension vs. Dimension"
-        }
-        scripts_to_run = [scriptsMapping[x] for x in scripts_to_run]
-        print scripts_to_run
         appid = dataframe_context.get_app_id()
         df_helper = DataFrameHelper(df, dataframe_context)
         df_helper.set_params()
