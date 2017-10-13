@@ -327,8 +327,8 @@ def main(configJson):
                                                     "replacementValues":[
                                                             {"valueToReplace":'INDO-US',"replacedValue":'INDO-CHINA',"replaceType":"equals"},
                                                             {"valueToReplace":'-',"replacedValue":'*',"replaceType":"contains"},
-                                                            {"valueToReplace":'INA',"replacedValue":'MOD',"replaceType":"endsWith"},
-                                                            {"valueToReplace":'INDO',"replacedValue":'HINDU',"replaceType":"startsWith"}
+                                                            {"valueToReplace":'INA',"replacedValue":'',"replaceType":"endsWith"},
+                                                            {"valueToReplace":'IND',"replacedValue":'',"replaceType":"startsWith"}
                                                             ]
                                                     },
                                                     {

@@ -106,7 +106,9 @@ class DataFrameTransformer:
 
     def update_column_data(self,column_name,replace_obj_list):
         for replace_obj in replace_obj_list:
-            if replace_obj["valueToReplace"] != "" and replace_obj["replacedValue"] != "":
+            if replace_obj["valueToReplace"] == "" and replace_obj["replacedValue"] == "":
+                pass
+            else:
                 key = replace_obj["valueToReplace"]
                 value = replace_obj["replacedValue"]
                 replace_type = replace_obj["replaceType"]
@@ -115,9 +117,11 @@ class DataFrameTransformer:
                         replace_values = udf(lambda x: x.replace(key,value),StringType())
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
                     if replace_type == "startsWith":
+                        print replace_obj
                         replace_values = udf(lambda x: replace_obj["replacedValue"]+x[len(replace_obj["valueToReplace"]):] if x.startswith(replace_obj["valueToReplace"]) else x,StringType())
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
                     if replace_type == "endsWith":
+                        print replace_obj
                         replace_values = udf(lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x,StringType())
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
                     if replace_type == "equals":
