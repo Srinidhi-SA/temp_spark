@@ -2,7 +2,7 @@ import sys
 import time
 import json
 import pyhocon
-from asn1crypto._ffi import null
+# from asn1crypto._ffi import None
 # from pyhocon.tool import HOCONConverter
 
 reload(sys)
@@ -67,54 +67,59 @@ def main(configJson):
                     "config" : {
                         "COLUMN_SETTINGS" : {
                             "analysis_type" : [
-                                "dimension"
+                                "measure"
                             ],
                             "consider_columns" : [
-                                "Brand",
-                                "Sales Office Description",
-                                "Sales Group Description",
-                                "Material Description",
-                                "Sold Qty in Costing Unit",
-                                "Price = Value/Sold Qty",
-                                "Sales Office Code",
-                                "Units",
-                                "Sales"
+                                "Deal_Type",
+                                "Price_Range",
+                                "Discount_Range",
+                                "Source",
+                                "Platform",
+                                "Buyer_Age",
+                                "Buyer_Gender",
+                                "Tenure_in_Days",
+                                "Sales",
+                                "Marketing_Cost",
+                                "Shipping_Cost",
+                                "Last_Transaction",
+                                "new_date"
                             ],
                             "consider_columns_type" : [
                                 "including"
                             ],
                             "dateTimeSuggestions" : [
-                                {"Date" : "%m/%d/%Y"}
+                                {
+                                    "Month" : "%b-%y",
+                                    "Order Date" : "%d-%m-%Y"
+                                }
                             ],
                             "date_columns" : [
-                                "Month"
+                                "new_date"
                             ],
                             "date_format" : None,
                             "ignore_column_suggestion" : [
-                                "Distribution Channel",
-                                "New Char Z"
                             ],
                             "polarity" : [
                                 "positive"
                             ],
                             "result_column" : [
-                                "Brand"
+                                "Sales"
                             ],
                             "utf8_column_suggestions" : []
                         },
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/BIDCO.csv"
+                                "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
                             ],
                             "script_to_run" : [
                                 "Descriptive analysis",
-                                "Measure vs. Dimension",
+                                # "Measure vs. Dimension",
                                 # "Dimension vs. Dimension",
-                                "Measure vs. Measure",
+                                # "Measure vs. Measure",
                                 "Predictive modeling",
-                                "Trend",
+                                # "Trend",
                                 "Descriptive analysis",
-                                "Trend",
+                                # "Trend",
                                 "Predictive modeling",
                                 # "Dimension vs. Dimension"
                             ]
@@ -122,17 +127,117 @@ def main(configJson):
                         "DATA_SOURCE" : {
                             "datasource_details" : "",
                             "datasource_type" : "fileUpload"
-                        }
+                        },
+                        "ADVANCED_SETTINGS" : {
+                            "analysis" : [
+                                {
+                                    "analysisSubTypes" : [],
+                                    "displayName" : "Overview",
+                                    "name" : "overview",
+                                    "noOfColumnsToUse" : None,
+                                    "status" : True
+                                },
+                                {
+                                    "analysisSubTypes" : [
+                                        {
+                                            "displayName" : "Overview",
+                                            "name" : "overview",
+                                            "status" : False
+                                        },
+                                        {
+                                            "displayName" : "Factors that drive up",
+                                            "name" : "factors that drive up",
+                                            "status" : False
+                                        },
+                                        {
+                                            "displayName" : "Factors that drive down",
+                                            "name" : "factors that drive down",
+                                            "status" : False
+                                        },
+                                        {
+                                            "displayName" : "Forecast",
+                                            "name" : "forecast",
+                                            "status" : False
+                                        }
+                                    ],
+                                    "displayName" : "Trend",
+                                    "name" : "trend",
+                                    "noOfColumnsToUse" : None,
+                                    "status" : True
+                                },
+                                {
+                                    "analysisSubTypes" : [],
+                                    "displayName" : "Prediction",
+                                    "name" : "prediction",
+                                    "noOfColumnsToUse" : None,
+                                    "status" : True
+                                },
+                                {
+                                    "analysisSubTypes" : [],
+                                    "displayName" : "Association",
+                                    "name" : "association",
+                                    "noOfColumnsToUse" : [
+                                        {
+                                            "defaultValue" : 3,
+                                            "displayName" : "Low",
+                                            "name" : "low",
+                                            "status" : False
+                                        },
+                                        {
+                                            "defaultValue" : 5,
+                                            "displayName" : "Medium",
+                                            "name" : "medium",
+                                            "status" : True
+                                        },
+                                        {
+                                            "defaultValue" : 8,
+                                            "displayName" : "High",
+                                            "name" : "high",
+                                            "status" : False
+                                        },
+                                        {
+                                            "defaultValue" : 3,
+                                            "displayName" : "Custom",
+                                            "name" : "custom",
+                                            "status" : False,
+                                            "value" : None
+                                        }
+                                    ],
+                                    "status" : True
+                                }
+                            ],
+                            "targetLevels" : [
+                                [
+                                    {
+                                        "Mobile" : True
+                                    },
+                                    {
+                                        "Desktop" : True
+                                    }
+                                ]
+                            ],
+                            "trendSettings" : [
+                                {
+                                    "name" : "Count",
+                                    "status" : True
+                                },
+                                {
+                                    "name" : "Specific Measure",
+                                    "selectedMeasure" : None,
+                                    "status" : False
+                                }
+                            ]
+                        },
                     },
                     "job_config" : {
                         "get_config" : {
                             "action" : "get_config",
                             "method" : "GET"
                         },
-                        "job_name" : "qsswwq",
+                        "job_name" : "advanceSettingsV1",
                         "job_type" : "story",
-                        "job_url" : "http://34.196.204.54:9012/api/job/master-qsswwq-7uwrs5avz0-3hckxy5xo2/",
-                        "message_url" : "http://34.196.204.54:9012/api/messages/Insight_qsswwq-7uwrs5avz0_123/",
+                        "job_url" : "http://34.196.204.54:9012/api/job/master-advancesettingsv1-b7wno0o2oj-va7kdmt2m8/",
+                        "message_url" : "http://34.196.204.54:9012/api/messages/Insight_advancesettingsv1-b7wno0o2oj_123/",
                         "set_result" : {
                             "action" : "result",
                             "method" : "PUT"
@@ -404,7 +509,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["subSetting"]
+            configJson = testConfigs["story"]
 
 
     ######################## Craeting Spark Session ###########################
@@ -626,9 +731,12 @@ def main(configJson):
             df = df_helper.get_data_frame()
             story_narrative.set_name("Measure analysis")
             LOGGER.append("scripts_to_run:: {}".format(",".join(scripts_to_run)))
+            scriptWeightDict = dataframe_context.get_measure_analysis_weight()
+            completionStatus = 0
             # if ('Descriptive analysis' in scripts_to_run):
             try:
                 fs = time.time()
+                dataframe_context.set_analysis_name("Descriptive analysis")
                 descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                 LOGGER.append("DescriptiveStats Analysis  Starting")
                 descr_stats_obj.Run()
@@ -640,26 +748,12 @@ def main(configJson):
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
+                completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
+                dataframe_context.update_completion_status(completionStatus)
+                progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
+                CommonUtils.save_progress_message(messageURL,progressMessage)
 
-            try:
-                fs = time.time()
-                histogram_obj = HistogramsScript(df, df_helper, dataframe_context, spark)
-                histogram_obj.Run()
-                print "Histogram Analysis Done in ", time.time() - fs, " seconds."
-            except Exception as e:
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
-            try:
-                fs = time.time()
-                d_histogram_obj = DensityHistogramsScript(df, df_helper, dataframe_context, spark)
-                d_histogram_obj.Run()
-                print "Density Histogram Analysis Done in ", time.time() - fs, " seconds."
-            except Exception as e:
-                print 'Density Histogram Failed'
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
+
 
             if df_helper.ignorecolumns != None:
                 df_helper.drop_ignore_columns()
@@ -670,6 +764,7 @@ def main(configJson):
             if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
                 try:
                     fs = time.time()
+                    dataframe_context.set_analysis_name("Measure vs. Dimension")
                     # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
                     # one_way_anova_obj.Run()
                     two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
@@ -680,11 +775,16 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
+                    completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova failed",completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 LOGGER.append("Starting Measure Vs. Measure analysis")
                 try:
                     fs = time.time()
+                    dataframe_context.set_analysis_name("Measure vs. Measure")
                     correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
                     correlations = correlation_obj.Run()
                     print "Correlation Analysis Done in ", time.time() - fs ," seconds."
@@ -712,11 +812,16 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
+                    completionStatus += scriptWeightDict["Measure vs. Measure"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Measure vs. Measure","failedState","error","Regression failed",completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
             else:
                 print 'Regression not in Scripts to run'
             if ('Trend' in scripts_to_run):
                 try:
                     fs = time.time()
+                    dataframe_context.set_analysis_name("Trend")
                     trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
                     trend_obj.Run()
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
@@ -728,11 +833,16 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
+                    completionStatus += scriptWeightDict["Trend"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
                     LOGGER.append("starting dtree")
                     fs = time.time()
+                    dataframe_context.set_analysis_name("Predictive modeling")
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
                     dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
@@ -745,6 +855,11 @@ def main(configJson):
                     print e
                     print "#####ERROR#####"*5
                     print "Decision Tree Regression Script Failed"
+                    completionStatus += scriptWeightDict["Predictive modeling"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
+
             # try:
             #     fs = time.time()
             #     exec_obj = ExecutiveSummaryScript(df_helper,dataframe_context,result_setter,spark)

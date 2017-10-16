@@ -38,6 +38,7 @@ class ContextSetter:
         self.analysisList = []
         self.existingColumnTransformsSettings = []
         self.newColumnTransformsSettings = []
+
         self.scriptsMapping = {
             "overview" : "Descriptive analysis",
             "performance" : "Measure vs. Dimension",
@@ -46,12 +47,51 @@ class ContextSetter:
             "trend" : "Trend",
             "association" : "Dimension vs. Dimension"
         }
+        self.measureAnalysisRelativeWeight = {
+            "Descriptive analysis":1,
+            "Measure vs. Dimension":3,
+            "Measure vs. Measure":3,
+            "Trend":1.5,
+            "Predictive modeling":1.5
+        }
+        self.dimensionAnalysisRelativeWeight = {
+            "Descriptive analysis":1,
+            "Dimension vs. Dimension":4,
+            "Trend":2.5,
+            "Predictive modeling":2.5
+        }
+        self.measureAnalysisWeight = {}
+        self.dimensionAnalysisWeight = {}
+        self.globalCompletionStatus = 0
+        self.currentAnalysis = None
+
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
 
     def set_score_path(self,data):
         self.SCORE_PATH = data
+    def set_analysis_name(self,name):
+        self.currentAnalysis = name
+    def get_analysis_name(self):
+        return self.currentAnalysis
+    def set_analysis_weights(self,scriptsToRun,analysis_type):
+        if analysis_type == "measure":
+            relativeWeightArray = [self.measureAnalysisRelativeWeight[x] for x in scriptsToRun]
+        elif analysis_type == "dimension":
+            relativeWeightArray = [self.dimensionAnalysisRelativeWeight[x] for x in scriptsToRun]
+        totalWeight = sum(relativeWeightArray)
+        percentWeight = [int(round(x*100/float(totalWeight))) for x in relativeWeightArray]
+        diff = sum(percentWeight) - 100
+        percentWeight = percentWeight[:-1] + [percentWeight[-1]+-(diff)]
+        weightDict = dict(zip(scriptsToRun,percentWeight))
+        outputdict = {}
+        for k,v in weightDict.items():
+            outputdict[k] = {"total":v,"script":v/2,"narratives":v-v/2}
+        if analysis_type == "measure":
+            self.measureAnalysisWeight = outputdict
+        elif analysis_type == "dimension":
+            self.dimensionAnalysisWeight = outputdict
 
     def set_params(self):
         self.FILE_SETTINGS = self._config_obj.get_file_settings()
@@ -186,6 +226,19 @@ class ContextSetter:
                         validColumnActions.append(validObj)
                 self.existingColumnTransformsSettings = validColumnActions
 
+        self.set_analysis_weights(self.scripts_to_run,self.analysistype)
+
+    def get_measure_analysis_weight(self):
+        return self.measureAnalysisWeight
+
+    def get_dimension_analysis_weight(self):
+        return self.dimensionAnalysisWeight
+
+    def update_completion_status(self,data):
+        self.globalCompletionStatus = data
+
+    def get_completion_status(self):
+        return self.globalCompletionStatus
 
     def get_existing_column_transform_settings(self):
         return self.existingColumnTransformsSettings

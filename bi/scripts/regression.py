@@ -22,11 +22,17 @@ class RegressionScript:
         self._correlations = correlations
 
     def Run(self):
-        print "Starting Linear Regression"
         fs = time.time()
+        analysisName = self._dataframe_context.get_analysis_name()
+        scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        completionStatus = self._dataframe_context.get_completion_status()
+
         regression_result_obj = LinearRegression(self._data_frame, self._dataframe_helper, self._dataframe_context).fit(self._dataframe_context.get_result_column())
         regression_result = CommonUtils.as_dict(regression_result_obj)
         print "time taken for regression ",time.time()-fs,"seconds"
+
+        completionStatus += scriptWeightDict[analysisName]["script"]
+        self._dataframe_context.update_completion_status(completionStatus)
         # print 'Regression result: %s' % (json.dumps(regression_result, indent=2))
         # DataWriter.write_dict_as_json(self._spark, regression_result, self._dataframe_context.get_result_file()+'Regression/')
 
@@ -37,3 +43,5 @@ class RegressionScript:
         regression_narratives = CommonUtils.as_dict(regression_narratives_obj.narratives)
         #print 'Regression narratives:  %s' %(json.dumps(regression_narratives, indent=2))
         # DataWriter.write_dict_as_json(self._spark, {"REGRESSION":json.dumps(regression_narratives)}, self._dataframe_context.get_narratives_file()+'Regression/')
+        completionStatus += scriptWeightDict[analysisName]["narratives"]
+        self._dataframe_context.update_completion_status(completionStatus)

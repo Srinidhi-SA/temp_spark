@@ -58,9 +58,41 @@ class RegressionNarrative:
 
         # self._dim_regression = self.run_regression_for_dimension_levels()
         self._regressionNode = NarrativesTree()
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        self._scriptStages = {
+            "regressionNarrativeStart":{
+                "summary":"Started the Regression Narratives",
+                "weight":1
+                },
+            "regressionNarrativeEnd":{
+                "summary":"Narratives for Regression Finished",
+                "weight":0
+                },
+            }
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "regressionNarrativeStart",\
+                                    "info",\
+                                    self._scriptStages["regressionNarrativeStart"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
         self.generate_narratives()
         self._regressionNode.set_name("Influencers")
         self._result_setter.set_regression_node(self._regressionNode)
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "regressionNarrativeEnd",\
+                                    "info",\
+                                    self._scriptStages["regressionNarrativeEnd"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
 
 

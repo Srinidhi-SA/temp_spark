@@ -2,6 +2,7 @@ import os
 import humanize
 
 from bi.narratives import utils as NarrativesUtils
+from bi.common import utils as CommonUtils
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 
@@ -32,6 +33,29 @@ class MeasureColumnNarrative:
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())
         self.num_dimensions = len(self._dataframe_helper.get_string_columns())
         self.num_time_dimensions = len(self._dataframe_helper.get_timestamp_columns())
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        self._scriptStages = {
+            "statNarrativeStart":{
+                "summary":"Started the Descriptive Stats Narratives",
+                "weight":1
+                },
+            "statNarrativeEnd":{
+                "summary":"Narratives for descriptive Stats Finished",
+                "weight":0
+                },
+            }
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "statNarrativeStart",\
+                                    "info",\
+                                    self._scriptStages["statNarrativeStart"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+
         self._measureSummaryNode = NarrativesTree()
         self._headNode = NarrativesTree()
         self._headNode.set_name("Overview")
@@ -39,6 +63,15 @@ class MeasureColumnNarrative:
         self._story_narrative.add_a_node(self._measureSummaryNode)
         self._result_setter.set_head_node(self._headNode)
         self._result_setter.set_distribution_node(self._measureSummaryNode)
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "statNarrativeEnd",\
+                                    "info",\
+                                    self._scriptStages["statNarrativeEnd"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
     def _get_c3_histogram(self):
         data = self._measure_descr_stats.get_histogram()

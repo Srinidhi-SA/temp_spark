@@ -6,6 +6,7 @@ from pyspark.ml.linalg import Vectors, VectorUDT
 from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult
 from bi.common.results.regression import RegressionResult
+from bi.common import utils as CommonUtils
 
 
 class LinearRegression:
@@ -20,6 +21,28 @@ class LinearRegression:
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._sample_size = min(round(df_helper.get_num_rows()*0.8),2000)
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        self._scriptStages = {
+            "regressionTrainingStart":{
+                "summary":"Started the Regression Script",
+                "weight":1
+                },
+            "regressionTrainingEnd":{
+                "summary":"Regression coefficients calculated",
+                "weight":0
+                },
+            }
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "regressionTrainingStart",\
+                                    "info",\
+                                    self._scriptStages["regressionTrainingStart"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
     def fit_all(self):
         """
@@ -90,4 +113,12 @@ class LinearRegression:
         regression_result.set_params(intercept=intercepts, coefficients=coefficients,p_values = p_values,
                                       rmse=rmses, r2=r2s,sample_data_dict=sample_data_dict)
 
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "regressionTrainingEnd",\
+                                    "info",\
+                                    self._scriptStages["regressionTrainingEnd"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
         return regression_result

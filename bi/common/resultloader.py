@@ -28,7 +28,7 @@ class ResultSetter:
         self.xgbcards = []
         self.scorefreqcard = None
         self.scorechicards = []
-
+        
 
     # def set_params(self):
     #     self.columns = [field.name for field in self._data_frame.schema.fields]

@@ -18,13 +18,18 @@ class DescriptiveStatsScript:
         self._spark = spark
 
     def Run(self):
+        analysisName = self._dataframe_context.get_analysis_name()
+        scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        completionStatus = self._dataframe_context.get_completion_status()
+
         descr_stats_obj = DescriptiveStats(self._data_frame, self._dataframe_helper, self._dataframe_context).stats_for_measure_column(self._dataframe_context.get_result_column())
         descr_stats = CommonUtils.as_dict(descr_stats_obj)
-        # print 'RESULT: %s' % (json.dumps(descr_stats, indent=2))
-        # DataWriter.write_dict_as_json(self._spark, descr_stats, self._dataframe_context.get_result_file()+'DescrStats/')
+
+        completionStatus += scriptWeightDict[analysisName]["script"]
+        self._dataframe_context.update_completion_status(completionStatus)
 
         narratives_obj = MeasureColumnNarrative(self._dataframe_context.get_result_column(), descr_stats_obj, self._dataframe_helper,self._dataframe_context,self._result_setter, self._story_narrative)
         narratives = CommonUtils.as_dict(narratives_obj)
 
-        # print 'Narratives: %s' % (json.dumps(narratives, indent=2))
-        # DataWriter.write_dict_as_json(self._spark, narratives, self._dataframe_context.get_narratives_file()+'DescrStats/')
+        completionStatus += scriptWeightDict[analysisName]["narratives"]
+        self._dataframe_context.update_completion_status(completionStatus)

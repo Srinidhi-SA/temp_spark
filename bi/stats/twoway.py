@@ -11,6 +11,8 @@ from bi.common.results import MeasureAnovaResult
 from bi.common.results import TopDimensionStats, TrendResult
 
 from bi.narratives import utils as NarrativesUtils
+from bi.common import utils as CommonUtils
+
 
 #from bi.stats.descr import DescriptiveStats
 
@@ -53,6 +55,28 @@ class TwoWayAnova:
         self._requestedDateFormat = '%m-%d-%Y'
         self._trend_on_td_column = False
         self.get_primary_time_dimension(df_context)
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        self._scriptStages = {
+            "anovaStart":{
+                "summary":"Initialized the Anova Scripts",
+                "weight":1
+                },
+            "anovaEnd":{
+                "summary":"Anova Calculated",
+                "weight":0
+                },
+            }
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "anovaStart",\
+                                    "info",\
+                                    self._scriptStages["anovaStart"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
 
     def get_aggregated_by_date(self, aggregate_column, measure_column, existingDateFormat = None, \
                                 requestedDateFormat = None, on_subset = False,use_timestamp=False):
@@ -215,6 +239,15 @@ class TwoWayAnova:
             self.test_against(m, dimensions_to_test)
             self._anova_result.set_TrendResult(self.trend_result)
             DF_Anova_Result.add_measure_result(m,self._anova_result)
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "anovaEnd",\
+                                    "info",\
+                                    self._scriptStages["anovaEnd"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
         return DF_Anova_Result
 
     def get_aggregated_by_dimension(self, measure, dimension, df=None):
