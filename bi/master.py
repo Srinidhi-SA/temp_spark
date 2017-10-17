@@ -509,7 +509,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["story"]
+            configJson = testConfigs["subSetting"]
 
 
     ######################## Craeting Spark Session ###########################

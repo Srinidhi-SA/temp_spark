@@ -225,8 +225,8 @@ class ContextSetter:
                         validObj["columnSetting"] = validColumnSetting
                         validColumnActions.append(validObj)
                 self.existingColumnTransformsSettings = validColumnActions
-
-        self.set_analysis_weights(self.scripts_to_run,self.analysistype)
+        if self.analysistype in ["measure","dimension"]:
+            self.set_analysis_weights(self.scripts_to_run,self.analysistype)
 
     def get_measure_analysis_weight(self):
         return self.measureAnalysisWeight
