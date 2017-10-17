@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
 from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
 
 
 class RandomForest:
@@ -62,6 +63,8 @@ class RandomForest:
         feature_importance = clf.feature_importances_.argsort()[::-1]
         imp_cols = [x_train.columns[x] for x in feature_importance]
         feature_importance = dict(zip(imp_cols,importances))
+        for k, v in feature_importance.iteritems():
+            feature_importance[k] = CommonUtils.round_sig(v)
         # if print_flag:
         #     print("Classification Table")
         #     print(pd.crosstab(results.actual, results.predicted, rownames=['actual'], colnames=['preds']))

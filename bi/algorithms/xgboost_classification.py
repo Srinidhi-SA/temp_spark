@@ -3,7 +3,8 @@ import xgboost as xgb
 from bi.algorithms import utils as MLUtils
 import xgboost as xgb
 
-from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
+
 
 
 class XgboostClassifier:
@@ -43,6 +44,8 @@ class XgboostClassifier:
         feature_importance = clf.feature_importances_.argsort()[::-1]
         imp_cols = [x_train.columns[x] for x in feature_importance]
         feature_importance = dict(zip(imp_cols,importances))
+        for k, v in feature_importance.iteritems():
+            feature_importance[k] = CommonUtils.round_sig(v)
 
         return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance}
 

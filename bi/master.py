@@ -258,7 +258,7 @@ def main(configJson):
                         "DATE_SETTINGS" : {},
                         "FILE_SETTINGS" : {
                             "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
+                                "file:///home/gulshan/marlabs/datasets/subsetting_test.csv"
                             ]
                         }
                     },
@@ -388,15 +388,21 @@ def main(configJson):
                                     "filterType" : "valueRange",
                                     "lowerBound" : 610,
                                     "upperBound" : 8000
+                                },
+                                {
+                                    "colname" : "CREDIT_BALANCE1",
+                                    "filterType" : "valueRange",
+                                    "lowerBound" : 210,
+                                    "upperBound" : 8000
                                 }
                             ],
                             "timeDimensionColumnFilters" : [
-                                {
-                                    "colname" : "new_date",
-                                    "filterType" : "valueRange",
-                                    "lowerBound" : "2013-12-01",
-                                    "upperBound" : "2014-02-01"
-                                }
+                                # {
+                                #     "colname" : "new_date",
+                                #     "filterType" : "valueRange",
+                                #     "lowerBound" : "2013-12-01",
+                                #     "upperBound" : "2014-02-01"
+                                # }
                             ]
                         },
                         "TRANSFORMATION_SETTINGS" : {
@@ -509,7 +515,7 @@ def main(configJson):
                     }
                 }
             }
-            configJson = testConfigs["subSetting"]
+            configJson = testConfigs["metaData"]
 
 
     ######################## Craeting Spark Session ###########################
