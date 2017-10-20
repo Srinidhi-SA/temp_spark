@@ -20,17 +20,20 @@ class DescriptiveStats:
         self._dataframe_context = df_context
 
         self._completionStatus = self._dataframe_context.get_completion_status()
+
+        print "self._completionStatus",self._completionStatus
         self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        print self._scriptWeightDict
         self._scriptStages = {
             "statCalculationStart":{
                 "summary":"Initialized the Descriptive Stats Scripts",
-                "weight":1
+                "weight":0
                 },
             "statCalculationEnd":{
                 "summary":"Descriptive Stats Calculated",
-                "weight":0
+                "weight":10
                 },
             }
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -40,6 +43,7 @@ class DescriptiveStats:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     def stats(self):
         data_frame_descr_stats = DataFrameDescriptiveStats(num_columns=self._dataframe_helper.get_num_columns(),
@@ -90,6 +94,7 @@ class DescriptiveStats:
 
         #descr_stats.set_raw_data([float(row[0]) for row in self._data_frame.select(measure_column).collect()])
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
+        print "self._completionStatus",self._completionStatus
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "statCalculationEnd",\
                                     "info",\
@@ -97,6 +102,7 @@ class DescriptiveStats:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         return descr_stats
 
     @accepts(object, basestring)

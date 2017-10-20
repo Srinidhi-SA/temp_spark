@@ -74,7 +74,7 @@ class ParserConfig():
             self.ColumnSettings = self.config.get('COLUMN_SETTINGS')
         if 'FILTER_SETTINGS' in self.config:
             self.FilterSettings = self.config.get('FILTER_SETTINGS')
-        if 'ADVANCE_SETTINGS' in self.config:
-            self.AdvanceSettings = self.config.get('ADVANCE_SETTINGS')
+        if 'ADVANCED_SETTINGS' in self.config:
+            self.AdvanceSettings = self.config.get('ADVANCED_SETTINGS')
         if 'TRANSFORMATION_SETTINGS' in self.config:
             self.TransformationSettings = self.config.get('TRANSFORMATION_SETTINGS')

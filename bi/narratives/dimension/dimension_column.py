@@ -41,25 +41,25 @@ class DimensionColumnNarrative:
         self._headNode = NarrativesTree()
         self._headNode.set_name("Overview")
 
-        self._completionStatus = 5
-        self._start_time = time.time()
-        self._analysisName = "descriptiveStatsNarratives"
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized the Frequency Narratives",
-                "weight":0
+                "weight":2
                 },
             "summarygeneration":{
                 "summary":"summary generation finished",
-                "weight":5
+                "weight":8
                 },
             "completion":{
                 "summary":"Frequency Stats Narratives done",
                 "weight":0
                 },
             }
-        self._completionStatus += self._scriptStages["initialization"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["initialization"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "initialization",\
                                     "info",\
@@ -67,10 +67,11 @@ class DimensionColumnNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
 
         self._generate_narratives()
-        self._completionStatus += self._scriptStages["summarygeneration"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["summarygeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "summarygeneration",\
                                     "info",\
@@ -78,13 +79,14 @@ class DimensionColumnNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
 
         self._result_setter.set_head_node(self._headNode)
         self._result_setter.set_distribution_node(self._dimensionSummaryNode)
 
-        self._completionStatus += self._scriptStages["completion"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["completion"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "completion",\
                                     "info",\
@@ -92,6 +94,7 @@ class DimensionColumnNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
 
     def _generate_narratives(self):

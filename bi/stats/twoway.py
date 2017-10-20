@@ -57,17 +57,18 @@ class TwoWayAnova:
         self.get_primary_time_dimension(df_context)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
+        print "self._completionStatus",self._completionStatus
         self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
         self._scriptStages = {
             "anovaStart":{
                 "summary":"Initialized the Anova Scripts",
-                "weight":1
+                "weight":0
                 },
             "anovaEnd":{
                 "summary":"Anova Calculated",
-                "weight":0
+                "weight":10
                 },
             }
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -77,6 +78,8 @@ class TwoWayAnova:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+        print "self._completionStatus",self._completionStatus
 
     def get_aggregated_by_date(self, aggregate_column, measure_column, existingDateFormat = None, \
                                 requestedDateFormat = None, on_subset = False,use_timestamp=False):
@@ -248,6 +251,8 @@ class TwoWayAnova:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+        print "self._completionStatus",self._completionStatus
         return DF_Anova_Result
 
     def get_aggregated_by_dimension(self, measure, dimension, df=None):

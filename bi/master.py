@@ -62,460 +62,9 @@ def main(configJson):
         else:
             ######################## Running in debugMode ######################
             print "Running in debugMode"
-            testConfigs = {
-                "story" :{
-                    "config" : {
-                        "COLUMN_SETTINGS" : {
-                            "analysis_type" : [
-                                "measure"
-                            ],
-                            "consider_columns" : [
-                                "Deal_Type",
-                                "Price_Range",
-                                "Discount_Range",
-                                "Source",
-                                "Platform",
-                                "Buyer_Age",
-                                "Buyer_Gender",
-                                "Tenure_in_Days",
-                                "Sales",
-                                "Marketing_Cost",
-                                "Shipping_Cost",
-                                "Last_Transaction",
-                                "new_date"
-                            ],
-                            "consider_columns_type" : [
-                                "including"
-                            ],
-                            "dateTimeSuggestions" : [
-                                {
-                                    "Month" : "%b-%y",
-                                    "Order Date" : "%d-%m-%Y"
-                                }
-                            ],
-                            "date_columns" : [
-                                "new_date"
-                            ],
-                            "date_format" : None,
-                            "ignore_column_suggestion" : [
-                            ],
-                            "polarity" : [
-                                "positive"
-                            ],
-                            "result_column" : [
-                                "Sales"
-                            ],
-                            "utf8_column_suggestions" : []
-                        },
-                        "FILE_SETTINGS" : {
-                            "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
-                            ],
-                            "script_to_run" : [
-                                "Descriptive analysis",
-                                # "Measure vs. Dimension",
-                                # "Dimension vs. Dimension",
-                                # "Measure vs. Measure",
-                                "Predictive modeling",
-                                # "Trend",
-                                "Descriptive analysis",
-                                # "Trend",
-                                "Predictive modeling",
-                                # "Dimension vs. Dimension"
-                            ]
-                        },
-                        "DATA_SOURCE" : {
-                            "datasource_details" : "",
-                            "datasource_type" : "fileUpload"
-                        },
-                        "ADVANCED_SETTINGS" : {
-                            "analysis" : [
-                                {
-                                    "analysisSubTypes" : [],
-                                    "displayName" : "Overview",
-                                    "name" : "overview",
-                                    "noOfColumnsToUse" : None,
-                                    "status" : True
-                                },
-                                {
-                                    "analysisSubTypes" : [
-                                        {
-                                            "displayName" : "Overview",
-                                            "name" : "overview",
-                                            "status" : False
-                                        },
-                                        {
-                                            "displayName" : "Factors that drive up",
-                                            "name" : "factors that drive up",
-                                            "status" : False
-                                        },
-                                        {
-                                            "displayName" : "Factors that drive down",
-                                            "name" : "factors that drive down",
-                                            "status" : False
-                                        },
-                                        {
-                                            "displayName" : "Forecast",
-                                            "name" : "forecast",
-                                            "status" : False
-                                        }
-                                    ],
-                                    "displayName" : "Trend",
-                                    "name" : "trend",
-                                    "noOfColumnsToUse" : None,
-                                    "status" : True
-                                },
-                                {
-                                    "analysisSubTypes" : [],
-                                    "displayName" : "Prediction",
-                                    "name" : "prediction",
-                                    "noOfColumnsToUse" : None,
-                                    "status" : True
-                                },
-                                {
-                                    "analysisSubTypes" : [],
-                                    "displayName" : "Association",
-                                    "name" : "association",
-                                    "noOfColumnsToUse" : [
-                                        {
-                                            "defaultValue" : 3,
-                                            "displayName" : "Low",
-                                            "name" : "low",
-                                            "status" : False
-                                        },
-                                        {
-                                            "defaultValue" : 5,
-                                            "displayName" : "Medium",
-                                            "name" : "medium",
-                                            "status" : True
-                                        },
-                                        {
-                                            "defaultValue" : 8,
-                                            "displayName" : "High",
-                                            "name" : "high",
-                                            "status" : False
-                                        },
-                                        {
-                                            "defaultValue" : 3,
-                                            "displayName" : "Custom",
-                                            "name" : "custom",
-                                            "status" : False,
-                                            "value" : None
-                                        }
-                                    ],
-                                    "status" : True
-                                }
-                            ],
-                            "targetLevels" : [
-                                [
-                                    {
-                                        "Mobile" : True
-                                    },
-                                    {
-                                        "Desktop" : True
-                                    }
-                                ]
-                            ],
-                            "trendSettings" : [
-                                {
-                                    "name" : "Count",
-                                    "status" : True
-                                },
-                                {
-                                    "name" : "Specific Measure",
-                                    "selectedMeasure" : None,
-                                    "status" : False
-                                }
-                            ]
-                        },
-                    },
-                    "job_config" : {
-                        "get_config" : {
-                            "action" : "get_config",
-                            "method" : "GET"
-                        },
-                        "job_name" : "advanceSettingsV1",
-                        "job_type" : "story",
-                        "job_url" : "http://34.196.204.54:9012/api/job/master-advancesettingsv1-b7wno0o2oj-va7kdmt2m8/",
-                        "message_url" : "http://34.196.204.54:9012/api/messages/Insight_advancesettingsv1-b7wno0o2oj_123/",
-                        "set_result" : {
-                            "action" : "result",
-                            "method" : "PUT"
-                        }
-                    }
-                },
-                "metaData" : {
-                    "config" : {
-                        "COLUMN_SETTINGS" : {
-                            "analysis_type" : [
-                                "metaData"
-                            ]
-                        },
-                        "DATA_SOURCE" : {
-                            "datasource_details" : "",
-                            "datasource_type" : "fileUpload"
-                        },
-                        "DATE_SETTINGS" : {},
-                        "FILE_SETTINGS" : {
-                            "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/subsetting_test.csv"
-                            ]
-                        }
-                    },
-                    "job_config" : {
-                        "get_config" : {
-                            "action" : "get_config",
-                            "method" : "GET"
-                        },
-                        "job_name" : "Sample1.csv",
-                        "job_type" : "metaData",
-                        "message_url" : "http://34.196.204.54:9012/api/messages/Dataset_trend_gulshancsv-h85lh79ybd_123/",
-                        "job_url" : "http://34.196.204.54:9012/api/job/metadata-sample1csv-e2za8z9u26-o1f6wicswc/",
-                        "set_result" : {
-                            "action" : "result",
-                            "method" : "PUT"
-                        }
-                    }
-                },
-                "training":{
-                    "config":{
-                        'FILE_SETTINGS': {
-                            'inputfile': ['file:///home/gulshan/marlabs/datasets/adult.csv'],
-                            # Model Slug will go instead of model path
-                            'modelpath': ["ANKUSH"],
-                            'train_test_split' : [0.8],
-                            'analysis_type' : ['training']
-                        },
-                        'COLUMN_SETTINGS': {
-                            'analysis_type': ['training'],
-                            'result_column': ['class_label'],
-                            'consider_columns_type': ['excluding'],
-                            'consider_columns':[],
-                            'polarity': ['positive'],
-                            'date_format': None,
-                            # 'date_columns':["new_date","Month","Order Date"],
-                            'date_columns':[],
-                            'ignore_column_suggestions': [],
-                            # 'ignore_column_suggestions': ["Outlet ID","Visibility to Cosumer","Cleanliness","Days to Resolve","Heineken Lager Share %","Issue Category","Outlet","Accessible_to_consumer","Resultion Status"],
-                            'dateTimeSuggestions' : [],
-                            'utf8ColumnSuggestion':[],
-                            'consider_columns':[],
-                        }
-                    },
-                    "job_config":{
-                        "job_type":"training",
-                        # "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                        "job_url": "http://localhost:8000/api/job/dataset-iriscsv-qpmercq3r8-2fjupdcwdu/",
-                        "set_result": {
-                            "method": "PUT",
-                            "action": "result"
-                          },
-                    }
-                },
-                "prediction":{
-                    "config":{
-                        'FILE_SETTINGS': {
-                            'inputfile': ['file:///home/gulshan/marlabs/datasets/adult_test.csv'],
-                            'modelpath': ["ANKUSH"],
-                            'scorepath': ["DDDDD"],
-                            # 'train_test_split' : [0.8],
-                            'levelcounts' : [],
-                            'modelfeatures' : [],
-                            "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
-                        },
-                        'COLUMN_SETTINGS': {
-                            'analysis_type': ['Dimension'],
-                            'result_column': ['class_label'],
-                            # 'consider_columns_type': ['excluding'],
-                            # 'consider_columns':[],
-                            # 'date_columns':['Date'],
-                            'score_consider_columns_type': ['excluding'],
-                            'score_consider_columns':[],
-                            "app_id":[2]
-
-                        }
-                    },
-                    "job_config":{
-                        "job_type":"prediction",
-                        "job_url": "http://34.196.204.54:9012/api/job/score-hiohoyuo-bn1ofiupv0-j0irk37cob/set_result/",
-                        "set_result": {
-                            "method": "PUT",
-                            "action": "result"
-                          },
-                    }
-                },
-                "subSetting":{
-                    "config" : {
-                        "COLUMN_SETTINGS" : {
-                            "analysis_type" : [
-                                "metaData"
-                            ]
-                        },
-                        "DATA_SOURCE" : {
-                            "datasource_details" : "",
-                            "datasource_type" : "fileUpload"
-                        },
-                        "DATE_SETTINGS" : {},
-                        "FILE_SETTINGS" : {
-                            "inputfile" : [
-                                "file:///home/gulshan/marlabs/datasets/subsetting_test.csv"
-                            ],
-                            "outputfile" : [
-                                # "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/test-subsetting-2dxco9ec50/myTestFile_bwsVTG8.csv"
-                                "file:///home/gulshan/marlabs/csvout/data"
-                            ]
-                        },
-                        "FILTER_SETTINGS" : {
-                            "dimensionColumnFilters" : [
-                                {
-                                    "colname" : "SEX",
-                                    "filterType" : "valueIn",
-                                    "values" : [
-                                        "Male"
-                                    ]
-                                },
-                                {
-                                    "colname" : "MARRIAGE",
-                                    "filterType" : "valueIn",
-                                    "values" : [
-                                        "Married"
-                                    ]
-                                }
-                            ],
-                            "measureColumnFilters" : [
-                                {
-                                    "colname" : "CREDIT_BALANCE2",
-                                    "filterType" : "valueRange",
-                                    "lowerBound" : 610,
-                                    "upperBound" : 8000
-                                },
-                                {
-                                    "colname" : "CREDIT_BALANCE1",
-                                    "filterType" : "valueRange",
-                                    "lowerBound" : 210,
-                                    "upperBound" : 8000
-                                }
-                            ],
-                            "timeDimensionColumnFilters" : [
-                                # {
-                                #     "colname" : "new_date",
-                                #     "filterType" : "valueRange",
-                                #     "lowerBound" : "2013-12-01",
-                                #     "upperBound" : "2014-02-01"
-                                # }
-                            ]
-                        },
-                        "TRANSFORMATION_SETTINGS" : {
-                            "existingColumns" : [
-                                    {
-                                        "name":"colToReplace",
-                                        "slug":None,
-                                        "columnSetting":
-                                                [
-                                                    {"actionName":"delete","displayName":"Delete Column","status":False},
-                                                    {"actionName":"rename","displayName":"Rename Column","status":True,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
-                                                    {
-                                                      "actionName":"data_type",
-                                                      "displayName":"Change Datatype",
-                                                      "status":False,
-                                                      "listOfDataTypes":[
-                                                          {"name":"numeric","displayName":"Numeric","status":False},
-                                                          {"name":"text","displayName":"Text","status":False}
-                                                      ]
-                                                    }
-                                                  ]
-
-                                    },
-                                    {
-                                        "name":"toReplace",
-                                        "slug":None,
-                                        "columnSetting":
-                                                [
-                                                    {"actionName":"delete","displayName":"Delete Column","status":False},
-                                                    {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":True,
-                                                    "replacementValues":[
-                                                            {"valueToReplace":'INDO-US',"replacedValue":'INDO-CHINA',"replaceType":"equals"},
-                                                            {"valueToReplace":'-',"replacedValue":'*',"replaceType":"contains"},
-                                                            {"valueToReplace":'INA',"replacedValue":'',"replaceType":"endsWith"},
-                                                            {"valueToReplace":'IND',"replacedValue":'',"replaceType":"startsWith"}
-                                                            ]
-                                                    },
-                                                    {
-                                                      "actionName":"data_type",
-                                                      "displayName":"Change Datatype",
-                                                      "status":False,
-                                                      "listOfDataTypes":[
-                                                          {"name":"numeric","displayName":"Numeric","status":False},
-                                                          {"name":"text","displayName":"Text","status":False}
-                                                      ]
-                                                    }
-                                                  ]
-
-                                    },
-                                    {
-                                        "name":"toDelete",
-                                        "slug":None,
-                                        "columnSetting":
-                                                [
-                                                    {"actionName":"delete","displayName":"Delete Column","status":True},
-                                                    {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
-                                                    {
-                                                      "actionName":"data_type",
-                                                      "displayName":"Change Datatype",
-                                                      "status":False,
-                                                      "listOfDataTypes":[
-                                                          {"name":"numeric","displayName":"Numeric","status":False},
-                                                          {"name":"text","displayName":"Text","status":False}
-                                                      ]
-                                                    }
-                                                  ]
-
-                                    },
-                                    {
-                                        "name":"CREDIT_BALANCE3",
-                                        "slug":None,
-                                        "columnSetting":
-                                                [
-                                                    {"actionName":"delete","displayName":"Delete Column","status":False},
-                                                    {"actionName":"rename","displayName":"Rename Column","status":False,"newName":"DDDDD"},
-                                                    {"actionName":"replace","displayName":"Replace Values","status":False,"replacementValues":[{"valueToReplace":'##',"replacedValue":'%'}]},
-                                                    {
-                                                      "actionName":"data_type",
-                                                      "displayName":"Change Datatype",
-                                                      "status":True,
-                                                      "listOfDataTypes":[
-                                                          {"name":"int","displayName":"Numeric","status":True},
-                                                          {"name":"string","displayName":"Text","status":False}
-                                                      ]
-                                                    }
-                                                  ]
-
-                                    }
-
-                                ]
-                        }
-                    },
-                    "job_config" : {
-                        "get_config" : {
-                            "action" : "get_config",
-                            "method" : "GET"
-                        },
-                        "job_name" : "test subsetting",
-                        "job_type" : "subSetting",
-                        "job_url" : "",
-                        "message_url" : "http://34.196.204.54:9012/api/messages/Dataset_trend_gulshancsv-h85lh79ybd_123/",
-                        "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
-                        "set_result" : {
-                            "action" : "result",
-                            "method" : "PUT"
-                        }
-                    }
-                }
-            }
-            configJson = testConfigs["metaData"]
+            # Test Configs are defined in bi/common/utils.py
+            testConfigs = CommonUtils.get_test_configs()
+            configJson = testConfigs["story"]
 
 
     ######################## Craeting Spark Session ###########################
@@ -524,6 +73,7 @@ def main(configJson):
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     ######################### Creating the configs #############################
+
     config = configJson["config"]
     job_config = configJson["job_config"]
     configJsonObj = configparser.ParserConfig(config)
@@ -534,6 +84,17 @@ def main(configJson):
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_message_url(messageUrl)
     jobName = job_config["job_name"]
+    messageURL = dataframe_context.get_message_url()
+    progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
+    CommonUtils.save_progress_message(messageURL,progressMessage)
+    if jobType == "story":
+        analysistype = dataframe_context.get_analysis_type()
+        if analysistype == "measure":
+            scriptWeightDict = dataframe_context.get_measure_analysis_weight()
+            completionStatus = 0
+        elif analysistype == "dimension":
+            scriptWeightDict = dataframe_context.get_dimension_analysis_weight()
+            completionStatus = 0
     ########################## Load the dataframe ##############################
     df = None
     datasource_type = config.get("DATA_SOURCE").get("datasource_type")
@@ -556,8 +117,15 @@ def main(configJson):
     print "FILE LOADED: ", dataframe_context.get_input_file()
     data_load_time = time.time() - start_time
     script_start_time = time.time()
-
-
+    if jobType == "story":
+        print scriptWeightDict
+        completionStatus += scriptWeightDict["initialization"]["total"]
+        progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
+        CommonUtils.save_progress_message(messageURL,progressMessage)
+        dataframe_context.update_completion_status(completionStatus)
+    else:
+        progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",1,1)
+        CommonUtils.save_progress_message(messageURL,progressMessage)
 
     if jobType == "metaData":
         fs = time.time()
@@ -572,9 +140,9 @@ def main(configJson):
     else:
         analysistype = dataframe_context.get_analysis_type()
         print "ANALYSIS TYPE : ", analysistype
-        scripts_to_run = dataframe_context.get_scripts_to_run()
-        # scripts_to_run = dataframe_context.get_analysis_list()
-        print scripts_to_run
+        # scripts_to_run = dataframe_context.get_scripts_to_run()
+        scripts_to_run = dataframe_context.get_analysis_list()
+        print "scripts_to_run",scripts_to_run
         if scripts_to_run==None:
             scripts_to_run = []
         appid = dataframe_context.get_app_id()
@@ -609,16 +177,12 @@ def main(configJson):
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
         return response
 
-
-    LOGGER.append("jobtype: {}".format(jobType))
-
     if jobType == "story":
         #Initializing the result_setter
         messageURL = dataframe_context.get_message_url()
         result_setter = ResultSetter(df,dataframe_context)
         story_narrative = NarrativesTree()
         story_narrative.set_name("{} Performance Report".format(dataframe_context.get_result_column()))
-        LOGGER.append("analysistype {}".format(analysistype))
 
         if analysistype == 'dimension':
             print "STARTING DIMENSION ANALYSIS ..."
@@ -627,6 +191,7 @@ def main(configJson):
             df = df_helper.get_data_frame()
             try:
                 fs = time.time()
+                dataframe_context.set_analysis_name("Descriptive analysis")
                 freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
                 freq_obj.Run()
                 print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
@@ -635,13 +200,16 @@ def main(configJson):
                 print "#####ERROR#####"*5
                 print e
                 print "#####ERROR#####"*5
-                progressMessage = CommonUtils.create_progress_message_object("overview","failedState","error","Descriptive Failed",10,10)
+                completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
+                dataframe_context.update_completion_status(completionStatus)
+                progressMessage = CommonUtils.create_progress_message_object("Fresuency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
                 CommonUtils.save_progress_message(messageURL,progressMessage)
 
 
             if ('Dimension vs. Dimension' in scripts_to_run):
                 try:
                     fs = time.time()
+                    dataframe_context.set_analysis_name("Dimension vs. Dimension")
                     chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
                     chisquare_obj.Run()
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
@@ -650,17 +218,19 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-                    progressMessage = CommonUtils.create_progress_message_object("chiSquare","failedState","error","chiSquare Failed",50,50)
+                    completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
+
             else:
                 print "Dimension vs. Dimension Not in Scripts to run "
-                progressMessage = CommonUtils.create_progress_message_object("chiSquare","notSelected","info","chiSquare Not in scripts to run",50,50)
-                CommonUtils.save_progress_message(messageURL,progressMessage)
 
 
             if ('Trend' in scripts_to_run):
                 try:
                     fs = time.time()
+                    dataframe_context.set_analysis_name("Trend")
                     trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
                     trend_obj.Run()
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
@@ -670,16 +240,17 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-                    progressMessage = CommonUtils.create_progress_message_object("trend","failedState","error","trend Failed",80,80)
+                    completionStatus += scriptWeightDict["Trend"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
             else:
                 print "Trend not in scripts to run"
-                progressMessage = CommonUtils.create_progress_message_object("chiSquare","notSelected","info","trend not selected",80,80)
-                CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
                     fs = time.time()
+                    dataframe_context.set_analysis_name("Predictive modeling")
                     if df_helper.ignorecolumns != None:
                         df_helper.drop_ignore_columns()
                     df_helper.fill_na_dimension_nulls()
@@ -692,13 +263,13 @@ def main(configJson):
                     print "#####ERROR#####"*5
                     print e
                     print "#####ERROR#####"*5
-                    progressMessage = CommonUtils.create_progress_message_object("decisionTree","failedState","error","decisionTree Failed",100,100)
+                    completionStatus += scriptWeightDict["Predictive modeling"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
             else:
                 print "Predictive modeling Not in Scripts to run"
-                progressMessage = CommonUtils.create_progress_message_object("decisionTree","notSelected","info","decisionTree not selected",100,100)
-                CommonUtils.save_progress_message(messageURL,progressMessage)
-
+            dataframe_context.update_completion_status(max(completionStatus,100))
             ordered_node_name_list = ["Overview","Trend","Association","Prediction"]
             # story_narrative.reorder_nodes(ordered_node_name_list)
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
@@ -732,21 +303,16 @@ def main(configJson):
 
         elif analysistype == 'measure':
             print "STARTING MEASURE ANALYSIS ..."
-            LOGGER.append("STARTING MEASURE ANALYSIS ...")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
             story_narrative.set_name("Measure analysis")
-            LOGGER.append("scripts_to_run:: {}".format(",".join(scripts_to_run)))
-            scriptWeightDict = dataframe_context.get_measure_analysis_weight()
-            completionStatus = 0
+
             # if ('Descriptive analysis' in scripts_to_run):
             try:
                 fs = time.time()
                 dataframe_context.set_analysis_name("Descriptive analysis")
                 descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                LOGGER.append("DescriptiveStats Analysis  Starting")
                 descr_stats_obj.Run()
-                LOGGER.append("DescriptiveStats Analysis Done in {} seconds.".format(time.time() - fs ))
                 print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
             except Exception as e:
                 LOGGER.append("got exception {}".format(e))
@@ -876,7 +442,7 @@ def main(configJson):
             #     print e
             #     print "#####ERROR#####"*5
             #     print "Executive Summary Script Failed"
-
+            dataframe_context.update_completion_status(max(completionStatus,100))
             measureResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
             # print measureResult

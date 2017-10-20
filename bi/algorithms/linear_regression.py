@@ -29,11 +29,11 @@ class LinearRegression:
         self._scriptStages = {
             "regressionTrainingStart":{
                 "summary":"Started the Regression Script",
-                "weight":1
+                "weight":0
                 },
             "regressionTrainingEnd":{
                 "summary":"Regression coefficients calculated",
-                "weight":0
+                "weight":10
                 },
             }
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -43,6 +43,8 @@ class LinearRegression:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
 
     def fit_all(self):
         """
@@ -121,4 +123,6 @@ class LinearRegression:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        print "self._completionStatus",self._completionStatus
         return regression_result

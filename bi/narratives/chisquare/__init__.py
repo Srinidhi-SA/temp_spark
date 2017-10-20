@@ -36,9 +36,11 @@ class ChiSquareNarratives:
             elif self._appid == "2":
                 self._base_dir += "appid2/"
 
-        self._completionStatus = 40
-        self._analysisName = "descriptiveStatsNarratives"
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized the Frequency Narratives",
@@ -53,7 +55,7 @@ class ChiSquareNarratives:
                 "weight":0
                 },
             }
-        self._completionStatus += self._scriptStages["initialization"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["initialization"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "initialization",\
                                     "info",\
@@ -61,19 +63,11 @@ class ChiSquareNarratives:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
 
         self._generate_narratives()
-        self._completionStatus += self._scriptStages["completion"]["weight"]
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "completion",\
-                                    "info",\
-                                    self._scriptStages["completion"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-
-        self._completionStatus += self._scriptStages["summarygeneration"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["summarygeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "summarygeneration",\
                                     "info",\
@@ -81,6 +75,17 @@ class ChiSquareNarratives:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["completion"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "completion",\
+                                    "info",\
+                                    self._scriptStages["completion"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     def _generate_narratives(self):
         for target_dimension in self._df_chisquare_result.keys():

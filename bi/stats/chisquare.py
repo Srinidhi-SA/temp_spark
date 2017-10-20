@@ -40,25 +40,25 @@ class ChiSquare:
             if self._date_column_suggestions[0] != {}:
                 self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
 
-        self._completionStatus = 10
-        self._start_time = time.time()
-        self._analysisName = "chisquare"
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized the Chisquare Scripts",
-                "weight":2
+                "weight":1
                 },
             "chisquareStats":{
                 "summary":"running chisquare for relevant dimension columns",
-                "weight":5
+                "weight":2
                 },
             "completion":{
                 "summary":"Chisquare Stats Calculated",
-                "weight":25
+                "weight":7
                 },
             }
-        self._completionStatus += self._scriptStages["initialization"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["initialization"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "initialization",\
                                     "info",\
@@ -66,10 +66,11 @@ class ChiSquare:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
     def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=40):
-        self._completionStatus += self._scriptStages["chisquareStats"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["chisquareStats"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "chisquareStats",\
                                     "info",\
@@ -77,6 +78,7 @@ class ChiSquare:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         dimension = dimension_columns[0]
         all_dimensions = self._dimension_columns
         all_dimensions = [x for x in all_dimensions if x != dimension]
@@ -97,7 +99,7 @@ class ChiSquare:
                 print str(e), m
                 continue
 
-        self._completionStatus += self._scriptStages["completion"]["weight"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["completion"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "completion",\
                                     "info",\
@@ -105,6 +107,7 @@ class ChiSquare:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         return df_chisquare_result
 
     @accepts(object, basestring, basestring)

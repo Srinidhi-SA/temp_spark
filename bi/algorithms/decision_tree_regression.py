@@ -50,13 +50,14 @@ class DecisionTreeRegression:
         self._scriptStages = {
             "dtreeTrainingStart":{
                 "summary":"Started the Decision Tree Regression Script",
-                "weight":1
+                "weight":0
                 },
             "dtreeTrainingEnd":{
                 "summary":"Decision Tree Regression Learning Finished",
-                "weight":0
+                "weight":10
                 },
             }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dtreeTrainingStart",\
                                     "info",\
@@ -64,6 +65,8 @@ class DecisionTreeRegression:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
 
     def parse(self, lines, df):
         block = []
@@ -255,7 +258,7 @@ class DecisionTreeRegression:
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_target_map(self._mapping_dict[self._target_dimension], self._aggr_data, self._important_vars)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dtreeTrainingEnd",\
                                     "info",\
@@ -263,4 +266,6 @@ class DecisionTreeRegression:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         return decision_tree_result

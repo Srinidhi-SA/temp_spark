@@ -42,12 +42,13 @@ class ContextSetter:
         self.scriptsMapping = {
             "overview" : "Descriptive analysis",
             "performance" : "Measure vs. Dimension",
-            "performance" : "Measure vs. Measure",
+            "influencers" : "Measure vs. Measure",
             "prediction" : "Predictive modeling",
             "trend" : "Trend",
             "association" : "Dimension vs. Dimension"
         }
         self.measureAnalysisRelativeWeight = {
+            "initialization":0.25,
             "Descriptive analysis":1,
             "Measure vs. Dimension":3,
             "Measure vs. Measure":3,
@@ -55,6 +56,7 @@ class ContextSetter:
             "Predictive modeling":1.5
         }
         self.dimensionAnalysisRelativeWeight = {
+            "initialization":0.25,
             "Descriptive analysis":1,
             "Dimension vs. Dimension":4,
             "Trend":2.5,
@@ -76,6 +78,7 @@ class ContextSetter:
     def get_analysis_name(self):
         return self.currentAnalysis
     def set_analysis_weights(self,scriptsToRun,analysis_type):
+        scriptsToRun += ["initialization"]
         if analysis_type == "measure":
             relativeWeightArray = [self.measureAnalysisRelativeWeight[x] for x in scriptsToRun]
         elif analysis_type == "dimension":
@@ -200,7 +203,12 @@ class ContextSetter:
         if len(advanceSettingKeys) > 0:
             if "analysis" in advanceSettingKeys:
                 analysis_array = self.ADVANCE_SETTINGS["analysis"]
-                self.analysisList = [obj[name] for obj in analysis_array if obj["status"] == True]
+                analysisList = [obj["name"] for obj in analysis_array if obj["status"] == True]
+                # adding overview to analysisList
+                # required to create the summary node
+                if "overview" not in analysisList:
+                    analysisList.append("overview")
+                self.analysisList = [self.scriptsMapping[x] for x in analysisList]
             if "trendSettings" in advanceSettingKeys:
                 self.trendSettings = self.ADVANCE_SETTINGS["trendSettings"]
 
@@ -226,7 +234,7 @@ class ContextSetter:
                         validColumnActions.append(validObj)
                 self.existingColumnTransformsSettings = validColumnActions
         if self.analysistype in ["measure","dimension"]:
-            self.set_analysis_weights(self.scripts_to_run,self.analysistype)
+            self.set_analysis_weights(self.analysisList,self.analysistype)
 
     def get_measure_analysis_weight(self):
         return self.measureAnalysisWeight
@@ -235,6 +243,7 @@ class ContextSetter:
         return self.dimensionAnalysisWeight
 
     def update_completion_status(self,data):
+        print "completionStatus",data
         self.globalCompletionStatus = data
 
     def get_completion_status(self):
@@ -248,10 +257,8 @@ class ContextSetter:
 
 
     def get_analysis_list(self):
-        output = [self.scriptsMapping[x] for x in self.analysisList]
-        print "HDSDSD"
-        print output
-        return output
+        # output = [self.scriptsMapping[x] for x in self.analysisList]
+        return self.analysisList
 
     def get_algorithm_slug(self):
         return self.algorithmslug
