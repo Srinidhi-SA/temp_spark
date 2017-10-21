@@ -9,12 +9,21 @@ class stockAdvisor:
 
     def read_csv(self, file_name):
         sql = SQLContext(self._spark)
+        print "-"*50
         print "Reading File : ", file_name + ".csv"
         name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".csv"
         df = (sql.read
          .format("com.databricks.spark.csv")
          .option("header", "true")
          .load(name))
+        return df
+
+    def read_json(self, file_name):
+        # sql = SQLContext(self._spark)
+        name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".json"
+        # df = sql.jsonFile(name)
+        content = json.loads(open(name).read())
+        df = self._spark.createDataFrame(content)
         return df
 
     def unpack_df(self, df):
@@ -31,12 +40,18 @@ class stockAdvisor:
     def get_stock_sources(self, df):
         return df.select("source").distinct().count()
 
+    def get_stock_sentiment(self, df):
+        sentiment = 0
+        for row in df.rdd.collect():
+            sentiment += row['sentiment']['document']['score']
+        return sentiment/df.count()
 
     def Run(self):
         print "In stockAdvisor"
         data_dict_files = {}
         for file_name in self._file_names:
-            df = self.read_csv(file_name)
+            # df = self.read_csv(file_name)
+            df = self.read_json(file_name)
 
             # unpacked_df = self.unpack_df(df)
             # unpacked_df.cache()
@@ -48,7 +63,8 @@ class stockAdvisor:
             print "number_articles : ", number_articles
             number_sources = self.get_stock_sources(df)
             print "number_sources : ", number_sources
-            # avg_sentiment_score = self.get_stock_sentiment(unpacked_df)
+            avg_sentiment_score = self.get_stock_sentiment(df)
+            print "avg_sentiment_score : ", avg_sentiment_score
             # sentiment_change = self.get_sentiment_change(unpacked_df)
             #
             # #stock_value_change = self.get_stock_value_change(unpacked_df)
