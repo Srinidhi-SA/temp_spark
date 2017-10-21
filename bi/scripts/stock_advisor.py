@@ -61,6 +61,12 @@ class stockAdvisor:
     def get_top_keywords(self, df):
         return dict((x['text'], x['relevance']) for x in df.select('keywords').rdd.flatMap(lambda x: x).flatMap(lambda x: x).sortBy(lambda x: x['relevance'], ascending=False).collect())
 
+    def get_top_events(self, df):
+        positive_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending: False).filter(lambda x : x['sentiment']['document']['score'] > 0).collect())
+        negative_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending: False).filter(lambda x : x['sentiment']['document']['score'] < 0).collect())
+
+        return (positive_articles, negative_articles)
+
     def Run(self):
         print "In stockAdvisor"
         data_dict_files = {}
@@ -96,7 +102,10 @@ class stockAdvisor:
             print "top_keywords : ", top_keywords
             # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
             # average_sentiment_per_date = self.get_average_sentiment_per_date(unpacked_df)
-            # top_events = self.get_top_events(unpacked_df)
+            (top_events_positive, top_events_negative) = self.get_top_events(df)
+            print "top events positive : ", top_events_positive
+            print "top events negative : ", top_events_negative
+
             # top_days = self.get_top_days(unpacked_df)
             # '''
             # # "Each concept has multiple keywords. Each keyword will be involved in multiple articles of varying sentiment.
