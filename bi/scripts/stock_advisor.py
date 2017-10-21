@@ -46,6 +46,18 @@ class stockAdvisor:
             sentiment += row['sentiment']['document']['score']
         return sentiment/df.count()
 
+    def get_sentiment_change(self, df):
+        pass
+
+    def get_number_articles_per_source(self, df):
+        return dict(df.groupby('source').count().rdd.collect())
+
+    def get_average_sentiment_per_source(self, df, number_articles_per_source):
+        return_dict = {}
+        for item in number_articles_per_source.keys():
+            return_dict[item] = df.filter(df.source == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values()[0]
+        return return_dict
+
     def Run(self):
         print "In stockAdvisor"
         data_dict_files = {}
@@ -65,12 +77,14 @@ class stockAdvisor:
             print "number_sources : ", number_sources
             avg_sentiment_score = self.get_stock_sentiment(df)
             print "avg_sentiment_score : ", avg_sentiment_score
-            # sentiment_change = self.get_sentiment_change(unpacked_df)
-            #
-            # #stock_value_change = self.get_stock_value_change(unpacked_df)
-            #
-            # number_articles_per_source = self.get_number_articles_per_source(unpacked_df)
-            # average_sentiment_per_source = self.get_average_sentiment_per_source(unpacked_df)
+
+            # sentiment_change = self.get_sentiment_change(df)
+            # stock_value_change = self.get_stock_value_change(unpacked_df)
+
+            number_articles_per_source = self.get_number_articles_per_source(df)
+            print "number_articles_per_source : ", number_articles_per_source
+            average_sentiment_per_source = self.get_average_sentiment_per_source(df, number_articles_per_source)
+            print "average_sentiment_per_source : ", average_sentiment_per_source
             #
             # # number_articles_per_concept = self.get_number_articles_per_concept(unpacked_df)
             # # average_sentiment_per_concept = self.get_average_sentiment_per_concept(unpacked_df)
