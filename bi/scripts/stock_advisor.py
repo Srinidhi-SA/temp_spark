@@ -28,6 +28,9 @@ class stockAdvisor:
     def get_stock_articles(self, df):
         return df.count()
 
+    def get_stock_sources(self, df):
+        return df.select("source").distinct().count()
+
 
     def Run(self):
         print "In stockAdvisor"
@@ -43,7 +46,8 @@ class stockAdvisor:
             # '''
             number_articles = self.get_stock_articles(df)
             print "number_articles : ", number_articles
-            # number_sources = self.get_stock_sources(unpacked_df)
+            number_sources = self.get_stock_sources(df)
+            print "number_sources : ", number_sources
             # avg_sentiment_score = self.get_stock_sentiment(unpacked_df)
             # sentiment_change = self.get_sentiment_change(unpacked_df)
             #
