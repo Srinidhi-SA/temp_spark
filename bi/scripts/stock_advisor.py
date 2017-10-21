@@ -22,8 +22,8 @@ class stockAdvisor:
         # sql = SQLContext(self._spark)
         name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".json"
         # df = sql.jsonFile(name)
-        content = json.loads(open(name).read())
-        df = self._spark.createDataFrame(content)
+        # content = json.loads(open(name).read())
+        df = self._spark.read.json(name)
         return df
 
     def unpack_df(self, df):
@@ -58,6 +58,9 @@ class stockAdvisor:
             return_dict[item] = df.filter(df.source == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values()[0]
         return return_dict
 
+    def get_top_keywords(self, df):
+        return dict((x['text'], x['relevance']) for x in df.select('keywords').rdd.flatMap(lambda x: x).flatMap(lambda x: x).sortBy(lambda x: x['relevance'], ascending=False).collect())
+
     def Run(self):
         print "In stockAdvisor"
         data_dict_files = {}
@@ -89,7 +92,8 @@ class stockAdvisor:
             # # number_articles_per_concept = self.get_number_articles_per_concept(unpacked_df)
             # # average_sentiment_per_concept = self.get_average_sentiment_per_concept(unpacked_df)
             #
-            # top_keywords = self.get_top_keywords(unpacked_df)
+            top_keywords = self.get_top_keywords(df)
+            print "top_keywords : ", top_keywords
             # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
             # average_sentiment_per_date = self.get_average_sentiment_per_date(unpacked_df)
             # top_events = self.get_top_events(unpacked_df)
