@@ -189,21 +189,19 @@ def main(configJson):
             LOGGER.append("STARTING DIMENSION ANALYSIS ...")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
-            try:
-                fs = time.time()
-                dataframe_context.set_analysis_name("Descriptive analysis")
-                freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
-                freq_obj.Run()
-                print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-            except Exception as e:
-                print "Frequency Analysis Failed "
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
-                completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
-                dataframe_context.update_completion_status(completionStatus)
-                progressMessage = CommonUtils.create_progress_message_object("Fresuency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
-                CommonUtils.save_progress_message(messageURL,progressMessage)
+            if ('Descriptive analysis' in scripts_to_run):
+                try:
+                    fs = time.time()
+                    dataframe_context.set_analysis_name("Descriptive analysis")
+                    freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                    freq_obj.Run()
+                    print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
+                    completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
 
 
             if ('Dimension vs. Dimension' in scripts_to_run):
@@ -214,17 +212,11 @@ def main(configJson):
                     chisquare_obj.Run()
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    print "ChiSquare Analysis Failed "
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
                     completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
-
-            else:
-                print "Dimension vs. Dimension Not in Scripts to run "
 
 
             if ('Trend' in scripts_to_run):
@@ -236,16 +228,11 @@ def main(configJson):
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
                 except Exception as e:
-                    print "Trend Script Failed"
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
-            else:
-                print "Trend not in scripts to run"
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
@@ -259,23 +246,17 @@ def main(configJson):
                     decision_tree_obj.Run()
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    print "DecisionTrees Analysis Failed"
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
-            else:
-                print "Predictive modeling Not in Scripts to run"
+
+
             dataframe_context.update_completion_status(max(completionStatus,100))
             ordered_node_name_list = ["Overview","Trend","Association","Prediction"]
             # story_narrative.reorder_nodes(ordered_node_name_list)
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
-            # dimensionResult = CommonUtils.as_dict(story_narrative)
-            # print dimensionResult
-
             headNode = result_setter.get_head_node()
             if headNode != None:
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
@@ -293,12 +274,8 @@ def main(configJson):
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
-
             # print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
-
-            # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],dimensionResult)
-
             return response
 
         elif analysistype == 'measure':
@@ -307,24 +284,19 @@ def main(configJson):
             df = df_helper.get_data_frame()
             story_narrative.set_name("Measure analysis")
 
-            # if ('Descriptive analysis' in scripts_to_run):
-            try:
-                fs = time.time()
-                dataframe_context.set_analysis_name("Descriptive analysis")
-                descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                descr_stats_obj.Run()
-                print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
-            except Exception as e:
-                LOGGER.append("got exception {}".format(e))
-                print 'Descriptive Failed'
-                print "#####ERROR#####"*5
-                print e
-                print "#####ERROR#####"*5
-                completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
-                dataframe_context.update_completion_status(completionStatus)
-                progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
-                CommonUtils.save_progress_message(messageURL,progressMessage)
-
+            if ('Descriptive analysis' in scripts_to_run):
+                try:
+                    fs = time.time()
+                    dataframe_context.set_analysis_name("Descriptive analysis")
+                    descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                    descr_stats_obj.Run()
+                    print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
+                    completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
 
 
             if df_helper.ignorecolumns != None:
@@ -337,16 +309,11 @@ def main(configJson):
                 try:
                     fs = time.time()
                     dataframe_context.set_analysis_name("Measure vs. Dimension")
-                    # one_way_anova_obj = OneWayAnovaScript(df, df_helper, dataframe_context, spark)
-                    # one_way_anova_obj.Run()
                     two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     two_way_obj.Run()
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    print 'Anova Failed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Dimension",e)
                     completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova failed",completionStatus,completionStatus)
@@ -360,7 +327,6 @@ def main(configJson):
                     correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
                     correlations = correlation_obj.Run()
                     print "Correlation Analysis Done in ", time.time() - fs ," seconds."
-
                     try:
                         df = df.na.drop(subset=measure_columns)
                         fs = time.time()
@@ -368,28 +334,15 @@ def main(configJson):
                         regression_obj.Run()
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:
-
-                        LOGGER.append("got exception {}".format(e))
-                        LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-
-                        print 'Regression Failed'
-                        print "#####ERROR#####"*5
-                        print e
-                        print "#####ERROR#####"*5
-
+                        CommonUtils.print_errors_and_store_traceback(LOGGER,"regression",e)
                 except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    print 'Correlation Failed. Regression not executed'
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Measure",e)
                     completionStatus += scriptWeightDict["Measure vs. Measure"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Measure","failedState","error","Regression failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
-            else:
-                print 'Regression not in Scripts to run'
+
+
             if ('Trend' in scripts_to_run):
                 try:
                     fs = time.time()
@@ -399,12 +352,7 @@ def main(configJson):
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
                 except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    print "Trend Script Failed"
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
@@ -421,12 +369,7 @@ def main(configJson):
                     dt_reg.Run()
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
-                    LOGGER.append("got exception {}".format(e))
-                    LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-                    print "#####ERROR#####"*5
-                    print e
-                    print "#####ERROR#####"*5
-                    print "Decision Tree Regression Script Failed"
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
@@ -438,10 +381,7 @@ def main(configJson):
             #     exec_obj.Run()
             #     print "Executive Summary Done in ", time.time() - fs, " seconds."
             # except Exception as e:
-            #     print "#####ERROR#####"*5
-            #     print e
-            #     print "#####ERROR#####"*5
-            #     print "Executive Summary Script Failed"
+            #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Executive Summary",e)
             dataframe_context.update_completion_status(max(completionStatus,100))
             measureResult = CommonUtils.convert_python_object_to_json(story_narrative)
             # dimensionResult = CommonUtils.as_dict(story_narrative)
@@ -496,12 +436,7 @@ def main(configJson):
             rf_obj.Train()
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
-            LOGGER.append("got exception {}".format(e))
-            LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-            print "Random Forest Model Failed"
-            print "#####ERROR#####"*5
-            print e
-            print "#####ERROR#####"*5
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
 
         try:
             st = time.time()
@@ -510,12 +445,7 @@ def main(configJson):
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
-            LOGGER.append("got exception {}".format(e))
-            LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-            print "Logistic Regression Model Failed"
-            print "#####ERROR#####"*5
-            print e
-            print "#####ERROR#####"*5
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
 
         try:
             st = time.time()
@@ -523,12 +453,7 @@ def main(configJson):
             xgb_obj.Train()
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
-            LOGGER.append("got exception {}".format(e))
-            LOGGER.append("detailed exception {}".format(traceback.format_exc()))
-            print "Xgboost Model Failed"
-            print "#####ERROR#####"*5
-            print e
-            print "#####ERROR#####"*5
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
 
 
         collated_summary = result_setter.get_model_summary()

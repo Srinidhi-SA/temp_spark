@@ -280,6 +280,15 @@ def keyWithMaxVal(dictObj):
      k=list(dictObj.keys())
      return k[v.index(max(v))]
 
+def print_errors_and_store_traceback(loggerDict,scriptName,error):
+    exception = {"exception":error,"traceback":traceback.format_exc()}
+    loggerDict[scriptName] = exception
+    print "#####ERROR#####"*5
+    print error
+    print "#####ERROR#####"*5
+    print "{} Script Failed".format("scriptName")
+
+
 def get_test_configs():
     testConfigs = {
         "story" :{
