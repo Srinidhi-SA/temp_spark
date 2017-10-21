@@ -9,14 +9,12 @@ class stockAdvisor:
 
     def read_csv(self, file_name):
         sql = SQLContext(self._spark)
-        print "In Read CSV"
+        print "Reading File : ", file_name + ".csv"
         name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".csv"
         df = (sql.read
          .format("com.databricks.spark.csv")
          .option("header", "true")
          .load(name))
-        print type(df)
-        print df.columns
         return df
 
     def unpack_df(self, df):
@@ -27,7 +25,8 @@ class stockAdvisor:
         new = self._spark.createDataFrame(new_pd)
         print new.columns
 
-
+    def get_stock_articles(self, df):
+        return df.count()
 
 
     def Run(self):
@@ -35,13 +34,15 @@ class stockAdvisor:
         data_dict_files = {}
         for file_name in self._file_names:
             df = self.read_csv(file_name)
-            unpacked_df = self.unpack_df(df)
+
+            # unpacked_df = self.unpack_df(df)
             # unpacked_df.cache()
 
             # '''
             # Start of Single Stock Analysis
             # '''
-            # number_articles = self.get_stock_articles(unpacked_df)
+            number_articles = self.get_stock_articles(df)
+            print "number_articles : ", number_articles
             # number_sources = self.get_stock_sources(unpacked_df)
             # avg_sentiment_score = self.get_stock_sentiment(unpacked_df)
             # sentiment_change = self.get_sentiment_change(unpacked_df)
