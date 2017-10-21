@@ -35,6 +35,7 @@ from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
 from bi.scripts.metadata_new import MetaDataScript
+from bi.scripts.stock_advisor import stockAdvisor
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 from bi.transformations import DataFrameFilterer
@@ -59,6 +60,7 @@ def main(configJson):
             ######################## Running in cfgMode ########################
             cfgMode = True
             debugMode = False
+            print "Running in cfgMode"
         else:
             ######################## Running in debugMode ######################
             print "Running in debugMode"
@@ -513,12 +515,31 @@ def main(configJson):
                             "method" : "PUT"
                         }
                     }
+                },
+                "stockAdvisor":{
+                    "config" : {
+                    },
+                    "job_config" : {
+                        "get_config" : {
+                            "action" : "get_config",
+                            "method" : "GET"
+                        },
+                        "job_name" : "test subsetting",
+                        "job_type" : "stockAdvisor",
+                        "job_url" : "",
+                        "message_url" : "http://34.196.204.54:9012/api/messages/Dataset_trend_gulshancsv-h85lh79ybd_123/",
+                        "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
+                        "set_result" : {
+                            "action" : "result",
+                            "method" : "PUT"
+                        }
+                    }
                 }
             }
-            configJson = testConfigs["metaData"]
+            configJson = testConfigs["stockAdvisor"]
 
 
-    ######################## Craeting Spark Session ###########################
+    ######################## Creating Spark Session ###########################
     start_time = time.time()
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -534,6 +555,18 @@ def main(configJson):
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_message_url(messageUrl)
     jobName = job_config["job_name"]
+
+    ########################## Stock Advisor App, does not need a dataframe ##############################
+    if jobType == 'stockAdvisor':
+        file_names = ['aapl', 'googl', 'amzn', 'fb', 'msft', 'ibm']
+        start_time = time.time()
+        print start_time
+        print "*"*100
+        stockObj = stockAdvisor(spark, file_names)
+        stockObj.Run()
+        return 0
+
+
     ########################## Load the dataframe ##############################
     df = None
     datasource_type = config.get("DATA_SOURCE").get("datasource_type")
@@ -570,19 +603,20 @@ def main(configJson):
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         return response
     else:
-        analysistype = dataframe_context.get_analysis_type()
-        print "ANALYSIS TYPE : ", analysistype
-        scripts_to_run = dataframe_context.get_scripts_to_run()
-        # scripts_to_run = dataframe_context.get_analysis_list()
-        print scripts_to_run
-        if scripts_to_run==None:
-            scripts_to_run = []
-        appid = dataframe_context.get_app_id()
-        df_helper = DataFrameHelper(df, dataframe_context)
-        df_helper.set_params()
-        df = df_helper.get_data_frame()
-        measure_columns = df_helper.get_numeric_columns()
-        dimension_columns = df_helper.get_string_columns()
+        if jobType != 'stockAdvisor':
+            analysistype = dataframe_context.get_analysis_type()
+            print "ANALYSIS TYPE : ", analysistype
+            scripts_to_run = dataframe_context.get_scripts_to_run()
+            # scripts_to_run = dataframe_context.get_analysis_list()
+            print scripts_to_run
+            if scripts_to_run==None:
+                scripts_to_run = []
+            appid = dataframe_context.get_app_id()
+            df_helper = DataFrameHelper(df, dataframe_context)
+            df_helper.set_params()
+            df = df_helper.get_data_frame()
+            measure_columns = df_helper.get_numeric_columns()
+            dimension_columns = df_helper.get_string_columns()
 
     if jobType == "subSetting":
         print "starting subsetting"
