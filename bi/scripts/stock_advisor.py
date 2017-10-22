@@ -20,7 +20,7 @@ class stockAdvisor:
 
     def read_json(self, file_name):
         # sql = SQLContext(self._spark)
-        name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".json"
+        name = "/home/marlabs/codebase/stock-advisor/data/" + file_name + ".json"
         # df = sql.jsonFile(name)
         # content = json.loads(open(name).read())
         df = self._spark.read.json(name)
@@ -68,12 +68,22 @@ class stockAdvisor:
 
         return (positive_articles, negative_articles)
 
+    def get_stock_change(self, df_historic):
+        sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
+        start_price = float(sorted_list[-1]['close'])
+        end_price = float(sorted_list[0]['close'])
+        print "start_price", start_price
+        print "end_price" , end_price
+
+        return (end_price-start_price, ((end_price-start_price)*100.0)/start_price )
+
     def Run(self):
         print "In stockAdvisor"
         data_dict_files = {}
-        for file_name in self._file_names:
+        for stock_symbol in self._file_names:
             # df = self.read_csv(file_name)
-            df = self.read_json(file_name)
+            df = self.read_json(stock_symbol)
+            df_historic = self.read_json(stock_symbol+"_historic")
 
             # unpacked_df = self.unpack_df(df)
             # unpacked_df.cache()
@@ -91,6 +101,10 @@ class stockAdvisor:
             sentiment_change = self.get_sentiment_change(df)
             print "sentiment_change : ", sentiment_change
             # stock_value_change = self.get_stock_value_change(unpacked_df)
+            # sentiment_change = self.get_sentiment_change(df)
+            (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
+            print "stock_value_change : ", stock_value_change
+            print "stock_percent_change : ", stock_percent_change
 
             number_articles_per_source = self.get_number_articles_per_source(df)
             print "number_articles_per_source : ", number_articles_per_source
@@ -133,3 +147,4 @@ class stockAdvisor:
             # y-axis - Independant Variables"
             # '''
             # key_parameters_impacting_stock = self.get_key_parameters_impacting_stock(unpacked_df)
+            
