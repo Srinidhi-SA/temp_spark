@@ -47,7 +47,8 @@ class stockAdvisor:
         return sentiment/df.count()
 
     def get_sentiment_change(self, df):
-        pass
+        change = list((x["time"], x["sentiment"]["document"]["score"]) for x in df.rdd.sortBy(lambda x : x["time"], ascending=True).collect())
+        return change[len(change)-1][1] - change[0][1]
 
     def get_number_articles_per_source(self, df):
         return dict(df.groupby('source').count().rdd.collect())
@@ -62,8 +63,8 @@ class stockAdvisor:
         return dict((x['text'], x['relevance']) for x in df.select('keywords').rdd.flatMap(lambda x: x).flatMap(lambda x: x).sortBy(lambda x: x['relevance'], ascending=False).collect())
 
     def get_top_events(self, df):
-        positive_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending: False).filter(lambda x : x['sentiment']['document']['score'] > 0).collect())
-        negative_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending: False).filter(lambda x : x['sentiment']['document']['score'] < 0).collect())
+        positive_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending=False).filter(lambda x : x['sentiment']['document']['score'] > 0).collect())
+        negative_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending=False).filter(lambda x : x['sentiment']['document']['score'] < 0).collect())
 
         return (positive_articles, negative_articles)
 
@@ -87,7 +88,8 @@ class stockAdvisor:
             avg_sentiment_score = self.get_stock_sentiment(df)
             print "avg_sentiment_score : ", avg_sentiment_score
 
-            # sentiment_change = self.get_sentiment_change(df)
+            sentiment_change = self.get_sentiment_change(df)
+            print "sentiment_change : ", sentiment_change
             # stock_value_change = self.get_stock_value_change(unpacked_df)
 
             number_articles_per_source = self.get_number_articles_per_source(df)
