@@ -59,6 +59,11 @@ class stockAdvisor:
             return_dict[item] = df.filter(df.source == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values()[0]
         return return_dict
 
+    def get_average_sentiment_per_date(self, df):
+        return_dict = {}
+        for item in dict(df.groupby('time').count().rdd.collect()):
+            return_dict[item] = df.filter(df.time == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values()[0]
+
     def get_top_keywords(self, df):
         return dict((x['text'], x['relevance']) for x in df.select('keywords').rdd.flatMap(lambda x: x).flatMap(lambda x: x).sortBy(lambda x: x['relevance'], ascending=False).collect())
 
@@ -117,7 +122,9 @@ class stockAdvisor:
             top_keywords = self.get_top_keywords(df)
             print "top_keywords : ", top_keywords
             # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
-            # average_sentiment_per_date = self.get_average_sentiment_per_date(unpacked_df)
+            average_sentiment_per_date = self.get_average_sentiment_per_date(df)
+            print "average_sentiment_per_date : ", average_sentiment_per_date
+
             (top_events_positive, top_events_negative) = self.get_top_events(df)
             print "top events positive : ", top_events_positive
             print "top events negative : ", top_events_negative
