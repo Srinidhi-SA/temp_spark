@@ -42,8 +42,9 @@ class TimeSeriesNarrative:
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
         self._trendSettings = self._dataframe_context.get_trend_settings()
+        self._trendSpecificMeasure = False
         if self._analysistype == "dimension" and self._trendSettings["name"] != "Count":
-            print "DSDAAAAAAAAAAAAAAAAAA"
+            self._trendSpecificMeasure = True
             self._analysistype = "measure"
             self._result_column = self._trendSettings["selectedMeasure"]
 
@@ -74,7 +75,10 @@ class TimeSeriesNarrative:
                     },
                 }
         elif self._analysistype == "measure":
-            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+            if self._trendSpecificMeasure:
+                self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+            else:
+                self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
             self._scriptStages = {
                 "trendNarrativeStart":{
                     "summary":"Started the Descriptive Stats Narratives",
