@@ -3,6 +3,9 @@ from pyspark.sql import SQLContext
 import pandas as pd
 
 class stockAdvisor:
+    # BASE_DIR = "/home/marlabs/codebase/stock-advisor/data/"
+    BASE_DIR = "/home/marlabs/Documents/stock-advisor/data/"
+
     def __init__(self, spark, file_names):
         self._spark = spark
         self._file_names = file_names
@@ -11,7 +14,7 @@ class stockAdvisor:
         sql = SQLContext(self._spark)
         print "-"*50
         print "Reading File : ", file_name + ".csv"
-        name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".csv"
+        name = self.BASE_DIR + file_name + ".csv"
         df = (sql.read
          .format("com.databricks.spark.csv")
          .option("header", "true")
@@ -20,7 +23,7 @@ class stockAdvisor:
 
     def read_json(self, file_name):
         # sql = SQLContext(self._spark)
-        name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".json"
+        name = self.BASE_DIR + file_name + ".json"
         # df = sql.jsonFile(name)
         # content = json.loads(open(name).read())
         df = self._spark.read.json(name)
@@ -88,14 +91,50 @@ class stockAdvisor:
         data_dict_overall["stock_percent_change"] = 0
         return data_dict_overall
 
+    def identify_concepts(self, df):
+        from pyspark.sql.functions import udf, col
+        from pyspark.sql.types import ArrayType
+
+        # temp_fun = udf( lambda x: self.get_concepts_for_item(x), ArrayType)
+        # new_df = df.withColumn("concepts", temp_fun(col("keywords")))
+        # new_df.printSchema()
+        return df
+
+    def load_concepts_from_json(self):
+        concepts = {}
+        for item in self._spark.read.json(self.BASE_DIR + "concepts.json").rdd.collect():
+            cur_dict = item.asDict()
+            for k in cur_dict:
+                print k
+                concepts[k] = cur_dict[k]
+        return concepts
+
+    def get_concepts_for_item(self, item):
+        print "="*20
+        print item
+        cur_keywords = [item["text"].lower() for item in item["keywords"]]
+        cur_concepts = []
+        # print set(keywords)
+        for key in self.concepts:
+            if set(self.concepts[key]).intersection(set(cur_keywords)):
+                cur_concepts.append(key)
+
+        print cur_concepts
+        return cur_concepts
+
     def Run(self):
         print "In stockAdvisor"
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
+        # self.concepts = [row.asDict() for row in self._spark.read.json(self.BASE_DIR + "concepts.json").rdd.collect()]
+        self.concepts = self.load_concepts_from_json()
+        print self.concepts
+
         for stock_symbol in self._file_names:
             # df = self.read_csv(file_name)
             df = self.read_json(stock_symbol)
             df_historic = self.read_json(stock_symbol+"_historic")
+            df_with_concepts = self.identify_concepts(df)
 
             # unpacked_df = self.unpack_df(df)
             # unpacked_df.cache()
@@ -173,6 +212,6 @@ class stockAdvisor:
 
         data_dict_overall["stock_value_change"] = data_dict_overall["stock_value_change"]/number_stocks
 
-        data_dict_overall["stock_percent_change"] = data_dict_overall["stock_percent_change"]/number_stocks 
+        data_dict_overall["stock_percent_change"] = data_dict_overall["stock_percent_change"]/number_stocks
 
         print data_dict_overall
