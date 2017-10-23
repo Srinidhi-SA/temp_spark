@@ -20,7 +20,7 @@ class stockAdvisor:
 
     def read_json(self, file_name):
         # sql = SQLContext(self._spark)
-        name = "/home/marlabs/codebase/stock-advisor/data/" + file_name + ".json"
+        name = "/home/marlabs/Documents/stock-advisor/data/" + file_name + ".json"
         # df = sql.jsonFile(name)
         # content = json.loads(open(name).read())
         df = self._spark.read.json(name)
@@ -63,6 +63,7 @@ class stockAdvisor:
         return_dict = {}
         for item in dict(df.groupby('time').count().rdd.collect()):
             return_dict[item] = df.filter(df.time == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values()[0]
+        return return_dict
 
     def get_top_keywords(self, df):
         return dict((x['text'], x['relevance']) for x in df.select('keywords').rdd.flatMap(lambda x: x).flatMap(lambda x: x).sortBy(lambda x: x['relevance'], ascending=False).collect())
@@ -70,21 +71,27 @@ class stockAdvisor:
     def get_top_events(self, df):
         positive_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending=False).filter(lambda x : x['sentiment']['document']['score'] > 0).collect())
         negative_articles = list((x['title'], x['sentiment']['document']['score']) for x in df.rdd.sortBy(lambda x: x['sentiment']['document']['score'], ascending=False).filter(lambda x : x['sentiment']['document']['score'] < 0).collect())
-
         return (positive_articles, negative_articles)
 
     def get_stock_change(self, df_historic):
         sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
         start_price = float(sorted_list[-1]['close'])
         end_price = float(sorted_list[0]['close'])
-        print "start_price", start_price
-        print "end_price" , end_price
-
         return (end_price-start_price, ((end_price-start_price)*100.0)/start_price )
+
+    def initialize_overall_dict(self):
+        data_dict_overall = {}
+        data_dict_overall["number_articles"] = 0
+        data_dict_overall["number_sources"] = 0
+        data_dict_overall["avg_sentiment_score"] = 0
+        data_dict_overall["stock_value_change"] = 0
+        data_dict_overall["stock_percent_change"] = 0
+        return data_dict_overall
 
     def Run(self):
         print "In stockAdvisor"
-        data_dict_files = {}
+        data_dict_stocks = {}
+        data_dict_overall = self.initialize_overall_dict()
         for stock_symbol in self._file_names:
             # df = self.read_csv(file_name)
             df = self.read_json(stock_symbol)
@@ -97,37 +104,43 @@ class stockAdvisor:
             # Start of Single Stock Analysis
             # '''
             number_articles = self.get_stock_articles(df)
+            data_dict_overall["number_articles"] += number_articles
             print "number_articles : ", number_articles
             number_sources = self.get_stock_sources(df)
+            data_dict_overall["number_sources"] += number_sources
             print "number_sources : ", number_sources
             avg_sentiment_score = self.get_stock_sentiment(df)
-            print "avg_sentiment_score : ", avg_sentiment_score
+            data_dict_overall["avg_sentiment_score"] += avg_sentiment_score
+            # print "avg_sentiment_score : ", avg_sentiment_score
 
             sentiment_change = self.get_sentiment_change(df)
-            print "sentiment_change : ", sentiment_change
+            # print "sentiment_change : ", sentiment_change
             # stock_value_change = self.get_stock_value_change(unpacked_df)
             # sentiment_change = self.get_sentiment_change(df)
             (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
-            print "stock_value_change : ", stock_value_change
-            print "stock_percent_change : ", stock_percent_change
+            data_dict_overall["stock_value_change"] += stock_value_change
+            data_dict_overall["stock_percent_change"] += stock_percent_change
+
+            # print "stock_value_change : ", stock_value_change
+            # print "stock_percent_change : ", stock_percent_change
 
             number_articles_per_source = self.get_number_articles_per_source(df)
-            print "number_articles_per_source : ", number_articles_per_source
+            # print "number_articles_per_source : ", number_articles_per_source
             average_sentiment_per_source = self.get_average_sentiment_per_source(df, number_articles_per_source)
-            print "average_sentiment_per_source : ", average_sentiment_per_source
+            # print "average_sentiment_per_source : ", average_sentiment_per_source
             #
             # # number_articles_per_concept = self.get_number_articles_per_concept(unpacked_df)
             # # average_sentiment_per_concept = self.get_average_sentiment_per_concept(unpacked_df)
             #
             top_keywords = self.get_top_keywords(df)
-            print "top_keywords : ", top_keywords
+            # print "top_keywords : ", top_keywords
             # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
             average_sentiment_per_date = self.get_average_sentiment_per_date(df)
-            print "average_sentiment_per_date : ", average_sentiment_per_date
+            # print "average_sentiment_per_date : ", average_sentiment_per_date
 
             (top_events_positive, top_events_negative) = self.get_top_events(df)
-            print "top events positive : ", top_events_positive
-            print "top events negative : ", top_events_negative
+            # print "top events positive : ", top_events_positive
+            # print "top events negative : ", top_events_negative
 
             # top_days = self.get_top_days(unpacked_df)
             # '''
@@ -154,4 +167,12 @@ class stockAdvisor:
             # y-axis - Independant Variables"
             # '''
             # key_parameters_impacting_stock = self.get_key_parameters_impacting_stock(unpacked_df)
-            
+        print "_"*50
+        number_stocks = len(self._file_names)
+        data_dict_overall["avg_sentiment_score"] = data_dict_overall["avg_sentiment_score"]/number_stocks
+
+        data_dict_overall["stock_value_change"] = data_dict_overall["stock_value_change"]/number_stocks
+
+        data_dict_overall["stock_percent_change"] = data_dict_overall["stock_percent_change"]/number_stocks 
+
+        print data_dict_overall

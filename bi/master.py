@@ -559,7 +559,7 @@ def main(configJson):
     ########################## Stock Advisor App, does not need a dataframe ##############################
     if jobType == 'stockAdvisor':
         # file_names = ['aapl', 'googl', 'amzn', 'fb', 'msft', 'ibm']
-        file_names = ['googl']
+        file_names = ['googl', 'aapl']
 
         start_time = time.time()
         print start_time
