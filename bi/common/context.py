@@ -234,7 +234,10 @@ class ContextSetter:
                 self.analysisList = [self.scriptsMapping[x] for x in analysisList]
                 self.analysisDict = dict(zip(self.analysisList,analysisDictList))
             if "trendSettings" in advanceSettingKeys:
-                self.trendSettings = self.ADVANCE_SETTINGS["trendSettings"]
+                trendSettingObj = self.ADVANCE_SETTINGS["trendSettings"]
+                self.trendSettings = [obj for obj in trendSettingObj if obj["status"]==True][0]
+            if "targetLevels" in advanceSettingKeys:
+                self.targetLevels = self.ADVANCE_SETTINGS["targetLevels"]
 
         if len(transformSettingsKeys) > 0:
             if "newColumns" in transformSettingsKeys:
@@ -259,6 +262,12 @@ class ContextSetter:
                 self.existingColumnTransformsSettings = validColumnActions
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
+
+    def get_trend_settings(self):
+        return self.trendSettings
+
+    def get_target_levels(self):
+        return self.targetLevels
 
     def get_measure_analysis_weight(self):
         return self.measureAnalysisWeight

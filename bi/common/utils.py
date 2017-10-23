@@ -456,12 +456,12 @@ def get_test_configs():
                     "trendSettings" : [
                         {
                             "name" : "Count",
-                            "status" : True
+                            "status" : False
                         },
                         {
                             "name" : "Specific Measure",
-                            "selectedMeasure" : None,
-                            "status" : False
+                            "selectedMeasure" : "Tenure_in_Days",
+                            "status" : True
                         }
                     ]
                 },

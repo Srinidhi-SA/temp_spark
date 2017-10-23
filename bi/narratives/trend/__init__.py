@@ -41,6 +41,12 @@ class TimeSeriesNarrative:
         self._string_columns = df_helper.get_string_columns()
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
+        self._trendSettings = self._dataframe_context.get_trend_settings()
+        if self._analysistype == "dimension" and self._trendSettings["name"] != "Count":
+            print "DSDAAAAAAAAAAAAAAAAAA"
+            self._analysistype = "measure"
+            self._result_column = self._trendSettings["selectedMeasure"]
+
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
