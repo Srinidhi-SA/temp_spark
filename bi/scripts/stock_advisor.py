@@ -4,7 +4,7 @@ import pandas as pd
 
 class stockAdvisor:
     # BASE_DIR = "/home/marlabs/codebase/stock-advisor/data/"
-    BASE_DIR = "/home/marlabs/Documents/stock-advisor/data/"
+    BASE_DIR = "file:///home/gulshan/marlabs/datasets/"
 
     def __init__(self, spark, file_names):
         self._spark = spark
