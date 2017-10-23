@@ -123,6 +123,7 @@ class stockAdvisor:
         data_dict_overall["number_articles_by_stock"] = {}
         data_dict_overall["number_articles_per_source"] = {}
         data_dict_overall["stocks_by_sentiment"] = {}
+        data_dict_overall["top_keywords"] = {}
         return data_dict_overall
 
     def Run(self):
@@ -181,6 +182,7 @@ class stockAdvisor:
 
             top_keywords = self.get_top_keywords(df)
             # print "top_keywords : ", top_keywords
+            data_dict_overall["top_keywords"] = dict(Counter(top_keywords) + Counter(data_dict_overall["top_keywords"]))
 
             # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
 
