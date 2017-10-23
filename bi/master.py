@@ -141,7 +141,7 @@ def main(configJson):
         analysistype = dataframe_context.get_analysis_type()
         print "ANALYSIS TYPE : ", analysistype
         # scripts_to_run = dataframe_context.get_scripts_to_run()
-        scripts_to_run = dataframe_context.get_analysis_list()
+        scripts_to_run = dataframe_context.get_analysis_name_list()
         print "scripts_to_run",scripts_to_run
         if scripts_to_run==None:
             scripts_to_run = []

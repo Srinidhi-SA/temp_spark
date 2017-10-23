@@ -384,15 +384,62 @@ def get_test_configs():
                             "analysisSubTypes" : [],
                             "displayName" : "Influencers",
                             "name" : "influencers",
-                            "noOfColumnsToUse" : None,
+                            "noOfColumnsToUse" : [{
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : True,
+                                "value" : 12
+                            }],
                             "status" : True
                         },
                         {
                             "analysisSubTypes" : [],
                             "displayName" : "Performance",
                             "name" : "performance",
-                            "noOfColumnsToUse" : [
-                            ],
+                            "noOfColumnsToUse" : [{
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : True,
+                                "value" : 13
+                            }],
                             "status" : True
                         }
                     ],

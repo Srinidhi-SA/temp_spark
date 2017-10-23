@@ -66,6 +66,7 @@ class ContextSetter:
         self.dimensionAnalysisWeight = {}
         self.globalCompletionStatus = 0
         self.currentAnalysis = None
+        self.analysisDict = {}
 
 
     def set_model_path(self,data):
@@ -204,11 +205,34 @@ class ContextSetter:
             if "analysis" in advanceSettingKeys:
                 analysis_array = self.ADVANCE_SETTINGS["analysis"]
                 analysisList = [obj["name"] for obj in analysis_array if obj["status"] == True]
+                analysisDictList = []
+                for obj in analysis_array:
+                    tempDict = {}
+                    if obj["status"] == True:
+                        tempDict["analysisSubTypes"] = [val["name"] for val in obj["analysisSubTypes"] if val["status"]==True]
+                        tempDict["name"] = obj["name"]
+                        tempDict["displayName"] = obj["displayName"]
+                        if obj["noOfColumnsToUse"] == None:
+                            tempDict["noOfColumnsToUse"] = None
+                        else:
+                            nCols = [val["value"] if val["name"]=="custom" else val["defaultValue"] for val in [k for k in obj["noOfColumnsToUse"] if k["status"]==True]]
+                            tempDict["noOfColumnsToUse"] = nCols[0]
+                        analysisDictList.append(tempDict)
                 # adding overview to analysisList
                 # required to create the summary node
                 if "overview" not in analysisList:
                     analysisList.append("overview")
+                    analysisDictList.append(
+                        {
+                            "analysisSubTypes" : [],
+                            "displayName" : "Overview",
+                            "name" : "overview",
+                            "noOfColumnsToUse" : None,
+                            "status" : True
+                        }
+                    )
                 self.analysisList = [self.scriptsMapping[x] for x in analysisList]
+                self.analysisDict = dict(zip(self.analysisList,analysisDictList))
             if "trendSettings" in advanceSettingKeys:
                 self.trendSettings = self.ADVANCE_SETTINGS["trendSettings"]
 
@@ -255,9 +279,10 @@ class ContextSetter:
     def get_new_column_transform_settings(self):
         return self.newColumnTransformsSettings
 
+    def get_analysis_dict(self):
+        return self.analysisDict
 
-    def get_analysis_list(self):
-        # output = [self.scriptsMapping[x] for x in self.analysisList]
+    def get_analysis_name_list(self):
         return self.analysisList
 
     def get_algorithm_slug(self):

@@ -16,23 +16,13 @@ class TwoWayAnovaScript:
         self._spark = spark
 
     def Run(self):
-        analysisName = self._dataframe_context.get_analysis_name()
-        scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
-        completionStatus = self._dataframe_context.get_completion_status()
-
         df_anova_obj = TwoWayAnova(self._data_frame, self._dataframe_helper, self._dataframe_context).test_all(measure_columns=(self._dataframe_context.get_result_column(),))
         df_anova_result = CommonUtils.as_dict(df_anova_obj)
-
-        completionStatus += scriptWeightDict[analysisName]["script"]
-        self._dataframe_context.update_completion_status(completionStatus)
 
         # print 'RESULT: %s' % (json.dumps(df_anova_result, indent=2))
 
         anova_narratives_obj = AnovaNarratives(df_anova_obj,self._dataframe_helper,self._dataframe_context,self._result_setter,self._story_narrative)
         anova_narratives = CommonUtils.as_dict(anova_narratives_obj)
-
-        completionStatus += scriptWeightDict[analysisName]["narratives"]
-        self._dataframe_context.update_completion_status(completionStatus)
         # print anova_narratives
         # DataWriter.write_dict_as_json(self._spark, {'RESULT':json.dumps(df_anova_result['result'])}, self._dataframe_context.get_result_file()+'OneWayAnova/')
         # DataWriter.write_dict_as_json(self._spark, {'narratives':json.dumps(anova_narratives['narratives'])}, self._dataframe_context.get_narratives_file()+'OneWayAnova/')

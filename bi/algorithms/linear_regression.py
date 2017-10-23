@@ -24,6 +24,7 @@ class LinearRegression:
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
+        self._analysisDict = self._dataframe_context.get_analysis_dict()
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
         self._scriptStages = {
@@ -70,7 +71,9 @@ class LinearRegression:
 
         if input_columns == None:
             input_columns = list(set(self._dataframe_helper.get_numeric_columns())-set([output_column]))
-
+        nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        if nColsToUse != None:
+            input_columns = input_columns[:nColsToUse]
         if len(set(input_columns) - set(self._dataframe_helper.get_numeric_columns())) != 0:
             raise BIException('At least one of the input columns %r is not a measure column' % (input_columns,))
 
@@ -89,7 +92,6 @@ class LinearRegression:
         for input_col in input_columns:
             # print "doing regression for:",input_col
             level_count = training_df.select(input_col).distinct().count()
-            # print level_count
             if level_count < 2:
                 # print "unique values less than 2"
                 p_values.append(1.0)
