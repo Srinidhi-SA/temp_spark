@@ -9,7 +9,7 @@ CATEGORY4 = "Innovation & Product Launch"
 CATEGORY5 = "Legal & Compliance"
 CATEGORY6 = "Market Potential & Growth"
 catJsonPath = "/home/marlabs/codebase/stock-advisor/jsondata/stockCategories_nl_understanding.json"
-filterLimitOnKeywords = 10
+filterLimitOnKeywords = 20
 
 cat1Keywords = []
 cat2Keywords = []
