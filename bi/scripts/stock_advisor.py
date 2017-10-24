@@ -47,7 +47,7 @@ class StockAdvisor:
         tf = open(tempFileName,"w")
         tf.write(req_data)
         tf.close()
-        df = self._spark.read.json(tempFileName)
+        df = self._spark.read.json("file:///"+tempFileName)
         return df
 
     def unpack_df(self, df):
