@@ -33,12 +33,8 @@ class StockAdvisor:
          .load(name))
         return df
 
-    def read_json(self, file_name):
-        # sql = SQLContext(self._spark)
-        name = self.BASE_DIR + file_name
-        # df = sql.jsonFile(name)
-        # content = json.loads(open(name).read())
-        df = self._spark.read.json(name)
+    def read_json(self, filepath):
+        df = self._spark.read.json(filepath)
         return df
 
     def unpack_df(self, df):
@@ -249,8 +245,8 @@ class StockAdvisor:
         for stock_symbol in self._file_names:
             #-------------- Read Operations ----------------
             if self._runEnv == "debugMode":
-                df = self.read_json(stock_symbol+".json")
-                df_historic = self.read_json(stock_symbol+"_historic.json")
+                df = self.read_json(self.BASE_DIR+stock_symbol+".json")
+                df_historic = self.read_json(self.BASE_DIR+stock_symbol+"_historic.json")
             else:
                 df = self.read_json(self.dataFilePath.format("bluemix",stock_symbol))
                 df_historic = self.read_json(self.dataFilePath.format("historical",stock_symbol))
