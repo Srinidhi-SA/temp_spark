@@ -13,7 +13,7 @@ class StockAdvisor:
     # BASE_DIR = "/home/marlabs/codebase/stock-advisor/data/"
     BASE_DIR = "file:///home/gulshan/marlabs/datasets/"
 
-    def __init__(self, spark, file_names):
+    def __init__(self, spark, file_names,result_setter):
         self._spark = spark
         self._file_names = file_names
         self._sqlContext = SQLContext(self._spark)
@@ -332,3 +332,4 @@ class StockAdvisor:
         data_dict_overall["max_sentiment_change"] = {key:value}
 
         print data_dict_overall
+        return data_dict_overall

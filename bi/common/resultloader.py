@@ -6,8 +6,7 @@ class ResultSetter:
     Provides helper method to store all the different result and narratives.
     """
 
-    def __init__(self, data_frame, df_context):
-        self._data_frame = data_frame
+    def __init__(self, df_context):
         self.executiveSummaryDataDict = {}
         self.trend_subsection_name = None
         self.trend_subsection_data = None
@@ -28,11 +27,9 @@ class ResultSetter:
         self.xgbcards = []
         self.scorefreqcard = None
         self.scorechicards = []
-        
+        self.stockAdvisorNode = None
 
-    # def set_params(self):
-    #     self.columns = [field.name for field in self._data_frame.schema.fields]
-    #     self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
+
     def get_score_cards(self):
         if self.scorefreqcard != None:
             out = [self.scorefreqcard]+self.scorechicards

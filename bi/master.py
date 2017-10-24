@@ -64,7 +64,7 @@ def main(configJson):
             print "Running in debugMode"
             # Test Configs are defined in bi/common/utils.py
             testConfigs = CommonUtils.get_test_configs()
-            configJson = testConfigs["stockAdvisor"]
+            configJson = testConfigs["story"]
 
 
     ######################## Craeting Spark Session ###########################
@@ -87,14 +87,18 @@ def main(configJson):
     messageURL = dataframe_context.get_message_url()
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
     CommonUtils.save_progress_message(messageURL,progressMessage)
+    result_setter = ResultSetter(dataframe_context)
     ################################### Stock ADVISOR ##########################
     if jobType == 'stockAdvisor':
         file_names = dataframe_context.get_stock_symbol_list()
         start_time = time.time()
         print start_time
         print "*"*100
-        stockObj = StockAdvisor(spark, file_names)
-        stockObj.Run()
+        stockObj = StockAdvisor(spark, file_names,result_setter)
+        stockAdvisorData = stockObj.Run()
+        stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
+
     ############################################################################
     if jobType == "story":
         analysistype = dataframe_context.get_analysis_type()
@@ -189,7 +193,7 @@ def main(configJson):
     if jobType == "story":
         #Initializing the result_setter
         messageURL = dataframe_context.get_message_url()
-        result_setter = ResultSetter(df,dataframe_context)
+        result_setter = ResultSetter(dataframe_context)
         story_narrative = NarrativesTree()
         story_narrative.set_name("{} Performance Report".format(dataframe_context.get_result_column()))
 
@@ -419,7 +423,7 @@ def main(configJson):
     elif jobType == 'training':
         prediction_narrative = NarrativesTree()
         prediction_narrative.set_name("models")
-        result_setter = ResultSetter(df,dataframe_context)
+        result_setter = ResultSetter(dataframe_context)
         df_helper.remove_null_rows(dataframe_context.get_result_column())
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
@@ -528,7 +532,7 @@ def main(configJson):
         st = time.time()
         story_narrative = NarrativesTree()
         story_narrative.set_name("scores")
-        result_setter = ResultSetter(df,dataframe_context)
+        result_setter = ResultSetter(dataframe_context)
         model_path = dataframe_context.get_model_path()
         print "model path",model_path
         result_column = dataframe_context.get_result_column()
