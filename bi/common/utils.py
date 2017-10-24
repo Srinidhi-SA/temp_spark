@@ -785,28 +785,45 @@ def get_test_configs():
             }
         },
         "stockAdvisor":{
-              "config" : {
-                "STOCK_SETTINGS":{
-                    "stockSymbolList": ['googl', 'aapl'],
-                    "dataAPI": ""
-                }
+            "config" : {
+              "COLUMN_SETTINGS" : {
+                "analysis_type" : [
+                  "metaData"
+                ]
               },
-              "job_config" : {
-                  "get_config" : {
-                      "action" : "get_config",
-                      "method" : "GET"
-                  },
-                  "job_name" : "test subsetting",
-                  "job_type" : "stockAdvisor",
-                  "job_url" : "",
-                  "message_url" : "http://34.196.204.54:9012/api/messages/Dataset_trend_gulshancsv-h85lh79ybd_123/",
-                  "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
-                  "set_result" : {
-                      "action" : "result",
-                      "method" : "PUT"
-                  }
+              "DATA_SOURCE" : {
+                "datasource_details" : ""
+              },
+              "DATE_SETTINGS" : {},
+              "FILE_SETTINGS" : {
+                "inputfile" : [
+                  ""
+                ]
+              },
+              "STOCK_SETTINGS" : {
+                "dataAPI" : [
+                  "http://34.196.204.54:9012/api/stockdatasetfiles/stocking_is_what_i_do-poxn6kr7bu/"
+                ],
+                "stockSymbolList" : [
+                  "googl"
+                ]
               }
-          }
+            },
+            "job_config" : {
+              "get_config" : {
+                "action" : "get_config",
+                "method" : "GET"
+              },
+              "job_name" : "stocking_is_what_i_do",
+              "job_type" : "stockAdvisor",
+              "job_url" : "http://34.196.204.54:9012/api/job/stockadvisor-stocking_is_what_i_do-poxn6kr7bu-57k3ompq8c/",
+              "message_url" : "http://34.196.204.54:9012/api/messages/StockDataset_stocking_is_what_i_do-poxn6kr7bu_123/",
+              "set_result" : {
+                "action" : "result",
+                "method" : "PUT"
+              }
+            }
+        }
     }
     return testConfigs
 

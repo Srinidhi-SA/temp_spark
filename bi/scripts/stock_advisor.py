@@ -331,5 +331,5 @@ class StockAdvisor:
         key,value = max(data_dict_overall["max_sentiment_change"].iteritems(), key = lambda p: p[1])
         data_dict_overall["max_sentiment_change"] = {key:value}
 
-        print data_dict_overall
-        return data_dict_overall
+        # print data_dict_overall
+        return nArticlesAndSentimentsPerConcept

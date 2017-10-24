@@ -88,18 +88,7 @@ def main(configJson):
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
     CommonUtils.save_progress_message(messageURL,progressMessage)
     result_setter = ResultSetter(dataframe_context)
-    ################################### Stock ADVISOR ##########################
-    if jobType == 'stockAdvisor':
-        file_names = dataframe_context.get_stock_symbol_list()
-        start_time = time.time()
-        print start_time
-        print "*"*100
-        stockObj = StockAdvisor(spark, file_names,result_setter)
-        stockAdvisorData = stockObj.Run()
-        stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
 
-    ############################################################################
     if jobType == "story":
         analysistype = dataframe_context.get_analysis_type()
         if analysistype == "measure":
@@ -125,11 +114,12 @@ def main(configJson):
     if "fileUpload" ==  datasource_type:
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
 
-    # Dropping blank rows
-    df = df.dropna(how='all', thresh=None, subset=None)
-    print "FILE LOADED: ", dataframe_context.get_input_file()
-    data_load_time = time.time() - start_time
     script_start_time = time.time()
+    if df != None:
+        # Dropping blank rows
+        df = df.dropna(how='all', thresh=None, subset=None)
+        print "FILE LOADED: ", dataframe_context.get_input_file()
+        data_load_time = time.time() - start_time
     if jobType == "story":
         print scriptWeightDict
         completionStatus += scriptWeightDict["initialization"]["total"]
@@ -139,6 +129,20 @@ def main(configJson):
     else:
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",1,1)
         CommonUtils.save_progress_message(messageURL,progressMessage)
+
+
+    ################################### Stock ADVISOR ##########################
+    if jobType == 'stockAdvisor':
+        file_names = dataframe_context.get_stock_symbol_list()
+        start_time = time.time()
+        print start_time
+        print "*"*100
+        stockObj = StockAdvisor(spark, file_names,result_setter)
+        stockAdvisorData = stockObj.Run()
+        stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
+
+    ############################################################################
 
     if jobType == "metaData":
         fs = time.time()
@@ -150,7 +154,7 @@ def main(configJson):
         print "metaData Analysis Done in ", time.time() - fs, " seconds."
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         return response
-    else:
+    elif jobType != "stockAdvisor":
         analysistype = dataframe_context.get_analysis_type()
         print "ANALYSIS TYPE : ", analysistype
         # scripts_to_run = dataframe_context.get_scripts_to_run()
@@ -591,9 +595,9 @@ def main(configJson):
         return response
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
-    print "Data Load Time : ", data_load_time, " seconds."
+    if df != None:
+        print "Data Load Time : ", data_load_time, " seconds."
     #spark.stop()
-    return (" "+ "="*100 + " ").join(LOGGER)
 
 if __name__ == '__main__':
     main(sys.argv[1])
