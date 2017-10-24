@@ -364,3 +364,234 @@ class StockAdvisor:
                 ]
         }
         return sampleOutput
+    def __generate_normal_card(self, name, html):
+        return {
+                "cardType": "normal",
+                "name": name,
+                "slug": self.genarate_slug(name),
+                "cardData": [
+                    {
+                        "dataType": "html",
+                        "data": '<p><h2>{}</h2>{}</p>'.format(name, html)
+                    }
+                ]
+            }
+
+    def __generate_react_gauge_chart_card(self, name, score):
+        score = round(score, 2)
+        gauge_c3_chart_data = {
+            "dataType": "gauge",
+            "data": {
+                    "min" : -1,
+                    "max" : 1,
+                    "value" : score,
+                    "segments" : 2
+                }
+
+        }
+
+        return gauge_c3_chart_data
+
+    def __generate_c3_gauge_chart_card(self, name, score):
+
+        score = round(score, 2)
+        gauge_c3_chart_data = {
+            "dataType": "c3Chart",
+            "data": {
+                "chart_c3": {
+                    "color": {
+                        "threshold": {
+                            "values": [
+                                -1,
+                                0,
+                                0.5,
+                                1
+                            ],
+                            "unit": "value"
+                        },
+                        "pattern": [
+                            '#0fc4b5',
+                            '#005662',
+                            '#148071',
+                            '#6cba86'
+                        ]
+                    },
+                    "data": {
+                        "type": "gauge",
+                        "columns": [
+                            [
+                                "data",
+                                score
+                            ]
+                        ]
+                    },
+                    "gauge": {
+                        "label": {
+                            "format" : ""
+                        },
+                        "max": 1,
+                        "min": -1,
+                        "width": 39
+                    },
+                    "size": {
+                        "height": 180
+                    }
+                },
+                "gauge_format": True,
+                # "xdata":["score"],
+                # "table_c3": [
+                #     ['score', score]
+                # ]
+            }
+        }
+
+        return gauge_c3_chart_data
+
+    def generate_para_html(self):
+        emotions_sorted = sorted(self.nl_understanding.get("emotion").get("document").get("emotion").items(),
+                                 key=lambda (key, val): val, reverse=True)
+        (best_emotion, best_value) = emotions_sorted[0]
+        (second_best_emotion, second_best_value) = emotions_sorted[1]
+        keywords = self.nl_understanding.get("keywords")
+        keywords_html = " and ".join(
+            ["<strong>{} ({})</strong>".format(item.get("text"), round(item.get("relevance"), 2)) for item in keywords[:2]])
+
+        categories_html = " and ".join(["<strong>{}</strong>".format(item.get("label").split("/")[-1]) for item in
+                                    self.nl_understanding.get("categories")[:2]])
+
+        return """<p>The overall sentiment in the speech seems to be <strong>{} {}</strong>.
+            The most predominant emotion is <strong>{}</strong> at around <strong>{}%</strong>.
+            Another important emotion identified is  <strong>{}</strong> at <strong>{}%</strong>.
+           mAdvisor identified <strong>{} keywords</strong> in the speech,
+            {}
+            having the highest relevance.
+           The major categories are {}.</p>
+             """.format(self.nl_understanding.get("sentiment").get("document").get("label"),
+                        round(self.nl_understanding.get("sentiment").get("document").get("score"), 2),
+                        best_emotion, int(best_value * 100),
+                        second_best_emotion, int(second_best_value * 100),
+                        len(keywords),
+                        keywords_html,
+                        categories_html
+                        )
+
+
+    def get_bar_chart(self, data, rotate=False, x="label", y="score", label_text=None):
+
+        c3 = C3chart_ML(
+            axes={
+                "x": x,
+                "y": y
+            },
+            label_text=label_text,
+            data=data,
+            axisRotation=rotate
+        )
+        details = c3.get_details()
+
+        # decoded_chart =  decode_and_convert_chart_raw_data(details)
+
+        # del decoded_chart['chart_c3']['axis']['x']['tick']['format']
+        # del decoded_chart['chart_c3']['axis']['y']['tick']['format']
+        # del decoded_chart['yformat']
+
+        return {
+            "dataType": "c3Chart",
+            "data": details
+        }
+
+
+    def get_categories_bar(self, categories):
+
+        data = categories
+        return self.get_bar_chart(
+            data=data,
+            label_text={
+                "x": "category",
+                "y": "score"
+            }
+        )
+
+    def get_keywords_bar(self, keywords):
+
+        data = []
+
+        for d in keywords:
+            temp = {}
+            temp['text'] = d.get('text')
+            temp['score'] = d.get('relevance')
+            data.append(temp)
+
+        return self.get_bar_chart(
+            data=data,
+            x='text',
+            y='score',
+            label_text={
+                "x": "keyword",
+                "y": "score"
+            }
+        )
+
+    def get_entities_bar(self, entities):
+
+        data = []
+
+        for d in entities:
+            temp = {}
+            temp['type'] = d.get('type')
+            temp['relevance'] = d.get('relevance')
+            data.append(temp)
+
+        return self.get_bar_chart(
+            data=data,
+            x='type',
+            y='relevance',
+            label_text={
+                "x": "entity",
+                "y": "relevance"
+            }
+        )
+
+
+class C3chart_ML(object):
+
+    def __init__(self, **kwrgs):
+        self.chart_type = kwrgs.get('chart_type', 'bar')
+        self.axes = kwrgs.get('axes', {})
+        self.label_text = kwrgs.get('label_text', {})
+        self.types = kwrgs.get('types')
+        self.axisRotation = kwrgs.get('axisRotation', False)
+        self.yAxisNumberFormat = kwrgs.get('yAxisNumberFormat', ".2f")
+        # self.y2AxisNumberFormat = kwrgs.get('y2AxisNumberFormat', False)
+        self.showLegend = kwrgs.get('showLegend', False)
+        self.hide_xtick = kwrgs.get('hide_xtick', False)
+        self.subchart = kwrgs.get('subchart', False)
+        self.rotate = kwrgs.get('rotate', False)
+        self.data = kwrgs.get('data')
+        self.legend = {}
+
+    def get_details(self):
+
+        return {
+            'chart_type': self.chart_type,
+            'axes': self.axes,
+            'label_text': self.label_text,
+            'types': self.types,
+            'axisRotation': self.axisRotation,
+            'yAxisNumberFormat': self.yAxisNumberFormat,
+            'showLegend': self.showLegend,
+            'hide_xtick': self.hide_xtick,
+            'subchart': self.subchart,
+            'rotate': self.rotate,
+            'data': self.data,
+            'legend': self.legend
+        }
+
+    def update_data(self, data):
+        self.data = data
+
+    def rotate_axis(self):
+        self.axisRotation = True
+
+    def update_axes(self, axes):
+        self.axes = axes
