@@ -44,7 +44,9 @@ class StockAdvisor:
         req_data = req.read()
         randNO = str(int(random.random()*10000000))
         tempFileName = "/tmp/temp{}.csv".format(randNO)
-        open(tempFileName,"w").write(req_data)
+        tf = open(tempFileName,"w")
+        tf.write(req_data)
+        tf.close()
         df = self._spark.read.json(tempFileName)
         return df
 
