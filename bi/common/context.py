@@ -119,7 +119,8 @@ class ContextSetter:
 
         if len(fileSettingKeys) > 0:
             if "inputfile" in fileSettingKeys:
-                self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
+                if len(self.FILE_SETTINGS['inputfile']) > 0:
+                    self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
             if "outputfile" in fileSettingKeys:
                 self.OUTPUT_FILEPATH =self.FILE_SETTINGS['outputfile'][0]
             if "narratives_file" in fileSettingKeys:
