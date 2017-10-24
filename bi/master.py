@@ -186,7 +186,6 @@ def main(configJson):
 
         if analysistype == 'dimension':
             print "STARTING DIMENSION ANALYSIS ..."
-            LOGGER.append("STARTING DIMENSION ANALYSIS ...")
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
             if ('Descriptive analysis' in scripts_to_run):
@@ -320,7 +319,6 @@ def main(configJson):
                     CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
-                LOGGER.append("Starting Measure Vs. Measure analysis")
                 try:
                     fs = time.time()
                     dataframe_context.set_analysis_name("Measure vs. Measure")
@@ -360,7 +358,6 @@ def main(configJson):
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
-                    LOGGER.append("starting dtree")
                     fs = time.time()
                     dataframe_context.set_analysis_name("Predictive modeling")
                     df_helper.fill_na_dimension_nulls()
