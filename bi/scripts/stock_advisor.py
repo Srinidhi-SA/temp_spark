@@ -1,6 +1,7 @@
 import json
 from pyspark.sql import SQLContext
 import pandas as pd
+from collections import Counter
 
 class stockAdvisor:
     # BASE_DIR = "/home/marlabs/codebase/stock-advisor/data/"
@@ -82,15 +83,6 @@ class stockAdvisor:
         end_price = float(sorted_list[0]['close'])
         return (end_price-start_price, ((end_price-start_price)*100.0)/start_price )
 
-    def initialize_overall_dict(self):
-        data_dict_overall = {}
-        data_dict_overall["number_articles"] = 0
-        data_dict_overall["number_sources"] = 0
-        data_dict_overall["avg_sentiment_score"] = 0
-        data_dict_overall["stock_value_change"] = 0
-        data_dict_overall["stock_percent_change"] = 0
-        return data_dict_overall
-
     def identify_concepts(self, df):
         from pyspark.sql.functions import udf, col
         from pyspark.sql.types import ArrayType
@@ -105,7 +97,6 @@ class stockAdvisor:
         for item in self._spark.read.json(self.BASE_DIR + "concepts.json").rdd.collect():
             cur_dict = item.asDict()
             for k in cur_dict:
-                print k
                 concepts[k] = cur_dict[k]
         return concepts
 
@@ -118,9 +109,22 @@ class stockAdvisor:
         for key in self.concepts:
             if set(self.concepts[key]).intersection(set(cur_keywords)):
                 cur_concepts.append(key)
-
-        print cur_concepts
         return cur_concepts
+
+    def initialize_overall_dict(self):
+        data_dict_overall = {}
+        data_dict_overall["number_articles"] = 0
+        data_dict_overall["number_sources"] = 0
+        data_dict_overall["avg_sentiment_score"] = 0
+        data_dict_overall["stock_value_change"] = 0
+        data_dict_overall["stock_percent_change"] = 0
+        data_dict_overall["max_value_change"] = {}
+        data_dict_overall["max_sentiment_change"] = {}
+        data_dict_overall["number_articles_by_stock"] = {}
+        data_dict_overall["number_articles_per_source"] = {}
+        data_dict_overall["stocks_by_sentiment"] = {}
+        data_dict_overall["top_keywords"] = {}
+        return data_dict_overall
 
     def Run(self):
         print "In stockAdvisor"
@@ -128,52 +132,60 @@ class stockAdvisor:
         data_dict_overall = self.initialize_overall_dict()
         # self.concepts = [row.asDict() for row in self._spark.read.json(self.BASE_DIR + "concepts.json").rdd.collect()]
         self.concepts = self.load_concepts_from_json()
-        print self.concepts
 
         for stock_symbol in self._file_names:
+            #-------------- Read Operations ----------------
             # df = self.read_csv(file_name)
             df = self.read_json(stock_symbol)
             df_historic = self.read_json(stock_symbol+"_historic")
+
             df_with_concepts = self.identify_concepts(df)
 
-            # unpacked_df = self.unpack_df(df)
-            # unpacked_df.cache()
-
-            # '''
-            # Start of Single Stock Analysis
-            # '''
+            #-------------- Start Calculations ----------------
             number_articles = self.get_stock_articles(df)
             data_dict_overall["number_articles"] += number_articles
+            data_dict_overall["number_articles_by_stock"][stock_symbol] = number_articles
             print "number_articles : ", number_articles
+
             number_sources = self.get_stock_sources(df)
             data_dict_overall["number_sources"] += number_sources
             print "number_sources : ", number_sources
+
             avg_sentiment_score = self.get_stock_sentiment(df)
             data_dict_overall["avg_sentiment_score"] += avg_sentiment_score
+            data_dict_overall["stocks_by_sentiment"][stock_symbol] = avg_sentiment_score
             # print "avg_sentiment_score : ", avg_sentiment_score
 
             sentiment_change = self.get_sentiment_change(df)
+            data_dict_overall["max_sentiment_change"][stock_symbol]=sentiment_change
             # print "sentiment_change : ", sentiment_change
-            # stock_value_change = self.get_stock_value_change(unpacked_df)
-            # sentiment_change = self.get_sentiment_change(df)
+
             (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
             data_dict_overall["stock_value_change"] += stock_value_change
             data_dict_overall["stock_percent_change"] += stock_percent_change
-
+            data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
             # print "stock_value_change : ", stock_value_change
             # print "stock_percent_change : ", stock_percent_change
 
             number_articles_per_source = self.get_number_articles_per_source(df)
             # print "number_articles_per_source : ", number_articles_per_source
+            data_dict_overall["number_articles_per_source"] = dict(Counter(number_articles_per_source) + Counter(data_dict_overall["number_articles_per_source"]))
+
+
             average_sentiment_per_source = self.get_average_sentiment_per_source(df, number_articles_per_source)
             # print "average_sentiment_per_source : ", average_sentiment_per_source
             #
+
             # # number_articles_per_concept = self.get_number_articles_per_concept(unpacked_df)
             # # average_sentiment_per_concept = self.get_average_sentiment_per_concept(unpacked_df)
             #
+
             top_keywords = self.get_top_keywords(df)
             # print "top_keywords : ", top_keywords
+            data_dict_overall["top_keywords"] = dict(Counter(top_keywords) + Counter(data_dict_overall["top_keywords"]))
+
             # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
+
             average_sentiment_per_date = self.get_average_sentiment_per_date(df)
             # print "average_sentiment_per_date : ", average_sentiment_per_date
 
@@ -182,30 +194,13 @@ class stockAdvisor:
             # print "top events negative : ", top_events_negative
 
             # top_days = self.get_top_days(unpacked_df)
-            # '''
-            # # "Each concept has multiple keywords. Each keyword will be involved in multiple articles of varying sentiment.
-            # Calculate average sentiment for each keyword.
-            # 3 Values Required: Concept, keyword, Average sentiment score for keyword
-            # *The color coding should be based on the absolute value of the sentiment score. ie. Darkest green should be applicable for values close to both +1 and -1
-            # '''
+
             # sentiment_by_concept_by_keyword = self.get_sentiment_by_concept_by_keyword(unpacked_df)
-            #
-            # '''
-            # "
-            # Statistical Significance of Keywords (Chi-Square):
-            # Target variable is stock performance (High Medium Low) vs No of mentions of Keyword ( Positive or Negative Mentions)
-            # x-axis - Keyword
-            # y-axis - Effect Size
-            # Limit - Top 10"
-            # '''
+
             # statistical_significance_keywords = self.get_statistical_significance_keywords(unpacked_df)
-            # '''
-            # "Regression:
-            # Stock Price vs Overall Sentiment/ No of Articles/ No of Articles by Concepts/ Sentiment Score by Concepts/ Sentiment Score by Keywords/ Sentiment Score of Competition/ Stock Price of Competition/ Competition's Mentions
-            # x-axis - Regression Coeff
-            # y-axis - Independant Variables"
-            # '''
+
             # key_parameters_impacting_stock = self.get_key_parameters_impacting_stock(unpacked_df)
+
         print "_"*50
         number_stocks = len(self._file_names)
         data_dict_overall["avg_sentiment_score"] = data_dict_overall["avg_sentiment_score"]/number_stocks
@@ -213,5 +208,11 @@ class stockAdvisor:
         data_dict_overall["stock_value_change"] = data_dict_overall["stock_value_change"]/number_stocks
 
         data_dict_overall["stock_percent_change"] = data_dict_overall["stock_percent_change"]/number_stocks
+
+        key, value = max(data_dict_overall["max_value_change"].iteritems(), key = lambda p: p[1])
+        data_dict_overall["max_value_change"] = {key:value}
+
+        key,value = max(data_dict_overall["max_sentiment_change"].iteritems(), key = lambda p: p[1])
+        data_dict_overall["max_sentiment_change"] = {key:value}
 
         print data_dict_overall
