@@ -44,7 +44,7 @@ from parser import configparser
 from pyspark.sql.functions import col, udf
 
 #if __name__ == '__main__':
-LOGGER = []
+LOGGER = {}
 def main(configJson):
     global LOGGER
     deployEnv = False  # running the scripts from job-server env
