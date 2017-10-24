@@ -3,6 +3,8 @@ from pyspark.sql import SQLContext
 import pandas as pd
 import numpy as np
 import scipy.stats as scs
+import urllib2
+import random
 
 from collections import Counter
 from bi.stats.chisquare import ChiSquare
@@ -35,6 +37,15 @@ class StockAdvisor:
 
     def read_json(self, filepath):
         df = self._spark.read.json(filepath)
+        return df
+
+    def read_ankush_json(self,url):
+        req = urllib2.urlopen(url)
+        req_data = req.read()
+        randNO = str(int(random.random()*10000000))
+        tempFileName = "/tmp/temp{}.csv".format(randNO)
+        open(tempFileName,"w").write(req_data)
+        df = self._spark.read.json(tempFileName)
         return df
 
     def unpack_df(self, df):
@@ -241,15 +252,15 @@ class StockAdvisor:
         if self._runEnv == "debugMode":
             self.concepts = self.load_concepts_from_json()
         else:
-            self.concepts = self.read_json(self.dataFilePath.format("concepts",""))
+            self.concepts = self.read_ankush_json(self.dataFilePath.format("concepts",""))
         for stock_symbol in self._file_names:
             #-------------- Read Operations ----------------
             if self._runEnv == "debugMode":
                 df = self.read_json(self.BASE_DIR+stock_symbol+".json")
                 df_historic = self.read_json(self.BASE_DIR+stock_symbol+"_historic.json")
             else:
-                df = self.read_json(self.dataFilePath.format("bluemix",stock_symbol))
-                df_historic = self.read_json(self.dataFilePath.format("historical",stock_symbol))
+                df = self.read_ankush_json(self.dataFilePath.format("bluemix",stock_symbol))
+                df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
             self.pandasDf = self.identify_concepts_python(df)
             nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
             print nArticlesAndSentimentsPerConcept
