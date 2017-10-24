@@ -67,6 +67,8 @@ class ContextSetter:
         self.globalCompletionStatus = 0
         self.currentAnalysis = None
         self.analysisDict = {}
+        self.stockSymbolList = []
+        self.dataAPI = ""
 
 
     def set_model_path(self,data):
@@ -103,11 +105,13 @@ class ContextSetter:
         self.FILTER_SETTINGS = self._config_obj.get_filter_settings()
         self.ADVANCE_SETTINGS = self._config_obj.get_advance_settings()
         self.TRANSFORMATION_SETTINGS = self._config_obj.get_transformation_settings()
+        self.STOCK_SETTINGS = self._config_obj.get_stock_settings()
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
         filterSettingKeys = self.FILTER_SETTINGS.keys()
         advanceSettingKeys = self.ADVANCE_SETTINGS.keys()
         transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
+        stockSettingKeys = self.STOCK_SETTINGS.keys()
 
         if len(fileSettingKeys) > 0:
             if "inputfile" in fileSettingKeys:
@@ -260,8 +264,21 @@ class ContextSetter:
                         validObj["columnSetting"] = validColumnSetting
                         validColumnActions.append(validObj)
                 self.existingColumnTransformsSettings = validColumnActions
+
+        if len(stockSettingKeys) > 0:
+            if "stockSymbolList" in stockSettingKeys:
+                self.stockSymbolList = self.STOCK_SETTINGS.get("stockSymbolList")
+            if "dataAPI" in stockSettingKeys:
+                self.dataAPI = self.STOCK_SETTINGS.get("dataAPI")
+
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
+
+    def get_stock_symbol_list(self):
+        return self.stockSymbolList
+
+    def get_stock_data_api(self):
+        return self.dataAPI
 
     def get_trend_settings(self):
         return self.trendSettings

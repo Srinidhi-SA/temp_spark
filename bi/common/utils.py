@@ -786,6 +786,10 @@ def get_test_configs():
         },
         "stockAdvisor":{
               "config" : {
+                "STOCK_SETTINGS":{
+                    "stockSymbolList": ['googl', 'aapl'],
+                    "dataAPI": ""
+                }
               },
               "job_config" : {
                   "get_config" : {

@@ -11,6 +11,7 @@ class ParserConfig():
         self.FilterSettings = {}
         self.AdvanceSettings = {}
         self.TransformationSettings = {}
+        self.StockSettings = {}
 
     def get_dimension_filters(self):
         return self.DimensionFilter
@@ -38,6 +39,9 @@ class ParserConfig():
 
     def get_transformation_settings(self):
         return self.TransformationSettings
+
+    def get_stock_settings(self):
+        return self.StockSettings
 
     def ConfigSectionMap(self, section):
         dict1 = {}
@@ -78,3 +82,5 @@ class ParserConfig():
             self.AdvanceSettings = self.config.get('ADVANCED_SETTINGS')
         if 'TRANSFORMATION_SETTINGS' in self.config:
             self.TransformationSettings = self.config.get('TRANSFORMATION_SETTINGS')
+        if 'STOCK_SETTINGS' in self.config:
+            self.StockSettings = self.config.get('STOCK_SETTINGS')

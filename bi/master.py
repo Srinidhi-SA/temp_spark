@@ -89,14 +89,12 @@ def main(configJson):
     CommonUtils.save_progress_message(messageURL,progressMessage)
     ################################### Stock ADVISOR ##########################
     if jobType == 'stockAdvisor':
-        # file_names = ['aapl', 'googl', 'amzn', 'fb', 'msft', 'ibm']
-        file_names = ['googl', 'aapl']
+        file_names = dataframe_context.get_stock_symbol_list()
         start_time = time.time()
         print start_time
         print "*"*100
         stockObj = StockAdvisor(spark, file_names)
         stockObj.Run()
-        return 0
     ############################################################################
     if jobType == "story":
         analysistype = dataframe_context.get_analysis_type()
