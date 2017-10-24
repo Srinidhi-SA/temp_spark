@@ -38,6 +38,7 @@ class ContextSetter:
         self.analysisList = []
         self.existingColumnTransformsSettings = []
         self.newColumnTransformsSettings = []
+        self.runEnvironment = None
 
         self.scriptsMapping = {
             "overview" : "Descriptive analysis",
@@ -73,7 +74,10 @@ class ContextSetter:
 
     def set_model_path(self,data):
         self.MODEL_PATH = data
-
+    def set_environment(self,data):
+        self.runEnvironment = data
+    def get_environement(self):
+        return self.runEnvironment
     def set_score_path(self,data):
         self.SCORE_PATH = data
     def set_analysis_name(self,name):

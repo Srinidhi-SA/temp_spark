@@ -19,7 +19,7 @@ class StockAdvisor:
         self._sqlContext = SQLContext(self._spark)
         self._dataAPI = dataframe_context.get_stock_data_api()
         self.dataFilePath = self._dataAPI+"?stockDataType={}&stockName={}"
-
+        self._runEnv = dataframe_context.get_environement()
 
 
     def read_csv(self, file_name):
@@ -35,7 +35,7 @@ class StockAdvisor:
 
     def read_json(self, file_name):
         # sql = SQLContext(self._spark)
-        name = self.BASE_DIR + file_name + ".json"
+        name = self.BASE_DIR + file_name
         # df = sql.jsonFile(name)
         # content = json.loads(open(name).read())
         df = self._spark.read.json(name)
@@ -238,20 +238,22 @@ class StockAdvisor:
         return cramerStat
 
 
-
-
-
-
     def Run(self):
         print "In stockAdvisor"
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
-        # self.concepts = self.load_concepts_from_json()
-        self.concepts = self.read_json(self.dataFilePath.format("concepts",""))
+        if self._runEnv == "debugMode":
+            self.concepts = self.load_concepts_from_json()
+        else:
+            self.concepts = self.read_json(self.dataFilePath.format("concepts",""))
         for stock_symbol in self._file_names:
             #-------------- Read Operations ----------------
-            df = self.read_json(self.dataFilePath.format("bluemix",stock_symbol))
-            df_historic = self.read_json(self.dataFilePath.format("historical",stock_symbol))
+            if self._runEnv == "debugMode":
+                df = self.read_json(stock_symbol+".json")
+                df_historic = self.read_json(stock_symbol+"_historic.json")
+            else:
+                df = self.read_json(self.dataFilePath.format("bluemix",stock_symbol))
+                df_historic = self.read_json(self.dataFilePath.format("historical",stock_symbol))
             self.pandasDf = self.identify_concepts_python(df)
             nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
             print nArticlesAndSentimentsPerConcept

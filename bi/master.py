@@ -62,6 +62,8 @@ def main(configJson):
         else:
             ######################## Running in debugMode ######################
             print "Running in debugMode"
+            cfgMode = False
+            debugMode = True
             # Test Configs are defined in bi/common/utils.py
             testConfigs = CommonUtils.get_test_configs()
             configJson = testConfigs["stockAdvisor"]
@@ -80,6 +82,8 @@ def main(configJson):
     configJsonObj.set_json_params()
     dataframe_context = ContextSetter(configJsonObj)
     dataframe_context.set_params()
+    if debugMode == True:
+        dataframe_context.set_environment("debugMode")
     jobType = job_config["job_type"]
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_message_url(messageUrl)
