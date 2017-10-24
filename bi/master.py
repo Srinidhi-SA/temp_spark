@@ -64,7 +64,7 @@ def main(configJson):
             print "Running in debugMode"
             # Test Configs are defined in bi/common/utils.py
             testConfigs = CommonUtils.get_test_configs()
-            configJson = testConfigs["story"]
+            configJson = testConfigs["stockAdvisor"]
 
 
     ######################## Craeting Spark Session ###########################
@@ -137,7 +137,7 @@ def main(configJson):
         start_time = time.time()
         print start_time
         print "*"*100
-        stockObj = StockAdvisor(spark, file_names,result_setter)
+        stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
         stockAdvisorData = stockObj.Run()
         stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
@@ -290,7 +290,7 @@ def main(configJson):
             decisionTreeNode = result_setter.get_decision_tree_node()
             if decisionTreeNode != None:
                 headNode["listOfNodes"].append(decisionTreeNode)
-            # print json.dumps(headNode,indent=2)
+            print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
             return response
 

@@ -13,10 +13,13 @@ class StockAdvisor:
     # BASE_DIR = "/home/marlabs/codebase/stock-advisor/data/"
     BASE_DIR = "file:///home/gulshan/marlabs/datasets/"
 
-    def __init__(self, spark, file_names,result_setter):
+    def __init__(self, spark, file_names,dataframe_context,result_setter):
         self._spark = spark
         self._file_names = file_names
         self._sqlContext = SQLContext(self._spark)
+        self._dataAPI = dataframe_context.get_stock_data_api()
+        self.dataFilePath = self._dataAPI+"?stockDataType={}&stockName={}"
+
 
 
     def read_csv(self, file_name):
@@ -243,17 +246,15 @@ class StockAdvisor:
         print "In stockAdvisor"
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
-        # self.concepts = [row.asDict() for row in self._spark.read.json(self.BASE_DIR + "concepts.json").rdd.collect()]
-        self.concepts = self.load_concepts_from_json()
-
+        # self.concepts = self.load_concepts_from_json()
+        self.concepts = self.read_json(self.dataFilePath.format("concepts",""))
         for stock_symbol in self._file_names:
             #-------------- Read Operations ----------------
-            # df = self.read_csv(file_name)
-            df = self.read_json(stock_symbol)
+            df = self.read_json(self.dataFilePath.format("bluemix",stock_symbol))
+            df_historic = self.read_json(self.dataFilePath.format("historical",stock_symbol))
             self.pandasDf = self.identify_concepts_python(df)
             nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
             print nArticlesAndSentimentsPerConcept
-            df_historic = self.read_json(stock_symbol+"_historic")
             self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,df_historic)
             # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
             self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
@@ -332,4 +333,23 @@ class StockAdvisor:
         data_dict_overall["max_sentiment_change"] = {key:value}
 
         # print data_dict_overall
-        return nArticlesAndSentimentsPerConcept
+        sampleOutput ={
+        "name": "Overview card",
+        "slug": "fdfdfd_overview",
+        "listOfNodes" : [],
+        "listOfCards" : [
+
+                {
+                        "cardType": "normal",
+                        "name": "Test",
+                        "slug": "sdfasjfaskdjf",
+                        "cardData": [
+                            {
+                                "dataType": "html",
+                                "data": '<p><h2>{}</h2>{}</p>'.format("Test", "Test content")
+                            }
+                        ]
+                    }
+                ]
+        }
+        return sampleOutput

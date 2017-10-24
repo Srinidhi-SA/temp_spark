@@ -785,45 +785,45 @@ def get_test_configs():
             }
         },
         "stockAdvisor":{
-            "config" : {
-              "COLUMN_SETTINGS" : {
-                "analysis_type" : [
-                  "metaData"
-                ]
+            'job_config': {
+              'job_url': 'http://34.196.204.54:9012/api/job/stockadvisor-stocking_is_what_i_do-imlizu9xul-o8mwlmu0nz/',
+              'job_type': 'stockAdvisor',
+              'set_result': {
+                'action': 'result',
+                'method': 'PUT'
               },
-              "DATA_SOURCE" : {
-                "datasource_details" : ""
+              'get_config': {
+                'action': 'get_config',
+                'method': 'GET'
               },
-              "DATE_SETTINGS" : {},
-              "FILE_SETTINGS" : {
-                "inputfile" : [
-                  ""
-                ]
-              },
-              "STOCK_SETTINGS" : {
-                "dataAPI" : [
-                  "http://34.196.204.54:9012/api/stockdatasetfiles/stocking_is_what_i_do-poxn6kr7bu/"
-                ],
-                "stockSymbolList" : [
-                  "googl"
-                ]
-              }
+              'message_url': 'http://34.196.204.54:9012/api/messages/StockDataset_stocking_is_what_i_do-imlizu9xul_123/',
+              'job_name': u'stocking_is_what_i_do'
             },
-            "job_config" : {
-              "get_config" : {
-                "action" : "get_config",
-                "method" : "GET"
+            u'config': {
+              u'COLUMN_SETTINGS': {
+                u'analysis_type': [
+                  u'metaData'
+                ]
               },
-              "job_name" : "stocking_is_what_i_do",
-              "job_type" : "stockAdvisor",
-              "job_url" : "http://34.196.204.54:9012/api/job/stockadvisor-stocking_is_what_i_do-poxn6kr7bu-57k3ompq8c/",
-              "message_url" : "http://34.196.204.54:9012/api/messages/StockDataset_stocking_is_what_i_do-poxn6kr7bu_123/",
-              "set_result" : {
-                "action" : "result",
-                "method" : "PUT"
+              u'DATE_SETTINGS': {
+
+              },
+              u'DATA_SOURCE': {
+                u'datasource_details': u''
+              },
+              u'STOCK_SETTINGS': {
+                u'stockSymbolList': [
+                  u'googl'
+                ],
+                u'dataAPI': 'http://34.196.204.54:9012/api/stockdatasetfiles/stocking_is_what_i_do-imlizu9xul/',
+              },
+              u'FILE_SETTINGS': {
+                u'inputfile': [
+                  u''
+                ]
               }
             }
-        }
+          }
     }
     return testConfigs
 
