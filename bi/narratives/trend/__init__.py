@@ -41,12 +41,54 @@ class TimeSeriesNarrative:
         self._string_columns = df_helper.get_string_columns()
         self._result_column = df_context.get_result_column()
         self._analysistype = self._dataframe_context.get_analysis_type()
+        self._trendSettings = self._dataframe_context.get_trend_settings()
+        self._trendSpecificMeasure = False
+        if self._analysistype == "dimension" and self._trendSettings["name"] != "Count":
+            self._trendSpecificMeasure = True
+            self._analysistype = "measure"
+            self._result_column = self._trendSettings["selectedMeasure"]
+
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._blockSplitter = "|~NEWBLOCK~|"
         self._trend_on_td_column = False
         self._number_of_dimensions_to_consider = 10
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        if self._analysistype == "dimension":
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+            self._scriptStages = {
+                "initialization":{
+                    "summary":"Initialized the Frequency Narratives",
+                    "weight":0
+                    },
+                "summarygeneration":{
+                    "summary":"summary generation finished",
+                    "weight":10
+                    },
+                "completion":{
+                    "summary":"Frequency Stats Narratives done",
+                    "weight":0
+                    },
+                }
+        elif self._analysistype == "measure":
+            if self._trendSpecificMeasure:
+                self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+            else:
+                self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+            self._scriptStages = {
+                "trendNarrativeStart":{
+                    "summary":"Started the Descriptive Stats Narratives",
+                    "weight":1
+                    },
+                "trendNarrativeEnd":{
+                    "summary":"Narratives for descriptive Stats Finished",
+                    "weight":0
+                    },
+                }
 
         if self._selected_date_columns != None and len(self._selected_date_columns) > 0:
             suggested_date_column = self._selected_date_columns[0]
@@ -208,20 +250,7 @@ class TimeSeriesNarrative:
 
 
         if self._analysistype=="measure":
-            self._completionStatus = self._dataframe_context.get_completion_status()
-            self._analysisName = self._dataframe_context.get_analysis_name()
-            self._messageURL = self._dataframe_context.get_message_url()
-            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
-            self._scriptStages = {
-                "trendNarrativeStart":{
-                    "summary":"Started the Descriptive Stats Narratives",
-                    "weight":1
-                    },
-                "trendNarrativeEnd":{
-                    "summary":"Narratives for descriptive Stats Finished",
-                    "weight":0
-                    },
-                }
+            self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["trendNarrativeStart"]["weight"]/10
             progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                         "trendNarrativeStart",\
                                         "info",\
@@ -229,6 +258,7 @@ class TimeSeriesNarrative:
                                         self._completionStatus,\
                                         self._completionStatus)
             CommonUtils.save_progress_message(self._messageURL,progressMessage)
+            self._dataframe_context.update_completion_status(self._completionStatus)
             # self._startMeasureTrend = self._result_setter.get_trend_section_completion_status()
             self._startMeasureTrend = True
 
@@ -389,7 +419,7 @@ class TimeSeriesNarrative:
                         # self._result_setter.update_executive_summary_data(forecastDataDict)
                         # summary3 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         # 'trend_narrative_card3.temp',forecastDataDict)
-                        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
+                        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["trendNarrativeEnd"]["weight"]/10
                         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                                     "trendNarrativeEnd",\
                                                     "info",\
@@ -397,6 +427,7 @@ class TimeSeriesNarrative:
                                                     self._completionStatus,\
                                                     self._completionStatus)
                         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+                        self._dataframe_context.update_completion_status(self._completionStatus)
                     else:
                         # self._result_setter.update_executive_summary_data({"trend_present":False})
                         print "Trend Analysis for Measure Failed"
@@ -409,39 +440,34 @@ class TimeSeriesNarrative:
                                         "Trend failed as "+"No date format for the date column %s was detected." %(self._date_column_suggested),\
                                         completionStatus,completionStatus)
                         CommonUtils.save_progress_message(messageURL,progressMessage)
+                        self._dataframe_context.update_completion_status(self._completionStatus)
                 else:
                     # self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Measure Failed"
                     print "#"*20+"Trend Analysis Error"+"#"*20
                     print "No date column present for Trend Analysis."
                     print "#"*60
+                    self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
+                    self._dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
+                                    "No Date Column Present",\
+                                    completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    self._dataframe_context.update_completion_status(self._completionStatus)
             else:
                 print "overall Trend not Started YET"
 
         elif self._analysistype == "dimension":
-            self._dimensionCompletionStatus = 50
-            self._dimensionTrendScriptStages = {
-                "initialization":{
-                    "summary":"Initialized the Frequency Narratives",
-                    "weight":0
-                    },
-                "summarygeneration":{
-                    "summary":"summary generation finished",
-                    "weight":30
-                    },
-                "completion":{
-                    "summary":"Frequency Stats Narratives done",
-                    "weight":0
-                    },
-                }
-            self._dimensionCompletionStatus += self._dimensionTrendScriptStages["initialization"]["weight"]
+            print "Dimension Trend Started"
+            self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
             progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                         "initialization",\
                                         "info",\
-                                        self._dimensionTrendScriptStages["initialization"]["summary"],\
-                                        self._dimensionCompletionStatus,\
-                                        self._dimensionCompletionStatus)
+                                        self._scriptStages["initialization"]["summary"],\
+                                        self._completionStatus,\
+                                        self._completionStatus)
             CommonUtils.save_progress_message(self._messageURL,progressMessage)
+            self._dataframe_context.update_completion_status(self._completionStatus)
 
 
 
@@ -588,14 +614,25 @@ class TimeSeriesNarrative:
                     trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
                     self._story_narrative.add_a_node(trendStoryNode)
                     self._result_setter.set_trend_node(trendStoryNode)
-                    self._dimensionCompletionStatus += self._dimensionTrendScriptStages["summarygeneration"]["weight"]
+                    self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["summarygeneration"]["weight"]/10
                     progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                                 "summarygeneration",\
                                                 "info",\
-                                                self._dimensionTrendScriptStages["summarygeneration"]["summary"],\
-                                                self._dimensionCompletionStatus,\
-                                                self._dimensionCompletionStatus)
+                                                self._scriptStages["summarygeneration"]["summary"],\
+                                                self._completionStatus,\
+                                                self._completionStatus)
                     CommonUtils.save_progress_message(self._messageURL,progressMessage)
+                    self._dataframe_context.update_completion_status(self._completionStatus)
+
+                    self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
+                    progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                                "completion",\
+                                                "info",\
+                                                self._scriptStages["completion"]["summary"],\
+                                                self._completionStatus,\
+                                                self._completionStatus)
+                    CommonUtils.save_progress_message(self._messageURL,progressMessage)
+                    self._dataframe_context.update_completion_status(self._completionStatus)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
                     print "Trend Analysis for Dimension Failed"
@@ -603,8 +640,13 @@ class TimeSeriesNarrative:
                     if self._date_column_suggested:
                         print "No date format for the date column %s was detected." %(self._date_column_suggested)
                     print "#"*60
-                    progressMessage = CommonUtils.create_progress_message_object("trend","failedState","error","trend Failed no datetime format detected",80,80)
+                    self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
+                    self._dataframe_context.update_completion_status(self._completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
+                                    "Trend failed as "+"No date format for the date column %s was detected." %(self._date_column_suggested),\
+                                    self._completionStatus,self._completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
+                    self._dataframe_context.update_completion_status(self._completionStatus)
 
             else:
                 self._result_setter.update_executive_summary_data({"trend_present":False})
@@ -612,8 +654,13 @@ class TimeSeriesNarrative:
                 print "#"*20+"Trend Analysis Error"+"#"*20
                 print "No date column present for Trend Analysis."
                 print "#"*60
-                progressMessage = CommonUtils.create_progress_message_object("trend","failedState","error","no date column",80,80)
+                self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
+                self._dataframe_context.update_completion_status(self._completionStatus)
+                progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
+                                "No date column present",\
+                                self._completionStatus,self._completionStatus)
                 CommonUtils.save_progress_message(messageURL,progressMessage)
+                self._dataframe_context.update_completion_status(self._completionStatus)
 
     def set_regression_trend_card_data(self,data):
         self._regression_trend_card = data

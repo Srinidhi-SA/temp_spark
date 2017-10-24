@@ -3,6 +3,7 @@ import random
 import json
 import itertools
 from bi.common.dataframe import DataFrameHelper
+from bi.common.context import ContextSetter
 from bi.common.results import DecisionTreeResult
 from bi.common.utils import accepts
 from bi.narratives import utils as NarrativesUtils
@@ -27,9 +28,10 @@ class DecisionTreeNarrative:
             keyTable = [keys,self._new_table[keys]['rules'],self._new_table[keys]['probability']]
             self._decisionTreeCard1Table.append(keyTable)
 
-    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,NarrativesTree,ResultSetter)
-    def __init__(self, column_name, decision_tree_rules,df_helper ,story_narrative,result_setter):
+    @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ContextSetter,NarrativesTree,ResultSetter)
+    def __init__(self, column_name, decision_tree_rules,df_helper,df_context,story_narrative,result_setter):
         self._story_narrative = story_narrative
+        self._dataframe_context = df_context
         self._result_setter = result_setter
         self._blockSplitter = "|~NEWBLOCK~|"
         self._column_name = column_name.lower()
@@ -53,11 +55,48 @@ class DecisionTreeNarrative:
         self.dropdownComment = None
         self.dropdownValues = None
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
+
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        self._scriptStages = {
+            "dtreeNarrativeStart":{
+                "summary":"Started the Decision Tree Narratives",
+                "weight":0
+                },
+            "dtreeNarrativeEnd":{
+                "summary":"Narratives for Decision Tree Finished",
+                "weight":10
+                },
+            }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeStart"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "dtreeNarrativeStart",\
+                                    "info",\
+                                    self._scriptStages["dtreeNarrativeStart"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         self._decisionTreeNode = NarrativesTree()
         self._decisionTreeNode.set_name("Prediction")
         self._generate_narratives()
         self._story_narrative.add_a_node(self._decisionTreeNode)
         self._result_setter.set_decision_tree_node(self._decisionTreeNode)
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "dtreeNarrativeEnd",\
+                                    "info",\
+                                    self._scriptStages["dtreeNarrativeEnd"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
 
     def _generate_narratives(self):
         self._generate_summary()

@@ -784,6 +784,25 @@ def get_test_configs():
                 }
             }
         },
+        "stockAdvisor":{
+              "config" : {
+              },
+              "job_config" : {
+                  "get_config" : {
+                      "action" : "get_config",
+                      "method" : "GET"
+                  },
+                  "job_name" : "test subsetting",
+                  "job_type" : "stockAdvisor",
+                  "job_url" : "",
+                  "message_url" : "http://34.196.204.54:9012/api/messages/Dataset_trend_gulshancsv-h85lh79ybd_123/",
+                  "job_url" : "http://34.196.204.54:9012/api/job/subsetting-test-subsetting-2dxco9ec50-e7bd39m21a/",
+                  "set_result" : {
+                      "action" : "result",
+                      "method" : "PUT"
+                  }
+              }
+          }
     }
     return testConfigs
 

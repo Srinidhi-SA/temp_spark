@@ -57,13 +57,14 @@ class DecisionTreeRegNarrative:
         self._scriptStages = {
             "dtreeNarrativeStart":{
                 "summary":"Started the Decision Tree Regression Narratives",
-                "weight":1
+                "weight":0
                 },
             "dtreeNarrativeEnd":{
                 "summary":"Narratives for Decision Tree Regression Finished",
-                "weight":0
+                "weight":10
                 },
             }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeStart"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dtreeNarrativeStart",\
                                     "info",\
@@ -71,12 +72,14 @@ class DecisionTreeRegNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
 
         self._generate_narratives()
         self._story_narrative.add_a_node(self._decisionTreeNode)
         self._result_setter.set_decision_tree_node(self._decisionTreeNode)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dtreeNarrativeEnd",\
                                     "info",\
@@ -84,6 +87,8 @@ class DecisionTreeRegNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
 
 
     def _generate_narratives(self):

@@ -73,6 +73,7 @@ class RegressionNarrative:
                 "weight":0
                 },
             }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["regressionNarrativeStart"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "regressionNarrativeStart",\
                                     "info",\
@@ -80,12 +81,13 @@ class RegressionNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
         self.generate_narratives()
         self._regressionNode.set_name("Influencers")
         self._result_setter.set_regression_node(self._regressionNode)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["regressionNarrativeEnd"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "regressionNarrativeEnd",\
                                     "info",\
@@ -93,7 +95,7 @@ class RegressionNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
-
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
 
     def generate_narratives(self):

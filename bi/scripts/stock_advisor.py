@@ -9,7 +9,7 @@ from bi.stats.chisquare import ChiSquare
 from bi.common import utils as CommonUtils
 
 
-class stockAdvisor:
+class StockAdvisor:
     # BASE_DIR = "/home/marlabs/codebase/stock-advisor/data/"
     BASE_DIR = "file:///home/gulshan/marlabs/datasets/"
 

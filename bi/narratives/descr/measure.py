@@ -41,13 +41,14 @@ class MeasureColumnNarrative:
         self._scriptStages = {
             "statNarrativeStart":{
                 "summary":"Started the Descriptive Stats Narratives",
-                "weight":1
+                "weight":0
                 },
             "statNarrativeEnd":{
                 "summary":"Narratives for descriptive Stats Finished",
-                "weight":0
+                "weight":10
                 },
             }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeStart"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "statNarrativeStart",\
                                     "info",\
@@ -64,7 +65,7 @@ class MeasureColumnNarrative:
         self._result_setter.set_head_node(self._headNode)
         self._result_setter.set_distribution_node(self._measureSummaryNode)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeEnd"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "statNarrativeEnd",\
                                     "info",\

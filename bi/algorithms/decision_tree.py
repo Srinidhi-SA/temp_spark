@@ -9,6 +9,8 @@ from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
 
 from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
+
 
 """
 Decision Tree
@@ -41,6 +43,31 @@ class DecisionTrees:
         self._probability = {}
         self._alias_dict = {}
         self._important_vars = {}
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Decision Tree Script",
+                "weight":0
+                },
+            "treegeneration":{
+                "summary":"Decision tree generation finished",
+                "weight":10
+                }
+            }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["initialization"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     def parse(self, lines, df):
         block = []
@@ -196,8 +223,6 @@ class DecisionTrees:
         decision_tree_result.set_freq_distribution(self.calculate_frequencies(), self._important_vars)
 
         self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
-        print '*'*420
-        print mapping_dict
         # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
         standard_measure_index = {0.0:'Low',1.0:'Below Average',2.0:'Average',3.0:'Above Average',4.0:'High'}
         for measure in all_measures:
@@ -236,7 +261,15 @@ class DecisionTrees:
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
-
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["treegeneration"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "treegeneration",\
+                                    "info",\
+                                    self._scriptStages["treegeneration"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         return decision_tree_result
 
     def calculate_frequencies(self):

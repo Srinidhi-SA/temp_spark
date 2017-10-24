@@ -44,13 +44,14 @@ class AnovaNarratives:
         self._scriptStages = {
             "anovaNarrativeStart":{
                 "summary":"Started the Anova Narratives",
-                "weight":1
+                "weight":0
                 },
             "anovaNarrativeEnd":{
                 "summary":"Narratives for Anova Finished",
-                "weight":0
+                "weight":10
                 },
             }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["anovaNarrativeStart"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "anovaNarrativeStart",\
                                     "info",\
@@ -58,10 +59,12 @@ class AnovaNarratives:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
 
         self._generate_narratives()
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["anovaNarrativeEnd"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "anovaNarrativeEnd",\
                                     "info",\
@@ -69,6 +72,10 @@ class AnovaNarratives:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+        print "self._completionStatus",self._completionStatus
+
+
 
         if self._anovaNodes.get_card_count() > 0:
             self._story_narrative.add_a_node(self._anovaNodes)

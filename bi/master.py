@@ -42,7 +42,7 @@ from bi.transformations import DataFrameTransformer
 import traceback
 from parser import configparser
 from pyspark.sql.functions import col, udf
-
+from bi.scripts.stock_advisor import StockAdvisor
 #if __name__ == '__main__':
 LOGGER = {}
 def main(configJson):
@@ -64,7 +64,7 @@ def main(configJson):
             print "Running in debugMode"
             # Test Configs are defined in bi/common/utils.py
             testConfigs = CommonUtils.get_test_configs()
-            configJson = testConfigs["story"]
+            configJson = testConfigs["stockAdvisor"]
 
 
     ######################## Craeting Spark Session ###########################
@@ -87,8 +87,17 @@ def main(configJson):
     messageURL = dataframe_context.get_message_url()
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
     CommonUtils.save_progress_message(messageURL,progressMessage)
-
-
+    ################################### Stock ADVISOR ##########################
+    if jobType == 'stockAdvisor':
+        # file_names = ['aapl', 'googl', 'amzn', 'fb', 'msft', 'ibm']
+        file_names = ['googl', 'aapl']
+        start_time = time.time()
+        print start_time
+        print "*"*100
+        stockObj = StockAdvisor(spark, file_names)
+        stockObj.Run()
+        return 0
+    ############################################################################
     if jobType == "story":
         analysistype = dataframe_context.get_analysis_type()
         if analysistype == "measure":
