@@ -69,34 +69,34 @@ def main(configJson):
                     "config" : {
                         "COLUMN_SETTINGS" : {
                             "analysis_type" : [
-                                "measure"
+                                "dimension"
                             ],
                             "consider_columns" : [
-                                "Deal_Type",
-                                "Price_Range",
-                                "Discount_Range",
-                                "Source",
+                                # "Deal_Type",
+                                # "Price_Range",
+                                # "Discount_Range",
+                                # "Source",
                                 "Platform",
-                                "Buyer_Age",
-                                "Buyer_Gender",
+                                # "Buyer_Age",
+                                # "Buyer_Gender",
                                 "Tenure_in_Days",
                                 "Sales",
-                                "Marketing_Cost",
-                                "Shipping_Cost",
+                                # "Marketing_Cost",
+                                # "Shipping_Cost",
                                 "Last_Transaction",
-                                "new_date"
+                                # "new_date"
                             ],
                             "consider_columns_type" : [
                                 "including"
                             ],
                             "dateTimeSuggestions" : [
-                                {
-                                    "Month" : "%b-%y",
-                                    "Order Date" : "%d-%m-%Y"
-                                }
+                                # {
+                                #     "Month" : "%b-%y",
+                                #     "Order Date" : "%d-%m-%Y"
+                                # }
                             ],
                             "date_columns" : [
-                                "new_date"
+                                # "new_date"
                             ],
                             "date_format" : None,
                             "ignore_column_suggestion" : [
@@ -105,7 +105,7 @@ def main(configJson):
                                 "positive"
                             ],
                             "result_column" : [
-                                "Sales"
+                                "Platform"
                             ],
                             "utf8_column_suggestions" : []
                         },
@@ -116,7 +116,7 @@ def main(configJson):
                             "script_to_run" : [
                                 "Descriptive analysis",
                                 # "Measure vs. Dimension",
-                                # "Dimension vs. Dimension",
+                                "Dimension vs. Dimension",
                                 # "Measure vs. Measure",
                                 "Predictive modeling",
                                 # "Trend",
@@ -165,14 +165,14 @@ def main(configJson):
                                     "displayName" : "Trend",
                                     "name" : "trend",
                                     "noOfColumnsToUse" : None,
-                                    "status" : True
+                                    "status" : False
                                 },
                                 {
                                     "analysisSubTypes" : [],
                                     "displayName" : "Prediction",
                                     "name" : "prediction",
                                     "noOfColumnsToUse" : None,
-                                    "status" : True
+                                    "status" : False
                                 },
                                 {
                                     "analysisSubTypes" : [],

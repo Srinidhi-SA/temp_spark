@@ -1,7 +1,13 @@
 import json
 from pyspark.sql import SQLContext
 import pandas as pd
+import numpy as np
+import scipy.stats as scs
+
 from collections import Counter
+from bi.stats.chisquare import ChiSquare
+from bi.common import utils as CommonUtils
+
 
 class stockAdvisor:
     # BASE_DIR = "/home/marlabs/codebase/stock-advisor/data/"
@@ -10,6 +16,8 @@ class stockAdvisor:
     def __init__(self, spark, file_names):
         self._spark = spark
         self._file_names = file_names
+        self._sqlContext = SQLContext(self._spark)
+
 
     def read_csv(self, file_name):
         sql = SQLContext(self._spark)
@@ -126,6 +134,111 @@ class stockAdvisor:
         data_dict_overall["top_keywords"] = {}
         return data_dict_overall
 
+    def identify_concepts_python(self,df):
+        pandasDf = df.toPandas()
+        pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_concepts_for_item_python)
+        return pandasDf
+
+    def get_concepts_for_item_python(self, item):
+        cur_keywords = [k["text"].lower() for k in item]
+        cur_concepts = {"conceptList":[],"conceptKeywordDict":{}}
+        for key in self.concepts:
+            keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
+            if len(keywordIntersection) > 0:
+                cur_concepts["conceptList"].append(key)
+                cur_concepts["conceptKeywordDict"][key] = keywordIntersection
+        return cur_concepts
+
+    def get_number_articles_and_sentiments_per_concept(self,pandasDf):
+        conceptNames = self.concepts.keys()
+        valArray = []
+        for val in conceptNames:
+            valArray.append({"articlesCount":0,"posArticles":0,"negArticles":0,"totalSentiment":0})
+        conceptNameDict = dict(zip(conceptNames,valArray))
+        for index, dfRow in pandasDf.iterrows():
+            conceptNameDict = self.update_article_count_and_sentiment_score(conceptNameDict,dfRow)
+
+        outputDict = {}
+        for key,value in conceptNameDict.items():
+            value["avgSentiment"] = round(float(value["totalSentiment"])/value["articlesCount"],2)
+            outputDict[key] = value
+        return outputDict
+
+
+    def update_article_count_and_sentiment_score(self,counterDict,dfRow):
+        for concept in dfRow["concepts"]["conceptList"]:
+            counterDict[concept]["articlesCount"] += 1
+            counterDict[concept]["totalSentiment"] += dfRow["sentiment"]["document"]["score"]
+            if self.check_an_article_is_positive_or_not(dfRow["keywords"]) == True:
+                counterDict[concept]["posArticles"] += 1
+            else:
+                counterDict[concept]["negArticles"] += 1
+        return counterDict
+
+    def check_an_article_is_positive_or_not(self,keyWordArray):
+        nPositive = []
+        nNegative = []
+        [nPositive.append(1) if obj["sentiment"]["label"] == "positive" else nNegative.append(1) for obj in keyWordArray]
+        return True if sum(nPositive) > sum(nNegative) else False
+
+    def create_chi_square_df(self,pandasDf,dfHistoric):
+        conceptList = self.concepts.keys()
+        conceptsData = pandasDf[["time","concepts"]]
+        stockPriceData = dfHistoric.select(["date","close","open"]).toPandas()
+        stockPriceData["close"] = stockPriceData["close"].apply(float)
+        stockPriceData["open"] = stockPriceData["open"].apply(float)
+        stockPriceData["dayPriceDiff"] = stockPriceData["close"] - stockPriceData["open"]
+        conceptCountDict = {}
+        for val in conceptList:
+            conceptCountDict[val] = []
+        map(lambda x: self.get_chisquare_concept_columns(conceptCountDict,x),conceptsData["concepts"])
+        conceptCountDf = pd.DataFrame(conceptCountDict,index=conceptsData.index)
+        conceptsDF = pd.concat([conceptsData["time"], conceptCountDf], axis=1).groupby("time").sum().reset_index()
+        chiSquareDf = pd.concat([conceptsDF, stockPriceData["dayPriceDiff"]], axis=1, join='inner')
+        chiSquareDf.drop(['time'], axis=1, inplace=True)
+        return chiSquareDf
+
+    def get_chisquare_concept_columns(self,conceptCountDict,dfRow):
+        for concept in conceptCountDict.keys():
+            if concept in dfRow["conceptList"]:
+                conceptCountDict[concept].append(1)
+            else:
+                conceptCountDict[concept].append(0)
+
+    def get_splits(self,pandasDf,colname,n_split):
+        splits  = CommonUtils.frange(min(pandasDf[colname])-1,max(pandasDf[colname])+1,num_steps=n_split)
+        splits = sorted(splits)
+        splits_range = [(splits[idx],splits[idx+1]) for idx in range(len(splits)-1)]
+        splits_data = {"splits":splits,"splits_range":splits_range}
+        return splits_data
+
+    def cramers_stat(self,confusion_matrix):
+        n = confusion_matrix.sum().sum()
+        # print n
+        chi2 = scs.chi2_contingency(confusion_matrix)[0]
+        return np.sqrt(chi2 / (n*(min(confusion_matrix.shape)-1)))
+
+    def calculate_chiSquare(self,df,targetCol):
+        cramerStat = {}
+        colsToIterate = [x for x in df.columns if x!=targetCol]
+        targetColSplits = self.get_splits(df,targetCol,3)["splits"]
+        targetColGroupNames = ["grp"+str(idx) for idx in range(1,len(targetColSplits))]
+        df["targetColBins"] = pd.cut(df[targetCol], targetColSplits, labels=targetColGroupNames)
+        for col in colsToIterate:
+            colSplits = self.get_splits(df,col,3)["splits"]
+            colGroupNames = ["grp"+str(idx) for idx in range(1,len(colSplits))]
+            df[col+"_bin_"] = pd.cut(df[col], colSplits, labels=colGroupNames)
+            confusionMatrix = pd.crosstab(df["targetColBins"], df[col+"_bin_"])
+            # Dropping rows and columns with zero sum
+            confusionMatrix = confusionMatrix.loc[(confusionMatrix.sum(axis=1) != 0), (confusionMatrix.sum(axis=0) != 0)]
+            cramerStat[col] = self.cramers_stat(confusionMatrix)
+        return cramerStat
+
+
+
+
+
+
     def Run(self):
         print "In stockAdvisor"
         data_dict_stocks = {}
@@ -137,10 +250,13 @@ class stockAdvisor:
             #-------------- Read Operations ----------------
             # df = self.read_csv(file_name)
             df = self.read_json(stock_symbol)
+            self.pandasDf = self.identify_concepts_python(df)
+            nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
+            print nArticlesAndSentimentsPerConcept
             df_historic = self.read_json(stock_symbol+"_historic")
-
-            df_with_concepts = self.identify_concepts(df)
-
+            self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,df_historic)
+            # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
+            self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
             #-------------- Start Calculations ----------------
             number_articles = self.get_stock_articles(df)
             data_dict_overall["number_articles"] += number_articles
