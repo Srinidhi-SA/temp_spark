@@ -153,12 +153,15 @@ class StockAdvisor:
 
     def get_concepts_for_item_python(self, item):
         cur_keywords = [k["text"].lower() for k in item]
-        cur_concepts = {"conceptList":[],"conceptKeywordDict":{}}
+        cur_sentiments = [k["sentiment"]["score"] if k["sentiment"]["label"] == "positive" else -k["sentiment"]["score"] for k in item]
+        sentimentsDict = dict(zip(cur_keywords,cur_sentiments))
+        cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
         for key in self.concepts:
             keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
             if len(keywordIntersection) > 0:
                 cur_concepts["conceptList"].append(key)
                 cur_concepts["conceptKeywordDict"][key] = keywordIntersection
+                cur_concepts["conceptAvgSentimentDict"][key] = np.mean(np.array([sentimentsDict[x]  for x in keywordIntersection]))
         return cur_concepts
 
     def get_number_articles_and_sentiments_per_concept(self,pandasDf):
@@ -167,19 +170,31 @@ class StockAdvisor:
         for val in conceptNames:
             valArray.append({"articlesCount":0,"posArticles":0,"negArticles":0,"totalSentiment":0})
         conceptNameDict = dict(zip(conceptNames,valArray))
+        conceptCountArray = []
+        sentimentArray = []
         for index, dfRow in pandasDf.iterrows():
             conceptNameDict = self.update_article_count_and_sentiment_score(conceptNameDict,dfRow)
-
+            rowConceptArray = [1 if x in dfRow["concepts"]["conceptList"] else 0 for x in self.concepts.keys()]
+            rowConceptArray.append(np.sum(np.array(rowConceptArray)))
+            conceptCountArray.append(rowConceptArray)
+            sentimentArray.append([dfRow["concepts"]["conceptAvgSentimentDict"][x] if x in dfRow["concepts"]["conceptAvgSentimentDict"] else 0 for x in self.concepts.keys()])
         outputDict = {}
         for key,value in conceptNameDict.items():
             value["avgSentiment"] = round(float(value["totalSentiment"])/value["articlesCount"],2)
             outputDict[key] = value
+        conceptCounterDf = pd.DataFrame(np.array(conceptCountArray),columns=[x+"_count" for x in self.concepts.keys()]+["totalCount"])
+        sentimentCounterDf = pd.DataFrame(np.array(sentimentArray),columns=[x+"_sentiment" for x in self.concepts.keys()])
+        self.pandasDf = pd.concat([pandasDf,conceptCounterDf,sentimentCounterDf], axis=1)
+        self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
         return outputDict
 
 
     def update_article_count_and_sentiment_score(self,counterDict,dfRow):
         for concept in dfRow["concepts"]["conceptList"]:
             counterDict[concept]["articlesCount"] += 1
+            absSentimentScore = dfRow["sentiment"]["document"]["score"]
+            label = dfRow["sentiment"]["document"]["label"]
+            sentimentScore = absSentimentScore if label == "positive" else -absSentimentScore
             counterDict[concept]["totalSentiment"] += dfRow["sentiment"]["document"]["score"]
             if self.check_an_article_is_positive_or_not(dfRow["keywords"]) == True:
                 counterDict[concept]["posArticles"] += 1
@@ -193,21 +208,23 @@ class StockAdvisor:
         [nPositive.append(1) if obj["sentiment"]["label"] == "positive" else nNegative.append(1) for obj in keyWordArray]
         return True if sum(nPositive) > sum(nNegative) else False
 
-    def create_chi_square_df(self,pandasDf,dfHistoric):
+    def create_chi_square_df(self,pandasDf,stockPriceData):
         conceptList = self.concepts.keys()
-        conceptsData = pandasDf[["time","concepts"]]
-        stockPriceData = dfHistoric.select(["date","close","open"]).toPandas()
-        stockPriceData["close"] = stockPriceData["close"].apply(float)
-        stockPriceData["open"] = stockPriceData["open"].apply(float)
-        stockPriceData["dayPriceDiff"] = stockPriceData["close"] - stockPriceData["open"]
-        conceptCountDict = {}
-        for val in conceptList:
-            conceptCountDict[val] = []
-        map(lambda x: self.get_chisquare_concept_columns(conceptCountDict,x),conceptsData["concepts"])
-        conceptCountDf = pd.DataFrame(conceptCountDict,index=conceptsData.index)
-        conceptsDF = pd.concat([conceptsData["time"], conceptCountDf], axis=1).groupby("time").sum().reset_index()
-        chiSquareDf = pd.concat([conceptsDF, stockPriceData["dayPriceDiff"]], axis=1, join='inner')
-        chiSquareDf.drop(['time'], axis=1, inplace=True)
+        conceptsData = pandasDf[["time"]+[x+"_count" for x in self.concepts.keys()]]
+        # conceptCountDict = {}
+        # for val in conceptList:
+        #     conceptCountDict[val] = []
+        # map(lambda x: self.get_chisquare_concept_columns(conceptCountDict,x),conceptsData["concepts"])
+        # conceptCountDf = pd.DataFrame(conceptCountDict,index=conceptsData.index)
+        # conceptsDF = pd.concat([conceptsData["time"], conceptCountDf], axis=1).groupby("time").sum().reset_index()
+        conceptsDF = conceptsData.groupby("time").sum().reset_index()
+        conceptsDF.index = conceptsDF["time"]
+        stockDf = stockPriceData[["date","dayPriceDiff"]]
+        stockDf.index = stockDf["date"]
+        chiSquareDf = pd.concat([conceptsDF, stockDf], axis=1, join='inner')
+        print chiSquareDf.columns
+        chiSquareDf.drop(['time','date'], axis=1, inplace=True)
+        print chiSquareDf.columns
         return chiSquareDf
 
     def get_chisquare_concept_columns(self,conceptCountDict,dfRow):
@@ -226,13 +243,12 @@ class StockAdvisor:
 
     def cramers_stat(self,confusion_matrix):
         n = confusion_matrix.sum().sum()
-        # print n
         chi2 = scs.chi2_contingency(confusion_matrix)[0]
         return np.sqrt(chi2 / (n*(min(confusion_matrix.shape)-1)))
 
     def calculate_chiSquare(self,df,targetCol):
         cramerStat = {}
-        colsToIterate = [x for x in df.columns if x!=targetCol]
+        colsToIterate = [x for x in df.columns if x != targetCol]
         targetColSplits = self.get_splits(df,targetCol,3)["splits"]
         targetColGroupNames = ["grp"+str(idx) for idx in range(1,len(targetColSplits))]
         df["targetColBins"] = pd.cut(df[targetCol], targetColSplits, labels=targetColGroupNames)
@@ -246,6 +262,27 @@ class StockAdvisor:
             cramerStat[col] = self.cramers_stat(confusionMatrix)
         return cramerStat
 
+    def run_regression(self,df,targetCol):
+        import statsmodels.api as sm
+        from statsmodels.formula.api import ols
+        colMaps = ["c"+str(idx) if x != targetCol else x for idx,x in enumerate(df.columns)]
+        reverseMap = dict(zip(df.columns,colMaps))
+        df.columns = colMaps
+        reg_model = ols("{} ~ ".format(targetCol)+"+".join(list(set(df.columns)-set([targetCol]))), data=df).fit()
+        # summarize our model
+        model_summary = reg_model.summary()
+        coeffDict = {}
+        reverseMappedCoef = {}
+        for colname in list(set(df.columns)-set([targetCol])):
+            print reg_model.params[colname]
+            coeffDict[colname] = reg_model.params[colname]
+            reverseMappedCoef[reverseMap[colname]] = reg_model.params[colname]
+        reverseMappedCoef["Intercept"] = reg_model.params["Intercept"]
+        print reverseMappedCoef
+        print model_summary
+
+
+
 
     def Run(self):
         print "In stockAdvisor"
@@ -255,6 +292,8 @@ class StockAdvisor:
             self.concepts = self.load_concepts_from_json()
         else:
             self.concepts = self.read_ankush_json(self.dataFilePath.format("concepts",""))
+
+        masterDfDict = {}
         for stock_symbol in self._file_names:
             #-------------- Read Operations ----------------
             if self._runEnv == "debugMode":
@@ -263,10 +302,28 @@ class StockAdvisor:
             else:
                 df = self.read_ankush_json(self.dataFilePath.format("bluemix",stock_symbol))
                 df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
+
+            stockPriceData = df_historic.select(["date","close","open"]).toPandas()
+            stockPriceData["close"] = stockPriceData["close"].apply(float)
+            stockPriceData["open"] = stockPriceData["open"].apply(float)
+            stockPriceData["dayPriceDiff"] = stockPriceData["close"] - stockPriceData["open"]
+
             self.pandasDf = self.identify_concepts_python(df)
+            print self.pandasDf.shape
+            # overall Distribution of articles and sentiments by concecpts
             nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
             print nArticlesAndSentimentsPerConcept
-            self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,df_historic)
+            print self.pandasDf.shape
+            regDf = self.pandasDf[["time","overallSentiment","totalCount"]+[x+"_count" for x in self.concepts.keys()]]
+            regDfgrouped = regDf.groupby("time").sum().reset_index()
+            regDfgrouped.index = regDfgrouped["time"]
+            stockDf  = stockPriceData[["close","date"]]
+            stockDf.index = stockDf["date"]
+            regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
+            regDfFinal.drop(["date"],axis = 1,inplace=True)
+            # regDfFinal.columns = ["time","overallSentiment"+"_"+stock_symbol,"totalCount"+"_"+stock_symbol]+[x+"_count" for x in self.concepts.keys()]+["close"+"_"+stock_symbol]
+            masterDfDict[stock_symbol] = regDfFinal
+            self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,stockPriceData)
             # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
             self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
             #-------------- Start Calculations ----------------
@@ -329,7 +386,26 @@ class StockAdvisor:
 
             # key_parameters_impacting_stock = self.get_key_parameters_impacting_stock(unpacked_df)
 
-        print "_"*50
+        print "_"*50+"REGRESSIONDATA"+"_"*50
+        self.regressionResultDict = {}
+        for current_stock in self._file_names:
+            regressionDf = masterDfDict[current_stock]
+            regressionDf.index = regressionDf["time"]
+            remaining_stocks = list(set(self._file_names)-set([current_stock]))
+            if len(remaining_stocks) > 0:
+                for other_stock in remaining_stocks:
+                    colsToConsider = ["time","overallSentiment","close"]
+                    otherStockDf = masterDfDict[other_stock][colsToConsider]
+                    otherStockDf.columns = [x+"_"+other_stock for x in colsToConsider]
+                    otherStockDf.index = otherStockDf["time"+"_"+other_stock]
+                    regressionDf = pd.concat([regressionDf,otherStockDf], axis=1, join='inner')
+                    regressionDf.drop(["time","time"+"_"+other_stock],axis=1,inplace=True)
+            # print regressionDf.columns
+            # Run linear regression on the regressionDf dataframe
+            regressionCoeff = self.run_regression(regressionDf,"close")
+            self.regressionResultDict[current_stock] = regressionCoeff
+
+        print "#"*110
         number_stocks = len(self._file_names)
         data_dict_overall["avg_sentiment_score"] = data_dict_overall["avg_sentiment_score"]/number_stocks
 

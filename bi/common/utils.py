@@ -786,7 +786,7 @@ def get_test_configs():
         },
         "stockAdvisor":{
             'job_config': {
-              'job_url': 'http://34.196.204.54:9012/api/job/stockadvisor-stocking_is_what_i_do-imlizu9xul-o8mwlmu0nz/',
+              'job_url': 'http://34.196.204.54:9012/api/job/stockadvisor-stocking_is_what_i_do-6ryt9x72e8-ynolqb82hb/',
               'job_type': 'stockAdvisor',
               'set_result': {
                 'action': 'result',
@@ -796,7 +796,7 @@ def get_test_configs():
                 'action': 'get_config',
                 'method': 'GET'
               },
-              'message_url': 'http://34.196.204.54:9012/api/messages/StockDataset_stocking_is_what_i_do-imlizu9xul_123/',
+              'message_url': 'http://34.196.204.54:9012/api/messages/StockDataset_stocking_is_what_i_do-6ryt9x72e8_123/',
               'job_name': u'stocking_is_what_i_do'
             },
             u'config': {
@@ -813,7 +813,7 @@ def get_test_configs():
               },
               u'STOCK_SETTINGS': {
                 u'stockSymbolList': [
-                  u'googl'
+                  'googl','appl'
                 ],
                 u'dataAPI': 'http://34.196.204.54:9012/api/stockdatasetfiles/stocking_is_what_i_do-imlizu9xul/',
               },
