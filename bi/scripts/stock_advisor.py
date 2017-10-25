@@ -266,20 +266,26 @@ class StockAdvisor:
         import statsmodels.api as sm
         from statsmodels.formula.api import ols
         colMaps = ["c"+str(idx) if x != targetCol else x for idx,x in enumerate(df.columns)]
-        reverseMap = dict(zip(df.columns,colMaps))
+        print colMaps
+        reverseMap = dict(zip(colMaps,df.columns))
+        print reverseMap
         df.columns = colMaps
         reg_model = ols("{} ~ ".format(targetCol)+"+".join(list(set(df.columns)-set([targetCol]))), data=df).fit()
         # summarize our model
         model_summary = reg_model.summary()
-        coeffDict = {}
+        modelParams = reg_model.params
+        modelParamsDf = pd.DataFrame({'id':modelParams.index, 'value':modelParams.values})
+        print modelParamsDf
+        coeffDict = modelParamsDf.set_index('id').to_dict()["value"]
         reverseMappedCoef = {}
-        for colname in list(set(df.columns)-set([targetCol])):
-            print reg_model.params[colname]
-            coeffDict[colname] = reg_model.params[colname]
-            reverseMappedCoef[reverseMap[colname]] = reg_model.params[colname]
-        reverseMappedCoef["Intercept"] = reg_model.params["Intercept"]
+        for k,v in coeffDict.items():
+            if k != "Intercept":
+                reverseMappedCoef[reverseMap[k]] = coeffDict[k]
+            else:
+                reverseMappedCoef[k] = coeffDict[k]
         print reverseMappedCoef
         print model_summary
+        return reverseMappedCoef
 
 
 
@@ -311,6 +317,7 @@ class StockAdvisor:
             self.pandasDf = self.identify_concepts_python(df)
             print self.pandasDf.shape
             # overall Distribution of articles and sentiments by concecpts
+            # needs final presentation
             nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
             print nArticlesAndSentimentsPerConcept
             print self.pandasDf.shape
