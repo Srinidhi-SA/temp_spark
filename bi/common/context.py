@@ -43,7 +43,7 @@ class ContextSetter:
         self.scriptsMapping = {
             "overview" : "Descriptive analysis",
             "performance" : "Measure vs. Dimension",
-            "influencers" : "Measure vs. Measure",
+            "influencer" : "Measure vs. Measure",
             "prediction" : "Predictive modeling",
             "trend" : "Trend",
             "association" : "Dimension vs. Dimension"
