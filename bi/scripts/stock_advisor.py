@@ -9,6 +9,8 @@ import random
 from collections import Counter
 from bi.stats.chisquare import ChiSquare
 from bi.common import utils as CommonUtils
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
 
 
 class StockAdvisor:
@@ -263,8 +265,7 @@ class StockAdvisor:
         return cramerStat
 
     def run_regression(self,df,targetCol):
-        import statsmodels.api as sm
-        from statsmodels.formula.api import ols
+
         colMaps = ["c"+str(idx) if x != targetCol else x for idx,x in enumerate(df.columns)]
         print colMaps
         reverseMap = dict(zip(colMaps,df.columns))

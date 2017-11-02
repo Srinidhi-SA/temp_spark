@@ -65,8 +65,9 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/common/utils.py
+            jobType = "prediction"
             testConfigs = CommonUtils.get_test_configs()
-            configJson = testConfigs["stockAdvisor"]
+            configJson = testConfigs[jobType]
 
 
     ######################## Craeting Spark Session ###########################

@@ -220,6 +220,8 @@ class MetaDataScript:
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
+                    data.set_level_count_to_null()
+                    data.set_chart_data_to_null()
                     data.set_ignore_suggestion_flag(True)
                     data.set_ignore_suggestion_message(ignoreReason)
 
@@ -246,6 +248,8 @@ class MetaDataScript:
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
+                    data.set_level_count_to_null()
+                    data.set_chart_data_to_null()
                     data.set_ignore_suggestion_flag(True)
                     data.set_ignore_suggestion_message(ignoreReason)
 
