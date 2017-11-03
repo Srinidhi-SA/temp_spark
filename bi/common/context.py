@@ -70,6 +70,7 @@ class ContextSetter:
         self.analysisDict = {}
         self.stockSymbolList = []
         self.dataAPI = ""
+        self.trendSettings = None
 
 
     def set_model_path(self,data):

@@ -296,34 +296,35 @@ def get_story_config():
         "config" : {
             "COLUMN_SETTINGS" : {
                 "analysis_type" : [
-                    "dimension"
+                    "measure"
                 ],
                 "consider_columns" : [
-                    "Deal_Type",
-                    "Price_Range",
-                    "Discount_Range",
-                    "Source",
-                    "Platform",
-                    "Buyer_Age",
-                    "Buyer_Gender",
-                    "Tenure_in_Days",
-                    "Sales",
-                    "Marketing_Cost",
-                    "Shipping_Cost",
-                    "Last_Transaction",
-                    "new_date"
+                    "Education",
+                    "Top Organization",
+                    "Agent Name",
+                    "Call Type",
+                    "State",
+                    "Region",
+                    "Agent Experience",
+                    "Agent Rating",
+                    "Agent Age",
+                    "Top Plan Provider",
+                    "Call Volume",
+                    "First call resolution",
+                    "Average Call duration (in Minutes)",
+                    "Call date"
                 ],
                 "consider_columns_type" : [
                     "including"
                 ],
                 "dateTimeSuggestions" : [
                     {
-                        "Month" : "%b-%y",
-                        "Order Date" : "%d-%m-%Y"
+                        # "Month" : "%b-%y",
+                        # "Order Date" : "%d-%m-%Y"
                     }
                 ],
                 "date_columns" : [
-                    "new_date"
+                    "Call date"
                 ],
                 "date_format" : None,
                 "ignore_column_suggestion" : [
@@ -332,13 +333,13 @@ def get_story_config():
                     "positive"
                 ],
                 "result_column" : [
-                    "Platform"
+                    "Call Volume"
                 ],
                 "utf8_column_suggestions" : []
             },
             "FILE_SETTINGS" : {
                 "inputfile" : [
-                    "file:///home/gulshan/marlabs/datasets/trend_gulshan_small.csv"
+                    "file:///home/gulshan/marlabs/datasets/Health Care Callcentre- V10.csv"
                 ],
                 "script_to_run" : [
                     "Descriptive analysis",
@@ -364,7 +365,7 @@ def get_story_config():
                         "displayName" : "Overview",
                         "name" : "overview",
                         "noOfColumnsToUse" : None,
-                        "status" : False
+                        "status" : True
                     },
                     {
                         "analysisSubTypes" : [
@@ -379,100 +380,106 @@ def get_story_config():
                         "displayName" : "Prediction",
                         "name" : "prediction",
                         "noOfColumnsToUse" : None,
-                        "status" : True
+                        "status" : False
                     },
                     {
                         "analysisSubTypes" : [],
                         "displayName" : "Influencers",
                         "name" : "influencers",
-                        "noOfColumnsToUse" : [{
-                            "defaultValue" : 3,
-                            "displayName" : "Low",
-                            "name" : "low",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 5,
-                            "displayName" : "Medium",
-                            "name" : "medium",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 8,
-                            "displayName" : "High",
-                            "name" : "high",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 3,
-                            "displayName" : "Custom",
-                            "name" : "custom",
-                            "status" : True,
-                            "value" : 12
-                        }],
+                        "noOfColumnsToUse" : [
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : True,
+                                "value" : 12
+                            }
+                        ],
                         "status" : False
                     },
                     {
                         "analysisSubTypes" : [],
                         "displayName" : "Performance",
                         "name" : "performance",
-                        "noOfColumnsToUse" : [{
-                            "defaultValue" : 3,
-                            "displayName" : "Low",
-                            "name" : "low",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 5,
-                            "displayName" : "Medium",
-                            "name" : "medium",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 8,
-                            "displayName" : "High",
-                            "name" : "high",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 3,
-                            "displayName" : "Custom",
-                            "name" : "custom",
-                            "status" : True,
-                            "value" : 13
-                        }],
+                        "noOfColumnsToUse" : [
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : True,
+                                "value" : 13
+                            }
+                        ],
                         "status" : False
                     },
                     {
                         "analysisSubTypes" : [],
                         "displayName" : "Association",
                         "name" : "association",
-                        "noOfColumnsToUse" : [{
-                            "defaultValue" : 3,
-                            "displayName" : "Low",
-                            "name" : "low",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 5,
-                            "displayName" : "Medium",
-                            "name" : "medium",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 8,
-                            "displayName" : "High",
-                            "name" : "high",
-                            "status" : False
-                        },
-                        {
-                            "defaultValue" : 3,
-                            "displayName" : "Custom",
-                            "name" : "custom",
-                            "status" : True,
-                            "value" : 13
-                        }],
-                        "status" : True
+                        "noOfColumnsToUse" : [
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : True,
+                                "value" : 13
+                            }
+                        ],
+                        "status" : False
                     }
                 ],
                 "targetLevels" : [
@@ -492,7 +499,7 @@ def get_story_config():
                     },
                     {
                         "name" : "Specific Measure",
-                        "selectedMeasure" : "Tenure_in_Days",
+                        "selectedMeasure" : "Call Volume",
                         "status" : True
                     }
                 ]
@@ -530,7 +537,7 @@ def get_metadata_config():
             "DATE_SETTINGS" : {},
             "FILE_SETTINGS" : {
                 "inputfile" : [
-                    "file:///home/gulshan/marlabs/datasets/Health Care Callcentre- V10.csv"
+                    "file:///home/gulshan/marlabs/datasets/Sigmacleanedv6_no_summary.csv"
                 ]
             }
         },

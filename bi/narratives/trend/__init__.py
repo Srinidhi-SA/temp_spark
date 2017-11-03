@@ -43,11 +43,14 @@ class TimeSeriesNarrative:
         self._analysistype = self._dataframe_context.get_analysis_type()
         self._trendSettings = self._dataframe_context.get_trend_settings()
         self._trendSpecificMeasure = False
-        if self._analysistype == "dimension" and self._trendSettings["name"] != "Count":
-            self._trendSpecificMeasure = True
-            self._analysistype = "measure"
-            self._result_column = self._trendSettings["selectedMeasure"]
-
+        if self._trendSettings != None:
+            if self._analysistype == "dimension" and self._trendSettings["name"] != "Count":
+                self._trendSpecificMeasure = True
+                self._analysistype = "measure"
+                self._result_column = self._trendSettings["selectedMeasure"]
+            elif self._analysistype == "measure" and self._trendSettings["name"] != "Count":
+                self._result_column = self._trendSettings["selectedMeasure"]
+    
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
