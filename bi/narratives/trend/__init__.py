@@ -50,7 +50,7 @@ class TimeSeriesNarrative:
                 self._result_column = self._trendSettings["selectedMeasure"]
             elif self._analysistype == "measure" and self._trendSettings["name"] != "Count":
                 self._result_column = self._trendSettings["selectedMeasure"]
-    
+
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
@@ -380,6 +380,7 @@ class TimeSeriesNarrative:
                         chartJson.set_legend({"actual":"Observed","predicted":"Forecast"})
                         chartJson.set_chart_type("scatter_line")
                         chartJson.set_axes({"x":"key","y":"value"})
+                        chartJson.set_yaxis_number_format(".2f")
                         measureTrendcard1Data.insert(1,C3ChartData(data=chartJson))
                         measureTrendcard1Data.append(HtmlData(data=card1BubbleData))
                         cardData = measureTrendcard1Data+measureTrendcard2Data
@@ -611,6 +612,7 @@ class TimeSeriesNarrative:
                     chartJson.set_label_text(c3Chart["label_text"])
                     chartJson.set_legend(c3Chart["label"])
                     chartJson.set_chart_type("line")
+                    chartJson.set_yaxis_number_format(".2f")
                     chartJson.set_axes(labels)
                     cardData1.insert(1,C3ChartData(data=chartJson))
                     trendCard = NormalCard(name="Trend Analysis",slug=None,cardData = cardData1)
