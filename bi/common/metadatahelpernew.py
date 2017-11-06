@@ -231,28 +231,33 @@ class MetaDataHelper():
                             }
         for column in td_columns:
             col_stat = {}
-            df = df.orderBy([column],ascending=[True])
-            df = df.withColumn("_id_", monotonically_increasing_id())
-            first_date = df.select(column).first()[0]
+            notNullDf = df.select(column).distinct().na.drop()
+            notNullDf = notNullDf.orderBy([column],ascending=[True])
+            notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
+            first_date = notNullDf.select(column).first()[0]
             first_date = str(pd.to_datetime(first_date).date())
             try:
                 print "TRY BLOCK STARTED"
-                last_date = df.where(col("_id_") == id_max).select(column).first()[0]
+                last_date = notNullDf.where(col("_id_") == id_max).select(column).first()[0]
             except:
                 print "ENTERING EXCEPT BLOCK"
-                pandas_df = df.select(["_id_",column]).toPandas()
+                pandas_df = notNullDf.select(["_id_",column]).toPandas()
                 pandas_df.sort_values(by=column,ascending=True,inplace=True)
                 last_date = str(pandas_df[column].iloc[-1].date())
             col_stat["firstDate"] = first_date
             col_stat["lastDate"] = last_date
-            col_stat["count"] = df.select(column).distinct().na.drop().count()
+            # col_stat["count"] = df.select(column).distinct().na.drop().count()
+            col_stat["count"] = notNullDf.count()
             if level_count_flag:
                 print "inside level count"
                 fs1 = time.time()
                 tdLevelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
                 levelCount = {}
                 for k,v in tdLevelCount.items():
-                    levelCount[str(pd.to_datetime(k).date())] = v
+                    if k != None:
+                        levelCount[str(pd.to_datetime(k).date())] = v
+                    else:
+                        levelCount[k] = v
                 print "time for levelCount ",time.time()-fs1,"Seconds"
                 col_stat["LevelCount"] = levelCount
                 if None in levelCount.keys():
