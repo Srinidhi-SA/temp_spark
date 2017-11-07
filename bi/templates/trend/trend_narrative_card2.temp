@@ -15,7 +15,7 @@ compared to rest of the observation period.
 </p>
 {{blockSplitter}}
 <p class="txt-justify">
-However, there are also few {{dataLevel}} when {{measure}} was lagging and didn't do very well.
+However, there are also few {{dataLevel}}s when {{measure}} was lagging and didn't do very well.
 {% if lowStreakDuration >= 2%}
   The most notable among them was {{lowestTime}} and values for {{measure}} dropped to {{lowestValue|round_number}}
   from {{lowStreakBeginValue|round_number}} in {{lowStreakBeginMonth}}.

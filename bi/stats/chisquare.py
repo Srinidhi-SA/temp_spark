@@ -24,7 +24,7 @@ class ChiSquare:
     COUNT_COLUMN_NAME = '__count'
     SUM_OF_SQUARES = '__sum_of_squares'
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context,scriptWeight=None, analysisName=None):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -41,10 +41,16 @@ class ChiSquare:
                 self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
         self._analysisDict = self._dataframe_context.get_analysis_dict()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized the Chisquare Scripts",
@@ -83,7 +89,10 @@ class ChiSquare:
         dimension = dimension_columns[0]
         all_dimensions = self._dimension_columns
         all_dimensions = [x for x in all_dimensions if x != dimension]
-        nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        if self._analysisDict != {}:
+            nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        else:
+            nColsToUse = None
         if nColsToUse != None:
             all_dimensions = all_dimensions[:nColsToUse]
         all_measures = self._measure_columns

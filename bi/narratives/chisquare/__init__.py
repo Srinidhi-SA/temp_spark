@@ -14,7 +14,7 @@ from bi.common import utils as CommonUtils
 class ChiSquareNarratives:
     print "Starting Narratives"
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
-    def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative,result_setter):
+    def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative,result_setter,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._blockSplitter = "|~NEWBLOCK~|"
@@ -37,9 +37,15 @@ class ChiSquareNarratives:
                 self._base_dir += "appid2/"
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
 
         self._scriptStages = {
             "initialization":{

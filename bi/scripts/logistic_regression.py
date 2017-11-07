@@ -37,8 +37,40 @@ class LogisticRegressionScript:
         self._model_slug_map = MLUtils.model_slug_mapping()
         self._slug = self._model_slug_map["logisticregression"]
 
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        print self._completionStatus,"initial completion status"
+        self._analysisName = "randomForest"
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
+
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Logistic Regression Scripts",
+                "weight":4
+                },
+            "training":{
+                "summary":"Logistic Regression Model Training Started",
+                "weight":2
+                },
+            "completion":{
+                "summary":"Logistic Regression Model Training Finished",
+                "weight":4
+                },
+            }
+
     def Train(self):
         st = time.time()
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -55,6 +87,16 @@ class LogisticRegressionScript:
         self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
         x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
         x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "training",\
+                                    "info",\
+                                    self._scriptStages["training"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
         existing_columns = x_test.columns
         model_columns = x_train.columns
@@ -144,11 +186,55 @@ class LogisticRegressionScript:
         lrCard1 = json.loads(CommonUtils.convert_python_object_to_json(lrCard1))
         lrCard2 = json.loads(CommonUtils.convert_python_object_to_json(lrCard2))
         self._result_setter.set_lr_cards([lrCard1,lrCard2])
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "completion",\
+                                    "info",\
+                                    self._scriptStages["completion"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
 
 
     def Predict(self):
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Logistic Regression Scripts",
+                "weight":2
+                },
+            "prediction":{
+                "summary":"Logistic Regression Model Prediction Finished",
+                "weight":2
+                },
+            "frequency":{
+                "summary":"descriptive analysis finished",
+                "weight":2
+                },
+            "chisquare":{
+                "summary":"chi Square analysis finished",
+                "weight":4
+                },
+            "completion":{
+                "summary":"all analysis finished",
+                "weight":4
+                },
+            }
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
         cat_cols = self._dataframe_helper.get_string_columns()
@@ -202,6 +288,17 @@ class LogisticRegressionScript:
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "prediction",\
+                                    "info",\
+                                    self._scriptStages["prediction"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
         print "STARTING DIMENSION ANALYSIS ..."
@@ -233,29 +330,42 @@ class LogisticRegressionScript:
         try:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
+            if narratives_file.startswith("file"):
+                narratives_file = narratives_file[7:]
             result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
+            if result_file.startswith("file"):
+                result_file = result_file[7:]
+            init_freq_dim = FreqDimensions(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+            df_freq_dimension_obj = init_freq_dim.test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            # CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            # Narratives
-            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative)
+            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
             narratives = CommonUtils.as_dict(narratives_obj)
-            # CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
+
             print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+            self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["frequency"]["weight"]/10
+            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                        "frequency",\
+                                        "info",\
+                                        self._scriptStages["frequency"]["summary"],\
+                                        self._completionStatus,\
+                                        self._completionStatus)
+            CommonUtils.save_progress_message(self._messageURL,progressMessage)
+            self._dataframe_context.update_completion_status(self._completionStatus)
+            print "Frequency ",self._completionStatus
         except:
             print "Frequency Analysis Failed "
 
         try:
             fs = time.time()
             narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+            if narratives_file.startswith("file"):
+                narratives_file = narratives_file[7:]
             result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
+            if result_file.startswith("file"):
+                result_file = result_file[7:]
+            init_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+            df_chisquare_obj = init_chisquare_obj.test_all(dimension_columns= [result_column])
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-            # CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            # CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName))
         except:
             print "ChiSquare Analysis Failed "

@@ -11,15 +11,21 @@ Count Frequency in a Dimension
 
 class FreqDimensions:
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context, scriptWeight=None, analysisName=None):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
 
         self._scriptStages = {
             "freqinitialization":{

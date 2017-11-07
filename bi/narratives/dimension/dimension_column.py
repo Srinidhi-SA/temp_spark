@@ -12,7 +12,7 @@ from bi.common import ScatterChartData,NormalChartData,ChartJson
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
 
-    def __init__(self, column_name, df_helper, df_context, freq_dimension_stats,result_setter,story_narrative):
+    def __init__(self, column_name, df_helper, df_context, freq_dimension_stats,result_setter,story_narrative,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._column_name = column_name.lower()
@@ -42,9 +42,15 @@ class DimensionColumnNarrative:
         self._headNode.set_name("Overview")
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized the Frequency Narratives",

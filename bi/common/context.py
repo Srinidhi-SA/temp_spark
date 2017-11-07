@@ -63,6 +63,20 @@ class ContextSetter:
             "Trend":2.5,
             "Predictive modeling":2.5
         }
+        self.mlModelTrainingWeight = {
+            "initialization":{"total":10,"script":10,"narratives":10},
+            "randomForest":{"total":30,"script":30,"narratives":30},
+            "logisticRegression":{"total":30,"script":30,"narratives":30},
+            "xgboost":{"total":30,"script":30,"narratives":30}
+        }
+        self.mlModelPredictionWeight = {
+            "initialization":{"total":10,"script":10,"narratives":10},
+            "randomForest":{"total":20,"script":20,"narratives":20},
+            "logisticRegression":{"total":20,"script":20,"narratives":20},
+            "xgboost":{"total":20,"script":20,"narratives":20},
+            "Descriptive analysis":{"total":10,"script":10,"narratives":10},
+            "Dimension vs. Dimension":{"total":20,"script":20,"narratives":20}
+        }
         self.measureAnalysisWeight = {}
         self.dimensionAnalysisWeight = {}
         self.globalCompletionStatus = 0
@@ -297,6 +311,12 @@ class ContextSetter:
 
     def get_dimension_analysis_weight(self):
         return self.dimensionAnalysisWeight
+
+    def get_ml_model_training_weight(self):
+        return self.mlModelTrainingWeight
+
+    def get_ml_model_prediction_weight(self):
+        return self.mlModelPredictionWeight
 
     def update_completion_status(self,data):
         print "completionStatus",data

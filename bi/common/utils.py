@@ -294,231 +294,192 @@ def get_story_config():
     storyConfig = {
 
         "config" : {
-            "COLUMN_SETTINGS" : {
-                "analysis_type" : [
-                    "measure"
-                ],
-                "consider_columns" : [
-                    "Education",
-                    "Top Organization",
-                    "Agent Name",
-                    "Call Type",
-                    "State",
-                    "Region",
-                    "Agent Experience",
-                    "Agent Rating",
-                    "Agent Age",
-                    "Top Plan Provider",
-                    "Call Volume",
-                    "First call resolution",
-                    "Average Call duration (in Minutes)",
-                    "Call date"
-                ],
-                "consider_columns_type" : [
-                    "including"
-                ],
-                "dateTimeSuggestions" : [
-                    {
-                        # "Month" : "%b-%y",
-                        # "Order Date" : "%d-%m-%Y"
-                    }
-                ],
-                "date_columns" : [
-                    "Call date"
-                ],
-                "date_format" : None,
-                "ignore_column_suggestion" : [
-                ],
-                "polarity" : [
-                    "positive"
-                ],
-                "result_column" : [
-                    "Call Volume"
-                ],
-                "utf8_column_suggestions" : []
-            },
-            "FILE_SETTINGS" : {
-                "inputfile" : [
-                    "file:///home/gulshan/marlabs/datasets/Health Care Callcentre- V10.csv"
-                ],
-                "script_to_run" : [
-                    "Descriptive analysis",
-                    "Measure vs. Dimension",
-                    # "Dimension vs. Dimension",
-                    "Measure vs. Measure",
-                    "Predictive modeling",
-                    "Trend",
-                    "Descriptive analysis",
-                    # "Trend",
-                    "Predictive modeling",
-                    # "Dimension vs. Dimension"
-                ]
-            },
-            "DATA_SOURCE" : {
-                "datasource_details" : "",
-                "datasource_type" : "fileUpload"
-            },
-            "ADVANCED_SETTINGS" : {
-                "analysis" : [
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Overview",
-                        "name" : "overview",
-                        "noOfColumnsToUse" : None,
-                        "status" : True
-                    },
-                    {
-                        "analysisSubTypes" : [
-                        ],
-                        "displayName" : "Trend",
-                        "name" : "trend",
-                        "noOfColumnsToUse" : None,
-                        "status" : True
-                    },
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Prediction",
-                        "name" : "prediction",
-                        "noOfColumnsToUse" : None,
-                        "status" : False
-                    },
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Influencers",
-                        "name" : "influencers",
-                        "noOfColumnsToUse" : [
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Low",
-                                "name" : "low",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 5,
-                                "displayName" : "Medium",
-                                "name" : "medium",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 8,
-                                "displayName" : "High",
-                                "name" : "high",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Custom",
-                                "name" : "custom",
-                                "status" : True,
-                                "value" : 12
-                            }
-                        ],
-                        "status" : False
-                    },
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Performance",
-                        "name" : "performance",
-                        "noOfColumnsToUse" : [
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Low",
-                                "name" : "low",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 5,
-                                "displayName" : "Medium",
-                                "name" : "medium",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 8,
-                                "displayName" : "High",
-                                "name" : "high",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Custom",
-                                "name" : "custom",
-                                "status" : True,
-                                "value" : 13
-                            }
-                        ],
-                        "status" : False
-                    },
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Association",
-                        "name" : "association",
-                        "noOfColumnsToUse" : [
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Low",
-                                "name" : "low",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 5,
-                                "displayName" : "Medium",
-                                "name" : "medium",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 8,
-                                "displayName" : "High",
-                                "name" : "high",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Custom",
-                                "name" : "custom",
-                                "status" : True,
-                                "value" : 13
-                            }
-                        ],
-                        "status" : False
-                    }
-                ],
-                "targetLevels" : [
-                    [
+                "ADVANCED_SETTINGS" : {
+                    "analysis" : [
                         {
-                            "Mobile" : True
+                            "analysisSubTypes" : [],
+                            "displayName" : "Overview",
+                            "name" : "overview",
+                            "noOfColumnsToUse" : None,
+                            "status" : True
                         },
                         {
-                            "Desktop" : True
+                            "analysisSubTypes" : [
+                                {
+                                    "displayName" : "Overview",
+                                    "name" : "overview",
+                                    "status" : False
+                                },
+                                {
+                                    "displayName" : "Top Sublevel",
+                                    "name" : "Top Sublevel",
+                                    "status" : False
+                                },
+                                {
+                                    "displayName" : "Trend for top Sublevel",
+                                    "name" : "Trend for top Sublevel",
+                                    "status" : False
+                                }
+                            ],
+                            "displayName" : "Performance",
+                            "name" : "performance",
+                            "noOfColumnsToUse" : [
+                                {
+                                    "defaultValue" : 3,
+                                    "displayName" : "Low",
+                                    "name" : "low",
+                                    "status" : True
+                                },
+                                {
+                                    "defaultValue" : 5,
+                                    "displayName" : "Medium",
+                                    "name" : "medium",
+                                    "status" : False
+                                },
+                                {
+                                    "defaultValue" : 8,
+                                    "displayName" : "High",
+                                    "name" : "high",
+                                    "status" : False
+                                },
+                                {
+                                    "defaultValue" : 3,
+                                    "displayName" : "Custom",
+                                    "name" : "custom",
+                                    "status" : False,
+                                    "value" : None
+                                }
+                            ],
+                            "status" : True
+                        },
+                        {
+                            "analysisSubTypes" : [
+                                {
+                                    "displayName" : "Overview",
+                                    "name" : "overview",
+                                    "status" : False
+                                },
+                                {
+                                    "displayName" : "Key areas of Impact",
+                                    "name" : "Key areas of Impact",
+                                    "status" : False
+                                },
+                                {
+                                    "displayName" : "Trend analysis",
+                                    "name" : "Trend analysis",
+                                    "status" : False
+                                }
+                            ],
+                            "displayName" : "Influencer",
+                            "name" : "influencer",
+                            "noOfColumnsToUse" : [
+                                {
+                                    "defaultValue" : 3,
+                                    "displayName" : "Low",
+                                    "name" : "low",
+                                    "status" : True
+                                },
+                                {
+                                    "defaultValue" : 5,
+                                    "displayName" : "Medium",
+                                    "name" : "medium",
+                                    "status" : False
+                                },
+                                {
+                                    "defaultValue" : 8,
+                                    "displayName" : "High",
+                                    "name" : "high",
+                                    "status" : False
+                                },
+                                {
+                                    "defaultValue" : 3,
+                                    "displayName" : "Custom",
+                                    "name" : "custom",
+                                    "status" : False,
+                                    "value" : None
+                                }
+                            ],
+                            "status" : True
+                        },
+                        {
+                            "analysisSubTypes" : [],
+                            "displayName" : "Prediction",
+                            "name" : "prediction",
+                            "noOfColumnsToUse" : None,
+                            "status" : True
                         }
                     ]
-                ],
-                "trendSettings" : [
-                    {
-                        "name" : "Count",
-                        "status" : False
-                    },
-                    {
-                        "name" : "Specific Measure",
-                        "selectedMeasure" : "Call Volume",
-                        "status" : True
-                    }
-                ]
+                },
+                "COLUMN_SETTINGS" : {
+                    "analysis_type" : [
+                        "measure"
+                    ],
+                    "consider_columns" : [
+                        "SEX",
+                        "EDUCATION",
+                        "MARRIAGE",
+                        "AGE_CATEGORY",
+                        "PAYMENT_DECEMBER",
+                        "PAYMENT_NOVEMBER",
+                        "BILL_AMOUNT_DECEMBER",
+                        "BILL_AMOUNT_NOVEMBER",
+                        "AMOUNT_PAID_DECEMBER",
+                        "AMOUNT_PAID_NOVEMBER",
+                        "STATE",
+                        "OCCUPATION",
+                        "CREDIT_RATING",
+                        "TENURE_RANGE",
+                        "AVERAGE_SPEND",
+                        "STATUS",
+                        "CREDIT_BALANCE"
+                    ],
+                    "consider_columns_type" : [
+                        "including"
+                    ],
+                    "dateTimeSuggestions" : [
+                        {}
+                    ],
+                    "date_columns" : [],
+                    "date_format" : None,
+                    "ignore_column_suggestion" : [],
+                    "polarity" : [
+                        "positive"
+                    ],
+                    "result_column" : [
+                        "CREDIT_BALANCE"
+                    ],
+                    "utf8_column_suggestions" : []
+                },
+                "DATA_SOURCE" : {
+                    "datasource_details" : "",
+                    "datasource_type" : "fileUpload"
+                },
+                "FILE_SETTINGS" : {
+                    "inputfile" : [
+                        "file:///home/gulshan/marlabs/datasets/credit_churn_data.csv"
+                    ],
+                    "script_to_run" : [
+                        "Descriptive analysis",
+                        "Measure vs. Dimension",
+                        "Measure vs. Measure",
+                        "Predictive modeling"
+                    ]
+                }
             },
-        },
-        "job_config" : {
-            "get_config" : {
-                "action" : "get_config",
-                "method" : "GET"
-            },
-            "job_name" : "advanceSettingsV1",
-            "job_type" : "story",
-            "job_url" : "http://34.196.204.54:9012/api/job/master-advancesettingsv1-b7wno0o2oj-va7kdmt2m8/",
-            "message_url" : "http://34.196.204.54:9012/api/messages/Insight_advancesettingsv1-b7wno0o2oj_123/",
-            "set_result" : {
-                "action" : "result",
-                "method" : "PUT"
+            "job_config" : {
+                "get_config" : {
+                    "action" : "get_config",
+                    "method" : "GET"
+                },
+                "job_name" : "creadit balance issue",
+                "job_type" : "story",
+                "job_url" : "http://34.196.204.54:9012/api/job/master-creadit-balance-issue-4jjui0vn4z-6n4yiixsxh/",
+                "message_url" : "http://34.196.204.54:9012/api/messages/Insight_creadit-balance-issue-4jjui0vn4z_123/",
+                "set_result" : {
+                    "action" : "result",
+                    "method" : "PUT"
+                }
             }
-        }
     }
     return storyConfig
 
@@ -616,7 +577,7 @@ def get_prediction_config():
                 # 'train_test_split' : [0.8],
                 'levelcounts' : [],
                 'modelfeatures' : [],
-                "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
+                "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8lr"],
             },
             'COLUMN_SETTINGS': {
                 'analysis_type': ['Dimension'],

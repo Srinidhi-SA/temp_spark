@@ -39,8 +39,42 @@ class RandomForestScript:
         self._model_slug_map = MLUtils.model_slug_mapping()
         self._slug = self._model_slug_map["randomforest"]
 
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        print self._completionStatus,"initial completion status"
+        self._analysisName = "randomForest"
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
+
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Random Forest Scripts",
+                "weight":4
+                },
+            "training":{
+                "summary":"Random Forest Model Training Started",
+                "weight":2
+                },
+            "completion":{
+                "summary":"Random Forest Model Training Finished",
+                "weight":4
+                },
+            }
+
+
+
     def Train(self):
         st = time.time()
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -49,9 +83,19 @@ class RandomForestScript:
             model_path = model_path[7:]
         random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "training",\
+                                    "info",\
+                                    self._scriptStages["training"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
         objs = random_forest_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
-
         model_filepath = str(model_path)+"/"+str(self._slug)+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         print model_filepath
@@ -77,6 +121,7 @@ class RandomForestScript:
         self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
         self._model_summary["total_trees"] = 100
         self._model_summary["total_rules"] = 300
+
 
         prediction_split_dict = dict(collections.Counter(objs["predicted"]))
         prediction_split_array = []
@@ -133,12 +178,54 @@ class RandomForestScript:
         rfCard1 = json.loads(CommonUtils.convert_python_object_to_json(rfCard1))
         rfCard2 = json.loads(CommonUtils.convert_python_object_to_json(rfCard2))
         self._result_setter.set_rf_cards([rfCard1,rfCard2])
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "completion",\
+                                    "info",\
+                                    self._scriptStages["completion"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary
         # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
     def Predict(self):
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Random Forest Scripts",
+                "weight":2
+                },
+            "prediction":{
+                "summary":"Random Forest Model Prediction Finished",
+                "weight":2
+                },
+            "frequency":{
+                "summary":"descriptive analysis finished",
+                "weight":2
+                },
+            "chisquare":{
+                "summary":"chi Square analysis finished",
+                "weight":4
+                },
+            "completion":{
+                "summary":"all analysis finished",
+                "weight":4
+                },
+            }
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         # Match with the level_counts and then clean the data
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
@@ -184,6 +271,16 @@ class RandomForestScript:
         df.to_csv(score_data_path,header=True,index=False)
         print "Predicted Columns"
         print df.columns
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "prediction",\
+                                    "info",\
+                                    self._scriptStages["prediction"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
 
@@ -223,13 +320,23 @@ class RandomForestScript:
             result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
             if result_file.startswith("file"):
                 result_file = result_file[7:]
-            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
+            init_freq_dim = FreqDimensions(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+            df_freq_dimension_obj = init_freq_dim.test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            # CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative)
+            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
             narratives = CommonUtils.as_dict(narratives_obj)
-            # CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
+
             print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+            self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["frequency"]["weight"]/10
+            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                        "frequency",\
+                                        "info",\
+                                        self._scriptStages["frequency"]["summary"],\
+                                        self._completionStatus,\
+                                        self._completionStatus)
+            CommonUtils.save_progress_message(self._messageURL,progressMessage)
+            self._dataframe_context.update_completion_status(self._completionStatus)
+            print "Frequency ",self._completionStatus
         except:
             print "Frequency Analysis Failed "
 
@@ -241,13 +348,9 @@ class RandomForestScript:
             result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
             if result_file.startswith("file"):
                 result_file = result_file[7:]
-            df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
+            init_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+            df_chisquare_obj = init_chisquare_obj.test_all(dimension_columns= [result_column])
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-            # CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            # CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName))
         except:
             print "ChiSquare Analysis Failed "
