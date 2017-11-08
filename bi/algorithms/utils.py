@@ -191,7 +191,8 @@ def calculate_overall_precision_recall(actual,predicted):
     val_counts = df["actual"].value_counts().to_dict()
     val_counts_tuple = tuple(val_counts.items())
     # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
-    positive_class = __builtin__.max(val_counts,key=val_counts.get)
+    # positive_class = __builtin__.max(val_counts,key=val_counts.get)
+    positive_class = __builtin__.min(val_counts,key=val_counts.get)
     # positive_class = max(val_counts.iteritems(), key=operator.itemgetter(1))[0]
 
     class_precision_recall = calculate_precision_recall(actual,predicted)
