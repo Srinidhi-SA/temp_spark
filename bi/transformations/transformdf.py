@@ -58,9 +58,13 @@ class DataFrameTransformer:
                             self.update_column_name(transformObj["name"],obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfDataTypes"] if x["status"] == True][0]
-                            print self._data_frame.printSchema()
-                            castDataType = 'int'
-                            self.update_column_datatype(transformObj["name"],castDataType)
+                            if castDataType == "numeric":
+                                newDataType = 'int'
+                            elif castDataType == "string":
+                                newDataType = "string"
+                            elif castDataType == "datetime":
+                                newDataType = "timestamp"
+                            self.update_column_datatype(transformObj["name"],newDataType)
                             print self._data_frame.printSchema()
 
 
@@ -131,6 +135,7 @@ class DataFrameTransformer:
     def update_column_datatype(self,column_name,data_type):
         print "hi udating column data type"
         self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
+        print self._data_frame.printSchema()
         #TODO update data type as measure or dimension
 
     def update_column_name(self,old_column_name,new_column_name):

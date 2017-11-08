@@ -65,7 +65,7 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/common/utils.py
-            jobType = "prediction"
+            jobType = "subSetting"
             testConfigs = CommonUtils.get_test_configs()
             configJson = testConfigs[jobType]
 
