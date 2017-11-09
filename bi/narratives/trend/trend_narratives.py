@@ -1,5 +1,5 @@
 import os
-
+import time
 import numpy as np
 from datetime import datetime
 
@@ -97,8 +97,7 @@ class TrendNarrative:
             dataDict["peakTime"] = df["year_month"][peak_index]
             dataDict["lowestTime"] = df["year_month"][low_index]
             dataDict["reference_time"] = dataDict["peakTime"]
-        print dataDict["overall_growth"]
-        print "%#"*20
+        print "Overall Growth ",dataDict["overall_growth"]
         if dataDict["overall_growth"] < 0:
             dataDict["overall_growth_text"] = "negative growth"
         else:
@@ -124,7 +123,6 @@ class TrendNarrative:
             elif dataDict["dataLevel"] == "month":
                 dataDict["lowStreakBeginMonth"] = df["year_month"][l]
             dataDict["lowStreakBeginValue"] = df["value"][l]
-
         table_data = {"increase":[],"decrease":[]}
         percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "percentage")
         ###############################
@@ -148,19 +146,19 @@ class TrendNarrative:
         dataDict["table_data"] = table_data
         return dataDict
 
-    def get_xtra_calculations(self,df,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
+    def get_xtra_calculations(self,leveldf,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
         datetime_pattern = "%b-%y"
         if type(grouped_data["key"][0]) == "str":
             grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         grouped_data = grouped_data.sort_values(by = "key",ascending=True)
         grouped_data.reset_index(drop=True,inplace=True)
-        level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,datetime_pattern,value_col,reference_time)
-
+        print "level_cont started"
+        st = time.time()
+        level_cont = NarrativesUtils.calculate_level_contribution(leveldf,significant_columns,index_col,datetime_pattern,value_col,reference_time)
+        print "level_cont finished in ",time.time()-st
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
-        print "bucket dict calculation started"
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict)
-
         dim_data = NarrativesUtils.calculate_dimension_contribution(level_cont)
         if level_cont_dict != None:
             if bucket_data != None:

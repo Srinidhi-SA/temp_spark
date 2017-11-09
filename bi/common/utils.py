@@ -87,7 +87,7 @@ def get_updated_colnames(df):
             temp = [x for x in df.dropna(subset=[col])[col]]
             initial_length = len(temp)
             if (initial_length<num_rows/2):
-                raise ValueError('Null Vals')
+                raise ValueError('None Vals')
             temp1 = [float(clean(x)) for x in temp]
             final_length = len(temp1)
             if initial_length == final_length:
@@ -140,7 +140,7 @@ def as_dict(obj):
     else:
         return obj
 
-def recursiveRemoveNullNodes(tree):
+def recursiveRemoveNoneNodes(tree):
     if isinstance(tree, dict) and "children" not in tree.keys():
         return tree
     elif isinstance(tree, dict) and "children" in tree.keys():
@@ -148,7 +148,7 @@ def recursiveRemoveNullNodes(tree):
         if tree["children"] != [None]:
             for idx,stree in enumerate(tree["children"]):
                 if stree != None:
-                    tree["children"][idx] = (recursiveRemoveNullNodes(stree))
+                    tree["children"][idx] = (recursiveRemoveNoneNodes(stree))
             return tree
         else:
             tree.pop("children")
@@ -294,192 +294,169 @@ def get_story_config():
     storyConfig = {
 
         "config" : {
-                "ADVANCED_SETTINGS" : {
-                    "analysis" : [
-                        {
-                            "analysisSubTypes" : [],
-                            "displayName" : "Overview",
-                            "name" : "overview",
-                            "noOfColumnsToUse" : None,
-                            "status" : True
-                        },
-                        {
-                            "analysisSubTypes" : [
-                                {
-                                    "displayName" : "Overview",
-                                    "name" : "overview",
-                                    "status" : False
-                                },
-                                {
-                                    "displayName" : "Top Sublevel",
-                                    "name" : "Top Sublevel",
-                                    "status" : False
-                                },
-                                {
-                                    "displayName" : "Trend for top Sublevel",
-                                    "name" : "Trend for top Sublevel",
-                                    "status" : False
-                                }
-                            ],
-                            "displayName" : "Performance",
-                            "name" : "performance",
-                            "noOfColumnsToUse" : [
-                                {
-                                    "defaultValue" : 3,
-                                    "displayName" : "Low",
-                                    "name" : "low",
-                                    "status" : True
-                                },
-                                {
-                                    "defaultValue" : 5,
-                                    "displayName" : "Medium",
-                                    "name" : "medium",
-                                    "status" : False
-                                },
-                                {
-                                    "defaultValue" : 8,
-                                    "displayName" : "High",
-                                    "name" : "high",
-                                    "status" : False
-                                },
-                                {
-                                    "defaultValue" : 3,
-                                    "displayName" : "Custom",
-                                    "name" : "custom",
-                                    "status" : False,
-                                    "value" : None
-                                }
-                            ],
-                            "status" : True
-                        },
-                        {
-                            "analysisSubTypes" : [
-                                {
-                                    "displayName" : "Overview",
-                                    "name" : "overview",
-                                    "status" : False
-                                },
-                                {
-                                    "displayName" : "Key areas of Impact",
-                                    "name" : "Key areas of Impact",
-                                    "status" : False
-                                },
-                                {
-                                    "displayName" : "Trend analysis",
-                                    "name" : "Trend analysis",
-                                    "status" : False
-                                }
-                            ],
-                            "displayName" : "Influencer",
-                            "name" : "influencer",
-                            "noOfColumnsToUse" : [
-                                {
-                                    "defaultValue" : 3,
-                                    "displayName" : "Low",
-                                    "name" : "low",
-                                    "status" : True
-                                },
-                                {
-                                    "defaultValue" : 5,
-                                    "displayName" : "Medium",
-                                    "name" : "medium",
-                                    "status" : False
-                                },
-                                {
-                                    "defaultValue" : 8,
-                                    "displayName" : "High",
-                                    "name" : "high",
-                                    "status" : False
-                                },
-                                {
-                                    "defaultValue" : 3,
-                                    "displayName" : "Custom",
-                                    "name" : "custom",
-                                    "status" : False,
-                                    "value" : None
-                                }
-                            ],
-                            "status" : True
-                        },
-                        {
-                            "analysisSubTypes" : [],
-                            "displayName" : "Prediction",
-                            "name" : "prediction",
-                            "noOfColumnsToUse" : None,
-                            "status" : True
-                        }
-                    ]
-                },
-                "COLUMN_SETTINGS" : {
-                    "analysis_type" : [
-                        "measure"
-                    ],
-                    "consider_columns" : [
-                        "SEX",
-                        "EDUCATION",
-                        "MARRIAGE",
-                        "AGE_CATEGORY",
-                        "PAYMENT_DECEMBER",
-                        "PAYMENT_NOVEMBER",
-                        "BILL_AMOUNT_DECEMBER",
-                        "BILL_AMOUNT_NOVEMBER",
-                        "AMOUNT_PAID_DECEMBER",
-                        "AMOUNT_PAID_NOVEMBER",
-                        "STATE",
-                        "OCCUPATION",
-                        "CREDIT_RATING",
-                        "TENURE_RANGE",
-                        "AVERAGE_SPEND",
-                        "STATUS",
-                        "CREDIT_BALANCE"
-                    ],
-                    "consider_columns_type" : [
-                        "including"
-                    ],
-                    "dateTimeSuggestions" : [
-                        {}
-                    ],
-                    "date_columns" : [],
-                    "date_format" : None,
-                    "ignore_column_suggestion" : [],
-                    "polarity" : [
-                        "positive"
-                    ],
-                    "result_column" : [
-                        "CREDIT_BALANCE"
-                    ],
-                    "utf8_column_suggestions" : []
-                },
-                "DATA_SOURCE" : {
-                    "datasource_details" : "",
-                    "datasource_type" : "fileUpload"
-                },
-                "FILE_SETTINGS" : {
-                    "inputfile" : [
-                        "file:///home/gulshan/marlabs/datasets/credit_churn_data.csv"
-                    ],
-                    "script_to_run" : [
-                        "Descriptive analysis",
-                        "Measure vs. Dimension",
-                        "Measure vs. Measure",
-                        "Predictive modeling"
-                    ]
-                }
+            "ADVANCED_SETTINGS" : {
+                "analysis" : [
+                    {
+                        "analysisSubTypes" : [],
+                        "displayName" : "Overview",
+                        "name" : "overview",
+                        "noOfColumnsToUse" : None,
+                        "status" : True
+                    },
+                    {
+                        "analysisSubTypes" : [
+                            {
+                                "displayName" : "Overview",
+                                "name" : "overview",
+                                "status" : False
+                            },
+                            {
+                                "displayName" : "Factors that drive up",
+                                "name" : "factors that drive up",
+                                "status" : False
+                            },
+                            {
+                                "displayName" : "Factors that drive down",
+                                "name" : "factors that drive down",
+                                "status" : False
+                            },
+                            {
+                                "displayName" : "Forecast",
+                                "name" : "forecast",
+                                "status" : False
+                            }
+                        ],
+                        "displayName" : "Trend",
+                        "name" : "trend",
+                        "noOfColumnsToUse" : None,
+                        "status" : True
+                    },
+                    {
+                        "analysisSubTypes" : [],
+                        "displayName" : "Association",
+                        "name" : "association",
+                        "noOfColumnsToUse" : [
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : True
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : False,
+                                "value" : None
+                            }
+                        ],
+                        "status" : True
+                    },
+                    {
+                        "analysisSubTypes" : [],
+                        "displayName" : "Prediction",
+                        "name" : "prediction",
+                        "noOfColumnsToUse" : None,
+                        "status" : True
+                    }
+                ],
+                "targetLevels" : [
+                    []
+                ],
+                "trendSettings" : [
+                    {
+                        "name" : "Count",
+                        "status" : True
+                    },
+                    {
+                        "name" : "Specific Measure",
+                        "selectedMeasure" : None,
+                        "status" : False
+                    }
+                ]
             },
-            "job_config" : {
-                "get_config" : {
-                    "action" : "get_config",
-                    "method" : "GET"
-                },
-                "job_name" : "creadit balance issue",
-                "job_type" : "story",
-                "job_url" : "http://34.196.204.54:9012/api/job/master-creadit-balance-issue-4jjui0vn4z-6n4yiixsxh/",
-                "message_url" : "http://34.196.204.54:9012/api/messages/Insight_creadit-balance-issue-4jjui0vn4z_123/",
-                "set_result" : {
-                    "action" : "result",
-                    "method" : "PUT"
-                }
+            "COLUMN_SETTINGS" : {
+                "analysis_type" : [
+                    "dimension"
+                ],
+                "consider_columns" : [
+                    "Education",
+                    "Top Organization",
+                    "Agent Name",
+                    "Call Type",
+                    "State",
+                    "Region",
+                    "Agent Experience",
+                    "Agent Rating",
+                    "Agent Age",
+                    "Top Plan Provider",
+                    "Call Volume",
+                    "First call resolution",
+                    "Average Call duration (in Minutes)",
+                    "Call date"
+                ],
+                "consider_columns_type" : [
+                    "including"
+                ],
+                "dateTimeSuggestions" : [
+                    {}
+                ],
+                "date_columns" : [
+                    "Call date"
+                ],
+                "date_format" : None,
+                "ignore_column_suggestion" : [],
+                "polarity" : [
+                    "positive"
+                ],
+                "result_column" : [
+                    "Education"
+                ],
+                "utf8_column_suggestions" : []
+            },
+            "DATA_SOURCE" : {
+                "datasource_details" : "",
+                "datasource_type" : "fileUpload"
+            },
+            "FILE_SETTINGS" : {
+                "inputfile" : [
+                    # "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/health-care-callcentre-v10csv-b3z14xn6dj/Health_Care_Callcentre-_V10.csv"
+                    "file:///home/gulshan/marlabs/datasets/Health Care Callcentre- V10.csv"
+                ],
+                "script_to_run" : [
+                    "Descriptive analysis",
+                    "Trend",
+                    "Dimension vs. Dimension",
+                    "Predictive modeling"
+                ]
             }
+        },
+        "job_config" : {
+            "get_config" : {
+                "action" : "get_config",
+                "method" : "GET"
+            },
+            "job_name" : "Healthcare Education",
+            "job_type" : "story",
+            "job_url" : "http://34.196.204.54:9012/api/job/master-healthcare-education-4rzbktxf81-lrmr3gqec2/",
+            "message_url" : "http://34.196.204.54:9012/api/messages/Insight_healthcare-education-4rzbktxf81_123/",
+            "set_result" : {
+                "action" : "result",
+                "method" : "PUT"
+            }
+        }
     }
     return storyConfig
 

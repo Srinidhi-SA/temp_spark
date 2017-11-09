@@ -1,6 +1,7 @@
 import json
 import os
 import pandas as pd
+import time
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -16,6 +17,8 @@ from trend_narratives import TrendNarrative
 from pyspark.sql.functions import col, udf, max
 from pyspark.sql.types import *
 from pyspark.sql.functions import monotonically_increasing_id
+from pyspark.sql.functions import lit
+
 
 
 
@@ -292,9 +295,12 @@ class TimeSeriesNarrative:
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
 
 
-                        pandasDf = self._data_frame.toPandas()
-                        pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
-                        pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
+                        # pandasDf = self._data_frame.toPandas()
+                        # pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
+                        # pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
+
+                        self._data_frame = self._data_frame.drop(self._date_column_suggested)
+                        self._data_frame = self._data_frame.withColumnRenamed("year_month", self._date_column_suggested)
 
                         significant_dimensions = []
                         significant_dimension_dict = df_helper.get_significant_dimension()
@@ -314,7 +320,7 @@ class TimeSeriesNarrative:
                         dataDict["durationString"] = self._durationString
                         dataDict["significant_dimensions"] = significant_dimensions
                         if len(significant_dimensions) > 0:
-                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
+                            xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
@@ -488,6 +494,7 @@ class TimeSeriesNarrative:
                     chart_data = {}
                     cardData1 = []
                     c3_chart = {"dataType":"c3Chart","data":{}}
+                    print "#"*40
                     if self._dataLevel == "day":
                         overall_count = self._data_frame.groupBy("suggestedDate").agg({ self._result_column : 'count'})
                         overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
@@ -495,6 +502,7 @@ class TimeSeriesNarrative:
                         overall_count = overall_count.withColumnRenamed("suggestedDate","key")
                         overall_count = overall_count.toPandas()
                     elif self._dataLevel == "month":
+                        print "Datelevel is Month"
                         overall_count = self._data_frame.groupBy("year_month").agg({ self._result_column : 'count'})
                         overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
                         overall_count = overall_count.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
@@ -503,35 +511,44 @@ class TimeSeriesNarrative:
                         overall_count = overall_count.select(["key","totalCount","year_month"]).toPandas()
                         overall_count["key"] = overall_count["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
                         overall_count = overall_count.loc[:,[c for c in overall_count.columns if c != "year_month"]]
-
+                    print "#"*40
                     for idx,level in  enumerate(top2levels):
+                        print "calculations in progress for the level :- ",level
                         leveldf = self._data_frame.filter(col(self._result_column) == level)
+                        st517 = time.time()
                         if self._dataLevel == "day":
                             grouped_data = leveldf.groupBy("suggestedDate").agg({ self._result_column : 'count'})
                             grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
                             grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
                             grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
                             grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+                            st=time.time()
                             grouped_data = grouped_data.toPandas()
+                            print "pandas df for grouped_data",time.time()-st
+                            st525 = time.time()
+                            print "time for level aggregate dataset creation",st525-st517
                         elif self._dataLevel == "month":
                             grouped_data = leveldf.groupBy("year_month").agg({ self._result_column : 'count'})
                             grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
                             grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
                             grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
                             grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
+                            st=time.time()
                             grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
+                            print "pandas df for grouped_data",time.time()-st
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
-
+                            st533 = time.time()
+                            print "time for level aggregate dataset creation",st533-st517
                         grouped_data.rename(columns={"value":"value_count"},inplace=True)
                         grouped_data = pd.merge(grouped_data, overall_count, on='key', how='left')
                         # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),self._num_significant_digits))
                         grouped_data["value"] = grouped_data["value_count"]/grouped_data["totalCount"]
                         grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,self._num_significant_digits))
-                        pandasDf = leveldf.toPandas()
-                        pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
-                        pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
-                        pandasDf["value_col"] = [1]*pandasDf.shape[0]
 
+                        leveldf = leveldf.drop(self._date_column_suggested)
+                        leveldf = leveldf.withColumnRenamed("year_month", self._date_column_suggested)
+                        leveldf = leveldf.withColumn('value_col', lit(1))
+                        print "#"*40
 
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
@@ -554,7 +571,9 @@ class TimeSeriesNarrative:
                         reference_time = dataDict["reference_time"]
                         dataDict["significant_dimensions"] = significant_dimensions
                         if len(significant_dimensions) > 0:
-                            xtraData = trend_narrative_obj.get_xtra_calculations(pandasDf,grouped_data,significant_dimensions,self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
+                            st = time.time()
+                            xtraData = trend_narrative_obj.get_xtra_calculations(leveldf,grouped_data,significant_dimensions,self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
+                            print "time for get_xtra_calculations" ,time.time()-st
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         dimensionCount = trend_narrative_obj.generate_dimension_extra_narrative(grouped_data,dataDict,self._dataLevel)

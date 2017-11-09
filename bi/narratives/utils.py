@@ -4,6 +4,7 @@ Utility functions to be used by various narrative objects
 """
 import math
 import re
+import time
 import humanize
 import enchant
 import jinja2
@@ -428,10 +429,8 @@ def calculate_dimension_contribution(level_cont):
         data_dict["negativeSecondHighestSigDimensionL1"] = None
     return data_dict
 
-def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col,max_time):
+def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time):
     out = {}
-    k=''
-    #columns = ['EDUCATION','MARRIAGE','AGE_CATEGORY','BILL_AMOUNT_DECEMBER','BILL_AMOUNT_NOVEMBER']
     for column_name in columns:
         data_dict = {
                     "overall_avg":None,
@@ -442,16 +441,16 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
                     "contribution":None,
                     "growth":None
                     }
-        column_levels = df[column_name].unique()
+        column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
-        k = df.pivot_table(index = index_col, columns = column_name, values = value_col, aggfunc="sum")
-        k=k.fillna(0)
-        k["total"] = k.sum(axis=1)
-        k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k.index))
+        pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
+        pivotdf = pivotdf.na.fill(0)
+        pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
+        k = pivotdf.toPandas()
+        k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k[index_col]))
         k = k.sort_values(by="rank", ascending=True)
-        # k.to_csv("/home/gulshan/Desktop/dd1.csv")
-        if max_time in list(k.index):
-            max_index = list(k.index).index(max_time)
+        if max_time in list(k[index_col]):
+            max_index = list(k[index_col]).index(max_time)
         else:
             max_index = None
         for level in column_levels:
@@ -470,7 +469,7 @@ def calculate_level_contribution(df,columns,index_col,datetime_pattern,value_col
                 data_dict["excluding_avg"] = round(np.mean(data),2)
                 data_dict["diff"] = round(data_dict["max_avg"] - data_dict["excluding_avg"],2)
                 out[column_name][level] = data_dict
-    return {"summary":out,"pivot":k}
+    return {"summary":out}
 
 def get_level_cont_dict(level_cont):
     dk = level_cont["summary"]
