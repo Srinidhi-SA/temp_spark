@@ -146,7 +146,7 @@ class TrendNarrative:
         dataDict["table_data"] = table_data
         return dataDict
 
-    def get_xtra_calculations(self,leveldf,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
+    def get_xtra_calculations(self,sparkdf,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
         datetime_pattern = "%b-%y"
         if type(grouped_data["key"][0]) == "str":
             grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
@@ -154,7 +154,7 @@ class TrendNarrative:
         grouped_data.reset_index(drop=True,inplace=True)
         print "level_cont started"
         st = time.time()
-        level_cont = NarrativesUtils.calculate_level_contribution(leveldf,significant_columns,index_col,datetime_pattern,value_col,reference_time)
+        level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,datetime_pattern,value_col,reference_time)
         print "level_cont finished in ",time.time()-st
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)

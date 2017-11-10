@@ -329,12 +329,45 @@ def get_story_config():
                         "displayName" : "Trend",
                         "name" : "trend",
                         "noOfColumnsToUse" : None,
-                        "status" : True
+                        "status" : False
                     },
                     {
                         "analysisSubTypes" : [],
                         "displayName" : "Association",
                         "name" : "association",
+                        "noOfColumnsToUse" : [
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : True
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : False,
+                                "value" : None
+                            }
+                        ],
+                        "status" : False
+                    },
+                    {
+                        "analysisSubTypes" : [],
+                        "displayName" : "Influencer",
+                        "name" : "influencer",
                         "noOfColumnsToUse" : [
                             {
                                 "defaultValue" : 3,
@@ -389,7 +422,7 @@ def get_story_config():
             },
             "COLUMN_SETTINGS" : {
                 "analysis_type" : [
-                    "dimension"
+                    "measure"
                 ],
                 "consider_columns" : [
                     "Education",
@@ -422,7 +455,7 @@ def get_story_config():
                     "positive"
                 ],
                 "result_column" : [
-                    "Education"
+                    "Call Volume"
                 ],
                 "utf8_column_suggestions" : []
             },

@@ -432,6 +432,7 @@ def calculate_dimension_contribution(level_cont):
 def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time):
     out = {}
     for column_name in columns:
+        print "calculate_level_contribution for ",column_name
         data_dict = {
                     "overall_avg":None,
                     "excluding_avg":None,
@@ -442,18 +443,29 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
                     "growth":None
                     }
         column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
+        print len(column_levels)
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
+        st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
+        print "time for pivot",time.time()-st
         pivotdf = pivotdf.na.fill(0)
         pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
+        print "ncols ",len(pivotdf.columns)
+        print "nrows ",pivotdf.count()
+        print "pivot Df Created"
+        st=time.time()
+        print "converting to pandas"
         k = pivotdf.toPandas()
+        print "time taken for pandas conversion ",time.time()-st
         k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k[index_col]))
         k = k.sort_values(by="rank", ascending=True)
         if max_time in list(k[index_col]):
             max_index = list(k[index_col]).index(max_time)
         else:
             max_index = None
+        print k.head(2)
         for level in column_levels:
+            print "calculations for level",level
             if level != None:
                 data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
                 data_dict["contribution"] = round(float(np.sum(k[level]))*100/np.sum(k["total"]),2)
