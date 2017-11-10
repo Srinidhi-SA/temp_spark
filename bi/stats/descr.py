@@ -92,8 +92,13 @@ class DescriptiveStats:
             skewness = 0
             kurtosis = 0
         else:
+            st=time.time()
             skewness = Stats.skew(self._data_frame, measure_column)
+            print "skewness done in ",time.time()-st
+            st=time.time()
             kurtosis = Stats.kurtosis(self._data_frame, measure_column)
+            print "kurtosis done in ",time.time()-st
+
         descr_stats.set_summary_stats(num_values=num_values, min_value=min_value, max_value=max_value,
                                       total=total_value,
                                       mean=mean, variance=variance, std_dev=std_dev,
