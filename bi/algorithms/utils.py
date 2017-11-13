@@ -327,17 +327,20 @@ def add_string_index(df, string_columns=None):
 
 ##################################Spark ML Pipelines ###########################
 
-def create_ml_pipeline(numerical_columns,categorical_columns,target_column):
+def create_ml_pipeline(numerical_columns,categorical_columns,target_column,algoName=None):
     indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed') for x in categorical_columns ] #String Indexer
     encoders = [OneHotEncoder(dropLast=False, inputCol=x+"_indexed", outputCol=x+"_encoded") for x in categorical_columns] # one hot encoder
     assembler_features = VectorAssembler(inputCols=[x+"_encoded" for x in sorted(categorical_columns)]+sorted(numerical_columns), outputCol='features')
-    labelIndexer = StringIndexer(inputCol=target_column, outputCol="label")
+    if algoName != "lr":
+        labelIndexer = StringIndexer(inputCol=target_column, outputCol="label")
     ml_stages = [[i,j] for i,j in zip(indexers, encoders)]
     pipeline_stages = []
     for ml_stage in ml_stages:
         pipeline_stages += ml_stage
-
-    pipeline_stages += [assembler_features, labelIndexer]
+    if algoName != "lr":
+        pipeline_stages += [assembler_features, labelIndexer]
+    else:
+        pipeline_stages += [assembler_features]
     pipeline = Pipeline(stages=pipeline_stages)
     return pipeline
 
@@ -460,7 +463,7 @@ def get_model_comparison(collated_summary):
     for val in algos:
         out.append(algos_dict[val])
     out = [[""]+out]
-    first_column = ["Precision","Recall","Accuracy"]
+    first_column = ["Accuracy","Precision","Recall"]
     data_keys = ["model_precision","model_recall","model_accuracy"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
     map_dict = dict(zip(first_column,data_keys))

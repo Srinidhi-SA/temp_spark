@@ -94,6 +94,8 @@ class ChiSquareAnalysis:
         sorted_target_levels = sorted(zip(target_counts,target_levels),reverse=True)
         top_target_count, top_target = sorted_target_levels[0]
         second_target_count, second_target = sorted_target_levels[1]
+        print "top_target",top_target
+        print "second_target",second_target
 
         top_target_contributions = [table.get_value(top_target,i) for i in levels]
         sum_top_target = sum(top_target_contributions)
@@ -388,7 +390,7 @@ class ChiSquareAnalysis:
             card2Data.append(HtmlData(data=card2BubbleData))
 
             self._card2.set_card_data(card2Data)
-            self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
+            self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,second_target))
 
             card4Data = []
             card4Heading ='<h3>Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension+"</h3>"
@@ -409,7 +411,7 @@ class ChiSquareAnalysis:
             card4Data.append(HtmlData(data=card4BubbleData))
 
             self._card4.set_card_data(card4Data)
-            self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,second_target))
+            self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
 
             # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
             # self.card0['paragraphs'] = output0

@@ -64,7 +64,9 @@ class DescriptiveStats:
 
     @accepts(object, basestring)
     def five_point_summary(self, measure_column):
-        return Quantizer.quantize(self._data_frame, measure_column, self._dataframe_helper)
+        # return Quantizer.quantize(self._data_frame, measure_column, self._dataframe_helper)
+        return Quantizer.approxQuantize(self._data_frame, measure_column, self._dataframe_helper)
+
 
     @accepts(object, basestring)
     def stats_for_measure_column(self, measure_column):
@@ -72,47 +74,32 @@ class DescriptiveStats:
             raise BIException.non_numeric_column(measure_column)
 
         descr_stats = MeasureDescriptiveStats()
-        st=time.time()
         num_values = self._data_frame.select(measure_column).count()
         min_value = Stats.min(self._data_frame, measure_column)
         max_value = Stats.max(self._data_frame, measure_column)
         total_value = Stats.total(self._data_frame, measure_column)
-        print "min max total in ",time.time()-st
-        st = time.time()
         mean = Stats.mean(self._data_frame, measure_column)
-        print "mean ",time.time()-st
-        st = time.time()
         variance = Stats.variance(self._data_frame, measure_column)
-        print "variance ",time.time()-st
-        st = time.time()
         std_dev = Stats.std_dev(self._data_frame, measure_column)
-        print "std_dev ",time.time()-st
 
         if min_value==max_value:
             skewness = 0
             kurtosis = 0
         else:
-            st=time.time()
             skewness = Stats.skew(self._data_frame, measure_column)
-            print "skewness done in ",time.time()-st
-            st=time.time()
             kurtosis = Stats.kurtosis(self._data_frame, measure_column)
-            print "kurtosis done in ",time.time()-st
 
         descr_stats.set_summary_stats(num_values=num_values, min_value=min_value, max_value=max_value,
                                       total=total_value,
                                       mean=mean, variance=variance, std_dev=std_dev,
                                       skew=skewness, kurtosis=kurtosis)
         descr_stats.set_five_point_summary_stats(self.five_point_summary(measure_column))
-        st = time.time()
-        print "binning started"
+
         descr_stats.set_histogram(Binner(self._data_frame, self._dataframe_helper).get_bins(measure_column))
-        print "histogram ",time.time()-st
 
 
         #descr_stats.set_raw_data([float(row[0]) for row in self._data_frame.select(measure_column).collect()])
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
-        print "self._completionStatus",self._completionStatus
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "statCalculationEnd",\
                                     "info",\

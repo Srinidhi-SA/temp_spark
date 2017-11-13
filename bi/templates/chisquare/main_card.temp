@@ -30,5 +30,7 @@
   in distribution of {{target}} categories.
   The chart above displays the<b> impact of key dimensions </b> on {{target}}, as measured by effect size.
 {% endif %}
-Let us take a deeper look at some of the most important relationships.
+{% if num_significant_variables >= 1%}
+  Let us take a deeper look at some of the most important relationships.
+{% endif %}
 </p>

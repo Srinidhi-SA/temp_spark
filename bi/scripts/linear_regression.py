@@ -11,7 +11,7 @@ from bi.narratives.regression import LinearRegressionNarrative
 
 # from bi.stats import Correlation
 
-class RegressionScript:
+class LinearRegressionScript:
     def __init__(self, data_frame, df_helper, df_context, result_setter, spark, correlations,story_narrative):
         self._result_setter = result_setter
         self._story_narrative = story_narrative

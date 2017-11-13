@@ -24,7 +24,7 @@ from bi.scripts.descr_stats import DescriptiveStatsScript
 from bi.scripts.density_histogram import DensityHistogramsScript
 from bi.scripts.histogram import HistogramsScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
-from bi.scripts.regression import RegressionScript
+from bi.scripts.linear_regression import LinearRegressionScript
 from bi.scripts.timeseries import TrendScript
 from bi.scripts.random_forest import RandomForestScript
 from bi.scripts.xgboost_classification import XgboostScript
@@ -350,7 +350,7 @@ def main(configJson):
                     try:
                         df = df.na.drop(subset=measure_columns)
                         fs = time.time()
-                        regression_obj = RegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                        regression_obj = LinearRegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
                         regression_obj.Run()
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:

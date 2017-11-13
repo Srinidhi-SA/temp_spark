@@ -7,11 +7,14 @@ from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult
 from bi.common.results.regression import RegressionResult
 from bi.common import utils as CommonUtils
+from bi.algorithms import utils as MLUtils
+
+import time
 
 
 class LinearRegression:
-    LABEL_COLUMN_NAME = '_1'
-    FEATURES_COLUMN_NAME = '_2'
+    LABEL_COLUMN_NAME = 'label'
+    FEATURES_COLUMN_NAME = 'features'
 
     MAX_ITERATIONS = 5
     REGULARIZATION_PARAM = 0.1
@@ -66,11 +69,13 @@ class LinearRegression:
         return df_regression_result
 
     def fit(self, output_column, input_columns=None):
+        print "linear regression fit started"
         if output_column not in self._dataframe_helper.get_numeric_columns():
             raise BIException('Output column: %s is not a measure column' % (output_column,))
 
         if input_columns == None:
             input_columns = list(set(self._dataframe_helper.get_numeric_columns())-set([output_column]))
+
         nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
         if nColsToUse != None:
             input_columns = input_columns[:nColsToUse]
@@ -78,44 +83,42 @@ class LinearRegression:
             raise BIException('At least one of the input columns %r is not a measure column' % (input_columns,))
 
         all_measures = input_columns+[output_column]
+        measureDf = self._data_frame.select(all_measures)
 
-        # TODO: ensure no duplicates are present in input_columns
-        p_values = []
-        coefficients = []
-        intercepts = []
-        rmses = []
-        r2s = []
-        sample_data_dict={}
-        func = udf(lambda x: DenseVector([x]),VectorUDT())
-        regression_result = RegressionResult(output_column, input_columns)
-        training_df = self._data_frame.select(*(func(c).alias(c) if c!=output_column else col(c) for c in all_measures))
+        lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
+                elasticNetParam=1.0, labelCol=LinearRegression.LABEL_COLUMN_NAME,
+                featuresCol=LinearRegression.FEATURES_COLUMN_NAME)
+
+        st = time.time()
+        pipeline = MLUtils.create_ml_pipeline(input_columns,[],output_column)
+        pipelineModel = pipeline.fit(measureDf)
+        training_df = pipelineModel.transform(measureDf)
+        training_df = training_df.withColumn("label",training_df[output_column])
+        print "time taken to create training_df",time.time()-st
+
+        st = time.time()
+        lr_model = lr.fit(training_df)
+        lr_summary = lr_model.evaluate(training_df)
+        print "lr model summary", time.time()-st
+        sample_data_dict = {}
         for input_col in input_columns:
-            # print "doing regression for:",input_col
-            level_count = training_df.select(input_col).distinct().count()
-            if level_count < 2:
-                # print "unique values less than 2"
-                p_values.append(1.0)
-                coefficients.append(0.0)
-                intercepts.append(0.0)
-                r2s.append(0.0)
-                sample_data_dict[input_col]=None
-                continue
-            lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
-                    labelCol=output_column,featuresCol=input_col,fitIntercept=True, solver='normal')
-            lr_model = lr.fit(training_df)
-            lr_summary = lr_model.evaluate(training_df)
-            try:
-                p_values.append(lr_model.summary.pValues[0])
-            except:
-                # print '|'*140
-                p_values.append(1.0)
-            coefficients.append(float(lr_model.coefficients[0]))
-            intercepts.append(float(lr_model.intercept))
-            rmses.append(float(lr_summary.rootMeanSquaredError))
-            r2s.append(float(lr_summary.r2))
             sample_data_dict[input_col] = None
-        regression_result.set_params(intercept=intercepts, coefficients=coefficients,p_values = p_values,
-                                      rmse=rmses, r2=r2s,sample_data_dict=sample_data_dict)
+
+        coefficients = [float(val) if val != None else None for val in lr_model.coefficients.values]
+        try:
+            p_values = [float(val) if val != None else None for val in lr_model.summary.pValues]
+        except:
+            p_values = [None]*len(coefficients)
+        print p_values
+        print coefficients
+        regression_result = RegressionResult(output_column, list(set(input_columns)))
+        regression_result.set_params(intercept=float(lr_model.intercept),\
+                                     coefficients=coefficients,\
+                                     p_values = p_values,\
+                                     rmse=float(lr_summary.rootMeanSquaredError), \
+                                     r2=float(lr_summary.r2),\
+                                     sample_data_dict=sample_data_dict)
+
 
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -125,6 +128,5 @@ class LinearRegression:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        print "self._completionStatus",self._completionStatus
+
         return regression_result

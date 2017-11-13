@@ -192,6 +192,7 @@ class MeasureColumnNarrative:
 
         quartile_sums = self._five_point_summary_stats.get_sums()
         quartile_means = self._five_point_summary_stats.get_means()
+        print quartile_means
         quartile_frequencies = self._five_point_summary_stats.get_frequencies()
         total = self._measure_descr_stats.get_total()
         avg = self._measure_descr_stats.get_mean()
