@@ -243,7 +243,7 @@ class ContextSetter:
                             try:
                                 tempDict["noOfColumnsToUse"] = int(nCols[0])
                             except:
-                                tempDict["noOfColumnsToUse"] = int(val["defaultValue"])
+                                tempDict["noOfColumnsToUse"] = int([val["defaultValue"] for val in [k for k in obj["noOfColumnsToUse"] if k["status"]==True]][0])
 
                         analysisDictList.append(tempDict)
                 # adding overview to analysisList
