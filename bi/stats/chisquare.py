@@ -151,8 +151,10 @@ class ChiSquare:
     def test_measures(self, dimension_name, measure_column_name):
         chisquare_result = ChiSquareResult()
         df = self._data_frame.withColumn(measure_column_name, self._data_frame[measure_column_name].cast(DoubleType()))
-        maxval = df.select(measure_column_name).toPandas().max()[0]
-        minval = df.select(measure_column_name).toPandas().min()[0]
+        pandasDfCol = df.select(measure_column_name).distinct().toPandas()
+        # if pandasDfCol.shape[0] > 10:
+        maxval = pandasDfCol.max()[0]
+        minval = pandasDfCol.min()[0]
         step = (maxval - minval) / 5.0
         splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3), minval + (step * 4), math.ceil(maxval)]
         bucketizer = Bucketizer(splits=splits, inputCol=measure_column_name, outputCol="bucketedColumn")
