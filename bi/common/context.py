@@ -240,7 +240,11 @@ class ContextSetter:
                             tempDict["noOfColumnsToUse"] = None
                         else:
                             nCols = [val["value"] if val["name"]=="custom" else val["defaultValue"] for val in [k for k in obj["noOfColumnsToUse"] if k["status"]==True]]
-                            tempDict["noOfColumnsToUse"] = nCols[0]
+                            try:
+                                tempDict["noOfColumnsToUse"] = int(nCols[0])
+                            except:
+                                tempDict["noOfColumnsToUse"] = int(val["defaultValue"])
+
                         analysisDictList.append(tempDict)
                 # adding overview to analysisList
                 # required to create the summary node
