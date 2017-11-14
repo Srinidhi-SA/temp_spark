@@ -45,6 +45,13 @@ class ChiSquareNarratives:
             self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
         else:
             self._scriptWeightDict = scriptWeight
+        self._analysisDict = self._dataframe_context.get_analysis_dict()
+        if self._analysisDict != {}:
+            self._nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        else:
+            self._nColsToUse = None
+
+
 
         self._scriptStages = {
             "initialization":{
@@ -155,6 +162,9 @@ class ChiSquareNarratives:
             print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:
                 significant_variables = significant_variables[:5]
+            else:
+                if self._nColsToUse != None:
+                    significant_variables = significant_variables[:self._nColsToUse]
             for analysed_dimension in significant_variables:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':

@@ -89,12 +89,12 @@ class ChiSquare:
         dimension = dimension_columns[0]
         all_dimensions = self._dimension_columns
         all_dimensions = [x for x in all_dimensions if x != dimension]
-        if self._analysisDict != {}:
-            nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
-        else:
-            nColsToUse = None
-        if nColsToUse != None:
-            all_dimensions = all_dimensions[:nColsToUse]
+        # if self._analysisDict != {}:
+        #     nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        # else:
+        #     nColsToUse = None
+        # if nColsToUse != None:
+        #     all_dimensions = all_dimensions[:nColsToUse]
         all_measures = self._measure_columns
         df_chisquare_result = DFChiSquareResult()
         for d in all_dimensions:

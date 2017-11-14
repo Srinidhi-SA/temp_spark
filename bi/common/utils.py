@@ -425,37 +425,57 @@ def get_story_config():
                     "measure"
                 ],
                 "consider_columns" : [
-                    "Education",
-                    "Top Organization",
-                    "Agent Name",
-                    "Call Type",
-                    "State",
-                    "Region",
-                    "Agent Experience",
-                    "Agent Rating",
-                    "Agent Age",
-                    "Top Plan Provider",
-                    "Call Volume",
-                    "First call resolution",
-                    "Average Call duration (in Minutes)",
-                    "Call date"
+                    "Channel",
+                    "Order_Item_Status_String",
+                    "MTO_MTS",
+                    "Ship_Address_City",
+                    "Ship_Address_State",
+                    "Source_Facility",
+                    "Fulfilable_Facility",
+                    "Payment_Method",
+                    "Customer_Type",
+                    "NPS_Score",
+                    "order_month",
+                    "order_day",
+                    "Channel",
+                    "Order_Item_Status_String",
+                    "BEDS",
+                    "OUTDOOR",
+                    "MATTRESS",
+                    "DINING - OTHERS",
+                    "LIVING SEATING",
+                    "DECOR",
+                    "DINING",
+                    "NOT_REQUIRED",
+                    "LIVING ESSENTIALS",
+                    "STUDY",
+                    "WARDROBES",
+                    "BEDROOM - OTHERS",
+                    "KIDS",
+                    "Selling_Price",
+                    "Discount",
+                    "Customer_Id",
+                    "Ship_Address_Zipcode",
+                    "Orderplaced_date"
                 ],
                 "consider_columns_type" : [
                     "including"
                 ],
                 "dateTimeSuggestions" : [
-                    {}
+                    {
+                        "Orderplaced_date" : "%m/%d/%Y"
+                    }
                 ],
                 "date_columns" : [
-                    "Call date"
+                    "Orderplaced_date"
                 ],
                 "date_format" : None,
-                "ignore_column_suggestion" : [],
+                "ignore_column_suggestion" : ["Order_Code"],
                 "polarity" : [
                     "positive"
                 ],
                 "result_column" : [
-                    "Call Volume"
+                    "Selling_Price"
                 ],
                 "utf8_column_suggestions" : []
             },
@@ -466,7 +486,7 @@ def get_story_config():
             "FILE_SETTINGS" : {
                 "inputfile" : [
                     # "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/health-care-callcentre-v10csv-b3z14xn6dj/Health_Care_Callcentre-_V10.csv"
-                    "file:///home/gulshan/marlabs/datasets/Health Care Callcentre- V10.csv"
+                    "file:///home/gulshan/marlabs/datasets/ul.csv"
                 ],
                 "script_to_run" : [
                     "Descriptive analysis",

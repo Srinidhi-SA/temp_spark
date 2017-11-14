@@ -83,8 +83,12 @@ class LinearRegression:
             raise BIException('At least one of the input columns %r is not a measure column' % (input_columns,))
 
         all_measures = input_columns+[output_column]
+        print all_measures
+        st = time.time()
+        # self._data_frame.cache()
+        print "cachin self._df",time.time()-st
         measureDf = self._data_frame.select(all_measures)
-
+        print measureDf.show(2)
         lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
                 elasticNetParam=1.0, labelCol=LinearRegression.LABEL_COLUMN_NAME,
                 featuresCol=LinearRegression.FEATURES_COLUMN_NAME)
@@ -95,7 +99,9 @@ class LinearRegression:
         training_df = pipelineModel.transform(measureDf)
         training_df = training_df.withColumn("label",training_df[output_column])
         print "time taken to create training_df",time.time()-st
-
+        st = time.time()
+        # training_df.cache()
+        print "caching in ",time.time()-st
         st = time.time()
         lr_model = lr.fit(training_df)
         lr_summary = lr_model.evaluate(training_df)
