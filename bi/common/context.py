@@ -39,6 +39,8 @@ class ContextSetter:
         self.existingColumnTransformsSettings = []
         self.newColumnTransformsSettings = []
         self.runEnvironment = None
+        self.METADATA_URL = None
+        self.METADATA_SLUGS = None
 
         self.scriptsMapping = {
             "overview" : "Descriptive analysis",
@@ -133,6 +135,9 @@ class ContextSetter:
         stockSettingKeys = self.STOCK_SETTINGS.keys()
 
         if len(fileSettingKeys) > 0:
+            if "metadata" in fileSettingKeys:
+                self.METADATA_URL = self.FILE_SETTINGS['metadata']["url"]
+                self.METADATA_SLUGS = self.FILE_SETTINGS['metadata']["slug_list"]
             if "inputfile" in fileSettingKeys:
                 if len(self.FILE_SETTINGS['inputfile']) > 0:
                     self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
@@ -297,6 +302,12 @@ class ContextSetter:
 
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
+
+    def get_metadata_url(self):
+        return self.METADATA_URL
+        
+    def get_metadata_slugs(self):
+        return self.METADATA_SLUGS
 
     def get_stock_symbol_list(self):
         return self.stockSymbolList

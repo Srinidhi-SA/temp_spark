@@ -25,6 +25,21 @@ def round_sig(x, sig=3):
         pass
     return x
 
+def get_secret_key():
+    secretKey = "GETMETADATAOBJECT"
+    return secretKey
+
+def generate_signature(json_obj,secretKey=None):
+    """
+    json_obj = json obj with {"key1":"DSDDD","key2":"DASDAA","signature":None}
+    secretKey = "secret key"
+    """
+    existing_key = json_obj["key1"]+"|"+json_obj["key2"]+"|"+secretKey
+    newhash = md5.new()
+    newhash.update(existing_key)
+    value = newhash.hexdigest()
+    return value
+
 @accepts((int, long, float), (int, long, float), num_steps=int)
 def frange(start, stop, num_steps=10):
     """
@@ -294,222 +309,172 @@ def get_story_config():
     storyConfig = {
 
         "config" : {
-            "ADVANCED_SETTINGS" : {
-                "analysis" : [
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Overview",
-                        "name" : "overview",
-                        "noOfColumnsToUse" : None,
-                        "status" : True
-                    },
-                    {
-                        "analysisSubTypes" : [
+                    "ADVANCED_SETTINGS" : {
+                        "analysis" : [
                             {
+                                "analysisSubTypes" : [],
                                 "displayName" : "Overview",
                                 "name" : "overview",
-                                "status" : False
-                            },
-                            {
-                                "displayName" : "Factors that drive up",
-                                "name" : "factors that drive up",
-                                "status" : False
-                            },
-                            {
-                                "displayName" : "Factors that drive down",
-                                "name" : "factors that drive down",
-                                "status" : False
-                            },
-                            {
-                                "displayName" : "Forecast",
-                                "name" : "forecast",
-                                "status" : False
-                            }
-                        ],
-                        "displayName" : "Trend",
-                        "name" : "trend",
-                        "noOfColumnsToUse" : None,
-                        "status" : False
-                    },
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Association",
-                        "name" : "association",
-                        "noOfColumnsToUse" : [
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Low",
-                                "name" : "low",
+                                "noOfColumnsToUse" : None,
                                 "status" : True
                             },
                             {
-                                "defaultValue" : 5,
-                                "displayName" : "Medium",
-                                "name" : "medium",
+                                "analysisSubTypes" : [
+                                    {
+                                        "displayName" : "Overview",
+                                        "name" : "overview",
+                                        "status" : False
+                                    },
+                                    {
+                                        "displayName" : "Factors that drive up",
+                                        "name" : "factors that drive up",
+                                        "status" : False
+                                    },
+                                    {
+                                        "displayName" : "Factors that drive down",
+                                        "name" : "factors that drive down",
+                                        "status" : False
+                                    },
+                                    {
+                                        "displayName" : "Forecast",
+                                        "name" : "forecast",
+                                        "status" : False
+                                    }
+                                ],
+                                "displayName" : "Trend",
+                                "name" : "trend",
+                                "noOfColumnsToUse" : None,
                                 "status" : False
                             },
                             {
-                                "defaultValue" : 8,
-                                "displayName" : "High",
-                                "name" : "high",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Custom",
-                                "name" : "custom",
-                                "status" : False,
-                                "value" : None
-                            }
-                        ],
-                        "status" : False
-                    },
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Influencer",
-                        "name" : "influencer",
-                        "noOfColumnsToUse" : [
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Low",
-                                "name" : "low",
+                                "analysisSubTypes" : [],
+                                "displayName" : "Association",
+                                "name" : "association",
+                                "noOfColumnsToUse" : [
+                                    {
+                                        "defaultValue" : 3,
+                                        "displayName" : "Low",
+                                        "name" : "low",
+                                        "status" : False
+                                    },
+                                    {
+                                        "defaultValue" : 5,
+                                        "displayName" : "Medium",
+                                        "name" : "medium",
+                                        "status" : False
+                                    },
+                                    {
+                                        "defaultValue" : 8,
+                                        "displayName" : "High",
+                                        "name" : "high",
+                                        "status" : True
+                                    },
+                                    {
+                                        "defaultValue" : 3,
+                                        "displayName" : "Custom",
+                                        "name" : "custom",
+                                        "status" : False,
+                                        "value" : None
+                                    }
+                                ],
                                 "status" : True
                             },
                             {
-                                "defaultValue" : 5,
-                                "displayName" : "Medium",
-                                "name" : "medium",
+                                "analysisSubTypes" : [],
+                                "displayName" : "Prediction",
+                                "name" : "prediction",
+                                "noOfColumnsToUse" : None,
                                 "status" : False
-                            },
-                            {
-                                "defaultValue" : 8,
-                                "displayName" : "High",
-                                "name" : "high",
-                                "status" : False
-                            },
-                            {
-                                "defaultValue" : 3,
-                                "displayName" : "Custom",
-                                "name" : "custom",
-                                "status" : False,
-                                "value" : None
                             }
                         ],
-                        "status" : True
+                        "targetLevels" : [
+                            []
+                        ],
+                        "trendSettings" : [
+                            {
+                                "name" : "Count",
+                                "status" : True
+                            },
+                            {
+                                "name" : "Specific Measure",
+                                "selectedMeasure" : None,
+                                "status" : False
+                            }
+                        ]
                     },
-                    {
-                        "analysisSubTypes" : [],
-                        "displayName" : "Prediction",
-                        "name" : "prediction",
-                        "noOfColumnsToUse" : None,
-                        "status" : True
-                    }
-                ],
-                "targetLevels" : [
-                    []
-                ],
-                "trendSettings" : [
-                    {
-                        "name" : "Count",
-                        "status" : True
+                    "COLUMN_SETTINGS" : {
+                        "analysis_type" : [
+                            "dimension"
+                        ],
+                        "consider_columns" : [
+                            "Deal_Type",
+                            "Source",
+                            "Platform",
+                            "Buyer_Age",
+                            "Buyer_Gender",
+                            "Tenure_in_Days",
+                            "Sales",
+                            "Last_Transaction",
+                            "new_date"
+                        ],
+                        "consider_columns_type" : [
+                            "including"
+                        ],
+                        "dateTimeSuggestions" : [
+                            {
+                                "Month" : "%b-%y",
+                                "Order Date" : "%d-%m-%Y"
+                            }
+                        ],
+                        "date_columns" : [
+                            "new_date"
+                        ],
+                        "date_format" : None,
+                        "ignore_column_suggestion" : [],
+                        "polarity" : [
+                            "positive"
+                        ],
+                        "result_column" : [
+                            "Platform"
+                        ],
+                        "utf8_column_suggestions" : []
                     },
-                    {
-                        "name" : "Specific Measure",
-                        "selectedMeasure" : None,
-                        "status" : False
+                    "DATA_SOURCE" : {
+                        "datasource_details" : "",
+                        "datasource_type" : "fileUpload"
+                    },
+                    "FILE_SETTINGS" : {
+                        "inputfile" : [
+                            "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
+                        ],
+                        "script_to_run" : [
+                            "Descriptive analysis",
+                            "Trend",
+                            "Dimension vs. Dimension",
+                            "Predictive modeling"
+                        ],
+                        "metadata": {
+                            'url': '34.196.204.54:9012/api/get_metadata_for_mlscripts/',
+                            'slug_list': [
+                              'trend_gulshancsv-amh4a71al7'
+                            ]
+                          },
                     }
-                ]
-            },
-            "COLUMN_SETTINGS" : {
-                "analysis_type" : [
-                    "measure"
-                ],
-                "consider_columns" : [
-                    "Channel",
-                    "Order_Item_Status_String",
-                    "MTO_MTS",
-                    "Ship_Address_City",
-                    "Ship_Address_State",
-                    "Source_Facility",
-                    "Fulfilable_Facility",
-                    "Payment_Method",
-                    "Customer_Type",
-                    "NPS_Score",
-                    "order_month",
-                    "order_day",
-                    "Channel",
-                    "Order_Item_Status_String",
-                    "BEDS",
-                    "OUTDOOR",
-                    "MATTRESS",
-                    "DINING - OTHERS",
-                    "LIVING SEATING",
-                    "DECOR",
-                    "DINING",
-                    "NOT_REQUIRED",
-                    "LIVING ESSENTIALS",
-                    "STUDY",
-                    "WARDROBES",
-                    "BEDROOM - OTHERS",
-                    "KIDS",
-                    "Selling_Price",
-                    "Discount",
-                    "Customer_Id",
-                    "Ship_Address_Zipcode",
-                    "Orderplaced_date"
-                ],
-                "consider_columns_type" : [
-                    "including"
-                ],
-                "dateTimeSuggestions" : [
-                    {
-                        "Orderplaced_date" : "%m/%d/%Y"
+                },
+                "job_config" : {
+                    "get_config" : {
+                        "action" : "get_config",
+                        "method" : "GET"
+                    },
+                    "job_name" : "test Dimension G",
+                    "job_type" : "story",
+                    "job_url" : "http://luke.marlabsai.com:80/api/job/master-test-dimension-g-txpy3w2rj5-afay7x0i26/",
+                    "message_url" : "http://luke.marlabsai.com:80/api/messages/Insight_test-dimension-g-txpy3w2rj5_123/",
+                    "set_result" : {
+                        "action" : "result",
+                        "method" : "PUT"
                     }
-                ],
-                "date_columns" : [
-                    "Orderplaced_date"
-                ],
-                "date_format" : None,
-                "ignore_column_suggestion" : ["Order_Code"],
-                "polarity" : [
-                    "positive"
-                ],
-                "result_column" : [
-                    "Selling_Price"
-                ],
-                "utf8_column_suggestions" : []
-            },
-            "DATA_SOURCE" : {
-                "datasource_details" : "",
-                "datasource_type" : "fileUpload"
-            },
-            "FILE_SETTINGS" : {
-                "inputfile" : [
-                    # "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/health-care-callcentre-v10csv-b3z14xn6dj/Health_Care_Callcentre-_V10.csv"
-                    "file:///home/gulshan/marlabs/datasets/ul.csv"
-                ],
-                "script_to_run" : [
-                    "Descriptive analysis",
-                    "Trend",
-                    "Dimension vs. Dimension",
-                    "Predictive modeling"
-                ]
-            }
-        },
-        "job_config" : {
-            "get_config" : {
-                "action" : "get_config",
-                "method" : "GET"
-            },
-            "job_name" : "Healthcare Education",
-            "job_type" : "story",
-            "job_url" : "http://34.196.204.54:9012/api/job/master-healthcare-education-4rzbktxf81-lrmr3gqec2/",
-            "message_url" : "http://34.196.204.54:9012/api/messages/Insight_healthcare-education-4rzbktxf81_123/",
-            "set_result" : {
-                "action" : "result",
-                "method" : "PUT"
-            }
-        }
+                }
     }
     return storyConfig
 

@@ -151,16 +151,19 @@ class ChiSquare:
     def test_measures(self, dimension_name, measure_column_name):
         chisquare_result = ChiSquareResult()
         df = self._data_frame.withColumn(measure_column_name, self._data_frame[measure_column_name].cast(DoubleType()))
-        pandasDfCol = df.select(measure_column_name).distinct().toPandas()
-        # if pandasDfCol.shape[0] > 10:
-        maxval = pandasDfCol.max()[0]
-        minval = pandasDfCol.min()[0]
-        step = (maxval - minval) / 5.0
-        splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3), minval + (step * 4), math.ceil(maxval)]
-        bucketizer = Bucketizer(splits=splits, inputCol=measure_column_name, outputCol="bucketedColumn")
-        # bucketedData = bucketizer.transform(df)
-        bucketedData = bucketizer.transform(df.na.drop(subset=measure_column_name))
-        pivot_table = bucketedData.stat.crosstab("{}".format(dimension_name), 'bucketedColumn')
+        measureSummaryDict = dict(df.describe([measure_column_name]).toPandas().values)
+        if float(measureSummaryDict["count"]) > 10:
+            maxval = float(measureSummaryDict["max"])
+            minval = float(measureSummaryDict["min"])
+            step = (maxval - minval) / 5.0
+            splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3), minval + (step * 4), math.ceil(maxval)]
+            bucketizer = Bucketizer(splits=splits, inputCol=measure_column_name, outputCol="bucketedColumn")
+            # bucketedData = bucketizer.transform(df)
+            bucketedData = bucketizer.transform(df.na.drop(subset=measure_column_name))
+            pivot_table = bucketedData.stat.crosstab("{}".format(dimension_name), 'bucketedColumn')
+        else:
+            pivot_table = df.stat.crosstab("{}".format(dimension_name), measure_column_name)
+
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
         result = Statistics.chiSqTest(data_matrix)
