@@ -6,6 +6,9 @@ import requests
 from math import *
 from re import sub
 import traceback
+import uuid
+import md5
+
 
 from pyspark.conf import SparkConf
 from pyspark.sql import SparkSession
@@ -39,6 +42,17 @@ def generate_signature(json_obj,secretKey=None):
     newhash.update(existing_key)
     value = newhash.hexdigest()
     return value
+
+def get_metadata(dataframe_context):
+    baseUrl = dataframe_context.get_metadata_url()
+    slugs = dataframe_context.get_metadata_slugs()
+    jsonToken = {"key1":uuid.uuid4().hex,"key2":uuid.uuid4().hex,"signature":None,"generated_at":time.time()}
+    secretKey = get_secret_key()
+    sigString = generate_signature(jsonToken,secretKey)
+    jsonToken["signature"] = sigString
+    url = "http://{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
+    metaObj = requests.get(url)
+    return metaObj.json()
 
 @accepts((int, long, float), (int, long, float), num_steps=int)
 def frange(start, stop, num_steps=10):
@@ -285,9 +299,11 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
     }
     return progressMessage
 
-def save_progress_message(url,jsonData):
-    res = requests.put(url=url,data=json.dumps(jsonData))
-    return res
+def save_progress_message(url,jsonData,ignore=False):
+    if ignore == False:
+        res = requests.put(url=url,data=json.dumps(jsonData))
+        return res
+
 
 def keyWithMaxVal(dictObj):
      """ a) create a list of the dict's keys and values;
@@ -319,37 +335,16 @@ def get_story_config():
                                 "status" : True
                             },
                             {
-                                "analysisSubTypes" : [
-                                    {
-                                        "displayName" : "Overview",
-                                        "name" : "overview",
-                                        "status" : False
-                                    },
-                                    {
-                                        "displayName" : "Factors that drive up",
-                                        "name" : "factors that drive up",
-                                        "status" : False
-                                    },
-                                    {
-                                        "displayName" : "Factors that drive down",
-                                        "name" : "factors that drive down",
-                                        "status" : False
-                                    },
-                                    {
-                                        "displayName" : "Forecast",
-                                        "name" : "forecast",
-                                        "status" : False
-                                    }
-                                ],
+                                "analysisSubTypes" : [],
                                 "displayName" : "Trend",
                                 "name" : "trend",
                                 "noOfColumnsToUse" : None,
-                                "status" : False
+                                "status" : True
                             },
                             {
                                 "analysisSubTypes" : [],
-                                "displayName" : "Association",
-                                "name" : "association",
+                                "displayName" : "Performance",
+                                "name" : "performance",
                                 "noOfColumnsToUse" : [
                                     {
                                         "defaultValue" : 3,
@@ -377,7 +372,40 @@ def get_story_config():
                                         "value" : None
                                     }
                                 ],
-                                "status" : True
+                                "status" : False
+                            },
+                            {
+                                "analysisSubTypes" : [],
+                                "displayName" : "Influencer",
+                                "name" : "influencer",
+                                "noOfColumnsToUse" : [
+                                    {
+                                        "defaultValue" : 3,
+                                        "displayName" : "Low",
+                                        "name" : "low",
+                                        "status" : False
+                                    },
+                                    {
+                                        "defaultValue" : 5,
+                                        "displayName" : "Medium",
+                                        "name" : "medium",
+                                        "status" : False
+                                    },
+                                    {
+                                        "defaultValue" : 8,
+                                        "displayName" : "High",
+                                        "name" : "high",
+                                        "status" : True
+                                    },
+                                    {
+                                        "defaultValue" : 3,
+                                        "displayName" : "Custom",
+                                        "name" : "custom",
+                                        "status" : False,
+                                        "value" : None
+                                    }
+                                ],
+                                "status" : False
                             },
                             {
                                 "analysisSubTypes" : [],
@@ -386,34 +414,24 @@ def get_story_config():
                                 "noOfColumnsToUse" : None,
                                 "status" : False
                             }
-                        ],
-                        "targetLevels" : [
-                            []
-                        ],
-                        "trendSettings" : [
-                            {
-                                "name" : "Count",
-                                "status" : True
-                            },
-                            {
-                                "name" : "Specific Measure",
-                                "selectedMeasure" : None,
-                                "status" : False
-                            }
                         ]
                     },
                     "COLUMN_SETTINGS" : {
                         "analysis_type" : [
-                            "dimension"
+                            "measure"
                         ],
                         "consider_columns" : [
                             "Deal_Type",
+                            "Price_Range",
+                            "Discount_Range",
                             "Source",
                             "Platform",
                             "Buyer_Age",
                             "Buyer_Gender",
                             "Tenure_in_Days",
                             "Sales",
+                            "Marketing_Cost",
+                            "Shipping_Cost",
                             "Last_Transaction",
                             "new_date"
                         ],
@@ -435,7 +453,7 @@ def get_story_config():
                             "positive"
                         ],
                         "result_column" : [
-                            "Platform"
+                            "Sales"
                         ],
                         "utf8_column_suggestions" : []
                     },
@@ -445,20 +463,21 @@ def get_story_config():
                     },
                     "FILE_SETTINGS" : {
                         "inputfile" : [
-                            "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
+                          "file:///home/gulshan/marlabs/datasets/trend_gulshan.csv"
                         ],
+                        "metadata" : {
+                            "slug_list" : [
+                                "trend_gulshancsv-8lue9pvskm"
+                            ],
+                            "url" : "34.196.204.54:9012/api/get_metadata_for_mlscripts/"
+                        },
                         "script_to_run" : [
                             "Descriptive analysis",
                             "Trend",
-                            "Dimension vs. Dimension",
+                            "Measure vs. Dimension",
+                            "Measure vs. Measure",
                             "Predictive modeling"
-                        ],
-                        "metadata": {
-                            'url': '34.196.204.54:9012/api/get_metadata_for_mlscripts/',
-                            'slug_list': [
-                              'trend_gulshancsv-amh4a71al7'
-                            ]
-                          },
+                        ]
                     }
                 },
                 "job_config" : {
@@ -466,15 +485,16 @@ def get_story_config():
                         "action" : "get_config",
                         "method" : "GET"
                     },
-                    "job_name" : "test Dimension G",
+                    "job_name" : "test Measure",
                     "job_type" : "story",
-                    "job_url" : "http://luke.marlabsai.com:80/api/job/master-test-dimension-g-txpy3w2rj5-afay7x0i26/",
-                    "message_url" : "http://luke.marlabsai.com:80/api/messages/Insight_test-dimension-g-txpy3w2rj5_123/",
+                    "job_url" : "http://34.196.204.54:9012/api/job/master-test-measure-weiavw8kgj-5clrf2ywco/",
+                    "message_url" : "http://34.196.204.54:9012/api/messages/Insight_test-measure-weiavw8kgj_123/",
                     "set_result" : {
                         "action" : "result",
                         "method" : "PUT"
                     }
                 }
+
     }
     return storyConfig
 
@@ -572,7 +592,7 @@ def get_prediction_config():
                 # 'train_test_split' : [0.8],
                 'levelcounts' : [],
                 'modelfeatures' : [],
-                "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8lr"],
+                "algorithmslug":["f77631ce2ab24cf78c55bb6a5fce4db8rf"],
             },
             'COLUMN_SETTINGS': {
                 'analysis_type': ['Dimension'],

@@ -111,10 +111,10 @@ class AnovaNarratives:
                                 'target' : measure_column \
                             }
                 output = {'header' : ''}
-                output['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.temp',data_dict)
+                output['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.html',data_dict)
                 self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output)
                 output1 = {'header' : ''}
-                output1['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.temp',data_dict)
+                output1['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.html',data_dict)
                 lines = []
                 lines += NarrativesUtils.block_splitter(output['content'],self._blockSplitter)
                 data_c3 = NormalChartData(data_c3)

@@ -196,7 +196,7 @@ class ChiSquareAnalysis:
         data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/total,2)
 
 
-        output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict))
+        output = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict))
         self.card1['heading'] = 'Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension
         self.card1['paragraphs'] = output
         self.card1['chart']=[]
@@ -207,14 +207,14 @@ class ChiSquareAnalysis:
         # chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
         # self.card2['chart'] = chart
         # self.card2['bubble_data'] = bubble
-        # output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict))
+        # output2 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict))
         # self.card2['paragraphs'] = output2
 
         # self.card4['heading']='Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension
         # chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
         # self.card4['chart'] = chart
         # self.card4['bubble_data'] = bubble
-        # output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict))
+        # output4 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict))
         # self.card4['paragraphs'] = output4
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):

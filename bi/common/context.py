@@ -41,6 +41,8 @@ class ContextSetter:
         self.runEnvironment = None
         self.METADATA_URL = None
         self.METADATA_SLUGS = None
+        self.dbConnectionParams = {}
+        self.dataSourceType = None
 
         self.scriptsMapping = {
             "overview" : "Descriptive analysis",
@@ -79,6 +81,9 @@ class ContextSetter:
             "Descriptive analysis":{"total":10,"script":10,"narratives":10},
             "Dimension vs. Dimension":{"total":20,"script":20,"narratives":20}
         }
+        self.metadataScriptWeight = {
+            "initialization":{"total":2,"script":1,"narratives":1},
+        }
         self.measureAnalysisWeight = {}
         self.dimensionAnalysisWeight = {}
         self.globalCompletionStatus = 0
@@ -87,8 +92,24 @@ class ContextSetter:
         self.stockSymbolList = []
         self.dataAPI = ""
         self.trendSettings = None
+        self.metaData = None
+        self.metaIgnoreMsgFlag = False
 
 
+    def get_datasource_type(self):
+        return self.dataSourceType
+    def get_dbconnection_params(self):
+        return self.dbConnectionParams
+    def get_metadata_ignore_msg_flag(self):
+        return self.metaIgnoreMsgFlag
+    def set_metadata_ignore_msg_flag(self,data):
+        self.metaIgnoreMsgFlag = data
+    def get_metadata_script_weight(self):
+        return self.metadataScriptWeight
+    def set_metadata_object(self,data):
+        self.metaData = data
+    def get_metadata_object(self):
+        return self.metaData
     def set_model_path(self,data):
         self.MODEL_PATH = data
     def set_environment(self,data):
@@ -127,12 +148,21 @@ class ContextSetter:
         self.ADVANCE_SETTINGS = self._config_obj.get_advance_settings()
         self.TRANSFORMATION_SETTINGS = self._config_obj.get_transformation_settings()
         self.STOCK_SETTINGS = self._config_obj.get_stock_settings()
+        self.DATABASE_SETTINGS = self._config_obj.get_database_settings()
+
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
         filterSettingKeys = self.FILTER_SETTINGS.keys()
         advanceSettingKeys = self.ADVANCE_SETTINGS.keys()
         transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
         stockSettingKeys = self.STOCK_SETTINGS.keys()
+        dbSettingKeys = self.DATABASE_SETTINGS.keys()
+
+        if len(dbSettingKeys) > 0:
+            if "datasource_details" in dbSettingKeys:
+                self.dbConnectionParams = self.DATABASE_SETTINGS["datasource_details"]
+            if "datasource_type" in dbSettingKeys:
+                self.dataSourceType = self.DATABASE_SETTINGS["datasource_type"]
 
         if len(fileSettingKeys) > 0:
             if "metadata" in fileSettingKeys:
@@ -305,7 +335,7 @@ class ContextSetter:
 
     def get_metadata_url(self):
         return self.METADATA_URL
-        
+
     def get_metadata_slugs(self):
         return self.METADATA_SLUGS
 

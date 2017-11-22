@@ -134,7 +134,7 @@ class MeasureColumnNarrative:
                     "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns)
         }
         self.summary = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'descr_stats_summary.temp',data_dict)
+                                        'descr_stats_summary.html',data_dict)
         MeasureSummaryCard = SummaryCard(name='Summary',slug=None,cardData = None)
         MeasureSummaryCard.set_no_of_measures(data_dict["n_m"])
         MeasureSummaryCard.set_no_of_dimensions(data_dict["n_d"])
@@ -159,7 +159,7 @@ class MeasureColumnNarrative:
                     'rows': self._dataframe_helper.get_num_rows()
         }
         output = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'distribution_narratives.temp',data_dict)
+                                        'distribution_narratives.html',data_dict)
         return output
 
     def _generate_analysis_para2(self):
@@ -226,7 +226,7 @@ class MeasureColumnNarrative:
         self._result_setter.update_executive_summary_data({"skew":data_dict["skew"]})
         if abs(self._measure_descr_stats.get_skew())>0.1:
             content = NarrativesUtils.get_template_output(self._base_dir,\
-                                            'descriptive_card2.temp',data_dict)
+                                            'descriptive_card2.html',data_dict)
             self.card2 = {}
             self.card2['data'] = {'heading': 'Concentration of High & Low segments',
                                     'content': content}
@@ -239,7 +239,7 @@ class MeasureColumnNarrative:
                     'y': list(NarrativesUtils.accumu(totals))}
             self.card2['chart'] = chart
         output = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'histogram_narrative.temp',data_dict)
+                                        'histogram_narrative.html',data_dict)
         return output
 
     def _generate_take_away(self):
@@ -277,5 +277,5 @@ class MeasureColumnNarrative:
                     }
         if (len(histogram_buckets)>3):
             output = NarrativesUtils.get_template_output(self._base_dir,\
-                                            'histogram_takeaway.temp',data_dict)
+                                            'histogram_takeaway.html',data_dict)
         return output

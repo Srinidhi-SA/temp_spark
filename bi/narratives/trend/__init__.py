@@ -168,12 +168,12 @@ class TimeSeriesNarrative:
                 last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
             except:
                 print "ENTERING EXCEPT BLOCK"
-                pandas_df = self._data_frame.select(["_id_","suggestedDate"]).toPandas()
+                pandas_df = self._data_frame.select(["suggestedDate"]).distinct().toPandas()
                 pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
                 last_date = pandas_df["suggestedDate"].iloc[-1]
             if last_date == None:
                 print "IF Last date none:-"
-                pandas_df = self._data_frame.toPandas()
+                pandas_df = self._data_frame.select(["suggestedDate"]).distinct().toPandas()
                 pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
                 last_date = pandas_df["suggestedDate"].iloc[-1]
 
@@ -242,7 +242,7 @@ class TimeSeriesNarrative:
                     card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column,self._dataLevel,self._durationString)
 
                     card3narrative = NarrativesUtils.get_template_output(base_dir,\
-                                                                    'regression_card3.temp',card3data)
+                                                                    'regression_card3.html',card3data)
 
 
                     card3chart =trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
@@ -327,9 +327,9 @@ class TimeSeriesNarrative:
                         self._result_setter.update_executive_summary_data(dataDict)
                         dataDict.update({"blockSplitter":self._blockSplitter})
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'trend_narrative_card1.temp',dataDict)
+                                                                        'trend_narrative_card1.html',dataDict)
                         summary2 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'trend_narrative_card2.temp',dataDict)
+                                                                        'trend_narrative_card2.html',dataDict)
                         measureTrendCard = NormalCard()
                         measureTrendcard1Data = NarrativesUtils.block_splitter(summary1,self._blockSplitter)
                         measureTrendcard2Data = NarrativesUtils.block_splitter(summary2,self._blockSplitter)
@@ -428,7 +428,7 @@ class TimeSeriesNarrative:
                         #
                         # self._result_setter.update_executive_summary_data(forecastDataDict)
                         # summary3 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        # 'trend_narrative_card3.temp',forecastDataDict)
+                                                                        # 'trend_narrative_card3.html',forecastDataDict)
                         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["trendNarrativeEnd"]["weight"]/10
                         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                                     "trendNarrativeEnd",\
@@ -585,7 +585,7 @@ class TimeSeriesNarrative:
 
                         self._result_setter.update_executive_summary_data(dataDict)
                         trendStory = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'dimension_trend_new.temp',dataDict)
+                                                                        'dimension_trend_new.html',dataDict)
                         blocks = NarrativesUtils.block_splitter(trendStory,self._blockSplitter)
 
                         if idx != 0:

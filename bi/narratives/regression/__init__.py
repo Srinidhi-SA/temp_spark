@@ -108,7 +108,7 @@ class RegressionNarrative:
                                     )
         main_card_data = regression_narrative_obj.generate_main_card_data()
         main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'regression_main_card.temp',main_card_data)
+                                                        'regression_main_card.html',main_card_data)
         self.narratives['main_card'] = {}
         self.narratives["main_card"]['paragraphs'] = NarrativesUtils.paragraph_splitter(main_card_narrative)
         self.narratives["main_card"]['header'] = 'Key Measures that affect ' + self.result_column
@@ -154,7 +154,7 @@ class RegressionNarrative:
             measureCard1Header = HtmlData(data=card1heading)
             card1data.update({"blockSplitter":self._blockSplitter})
             card1narrative = NarrativesUtils.get_template_output(self._base_dir,\
-                                                            'regression_card1.temp',card1data)
+                                                            'regression_card1.html',card1data)
 
             card1paragraphs = NarrativesUtils.block_splitter(card1narrative,self._blockSplitter)
             card0 = {"paragraphs":card1paragraphs}
@@ -178,7 +178,7 @@ class RegressionNarrative:
                 card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
                 card2data.update({"blockSplitter":self._blockSplitter})
                 card2narrative = NarrativesUtils.get_template_output(self._base_dir,\
-                                                            'regression_card2.temp',card2data)
+                                                            'regression_card2.html',card2data)
                 card2paragraphs = NarrativesUtils.block_splitter(card2narrative,self._blockSplitter)
 
                 card1 = {'tables': card2table, 'paragraphs' : card2paragraphs,
@@ -223,7 +223,7 @@ class RegressionNarrative:
             card4data.update({"blockSplitter":self._blockSplitter})
             # card4heading = "Sensitivity Analysis: Effect of "+self.result_column+" on Segments of "+measure_column
             card4narrative = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                'regression_card4.temp',card4data)
+                                                                'regression_card4.html',card4data)
             card4paragraphs = NarrativesUtils.block_splitter(card4narrative,self._blockSplitter)
             # card3 = {"paragraphs":card4paragraphs}
             card0['paragraphs'] = card1paragraphs+card4paragraphs
@@ -269,7 +269,7 @@ class RegressionNarrative:
             for level in column_levels:
                 print "Filtering data for level:",level
                 filtered_df = self._dataframe_helper.filter_dataframe(col,level)
-                result = LinearRegression(filtered_df, self._dataframe_helper, self._dataframe_context).fit(self._dataframe_context.get_result_column())
+                result = LinearRegression(filtered_df, self._dataframe_helper, self._dataframe_context,self._spark).fit(self._dataframe_context.get_result_column())
                 if result == None:
                     result = {"intercept" : 0.0,
                               "rmse" : 0.0,

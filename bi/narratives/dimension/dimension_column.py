@@ -147,7 +147,7 @@ class DimensionColumnNarrative:
                     "blockSplitter" : self._blockSplitter
         }
         output = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'dimension_report_summary.temp',data_dict)
+                                        'dimension_report_summary.html',data_dict)
         summary = NarrativesUtils.block_splitter(output,self._blockSplitter)
         dimensionSummaryCard = SummaryCard(name=self.header,slug=None,cardData = None)
         dimensionSummaryCard.set_no_of_measures(data_dict["n_m"])
@@ -217,10 +217,10 @@ class DimensionColumnNarrative:
         else:
             self.subheader = 'Distribution of '+self._capitalized_column_name
         output1 =  NarrativesUtils.get_template_output(self._base_dir,\
-                                                'dimension_distribution1.temp',data_dict)
+                                                'dimension_distribution1.html',data_dict)
         output1 = NarrativesUtils.block_splitter(output1,self._blockSplitter)
         output2 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                'dimension_distribution2.temp',data_dict)
+                                                'dimension_distribution2.html',data_dict)
         output2 = NarrativesUtils.block_splitter(output2,self._blockSplitter)
         chart_data = NormalChartData(data=freq_data)
         chart_json = ChartJson()
@@ -285,9 +285,9 @@ class DimensionColumnNarrative:
         self.count = {"largest" :[largest_text,str(round(largest_per,0))+'%'],"smallest" : [smallest_text,str(round(smallest_per,0))+'%']}
         self.subheader = "Snapshot of "+data_dict["colname"]
         output1 =  NarrativesUtils.get_template_output(self._base_dir,\
-                                                'dimension_distribution1.temp',data_dict)
+                                                'dimension_distribution1.html',data_dict)
         output2 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                'dimension_distribution2.temp',data_dict)
+                                                'dimension_distribution2.html',data_dict)
         lines.append(output1)
         lines.append(output2)
         return lines

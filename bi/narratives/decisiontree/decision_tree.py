@@ -127,11 +127,11 @@ class DecisionTreeNarrative:
         # print data_dict['rules']
         # print self._new_table
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_tree_card2.temp',data_dict))
+                                                    'decision_tree_card2.html',data_dict))
         self.card2_chart = self._target_distribution
 
         self.dropdownComment = NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_rule_summary.temp',data_dict)
+                                                    'decision_rule_summary.html',data_dict)
         main_card = NormalCard()
         main_card_data = []
         main_card_narrative = NarrativesUtils.block_splitter(self.dropdownComment,self._blockSplitter)
@@ -145,7 +145,7 @@ class DecisionTreeNarrative:
         main_card.set_card_name("Predicting Key Drivers of {}".format(self._colname))
         card2 = NormalCard()
         card2Data = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_tree_card2.temp',data_dict),self._blockSplitter)
+                                                    'decision_tree_card2.html',data_dict),self._blockSplitter)
         card2ChartData = []
         for k,v in self._target_distribution.items():
             card2ChartData.append({"key":k,"value":v})
@@ -160,7 +160,7 @@ class DecisionTreeNarrative:
         self._decisionTreeNode.add_a_card(main_card)
         self._decisionTreeNode.add_a_card(card2)
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'decision_tree_summary.temp',data_dict)
+                                        'decision_tree_summary.html',data_dict)
 
     def _generate_rules(self,target,rules, total, success, success_percent):
         colname = self._colname

@@ -12,6 +12,10 @@ class ParserConfig():
         self.AdvanceSettings = {}
         self.TransformationSettings = {}
         self.StockSettings = {}
+        self.DatabaseSettings = {}
+
+    def get_database_settings(self):
+        return self.DatabaseSettings
 
     def get_dimension_filters(self):
         return self.DimensionFilter
@@ -84,3 +88,5 @@ class ParserConfig():
             self.TransformationSettings = self.config.get('TRANSFORMATION_SETTINGS')
         if 'STOCK_SETTINGS' in self.config:
             self.StockSettings = self.config.get('STOCK_SETTINGS')
+        if 'DATA_SOURCE' in self.config:
+            self.DatabaseSettings = self.config.get('DATA_SOURCE')

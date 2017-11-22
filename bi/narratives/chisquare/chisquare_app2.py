@@ -168,9 +168,9 @@ class ChiSquareAnalysisApp2:
                       'maximums' : maximums,
                       'minimums' : minimums
         }
-        analysis1 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template3.temp',data_dict)
+        analysis1 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template3.html',data_dict)
         title1 = ''
-        analysis2 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template4.temp',data_dict)
+        analysis2 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template4.html',data_dict)
         title2 = ''
 
         self.analysis = {'title1':'',

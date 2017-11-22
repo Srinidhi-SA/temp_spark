@@ -183,7 +183,7 @@ class TimeSeriesCalculations:
                             data_dict["stable_growth_dimensions"].append(val)
                             data_dict["stable_growth_values"].append(growth_dict[val]["growth"])
                     summary1 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                    'chisquare_trend.temp',data_dict)
+                                                                    'chisquare_trend.html',data_dict)
                     chart_data = {"data":[],"header":[]}
                     chart_data["header"] = ["time",result_column,top_dimension]
                     chart_data["data"]=[["time"],[result_column],[top_dimension]]

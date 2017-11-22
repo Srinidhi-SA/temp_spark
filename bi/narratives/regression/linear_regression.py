@@ -380,7 +380,7 @@ class LinearRegressionNarrative:
     def run_regression(self,df,measure_column):
         output = {}
         result_column = self._result_column
-        result = LinearRegression(df, self._dataframe_helper, self._dataframe_context).fit(result_column)
+        result = LinearRegression(df, self._dataframe_helper, self._dataframe_context,self._spark).fit(result_column)
         result = {"intercept" : result.get_intercept(),
                   "rmse" : result.get_root_mean_square_error(),
                   "rsquare" : result.get_rsquare(),

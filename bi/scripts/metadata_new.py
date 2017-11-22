@@ -23,6 +23,7 @@ class MetaDataScript:
         self._start_time = time.time()
         self._analysisName = "metadata"
         self._messageURL = self._dataframe_context.get_message_url()
+        self._ignoreMsgFlag = self._dataframe_context.get_metadata_ignore_msg_flag()
         self._scriptStages = {
             "schema":{
                 "summary":"Loaded the data and Schema is Run",
@@ -82,7 +83,7 @@ class MetaDataScript:
                                     self._scriptStages["schema"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
 
 
@@ -147,7 +148,7 @@ class MetaDataScript:
                                     self._scriptStages["sampling"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         helper_instance = MetaDataHelper(self._data_frame)
         self._start_time = time.time()
@@ -162,7 +163,7 @@ class MetaDataScript:
                                     self._scriptStages["measurestats"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
         dimensionColumnStat,dimensionCharts = helper_instance.calculate_dimension_column_stats(self._data_frame,self._string_columns,level_count_flag=self._level_count_flag)
@@ -175,7 +176,7 @@ class MetaDataScript:
                                     self._scriptStages["dimensionstats"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
         timeDimensionColumnStat,timeDimensionCharts = helper_instance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
@@ -188,7 +189,7 @@ class MetaDataScript:
                                     self._scriptStages["timedimensionstats"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
         ignoreColumnSuggestions = []
@@ -282,6 +283,6 @@ class MetaDataScript:
                                     self._scriptStages["suggestions"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         return dfMetaData

@@ -138,13 +138,13 @@ class DecisionTreeRegNarrative:
         data_dict['average_overall'] = sum([self._target_distribution[i]['sum'] for i in self._target_distribution])*1.0/sum([self._target_distribution[i]['count'] for i in self._target_distribution])
         data_dict['high_vs_overall'] = data_dict['average_high_group']*100.0/data_dict['average_high_group'] - 100
         self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_reg_card2.temp',data_dict))
+                                                    'decision_reg_card2.html',data_dict))
         self.card2_chart = {'sum' : dict([(k,v['sum']) for k,v in self._target_distribution.items()]),
                             'mean': dict([(k,v['sum']*1.0/v['count']) for k,v in self._target_distribution.items()]),
                             'legends': {'sum': self._capitalized_column_name+' Total',
                                         'mean': self._capitalized_column_name+' Avg'}}
         self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'decision_tree_summary.temp',data_dict)
+                                        'decision_tree_summary.html',data_dict)
         lines = []
         lines += NarrativesUtils.block_splitter(self.subheader,self._blockSplitter)
         tableData = TableData(data={"tableType" : "decisionTreeTable",'tableData':self.card1Table})

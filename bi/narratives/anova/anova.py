@@ -230,7 +230,7 @@ class OneWayAnovaNarratives:
                 'num_groups' : num_groups
                 }
         output = {'header' : 'Overview', 'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.temp',data_dict))
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.html',data_dict))
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
         self._anovaCard1.set_card_data(lines)
@@ -263,7 +263,7 @@ class OneWayAnovaNarratives:
         }
         output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_dimension,
                   'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.temp',data_dict))
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
         lines = []
         lines += NarrativesUtils.block_splitter('<h4>'+output['header']+'</h4>',self._blockSplitter)
         for cnt in output['content']:
@@ -383,7 +383,7 @@ class OneWayAnovaNarratives:
         output = {}
         output['header'] = ''
         output['content'] = []
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.temp',data_dict))
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.html',data_dict))
         # self.card2.add_paragraph(output)
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
@@ -423,7 +423,7 @@ class OneWayAnovaNarratives:
         }
         output = {'header' : '',
                   'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_7.temp',data_dict))
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_7.html',data_dict))
         # self.card2.add_paragraph(output)
 
     def streaks(self, df, col):
@@ -524,7 +524,7 @@ class OneWayAnovaNarratives:
 
         output = {'header' : '',
                   'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_5.temp',data_dict))
+        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_5.html',data_dict))
         self.card3.add_paragraph(output)
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)

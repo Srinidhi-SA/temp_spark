@@ -225,7 +225,7 @@ class ChiSquareAnalysis:
         data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/sum(top_target_contributions),2)
 
         data_dict["blockSplitter"] = self._blockSplitter
-        output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.temp',data_dict),self._blockSplitter)
+        output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter)
         targetDimCard1Data = []
         targetDimcard1Heading = '<h3>Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension+"</h3>"
 
@@ -381,7 +381,7 @@ class ChiSquareAnalysis:
             card2ChartJson.set_types({"total":"bar","percentage":"line"})
             card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
             card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-            output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.temp',data_dict),self._blockSplitter)
+            output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
 
             card2Data.append(HtmlData(data=card2Heading))
             card2Data.append(C3ChartData(data=card2ChartJson))
@@ -402,7 +402,7 @@ class ChiSquareAnalysis:
             card4ChartJson.set_types({"total":"bar","percentage":"line"})
             card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
             card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-            output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.temp',data_dict),self._blockSplitter)
+            output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)
 
             card4Data.append(HtmlData(data=card4Heading))
             card4Data.append(C3ChartData(data=card4ChartJson))
@@ -413,7 +413,7 @@ class ChiSquareAnalysis:
             self._card4.set_card_data(card4Data)
             self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
 
-            # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.temp',data_dict))
+            # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.html',data_dict))
             # self.card0['paragraphs'] = output0
             # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
 

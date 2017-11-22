@@ -117,9 +117,9 @@ class AnovaDrilldownNarratives:
                 inner_dict_sum["highest_level_by_sum"] = highest_level_by_sum
                 data_dict["sum"] = inner_dict_sum
                 self.analysis[dim]["avg"] = \
-                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.temp',data_dict['avg'])
+                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.html',data_dict['avg'])
                 self.analysis[dim]["sum"] = \
-                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.temp',data_dict['sum'])
+                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.html',data_dict['sum'])
             else:
                 df_avg = df1.filter(df1[dim] == highest_level_by_avg)
                 inner_dict = self.generate_inner_data_dict(highest_level_by_avg,df_avg,dim,self.dimension_columns,overall_aggregation,anova_narr)
@@ -128,4 +128,4 @@ class AnovaDrilldownNarratives:
                 data_dict["avg"] = inner_dict
                 data_dict["sum"] = data_dict["avg"]
                 self.analysis[dim]["avg"] = \
-                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.temp',data_dict['avg'])
+                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.html',data_dict['avg'])

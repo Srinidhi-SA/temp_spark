@@ -33,7 +33,7 @@ class ExecutiveSummaryNarrative:
         narrative_data_dict["anova_data"] = anova_data
         # print json.dumps(narrative_data_dict,indent=2)
         executive_summary = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'executive_summary.temp',narrative_data_dict)
+                                                        'executive_summary.html',narrative_data_dict)
         executive_summary_paragraphs = NarrativesUtils.paragraph_splitter(executive_summary)
         self.executive_summary = executive_summary_paragraphs
 

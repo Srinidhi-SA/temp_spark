@@ -185,7 +185,7 @@ class TrendNarrative:
 
     def generate_summary(self,dataDict):
         output = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'trend_summary.temp',data_dict)
+                                                        'trend_summary.html',data_dict)
         return output
 
     def generate_dimension_extra_narrative(self,df,dataDict,dataLevel):

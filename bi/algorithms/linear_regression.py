@@ -7,7 +7,9 @@ from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult
 from bi.common.results.regression import RegressionResult
 from bi.common import utils as CommonUtils
+from bi.common import DataLoader
 from bi.algorithms import utils as MLUtils
+
 
 import time
 
@@ -19,11 +21,11 @@ class LinearRegression:
     MAX_ITERATIONS = 5
     REGULARIZATION_PARAM = 0.1
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-        self._sample_size = min(round(df_helper.get_num_rows()*0.8),2000)
+        self._spark = spark
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -48,6 +50,13 @@ class LinearRegression:
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
+
+        datasource_type = self._dataframe_context.get_datasource_type()
+        if datasource_type == "Hana":
+            dbConnectionParams = self._dataframe_context.get_dbconnection_params()
+            self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
+        elif datasource_type == "fileUpload":
+            self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
 
 
     def fit_all(self):
@@ -84,9 +93,6 @@ class LinearRegression:
 
         all_measures = input_columns+[output_column]
         print all_measures
-        st = time.time()
-        # self._data_frame.cache()
-        print "cachin self._df",time.time()-st
         measureDf = self._data_frame.select(all_measures)
         print measureDf.show(2)
         lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
@@ -99,9 +105,9 @@ class LinearRegression:
         training_df = pipelineModel.transform(measureDf)
         training_df = training_df.withColumn("label",training_df[output_column])
         print "time taken to create training_df",time.time()-st
-        st = time.time()
+        # st = time.time()
         # training_df.cache()
-        print "caching in ",time.time()-st
+        # print "caching in ",time.time()-st
         st = time.time()
         lr_model = lr.fit(training_df)
         lr_summary = lr_model.evaluate(training_df)

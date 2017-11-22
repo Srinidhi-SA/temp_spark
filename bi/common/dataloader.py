@@ -13,33 +13,64 @@ class DataLoader:
     def load_csv_file(spark_session, csv_file_path, has_header=True, interpret_data_schema=True):
         return spark_session.read.csv(csv_file_path, header=has_header, inferSchema=interpret_data_schema)
 
+    # @staticmethod
+    # @accepts(SparkSession, basestring, basestring, basestring, basestring, basestring)
+    # def create_dataframe_from_jdbc_connector(spark_session, jdbc_url, db_schema, table_name, user, password):
+    #     df = None
+    #     try:
+    #         df = spark_session.read.format("jdbc").option(
+    #             "url", "{}/{}".format(jdbc_url, db_schema)).option(
+    #             "dbtable", "{}".format(table_name)).option(
+    #             "user", user).option("password", password).load()
+    #     except Exception as e:
+    #         print("couldn't connect to database")
+    #     return df
+
     @staticmethod
-    @accepts(SparkSession, basestring, basestring, basestring, basestring, basestring)
-    def create_dataframe_from_jdbc_connector(spark_session, jdbc_url, db_schema, table_name, user, password):
+    @accepts(SparkSession, dict)
+    def create_dataframe_from_jdbc_connector(spark_session, dbConnectionParams):
         df = None
+        # change jdbc_url
+        jdbc_url = "jdbc:mysql//{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], dbConnectionParams["schema"])
+        table_name = dbConnectionParams.get("tablename")
+        username = dbConnectionParams.get("username")
+        password = dbConnectionParams.get("password")
         try:
             df = spark_session.read.format("jdbc").option(
-                "url", "{}/{}".format(jdbc_url, db_schema)).option(
+                "url", "{}/{}".format(jdbc_url, dbConnectionParams["schema"])).option(
                 "dbtable", "{}".format(table_name)).option(
-                "user", user).option("password", password).load()
+                "user", username).option("password", password).load()
         except Exception as e:
             print("couldn't connect to database")
         return df
 
-    
-    
+
+
+    # @staticmethod
+    # @accepts(SparkSession, basestring, basestring, basestring, basestring, basestring)
+    # def create_dataframe_from_hana_connector(spark_session, jdbc_url, db_schema, table_name, user, password):
+    #     df = None
+    #     try:
+    #         df = spark_session.read.format("jdbc").option(
+    #             "url", jdbc_url).option("driver", "com.sap.db.jdbc.Driver").option(
+    #             "dbtable", table_name).option("user", user).option("password", password).load()
+    #     except Exception as e:
+    #         print("couldn't connect to hana")
+    #         raise e
+    #     return df
     @staticmethod
-    @accepts(SparkSession, basestring, basestring, basestring, basestring, basestring)
-    def create_dataframe_from_hana_connector(spark_session, jdbc_url, db_schema, table_name, user, password):
+    @accepts(SparkSession, dict)
+    def create_dataframe_from_hana_connector(spark_session, dbConnectionParams):
         df = None
+        jdbc_url = "jdbc:sap://{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], dbConnectionParams["schema"])
+        table_name = dbConnectionParams.get("tablename")
+        username = dbConnectionParams.get("username")
+        password = dbConnectionParams.get("password")
         try:
             df = spark_session.read.format("jdbc").option(
                 "url", jdbc_url).option("driver", "com.sap.db.jdbc.Driver").option(
                 "dbtable", table_name).option("user", user).option("password", password).load()
         except Exception as e:
             print("couldn't connect to hana")
-            raise e 
+            raise e
         return df
-
-    
-    

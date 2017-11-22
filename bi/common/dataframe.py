@@ -56,7 +56,7 @@ class DataFrameHelper:
         self._date_formats = {}
         self.significant_dimensions = {}
         self.chisquare_significant_dimensions = {}
-
+        
     def set_params(self):
         print "Setting the dataframe"
         self.columns = [field.name for field in self._data_frame.schema.fields]

@@ -50,6 +50,7 @@ def main(configJson):
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
+    script_start_time = time.time()
 
     if isinstance(configJson,pyhocon.config_tree.ConfigTree):
         deployEnv = True
@@ -71,7 +72,6 @@ def main(configJson):
 
 
     ######################## Craeting Spark Session ###########################
-    start_time = time.time()
     APP_NAME = 'mAdvisor'
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
@@ -90,64 +90,84 @@ def main(configJson):
     dataframe_context.set_message_url(messageUrl)
     jobName = job_config["job_name"]
     messageURL = dataframe_context.get_message_url()
-    progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
-    CommonUtils.save_progress_message(messageURL,progressMessage)
+    analysistype = dataframe_context.get_analysis_type()
     result_setter = ResultSetter(dataframe_context)
-
+    # scripts_to_run = dataframe_context.get_scripts_to_run()
+    scripts_to_run = dataframe_context.get_analysis_name_list()
+    print "scripts_to_run",scripts_to_run
+    if scripts_to_run==None:
+        scripts_to_run = []
+    appid = dataframe_context.get_app_id()
     if jobType == "story":
-        analysistype = dataframe_context.get_analysis_type()
-        if analysistype == "measure":
-            scriptWeightDict = dataframe_context.get_measure_analysis_weight()
-            completionStatus = 0
-        elif analysistype == "dimension":
+        if analysistype == "dimension":
             scriptWeightDict = dataframe_context.get_dimension_analysis_weight()
-            completionStatus = 0
+        elif analysistype == "measure":
+            scriptWeightDict = dataframe_context.get_measure_analysis_weight()
+    elif jobType == "training":
+        scriptWeightDict = dataframe_context.get_ml_model_training_weight()
+    elif jobType == "prediction":
+        scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
+    elif jobType == "metaData":
+        scriptWeightDict = dataframe_context.get_metadata_script_weight()
+
+    completionStatus = 0
+
+
     ########################## Load the dataframe ##############################
     df = None
-    datasource_type = config.get("DATA_SOURCE").get("datasource_type")
-    if "Hana" == datasource_type:
-        datasource_details = config.get("DATA_SOURCE").get("datasource_details")
-        db_schema = datasource_details.get("schema")
-        table_name = datasource_details.get("tablename")
-        username = datasource_details.get("username")
-        password = datasource_details.get("password")
-        host = datasource_details.get("host")
-        port = datasource_details.get("port")
-        jdbc_url = "jdbc:sap://{}:{}/?currentschema={}".format(host, port, db_schema)
-        df = DataLoader.create_dataframe_from_hana_connector(spark, jdbc_url, db_schema, table_name, username, password)
-
-    if "fileUpload" ==  datasource_type:
+    data_loading_st = time.time()
+    progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
+    CommonUtils.save_progress_message(messageURL,progressMessage)
+    datasource_type = dataframe_context.get_datasource_type()
+    if datasource_type == "Hana":
+        dbConnectionParams = dataframe_context.get_dbconnection_params()
+        df = DataLoader.create_dataframe_from_hana_connector(spark, dbConnectionParams)
+    elif datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
 
-    script_start_time = time.time()
     if df != None:
         # Dropping blank rows
         df = df.dropna(how='all', thresh=None, subset=None)
-        print "FILE LOADED: ", dataframe_context.get_input_file()
-        data_load_time = time.time() - start_time
-    if jobType == "story":
+        data_load_time = time.time() - data_loading_st
+        print "Data Loading Time ",data_load_time," Seconds"
+        print "Retrieving MetaData"
+        if debugMode != True:
+            print "Retrieving MetaData"
+            metaDataObj = CommonUtils.get_metadata(dataframe_context)
+            dataframe_context.set_metadata_object(metaDataObj)
+        else:
+            try:
+                # checking if metadata exist for the dataset
+                # else it will run metadata first
+                # while running in debug mode the dataset_slug should be correct or some random String
+                metaDataObj = CommonUtils.get_metadata(dataframe_context)
+                dataframe_context.set_metadata_object(metaDataObj)
+            except:
+                fs = time.time()
+                print "starting Metadata"
+                dataframe_context.set_metadata_ignore_msg_flag(True)
+                meta_data_class = MetaDataScript(df,spark,dataframe_context)
+                meta_data_object = meta_data_class.run()
+                metaDataObj = CommonUtils.convert_python_object_to_json(meta_data_object)
+                print "metaData Analysis Done in ", time.time() - fs, " seconds."
+                dataframe_context.set_metadata_object(metaDataObj)
+
+
+        if jobType != "metaData":
+            print "Setting Dataframe Helper Class"
+            df_helper = DataFrameHelper(df, dataframe_context)
+            df_helper.set_params()
+            df = df_helper.get_data_frame()
+            measure_columns = df_helper.get_numeric_columns()
+            dimension_columns = df_helper.get_string_columns()
+
         print scriptWeightDict
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
         CommonUtils.save_progress_message(messageURL,progressMessage)
         dataframe_context.update_completion_status(completionStatus)
-    else:
-        progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",1,1)
-        CommonUtils.save_progress_message(messageURL,progressMessage)
 
-
-    ################################### Stock ADVISOR ##########################
-    if jobType == 'stockAdvisor':
-        file_names = dataframe_context.get_stock_symbol_list()
-        start_time = time.time()
-        print start_time
-        print "*"*100
-        stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
-        stockAdvisorData = stockObj.Run()
-        stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
-
-    ############################################################################
+    ############################ MetaData Calculation ##########################
 
     if jobType == "metaData":
         fs = time.time()
@@ -159,22 +179,11 @@ def main(configJson):
         print "metaData Analysis Done in ", time.time() - fs, " seconds."
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         return response
-    elif jobType != "stockAdvisor":
-        analysistype = dataframe_context.get_analysis_type()
-        print "ANALYSIS TYPE : ", analysistype
-        # scripts_to_run = dataframe_context.get_scripts_to_run()
-        scripts_to_run = dataframe_context.get_analysis_name_list()
-        print "scripts_to_run",scripts_to_run
-        if scripts_to_run==None:
-            scripts_to_run = []
-        appid = dataframe_context.get_app_id()
-        df_helper = DataFrameHelper(df, dataframe_context)
-        df_helper.set_params()
-        df = df_helper.get_data_frame()
-        measure_columns = df_helper.get_numeric_columns()
-        dimension_columns = df_helper.get_string_columns()
+    ############################################################################
 
+    ################################ Data Sub Setting ##########################
     if jobType == "subSetting":
+        st = time.time()
         print "starting subsetting"
         subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
         filtered_df = subsetting_class.applyFilter()
@@ -185,9 +194,6 @@ def main(configJson):
         if transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print output_filepath
-            # Write the subsetted file
-            # coalesce is memory consuming on the master node and is a bit slow
-            # filtered_df.coalesce(1).write.csv(output_filepath)
             transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
             print "starting Metadata for the Filtered Dataframe"
             meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
@@ -197,16 +203,19 @@ def main(configJson):
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         else:
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
+        print "SubSetting Analysis Completed in", time.time()-st," Seconds"
         return response
+    ############################################################################
 
+    ################################ Story Creation ############################
     if jobType == "story":
-        #Initializing the result_setter
         messageURL = dataframe_context.get_message_url()
         result_setter = ResultSetter(dataframe_context)
         story_narrative = NarrativesTree()
         story_narrative.set_name("{} Performance Report".format(dataframe_context.get_result_column()))
 
         if analysistype == 'dimension':
+            st = time.time()
             print "STARTING DIMENSION ANALYSIS ..."
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
@@ -224,7 +233,6 @@ def main(configJson):
                     progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
 
-
             if ('Dimension vs. Dimension' in scripts_to_run):
                 try:
                     fs = time.time()
@@ -238,7 +246,6 @@ def main(configJson):
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
-
 
             if ('Trend' in scripts_to_run):
                 try:
@@ -273,7 +280,6 @@ def main(configJson):
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
 
-
             dataframe_context.update_completion_status(max(completionStatus,100))
             ordered_node_name_list = ["Overview","Trend","Association","Prediction"]
             # story_narrative.reorder_nodes(ordered_node_name_list)
@@ -297,9 +303,11 @@ def main(configJson):
                 headNode["listOfNodes"].append(decisionTreeNode)
             print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
+            print "Dimension Analysis Completed in", time.time()-st," Seconds"
             return response
 
         elif analysistype == 'measure':
+            st = time.time()
             print "STARTING MEASURE ANALYSIS ..."
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
@@ -318,7 +326,6 @@ def main(configJson):
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
-
 
             if df_helper.ignorecolumns != None:
                 df_helper.drop_ignore_columns()
@@ -361,7 +368,6 @@ def main(configJson):
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Measure","failedState","error","Regression failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
-
 
             if ('Trend' in scripts_to_run):
                 try:
@@ -427,9 +433,13 @@ def main(configJson):
                 headNode["listOfNodes"].append(decisionTreeNode)
             print json.dumps(headNode)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
+            print "Measure Analysis Completed in :", time.time()-st," Seconds"
             return response
+    ############################################################################
 
+    ################################ Model Training ############################
     elif jobType == 'training':
+        st = time.time()
         prediction_narrative = NarrativesTree()
         prediction_narrative.set_name("models")
         result_setter = ResultSetter(dataframe_context)
@@ -491,7 +501,6 @@ def main(configJson):
         # prediction_narrative.insert_card_at_given_index(card2,1)
         card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
-
         card3 = NormalCard()
         card3Data = [HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h5>")]
         card3Data.append(MLUtils.get_feature_importance(collated_summary))
@@ -499,14 +508,12 @@ def main(configJson):
         # prediction_narrative.insert_card_at_given_index(card3,2)
         card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
 
-
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         modelResult = json.loads(modelResult)
         existing_cards = modelResult["listOfCards"]
         existing_cards = result_setter.get_all_algos_cards()
 
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
-        # print modelResult
         all_cards = [card1,card2,card3] + existing_cards
 
         modelResult = NarrativesTree()
@@ -523,20 +530,22 @@ def main(configJson):
         model_features = {}
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
             if obj != {}:
-                print obj["levelcount"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatures"]
                 model_configs["dimensionLevelCount"] = obj["levelcount"]
         model_configs["modelFeatures"] = model_features
-        print model_configs
+        print "Model Configs",model_configs
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
         modelJsonOutput = modelJsonOutput.get_json_data()
         print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(modelJsonOutput))
+        print "Model Training Completed in ", time.time() - st, " seconds."
         return response
+    ############################################################################
 
+    ############################## Model Prediction ############################
     elif jobType == 'prediction':
         st = time.time()
         story_narrative = NarrativesTree()
@@ -549,16 +558,13 @@ def main(configJson):
             df_helper.remove_null_rows(result_column)
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
-        # model_slug = dataframe_context.get_model_slug()
         model_slug = model_path
         score_slug = dataframe_context.get_score_path()
         print "score_slug",score_slug
-        # score_slug = dataframe_context.get_score_slug()
         basefoldername = "mAdvisorScores"
         score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
 
         algorithm_name_list = ["randomforest","xgboost","logisticregression"]
-        # algorithm_name = "randomforest"
         algorithm_name = dataframe_context.get_algorithm_slug()[0]
         print "algorithm_name",algorithm_name
         model_path = score_file_path.split(basefoldername)[0]+"/mAdvisorModels/"+model_slug+"/"+algorithm_name
@@ -589,7 +595,6 @@ def main(configJson):
             print "Could Not Load the Model for Scoring"
 
         # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
-
         storycards = result_setter.get_score_cards()
         storyNode = NarrativesTree()
         storyNode.add_cards(storycards)
@@ -597,11 +602,21 @@ def main(configJson):
         scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
+        print "Model Scoring Completed in ", time.time() - st, " seconds."
         return response
+    ############################################################################
+
+    ################################### Stock ADVISOR ##########################
+    if jobType == 'stockAdvisor':
+        file_names = dataframe_context.get_stock_symbol_list()
+        stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
+        stockAdvisorData = stockObj.Run()
+        stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
+        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
+
+    ############################################################################
 
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
-    if df != None:
-        print "Data Load Time : ", data_load_time, " seconds."
     #spark.stop()
 
 if __name__ == '__main__':
