@@ -160,11 +160,11 @@ class TimeSeriesNarrative:
                 self._data_frame = self._data_frame.withColumn("year_month", udf(lambda x:x.date().strftime("%b-%y"),StringType())(self._date_column_suggested))
                 self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
                 self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
-            id_max = self._data_frame.select(max("_id_")).first()[0]
             first_date = self._data_frame.select("suggestedDate").first()[0]
             #####  This is a Temporary fix
             try:
                 print "TRY BLOCK STARTED"
+                id_max = self._data_frame.select(max("_id_")).first()[0]
                 last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
             except:
                 print "ENTERING EXCEPT BLOCK"
@@ -188,17 +188,9 @@ class TimeSeriesNarrative:
                 self._dataLevel = "month"
                 self._durationString = str(self._duration)+" months"
             else:
-                self._dataLevel = "month"
                 self._duration = self._data_frame.select("year_month").distinct().count()
-                yr = str(self._dataRange//365)
-                mon = str((self._dataRange%365)//30)
-                if mon == "12":
-                    yr = str(int(yr)+1)
-                    mon = None
-                if mon != None:
-                    self._durationString = yr+" years and "+mon+" months"
-                else:
-                    self._durationString = yr+" years"
+                self._dataLevel = "month"
+                self._durationString = CommonUtils.get_duration_string(self._dataRange)
 
             if self._td_columns != None:
                 if self._selected_date_columns == None:
@@ -275,9 +267,7 @@ class TimeSeriesNarrative:
                                    "card3":{}
                                 }
                 if self._selected_date_columns != None:
-
                     if self._dateFormatDetected:
-
                         if self._dataLevel == "day":
                             grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
                             grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
@@ -293,11 +283,6 @@ class TimeSeriesNarrative:
                             grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
                             grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
                             grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
-
-
-                        # pandasDf = self._data_frame.toPandas()
-                        # pandasDf.drop(self._date_column_suggested,axis=1,inplace=True)
-                        # pandasDf.rename(columns={'year_month': self._date_column_suggested}, inplace=True)
 
                         self._data_frame = self._data_frame.drop(self._date_column_suggested)
                         self._data_frame = self._data_frame.withColumnRenamed("year_month", self._date_column_suggested)

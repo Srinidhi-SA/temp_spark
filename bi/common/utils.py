@@ -321,6 +321,18 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
     print "#####ERROR#####"*5
     print "{} Script Failed".format("scriptName")
 
+def get_duration_string(datarange):
+    yr = str(datarange//365)
+    mon = str((datarange%365)//30)
+    if mon == "12":
+        yr = str(int(yr)+1)
+        mon = None
+    if mon != None:
+        durationString = yr+" years and "+mon+" months"
+    else:
+        durationString = yr+" years"
+    return durationString
+
 def get_story_config():
     storyConfig = {
 
