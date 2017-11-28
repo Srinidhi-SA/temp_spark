@@ -94,8 +94,11 @@ class ContextSetter:
         self.trendSettings = None
         self.metaData = None
         self.metaIgnoreMsgFlag = False
+        self._max_dimension_level_allowed = 200
 
 
+    def get_anova_max_levels(self):
+        return self._max_dimension_level_allowed
     def get_datasource_type(self):
         return self.dataSourceType
     def get_dbconnection_params(self):

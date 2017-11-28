@@ -21,52 +21,171 @@ class DFTwoWayAnovaResult:
     def get_significant_dimensions(self,measure):
         return self.result[measure].get_OneWayAnovaSignificantDimensions()
 
+class OneWayAnovaResult:
+    """
+    Encapsulates results of an Anova test
+    """
+    def __init__(self):
+        self.df_within = 0
+        self.df_between = 0
+        self.ss_between = 0.0
+        self.ss_within = 0.0
+        self.mss_between = 0.0
+        self.mss_within = 0.0
+        self.f_value = 0.0
+        self.p_value = 0.0
+        self.eta_squared = 0.0
+        self.f_critical = 0.0
+        self.n_total = 0
+        self.n_groups = 0
+        self.levelDf = None
+
+
+    @accepts(object, df_within=(int, long, float), df_between=(int, long, float),
+             sum_of_squares_between=(int, long, float),sum_of_squares_within=(int, long, float),
+             mean_sum_of_squares_between=(int, long, float),mean_sum_of_squares_within=(int, long, float),
+             f_value=(int, long, float), p_value=(int, float),eta_squared=(int, long, float),
+             f_critical=(int, long, float),total_number_of_records=(int, long),n_groups=(int, long),levelDf=pd.DataFrame)
+    def set_params(self, df_within, df_between, sum_of_squares_between=0.0, sum_of_squares_within=0.0,
+                   mean_sum_of_squares_between=0.0, mean_sum_of_squares_within=0.0, f_value=0.0, p_value=0.0,
+                   eta_squared=0.0,f_critical=0.0,total_number_of_records=0,n_groups=0,levelDf=None):
+        self.df_within = df_within
+        self.df_between = df_between
+        self.ss_between = sum_of_squares_between
+        self.ss_within = sum_of_squares_within
+        self.mss_between = mean_sum_of_squares_between
+        self.mss_within = mean_sum_of_squares_within
+        self.f_value = f_value
+        self.p_value = p_value
+        self.eta_squared = eta_squared
+        self.f_critical = f_critical
+        self.n_total = total_number_of_records
+        self.n_groups = n_groups
+        self.levelDf = levelDf
+
+    @accepts(object, float)
+    def is_statistically_significant(self, alpha):
+        return self.p_value < alpha
+
+    def get_df_within(self):
+        return self.df_within
+
+    def get_df_between(self):
+        return self.df_between
+
+    def get_sum_of_squares_between(self):
+        return self.ss_between
+
+    def get_sum_of_squares_within(self):
+        return self.ss_within
+
+    def get_mean_sum_of_squares_between(self):
+        return self.mss_between
+
+    def get_mean_sum_of_squares_within(self):
+        return self.mss_within
+
+    def get_f_value(self):
+        return self.f_value
+
+    def get_p_value(self):
+        return self.p_value
+
+    def get_total_number_of_records(self):
+        return self.n_total
+
+    def get_number_of_groups(self):
+        return self.n_groups
+
+    def get_effect_size(self):
+        return self.eta_squared
+
+    def get_level_dataframe(self):
+        return self.levelDf
+
+class TopLevelDfAnovaStats:
+    def __init__(self):
+        self.top_level_stat = None
+        self.top_level_anova = {}
+        self.contributions = {}
+
+    @accepts(object,data=pd.DataFrame)
+    def set_top_level_stat(self,data):
+        self.top_level_stat = data
+
+    def get_top_level_stat(self):
+        return self.top_level_stat
+
+    def get_top_level_name(self):
+        print self.top_level_stat
+        return self.top_level_stat["levels"]
+
+    @accepts(object,dimension=str,anovaResult=OneWayAnovaResult)
+    def set_top_level_anova(self,dimension,anovaResult):
+        self.top_level_anova.update({dimension:anovaResult})
+
+    @accepts(object,dimension=str,contributionDict=dict)
+    def set_dimension_contributions(self,dimension,contributionDict):
+        self.contributions[dimension] = contributionDict
+
+    def get_top_significant_dimensions(self,n=5):
+        output = []
+        for dim,anovaResult in self.top_level_anova.items():
+            print "getting top n"
+            print dim,anovaResult.get_p_value(),type(anovaResult.get_p_value())
+            if anovaResult.get_p_value() < 0.05:
+                output.append((dim,anovaResult,anovaResult.get_effect_size()))
+        sortedOutput = sorted(output,key=lambda x:x[2],reverse=True)
+        return sortedOutput[:n]
+
 class MeasureAnovaResult:
-    def __init__(self, var, sst):
-        self.global_mean = var[1]
-        self.df = var[0] - 1
-        self.sst = float(sst)
-        self.OneWayAnovaResult = {}
+    def __init__(self, measureColMean=None,measureColCount=None, measureColSst=None):
+        self.global_mean = measureColMean
+        self.df = measureColCount - 1
+        self.sst = measureColSst
+        self.oneWayAnovaResultDict = {}
+        self.topLevelDfAnovaResult = {}
         self.TrendResult = None
         #self.TwoWayAnovaResult = {}
 
-    def get_anova_result(self,dimension):
-        return self.OneWayAnovaResult[dimension]
+    def get_one_way_anova_result(self,dimension):
+        return self.oneWayAnovaResultDict[dimension]
 
     def get_dimensions_analyzed(self):
-        return self.OneWayAnovaResult.keys()
+        return self.oneWayAnovaResultDict.keys()
+
+    @accepts(object, dimension=(str), oneWayAnovaResult=OneWayAnovaResult)
+    def set_oneWayAnovaResultDict(self, dimension,oneWayAnovaResult):
+        self.oneWayAnovaResultDict.update({dimension:oneWayAnovaResult})
+
+    @accepts(object, dimension=(str),topLevelAnovaResult=TopLevelDfAnovaStats)
+    def set_topLevelDfAnovaResult(self,dimension,topLevelAnovaResult):
+        self.topLevelDfAnovaResult[dimension]=topLevelAnovaResult
+
+    def get_topLevelDfAnovaResult(self,dimension):
+        return self.topLevelDfAnovaResult[dimension]
+
+    def get_OneWayAnovaEffectSize(self, dimension):
+        return self.oneWayAnovaResultDict[dimension].get_effect_size()
+
+
+    def get_OneWayAnovaSignificantDimensions(self):
+        significant_dimensions = {}
+        insignificant_dimensions = []
+        for dimension in self.oneWayAnovaResultDict:
+            p_value = self.oneWayAnovaResultDict[dimension].get_p_value()
+            effect_size = self.oneWayAnovaResultDict[dimension].get_effect_size()
+            if p_value<=0.05:
+                significant_dimensions[dimension] = effect_size
+            else:
+                insignificant_dimensions.append(dimension)
+        return significant_dimensions,insignificant_dimensions
 
     def set_TrendResult(self, trend_result):
         self.TrendResult = trend_result
 
     def get_TrendResult(self):
         return self.TrendResult
-
-    def set_OneWayAnovaResult(self, dimension, var, sse):
-        self.OneWayAnovaResult[dimension] = OneWayAnovaResult(var, self.global_mean, sse, self.sst)
-        self.OneWayAnovaResult[dimension].set_results()
-
-    def get_OneWayAnovaEffectSize(self, dimension):
-        return self.OneWayAnovaResult[dimension].get_effect_size()
-
-    def get_OneWayAnovaSignificantDimensions(self):
-        significant_dimensions = {}
-        insignificant_dimensions = []
-        for dimension in self.OneWayAnovaResult:
-            p,e = self.OneWayAnovaResult[dimension].get_p_and_effect_size()
-            if p<=0.05:
-                significant_dimensions[dimension] = e
-            else:
-                insignificant_dimensions.append(dimension)
-        return significant_dimensions,insignificant_dimensions
-
-
-    def set_OneWayAnova_Contributions(self,top_dimension_result):
-        for dimension in top_dimension_result.keys():
-            self.OneWayAnovaResult[dimension].set_contribution(top_dimension_result[dimension])
-
-    def get_OneWayAnovaResult(self, dimension):
-        return self.OneWayAnovaResult[dimension]
 
     def set_TwoWayAnovaResult(self, dimension1,dimension2, var, sse):
         if not self.TwoWayAnovaResult.has_key(dimension1):
@@ -81,6 +200,8 @@ class MeasureAnovaResult:
         if self.TwoWayAnovaResult.has_key(dimension2):
             if self.TwoWayAnovaResult[dimension2].has_key(dimension1):
                 return self.TwoWayAnovaResult[dimension2][dimension1]
+
+
 
 class TwoWayAnovaResult:
     def __init__(self, var, global_mean, sse, sst):
@@ -202,71 +323,6 @@ class TopDimensionStats:
         else:
             significant_dimensions = sorted(significant_dimensions, key = lambda x: -self.effect_size[x])
             return significant_dimensions
-
-class OneWayAnovaResult:
-    def __init__(self, var, global_mean, sse, sst):
-        self._global_mean = global_mean
-        var['dev'] = var.counts * (var.means - self._global_mean)**2
-        self.df_total = var.counts.sum() - 1
-        self.df_between = len(var.index) - 1
-        self.df_within = self.df_total - self.df_between
-        self.ss_between = float(var.dev.sum())
-        self.ss_within = float(sse)
-        self.ss_total = float(sst)
-        self.set_dim_table(var)
-
-    def set_dim_table(self, var):
-        self.dim_table = {}
-        self.dim_table['levels']=var.levels.tolist()
-        self.dim_table['counts']=var.counts.tolist()
-        self.dim_table['means']=var.means.tolist()
-        self.dim_table['total']=var.total.tolist()
-
-    def set_results(self):
-        #self.ss_total = var2 - var1
-        #self.ss_between = self._n_mean2 - var1
-        #self.ss_within = var2 - self._n_mean2
-        if self.ss_within > 0:
-            self.effect_size = self.ss_between/self.ss_total
-        else:
-            self.effect_size = 0
-        self.ms_between = self.ss_between/self.df_between
-        self.ms_within = self.ss_within/self.df_within
-        self.f_stat = self.ms_between/self.ms_within
-        self.p_value = 1 - stats.f.cdf(self.f_stat, self.df_between, self.df_within)
-
-    def set_contribution(self, top_dimension_contribution):
-        self.contributions = top_dimension_contribution
-
-    def get_df_total(self):
-        return self.df_total
-
-    def get_mean_sum_of_squares_error(self):
-        return self.ms_within
-
-    def get_dim_table(self):
-        return self.dim_table
-
-    def get_ss_total(self):
-        return self.ss_total
-
-    def get_ss_between(self):
-        return self.ss_between
-
-    def get_df_between(self):
-        return self.df_between
-
-    def get_df_total(self):
-        return self.df_total
-
-    def get_effect_size(self):
-        return self.effect_size
-
-    def is_statistically_significant(self,alpha=0.05):
-        return self.p_value <= alpha
-
-    def get_p_and_effect_size(self):
-        return self.p_value, self.effect_size
 
 class TrendResult:
     def __init__(self, agg_data_frame, date_field, measure):

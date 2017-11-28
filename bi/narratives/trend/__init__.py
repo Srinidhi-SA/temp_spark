@@ -297,6 +297,7 @@ class TimeSeriesNarrative:
                             significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
                         print "significant_dimensions",significant_dimensions
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
+                        grouped_data.to_csv("/home/gulshan/marlabs/datasets/trend_grouped_pandas.csv",index=False)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         # # update reference time with max value
                         reference_time = dataDict["reference_time"]
@@ -312,9 +313,9 @@ class TimeSeriesNarrative:
                         self._result_setter.update_executive_summary_data(dataDict)
                         dataDict.update({"blockSplitter":self._blockSplitter})
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'trend_narrative_card1.html',dataDict)
+                                                                        'measure_trend_card1.html',dataDict)
                         summary2 = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'trend_narrative_card2.html',dataDict)
+                                                                        'measure_trend_card2.html',dataDict)
                         measureTrendCard = NormalCard()
                         measureTrendcard1Data = NarrativesUtils.block_splitter(summary1,self._blockSplitter)
                         measureTrendcard2Data = NarrativesUtils.block_splitter(summary2,self._blockSplitter)

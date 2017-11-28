@@ -66,7 +66,7 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/common/utils.py
-            jobType = "story"
+            jobType = "metaData"
             testConfigs = CommonUtils.get_test_configs()
             configJson = testConfigs[jobType]
 
@@ -334,18 +334,18 @@ def main(configJson):
             df = df_helper.get_data_frame()
             #df = df.na.drop(subset=dataframe_context.get_result_column())
             if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
-                try:
-                    fs = time.time()
-                    dataframe_context.set_analysis_name("Measure vs. Dimension")
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
-                    two_way_obj.Run()
-                    print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Dimension",e)
-                    completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
-                    dataframe_context.update_completion_status(completionStatus)
-                    progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                # try:
+                fs = time.time()
+                dataframe_context.set_analysis_name("Measure vs. Dimension")
+                two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                two_way_obj.Run()
+                print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Dimension",e)
+                #     completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
+                #     dataframe_context.update_completion_status(completionStatus)
+                #     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova failed",completionStatus,completionStatus)
+                #     CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 try:

@@ -86,7 +86,7 @@ class AnovaNarratives:
         self._anovaNodes = NarrativesTree()
         self._anovaNodes.set_name("Performance")
         for measure_column in self._df_anova_result.get_measure_columns():
-            measure_anova_result = self._df_anova_result.result[measure_column]
+            measure_anova_result = self._df_anova_result.get_measure_result(measure_column)
             significant_dimensions_dict, insignificant_dimensions = measure_anova_result.get_OneWayAnovaSignificantDimensions()
             significant_dimensions = [k for k,v in sorted(significant_dimensions_dict.items(), key=lambda x: -x[1])]
             num_significant_dimensions = len(significant_dimensions)
@@ -143,7 +143,6 @@ class AnovaNarratives:
         self.narratives['variables'] = significant_dimensions
         for dimension in significant_dimensions:
             dimensionNode = NarrativesTree(name = dimension)
-            anova_dimension_result = measure_anova_result.get_anova_result(dimension)
-            narratives = OneWayAnovaNarratives(measure, dimension, anova_dimension_result, anova_trend_result,self._result_setter,dimensionNode)
+            narratives = OneWayAnovaNarratives(measure, dimension, measure_anova_result, anova_trend_result,self._result_setter,dimensionNode)
             self._anovaNodes.add_a_node(dimensionNode)
             self.narratives['cards'].append(narratives)

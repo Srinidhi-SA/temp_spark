@@ -62,7 +62,7 @@ class TrendNarrative:
         else:
             dataDict["bubbleData"][0]["text"] = "Overall decline in %s over the last %s"%(self._measure_column ,dataDict["durationString"])
 
-        max_growth_index = np.argmax(df["perChange"])
+        max_growth_index = df["perChange"].argmax()
         dataDict["bubbleData"][1]["value"] = str(abs(round(list(df["perChange"])[max_growth_index],self._num_significant_digits)))+"%"
         if list(df["perChange"])[max_growth_index] >= 0:
             if dataDict["dataLevel"] == "day":
@@ -81,8 +81,8 @@ class TrendNarrative:
         dataDict["average_value"] = round(df["value"].mean(),self._num_significant_digits)
         dataDict["total"] = round(df["value"].sum(),self._num_significant_digits)
 
-        peak_index = np.argmax(df["value"])
-        low_index = np.argmin(df["value"])
+        peak_index = df["value"].argmax()
+        low_index = df["value"].argmin()
         dataDict["peakValue"] = df["value"][peak_index]
         dataDict["lowestValue"] = df["value"][low_index]
         if dataDict["dataLevel"] == "day":
@@ -123,27 +123,28 @@ class TrendNarrative:
             elif dataDict["dataLevel"] == "month":
                 dataDict["lowStreakBeginMonth"] = df["year_month"][l]
             dataDict["lowStreakBeginValue"] = df["value"][l]
-        table_data = {"increase":[],"decrease":[]}
-        percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "percentage")
-        ###############################
-        #####      TEMP FIX      ######
-        # dataDict["bubbleData"][1]["value"] = str(percent_stats['increased_by'])
-        # dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,percent_stats['period'])
-        ###############################
-        abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "absolute")
-        streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"positive",dataDict["dataLevel"])
-        table_data["increase"].append(percent_stats)
-        table_data["increase"].append(abs_stats)
-        table_data["increase"].append(streak)
 
-        percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "negative", stat_type = "percentage")
-        abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "negative", stat_type = "absolute")
-        streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"negative",dataDict["dataLevel"])
-        table_data["decrease"].append(percent_stats)
-        table_data["decrease"].append(abs_stats)
-        table_data["decrease"].append(streak)
-
-        dataDict["table_data"] = table_data
+        # table_data = {"increase":[],"decrease":[]}
+        # percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "percentage")
+        # ###############################
+        # #####      TEMP FIX      ######
+        # # dataDict["bubbleData"][1]["value"] = str(percent_stats['increased_by'])
+        # # dataDict["bubbleData"][1]["text"] = "Largest growth in %s happened in %s"%(self._measure_column ,percent_stats['period'])
+        # ###############################
+        # abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "positive", stat_type = "absolute")
+        # streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"positive",dataDict["dataLevel"])
+        # table_data["increase"].append(percent_stats)
+        # table_data["increase"].append(abs_stats)
+        # table_data["increase"].append(streak)
+        #
+        # percent_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "negative", stat_type = "percentage")
+        # abs_stats = NarrativesUtils.get_max_min_stats(df,dataDict["dataLevel"],trend = "negative", stat_type = "absolute")
+        # streak = NarrativesUtils.get_streak_data(df,trendString,maxRuns,"negative",dataDict["dataLevel"])
+        # table_data["decrease"].append(percent_stats)
+        # table_data["decrease"].append(abs_stats)
+        # table_data["decrease"].append(streak)
+        #
+        # dataDict["table_data"] = table_data
         return dataDict
 
     def get_xtra_calculations(self,sparkdf,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
@@ -152,8 +153,11 @@ class TrendNarrative:
             grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         grouped_data = grouped_data.sort_values(by = "key",ascending=True)
         grouped_data.reset_index(drop=True,inplace=True)
-        print "level_cont started"
+        print "level contribution started"
         st = time.time()
+        print significant_columns
+        print sparkdf.show(3)
+        print index_col,datetime_pattern,value_col,reference_time
         level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,datetime_pattern,value_col,reference_time)
         print "level_cont finished in ",time.time()-st
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)

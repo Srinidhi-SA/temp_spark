@@ -51,14 +51,15 @@ class OneWayAnovaNarratives:
     ALPHA = 0.05
 
     #@accepts(object, (str, basestring), (str, basestring), OneWayAnovaResult)
-    def __init__(self, measure_column, dimension_column, anova_result, trend_result, result_setter, dimensionNode):
+    def __init__(self, measure_column, dimension_column, measure_anova_result, trend_result, result_setter, dimensionNode):
         self._dimensionNode = dimensionNode
         self._result_setter = result_setter
         self._measure_column = measure_column
         self._measure_column_capitalized = '%s%s' % (measure_column[0].upper(), measure_column[1:])
         self._dimension_column = dimension_column
         self._dimension_column_capitalized = '%s%s' % (dimension_column[0].upper(), dimension_column[1:])
-        self._one_way_anova_result = anova_result
+        self._measure_anova_result = measure_anova_result
+        self._dimension_anova_result = self._measure_anova_result.get_one_way_anova_result(self._dimension_column)
         self._trend_result = trend_result
         self._blockSplitter = "|~NEWBLOCK~|"
         # self.effect_size = anova_result.get_effect_size()
@@ -120,11 +121,12 @@ class OneWayAnovaNarratives:
         lines = []
         lines += NarrativesUtils.block_splitter('<h3>'+self._measure_column_capitalized+': Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized+'</h3>',self._blockSplitter)
         self.card1 = Card('Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized)
-        dim_table = self._one_way_anova_result.get_dim_table()
+        dim_table = self._dimension_anova_result.get_level_dataframe()
+        print dim_table
         keys = dim_table['levels']
         totals = dim_table['total']
-        means = dim_table['means']
-        counts = dim_table['counts']
+        means = dim_table['average']
+        counts = dim_table['count']
 
         if len(keys)>=5:
             self._card3_required=True
@@ -144,15 +146,16 @@ class OneWayAnovaNarratives:
         self.card1.add_chart('group_by_mean',chart2)
         lines += [C3ChartData(self._get_c3chart_card1_chart1(group_by_total,group_by_mean))]
 
-        top_group_by_total = keys[totals.index(max(totals))]
+        # top_group_by_total = keys[totals.index(max(totals))]
+        top_group_by_total = keys[totals.argmax()]
         sum_top_group_by_total = max(totals)
-        avg_top_group_by_total = means[totals.index(max(totals))]
+        avg_top_group_by_total = means[totals.argmax()]
         bubble1 = BubbleData(NarrativesUtils.round_number(sum_top_group_by_total,1),
                             top_group_by_total + ' is the largest contributor to ' + self._measure_column)
         # self.card1.add_bubble_data(bubble1)
 
-        top_group_by_mean = keys[means.index(max(means))]
-        sum_top_group_by_mean = totals[means.index(max(means))]
+        top_group_by_mean = keys[means.argmax()]
+        sum_top_group_by_mean = totals[means.argmax()]
         avg_top_group_by_mean = max(means)
         bubble2 = BubbleData(NarrativesUtils.round_number(avg_top_group_by_mean,1),
                             top_group_by_mean + ' has the highest average ' + self._measure_column)
@@ -238,30 +241,42 @@ class OneWayAnovaNarratives:
         self.generate_top_dimension_narratives()
 
     def generate_top_dimension_narratives(self):
-        top_dimension_stats = self._one_way_anova_result.contributions
-        top_dimension = top_dimension_stats.top_dimension
-        self._top_dimension = top_dimension
-        significant_dimensions = top_dimension_stats.get_top_3_significant_dimensions()
-        top1_contributors, top1_contribution = self.get_contributions_for_dimension(significant_dimensions, 0,top_dimension_stats)
-        top2_contributors, top2_contribution = self.get_contributions_for_dimension(significant_dimensions, 1, top_dimension_stats)
-        top3_contributors, top3_contribution = self.get_contributions_for_dimension(significant_dimensions, 2, top_dimension_stats)
+        topLevelAnova = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column)
+        print topLevelAnova
+        top_level = topLevelAnova.get_top_level_name()
+        print top_level
+        # tuple of (dimension name,anovaResult,effect_size)
+        top_level_sig_dimensions = topLevelAnova.get_top_significant_dimensions(3)
+        significant_dimensions = [x[0] for x in top_level_sig_dimensions]
+        print significant_dimensions
+        contributorDict = {}
+        for idx,obj in enumerate(top_level_sig_dimensions):
+            leveldf = obj[1].get_level_dataframe()
+            levelContribution = self.compute_level_contributions(leveldf)
+            contributorDict[obj[0]] = {"contribution":levelContribution}
+            totalCont = round(np.sum([c[1] for c in levelContribution]),2)
+            contributorDict[obj[0]].update({"total":totalCont})
+        print contributorDict
+
+        print "data dict started"
         data_dict = {
                     'significant_dimensions' : significant_dimensions,
                     'num_significant_dimensions' : len(significant_dimensions),
-                    'top1_contributors' : top1_contributors,
-                    'top1_contribution' : NarrativesUtils.round_number(top1_contribution,2),
-                    'num_top1_contributors' : len(top1_contributors),
-                    'top2_contributors' : top2_contributors,
-                    'top2_contribution' : NarrativesUtils.round_number(top2_contribution,2),
-                    'num_top2_contributors' : len(top2_contributors),
-                    'top3_contributors' : top3_contributors,
-                    'top3_contribution' : NarrativesUtils.round_number(top3_contribution,2),
-                    'num_top3_contributors' : len(top3_contributors),
+                    'contributorDict' : contributorDict,
+                    # 'top1_contributors' : top1_contributors,
+                    # 'top1_contribution' : NarrativesUtils.round_number(top1_contribution,2),
+                    # 'num_top1_contributors' : len(top1_contributors),
+                    # 'top2_contributors' : top2_contributors,
+                    # 'top2_contribution' : NarrativesUtils.round_number(top2_contribution,2),
+                    # 'num_top2_contributors' : len(top2_contributors),
+                    # 'top3_contributors' : top3_contributors,
+                    # 'top3_contribution' : NarrativesUtils.round_number(top3_contribution,2),
+                    # 'num_top3_contributors' : len(top3_contributors),
                     'target' : self._measure_column,
                     'dimension' : self._dimension_column,
-                    'top_dimension' : top_dimension
+                    'top_level' : top_level
         }
-        output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_dimension,
+        output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
         lines = []
@@ -286,8 +301,16 @@ class OneWayAnovaNarratives:
             return contributions, total_contribution
         return '',0.0
 
+    def compute_level_contributions(self,df):
+        df = df.sort_values(by=['total'], ascending = False)
+        df.reset_index(drop=True,inplace=True)
+        df['percent'] = df['total']/float(df["total"].sum())
+        # calculating the point where maximum difference is occuring
+        max_diff_index = df.total.diff(1).argmax()
+        df = df.iloc[:max_diff_index+1]
+        return sorted(zip(df['levels'], df['percent']),key=lambda x:x[1],reverse=True)
+
     def _generate_card2(self):
-        # self.card2 = Card(self._top_dimension + "'s " + self._measure_column_capitalized + " Performance over Time")
         subset_data_frame = self._trend_result.get_subset_data(self._dimension_column)
         agg_data_frame = self._trend_result.get_data_frame()
         total_measure = 'Total '+ self._measure_column_capitalized

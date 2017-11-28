@@ -308,9 +308,9 @@ def get_max_min_stats(df,dataLevel,trend = "positive", stat_type = "percentage")
     elif stat_type == "absolute":
         col = "value"
     if trend == "positive":
-        index = np.argmax(list(df[col]))
+        index = df[col].argmax()
     elif trend == "negative":
-        index = np.argmin(list(df[col]))
+        index = df[col].argmin()
     if dataLevel == "day":
         period = str(df["key"][index])
     else:
@@ -443,13 +443,14 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
                     "growth":None
                     }
         column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
-        print len(column_levels)
+        print "column_levels",len(column_levels)
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
         st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
         print "time for pivot",time.time()-st
         pivotdf = pivotdf.na.fill(0)
         pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
+        print pivotdf.show(2)
         print "ncols ",len(pivotdf.columns)
         print "nrows ",pivotdf.count()
         print "pivot Df Created"
