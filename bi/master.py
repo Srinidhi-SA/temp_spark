@@ -85,6 +85,8 @@ def main(configJson):
     dataframe_context.set_params()
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
+    else:
+        dataframe_context.set_environment("deployEnv")
     jobType = job_config["job_type"]
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_message_url(messageUrl)
@@ -132,9 +134,10 @@ def main(configJson):
         print "Data Loading Time ",data_load_time," Seconds"
         print "Retrieving MetaData"
         if debugMode != True:
-            print "Retrieving MetaData"
-            metaDataObj = CommonUtils.get_metadata(dataframe_context)
-            dataframe_context.set_metadata_object(metaDataObj)
+            if jobType != "metaData":
+                print "Retrieving MetaData"
+                metaDataObj = CommonUtils.get_metadata(dataframe_context)
+                dataframe_context.set_metadata_object(metaDataObj)
         else:
             try:
                 # checking if metadata exist for the dataset
