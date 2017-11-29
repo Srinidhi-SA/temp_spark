@@ -261,11 +261,8 @@ class TwoWayAnova:
         argmax = level_aggregate_pandasdf["total"].idxmax()
         print "argmax",argmax
         for index, row in level_aggregate_pandasdf.iterrows():
-            print index,row[dimension]
             filtered_df = df.filter(col(dimension)==row[dimension])
             group_sse = filtered_df.select(sum(pow(col(measure)-row["average"],2))).collect()[0][0]
-            print group_sse
-            print "group_sse", row["average"],group_sse
             sse = sse+group_sse
             if i==argmax:
                 sst = group_sse[0][0]

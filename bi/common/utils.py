@@ -46,7 +46,6 @@ def generate_signature(json_obj,secretKey=None):
 def get_metadata(dataframe_context):
     baseUrl = dataframe_context.get_metadata_url()
     slugs = dataframe_context.get_metadata_slugs()
-    print baseUrl,print slugs
     jsonToken = {"key1":uuid.uuid4().hex,"key2":uuid.uuid4().hex,"signature":None,"generated_at":time.time()}
     secretKey = get_secret_key()
     sigString = generate_signature(jsonToken,secretKey)

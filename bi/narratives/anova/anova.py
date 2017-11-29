@@ -253,15 +253,15 @@ class OneWayAnovaNarratives:
         for idx,obj in enumerate(top_level_sig_dimensions):
             leveldf = obj[1].get_level_dataframe()
             levelContribution = self.compute_level_contributions(leveldf)
-            contributorDict[obj[0]] = {"contribution":levelContribution}
-            totalCont = round(np.sum([c[1] for c in levelContribution]),2)
+            contributorDict[obj[0]] = {"level":levelContribution}
+            totalCont = round(np.sum([c[1] for c in levelContribution[:3]]),2)
             contributorDict[obj[0]].update({"total":totalCont})
         print contributorDict
 
         print "data dict started"
         data_dict = {
-                    'significant_dimensions' : significant_dimensions,
-                    'num_significant_dimensions' : len(significant_dimensions),
+                    'sig_dims' : significant_dimensions,
+                    'num_sig_dims' : len(significant_dimensions),
                     'contributorDict' : contributorDict,
                     # 'top1_contributors' : top1_contributors,
                     # 'top1_contribution' : NarrativesUtils.round_number(top1_contribution,2),
@@ -279,6 +279,7 @@ class OneWayAnovaNarratives:
         output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
+        print output['content']
         lines = []
         lines += NarrativesUtils.block_splitter('<h4>'+output['header']+'</h4>',self._blockSplitter)
         for cnt in output['content']:

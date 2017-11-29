@@ -1,48 +1,54 @@
 <p class = "txt-justify">
-{% if num_significant_dimensions==1 %}
-  High contribution of {{target}} from {{dimension}} is characterized by the influence of {{significant_dimensions[0]}}.
+{% if num_sig_dims==1 %}
+  High contribution of {{target}} from {{dimension}} is characterized by the influence of {{sig_dims[0]}}.
 
-  {% if contributorDict[significant_dimensions[0]]|length ==1 %}
-    For instance,{{contributorDict[significant_dimensions[0]]["contribution"][0][0]}}, the <b>top performing {{significant_dimensions[0]}} account
-    for {{contributorDict[significant_dimensions[0]]["contribution"][0][1]}}%</b> of the overall {{target}} from {{top_level}}.
-  {% elif num_top1_contributors==2 %}
-    For instance, {{contributorDict[significant_dimensions[0]]["contribution"][0][0]}}({{contributorDict[significant_dimensions[0]]["contribution"][0][1]}}%) along with
-    {{contributorDict[significant_dimensions[0]]["contribution"][1][0]}}({{contributorDict[significant_dimensions[0]][1][1]}}%),
-    the <b>top performing {{significant_dimensions[0]}}
-    account for {{contributorDict[significant_dimensions[0]][1][1]+contributorDict[significant_dimensions[0]][0][1]}}%</b> of the overall {{target}} from {{top_level}}.
-  {% elif num_top1_contributors>2 %}
-    For instance, the top {{contributorDict[significant_dimensions[0]]|length}} <b>{{significant_dimensions[0]}} account for
-    {{top1_contribution}}%</b> of the overall {{target}} from {{top_level}}.
+  {% if contributorDict[sig_dims[0]]["level"]|length ==1 %}
+    For instance,{{contributorDict[sig_dims[0]]["level"][0][0]}}, the <b>top performing {{sig_dims[0]}} account
+    for {{contributorDict[sig_dims[0]]["level"][0][1]}}%</b> of the overall {{target}} from {{top_level}}.
+  {% elif contributorDict[sig_dims[0]]["level"]|length==2 %}
+    For instance, {{contributorDict[sig_dims[0]]["level"][0][0]}}({{contributorDict[sig_dims[0]]["level"][0][1]}}%) along with
+    {{contributorDict[sig_dims[0]]["level"][1][0]}}({{contributorDict[sig_dims[0]]["level"][1][1]}}%),
+    the <b>top performing {{sig_dims[0]}}
+    account for {{contributorDict[sig_dims[0]]["total"]}}%</b> of the overall {{target}} from {{top_level}}.
+  {% elif contributorDict[sig_dims[0]]["level"]|length>2 %}
+    For instance, the top {{contributorDict[sig_dims[0]]["level"]|length}} <b>{{sig_dims[0]}} account for
+    {{contributorDict[sig_dims[0]]["total"]}}%</b> of the overall {{target}} from {{top_level}}.
   {%endif%}
 
-{% elif num_significant_dimensions==2 %}
-  High contribution of {{target}} from {{dimension}} is characterized by the influence of key dimensions - {{significant_dimensions[0]}} and {{significant_dimensions[1]}}.
-{% elif num_significant_dimensions >2 %}
-  High contribution of {{target}} from {{dimension}} is characterized by the influence of key dimensions, such as {{significant_dimensions[0]}}, {{significant_dimensions[1]}}, and {{significant_dimensions[2]}}.
+{% elif num_sig_dims==2 %}
+  High contribution of {{target}} from {{dimension}} is characterized by the influence of key dimensions - {{sig_dims[0]}} and {{sig_dims[1]}}.
+
+  {% if contributorDict[sig_dims[1]]["level"]|length==1 %}
+    In terms of {{sig_dims[1]}}, {{contributorDict[sig_dims[1]]["level"][0][0]}} account
+    for {{contributorDict[sig_dims[1]]["level"][0][1]}}% of the total {{target}} from {{top_level}}.
+  {% elif contributorDict[sig_dims[1]]["level"]==2 %}
+    In terms of {{sig_dims[1]}}, {{contributorDict[sig_dims[1]]["level"][0][0]}}({{contributorDict[sig_dims[1]]["level"][0][1]}}%)
+    and {{contributorDict[sig_dims[1]]["level"][1][0]}}({{contributorDict[sig_dims[1]]["level"][1][1]}}%) account for {{contributorDict[sig_dims[0]]["total"]}}%
+    of the total {{target}} from {{top_level}}.
+  {% elif contributorDict[sig_dims[1]]["level"]>2 %}
+    In terms of {{sig_dims[1]}}, top {{contributorDict[sig_dims[1]]["level"]|length}} account for
+    {{contributorDict[sig_dims[1]]["total"]}}% of the total {{target}} from {{top_level}}.
+  {%endif%}
+
+{% elif num_sig_dims >2 %}
+  High contribution of {{target}} from {{dimension}} is characterized by the influence of key dimensions, such as {{sig_dims[0]}}, {{sig_dims[1]}}, and {{sig_dims[2]}}.
+
+  {% if contributorDict[sig_dims[2]]["level"]|length==1 %}
+    Among the {{sig_dims[2]}}, {{contributorDict[sig_dims[2]]["level"][0][0]}} has got the major chunk
+    of {{target}} from {{top_level}}, accounting for {{contributorDict[sig_dims[2]]["level"][0][1]}}%.
+  {% elif contributorDict[sig_dims[2]]["level"]|length==2 %}
+    Among the {{sig_dims[2]}}, {{contributorDict[sig_dims[2]]["level"][0][0]}} and {{contributorDict[sig_dims[2]]["level"][1][1]}}
+    has got the major chunk of {{target}} from {{top_level}}, accounting for {{contributorDict[sig_dims[2]]["total"]}}%.
+  {% elif contributorDict[sig_dims[2]]["level"]|length > 2 %}
+    Also, the top {{contributorDict[sig_dims[0]]["level"]|length}} {{sig_dims[2]}} contribute to
+    {{contributorDict[sig_dims[0]]["total"]}}% of {{target}} from {{top_level}}.
+  {% endif %}
+
 {% endif %}
 
 
 
-{% if num_top2_contributors==1 %}
-  In terms of {{significant_dimensions[1]}}, {{top2_contributors[0][1]}} account
-  for {{top2_contributors[0][0]}}% of the total {{target}} from {{top_level}}.
-{% elif num_top2_contributors==2 %}
-  In terms of {{significant_dimensions[1]}}, {{top2_contributors[0][1]}}({{top2_contributors[0][0]}}%)
-  and {{top2_contributors[1][1]}}({{top2_contributors[1][0]}}%) account for {{top2_contribution}}%
-  of the total {{target}} from {{top_level}}.
-{% elif num_top2_contributors>2 %}
-  In terms of {{significant_dimensions[1]}}, top {{num_top2_contributors}} account for
-  {{top2_contribution}}% of the total {{target}} from {{top_level}}.
-{%endif%}
 
-{% if num_top3_contributors==1 %}
-  Among the {{significant_dimensions[2]}}, {{top3_contributors[0][1]}} has got the major chunk
-  of {{target}} from {{top_level}}, accounting for {{top3_contribution}}%.
-{% elif num_top3_contributors==2 %}
-  Among the {{significant_dimensions[2]}}, {{top3_contributors[0][1]}} and {{top3_contributors[1][1]}}
-  has got the major chunk of {{target}} from {{top_level}}, accounting for {{top3_contribution}}%.
-{% elif num_top3_contributors > 2 %}
-  Also, the top {{num_top3_contributors}} {{significant_dimensions[2]}} contribute to
-  {{top3_contribution}}% of {{target}} from {{top_level}}.
-{% endif %}
+
+
 </p>

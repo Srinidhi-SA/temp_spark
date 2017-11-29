@@ -145,7 +145,7 @@ class MeasureAnovaResult:
         self.sst = measureColSst
         self.oneWayAnovaResultDict = {}
         self.topLevelDfAnovaResult = {}
-        self.TrendResult = None
+        self.TrendResult = ""
         #self.TwoWayAnovaResult = {}
 
     def get_one_way_anova_result(self,dimension):
