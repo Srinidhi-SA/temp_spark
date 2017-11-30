@@ -28,7 +28,7 @@
 </p>
 
 {{blockSplitter}}
-{% if significant_dimensions|length >0 %}
+<!-- {% if significant_dimensions|length >0 %}
   {% if HighestSigDimension %}
     <h4>Significant factors that drive increase in {{measure}}</h4>
     {{blockSplitter}}
@@ -46,32 +46,88 @@
         </li>
       </ul>
   {% endif %}
+{% endif %} -->
 
-  {{blockSplitter}}
-
-  {% if negativeHighestSigDimension %}
-    <h4>Significant factors that drag {{measure}} down</h4>
-    {{blockSplitter}}
-      <ul>
-        <li>
-          {{negativeHighestSigDimension}} has been an area of concern,
-          {% if negativeHighestSigDimensionL1 != None and negativeHighestSigDimensionL2 != None %}
-            as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
-             shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
-          {% elif negativeHighestSigDimensionL1 != None %}
-            as {{negativeHighestSigDimensionL1[0]}} shrunk over {{negativeHighestSigDimensionL1[1]}}%.
-          {% elif negativeHighestSigDimensionL2 != None %}
-            as {{negativeHighestSigDimensionL2[0]}} shrunk over {{negativeHighestSigDimensionL2[1]}}%.
-          {% endif %}
-        </li>
-        {% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
+  {% if significant_dimensions|length >0 %}
+    {% if posGrowthArray|length > 0 %}
+      <h4>Significant factors that drive increase in {{measure}}</h4>
+      {{blockSplitter}}
+      <p class="txt-justify">
+        <ul>
           <li>
-            {{negativeSecondHighestSigDimension}} has been an area of concern,
-            as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
-             shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
+            {% if posGrowthArray|length > 1%}
+              {# when top 2 are from same dimension#}
+              {% if posGrowthArray[0][0][0] == posGrowthArray[1][0][0]%}
+                {{posGrowthArray[0][0][0]}} has been very instrumental in driving {{measure}} growth,
+                 as {{posGrowthArray[0][0][1]}} and {{posGrowthArray[1][0][1]}} witnessed the highest
+                 overall growth rates of {{posGrowthArray[0][1]["growth"]}}% and {{posGrowthArray[1][1]["growth"]}}% respectively.
+              {% else %}
+                {# when top 2 are from different dimension#}
+                {{posGrowthArray[0][0][0]}} and {{posGrowthArray[1][0][0]}} have been very instrumental in driving {{measure}} growth,
+                as their respective levels {{posGrowthArray[0][0][1]}} and {{posGrowthArray[1][0][1]}} witnessed the highest
+                overall growth rates of {{posGrowthArray[0][1]["growth"]}}% and {{posGrowthArray[1][1]["growth"]}}% respectively.
+              {% endif %}
+            {% else %}
+              {{posGrowthArray[0][0][0]}} has been very instrumental in driving {{measure}} growth,
+              as {{posGrowthArray[0][0][1]}} witnessed the highest overall growth rates of {{posGrowthArray[0][1]["growth"]}}% .
+            {% endif %}
           </li>
-        {% endif %}
-      </ul>
+        </ul>
+      </p>
+    {% endif %}
+
+    {{blockSplitter}}
+
+    <!-- {% if negativeHighestSigDimension %}
+      <h4>Significant factors that drag {{measure}} down</h4>
+      {{blockSplitter}}
+        <ul>
+          <li>
+            {{negativeHighestSigDimension}} has been an area of concern,
+            {% if negativeHighestSigDimensionL1 != None and negativeHighestSigDimensionL2 != None %}
+              as {{negativeHighestSigDimensionL1[0]}} and {{negativeHighestSigDimensionL2[0]}}
+               shrunk over {{negativeHighestSigDimensionL1[1]}}% and {{negativeHighestSigDimensionL2[1]}}% respectively.
+            {% elif negativeHighestSigDimensionL1 != None %}
+              as {{negativeHighestSigDimensionL1[0]}} shrunk over {{negativeHighestSigDimensionL1[1]}}%.
+            {% elif negativeHighestSigDimensionL2 != None %}
+              as {{negativeHighestSigDimensionL2[0]}} shrunk over {{negativeHighestSigDimensionL2[1]}}%.
+            {% endif %}
+          </li>
+            {% if negativeHighestSigDimension != negativeSecondHighestSigDimension %}
+              <li>
+                {{negativeSecondHighestSigDimension}} has been an area of concern,
+                as {{negativeSecondHighestSigDimensionL1[0]}} and {{negativeSecondHighestSigDimensionL2[0]}}
+                 shrunk over {{negativeSecondHighestSigDimensionL1[1]}}% and {{negativeSecondHighestSigDimensionL2[1]}}% respectively.
+              </li>
+            {% endif %}
+        </ul>
+    {% endif %} -->
+
+    {% if negGrowthArray|length > 0 %}
+      <h4>Significant factors that drag {{measure}} down</h4>
+      {{blockSplitter}}
+      <p class="txt-justify">
+        <ul>
+          <li>
+            {% if negGrowthArray|length > 1%}
+              {# when top 2 are from same dimension#}
+              {% if negGrowthArray[0][0][0] == negGrowthArray[1][0][0]%}
+                negGrowthArray[0][0][0] has been an area of concern,
+                as {{negGrowthArray[0][0][1]}} and {{negGrowthArray[1][0][1]}}
+                shrunk over {{negGrowthArray[0][1]["growth"]}}% and {{negGrowthArray[1][1]["growth"]}}% respectively.
+              {% else %}
+                {# when top 2 are from different dimension#}
+                {{negGrowthArray[0][0][0]}} and {{negGrowthArray[1][0][0]}} have been an area of concern,
+                as their respective levels {{negGrowthArray[0][0][1]}} and {{negGrowthArray[1][0][1]}}
+                shrunk by {{negGrowthArray[0][1]["growth"]}}% and {{negGrowthArray[1][1]["growth"]}}% respectively.
+              {% endif %}
+            {% else %}
+              {{negGrowthArray[0][0][0]}} has been an area of concern
+              as {{negGrowthArray[0][0][1]}} shrunk by {{negGrowthArray[0][1]["growth"]}}% .
+            {% endif %}
+          </li>
+        </ul>
+      </p>
+    {% endif %}
+
   {% endif %}
-  </p>
-{% endif %}

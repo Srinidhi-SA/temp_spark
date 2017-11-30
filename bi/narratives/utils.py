@@ -364,70 +364,83 @@ def get_streak_data(df,trendString,maxRuns,trend,dataLevel):
         output = {"decrease":"Longest Streak","period":streak_start_month+" to "+streak_end_month,"decreased_by":change,"range":streak_range}
     return output
 
-def calculate_dimension_contribution(level_cont):
-    data_dict = {}
-    dimension_contribution = []
-    for k,v in level_cont["summary"].items():
-        for x in v:
-            if not isinstance(v[x]['growth'], float):
-                v[x]['growth'] = 0.0
-            elif math.isinf(v[x]['growth']) or math.isnan(v[x]['growth']):
-                v[x]['growth'] = 0.0
-        max_level = max(v,key=lambda x: v[x]["growth"])
-        while v[max_level]["contribution"] < 5:
-            del(v[max_level])
-            if len(v.keys()) > 1:
-                max_level = max(v,key=lambda x: v[x]["growth"])
-            else:
-                max_level = None
-                break
-        if max_level != None:
-            dimension_contribution.append((k,max_level,v[max_level]["growth"],v[max_level]["contribution"]))
+# def calculate_dimension_contribution(level_cont):
+#     data_dict = {}
+#     dimension_contribution = []
+#     for k,v in level_cont["summary"].items():
+#         for x in v:
+#             if not isinstance(v[x]['growth'], float):
+#                 v[x]['growth'] = 0.0
+#             elif math.isinf(v[x]['growth']) or math.isnan(v[x]['growth']):
+#                 v[x]['growth'] = 0.0
+#         max_level = max(v,key=lambda x: v[x]["growth"])
+#         while v[max_level]["contribution"] < 5:
+#             del(v[max_level])
+#             if len(v.keys()) > 1:
+#                 max_level = max(v,key=lambda x: v[x]["growth"])
+#             else:
+#                 max_level = None
+#                 break
+#         if max_level != None:
+#             dimension_contribution.append((k,max_level,v[max_level]["growth"],v[max_level]["contribution"]))
+#
+#     ordered_dim_contribution = sorted(dimension_contribution,key=lambda x:x[2],reverse=True)
+#     data_dict["HighestSigDimension"] = ordered_dim_contribution[0][0]
+#     data_dict["SecondHighestSigDimension"] = ordered_dim_contribution[1][0]
+#     k1 = level_cont["summary"][data_dict["HighestSigDimension"]]
+#     sorted_k1 = sorted(k1.items(),key = lambda x: x[1]["growth"],reverse=True)
+#     k2 = level_cont["summary"][data_dict["SecondHighestSigDimension"]]
+#     sorted_k2 = sorted(k1.items(),key = lambda x: x[1]["growth"],reverse=True)
+#     data_dict["HighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
+#     data_dict["HighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
+#     data_dict["SecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
+#     data_dict["SecondHighestSigDimensionL2"] = [sorted_k2[1][0],sorted_k2[1][1]["growth"]]
+#
+#     for k,v in level_cont["summary"].items():
+#         min_level = max(v,key=lambda x: v[x]["growth"])
+#         while v[min_level]["contribution"] < 5:
+#             del(v[min_level])
+#             if len(v.keys()) > 1:
+#                 min_level = max(v,key=lambda x: v[x]["growth"])
+#             else:
+#                 min_level = None
+#                 break
+#         if min_level != None:
+#             dimension_contribution.append((k,min_level,v[min_level]["growth"],v[min_level]["contribution"]))
+#
+#     ordered_dim_contribution = sorted(dimension_contribution,key=lambda x:x[2])
+#     data_dict["negativeHighestSigDimension"] = ordered_dim_contribution[0][0]
+#     data_dict["negativeSecondHighestSigDimension"] = ordered_dim_contribution[1][0]
+#     k1 = level_cont["summary"][data_dict["negativeHighestSigDimension"]]
+#     sorted_k1 = sorted(k1.items(),key = lambda x: x[1]["growth"])
+#     k2 = level_cont["summary"][data_dict["negativeSecondHighestSigDimension"]]
+#     sorted_k2 = sorted(k1.items(),key = lambda x: x[1]["growth"])
+#     if len(sorted_k1) >= 2:
+#         data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
+#         data_dict["negativeHighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
+#     elif len(sorted_k1) ==1:
+#         data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
+#         data_dict["negativeHighestSigDimensionL1"] = None
+#     if len(sorted_k2) >=2:
+#         data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
+#         data_dict["negativeSecondHighestSigDimensionL2"] = [sorted_k2[1][0],sorted_k2[1][1]["growth"]]
+#     elif len(sorted_k2) ==1:
+#         data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
+#         data_dict["negativeSecondHighestSigDimensionL1"] = None
+#     return data_dict
+def calculate_dimension_contribution(levelContObject):
+    output = {"posGrowthArray":None,"negGrowthArray":None}
+    dataArray= []
+    for k,v in levelContObject.items():
+        for k1,v1 in v.items():
+            new_key = (k,k1)
+            dataArray.append((new_key, v1))
+    decreasingDataArray = sorted(dataArray,key=lambda x:x[1]["diff"],reverse=True)
+    increasingDataArray = sorted(dataArray,key=lambda x:x[1]["diff"],reverse=False)
 
-    ordered_dim_contribution = sorted(dimension_contribution,key=lambda x:x[2],reverse=True)
-    data_dict["HighestSigDimension"] = ordered_dim_contribution[0][0]
-    data_dict["SecondHighestSigDimension"] = ordered_dim_contribution[1][0]
-    k1 = level_cont["summary"][data_dict["HighestSigDimension"]]
-    sorted_k1 = sorted(k1.items(),key = lambda x: x[1]["growth"],reverse=True)
-    k2 = level_cont["summary"][data_dict["SecondHighestSigDimension"]]
-    sorted_k2 = sorted(k1.items(),key = lambda x: x[1]["growth"],reverse=True)
-    data_dict["HighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
-    data_dict["HighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
-    data_dict["SecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
-    data_dict["SecondHighestSigDimensionL2"] = [sorted_k2[1][0],sorted_k2[1][1]["growth"]]
-
-    for k,v in level_cont["summary"].items():
-        min_level = max(v,key=lambda x: v[x]["growth"])
-        while v[min_level]["contribution"] < 5:
-            del(v[min_level])
-            if len(v.keys()) > 1:
-                min_level = max(v,key=lambda x: v[x]["growth"])
-            else:
-                min_level = None
-                break
-        if min_level != None:
-            dimension_contribution.append((k,min_level,v[min_level]["growth"],v[min_level]["contribution"]))
-
-    ordered_dim_contribution = sorted(dimension_contribution,key=lambda x:x[2])
-    data_dict["negativeHighestSigDimension"] = ordered_dim_contribution[0][0]
-    data_dict["negativeSecondHighestSigDimension"] = ordered_dim_contribution[1][0]
-    k1 = level_cont["summary"][data_dict["negativeHighestSigDimension"]]
-    sorted_k1 = sorted(k1.items(),key = lambda x: x[1]["growth"])
-    k2 = level_cont["summary"][data_dict["negativeSecondHighestSigDimension"]]
-    sorted_k2 = sorted(k1.items(),key = lambda x: x[1]["growth"])
-    if len(sorted_k1) >= 2:
-        data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
-        data_dict["negativeHighestSigDimensionL2"] = [sorted_k1[1][0],sorted_k1[1][1]["growth"]]
-    elif len(sorted_k1) ==1:
-        data_dict["negativeHighestSigDimensionL1"] = [sorted_k1[0][0],sorted_k1[0][1]["growth"]]
-        data_dict["negativeHighestSigDimensionL1"] = None
-    if len(sorted_k2) >=2:
-        data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
-        data_dict["negativeSecondHighestSigDimensionL2"] = [sorted_k2[1][0],sorted_k2[1][1]["growth"]]
-    elif len(sorted_k2) ==1:
-        data_dict["negativeSecondHighestSigDimensionL1"] = [sorted_k2[0][0],sorted_k2[0][1]["growth"]]
-        data_dict["negativeSecondHighestSigDimensionL1"] = None
-    return data_dict
+    output["posGrowthArray"] = [x for x in decreasingDataArray if float(x[1]["growth"]) > 0][:2]
+    output["negGrowthArray"] = [x for x in increasingDataArray if float(x[1]["growth"]) < 0][:2]
+    return output
 
 def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time):
     out = {}
@@ -436,8 +449,8 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
         data_dict = {
                     "overall_avg":None,
                     "excluding_avg":None,
-                    "min_avg":None,
-                    "max_avg":None,
+                    "minval":None,
+                    "maxval":None,
                     "diff":None,
                     "contribution":None,
                     "growth":None
@@ -448,75 +461,72 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
         st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
         print "time for pivot",time.time()-st
-        pivotdf = pivotdf.na.fill(0)
-        pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
-        print pivotdf.show(2)
-        print "ncols ",len(pivotdf.columns)
-        print "nrows ",pivotdf.count()
-        print "pivot Df Created"
+        # pivotdf = pivotdf.na.fill(0)
+        # pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
         st=time.time()
         print "converting to pandas"
         k = pivotdf.toPandas()
-        print "time taken for pandas conversion ",time.time()-st
-        k["rank"] = map(lambda x: datetime.strptime(x,datetime_pattern),list(k[index_col]))
+        print "time taken for pandas conversion of pivotdf",time.time()-st
+        k["total"] = k.sum(axis=1)
+        k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,datetime_pattern))
         k = k.sort_values(by="rank", ascending=True)
-        if max_time in list(k[index_col]):
-            max_index = list(k[index_col]).index(max_time)
+        occurance_index = np.where(k[index_col] == max_time)
+        if len(occurance_index[0]) > 0:
+            max_index = occurance_index[0][0]
         else:
             max_index = None
-        print k.head(2)
+        # print k.head(2)
         for level in column_levels:
             print "calculations for level",level
             if level != None:
-                data_dict = {"overall_avg":None,"excluding_avg":None,"min_avg":None,"max_avg":None,"diff":None,"contribution":None,"growth":None}
-                data_dict["contribution"] = round(float(np.sum(k[level]))*100/np.sum(k["total"]),2)
+                data_dict = {"overall_avg":None,"excluding_avg":None,"minval":None,"maxval":None,"diff":None,"contribution":None,"growth":None}
+                data_dict["contribution"] = float(np.nansum(k[level]))*100/np.nansum(k["total"])
                 data = list(k[level])
-                data_dict["growth"] = round((data[-1]-data[0])*100/data[0],2)
+                growth_data = [x for x in data if np.isnan(x) != True and x != 0]
+                data_dict["growth"] = (growth_data[-1]-growth_data[0])*100/growth_data[0]
                 k[level] = (k[level]/k["total"])*100
                 data = list(k[level])
-                data_dict["overall_avg"] = round(np.mean(data),2)
-                data_dict["max_avg"] = round(np.max(data),2)
-                data_dict["min_avg"] = round(np.min(data),2)
+                data_dict["overall_avg"] = np.nanmean(data)
+                data_dict["maxval"] = np.nanmax(data)
+                data_dict["minval"] = np.nanmin(data)
                 if max_index:
                     del(data[max_index])
-                data_dict["excluding_avg"] = round(np.mean(data),2)
-                data_dict["diff"] = round(data_dict["max_avg"] - data_dict["excluding_avg"],2)
+                data_dict["excluding_avg"] = np.nanmean(data)
+                data_dict["diff"] = data_dict["maxval"] - data_dict["excluding_avg"]
                 out[column_name][level] = data_dict
-    return {"summary":out}
+    return out
 
 def get_level_cont_dict(level_cont):
-    dk = level_cont["summary"]
+    levelContributionSummary = level_cont
     output = []
-    for k,v in dk.items():
-        level_list = v.keys()
+    for k,v in levelContributionSummary.items():
         max_level = max(v,key=lambda x: v[x]["diff"])
-        t_dict = {}
-        for k1,v1 in dk[k][max_level].items():
-            t_dict[k1] = v1
-            t_dict.update({"level":max_level})
-        output.append(t_dict)
-    out_dict = dict(zip(dk.keys(),output))
+        contribution_dict = {}
+        for k1,v1 in levelContributionSummary[k][max_level].items():
+            contribution_dict[k1] = v1
+            contribution_dict.update({"level":max_level})
+        output.append(contribution_dict)
+    out_dict = dict(zip(levelContributionSummary.keys(),output))
     out_data = {"category_flag":True}
     out_data["highest_contributing_variable"] = max(out_dict,key=lambda x:out_dict[x]["diff"])
     if "category" in out_data["highest_contributing_variable"].lower():
         out_data["category_flag"] = False
     out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
-    out_data["highest_contributing_level_range"] = str(out_dict[out_data["highest_contributing_variable"]]["max_avg"])+" vis-a-vis "+str(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"])
+    out_data["highest_contributing_level_range"] = str(out_dict[out_data["highest_contributing_variable"]]["maxval"])+" vis-a-vis "+str(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"])
     output = []
-    for k,v in dk.items():
-        level_list = v.keys()
+    for k,v in levelContributionSummary.items():
         max_level = min(v,key=lambda x: v[x]["diff"])
         t_dict = {}
-        for k1,v1 in dk[k][max_level].items():
+        for k1,v1 in levelContributionSummary[k][max_level].items():
             t_dict[k1] = v1
             t_dict.update({"level":max_level})
         output.append(t_dict)
-    out_dict = dict(zip(dk.keys(),output))
+    out_dict = dict(zip(levelContributionSummary.keys(),output))
     out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
     out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
     out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
-    out_data["lowest_contributing_level_range"] = str(out_dict[out_data["lowest_contributing_variable"]]["min_avg"])+" vis-a-vis "+str(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"])
+    out_data["lowest_contributing_level_range"] = str(out_dict[out_data["lowest_contributing_variable"]]["minval"])+" vis-a-vis "+str(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"])
 
     return out_data
 
