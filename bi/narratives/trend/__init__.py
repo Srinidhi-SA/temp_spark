@@ -9,7 +9,7 @@ from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
 from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
-
+from bi.common.decorators import accepts
 
 
 from trend_narratives import TrendNarrative
@@ -18,6 +18,8 @@ from pyspark.sql.functions import col, udf, max
 from pyspark.sql.types import *
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.functions import lit
+from pyspark.sql import DataFrame
+
 
 
 
@@ -27,22 +29,28 @@ class TimeSeriesNarrative:
     def __init__(self, df_helper, df_context, result_setter, spark, story_narrative):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
-        self._dataframe_helper = df_helper
-        self._data_frame = df_helper.get_data_frame()
         self._spark = spark
+        self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._data_frame = df_helper.get_data_frame()
+        self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
 
-        self._analysisName = "trend"
-        self._messageURL = self._dataframe_context.get_message_url()
-        self._dateFormatDetected = False
-        self._requestedDateFormat = None
-        self._existingDateFormat = None
-        self._selected_date_columns = df_context.get_date_columns()
+
+        self._result_column = self._dataframe_context.get_result_column()
+        self._string_columns = self._dataframe_helper.get_string_columns()
+        self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
+
         # self._selected_date_columns = None
+        self._selected_date_columns = self._dataframe_context.get_date_columns()
+        self._dateFormatDetected = False
+        self._existingDateFormat = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
-        self._td_columns = df_helper.get_timestamp_columns()
-        self._string_columns = df_helper.get_string_columns()
-        self._result_column = df_context.get_result_column()
+        self._dateColumnFormatDict =  df_context.get_datetime_suggestions()[0]
+        if self._dataframe_context.get_requested_date_format() != None:
+            self._requestedDateFormat = df_context.get_requested_date_format()[0]
+        else:
+            self._requestedDateFormat = None
+
         self._analysistype = self._dataframe_context.get_analysis_type()
         self._trendSettings = self._dataframe_context.get_trend_settings()
         self._trendSpecificMeasure = False
@@ -56,7 +64,6 @@ class TimeSeriesNarrative:
 
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
-        self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._blockSplitter = "|~NEWBLOCK~|"
         self._trend_on_td_column = False
         self._number_of_dimensions_to_consider = 10
@@ -96,110 +103,38 @@ class TimeSeriesNarrative:
                     },
                 }
 
-        if self._selected_date_columns != None and len(self._selected_date_columns) > 0:
-            suggested_date_column = self._selected_date_columns[0]
-            existingDateFormat = None
-            if suggested_date_column not in self._td_columns:
-                dateColumnFormatDict =  df_context.get_datetime_suggestions()[0]
-                if suggested_date_column in dateColumnFormatDict:
-                    existingDateFormat = dateColumnFormatDict[suggested_date_column]
-                    self._dateFormatDetected = True
-                if df_context.get_requested_date_format() != None:
-                    requestedDateFormat = df_context.get_requested_date_format()[0]
-                else:
-                    requestedDateFormat = None
-                if requestedDateFormat != None:
-                    requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
-                else:
-                    requestedDateFormat = existingDateFormat
-            else:
-                self._trend_on_td_column = True
-                existingDateFormat = "%Y-%m-%d"
-                self._dateFormatDetected = True
-                if df_context.get_requested_date_format() != None:
-                    requestedDateFormat = df_context.get_requested_date_format()[0]
-                else:
-                    requestedDateFormat = None
-                if requestedDateFormat != None:
-                    requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
-                else:
-                    requestedDateFormat = existingDateFormat
-        else:
-            if self._td_columns != None:
-                if len(self._td_columns) > 0:
-                    self._trend_on_td_column = True
-                    suggested_date_column = self._td_columns[0]
-                    existingDateFormat = "%Y-%m-%d"
-                    self._dateFormatDetected = True
-                    if df_context.get_requested_date_format() != None:
-                        requestedDateFormat = df_context.get_requested_date_format()[0]
-                    else:
-                        requestedDateFormat = None
-                    if requestedDateFormat != None:
-                        requestedDateFormat = self._dateFormatConversionDict[requestedDateFormat]
-                    else:
-                        requestedDateFormat = existingDateFormat
-
         # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
         self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/trend/"
+        dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
+                                                    self._timestamp_columns,\
+                                                    self._dateColumnFormatDict,\
+                                                    self._dateFormatConversionDict,
+                                                    self._requestedDateFormat)
+        print dateColCheck
+        self._dateFormatDetected = dateColCheck["dateFormatDetected"]
+        self._trend_on_td_column = dateColCheck["trendOnTdCol"]
         if self._dateFormatDetected:
-            self._requestedDateFormat = requestedDateFormat
-            self._existingDateFormat = existingDateFormat
-            self._date_column_suggested = suggested_date_column
+            self._requestedDateFormat = dateColCheck["requestedDateFormat"]
+            self._existingDateFormat = dateColCheck["existingDateFormat"]
+            self._date_column_suggested = dateColCheck["suggestedDateColumn"]
         if self._existingDateFormat:
-            if self._selected_date_columns != None and self._trend_on_td_column == False:
-                date_format = self._existingDateFormat
-                string_to_date = udf(lambda x: datetime.strptime(x,date_format), DateType())
-                date_to_month_year = udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
-                self._data_frame = self._data_frame.withColumn("suggestedDate", string_to_date(self._date_column_suggested))
-                self._data_frame = self._data_frame.withColumn("year_month", date_to_month_year(self._date_column_suggested))
-                self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
-                self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
-            else:
-                self._data_frame = self._data_frame.withColumn("suggestedDate", udf(lambda x:x.date(),DateType())(self._date_column_suggested))
-                self._data_frame = self._data_frame.withColumn("year_month", udf(lambda x:x.date().strftime("%b-%y"),StringType())(self._date_column_suggested))
-                self._data_frame = self._data_frame.orderBy(["suggestedDate"],ascending=[True])
-                self._data_frame = self._data_frame.withColumn("_id_", monotonically_increasing_id())
-            first_date = self._data_frame.select("suggestedDate").first()[0]
-            #####  This is a Temporary fix
-            try:
-                print "TRY BLOCK STARTED"
-                id_max = self._data_frame.select(max("_id_")).first()[0]
-                last_date = self._data_frame.where(col("_id_") == id_max).select("suggestedDate").first()[0]
-            except:
-                print "ENTERING EXCEPT BLOCK"
-                pandas_df = self._data_frame.select(["suggestedDate"]).distinct().toPandas()
-                pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
-                last_date = pandas_df["suggestedDate"].iloc[-1]
-            if last_date == None:
-                print "IF Last date none:-"
-                pandas_df = self._data_frame.select(["suggestedDate"]).distinct().toPandas()
-                pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
-                last_date = pandas_df["suggestedDate"].iloc[-1]
+            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
+            print dataRangeStats
+            self._durationString = dataRangeStats["durationString"]
+            self._duration = dataRangeStats["duration"]
+            self._dataLevel = dataRangeStats["dataLevel"]
+            first_date = dataRangeStats["firstDate"]
+            last_date = dataRangeStats["lastDate"]
 
-            self._dataRange = (last_date-first_date).days
-
-            if self._dataRange <= 180:
-                self._duration = self._dataRange
-                self._dataLevel = "day"
-                self._durationString = str(self._duration)+" days"
-            elif self._dataRange > 180 and self._dataRange <= 1095:
-                self._duration = self._data_frame.select("year_month").distinct().count()
-                self._dataLevel = "month"
-                self._durationString = str(self._duration)+" months"
-            else:
-                self._duration = self._data_frame.select("year_month").distinct().count()
-                self._dataLevel = "month"
-                self._durationString = CommonUtils.get_duration_string(self._dataRange)
-
-            if self._td_columns != None:
+            if self._timestamp_columns != None:
                 if self._selected_date_columns == None:
-                    self._selected_date_columns = self._td_columns
+                    self._selected_date_columns = self._timestamp_columns
                 else:
-                    self._selected_date_columns += self._td_columns
+                    self._selected_date_columns += self._timestamp_columns
             print self._durationString
             print self._dataLevel
             print self._existingDateFormat
+
         if self._trend_subsection=="regression":
             if self._selected_date_columns != None:
                 if self._dateFormatDetected:
@@ -268,22 +203,7 @@ class TimeSeriesNarrative:
                                 }
                 if self._selected_date_columns != None:
                     if self._dateFormatDetected:
-                        if self._dataLevel == "day":
-                            grouped_data = self._data_frame .groupBy("suggestedDate").agg({ self._result_column : 'sum'})
-                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                            grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
-                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
-                            grouped_data = grouped_data.toPandas()
-                        elif self._dataLevel == "month":
-                            grouped_data = self._data_frame .groupBy("year_month").agg({ self._result_column : 'sum'})
-                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                            grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
-                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                            grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
-                            grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
-                            grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
-
+                        grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataLevel,self._result_column,self._analysistype)
                         self._data_frame = self._data_frame.drop(self._date_column_suggested)
                         self._data_frame = self._data_frame.withColumnRenamed("year_month", self._date_column_suggested)
 
@@ -297,7 +217,7 @@ class TimeSeriesNarrative:
                             significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
                         print "significant_dimensions",significant_dimensions
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
-                        grouped_data.to_csv("/home/gulshan/marlabs/datasets/trend_grouped_pandas.csv",index=False)
+                        # grouped_data.to_csv("/home/gulshan/marlabs/datasets/trend_grouped_pandas.csv",index=False)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         # # update reference time with max value
                         reference_time = dataDict["reference_time"]
@@ -481,50 +401,12 @@ class TimeSeriesNarrative:
                     cardData1 = []
                     c3_chart = {"dataType":"c3Chart","data":{}}
                     print "#"*40
-                    if self._dataLevel == "day":
-                        overall_count = self._data_frame.groupBy("suggestedDate").agg({ self._result_column : 'count'})
-                        overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
-                        overall_count = overall_count.orderBy("suggestedDate",ascending=True)
-                        overall_count = overall_count.withColumnRenamed("suggestedDate","key")
-                        overall_count = overall_count.toPandas()
-                    elif self._dataLevel == "month":
-                        print "Datelevel is Month"
-                        overall_count = self._data_frame.groupBy("year_month").agg({ self._result_column : 'count'})
-                        overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
-                        overall_count = overall_count.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
-                        overall_count = overall_count.orderBy("suggestedDate",ascending=True)
-                        overall_count = overall_count.withColumnRenamed("suggestedDate","key")
-                        overall_count = overall_count.select(["key","totalCount","year_month"]).toPandas()
-                        overall_count["key"] = overall_count["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
-                        overall_count = overall_count.loc[:,[c for c in overall_count.columns if c != "year_month"]]
+                    overall_count = NarrativesUtils.get_grouped_count_data_for_dimension_trend(self._data_frame,self._dataLevel,self._result_column)
                     print "#"*40
                     for idx,level in  enumerate(top2levels):
                         print "calculations in progress for the level :- ",level
                         leveldf = self._data_frame.filter(col(self._result_column) == level)
-                        st517 = time.time()
-                        if self._dataLevel == "day":
-                            grouped_data = leveldf.groupBy("suggestedDate").agg({ self._result_column : 'count'})
-                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                            grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
-                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
-                            st=time.time()
-                            grouped_data = grouped_data.toPandas()
-                            print "pandas df for grouped_data",time.time()-st
-                            st525 = time.time()
-                            print "time for level aggregate dataset creation",st525-st517
-                        elif self._dataLevel == "month":
-                            grouped_data = leveldf.groupBy("year_month").agg({ self._result_column : 'count'})
-                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-                            grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
-                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                            grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
-                            st=time.time()
-                            grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
-                            print "pandas df for grouped_data",time.time()-st
-                            grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
-                            st533 = time.time()
-                            print "time for level aggregate dataset creation",st533-st517
+                        grouped_data = NarrativesUtils.get_grouped_data_for_trend(leveldf,self._dataLevel,self._result_column,self._analysistype )
                         grouped_data.rename(columns={"value":"value_count"},inplace=True)
                         grouped_data = pd.merge(grouped_data, overall_count, on='key', how='left')
                         # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),self._num_significant_digits))

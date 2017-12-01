@@ -28,7 +28,8 @@
 </p>
 
 {{blockSplitter}}
-<!-- {% if significant_dimensions|length >0 %}
+  {#
+  {% if significant_dimensions|length >0 %}
   {% if HighestSigDimension %}
     <h4>Significant factors that drive increase in {{measure}}</h4>
     {{blockSplitter}}
@@ -46,7 +47,8 @@
         </li>
       </ul>
   {% endif %}
-{% endif %} -->
+{% endif %}
+#}
 
   {% if significant_dimensions|length >0 %}
     {% if posGrowthArray|length > 0 %}
@@ -77,8 +79,8 @@
     {% endif %}
 
     {{blockSplitter}}
-
-    <!-- {% if negativeHighestSigDimension %}
+    {#
+    {% if negativeHighestSigDimension %}
       <h4>Significant factors that drag {{measure}} down</h4>
       {{blockSplitter}}
         <ul>
@@ -101,7 +103,8 @@
               </li>
             {% endif %}
         </ul>
-    {% endif %} -->
+    {% endif %}
+    #}
 
     {% if negGrowthArray|length > 0 %}
       <h4>Significant factors that drag {{measure}} down</h4>

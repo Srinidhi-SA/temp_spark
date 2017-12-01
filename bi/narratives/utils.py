@@ -13,6 +13,13 @@ import pandas as pd
 import pattern
 from datetime import datetime
 from bi.common import HtmlData
+from bi.common import utils as CommonUtils
+from bi.common.decorators import accepts
+from pyspark.sql import DataFrame
+import pyspark.sql.functions as PysparkFN
+from pyspark.sql.types import *
+from pyspark.sql import DataFrame
+
 
 # def round_number(num, digits=2, as_string=True):
 #     millions = 0
@@ -572,7 +579,7 @@ def calculate_bucket_data(grouped_data,dataLevel):
     return max_dict
 
 def get_bucket_data_dict(bucket_dict):
-#     max_bucket = max(max_dict,key = lambda x: max_dict[x]["max_val"])
+    # max_bucket = max(max_dict,key = lambda x: max_dict[x]["max_val"])
     zip_list = []
     for k,v in bucket_dict.items():
         if v["max_val"] >= v["average"]:
@@ -693,3 +700,138 @@ def get_significant_digit_settings(param):
         return data[param]
     else:
         return 2
+@accepts(df=DataFrame,dataLevel=basestring,resultCol=basestring,analysistype=basestring)
+def get_grouped_data_for_trend(df,dataLevel,resultCol,analysistype):
+    if dataLevel == "day":
+        if analysistype == "measure":
+            grouped_data = df.groupBy("suggestedDate").agg({ resultCol : 'sum'})
+        elif analysistype == "dimension":
+            grouped_data = df.groupBy("suggestedDate").agg({ resultCol : 'count'})
+        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+        grouped_data = grouped_data.withColumn("year_month",PysparkFN.udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+        grouped_data = grouped_data.toPandas()
+    elif dataLevel == "month":
+        if analysistype == "measure":
+            grouped_data = df.groupBy("year_month").agg({ resultCol : 'sum'})
+        elif analysistype == "dimension":
+            grouped_data = df.groupBy("year_month").agg({ resultCol : 'count'})
+        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
+        grouped_data = grouped_data.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+        grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
+        grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
+        grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+    return grouped_data
+
+@accepts(df=DataFrame,dataLevel=basestring,resultCol=basestring)
+def get_grouped_count_data_for_dimension_trend(df,dataLevel,resultCol):
+    if dataLevel == "day":
+        overall_count = df.groupBy("suggestedDate").agg({ resultCol : 'count'})
+        overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
+        overall_count = overall_count.orderBy("suggestedDate",ascending=True)
+        overall_count = overall_count.withColumnRenamed("suggestedDate","key")
+        overall_count = overall_count.toPandas()
+    elif dataLevel == "month":
+        overall_count = df.groupBy("year_month").agg({ resultCol : 'count'})
+        overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
+        overall_count = overall_count.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+        overall_count = overall_count.orderBy("suggestedDate",ascending=True)
+        overall_count = overall_count.withColumnRenamed("suggestedDate","key")
+        overall_count = overall_count.select(["key","totalCount","year_month"]).toPandas()
+        overall_count["key"] = overall_count["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+        overall_count = overall_count.loc[:,[c for c in overall_count.columns if c != "year_month"]]
+    return overall_count
+
+@accepts(selectedDateColumns=(list,tuple),timeDimensionCols=(list,tuple),dateColumnFormatDict=dict,dateFormatConversionDict=dict,requestedDateFormat=(None,basestring))
+def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFormatDict,dateFormatConversionDict,requestedDateFormat):
+    dateFormatDetected = False
+    trendOnTdCol = False
+    print selectedDateColumns
+    if selectedDateColumns != None and len(selectedDateColumns) > 0:
+        suggested_date_column = selectedDateColumns[0]
+        existingDateFormat = None
+        if suggested_date_column not in timeDimensionCols:
+            if suggested_date_column in dateColumnFormatDict:
+                existingDateFormat = dateColumnFormatDict[suggested_date_column]
+                dateFormatDetected = True
+            if requestedDateFormat != None:
+                requestedDateFormat = dateFormatConversionDict[requestedDateFormat]
+            else:
+                requestedDateFormat = existingDateFormat
+        else:
+            trendOnTdCol = True
+            existingDateFormat = "%Y-%m-%d"
+            dateFormatDetected = True
+            if requestedDateFormat != None:
+                requestedDateFormat = dateFormatConversionDict[requestedDateFormat]
+            else:
+                requestedDateFormat = existingDateFormat
+    else:
+        if timeDimensionCols != None:
+            if len(timeDimensionCols) > 0:
+                trendOnTdCol = True
+                suggested_date_column = timeDimensionCols[0]
+                existingDateFormat = "%Y-%m-%d"
+                dateFormatDetected = True
+                if requestedDateFormat != None:
+                    requestedDateFormat = dateFormatConversionDict[requestedDateFormat]
+                else:
+                    requestedDateFormat = existingDateFormat
+    output = {
+        "dateFormatDetected":dateFormatDetected,
+        "requestedDateFormat":requestedDateFormat,
+        "existingDateFormat":existingDateFormat,
+        "trendOnTdCol":trendOnTdCol,
+        "suggestedDateColumn":suggested_date_column}
+
+
+    return output
+
+@accepts(df=DataFrame,selectedateColumn=(basestring,None),dateColsuggested=basestring,trendOnTdCol=bool)
+def calculate_data_range_stats(df,selectedateColumn,dateColsuggested,trendOnTdCol):
+    if selectedateColumn != None and trendOnTdCol == False:
+        date_format = existingDateFormat
+        string_to_date = PysparkFN.udf(lambda x: datetime.strptime(x,date_format), DateType())
+        date_to_month_year = PysparkFN.udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
+        df = df.withColumn("suggestedDate", string_to_date(dateColsuggested))
+        df = df.withColumn("year_month", date_to_month_year(dateColsuggested))
+        df = df.orderBy(["suggestedDate"],ascending=[True])
+        df = df.withColumn("_id_", PysparkFN.monotonically_increasing_id())
+    else:
+        df = df.withColumn("suggestedDate", PysparkFN.udf(lambda x:x.date(),DateType())(dateColsuggested))
+        df = df.withColumn("year_month", PysparkFN.udf(lambda x:x.date().strftime("%b-%y"),StringType())(dateColsuggested))
+        df = df.orderBy(["suggestedDate"],ascending=[True])
+        df = df.withColumn("_id_", PysparkFN.monotonically_increasing_id())
+    first_date = df.select("suggestedDate").first()[0]
+    #####  This is a Temporary fix
+    try:
+        print "TRY BLOCK STARTED"
+        id_max = df.select(PysparkFN.max("_id_")).first()[0]
+        last_date = df.where(PysparkFN.col("_id_") == id_max).select("suggestedDate").first()[0]
+    except:
+        print "ENTERING EXCEPT BLOCK"
+        pandas_df = df.select(["suggestedDate"]).distinct().toPandas()
+        pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
+        last_date = pandas_df["suggestedDate"].iloc[-1]
+    if last_date == None:
+        print "IF Last date none:-"
+        pandas_df = df.select(["suggestedDate"]).distinct().toPandas()
+        pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
+        last_date = pandas_df["suggestedDate"].iloc[-1]
+    dataRange = (last_date-first_date).days
+    if dataRange <= 180:
+        duration = dataRange
+        dataLevel = "day"
+        durationString = str(duration)+" days"
+    elif dataRange > 180 and dataRange <= 1095:
+        duration = df.select("year_month").distinct().count()
+        dataLevel = "month"
+        durationString = str(duration)+" months"
+    else:
+        duration = df.select("year_month").distinct().count()
+        dataLevel = "month"
+        durationString = CommonUtils.get_duration_string(dataRange)
+
+    return (df,{"duration":duration,"durationString":durationString,"dataLevel":dataLevel,"firstDate":first_date,"lastDate":last_date})
