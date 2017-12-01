@@ -438,6 +438,17 @@ def get_story_config():
                                 "noOfColumnsToUse" : None,
                                 "status" : False
                             }
+                        ],
+                        "trendSettings" : [
+                            {
+                                "name" : "Count",
+                                "status" : False
+                            },
+                            {
+                                "name" : "Specific Measure",
+                                "selectedMeasure" : None,
+                                "status" : False
+                            }
                         ]
                     },
                     "COLUMN_SETTINGS" : {

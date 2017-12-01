@@ -301,7 +301,10 @@ class ContextSetter:
                 self.analysisDict = dict(zip(self.analysisList,analysisDictList))
             if "trendSettings" in advanceSettingKeys:
                 trendSettingObj = self.ADVANCE_SETTINGS["trendSettings"]
-                self.trendSettings = [obj for obj in trendSettingObj if obj["status"]==True][0]
+                trendSettings = [obj for obj in trendSettingObj if obj["status"]==True]
+                if len(trendSettings) > 0:
+                    self.trendSettings = trendSettings[0]
+
             if "targetLevels" in advanceSettingKeys:
                 self.targetLevels = self.ADVANCE_SETTINGS["targetLevels"]
 
