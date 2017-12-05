@@ -131,10 +131,11 @@ def main(configJson):
         data_load_time = time.time() - data_loading_st
         print "Data Loading Time ",data_load_time," Seconds"
         print "Retrieving MetaData"
-        # if debugMode != True:
-        #     print "Retrieving MetaData"
-        #     metaDataObj = CommonUtils.get_metadata(dataframe_context)
-        #     dataframe_context.set_metadata_object(metaDataObj)
+         # if debugMode != True:
+        #     if jobType != "metaData":
+        #         print "Retrieving MetaData"
+        #         metaDataObj = CommonUtils.get_metadata(dataframe_context)
+        #         dataframe_context.set_metadata_object(metaDataObj)
         # else:
         #     try:
         #         # checking if metadata exist for the dataset
@@ -486,7 +487,6 @@ def main(configJson):
 
 
         collated_summary = result_setter.get_model_summary()
-
         card1 = NormalCard()
         card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
         card1Data.append(HtmlData(data = MLUtils.get_total_models(collated_summary)))

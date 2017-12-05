@@ -147,18 +147,7 @@ class RandomForestScript:
         rfCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
         rfCard1.set_card_data(rfCard1Data)
 
-        confusion_matrix = self._model_summary["confusion_matrix"]
-        print confusion_matrix
-        predictedLevels = confusion_matrix.keys()
-        confusion_matrix_data = [[""]+predictedLevels]
-        for outer in predictedLevels:
-            inner_list = [outer]
-            for inner in predictedLevels:
-                inner_list.append(confusion_matrix[outer][inner])
-            confusion_matrix_data.append(inner_list)
-
-        print confusion_matrix_data
-
+        confusion_matrix_data = MLUtils.reformat_confusion_matrix(self._model_summary["confusion_matrix"])
         rfCard2 = NormalCard()
         rfCard2Data = []
         rfCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h5>"))
