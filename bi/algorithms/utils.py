@@ -184,7 +184,7 @@ def reformat_confusion_matrix(confusion_matrix):
         for inner in levels:
             inner_list.append(confusion_matrix[inner][outer])
         confusion_matrix_data.append(inner_list)
-    return np.array(confusion_matrix_data).T
+    return [list(x) for x in np.array(confusion_matrix_data).T]
 
 def calculate_overall_precision_recall(actual,predicted):
     # get positive or negative class from the user
