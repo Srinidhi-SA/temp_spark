@@ -464,7 +464,7 @@ def get_model_comparison(collated_summary):
         out.append(algos_dict[val])
     out = [[""]+out]
     first_column = ["Accuracy","Precision","Recall"]
-    data_keys = ["model_precision","model_recall","model_accuracy"]
+    data_keys = ["model_accuracy","model_precision","model_recall"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
     map_dict = dict(zip(first_column,data_keys))
     for key in first_column:
