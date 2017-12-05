@@ -187,6 +187,7 @@ class ChartJson:
         self.subchart = True
         self.show_legend = True
         self.hide_xtick = False
+        self.title = None
 
 
     def set_data(self,data):
@@ -228,3 +229,6 @@ class ChartJson:
 
     def set_hide_xtick(self,data):
         self.hide_xtick = data
+
+    def set_title(self,data):
+        self.title=data

@@ -197,7 +197,14 @@ class DecisionTreeNarrative:
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
-        mainCardChart = {"dataType": "c3Chart","widthPercent":33 ,"data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
+        chartData = NormalChartData([chartDict]).get_data()
+        chartJson = ChartJson(data=chartData)
+        chartJson.set_title(self._colname)
+        chartJson.set_chart_type("donut")
+        mainCardChart = C3ChartData(data=chartJson)
+        mainCardChart.set_width_percent(33)
+        # mainCardChart = {"dataType": "c3Chart","widthPercent":33 ,"data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
+
 
         dropdownDict = {
           "dataType": "dropdown",
