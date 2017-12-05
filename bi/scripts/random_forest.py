@@ -148,14 +148,16 @@ class RandomForestScript:
         rfCard1.set_card_data(rfCard1Data)
 
         confusion_matrix = self._model_summary["confusion_matrix"]
-        levels = confusion_matrix.keys()
-        confusion_matrix_data = [[""]+levels]
-
-        for outer in levels:
+        print confusion_matrix
+        predictedLevels = confusion_matrix.keys()
+        confusion_matrix_data = [[""]+predictedLevels]
+        for outer in predictedLevels:
             inner_list = [outer]
-            for inner in levels:
+            for inner in predictedLevels:
                 inner_list.append(confusion_matrix[outer][inner])
             confusion_matrix_data.append(inner_list)
+
+        print confusion_matrix_data
 
         rfCard2 = NormalCard()
         rfCard2Data = []
