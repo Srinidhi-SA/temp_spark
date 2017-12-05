@@ -66,7 +66,7 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/common/utils.py
-            jobType = "story"
+            jobType = "training"
             testConfigs = CommonUtils.get_test_configs()
             configJson = testConfigs[jobType]
 
@@ -489,7 +489,7 @@ def main(configJson):
 
 
         collated_summary = result_setter.get_model_summary()
-
+        print collated_summary
         card1 = NormalCard()
         card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
         card1Data.append(HtmlData(data = MLUtils.get_total_models(collated_summary)))

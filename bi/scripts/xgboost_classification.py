@@ -144,16 +144,7 @@ class XgboostScript:
         xgbCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
         xgbCard1.set_card_data(xgbCard1Data)
 
-        confusion_matrix = self._model_summary["confusion_matrix"]
-        levels = confusion_matrix.keys()
-        confusion_matrix_data = [[""]+levels]
-
-        for outer in levels:
-            inner_list = [outer]
-            for inner in levels:
-                inner_list.append(confusion_matrix[outer][inner])
-            confusion_matrix_data.append(inner_list)
-
+        confusion_matrix_data = MLUtils.reformat_confusion_matrix(self._model_summary["confusion_matrix"])
         xgbCard2 = NormalCard()
         xgbCard2Data = []
         xgbCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10' >Confusion Matrix</h5>"))

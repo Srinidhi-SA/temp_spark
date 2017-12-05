@@ -176,6 +176,16 @@ def calculate_confusion_matrix(actual,predicted):
                 dict_out[k] = temp
     return dict_out
 
+def reformat_confusion_matrix(confusion_matrix):
+    levels = confusion_matrix.keys()
+    confusion_matrix_data = [[""]+levels]
+    for outer in levels:
+        inner_list = [outer]
+        for inner in levels:
+            inner_list.append(confusion_matrix[inner][outer])
+        confusion_matrix_data.append(inner_list)
+    return np.array(confusion_matrix_data).T
+
 def calculate_overall_precision_recall(actual,predicted):
     # get positive or negative class from the user
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
@@ -464,7 +474,7 @@ def get_model_comparison(collated_summary):
         out.append(algos_dict[val])
     out = [[""]+out]
     first_column = ["Accuracy","Precision","Recall"]
-    data_keys = ["model_precision","model_recall","model_accuracy"]
+    data_keys = ["model_accuracy","model_precision","model_recall"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
     map_dict = dict(zip(first_column,data_keys))
     for key in first_column:
