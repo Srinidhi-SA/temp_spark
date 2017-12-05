@@ -231,7 +231,6 @@ class DecisionTrees:
         for k,v in mapping_dict.items():
             temp = {}
             for k1,v1 in v.items():
-                print k1,v1
                 self._alias_dict[v1.replace(",","")] = v1
                 temp[k1] = v1.replace(",","")
             mapping_dict[k] = temp

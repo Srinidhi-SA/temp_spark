@@ -167,13 +167,14 @@ class DecisionTreeNarrative:
         rules_dict = self._table
         data_dict["blockSplitter"] = self._blockSplitter
         groups = rules_dict.keys()
-        probabilityGroups=[{"probability":90,"count":0,"range":[90,100]},{"probability":70,"count":0,"range":[0,70]}]
-
+        probabilityCutoff = 75
+        probabilityGroups=[{"probability":probabilityCutoff,"count":0,"range":[probabilityCutoff,100]},{"probability":probabilityCutoff-1,"count":0,"range":[0,probabilityCutoff-1]}]
         tableArray = [[
                 "Prediction Rule",
                 "Probability",
                 "Prediction",
-                "Freq"
+                "Freq",
+                "group"
               ]]
         dropdownData = []
         chartDict = {}
@@ -184,14 +185,15 @@ class DecisionTreeNarrative:
                 dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
             rulesArray = rules_dict[target]
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
+            groupArray = ["strong" if x>=probabilityCutoff else "weak" for x in probabilityArray]
             for idx,obj in enumerate(probabilityGroups):
-                grpCount = len([x for x in probabilityArray if x > obj["range"][0] and x <= obj["range"][1]])
+                grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
                 obj["count"] += grpCount
                 probabilityGroups[idx] = obj
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
-            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray)
+            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
