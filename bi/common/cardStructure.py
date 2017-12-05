@@ -318,9 +318,13 @@ class C3ChartData:
     def __init__(self,data=None):
         self.dataType = "c3Chart"
         self.data = data
+        self.widthPercent=100
 
     def set_data(self,data):
         self.data = data
+
+    def set_width_percent(self,data):
+        self.widthPercent = data
 
     def get_data(self):
         return self.data
