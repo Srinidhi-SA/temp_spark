@@ -9,7 +9,7 @@ from pyspark.sql.types import StringType
 
 from bi.common.decorators import accepts
 from bi.common.results import DFTwoWayAnovaResult,OneWayAnovaResult
-from bi.common.results import MeasureAnovaResult
+from bi.common.results import MeasureAnovaResult,TrendData
 from bi.common.results import TopDimensionStats, TrendResult,TopLevelDfAnovaStats
 
 from bi.narratives import utils as NarrativesUtils
@@ -51,6 +51,7 @@ class TwoWayAnova:
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions.keys()))
         self.top_dimension_result = {}
         # if selected date col empty then on td_node
+        self._dataRangeStats = None
         self._dateFormatDetected = False
         self._trend_on_td_column = False
         self._existingDateFormat = None
@@ -80,13 +81,9 @@ class TwoWayAnova:
                 self._existingDateFormat = dateColCheck["existingDateFormat"]
                 self._date_column_suggested = dateColCheck["suggestedDateColumn"]
         if self._dateFormatDetected:
-            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
-            print dataRangeStats
-            self._durationString = dataRangeStats["durationString"]
-            self._duration = dataRangeStats["duration"]
-            self._dataLevel = dataRangeStats["dataLevel"]
-            first_date = dataRangeStats["firstDate"]
-            last_date = dataRangeStats["lastDate"]
+            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
+            print self._dataRangeStats
+
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -140,7 +137,18 @@ class TwoWayAnova:
             measureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
             self._anova_result = MeasureAnovaResult(measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
 
-            for dimension in self._dimensions_to_test:
+            grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataRangeStats["dataLevel"],measure,"measure")
+            trendData = TrendData()
+            trendData.set_params(grouped_data,\
+                                self._dataRangeStats["lastDate"],\
+                                self._dataRangeStats["firstDate"],\
+                                self._dataRangeStats["duration"],\
+                                self._dataRangeStats["durationString"],\
+                                self._dataRangeStats["dataLevel"]
+                                )
+            self._anova_result.set_trend_data(trendData)
+
+            for dimension in self._dimensions_to_test[:3]:
                 anovaResult = self.one_way_anova_test(self._data_frame,measure,dimension,measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
                 dimensionAnovaResult = OneWayAnovaResult()
                 dimensionAnovaResult.set_params(df_within=anovaResult["df_within"],
@@ -168,6 +176,12 @@ class TwoWayAnova:
                     print toplevelStats
                     topLevelAnova.set_top_level_stat(toplevelStats)
                     topLevelDf = self._data_frame.where(col(dimension).isin([toplevelStats.levels]))
+
+                    topLevelGroupedData = NarrativesUtils.get_grouped_data_for_trend(topLevelDf,self._dataRangeStats["dataLevel"],measure,"measure")
+                    trendData = TrendData()
+                    trendData.set_grouped_data(topLevelGroupedData)
+                    topLevelAnova.set_trend_data(trendData)
+
                     topLevelDfMeasureColStat = topLevelDf.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
                     topLevelDfMeasureColMean = measureColStat[0][1]
                     topLevelDfMeasureColCount = measureColStat[0][2]
@@ -273,30 +287,6 @@ class TwoWayAnova:
         # print anovaOutput
         print "finished in :-",time.time()-st
         return anovaOutput
-
-    def get_aggregated_by_dimension(self, measure, dimension, df=None):
-        if df==None:
-            return self._data_frame.na.drop(subset=dimension).groupby(dimension).agg(*[count(col(measure)),mean(col(measure))]).collect()
-        else:
-            return df.na.drop(subset=dimension).groupby(dimension).agg(*[count(col(measure)),mean(col(measure))]).collect()
-
-
-
-    def set_trend_result(self, measure, dimension, agg_dimension):
-        if not self.trend_result.subset_df.has_key(agg_dimension):
-            if self._primary_date in self._timestamp_columns:
-                agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
-                                                    None, self._requestedDateFormat,True,
-                                                    use_timestamp=self._primary_date in self._timestamp_columns)
-            else:
-                agg_data_frame = self.get_aggregated_by_date(self._primary_date, measure, \
-                                                    self._existingDateFormat, self._requestedDateFormat,True,
-                                                    use_timestamp=False)
-            self.trend_result.add_subset_df(agg_data_frame,agg_dimension, self._top_dimension)
-        agg_data_frame_dimension = self.get_aggregated_by_date_and_dimension(self._primary_date, measure, dimension,\
-                                                                self._existingDateFormat, self._requestedDateFormat,
-                                                                use_timestamp=self._primary_date in self._timestamp_columns)
-        self.trend_result.add_trend_result(dimension,agg_data_frame_dimension)
 
 
     def test_anova_interaction(self,measure,dimension1,dimension2):

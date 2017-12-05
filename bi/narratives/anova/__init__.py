@@ -137,7 +137,7 @@ class AnovaNarratives:
 
     def _generate_dimension_narratives(self, significant_dimensions, measure_anova_result, measure):
         self.narratives['cards'] = []
-        anova_trend_result = measure_anova_result.get_TrendResult()
+        anova_trend_result = measure_anova_result.get_trend_data()
         if len(significant_dimensions) == 0:
             self.narratives['cards'].append({'card1':'', 'card2':'', 'card3':''})
         self.narratives['variables'] = significant_dimensions

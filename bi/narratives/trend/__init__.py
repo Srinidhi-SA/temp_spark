@@ -148,7 +148,6 @@ class TimeSeriesNarrative:
                         grouped_data = self._data_frame.groupBy("suggestedDate").agg({measure_column : 'sum', result_column : 'sum'})
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
-
                         grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
                         grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
@@ -157,7 +156,6 @@ class TimeSeriesNarrative:
                         grouped_data = self._data_frame.groupBy("year_month").agg({measure_column : 'sum', result_column : 'sum'})
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
                         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
-
                         grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
                         grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
                         grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")

@@ -351,17 +351,34 @@ def get_story_config():
                                 "displayName" : "Trend",
                                 "name" : "trend",
                                 "noOfColumnsToUse" : None,
-                                "status" : True
+                                "status" : False
                             },
                             {
                                 "analysisSubTypes" : [],
                                 "displayName" : "Association",
                                 "name" : "association",
                                 "noOfColumnsToUse" : None,
-                                "binSetting" : [
-                                    {"name":"heading","displayName":"Binning of Numerical Values"},
-                                    {"name":"binLevels","displayName":"Number of Bin Levels","defaultValue":5,"min":2,"max":10},
-                                    {"name":"binCardinality","displayName":"Do not bin numerical values with cardinality less than:","defaultValue":5,"min":2,"max":10}
+                                "binSetting": [
+                                  {
+                                    "name": "heading",
+                                    "displayName": "Binning of Numerical Values"
+                                  },
+                                  {
+                                    "name": "binLevels",
+                                    "displayName": "Number of Bin Levels",
+                                    "defaultValue": 5,
+                                    "value":5,
+                                    "min": 2,
+                                    "max": 10
+                                  },
+                                  {
+                                    "name": "binCardinality",
+                                    "displayName": "Do not bin numerical values with cardinality less than:",
+                                    "defaultValue": 5,
+                                    "value":5,
+                                    "min": 2,
+                                    "max": 10
+                                  }
                                 ],
                                 "status" : False
                             },
@@ -396,7 +413,7 @@ def get_story_config():
                                         "value" : None
                                     }
                                 ],
-                                "status" : True
+                                "status" : True,
                             },
                             {
                                 "analysisSubTypes" : [],
@@ -547,7 +564,7 @@ def get_story_config():
     #                         "displayName" : "Trend",
     #                         "name" : "trend",
     #                         "noOfColumnsToUse" : None,
-    #                         "status" : True
+    #                         "status" : False
     #                     },
     #                     {
     #                         "analysisSubTypes" : [],
@@ -580,7 +597,7 @@ def get_story_config():
     #                                 "value" : 15
     #                             }
     #                         ],
-    #                         "status" : True
+    #                         "status" : False
     #                     },
     #                     {
     #                         "analysisSubTypes" : [],
@@ -613,14 +630,14 @@ def get_story_config():
     #                                 "value" : 14
     #                             }
     #                         ],
-    #                         "status" : True
+    #                         "status" : False
     #                     },
     #                     {
     #                         "analysisSubTypes" : [],
     #                         "displayName" : "Prediction",
     #                         "name" : "prediction",
     #                         "noOfColumnsToUse" : None,
-    #                         "status" : True
+    #                         "status" : False
     #                     }
     #                 ]
     #             },

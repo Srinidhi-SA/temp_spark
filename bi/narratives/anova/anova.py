@@ -60,7 +60,9 @@ class OneWayAnovaNarratives:
         self._dimension_column_capitalized = '%s%s' % (dimension_column[0].upper(), dimension_column[1:])
         self._measure_anova_result = measure_anova_result
         self._dimension_anova_result = self._measure_anova_result.get_one_way_anova_result(self._dimension_column)
-        self._trend_result = trend_result
+        self._overall_trend_data = self._measure_anova_result.get_trend_data()
+        self._dataLevel = self._overall_trend_data.get_data_level()
+        self._dimension_trend_data = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column).get_trend_data()
         self._blockSplitter = "|~NEWBLOCK~|"
         # self.effect_size = anova_result.get_effect_size()
         self.card1 = ''
@@ -72,12 +74,14 @@ class OneWayAnovaNarratives:
     def _generate_narratives(self):
         self._card3_required = False
         self._generate_card1()
-        if self._trend_result != '':
+        trendDuration = self._overall_trend_data.get_duration()
+        print "duration is ",trendDuration
+        if trendDuration > 0:
             self._generate_card2()
             if self._card3_required:
                 self._generate_card3()
         self._dimensionNode.add_a_card(self._anovaCard1)
-        if self._card3_required and self._trend_result != '':
+        if self._card3_required and trendDuration >0 :
             self._dimensionNode.add_a_card(self._anovaCard3)
 
     def _generate_title(self):
@@ -312,76 +316,106 @@ class OneWayAnovaNarratives:
         return sorted(zip(df['levels'], df['percent']),key=lambda x:x[1],reverse=True)
 
     def _generate_card2(self):
-        subset_data_frame = self._trend_result.get_subset_data(self._dimension_column)
-        agg_data_frame = self._trend_result.get_data_frame()
+        subset_df = self._dimension_trend_data.get_grouped_data()
+        print subset_df
+        overall_df = self._overall_trend_data.get_grouped_data()
         total_measure = 'Total '+ self._measure_column_capitalized
-        if len(agg_data_frame.columns)==2:
-            agg_data_frame.columns = ['Date',total_measure]
-        subset_measure = self._trend_result.get_top_dimension(self._dimension_column) + ' ' + self._measure_column_capitalized
-        subset_data_frame.columns = ['Date', subset_measure]
-        outer_join = agg_data_frame.merge(subset_data_frame, how='left', on = 'Date')
-        inner_join = agg_data_frame.merge(subset_data_frame, how='inner', on = 'Date')
+        if len(overall_df.columns) == 3:
+            overall_df.columns = ["key",total_measure,"year_month"]
+        else:
+            overall_df.columns = ["key",total_measure]
+        top_level_name = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column).get_top_level_name()
+        subset_measure = top_level_name + ' ' + self._measure_column_capitalized
+        if len(subset_df.columns) ==3:
+            subset_df.columns = ['key', subset_measure,"year_month"]
+        else:
+            subset_df.columns = ['key', subset_measure]
+        inner_join = overall_df.merge(subset_df[['key',subset_measure]], how='inner', on = 'key')
+        inner_join["key"] = inner_join["key"].apply(lambda x:str(x))
+        print inner_join
         correlation = inner_join[[total_measure,subset_measure]].corr()[total_measure][subset_measure]
-        data = {
-                'Time Period' : list(inner_join['Date']),
-                total_measure : list(inner_join[total_measure]),
-                subset_measure : list(inner_join[subset_measure])
-        }
-        data_c3 = [['Time Period'] + list(inner_join['Date']),
-                [total_measure] + list(inner_join[total_measure]),
-                [subset_measure] + list(inner_join[subset_measure])]
+        if self._dataLevel == "month":
+            data = {
+                    'Time Period' : list(inner_join['year_month']),
+                    total_measure : list(inner_join[total_measure]),
+                    subset_measure : list(inner_join[subset_measure])
+            }
+            data_c3 = [['Time Period'] + list(inner_join['year_month']),
+                    [total_measure] + list(inner_join[total_measure]),
+                    [subset_measure] + list(inner_join[subset_measure])]
+        elif self._dataLevel == "day":
+            data = {
+                    'Time Period' : list(inner_join['key']),
+                    total_measure : list(inner_join[total_measure]),
+                    subset_measure : list(inner_join[subset_measure])
+            }
+            data_c3 = [['Time Period'] + list(inner_join['key']),
+                    [total_measure] + list(inner_join[total_measure]),
+                    [subset_measure] + list(inner_join[subset_measure])]
         chart1 = chart(data = data)
         chart1.add_data_c3(data_c3)
         # self.card2.add_chart('trend_chart',chart1)
         self.card1.add_chart('trend_chart',chart1)
         lines = []
         lines += [C3ChartData(self._get_c3chart_trend(data,'Time Period',total_measure,subset_measure))]
-        overall_increase_percent = (agg_data_frame[total_measure].iloc[-1]*100/agg_data_frame[total_measure].iloc[0]) - 100
-        subset_increase_percent = (subset_data_frame[subset_measure].iloc[-1]*100/subset_data_frame[subset_measure].iloc[0]) - 100
+        overall_increase_percent = (overall_df[total_measure].iloc[-1]*100/overall_df[total_measure].iloc[0]) - 100
+        subset_increase_percent = (subset_df[subset_measure].iloc[-1]*100/subset_df[subset_measure].iloc[0]) - 100
 
-        overall_peak_index = agg_data_frame[total_measure].argmax()
-        overall_peak_value = agg_data_frame[total_measure].ix[overall_peak_index]
-        overall_peak_date = agg_data_frame['Date'].ix[overall_peak_index]
+        overall_peak_index = overall_df[total_measure].argmax()
+        overall_peak_value = overall_df[total_measure].ix[overall_peak_index]
+        if self._dataLevel == "month":
+            overall_peak_date = overall_df['year_month'].ix[overall_peak_index]
+        elif self._dataLevel == "day":
+            overall_peak_date = overall_df['key'].ix[overall_peak_index]
+        subset_peak_index = subset_df[subset_measure].argmax()
+        subset_peak_value = subset_df[subset_measure].ix[subset_peak_index]
+        if self._dataLevel == "month":
+            subset_peak_date = subset_df['year_month'].ix[subset_peak_index]
+        elif self._dataLevel == "day":
+            subset_peak_date = subset_df['key'].ix[subset_peak_index]
 
-        subset_peak_index = subset_data_frame[subset_measure].argmax()
-        subset_peak_value = subset_data_frame[subset_measure].ix[subset_peak_index]
-        subset_peak_date = subset_data_frame['Date'].ix[subset_peak_index]
-
-        agg_data_frame['prev'] = agg_data_frame[total_measure].shift(1)
-        subset_data_frame['prev'] = subset_data_frame[subset_measure].shift(1)
-        if math.isnan(agg_data_frame['prev'].ix[overall_peak_index]):
+        overall_df['prev'] = overall_df[total_measure].shift(1)
+        subset_df['prev'] = subset_df[subset_measure].shift(1)
+        if math.isnan(overall_df['prev'].ix[overall_peak_index]):
             overall_peak_increase = 0
         else:
-            overall_peak_increase = (subset_data_frame[subset_measure].ix[subset_peak_index]/subset_data_frame['prev'].ix[subset_peak_index])*100 - 100
-        if math.isnan(subset_data_frame['prev'].ix[subset_peak_index]):
+            overall_peak_increase = (subset_df[subset_measure].ix[subset_peak_index]/subset_df['prev'].ix[subset_peak_index])*100 - 100
+        if math.isnan(subset_df['prev'].ix[subset_peak_index]):
             subset_peak_increase = 0
         else:
-            subset_peak_increase = (subset_data_frame[subset_measure].ix[subset_peak_index]/subset_data_frame['prev'].ix[subset_peak_index])*100 - 100
+            subset_peak_increase = (subset_df[subset_measure].ix[subset_peak_index]/subset_df['prev'].ix[subset_peak_index])*100 - 100
 
-        agg_data_frame['avg_diff'] = agg_data_frame[total_measure] - agg_data_frame[total_measure].mean()
-        subset_data_frame['avg_diff'] = subset_data_frame[subset_measure] - subset_data_frame[subset_measure].mean()
+        overall_df['avg_diff'] = overall_df[total_measure] - overall_df[total_measure].mean()
+        subset_df['avg_diff'] = subset_df[subset_measure] - subset_df[subset_measure].mean()
 
-        agg_data_frame = self.streaks(agg_data_frame,'avg_diff')
-        subset_data_frame = self.streaks(subset_data_frame, 'avg_diff')
+        overall_df = self.streaks(overall_df,'avg_diff')
+        subset_df = self.streaks(subset_df, 'avg_diff')
 
-        overall_longest_streak_end_index = agg_data_frame['u_streak'].argmax()
-        overall_longest_streak_contribution = agg_data_frame[total_measure].ix[overall_longest_streak_end_index]
-        overall_streak_length = int(agg_data_frame['u_streak'].ix[overall_longest_streak_end_index])
+        overall_longest_streak_end_index = overall_df['u_streak'].argmax()
+        overall_longest_streak_contribution = overall_df[total_measure].ix[overall_longest_streak_end_index]
+        overall_streak_length = int(overall_df['u_streak'].ix[overall_longest_streak_end_index])
         for i in range(1,int(overall_streak_length)):
-            overall_longest_streak_contribution = agg_data_frame[total_measure].shift(i).ix[overall_longest_streak_end_index]
-        overall_longest_streak_contribution = overall_longest_streak_contribution*100/agg_data_frame[total_measure].sum()
-        overall_longest_streak_end_date = agg_data_frame['Date'].ix[overall_longest_streak_end_index]
-        overall_longest_streak_start_date = agg_data_frame['Date'].shift(overall_streak_length-1).ix[overall_longest_streak_end_index]
+            overall_longest_streak_contribution = overall_df[total_measure].shift(i).ix[overall_longest_streak_end_index]
+        overall_longest_streak_contribution = overall_longest_streak_contribution*100/overall_df[total_measure].sum()
+        if self._dataLevel == "month":
+            overall_longest_streak_end_date = overall_df['year_month'].ix[overall_longest_streak_end_index]
+            overall_longest_streak_start_date = overall_df['year_month'].shift(overall_streak_length-1).ix[overall_longest_streak_end_index]
+        elif self._dataLevel == "day":
+            overall_longest_streak_end_date = overall_df['key'].ix[overall_longest_streak_end_index]
+            overall_longest_streak_start_date = overall_df['key'].shift(overall_streak_length-1).ix[overall_longest_streak_end_index]
 
-        subset_longest_streak_end_index = subset_data_frame['u_streak'].argmax()
-        subset_longest_streak_contribution = subset_data_frame[subset_measure].ix[subset_longest_streak_end_index]
-        subset_streak_length = int(subset_data_frame['u_streak'].ix[subset_longest_streak_end_index])
+        subset_longest_streak_end_index = subset_df['u_streak'].argmax()
+        subset_longest_streak_contribution = subset_df[subset_measure].ix[subset_longest_streak_end_index]
+        subset_streak_length = int(subset_df['u_streak'].ix[subset_longest_streak_end_index])
         for i in range(1,int(subset_streak_length)):
-            subset_longest_streak_contribution = subset_data_frame[subset_measure].shift(i).ix[subset_longest_streak_end_index]
-        subset_longest_streak_contribution = subset_longest_streak_contribution*100/subset_data_frame[subset_measure].sum()
-        subset_longest_streak_end_date = subset_data_frame['Date'].ix[subset_longest_streak_end_index]
-        subset_longest_streak_start_date = subset_data_frame['Date'].shift(subset_streak_length-1).ix[subset_longest_streak_end_index]
-
+            subset_longest_streak_contribution = subset_df[subset_measure].shift(i).ix[subset_longest_streak_end_index]
+        subset_longest_streak_contribution = subset_longest_streak_contribution*100/subset_df[subset_measure].sum()
+        if self._dataLevel == "month":
+            subset_longest_streak_end_date = subset_df['year_month'].ix[subset_longest_streak_end_index]
+            subset_longest_streak_start_date = subset_df['year_month'].shift(subset_streak_length-1).ix[subset_longest_streak_end_index]
+        elif self._dataLevel == "day":
+            subset_longest_streak_end_date = subset_df['key'].ix[subset_longest_streak_end_index]
+            subset_longest_streak_start_date = subset_df['key'].shift(subset_streak_length-1).ix[subset_longest_streak_end_index]
         data_dict = {
                     'correlation' : correlation,
                     'overall_increase_percent' : round(overall_increase_percent,2),
@@ -401,7 +435,7 @@ class OneWayAnovaNarratives:
                     'subset_streak_end_date' : subset_longest_streak_end_date,
                     'subset_streak_contribution' : round(subset_longest_streak_contribution,2),
                     'target' : self._measure_column,
-                    'top_dimension' : self._trend_result.get_top_dimension(self._dimension_column),
+                    'top_dimension' : top_level_name,
                     'dimension' : self._dimension_column,
         }
         output = {}
@@ -456,13 +490,13 @@ class OneWayAnovaNarratives:
         return df.assign(u_streak=s.where(s>0, 0.0), d_streak=s.where(s<0, 0.0).abs())
 
     def get_category(self, x):
-        if x['increase'][0] >= self._increase_limit:
-            if x['contribution'][0] >= self._contribution_limit:
+        if x['increase'] >= self._increase_limit:
+            if x['contribution'] >= self._contribution_limit:
                 return 'Leaders Club'
             else:
                 return 'Playing Safe'
         else:
-            if x['contribution'][0] >= self._contribution_limit:
+            if x['contribution'] >= self._contribution_limit:
                 return 'Opportunity Bay'
             else:
                 return 'Red Alert'
@@ -477,9 +511,13 @@ class OneWayAnovaNarratives:
         lines += NarrativesUtils.block_splitter('<h3>'+self._dimension_column_capitalized + '-' + self._measure_column_capitalized + ' Performance Decision Matrix</h3><br>'+
                                                 'Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.',
                                                 self._blockSplitter)
-        grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
-        grouped_data_frame['increase'] = (grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100/grouped_data_frame['measure']['first']
-        grouped_data_frame['contribution'] = grouped_data_frame['measure']['sum']*100/sum(grouped_data_frame['measure']['sum'])
+        grouped_data_frame = self._dimension_trend_data.get_grouped_data()
+        print grouped_data_frame
+        grouped_data_frame['increase'] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(grouped_data_frame["value"].iloc[1:],grouped_data_frame["value"])]
+        grouped_data_frame['contribution'] = grouped_data_frame['value']*100/float(grouped_data_frame['value'].sum())
+
+        # grouped_data_frame['increase'] = (grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100/grouped_data_frame['measure']['first']
+        # grouped_data_frame['contribution'] = grouped_data_frame['measure']['sum']*100/sum(grouped_data_frame['measure']['sum'])
         self._contribution_limit = grouped_data_frame['contribution'].mean()
         self._increase_limit = max(0.0, grouped_data_frame['increase'].mean())
         grouped_data_frame['category'] = grouped_data_frame.apply(self.get_category, axis=1)

@@ -1,5 +1,6 @@
 from bi.common.decorators import accepts
 import pandas as pd
+from datetime import datetime
 from utils import Stats
 from scipy import stats
 
@@ -20,6 +21,41 @@ class DFTwoWayAnovaResult:
         return self.result[measure].get_dimensions_analyzed()
     def get_significant_dimensions(self,measure):
         return self.result[measure].get_OneWayAnovaSignificantDimensions()
+
+class TrendData:
+    def __init__(self,grouped_data=None,startDate=None,endDate=None,duration=None,durationString=None,dataLevel=None):
+        self.grouped_data = grouped_data
+        self.endDate = endDate
+        self.startDate = startDate
+        self.duration = duration
+        self.durationString = durationString
+        self.dataLevel = dataLevel
+
+    @accepts(object,grouped_data=pd.DataFrame,endDate=datetime,startDate=datetime,
+            duration=(int,float),durationString=basestring,dataLevel=basestring)
+    def set_params(self,grouped_data,endDate,startDate,duration,durationString,dataLevel):
+        self.grouped_data = grouped_data
+        self.endDate = endDate
+        self.startDate = startDate
+        self.duration = duration
+        self.durationString = durationString
+        self.dataLevel = dataLevel
+
+    @accepts(object,data=pd.DataFrame)
+    def set_grouped_data(self,data):
+        self.grouped_data = data
+    def get_grouped_data(self):
+        return self.grouped_data.copy()
+    def get_end_date(self):
+        return self.endDate
+    def get_start_date(self):
+        return self.startDate
+    def get_data_level(self):
+        return self.dataLevel
+    def get_duration(self):
+        return self.duration
+    def get_duration_string(self):
+        return self.durationString
 
 class OneWayAnovaResult:
     """
@@ -103,11 +139,15 @@ class OneWayAnovaResult:
     def get_level_dataframe(self):
         return self.levelDf
 
+
+
 class TopLevelDfAnovaStats:
     def __init__(self):
         self.top_level_stat = None
         self.top_level_anova = {}
         self.contributions = {}
+        self.trendData = None
+
 
     @accepts(object,data=pd.DataFrame)
     def set_top_level_stat(self,data):
@@ -126,6 +166,8 @@ class TopLevelDfAnovaStats:
 
     @accepts(object,dimension=str,contributionDict=dict)
     def set_dimension_contributions(self,dimension,contributionDict):
+        print "contributionDict",contributionDict
+        print "#$"*23
         self.contributions[dimension] = contributionDict
 
     def get_top_significant_dimensions(self,n=5):
@@ -138,6 +180,13 @@ class TopLevelDfAnovaStats:
         sortedOutput = sorted(output,key=lambda x:x[2],reverse=True)
         return sortedOutput[:n]
 
+    @accepts(object,data=TrendData)
+    def set_trend_data(self,data):
+        self.trendData = data
+
+    def get_trend_data(self):
+        return self.trendData
+
 class MeasureAnovaResult:
     def __init__(self, measureColMean=None,measureColCount=None, measureColSst=None):
         self.global_mean = measureColMean
@@ -145,7 +194,7 @@ class MeasureAnovaResult:
         self.sst = measureColSst
         self.oneWayAnovaResultDict = {}
         self.topLevelDfAnovaResult = {}
-        self.TrendResult = ""
+        self.trendData = None
         #self.TwoWayAnovaResult = {}
 
     def get_one_way_anova_result(self,dimension):
@@ -181,11 +230,12 @@ class MeasureAnovaResult:
                 insignificant_dimensions.append(dimension)
         return significant_dimensions,insignificant_dimensions
 
-    def set_TrendResult(self, trend_result):
-        self.TrendResult = trend_result
+    @accepts(object,data=TrendData)
+    def set_trend_data(self, data):
+        self.trendData = data
 
-    def get_TrendResult(self):
-        return self.TrendResult
+    def get_trend_data(self):
+        return self.trendData
 
     def set_TwoWayAnovaResult(self, dimension1,dimension2, var, sse):
         if not self.TwoWayAnovaResult.has_key(dimension1):
@@ -323,6 +373,9 @@ class TopDimensionStats:
         else:
             significant_dimensions = sorted(significant_dimensions, key = lambda x: -self.effect_size[x])
             return significant_dimensions
+
+
+
 
 class TrendResult:
     def __init__(self, agg_data_frame, date_field, measure):

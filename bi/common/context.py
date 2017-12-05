@@ -274,6 +274,14 @@ class ContextSetter:
                         tempDict["analysisSubTypes"] = [val["name"] for val in obj["analysisSubTypes"] if val["status"]==True]
                         tempDict["name"] = obj["name"]
                         tempDict["displayName"] = obj["displayName"]
+                        if "binSetting" in obj:
+                            tempDict["binSetting"] = {}
+                            binSettingArray = obj["binSetting"]
+                            for val in binSettingArray:
+                                if val["name"] == "binLevels":
+                                    tempDict["binSetting"].update({"bins":val["value"]})
+                                elif val["name"] == "binCardinality":
+                                    tempDict["binSetting"].update({"binCardinality":val["value"]})
                         if obj["noOfColumnsToUse"] == None:
                             tempDict["noOfColumnsToUse"] = None
                         else:

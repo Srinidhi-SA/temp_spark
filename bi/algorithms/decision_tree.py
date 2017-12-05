@@ -216,7 +216,7 @@ class DecisionTrees:
         all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
         cat_feature_info = []
-        columns_without_dimension = list(x for x in all_dimensions if x != dimension)
+        columns_without_dimension = [x for x in all_dimensions if x != dimension]
         mapping_dict = {}
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
@@ -231,6 +231,7 @@ class DecisionTrees:
         for k,v in mapping_dict.items():
             temp = {}
             for k1,v1 in v.items():
+                print k1,v1
                 self._alias_dict[v1.replace(",","")] = v1
                 temp[k1] = v1.replace(",","")
             mapping_dict[k] = temp
@@ -247,7 +248,9 @@ class DecisionTrees:
             max_length = max(cat_feature_info)
         else:
             max_length=32
+        print cat_feature_info
         cat_feature_info = dict(enumerate(cat_feature_info))
+        print cat_feature_info
         dimension_classes = self._data_frame.select(dimension).distinct().count()
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
@@ -260,6 +263,11 @@ class DecisionTrees:
         self._new_tree = self.wrap_tree(self._new_tree)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
+        print self._new_tree
+        print self._new_rules
+        print self._total
+        print self._success
+        print self._probability
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["treegeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
