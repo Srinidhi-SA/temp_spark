@@ -131,26 +131,26 @@ def main(configJson):
         data_load_time = time.time() - data_loading_st
         print "Data Loading Time ",data_load_time," Seconds"
         print "Retrieving MetaData"
-        if debugMode != True:
-            print "Retrieving MetaData"
-            metaDataObj = CommonUtils.get_metadata(dataframe_context)
-            dataframe_context.set_metadata_object(metaDataObj)
-        else:
-            try:
-                # checking if metadata exist for the dataset
-                # else it will run metadata first
-                # while running in debug mode the dataset_slug should be correct or some random String
-                metaDataObj = CommonUtils.get_metadata(dataframe_context)
-                dataframe_context.set_metadata_object(metaDataObj)
-            except:
-                fs = time.time()
-                print "starting Metadata"
-                dataframe_context.set_metadata_ignore_msg_flag(True)
-                meta_data_class = MetaDataScript(df,spark,dataframe_context)
-                meta_data_object = meta_data_class.run()
-                metaDataObj = CommonUtils.convert_python_object_to_json(meta_data_object)
-                print "metaData Analysis Done in ", time.time() - fs, " seconds."
-                dataframe_context.set_metadata_object(metaDataObj)
+        # if debugMode != True:
+        #     print "Retrieving MetaData"
+        #     metaDataObj = CommonUtils.get_metadata(dataframe_context)
+        #     dataframe_context.set_metadata_object(metaDataObj)
+        # else:
+        #     try:
+        #         # checking if metadata exist for the dataset
+        #         # else it will run metadata first
+        #         # while running in debug mode the dataset_slug should be correct or some random String
+        #         metaDataObj = CommonUtils.get_metadata(dataframe_context)
+        #         dataframe_context.set_metadata_object(metaDataObj)
+        #     except:
+        #         fs = time.time()
+        #         print "starting Metadata"
+        #         dataframe_context.set_metadata_ignore_msg_flag(True)
+        #         meta_data_class = MetaDataScript(df,spark,dataframe_context)
+        #         meta_data_object = meta_data_class.run()
+        #         metaDataObj = CommonUtils.convert_python_object_to_json(meta_data_object)
+        #         print "metaData Analysis Done in ", time.time() - fs, " seconds."
+        #         dataframe_context.set_metadata_object(metaDataObj)
 
 
         if jobType != "metaData":

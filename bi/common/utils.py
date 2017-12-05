@@ -413,7 +413,7 @@ def get_story_config():
                                         "value" : None
                                     }
                                 ],
-                                "status" : True,
+                                "status" : False,
                             },
                             {
                                 "analysisSubTypes" : [],
@@ -453,7 +453,7 @@ def get_story_config():
                                 "displayName" : "Prediction",
                                 "name" : "prediction",
                                 "noOfColumnsToUse" : None,
-                                "status" : False
+                                "status" : True
                             }
                         ],
                         "trendSettings" : [
@@ -470,7 +470,7 @@ def get_story_config():
                     },
                     "COLUMN_SETTINGS" : {
                         "analysis_type" : [
-                            "measure"
+                            "dimension"
                         ],
                         "consider_columns" : [
                             "Deal_Type",
@@ -505,7 +505,7 @@ def get_story_config():
                             "positive"
                         ],
                         "result_column" : [
-                            "Sales"
+                            "Source"
                         ],
                         "utf8_column_suggestions" : []
                     },

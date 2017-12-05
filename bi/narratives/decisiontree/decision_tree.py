@@ -101,66 +101,129 @@ class DecisionTreeNarrative:
     def _generate_narratives(self):
         self._generate_summary()
 
-    def _generate_summary(self):
-        rules = self._decision_rules_dict
-        colname = self._colname
-        data_dict = {"dimension_name":self._colname}
-        data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
-        data_dict["significant_vars"] = []
-        rules_dict = self._table
-        self.condensedTable={}
-        for target in rules_dict.keys():
-            self.condensedTable[target]=[]
-            total = self.total_predictions[target]
-            success = self.succesful_predictions[target]
-            success_percent = self.success_percent[target]
-            for idx,rule in enumerate(rules_dict[target]):
-                rules1 = self._generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
-                self.condensedTable[target].append(rules1)
-        self.dropdownValues = rules_dict.keys()
-        data_dict["blockSplitter"] = self._blockSplitter
-        data_dict['rules'] = self.condensedTable
-        data_dict['success'] = self.success_percent
-        data_dict['significant_vars'] = list(set(itertools.chain.from_iterable(self._important_vars.values())))
-        data_dict['significant_vars'] = self._important_vars
-        # print '*'*16
-        # print data_dict['rules']
-        # print self._new_table
-        self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_tree_card2.html',data_dict))
-        self.card2_chart = self._target_distribution
+    # def _generate_summary(self):
+    #     rules = self._decision_rules_dict
+    #     colname = self._colname
+    #     data_dict = {"dimension_name":self._colname}
+    #     data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
+    #     data_dict["significant_vars"] = []
+    #     rules_dict = self._table
+    #     self.condensedTable={}
+    #     for target in rules_dict.keys():
+    #         self.condensedTable[target]=[]
+    #         total = self.total_predictions[target]
+    #         success = self.succesful_predictions[target]
+    #         success_percent = self.success_percent[target]
+    #         for idx,rule in enumerate(rules_dict[target]):
+    #             rules1 = self._generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
+    #             self.condensedTable[target].append(rules1)
+    #     self.dropdownValues = rules_dict.keys()
+    #     data_dict["blockSplitter"] = self._blockSplitter
+    #     data_dict['rules'] = self.condensedTable
+    #     data_dict['success'] = self.success_percent
+    #     data_dict['significant_vars'] = list(set(itertools.chain.from_iterable(self._important_vars.values())))
+    #     data_dict['significant_vars'] = self._important_vars
+    #     # print '*'*16
+    #     # print data_dict['rules']
+    #     # print self._new_table
+    #     self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
+    #                                                 'decision_tree_card2.html',data_dict))
+    #     self.card2_chart = self._target_distribution
+    #
+    #     self.dropdownComment = NarrativesUtils.get_template_output(self._base_dir,\
+    #                                                 'decision_rule_summary.html',data_dict)
+    #     main_card = NormalCard()
+    #     main_card_data = []
+    #     main_card_narrative = NarrativesUtils.block_splitter(self.dropdownComment,self._blockSplitter)
+    #     main_card_data += main_card_narrative
+    #     main_card_data.append(TreeData(data=self._decision_tree_raw))
+    #     main_card_table = TableData()
+    #     main_card_table.set_table_data(self._decisionTreeCard1Table)
+    #     main_card_table.set_table_type("decisionTreeTable")
+    #     main_card_data.append(main_card_table)
+    #     main_card.set_card_data(main_card_data)
+    #     main_card.set_card_name("Predicting Key Drivers of {}".format(self._colname))
+    #     card2 = NormalCard()
+    #     card2Data = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,\
+    #                                                 'decision_tree_card2.html',data_dict),self._blockSplitter)
+    #     card2ChartData = []
+    #     for k,v in self._target_distribution.items():
+    #         card2ChartData.append({"key":k,"value":v})
+    #     card2ChartData = NormalChartData(data=card2ChartData)
+    #     card2ChartJson = ChartJson()
+    #     card2ChartJson.set_data(card2ChartData.get_data())
+    #     card2ChartJson.set_chart_type("bar")
+    #     card2ChartJson.set_axes({"x":"key","y":"value"})
+    #     card2Data.insert(1,C3ChartData(data=card2ChartJson))
+    #     card2.set_card_data(card2Data)
+    #     card2.set_card_name("Decision Rules for {}".format(self._colname))
+    #     self._decisionTreeNode.add_a_card(main_card)
+    #     self._decisionTreeNode.add_a_card(card2)
+    #     self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
+    #                                     'decision_tree_summary.html',data_dict)
 
-        self.dropdownComment = NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_rule_summary.html',data_dict)
+    def _generate_summary(self):
+        data_dict = {}
+        rules_dict = self._table
+        data_dict["blockSplitter"] = self._blockSplitter
+        groups = rules_dict.keys()
+        probabilityGroups=[{"probability":90,"count":0,"range":[90,100]},{"probability":70,"count":0,"range":[0,70]}]
+
+        tableArray = [[
+                "Prediction Rule",
+                "Probability",
+                "Prediction",
+                "Freq"
+              ]]
+        dropdownData = []
+        chartDict = {}
+        for idx,target in enumerate(rules_dict.keys()):
+            if idx == 0:
+                dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
+            else:
+                dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
+            rulesArray = rules_dict[target]
+            probabilityArray = [round(x,2) for x in self.success_percent[target]]
+            for idx,obj in enumerate(probabilityGroups):
+                grpCount = len([x for x in probabilityArray if x > obj["range"][0] and x <= obj["range"][1]])
+                obj["count"] += grpCount
+                probabilityGroups[idx] = obj
+            predictionArray = [target]*len(rulesArray)
+            freqArray = self.total_predictions[target]
+            chartDict[target] = sum(freqArray)
+            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray)
+            targetArray = [list(x) for x in targetArray]
+            tableArray += targetArray
+
+        mainCardChart = {"dataType": "c3Chart", "data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
+
+        dropdownDict = {
+          "dataType": "dropdown",
+          "label": "Showing prediction rules for",
+          "data": dropdownData
+        }
+
+        data_dict["probabilityGroups"] = probabilityGroups
+
+        maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
+                                                    'decisiontreesummary.html',data_dict)
         main_card = NormalCard()
         main_card_data = []
-        main_card_narrative = NarrativesUtils.block_splitter(self.dropdownComment,self._blockSplitter)
+        main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,self._blockSplitter)
         main_card_data += main_card_narrative
-        main_card_data.append(TreeData(data=self._decision_tree_raw))
+
+        main_card_data.append(mainCardChart)
+        main_card_data.append(dropdownDict)
+
         main_card_table = TableData()
-        main_card_table.set_table_data(self._decisionTreeCard1Table)
-        main_card_table.set_table_type("decisionTreeTable")
+        main_card_table.set_table_data(tableArray)
+        main_card_table.set_table_type("popupDecisionTreeTable")
         main_card_data.append(main_card_table)
         main_card.set_card_data(main_card_data)
         main_card.set_card_name("Predicting Key Drivers of {}".format(self._colname))
-        card2 = NormalCard()
-        card2Data = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_tree_card2.html',data_dict),self._blockSplitter)
-        card2ChartData = []
-        for k,v in self._target_distribution.items():
-            card2ChartData.append({"key":k,"value":v})
-        card2ChartData = NormalChartData(data=card2ChartData)
-        card2ChartJson = ChartJson()
-        card2ChartJson.set_data(card2ChartData.get_data())
-        card2ChartJson.set_chart_type("bar")
-        card2ChartJson.set_axes({"x":"key","y":"value"})
-        card2Data.insert(1,C3ChartData(data=card2ChartJson))
-        card2.set_card_data(card2Data)
-        card2.set_card_name("Decision Rules for {}".format(self._colname))
         self._decisionTreeNode.add_a_card(main_card)
-        self._decisionTreeNode.add_a_card(card2)
-        self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'decision_tree_summary.html',data_dict)
+
+
 
     def _generate_rules(self,target,rules, total, success, success_percent):
         colname = self._colname
