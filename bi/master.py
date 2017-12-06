@@ -66,7 +66,7 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/common/utils.py
-            jobType = "training"
+            jobType = "story"
             testConfigs = CommonUtils.get_test_configs()
             configJson = testConfigs[jobType]
 
@@ -534,7 +534,7 @@ def main(configJson):
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatures"]
                 model_configs["dimensionLevelCount"] = obj["levelcount"]
         model_configs["modelFeatures"] = model_features
-        print "Model Configs",model_configs
+        # print "Model Configs",model_configs
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)

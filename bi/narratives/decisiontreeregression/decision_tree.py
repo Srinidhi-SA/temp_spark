@@ -17,9 +17,9 @@ class DecisionTreeRegNarrative:
 
     def _get_new_table(self):
         self.card1Table = [["PREDICTION","RULES","PERCENTAGE"]]
-        for keys in self.table.keys():
+        for keys in self._table.keys():
             self.new_table[keys]={}
-            self.new_table[keys]['rules'] = self.table[keys]
+            self.new_table[keys]['rules'] = self._table[keys]
             self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
             keyTable = [keys,self.new_table[keys]['rules'],self.new_table[keys]['probability']]
             self.card1Table.append(keyTable)
@@ -34,7 +34,7 @@ class DecisionTreeRegNarrative:
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
-        self.table = decision_tree_rules.get_table()
+        self._table = decision_tree_rules.get_table()
         self.new_table={}
         self.succesful_predictions=decision_tree_rules.get_success()
         self.total_predictions=decision_tree_rules.get_total()
@@ -92,70 +92,141 @@ class DecisionTreeRegNarrative:
 
 
     def _generate_narratives(self):
-        self._decisionTreeCard1 = NormalCard(name = 'Predicting key drivers of '+self._capitalized_column_name)
-        self._decisionTreeCard2 = NormalCard(name = 'Decision Rules of '+self._capitalized_column_name)
+        # self._decisionTreeCard1 = NormalCard(name = 'Predicting key drivers of '+self._capitalized_column_name)
+        # self._decisionTreeCard2 = NormalCard(name = 'Decision Rules of '+self._capitalized_column_name)
         self._generate_summary()
-        self._decisionTreeNode.add_cards([self._decisionTreeCard1,self._decisionTreeCard2])
+        # self._decisionTreeNode.add_cards([self._decisionTreeCard1,self._decisionTreeCard2])
+
+    # def _generate_summary(self):
+    #     rules = self._decision_rules_dict
+    #     colname = self._colname
+    #     data_dict = {"dimension_name":self._colname}
+    #     data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
+    #     data_dict["significant_vars"] = []
+    #     if "High" in self._important_vars:
+    #         data_dict['significant_vars_high'] = self._important_vars['High']
+    #     if "Low" in self._important_vars:
+    #         data_dict['significant_vars_low'] = self._important_vars['Low']
+    #     rules_dict = self._table
+    #     self.condensedTable={}
+    #     for target in rules_dict.keys():
+    #         self.condensedTable[target]=[]
+    #         total = self.total_predictions[target]
+    #         success = self.succesful_predictions[target]
+    #         success_percent = self.success_percent[target]
+    #         for idx,rule in enumerate(rules_dict[target]):
+    #             rules1 = self._generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
+    #             self.condensedTable[target].append(rules1)
+    #     self.dropdownValues = rules_dict.keys()
+    #     lines2 = []
+    #     lines2 += NarrativesUtils.block_splitter('Most Significant Rules for Price :',self._blockSplitter)
+    #     lines2 += [TreeData(data=self.condensedTable,datatype='dropdown')]
+    #     self._decisionTreeCard2.add_card_data(lines2)
+    #     if "High" in self.condensedTable:
+    #         data_dict['rules_list_high'] = self.condensedTable['High']
+    #     if "Low" in self.condensedTable:
+    #         data_dict['rules_list_low'] = self.condensedTable['Low']
+    #     print self._target_distribution.keys()
+    #     if "High" in self._target_distribution:
+    #         data_dict['count_percent_high'] = NarrativesUtils.round_number(self._target_distribution['High']['count_percent'],2)
+    #         data_dict['sum_percent_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum_percent'],2)
+    #         data_dict['sum_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum'],2)
+    #         data_dict['average_high_group'] = self._target_distribution['High']['sum']*1.0/self._target_distribution['High']['count']
+    #     if "Low" in self._target_distribution:
+    #         data_dict['count_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['count_percent'],2)
+    #         data_dict['sum_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['sum_percent'],2)
+    #     data_dict['average_overall'] = sum([self._target_distribution[i]['sum'] for i in self._target_distribution])*1.0/sum([self._target_distribution[i]['count'] for i in self._target_distribution])
+    #     data_dict['high_vs_overall'] = data_dict['average_high_group']*100.0/data_dict['average_high_group'] - 100
+    #     self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
+    #                                                 'decision_reg_card2.html',data_dict))
+    #     self.card2_chart = {'sum' : dict([(k,v['sum']) for k,v in self._target_distribution.items()]),
+    #                         'mean': dict([(k,v['sum']*1.0/v['count']) for k,v in self._target_distribution.items()]),
+    #                         'legends': {'sum': self._capitalized_column_name+' Total',
+    #                                     'mean': self._capitalized_column_name+' Avg'}}
+    #     self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
+    #                                     'decision_tree_summary.html',data_dict)
+    #     lines = []
+    #     lines += NarrativesUtils.block_splitter(self.subheader,self._blockSplitter)
+    #     tableData = TableData(data={"tableType" : "decisionTreeTable",'tableData':self.card1Table})
+    #     lines += [TreeData(data=self._decision_rules_dict),tableData]
+    #     self._decisionTreeCard1.add_card_data(lines)
+    #     # executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],
+    #     #                           "average_high_group" : data_dict["average_high_group"],
+    #     #                           "average_overall" : data_dict["average_overall"],
+    #     #                           "high_vs_overall" : data_dict["high_vs_overall"]
+    #     #                          }
+    #     # self._result_setter.update_executive_summary_data(executive_summary_data)
 
     def _generate_summary(self):
-        rules = self._decision_rules_dict
-        colname = self._colname
-        data_dict = {"dimension_name":self._colname}
-        data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["dimension_name"])
-        data_dict["significant_vars"] = []
-        if "High" in self._important_vars:
-            data_dict['significant_vars_high'] = self._important_vars['High']
-        if "Low" in self._important_vars:
-            data_dict['significant_vars_low'] = self._important_vars['Low']
-        rules_dict = self.table
-        self.condensedTable={}
-        for target in rules_dict.keys():
-            self.condensedTable[target]=[]
-            total = self.total_predictions[target]
-            success = self.succesful_predictions[target]
-            success_percent = self.success_percent[target]
-            for idx,rule in enumerate(rules_dict[target]):
-                rules1 = self._generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
-                self.condensedTable[target].append(rules1)
-        self.dropdownValues = rules_dict.keys()
-        lines2 = []
-        lines2 += NarrativesUtils.block_splitter('Most Significant Rules for Price :',self._blockSplitter)
-        lines2 += [TreeData(data=self.condensedTable,datatype='dropdown')]
-        self._decisionTreeCard2.add_card_data(lines2)
-        if "High" in self.condensedTable:
-            data_dict['rules_list_high'] = self.condensedTable['High']
-        if "Low" in self.condensedTable:
-            data_dict['rules_list_low'] = self.condensedTable['Low']
-        print self._target_distribution.keys()
-        if "High" in self._target_distribution:
-            data_dict['count_percent_high'] = NarrativesUtils.round_number(self._target_distribution['High']['count_percent'],2)
-            data_dict['sum_percent_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum_percent'],2)
-            data_dict['sum_high'] =  NarrativesUtils.round_number(self._target_distribution['High']['sum'],2)
-            data_dict['average_high_group'] = self._target_distribution['High']['sum']*1.0/self._target_distribution['High']['count']
-        if "Low" in self._target_distribution:
-            data_dict['count_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['count_percent'],2)
-            data_dict['sum_percent_low'] =  NarrativesUtils.round_number(self._target_distribution['Low']['sum_percent'],2)
-        data_dict['average_overall'] = sum([self._target_distribution[i]['sum'] for i in self._target_distribution])*1.0/sum([self._target_distribution[i]['count'] for i in self._target_distribution])
-        data_dict['high_vs_overall'] = data_dict['average_high_group']*100.0/data_dict['average_high_group'] - 100
-        self.card2_data = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decision_reg_card2.html',data_dict))
-        self.card2_chart = {'sum' : dict([(k,v['sum']) for k,v in self._target_distribution.items()]),
-                            'mean': dict([(k,v['sum']*1.0/v['count']) for k,v in self._target_distribution.items()]),
-                            'legends': {'sum': self._capitalized_column_name+' Total',
-                                        'mean': self._capitalized_column_name+' Avg'}}
-        self.subheader = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'decision_tree_summary.html',data_dict)
-        lines = []
-        lines += NarrativesUtils.block_splitter(self.subheader,self._blockSplitter)
-        tableData = TableData(data={"tableType" : "decisionTreeTable",'tableData':self.card1Table})
-        lines += [TreeData(data=self._decision_rules_dict),tableData]
-        self._decisionTreeCard1.add_card_data(lines)
-        # executive_summary_data = {"rules_list_high":data_dict['rules_list_high'],
-        #                           "average_high_group" : data_dict["average_high_group"],
-        #                           "average_overall" : data_dict["average_overall"],
-        #                           "high_vs_overall" : data_dict["high_vs_overall"]
-        #                          }
-        # self._result_setter.update_executive_summary_data(executive_summary_data)
+        data_dict = {}
+        rules_dict = self._table
+        data_dict["blockSplitter"] = self._blockSplitter
+        groups = rules_dict.keys()
+        probabilityCutoff = 75
+        probabilityGroups=[{"probability":probabilityCutoff,"count":0,"range":[probabilityCutoff,100]},{"probability":probabilityCutoff-1,"count":0,"range":[0,probabilityCutoff-1]}]
+        tableArray = [[
+                "Prediction Rule",
+                "Probability",
+                "Prediction",
+                "Freq",
+                "group"
+              ]]
+        dropdownData = []
+        chartDict = {}
+        for idx,target in enumerate(rules_dict.keys()):
+            if idx == 0:
+                dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
+            else:
+                dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
+            rulesArray = rules_dict[target]
+            probabilityArray = [round(x,2) for x in self.success_percent[target]]
+            groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
+            for idx,obj in enumerate(probabilityGroups):
+                grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
+                obj["count"] += grpCount
+                probabilityGroups[idx] = obj
+            predictionArray = [target]*len(rulesArray)
+            freqArray = self.total_predictions[target]
+            chartDict[target] = sum(freqArray)
+            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
+            targetArray = [list(x) for x in targetArray]
+            tableArray += targetArray
+
+        chartData = NormalChartData([chartDict]).get_data()
+        chartJson = ChartJson(data=chartData)
+        chartJson.set_title(self._colname)
+        chartJson.set_chart_type("donut")
+        mainCardChart = C3ChartData(data=chartJson)
+        mainCardChart.set_width_percent(33)
+        # mainCardChart = {"dataType": "c3Chart","widthPercent":33 ,"data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
+
+
+        dropdownDict = {
+          "dataType": "dropdown",
+          "label": "Showing prediction rules for",
+          "data": dropdownData
+        }
+
+        data_dict["probabilityGroups"] = probabilityGroups
+
+        maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
+                                                    'decisiontreesummary.html',data_dict)
+        main_card = NormalCard()
+        main_card_data = []
+        main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,self._blockSplitter)
+        main_card_data += main_card_narrative
+
+        main_card_data.append(mainCardChart)
+        main_card_data.append(dropdownDict)
+
+        main_card_table = TableData()
+        main_card_table.set_table_data(tableArray)
+        main_card_table.set_table_type("popupDecisionTreeTable")
+        main_card_data.append(main_card_table)
+        main_card.set_card_data(main_card_data)
+        main_card.set_card_name("Predicting Key Drivers of {}".format(self._colname))
+        self._decisionTreeNode.add_a_card(main_card)
+
 
     def _generate_rules(self,target,rules, total, success, success_percent):
         colname = self._colname

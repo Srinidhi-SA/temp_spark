@@ -174,6 +174,7 @@ def calculate_confusion_matrix(actual,predicted):
                 additional_data = dict(zip(missing_keys,[0]*len(missing_keys)))
                 temp.update(additional_data)
                 dict_out[k] = temp
+    print dict_out
     return dict_out
 
 def reformat_confusion_matrix(confusion_matrix):
@@ -203,12 +204,13 @@ def calculate_overall_precision_recall(actual,predicted):
     # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
     # positive_class = __builtin__.max(val_counts,key=val_counts.get)
     positive_class = __builtin__.min(val_counts,key=val_counts.get)
-    # positive_class = max(val_counts.iteritems(), key=operator.itemgetter(1))[0]
+    print val_counts
+    print "positive_class",positive_class
 
-    class_precision_recall = calculate_precision_recall(actual,predicted)
-    output = {"precision":0,"recall":0,"classwise_stats":class_precision_recall,"prediction_split":prediction_split,"positive_class":positive_class}
-
+    output = {"precision":0,"recall":0,"classwise_stats":None,"prediction_split":prediction_split,"positive_class":positive_class}
     if len(classes) > 2:
+        class_precision_recall = calculate_precision_recall(actual,predicted)
+        output["classwise_stats"] = class_precision_recall
         p = []
         r = []
         for val in class_precision_recall.keys():
@@ -230,10 +232,14 @@ def calculate_overall_precision_recall(actual,predicted):
             output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
         else:
             output["recall"] = 0.0
+    print output
     return output
 
-def calculate_precision_recall(actual,predicted):
-    df = pd.DataFrame({"actual":actual,"predicted":predicted})
+def calculate_precision_recall(actual,predicted,df=None):
+    if df == None:
+        df = pd.DataFrame({"actual":actual,"predicted":predicted})
+    else:
+        df=df
     classes = df["actual"].unique()
     output = {}
     for val in classes:
