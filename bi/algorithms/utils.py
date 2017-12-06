@@ -566,3 +566,13 @@ def slug_model_mapping():
                 random_slug+"xgb":"xgboost"
                 }
     return object
+
+def reformat_confusion_matrix(confusion_matrix):
+    levels = confusion_matrix.keys()
+    confusion_matrix_data = [[""]+levels]
+    for outer in levels:
+        inner_list = [outer]
+        for inner in levels:
+            inner_list.append(confusion_matrix[inner][outer])
+        confusion_matrix_data.append(inner_list)
+    return [list(x) for x in np.array(confusion_matrix_data).T]
