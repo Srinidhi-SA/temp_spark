@@ -185,7 +185,7 @@ class DecisionTreeNarrative:
                 dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
             rulesArray = rules_dict[target]
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
-            groupArray = ["strong" if x>=probabilityCutoff else "weak" for x in probabilityArray]
+            groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
             for idx,obj in enumerate(probabilityGroups):
                 grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
                 obj["count"] += grpCount
