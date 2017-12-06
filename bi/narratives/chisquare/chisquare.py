@@ -5,7 +5,7 @@ import random
 import numpy
 from pyspark.sql.functions import col
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,ToggleData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import utils as CommonUtils
 
@@ -229,22 +229,30 @@ class ChiSquareAnalysis:
         targetDimCard1Data = []
         targetDimcard1Heading = '<h3>Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension+"</h3>"
 
+        toggledata = ToggleData()
+
         targetDimTable1Data = self.generate_card1_table1()
         targetDimCard1Table1 = TableData()
         targetDimCard1Table1.set_table_type("heatMap")
         targetDimCard1Table1.set_table_data(targetDimTable1Data)
+        print "Table1"
         print targetDimTable1Data
+        toggledata.set_toggleon_data({"data":{"tableData":targetDimTable1Data,"tableType":"heatMap"},"dataType":"table"})
 
-        # targetDimTable2Data = self.generate_card1_table2()
-        # print "Table 2"
-        # print targetDimTable2Data
-        # targetDimCard1Table2 = TableData()
-        # targetDimCard1Table2.set_table_type("normal")
-        # targetDimCard1Table2.set_table_data(targetDimTable2Data["data1"])
+
+        targetDimTable2Data = self.generate_card1_table2()
+        print "Table 2"
+        targetDimCard1Table2 = TableData()
+        targetDimCard1Table2.set_table_type("normal")
+        print targetDimTable2Data["data1"]
+        targetDimCard1Table2.set_table_data(targetDimTable2Data["data1"])
+
+        toggledata.set_toggleoff_data({"data":{"tableData":targetDimTable2Data["data1"],"tableType":"normal"},"dataType":"table"})
 
         targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
-        targetDimCard1Data.append(targetDimCard1Table1)
+        # targetDimCard1Data.append(targetDimCard1Table1)
         # targetDimCard1Data.append(targetDimCard1Table2)
+        targetDimCard1Data.append(toggledata)
         targetDimCard1Data += output
 
         self._card1.set_card_data(targetDimCard1Data)

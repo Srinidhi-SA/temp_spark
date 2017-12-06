@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from bi.common.decorators import accepts
 """
 This module contains Card Structure for Narratives
 """
@@ -296,6 +297,9 @@ class TableData:
 
     def set_table_data(self,data):
         self.data["tableData"] = data
+        print "#"*10
+        print self.data["tableData"]
+        print "#"*10
 
     def set_table_type(self,data):
         self.data["tableType"] = data
@@ -325,6 +329,25 @@ class C3ChartData:
 
     def set_width_percent(self,data):
         self.widthPercent = data
+
+    def get_data(self):
+        return self.data
+
+    def get_data_type(self):
+        return self.dataType
+
+class ToggleData:
+    def __init__(self,data=None):
+        self.dataType = "toggle"
+        self.data = {"toggleon":None,"toggleoff":None}
+
+    @accepts(object,data=TableData)
+    def set_toggleon_data(self,data):
+        self.data["toggleon"] = data
+
+    @accepts(object,data=TableData)
+    def set_toggleoff_data(self,data):
+        self.data["toggleoff"] = data
 
     def get_data(self):
         return self.data
