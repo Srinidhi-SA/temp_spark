@@ -468,16 +468,22 @@ class ChiSquareAnalysis:
 
     def generate_card1_table2(self):
         table = self._chiSquareTable.table
+        # print table
         table_percent = self._chiSquareTable.table_percent
+        # print table_percent
         table_percent_by_row = self._chiSquareTable.table_percent_by_row
+        # print table_percent_by_row
         table_percent_by_column = self._chiSquareTable.table_percent_by_column
+        # print table_percent_by_column
         target_levels = self._chiSquareTable.get_column_one_levels()
+        # print target_levels
         dim_levels = self._chiSquareTable.get_column_two_levels()
+        # print dim_levels
 
         header1 = [self._analysed_dimension] + target_levels + ['Total']
         header = ['State','Active','Churn','Total'] #TODO remove
         data = []
-        data1=[['Tag']+header]
+        data1=[['Tag']+header1]
 
         for idx, lvl in enumerate(dim_levels):
             first_row = ['Tag']+header
