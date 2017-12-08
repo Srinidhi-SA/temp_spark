@@ -334,6 +334,17 @@ def get_duration_string(datarange):
         durationString = yr+" years"
     return durationString
 
+def get_splits(minVal,maxVal,n_split):
+    # splits  = frange(minVal,maxVal,num_steps=n_split)
+    diff = (maxVal - minVal)*1.0
+    splits = [minVal,minVal+diff*0.2,minVal+diff*0.4,minVal+diff*0.6,minVal+diff*0.8,maxVal]
+    splits = sorted(splits)
+    splits_range = [(splits[idx],splits[idx+1]) for idx in range(len(splits)-1)]
+    splits_data = {"splits":splits,"splits_range":splits_range}
+    str_splits_range = [" to ".join([str(x[0]),str(x[1])]) for x in splits_range]
+    splits_data["bin_mapping"] = dict(zip(range(len(splits_range)),str_splits_range))
+    return splits_data
+
 def get_story_config():
     storyConfig = {
 
@@ -470,6 +481,9 @@ def get_story_config():
                         ]
                     },
                     "COLUMN_SETTINGS" : {
+                        "customAnalysisDetails":[
+                            {"colName":"Marketing_Cost"},
+                        ],
                         "analysis_type" : [
                             "dimension"
                         ],

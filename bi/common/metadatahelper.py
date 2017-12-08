@@ -22,7 +22,7 @@ from bi.common.decorators import accepts
 class MetaDataHelper():
 
     def __init__(self):
-        print "Initializing Meta Helper Instance"
+        print "Initializ"
 
 
     def get_binned_stat(self,df,colname,col_stat,n_split = 10):

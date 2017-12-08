@@ -1,5 +1,6 @@
 from functools import reduce
 import json
+import time
 import datetime as dt
 # import dateparser
 import pandas as pd
@@ -15,6 +16,10 @@ from bi.common import utils as CommonUtils
 from column import ColumnType
 from decorators import accepts
 from exception import BIException
+
+from pyspark.ml.feature import QuantileDiscretizer,Bucketizer
+from pyspark.sql.functions import col, create_map, lit
+from itertools import chain
 
 
 class DataFrameHelper:
@@ -56,10 +61,17 @@ class DataFrameHelper:
         self._date_formats = {}
         self.significant_dimensions = {}
         self.chisquare_significant_dimensions = {}
-        
+
     def set_params(self):
         print "Setting the dataframe"
+        customDetails = self._df_context.get_custom_analysis_details()
+        print customDetails
         self.columns = [field.name for field in self._data_frame.schema.fields]
+        if customDetails != None:
+            colsToBin = [x["colName"] for x in customDetails]
+            print colsToBin
+            self.bin_columns(colsToBin)
+
         self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
         if self.ignorecolumns == None:
             self.ignorecolumns = []
@@ -127,7 +139,7 @@ class DataFrameHelper:
         #for colmn in self.date_filter.keys():
         #    self.df_filterer.dates_between(colmn, dt.date(int(self.date_filter[colmn][2]),int(self.date_filter[colmn][1]),int(self.date_filter[colmn][0])),
         #                                        dt.date(int(self.date_filter[colmn][5]),int(self.date_filter[colmn][4]),int(self.date_filter[colmn][3])))
-        self._update_meta()
+        self.update_meta()
         self._populate_column_data()
 
         if self._data_frame.count() > 5000:
@@ -188,7 +200,7 @@ class DataFrameHelper:
         except:
             pass
 
-    def _update_meta(self):
+    def update_meta(self):
         self.columns = [field.name for field in self._data_frame.schema.fields]
         self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
         self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
@@ -199,6 +211,21 @@ class DataFrameHelper:
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
         self.num_rows = self._data_frame.count()
         self.num_columns = len(self._data_frame.columns)
+
+    def bin_columns(self,colsToBin):
+        for bincol in colsToBin:
+            minval,maxval = self._data_frame.select([FN.max(bincol).alias("max"),FN.min(bincol).alias("min")]).collect()[0]
+            n_split=10
+            splitsData = CommonUtils.get_splits(minval,maxval,n_split)
+            splits = splitsData["splits"]
+            bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
+            bucketizer.setSplits(splits)
+            self._data_frame = bucketizer.transform(self._data_frame)
+            mapping_expr = create_map([lit(x) for x in chain(*splitsData["bin_mapping"].items())])
+            self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
+            self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
+            self._data_frame = self._data_frame.select(self.columns)
+
 
     def get_column_data_types(self):
         return self.column_data_types
@@ -328,7 +355,7 @@ class DataFrameHelper:
                 self.drop_columns = list(set(self.columns) - set(self.consider_columns))
                 self._data_frame = reduce(DataFrame.drop, self.drop_columns, self._data_frame)
                 self.columns = [field.name for field in self._data_frame.schema.fields]
-        self._update_meta()
+        self.update_meta()
 
 
     def drop_ignore_columns(self):
@@ -337,7 +364,7 @@ class DataFrameHelper:
         """
         if self.ignorecolumns != None:
             self._data_frame = self._data_frame.select([c for c in self._data_frame.columns if c not in self.ignorecolumns ])
-            self._update_meta()
+            self.update_meta()
         else:
             self._data_frame = self._data_frame
 
