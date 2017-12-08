@@ -254,6 +254,8 @@ class ContextSetter:
                 self.scoreconsidercolumnstype = self.COLUMN_SETTINGS.get('score_consider_columns_type')
             if "dateTimeSuggestions" in columnSettingKeys:
                 self.dateTimeSuggestions = self.COLUMN_SETTINGS.get('dateTimeSuggestions')
+            if "customAnalysisDetails" in columnSettingKeys:
+                self.customAnalysisDetails = self.COLUMN_SETTINGS.get('customAnalysisDetails')
 
         if len(filterSettingKeys) > 0:
             if "dimensionColumnFilters" in filterSettingKeys:
@@ -347,6 +349,12 @@ class ContextSetter:
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def get_custom_analysis_details(self):
+        if self.customAnalysisDetails:
+            return self.customAnalysisDetails
+        else:
+            return None
+            
     def get_metadata_url(self):
         return self.METADATA_URL
 

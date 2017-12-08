@@ -1105,7 +1105,7 @@ def get_subsetting_config():
                                     {
                                         "actionName" : "data_type",
                                         "displayName" : "Change Datatype",
-                                        "listOfDataTypes" : [
+                                        "listOfActions" : [
                                             {
                                                 "displayName" : "Numeric",
                                                 "name" : "numeric",
@@ -1163,7 +1163,7 @@ def get_subsetting_config():
                                     {
                                         "actionName" : "data_type",
                                         "displayName" : "Change Datatype",
-                                        "listOfDataTypes" : [
+                                        "listOfActions" : [
                                             {
                                                 "displayName" : "Numeric",
                                                 "name" : "numeric",
@@ -1221,7 +1221,7 @@ def get_subsetting_config():
                                     {
                                         "actionName" : "data_type",
                                         "displayName" : "Change Datatype",
-                                        "listOfDataTypes" : [
+                                        "listOfActions" : [
                                             {
                                                 "displayName" : "Numeric",
                                                 "name" : "numeric",
@@ -1279,7 +1279,7 @@ def get_subsetting_config():
                                     {
                                         "actionName" : "data_type",
                                         "displayName" : "Change Datatype",
-                                        "listOfDataTypes" : [
+                                        "listOfActions" : [
                                             {
                                                 "displayName" : "Numeric",
                                                 "name" : "numeric",
@@ -1378,7 +1378,7 @@ def get_subsetting_config():
                                     {
                                         "actionName" : "data_type",
                                         "displayName" : "Change Datatype",
-                                        "listOfDataTypes" : [
+                                        "listOfActions" : [
                                             {
                                                 "displayName" : "Numeric",
                                                 "name" : "numeric",
@@ -1436,7 +1436,7 @@ def get_subsetting_config():
                                     {
                                         "actionName" : "data_type",
                                         "displayName" : "Change Datatype",
-                                        "listOfDataTypes" : [
+                                        "listOfActions" : [
                                             {
                                                 "displayName" : "Numeric",
                                                 "name" : "numeric",
@@ -1494,7 +1494,7 @@ def get_subsetting_config():
                                     {
                                         "actionName" : "data_type",
                                         "displayName" : "Change Datatype",
-                                        "listOfDataTypes" : [
+                                        "listOfActions" : [
                                             {
                                                 "displayName" : "Numeric",
                                                 "name" : "numeric",

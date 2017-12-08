@@ -34,7 +34,7 @@ from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
 from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
-from bi.scripts.metadata_new import MetaDataScript
+from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 from bi.transformations import DataFrameFilterer
@@ -66,7 +66,7 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/common/utils.py
-            jobType = "story"
+            jobType = "metaData"
             testConfigs = CommonUtils.get_test_configs()
             configJson = testConfigs[jobType]
 

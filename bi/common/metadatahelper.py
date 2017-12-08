@@ -16,15 +16,13 @@ from pyspark.sql.functions import monotonically_increasing_id
 from bi.common import utils as CommonUtils
 from bi.common.charts import ChartJson,NormalChartData
 from bi.common.cardStructure import C3ChartData
+from bi.common.decorators import accepts
 
 
 class MetaDataHelper():
 
-    def __init__(self, data_frame):
-        # self._file_name = file_name
-        self._data_frame = data_frame
-        # if transform==1:
-            # self.transform_numeric_column()
+    def __init__(self):
+        print "Initializing Meta Helper Instance"
 
 
     def get_binned_stat(self,df,colname,col_stat,n_split = 10):
@@ -412,3 +410,16 @@ class MetaDataHelper():
                     utf8 = True
                     break
         return utf8
+
+    @accepts(object,pd.DataFrame,(tuple,list),bool)
+    def format_sampledata_timestamp_columns(self,pandasDf,timestampCols,stripTimestampFlag):
+        if len(timestampCols) > 0:
+            for colname in timestampCols:
+                pandasDf[colname] = pandasDf[colname].apply(str)
+                if stripTimestampFlag == True:
+                    pandasDf[colname] = pandasDf[colname].apply(lambda x:x[:10])
+                else:
+                    unique_timestamps = pandasDf[colname].unique()
+                    if len(unique_timestamps) == 1 and unique_timestamps[0] == "00:00:00":
+                        pandasDf[colname] = pandasDf[colname].apply(lambda x:x[:10])
+        return pandasDf.values.tolist()

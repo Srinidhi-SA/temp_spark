@@ -10,13 +10,12 @@ from progress import JobStatusResult
 from writemode import WriteMode
 from context import ContextSetter
 from datafilterer import DataFrameFilterer
-# from metahelper import MetaDataHelper
 from datafilterhelper import DataFilterHelper
 from filtercontext import FilterContextSetter
 from context import ContextSetter
 from resultloader import ResultSetter
 from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData,TreeData,ModelSummary,ToggleData
-from metadatahelpernew import MetaDataHelper
+from metadatahelper import MetaDataHelper
 from charts import ScatterChartData,NormalChartData,ChartJson
 
 

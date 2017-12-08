@@ -57,7 +57,7 @@ class DataFrameTransformer:
                         if obj["actionName"] == "rename":
                             self.update_column_name(transformObj["name"],obj["newName"])
                         if obj["actionName"] == "data_type":
-                            castDataType = [x["name"] for x in obj["listOfDataTypes"] if x["status"] == True][0]
+                            castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
                             if castDataType == "numeric":
                                 newDataType = 'int'
                             elif castDataType == "string":
