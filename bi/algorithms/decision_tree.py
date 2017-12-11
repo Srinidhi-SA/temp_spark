@@ -20,8 +20,9 @@ Decision Tree
 class DecisionTrees:
 
     #@accepts(object, DataFrame)
-    def __init__(self, data_frame, df_helper, df_context, spark):
+    def __init__(self, data_frame, df_helper, df_context, spark, meta_parser):
         self._spark = spark
+        self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
@@ -213,7 +214,8 @@ class DecisionTrees:
         self._target_dimension = dimension_columns[0]
         dimension = self._target_dimension
         max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
-        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
         cat_feature_info = []
         columns_without_dimension = [x for x in all_dimensions if x != dimension]

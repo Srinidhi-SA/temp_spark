@@ -275,7 +275,7 @@ def main(configJson):
                         df_helper.drop_ignore_columns()
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
-                    decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                    decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,parsedMeta)
                     decision_tree_obj.Run()
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:

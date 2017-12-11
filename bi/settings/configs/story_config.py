@@ -118,7 +118,7 @@ def get_story_config():
                                 "displayName" : "Prediction",
                                 "name" : "prediction",
                                 "noOfColumnsToUse" : None,
-                                "status" : False
+                                "status" : True
                             }
                         ],
                         "trendSettings" : [
