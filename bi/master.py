@@ -67,11 +67,9 @@ def main(configJson):
             print "Running in debugMode"
             cfgMode = False
             debugMode = True
-            # Test Configs are defined in bi/common/utils.py
+            # Test Configs are defined in bi/settings/config.py
             jobType = "story"
-            testConfigs = get_test_configs()
-            configJson = testConfigs[jobType]
-
+            configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
     APP_NAME = 'mAdvisor'

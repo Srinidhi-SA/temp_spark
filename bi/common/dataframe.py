@@ -218,6 +218,7 @@ class DataFrameHelper:
             n_split=10
             splitsData = CommonUtils.get_splits(minval,maxval,n_split)
             splits = splitsData["splits"]
+            self._data_frame = self._data_frame.withColumn(bincol, self._data_frame[bincol].cast(DoubleType()))
             bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
             bucketizer.setSplits(splits)
             self._data_frame = bucketizer.transform(self._data_frame)
