@@ -17,6 +17,7 @@ from resultloader import ResultSetter
 from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData,TreeData,ModelSummary,ToggleData
 from metadatahelper import MetaDataHelper
 from charts import ScatterChartData,NormalChartData,ChartJson
+from metaparser import MetaParser
 
 
 # Alpha levels corresponding to (90%, 95%, 99%, 99.9%, 99.99%, 99.999%, 99.9999%, 99.99999%)
@@ -28,6 +29,7 @@ __all__ = [
     'ColumnType',
     # datacleansing
     'DataCleanser',
+    'MetaParser',
     'DataFrameHelper',
     'DataLoader',
     'DataWriter',

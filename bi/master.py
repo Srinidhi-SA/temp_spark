@@ -14,11 +14,7 @@ import ConfigParser
 
 from bi.common import utils as CommonUtils
 from bi.settings import *
-from bi.common import DataLoader
-from bi.common import DataWriter
-from bi.common import DataFrameHelper
-from bi.common import ContextSetter
-from bi.common import ResultSetter
+from bi.common import DataLoader,MetaParser,DataWriter,DataFrameHelper,ContextSetter,ResultSetter
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
 from bi.scripts.decision_tree import DecisionTreeScript
@@ -135,27 +131,31 @@ def main(configJson):
         data_load_time = time.time() - data_loading_st
         print "Data Loading Time ",data_load_time," Seconds"
         print "Retrieving MetaData"
-         # if debugMode != True:
-        #     if jobType != "metaData":
-        #         print "Retrieving MetaData"
-        #         metaDataObj = CommonUtils.get_metadata(dataframe_context)
-        #         dataframe_context.set_metadata_object(metaDataObj)
-        # else:
-        #     try:
-        #         # checking if metadata exist for the dataset
-        #         # else it will run metadata first
-        #         # while running in debug mode the dataset_slug should be correct or some random String
-        #         metaDataObj = CommonUtils.get_metadata(dataframe_context)
-        #         dataframe_context.set_metadata_object(metaDataObj)
-        #     except:
-        #         fs = time.time()
-        #         print "starting Metadata"
-        #         dataframe_context.set_metadata_ignore_msg_flag(True)
-        #         meta_data_class = MetaDataScript(df,spark,dataframe_context)
-        #         meta_data_object = meta_data_class.run()
-        #         metaDataObj = CommonUtils.convert_python_object_to_json(meta_data_object)
-        #         print "metaData Analysis Done in ", time.time() - fs, " seconds."
-        #         dataframe_context.set_metadata_object(metaDataObj)
+        metaParserInstance = MetaParser()
+        if debugMode != True:
+            if jobType != "metaData":
+                print "Retrieving MetaData"
+                metaDataObj = CommonUtils.get_metadata(dataframe_context)
+                parsedMeta = metaParserInstance.set_params(metaDataObj)
+                dataframe_context.set_metadata_object(parsedMeta)
+        else:
+            try:
+                # checking if metadata exist for the dataset
+                # else it will run metadata first
+                # while running in debug mode the dataset_slug should be correct or some random String
+                metaDataObj = CommonUtils.get_metadata(dataframe_context)
+                parsedMeta = metaParserInstance.set_params(metaDataObj)
+                dataframe_context.set_metadata_object(parsedMeta)
+            except:
+                fs = time.time()
+                print "starting Metadata"
+                dataframe_context.set_metadata_ignore_msg_flag(True)
+                meta_data_class = MetaDataScript(df,spark,dataframe_context)
+                meta_data_object = meta_data_class.run()
+                metaDataObj = CommonUtils.convert_python_object_to_json(meta_data_object)
+                print "metaData Analysis Done in ", time.time() - fs, " seconds."
+                parsedMeta = metaParserInstance.set_params(metaDataObj)
+                dataframe_context.set_metadata_object(parsedMeta)
 
 
         if jobType != "metaData":
@@ -239,18 +239,18 @@ def main(configJson):
                     CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if ('Dimension vs. Dimension' in scripts_to_run):
-                try:
-                    fs = time.time()
-                    dataframe_context.set_analysis_name("Dimension vs. Dimension")
-                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
-                    chisquare_obj.Run()
-                    print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
-                    completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
-                    dataframe_context.update_completion_status(completionStatus)
-                    progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                # try:
+                fs = time.time()
+                dataframe_context.set_analysis_name("Dimension vs. Dimension")
+                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                chisquare_obj.Run()
+                print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+                # except Exception as e:
+                #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
+                #     completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
+                #     dataframe_context.update_completion_status(completionStatus)
+                #     progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
+                #     CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if ('Trend' in scripts_to_run):
                 try:

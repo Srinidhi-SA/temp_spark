@@ -7,14 +7,13 @@ from bi.narratives import utils as NarrativesUtils
 
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, appid=None,base_dir):
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables,base_dir, appid=None):
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
         self._analysed_dimension = analysed_dimension
         self._significant_variables =  significant_variables
         self._num_analysed_variables = num_analysed_variables
         self._table = chisquare_result.get_contingency_table()
-        # self.appid = appid
         self.card1 = {}
         self._base_dir = base_dir
         self._generate_narratives()

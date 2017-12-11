@@ -34,8 +34,7 @@ class ChiSquareAnalysis:
         elif len(significant_variables)>=3:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
-        # self.appid = appid
-
+        self._appid = appid
         self._card1 = NormalCard()
         self._card2 = NormalCard()
         self._card4 = NormalCard()
