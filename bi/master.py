@@ -13,13 +13,12 @@ sys.setdefaultencoding('utf-8')
 import ConfigParser
 
 from bi.common import utils as CommonUtils
+from bi.settings import *
 from bi.common import DataLoader
 from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import ContextSetter
 from bi.common import ResultSetter
-from bi.settings.config import get_test_configs
-
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
 from bi.scripts.decision_tree import DecisionTreeScript
@@ -72,6 +71,7 @@ def main(configJson):
             debugMode = True
             # Test Configs are defined in bi/settings/config.py
             jobType = "story"
+            # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
