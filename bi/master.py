@@ -239,18 +239,18 @@ def main(configJson):
                     CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if ('Dimension vs. Dimension' in scripts_to_run):
-                # try:
-                fs = time.time()
-                dataframe_context.set_analysis_name("Dimension vs. Dimension")
-                chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
-                chisquare_obj.Run()
-                print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-                # except Exception as e:
-                #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
-                #     completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
-                #     dataframe_context.update_completion_status(completionStatus)
-                #     progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
-                #     CommonUtils.save_progress_message(messageURL,progressMessage)
+                try:
+                    fs = time.time()
+                    dataframe_context.set_analysis_name("Dimension vs. Dimension")
+                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                    chisquare_obj.Run()
+                    print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
+                    completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
+                    dataframe_context.update_completion_status(completionStatus)
+                    progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
+                    CommonUtils.save_progress_message(messageURL,progressMessage)
 
             if ('Trend' in scripts_to_run):
                 try:
