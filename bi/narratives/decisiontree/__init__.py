@@ -15,4 +15,4 @@ class DecisionNarrative:
 
         self.title = None
         self.summary = None
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/decisiontree/"

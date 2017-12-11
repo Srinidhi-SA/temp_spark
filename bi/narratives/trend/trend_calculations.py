@@ -51,8 +51,7 @@ class TimeSeriesCalculations:
         self._requestedDateFormat = requestedDateFormat
         self._existingDateFormat = existingDateFormat
         self._date_column_suggested = time_dimension_column
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/chisquare/"
 
 
 

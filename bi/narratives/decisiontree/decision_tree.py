@@ -54,7 +54,7 @@ class DecisionTreeNarrative:
         self.subheader = None
         self.dropdownComment = None
         self.dropdownValues = None
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/decisiontree/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/decisiontree/"
 
 
         self._completionStatus = self._dataframe_context.get_completion_status()

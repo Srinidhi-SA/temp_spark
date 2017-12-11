@@ -15,4 +15,4 @@ class DimensionNarrative:
 
         self.title = None
         self.summary = None
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/dimensions/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/dimensions/"

@@ -11,7 +11,7 @@ from bi.common import utils as CommonUtils
 
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns, appid=None,target_chisquare_result=None):
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns,base_dir,appid=None,target_chisquare_result=None):
         self._blockSplitter = "|~NEWBLOCK~|"
         self._dimensionNode = NarrativesTree()
         self._dimensionNode.set_name(target_dimension)
@@ -39,14 +39,7 @@ class ChiSquareAnalysis:
         self._card1 = NormalCard()
         self._card2 = NormalCard()
         self._card4 = NormalCard()
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
-        self._appid=appid
-        if appid != None:
-            if self._appid == "1":
-                self._base_dir += "appid1/"
-            elif self._appid == "2":
-                self._base_dir += "appid2/"
+        self._base_dir = base_dir
 
         if self._appid == None:
             self._generate_narratives()

@@ -29,7 +29,7 @@ class MeasureColumnNarrative:
         self.take_away = None
         self.card2 = ''
         self._blockSplitter = "|~NEWBLOCK~|"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/descriptive/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/descriptive/"
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())
         self.num_dimensions = len(self._dataframe_helper.get_string_columns())
         self.num_time_dimensions = len(self._dataframe_helper.get_timestamp_columns())

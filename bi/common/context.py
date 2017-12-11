@@ -1,5 +1,4 @@
-# from bi.common.decorators import accepts
-# from bi.common.dataframe import DataFrameHelper
+from bi.common.decorators import accepts
 import ast
 class ContextSetter:
 
@@ -10,6 +9,7 @@ class ContextSetter:
     NON_NULL_VALUES = 'num_non_nulls'
 
     def __init__(self, config_obj):
+        self._BASE_DIR = None
         self._config_obj = config_obj
         self._column_separator = "|~|"
         self.CSV_FILE = ""
@@ -96,7 +96,11 @@ class ContextSetter:
         self.metaIgnoreMsgFlag = False
         self._max_dimension_level_allowed = 200
 
-
+    @accepts(object,path=basestring)
+    def set_base_directory(self,path):
+        self._BASE_DIR = path
+    def get_base_directory(self):
+        return self._BASE_DIR
     def get_anova_max_levels(self):
         return self._max_dimension_level_allowed
     def get_datasource_type(self):
@@ -354,7 +358,7 @@ class ContextSetter:
             return self.customAnalysisDetails
         else:
             return None
-            
+
     def get_metadata_url(self):
         return self.METADATA_URL
 

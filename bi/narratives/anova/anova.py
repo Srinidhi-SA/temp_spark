@@ -51,7 +51,7 @@ class OneWayAnovaNarratives:
     ALPHA = 0.05
 
     #@accepts(object, (str, basestring), (str, basestring), OneWayAnovaResult)
-    def __init__(self, measure_column, dimension_column, measure_anova_result, trend_result, result_setter, dimensionNode):
+    def __init__(self, measure_column, dimension_column, measure_anova_result, trend_result, result_setter, dimensionNode,base_dir):
         self._dimensionNode = dimensionNode
         self._result_setter = result_setter
         self._measure_column = measure_column
@@ -68,7 +68,7 @@ class OneWayAnovaNarratives:
         self.card1 = ''
         self.card2 = ''
         self.card3 = ''
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
+        self._base_dir = base_dir
         self._generate_narratives()
 
     def _generate_narratives(self):

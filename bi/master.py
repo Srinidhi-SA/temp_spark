@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import json
@@ -49,6 +50,8 @@ from bi.scripts.stock_advisor import StockAdvisor
 LOGGER = {}
 def main(configJson):
     global LOGGER
+    base_directory = os.path.dirname(os.path.realpath(__file__))
+    print base_directory
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
@@ -85,6 +88,7 @@ def main(configJson):
     dataframe_context.set_params()
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
+    dataframe_context.set_base_directory(base_directory)
     jobType = job_config["job_type"]
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_message_url(messageUrl)

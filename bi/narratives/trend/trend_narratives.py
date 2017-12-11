@@ -10,7 +10,7 @@ from bi.narratives import utils as NarrativesUtils
 
 class TrendNarrative:
 
-    def __init__(self, measure_column, time_dimension_column, grouped_data, existingDateFormat,requestedDateFormat):
+    def __init__(self, measure_column, time_dimension_column, grouped_data, existingDateFormat,requestedDateFormat,base_dir):
         self._measure_column = measure_column
         self._td_column = time_dimension_column
         self._grouped_data = grouped_data
@@ -24,8 +24,7 @@ class TrendNarrative:
         self.narratives = {}
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
 
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/trend/"
+        self._base_dir = base_dir+"/templates/trend/"
 
         self.month_dict = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
 

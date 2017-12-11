@@ -7,12 +7,11 @@ from bi.narratives import utils as NarrativesUtils
 
 class AnovaDrilldownNarratives:
 
-    def __init__(self, measure_column, dimension_columns, df_helper, anova_narratives):
+    def __init__(self, measure_column, dimension_columns, df_helper, anova_narratives,base_dir):
         self.measure_column = measure_column
         self.dimension_columns = dimension_columns
         self.anova_narratives = anova_narratives
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
+        self._base_dir = base_dir
         self.df = df_helper.get_data_frame()
         self.analysis = {}
         self._generate_analysis()

@@ -103,8 +103,7 @@ class TimeSeriesNarrative:
                     },
                 }
 
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/trend/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/trend/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/trend/"
         dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
                                                     self._timestamp_columns,\
                                                     self._dateColumnFormatDict,\
@@ -162,7 +161,7 @@ class TimeSeriesNarrative:
                         grouped_data = grouped_data.select(["key",measure_column,result_column,"year_month"]).toPandas()
                         grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
 
-                    trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
+                    trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir)
 
                     card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column,self._dataLevel,self._durationString)
 
@@ -214,7 +213,7 @@ class TimeSeriesNarrative:
                         else:
                             significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
                         print "significant_dimensions",significant_dimensions
-                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
+                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir)
                         # grouped_data.to_csv("/home/gulshan/marlabs/datasets/trend_grouped_pandas.csv",index=False)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         # # update reference time with max value
@@ -416,7 +415,7 @@ class TimeSeriesNarrative:
                         leveldf = leveldf.withColumn('value_col', lit(1))
                         print "#"*40
 
-                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat)
+                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         dataDict["target_column"] = dataDict["measure"]
                         dataDict["measure"] = level

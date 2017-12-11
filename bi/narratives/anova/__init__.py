@@ -34,8 +34,7 @@ class AnovaNarratives:
         self.narratives = {}
         self.narratives['variables'] = ''
         self._blockSplitter = "|~NEWBLOCK~|"
-        #self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/anova/"
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -143,6 +142,6 @@ class AnovaNarratives:
         self.narratives['variables'] = significant_dimensions
         for dimension in significant_dimensions:
             dimensionNode = NarrativesTree(name = dimension)
-            narratives = OneWayAnovaNarratives(measure, dimension, measure_anova_result, anova_trend_result,self._result_setter,dimensionNode)
+            narratives = OneWayAnovaNarratives(measure, dimension, measure_anova_result, anova_trend_result,self._result_setter,dimensionNode,self._base_dir)
             self._anovaNodes.add_a_node(dimensionNode)
             self.narratives['cards'].append(narratives)

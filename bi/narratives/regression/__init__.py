@@ -52,8 +52,7 @@ class RegressionNarrative:
                            "main_card":{},
                            "cards":[]
                         }
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/regression/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/regression/"
+        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/regression/"
         self._run_dimension_level_regression = False
 
         # self._dim_regression = self.run_regression_for_dimension_levels()
