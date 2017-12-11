@@ -22,7 +22,7 @@ from bi.common.decorators import accepts
 class MetaDataHelper():
 
     def __init__(self):
-        print "Initializ"
+        print "Initialize"
 
 
     def get_binned_stat(self,df,colname,col_stat,n_split = 10):
@@ -57,26 +57,13 @@ class MetaDataHelper():
         xtraArgs = {}
         for key in kwargs:
             xtraArgs[key] =  kwargs[key]
-        if "binned_stat_flag" in xtraArgs:
-            binned_stat_flag = xtraArgs[key]
+        if "binColumn" in xtraArgs:
+            binned_stat_flag = xtraArgs["binColumn"]
         df = df.select(measure_columns)
         total_count = df.count()
         output = {}
         chart_data = {}
-        fs = time.time()
         summary_df = df.describe().toPandas()
-        print "summary_df done in ",time.time()-fs,"seconds"
-        fs10 = time.time()
-        for col in measure_columns:
-            fs11 = time.time()
-            k = df.select(col)
-            print "time for subsetting",time.time()-fs11
-            fs12 = time.time()
-            k.describe()
-            print "time for describe",time.time()-fs12
-        print "summary df in ",time.time()-fs10,"seconds"
-
-
         displayNameDict = {"count":"Count",
                             "mean":"Mean",
                             "stddev":"Standard Deviation",
@@ -87,7 +74,6 @@ class MetaDataHelper():
                             "numberOfNotNulls":"Not Nulls"
                             }
         for column in measure_columns:
-            fs = time.time()
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
             for k,v in col_stat.items():
                 if "." in v:
@@ -99,10 +85,8 @@ class MetaDataHelper():
             col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
-            fs1 = time.time()
             if binned_stat_flag:
                 measure_chart_data = self.get_binned_stat(df,column,col_stat)
-                print "binned stat takes",time.time()-fs1,"seconds"
                 measure_chart_data = sorted(measure_chart_data,key=lambda x:x["value"],reverse=True)
                 measure_chart_obj = ChartJson(NormalChartData(measure_chart_data).get_data(),chart_type="bar")
                 measure_chart_obj.set_axes({"x":"name","y":"value"})
@@ -119,7 +103,6 @@ class MetaDataHelper():
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
             output[column] = modified_col_stat
-            print "for column",column,time.time()-fs,"seconds"
         return output,chart_data
 
     def calculate_dimension_column_stats(self,df,dimension_columns,**kwargs):
@@ -127,8 +110,8 @@ class MetaDataHelper():
         xtraArgs = {}
         for key in kwargs:
             xtraArgs[key] =  kwargs[key]
-        if "level_count_flag" in xtraArgs:
-            level_count_flag = xtraArgs[key]
+        if "levelCount" in xtraArgs:
+            level_count_flag = xtraArgs["levelCount"]
         df = df.select(dimension_columns)
         total_count = df.count()
         output = {}
@@ -247,7 +230,7 @@ class MetaDataHelper():
             # col_stat["count"] = df.select(column).distinct().na.drop().count()
             col_stat["count"] = notNullDf.count()
             if level_count_flag:
-                print "inside level count"
+                print "start level count"
                 fs1 = time.time()
                 tdLevelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
                 levelCount = {}

@@ -134,7 +134,7 @@ class MetaDataScript:
 
         self._start_time = time.time()
         print "Count of Numeric columns",len(self._numeric_columns)
-        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binned_stat_flag=self._binned_stat_flag)
+        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
         print "measure stats takes",time_taken_measurestats
@@ -147,7 +147,7 @@ class MetaDataScript:
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
-        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns,level_count_flag=self._level_count_flag)
+        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns,levelCount=self._level_count_flag)
         time_taken_dimensionstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["dimensionstats"]["weight"]
         print "dimension stats takes",time_taken_dimensionstats

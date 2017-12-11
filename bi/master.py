@@ -2,6 +2,8 @@ import sys
 import time
 import json
 import pyhocon
+import traceback
+
 # from asn1crypto._ffi import None
 # from pyhocon.tool import HOCONConverter
 
@@ -15,6 +17,7 @@ from bi.common import DataWriter
 from bi.common import DataFrameHelper
 from bi.common import ContextSetter
 from bi.common import ResultSetter
+from bi.settings.config import get_test_configs
 
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -39,7 +42,6 @@ from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
-import traceback
 from parser import configparser
 from pyspark.sql.functions import col, udf
 from bi.scripts.stock_advisor import StockAdvisor
@@ -67,7 +69,7 @@ def main(configJson):
             debugMode = True
             # Test Configs are defined in bi/common/utils.py
             jobType = "story"
-            testConfigs = CommonUtils.get_test_configs()
+            testConfigs = get_test_configs()
             configJson = testConfigs[jobType]
 
 
