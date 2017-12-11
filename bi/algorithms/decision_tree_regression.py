@@ -19,8 +19,9 @@ Decision Tree
 class DecisionTreeRegression:
 
     #@accepts(object, DataFrame)
-    def __init__(self, data_frame, df_context, df_helper, spark):
+    def __init__(self, data_frame, df_context, df_helper, spark, meta_parser):
         self._spark = spark
+        self._metaParser = meta_parser
         self._data_frame = data_frame
         self._data_frame1 = data_frame
         self._dataframe_helper = df_helper
@@ -233,7 +234,8 @@ class DecisionTreeRegression:
         self._target_dimension = measure_columns[0]
         dimension = self._target_dimension
         max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
-        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = [x for x in self._measure_columns if x!=self._target_dimension]
         self.transform_data_frames()
         decision_tree_result = DecisionTreeResult()

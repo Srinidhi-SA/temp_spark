@@ -92,7 +92,6 @@ class ContextSetter:
         self.stockSymbolList = []
         self.dataAPI = ""
         self.trendSettings = None
-        self.metaData = None
         self.metaIgnoreMsgFlag = False
         self._max_dimension_level_allowed = 200
 
@@ -113,10 +112,6 @@ class ContextSetter:
         self.metaIgnoreMsgFlag = data
     def get_metadata_script_weight(self):
         return self.metadataScriptWeight
-    def set_metadata_object(self,data):
-        self.metaData = data
-    def get_metadata_object(self):
-        return self.metaData
     def set_model_path(self,data):
         self.MODEL_PATH = data
     def set_environment(self,data):

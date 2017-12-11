@@ -136,16 +136,14 @@ def main(configJson):
             if jobType != "metaData":
                 print "Retrieving MetaData"
                 metaDataObj = CommonUtils.get_metadata(dataframe_context)
-                parsedMeta = metaParserInstance.set_params(metaDataObj)
-                dataframe_context.set_metadata_object(parsedMeta)
+                metaParserInstance.set_params(metaDataObj)
         else:
             try:
                 # checking if metadata exist for the dataset
                 # else it will run metadata first
                 # while running in debug mode the dataset_slug should be correct or some random String
                 metaDataObj = CommonUtils.get_metadata(dataframe_context)
-                parsedMeta = metaParserInstance.set_params(metaDataObj)
-                dataframe_context.set_metadata_object(parsedMeta)
+                metaParserInstance.set_params(metaDataObj)
             except:
                 fs = time.time()
                 print "starting Metadata"
@@ -154,9 +152,7 @@ def main(configJson):
                 meta_data_object = meta_data_class.run()
                 metaDataObj = CommonUtils.convert_python_object_to_json(meta_data_object)
                 print "metaData Analysis Done in ", time.time() - fs, " seconds."
-                parsedMeta = metaParserInstance.set_params(metaDataObj)
-                dataframe_context.set_metadata_object(parsedMeta)
-
+                metaParserInstance.set_params(metaDataObj)
 
         if jobType != "metaData":
             print "Setting Dataframe Helper Class"
@@ -275,7 +271,7 @@ def main(configJson):
                         df_helper.drop_ignore_columns()
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
-                    decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,parsedMeta)
+                    decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
                     decision_tree_obj.Run()
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -395,7 +391,7 @@ def main(configJson):
                     dataframe_context.set_analysis_name("Predictive modeling")
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
-                    dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                    dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative,metaParserInstance)
                     dt_reg.Run()
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:

@@ -6,16 +6,17 @@ from bi.narratives.decisiontreeregression.decision_tree import DecisionTreeRegNa
 
 
 class DecisionTreeRegressionScript:
-    def __init__(self, data_frame, df_helper,df_context, result_setter, spark,story_narrative):
+    def __init__(self, data_frame, df_helper,df_context, result_setter, spark,story_narrative,meta_parser):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._spark = spark
+        self._metaParser = meta_parser
 
     def Run(self):
-        df_decision_tree_obj = DecisionTreeRegression(self._data_frame, self._dataframe_context, self._dataframe_helper, self._spark).test_all(measure_columns=(self._dataframe_context.get_result_column(),))
+        df_decision_tree_obj = DecisionTreeRegression(self._data_frame, self._dataframe_context, self._dataframe_helper, self._spark, self._metaParser).test_all(measure_columns=(self._dataframe_context.get_result_column(),))
         df_decision_tree_result = CommonUtils.as_dict(df_decision_tree_obj)
 
         #print 'RESULT: %s' % (json.dumps(df_decision_tree_result, indent=2))
