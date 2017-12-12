@@ -46,6 +46,9 @@ LOGGER = {}
 def main(configJson):
     global LOGGER
     base_directory = os.path.dirname(os.path.realpath(__file__))
+    if base_directory.endswith(".egg"):
+        dir_list = base_directory.split("/")
+        base_directory = "/".join(dir_list[:-1])
     print base_directory
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
@@ -54,9 +57,7 @@ def main(configJson):
     if isinstance(configJson,pyhocon.config_tree.ConfigTree):
         deployEnv = True
         debugMode = False
-        if base_directory.endswith(".egg"):
-            dir_list = base_directory.split("/")
-            base_directory = "/".join(dir_list[:-1])
+        base_directory = os.environ.get('MADVISOR_BI_HOME')
     elif isinstance(configJson,basestring):
         if configJson.endswith(".cfg"):
             ######################## Running in cfgMode ########################
