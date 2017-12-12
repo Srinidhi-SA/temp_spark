@@ -54,7 +54,7 @@ def main(configJson):
     if isinstance(configJson,pyhocon.config_tree.ConfigTree):
         deployEnv = True
         debugMode = False
-        if base_directory.endsWith(".egg"):
+        if base_directory.endswith(".egg"):
             dir_list = base_directory.split("/")
             base_directory = "/".join(dir_list[:-1])
     elif isinstance(configJson,basestring):
