@@ -51,10 +51,12 @@ def main(configJson):
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
     script_start_time = time.time()
-
     if isinstance(configJson,pyhocon.config_tree.ConfigTree):
         deployEnv = True
         debugMode = False
+        if base_directory.endsWith(".egg"):
+            dir_list = base_directory.split("/")
+            base_directory = "/".join(dir_list[:-1])
     elif isinstance(configJson,basestring):
         if configJson.endswith(".cfg"):
             ######################## Running in cfgMode ########################
