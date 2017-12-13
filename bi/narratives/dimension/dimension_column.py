@@ -70,7 +70,7 @@ class DimensionColumnNarrative:
                                     "info",\
                                     self._scriptStages["initialization"]["summary"],\
                                     self._completionStatus,\
-                                    self._completionStatus)
+                                    self._completionStatus)        
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
 

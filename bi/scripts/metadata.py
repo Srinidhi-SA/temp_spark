@@ -87,7 +87,6 @@ class MetaDataScript:
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
 
-
     def run(self):
         self._start_time = time.time()
         metaHelperInstance = MetaDataHelper()

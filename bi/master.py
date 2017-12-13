@@ -270,8 +270,6 @@ def main(configJson):
                 try:
                     fs = time.time()
                     dataframe_context.set_analysis_name("Predictive modeling")
-                    if df_helper.ignorecolumns != None:
-                        df_helper.drop_ignore_columns()
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
                     decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -331,8 +329,6 @@ def main(configJson):
                     progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
 
-            if df_helper.ignorecolumns != None:
-                df_helper.drop_ignore_columns()
             measure_columns = df_helper.get_numeric_columns()
             dimension_columns = df_helper.get_string_columns()
             df = df_helper.get_data_frame()

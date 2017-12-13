@@ -148,6 +148,9 @@ def get_updated_colnames(df):
     return {'f':final_column_names, 'c':changed_cols}
 
 def tryconvert(x):
+    """
+    for converting string cols to floats
+    """
     if x==None:
         return None
     try:
