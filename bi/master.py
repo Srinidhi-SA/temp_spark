@@ -133,7 +133,6 @@ def main(configJson):
         df = df.dropna(how='all', thresh=None, subset=None)
         data_load_time = time.time() - data_loading_st
         print "Data Loading Time ",data_load_time," Seconds"
-        print "Retrieving MetaData"
         metaParserInstance = MetaParser()
         if debugMode != True:
             if jobType != "metaData":
