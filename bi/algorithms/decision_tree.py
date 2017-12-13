@@ -19,7 +19,7 @@ Decision Tree
 
 class DecisionTrees:
 
-    #@accepts(object, DataFrame)
+    # @accepts(object, DataFrame)
     def __init__(self, data_frame, df_helper, df_context, spark, meta_parser):
         self._spark = spark
         self._metaParser = meta_parser

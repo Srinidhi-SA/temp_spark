@@ -45,7 +45,7 @@ def get_story_config():
                                     "max": 10
                                   }
                                 ],
-                                "status" : True
+                                "status" : False
                             },
                             {
                                 "analysisSubTypes" : [],
@@ -111,7 +111,7 @@ def get_story_config():
                                         "value" : None
                                     }
                                 ],
-                                "status" : False
+                                "status" : True
                             },
                             {
                                 "analysisSubTypes" : [],
@@ -138,7 +138,7 @@ def get_story_config():
                             {"colName":"Marketing_Cost"},
                         ],
                         "analysis_type" : [
-                            "dimension"
+                            "measure"
                         ],
                         "consider_columns" : [
                             "Deal_Type",
@@ -173,7 +173,7 @@ def get_story_config():
                             "positive"
                         ],
                         "result_column" : [
-                            "Source"
+                            "Sales"
                         ],
                         "utf8_column_suggestions" : []
                     },

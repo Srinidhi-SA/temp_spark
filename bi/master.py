@@ -366,7 +366,7 @@ def main(configJson):
                     try:
                         df = df.na.drop(subset=measure_columns)
                         fs = time.time()
-                        regression_obj = LinearRegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative)
+                        regression_obj = LinearRegressionScript(df, df_helper, dataframe_context, result_setter, spark, correlations, story_narrative,metaParserInstance)
                         regression_obj.Run()
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:

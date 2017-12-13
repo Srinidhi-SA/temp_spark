@@ -1,4 +1,5 @@
 import os
+import time
 import re
 import json
 import pandas as pd
@@ -17,7 +18,8 @@ from bi.common import utils as CommonUtils
 
 
 class RegressionNarrative:
-    def __init__(self, df_helper, df_context, result_setter, spark, df_regression_result, correlations,story_narrative):
+    def __init__(self, df_helper, df_context, result_setter, spark, df_regression_result, correlations,story_narrative,meta_parser):
+        self._metaParser = meta_parser
         self._result_setter = result_setter
         self._story_narrative = story_narrative
         self._df_regression_result = df_regression_result
@@ -262,7 +264,8 @@ class RegressionNarrative:
         regression_result_dimension_cols = dict(zip(cat_columns,[{}]*len(cat_columns)))
         for col in cat_columns:
             print "For Column:",col
-            column_levels = self._dataframe_helper.get_all_levels(col)
+            # column_levels = self._dataframe_helper.get_all_levels(col)
+            column_levels = self._metaParser.get_unique_level_dict(col).keys()
             level_regression_result = dict(zip(column_levels,[{}]*len(column_levels)))
             print "No of levels in this column",len(column_levels)
             for level in column_levels:

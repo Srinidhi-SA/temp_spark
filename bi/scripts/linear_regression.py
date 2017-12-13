@@ -12,8 +12,9 @@ from bi.narratives.regression import LinearRegressionNarrative
 # from bi.stats import Correlation
 
 class LinearRegressionScript:
-    def __init__(self, data_frame, df_helper, df_context, result_setter, spark, correlations,story_narrative):
+    def __init__(self, data_frame, df_helper, df_context, result_setter, spark, correlations,story_narrative,meta_parser):
         self._result_setter = result_setter
+        self._metaParser = meta_parser
         self._story_narrative = story_narrative
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
@@ -33,7 +34,7 @@ class LinearRegressionScript:
         # regression_narratives_obj = LinearRegressionNarrative(len(self._dataframe_helper.get_numeric_columns()),regression_result_obj, self._correlations,self._dataframe_helper)
         # regression_narratives = CommonUtils.as_dict(regression_narratives_obj)
 
-        regression_narratives_obj = RegressionNarrative(self._dataframe_helper,self._dataframe_context,self._result_setter,self._spark,regression_result_obj,self._correlations,self._story_narrative)
+        regression_narratives_obj = RegressionNarrative(self._dataframe_helper,self._dataframe_context,self._result_setter,self._spark,regression_result_obj,self._correlations,self._story_narrative,self._metaParser)
         regression_narratives = CommonUtils.as_dict(regression_narratives_obj.narratives)
         #print 'Regression narratives:  %s' %(json.dumps(regression_narratives, indent=2))
         # DataWriter.write_dict_as_json(self._spark, {"REGRESSION":json.dumps(regression_narratives)}, self._dataframe_context.get_narratives_file()+'Regression/')

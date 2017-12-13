@@ -12,8 +12,6 @@ class MetaParser:
         # dict_out = self.extract(self.meta_data['metaData'], self.meta_data['metaData'])
         # self.column_dict = self.get_column_stats(dict_out['columnData'])
         self.column_dict = self.get_column_stats(self.meta_data['columnData'])
-        print self.column_dict
-        print "-$#-"*100
 
 
     def extract(self,dict_in, dict_out):
@@ -41,3 +39,6 @@ class MetaParser:
 
     def get_num_unique_values(self, column_name):
         return self.column_dict[column_name]['numberOfUniqueValues']
+
+    def get_unique_level_dict(self,column_name):
+        return self.column_dict[column_name]["LevelCount"]
