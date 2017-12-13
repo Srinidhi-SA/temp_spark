@@ -618,6 +618,14 @@ def main(configJson):
     print "Scripts Time : ", time.time() - script_start_time, " seconds."
     #spark.stop()
 
+def submit_job_through_yarn():
+    print sys.argv
+    print json.loads(sys.argv[1])
+    json_config = json.loads(sys.argv[1])
+    # json_config["config"] = ""
+
+    main(json_config["job_config"])
+
 if __name__ == '__main__':
     main(sys.argv[1])
     print 'Main Method End .....'
