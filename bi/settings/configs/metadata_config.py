@@ -13,7 +13,7 @@ def get_metadata_config():
             "DATE_SETTINGS" : {},
             "FILE_SETTINGS" : {
                 "inputfile" : [
-                    "file:///home/gulshan/marlabs/datasets/sigma/ignoreTest.csv"
+                    "file:///home/gulshan/marlabs/datasets/test.csv"
                 ]
             }
         },

@@ -60,7 +60,11 @@ def get_metadata(dataframe_context):
     jsonToken["signature"] = sigString
     url = "http://{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
     metaObj = requests.get(url)
-    return metaObj.json()
+    output = metaObj.json()
+    if "Message" in output:
+        return None
+    else:
+        return output
 
 @accepts((int, long, float), (int, long, float), num_steps=int)
 def frange(start, stop, num_steps=10):

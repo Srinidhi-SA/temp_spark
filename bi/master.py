@@ -139,21 +139,31 @@ def main(configJson):
             if jobType != "metaData":
                 print "Retrieving MetaData"
                 metaDataObj = CommonUtils.get_metadata(dataframe_context)
-                metaParserInstance.set_params(metaDataObj)
+                if metaDataObj:
+                    metaParserInstance.set_params(metaDataObj)
+                else:
+                    fs = time.time()
+                    print "starting Metadata"
+                    dataframe_context.set_metadata_ignore_msg_flag(True)
+                    meta_data_class = MetaDataScript(df,spark,dataframe_context)
+                    meta_data_object = meta_data_class.run()
+                    metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
+                    print "metaData Analysis Done in ", time.time() - fs, " seconds."
+                    metaParserInstance.set_params(metaDataObj)
         else:
-            try:
-                # checking if metadata exist for the dataset
-                # else it will run metadata first
-                # while running in debug mode the dataset_slug should be correct or some random String
-                metaDataObj = CommonUtils.get_metadata(dataframe_context)
+            # checking if metadata exist for the dataset
+            # else it will run metadata first
+            # while running in debug mode the dataset_slug should be correct or some random String
+            metaDataObj = CommonUtils.get_metadata(dataframe_context)
+            if metaDataObj:
                 metaParserInstance.set_params(metaDataObj)
-            except:
+            else:
                 fs = time.time()
                 print "starting Metadata"
                 dataframe_context.set_metadata_ignore_msg_flag(True)
                 meta_data_class = MetaDataScript(df,spark,dataframe_context)
                 meta_data_object = meta_data_class.run()
-                metaDataObj = CommonUtils.convert_python_object_to_json(meta_data_object)
+                metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
                 print "metaData Analysis Done in ", time.time() - fs, " seconds."
                 metaParserInstance.set_params(metaDataObj)
 

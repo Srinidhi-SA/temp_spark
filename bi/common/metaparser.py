@@ -8,7 +8,9 @@ class MetaParser:
 
     def set_params(self, meta_data):
         print "Setting Meta Data Parser"
+        print type(meta_data)
         self.meta_data = meta_data
+        print self.meta_data.keys()
         dict_out = self.extract(self.meta_data['meta_data'], self.meta_data['meta_data'])
         self.column_dict = self.get_column_stats(dict_out['columnData'])
         print self.column_dict
