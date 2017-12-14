@@ -51,11 +51,11 @@ def main(configJson):
         base_directory = "/".join(dir_list[:-1])
     print "base directory:-", base_directory
     print "configJson type:-",type(configJson)
-    import jinja2
-    templateEnv = jinja2.Environment(loader=jinja2.PackageLoader('bi','templates'))
-    template = templateEnv.get_template("dimensions/test.html")
-    output = template.render({"name":"GULSHAN"})
-    print output
+    # import jinja2
+    # templateEnv = jinja2.Environment(loader=jinja2.PackageLoader('bi','templates'))
+    # template = templateEnv.get_template("dimensions/test.html")
+    # output = template.render({"name":"GULSHAN"})
+    # print output
 
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
