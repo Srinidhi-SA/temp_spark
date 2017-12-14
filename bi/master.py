@@ -52,7 +52,7 @@ def main(configJson):
     print "base directory:-", base_directory
     print "configJson type:-",type(configJson)
     import jinja2
-    templateEnv = jinja2.Environment(loader=PackageLoader('bi','templates'))
+    templateEnv = jinja2.Environment(loader=jinja2.PackageLoader('bi','templates'))
     template = templateEnv.get_template("dimensions/test.html")
     output = template.render({"name":"GULSHAN"})
     print output
