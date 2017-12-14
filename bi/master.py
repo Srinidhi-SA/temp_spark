@@ -51,6 +51,7 @@ def main(configJson):
         base_directory = "/".join(dir_list[:-1])
     print "#"*1000
     print base_directory
+    print type(configJson)
     print "#"*1000
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
