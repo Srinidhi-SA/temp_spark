@@ -46,9 +46,9 @@ LOGGER = {}
 def main(configJson):
     global LOGGER
     base_directory = os.path.dirname(os.path.realpath(__file__))
-    if base_directory.endswith(".egg"):
+    if base_directory.endswith(".egg/bi"):
         dir_list = base_directory.split("/")
-        base_directory = "/".join(dir_list[:-1])
+        base_directory = "/".join(dir_list[:-2]+["bi"])
     print "#"*1000
     print base_directory
     print type(configJson)
