@@ -146,7 +146,7 @@ class DimensionColumnNarrative:
                     "blockSplitter" : self._blockSplitter
         }
         output = NarrativesUtils.get_template_output(self._base_dir,\
-                                        '/templates/dimensions/dimension_report_summary.html',data_dict)
+                                        'dimension_report_summary.html',data_dict)
         summary = NarrativesUtils.block_splitter(output,self._blockSplitter)
         dimensionSummaryCard = SummaryCard(name=self.header,slug=None,cardData = None)
         dimensionSummaryCard.set_no_of_measures(data_dict["n_m"])

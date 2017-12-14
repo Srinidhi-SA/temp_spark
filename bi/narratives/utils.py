@@ -117,7 +117,7 @@ def get_template_output(base_dir, template_file, data_dict):
     templateEnv.filters['round_number'] = round_number
     templateEnv.filters['intcomma'] = humanize.intcomma
     templateEnv.filters['pluralize']=pluralize
-    template = templateEnv.get_template(template_file)
+    template = templateEnv.get_template((base_dir+template_file).replace("/templates",""))
     output = template.render(data_dict)
     return clean_narratives(output)
 

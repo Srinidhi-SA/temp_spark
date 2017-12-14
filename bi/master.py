@@ -45,12 +45,13 @@ from bi.scripts.stock_advisor import StockAdvisor
 LOGGER = {}
 def main(configJson):
     global LOGGER
-    base_directory = os.path.dirname(os.path.realpath(__file__))
-    if base_directory.endswith(".egg/bi"):
-        dir_list = base_directory.split("/")
-        base_directory = "/".join(dir_list[:-1])
-    print "base directory:-", base_directory
-    print "configJson type:-",type(configJson)
+    base_directory = ""
+    # base_directory = os.path.dirname(os.path.realpath(__file__))
+    # if base_directory.endswith(".egg/bi"):
+    #     dir_list = base_directory.split("/")
+    #     base_directory = "/".join(dir_list[:-1])
+    # print "base directory:-", base_directory
+    # print "configJson type:-",type(configJson)
     # import jinja2
     # templateEnv = jinja2.Environment(loader=jinja2.PackageLoader('bi','templates'))
     # template = templateEnv.get_template("dimensions/test.html")
