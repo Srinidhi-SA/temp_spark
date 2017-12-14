@@ -70,7 +70,7 @@ class DimensionColumnNarrative:
                                     "info",\
                                     self._scriptStages["initialization"]["summary"],\
                                     self._completionStatus,\
-                                    self._completionStatus)        
+                                    self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
@@ -146,7 +146,7 @@ class DimensionColumnNarrative:
                     "blockSplitter" : self._blockSplitter
         }
         output = NarrativesUtils.get_template_output(self._base_dir,\
-                                        'dimension_report_summary.html',data_dict)
+                                        '/templates/dimensions/dimension_report_summary.html',data_dict)
         summary = NarrativesUtils.block_splitter(output,self._blockSplitter)
         dimensionSummaryCard = SummaryCard(name=self.header,slug=None,cardData = None)
         dimensionSummaryCard.set_no_of_measures(data_dict["n_m"])
