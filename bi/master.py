@@ -49,7 +49,9 @@ def main(configJson):
     if base_directory.endswith(".egg"):
         dir_list = base_directory.split("/")
         base_directory = "/".join(dir_list[:-1])
+    print "#"*1000
     print base_directory
+    print "#"*1000
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
@@ -135,9 +137,11 @@ def main(configJson):
         print "Data Loading Time ",data_load_time," Seconds"
         metaParserInstance = MetaParser()
         if debugMode != True:
+            print "#"*1000
             if jobType != "metaData":
+                print "#"*1000
                 print "Retrieving MetaData"
-                metaDataObj = CommonUtils.get_metadata(dataframe_context)
+                metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 if metaDataObj:
                     metaParserInstance.set_params(metaDataObj)
                 else:
@@ -153,7 +157,7 @@ def main(configJson):
             # checking if metadata exist for the dataset
             # else it will run metadata first
             # while running in debug mode the dataset_slug should be correct or some random String
-            metaDataObj = CommonUtils.get_metadata(dataframe_context)
+            metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
             if metaDataObj:
                 metaParserInstance.set_params(metaDataObj)
             else:
@@ -184,6 +188,7 @@ def main(configJson):
 
     if jobType == "metaData":
         fs = time.time()
+        print "#"*100
         print "starting Metadata"
         meta_data_class = MetaDataScript(df,spark,dataframe_context)
         meta_data_object = meta_data_class.run()
