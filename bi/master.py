@@ -57,10 +57,9 @@ def main(configJson):
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
     script_start_time = time.time()
-    if isinstance(configJson,pyhocon.config_tree.ConfigTree):
+    if isinstance(configJson,pyhocon.config_tree.ConfigTree) or isinstance(configJson,dict):
         deployEnv = True
         debugMode = False
-        base_directory = os.environ.get('MADVISOR_BI_HOME')
     elif isinstance(configJson,basestring):
         if configJson.endswith(".cfg"):
             ######################## Running in cfgMode ########################
