@@ -103,7 +103,7 @@ class TimeSeriesNarrative:
                     },
                 }
 
-        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/trend/"
+        self._base_dir = "/trend/"
         dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
                                                     self._timestamp_columns,\
                                                     self._dateColumnFormatDict,\

@@ -34,7 +34,7 @@ class AnovaNarratives:
         self.narratives = {}
         self.narratives['variables'] = ''
         self._blockSplitter = "|~NEWBLOCK~|"
-        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/anova/"
+        self._base_dir = "/anova/"
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()

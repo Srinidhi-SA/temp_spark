@@ -15,4 +15,4 @@ class DecisionRegNarrative:
 
         self.title = None
         self.summary = None
-        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/decisiontree/"
+        self._base_dir = "/decisiontree/"

@@ -14,7 +14,7 @@ class ExecutiveSummaryNarrative:
         self._dataframe_context = df_context
         self._result_setter = result_setter
 
-        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/executiveSummary/"
+        self._base_dir = "/executiveSummary/"
         self.executive_summary = None
         self.generate_narratives()
 

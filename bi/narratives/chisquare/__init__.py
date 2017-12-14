@@ -27,7 +27,7 @@ class ChiSquareNarratives:
         self._appid = df_context.get_app_id()
         self._chiSquareNode = NarrativesTree()
         self._chiSquareNode.set_name("Association")
-        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/chisquare/"
+        self._base_dir = "/chisquare/"
         if self._appid != None:
             if self._appid == "1":
                 self._base_dir += "appid1/"

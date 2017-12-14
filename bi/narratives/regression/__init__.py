@@ -54,7 +54,7 @@ class RegressionNarrative:
                            "main_card":{},
                            "cards":[]
                         }
-        self._base_dir = self._dataframe_context.get_base_directory()+"/templates/regression/"
+        self._base_dir = "/regression/"
         self._run_dimension_level_regression = False
 
         # self._dim_regression = self.run_regression_for_dimension_levels()

@@ -26,7 +26,7 @@ class DimensionColumnNarrative:
         self.analysis = []
         self.frequency_dict = json.loads(self._dimension_col_freq_dict)
         self.appid = df_context.get_app_id()
-        self._base_dir = df_context.get_base_directory()+"/templates/dimensions/"
+        self._base_dir = "/dimensions/"
         if self.appid != None:
             if self.appid == "1":
                 self._base_dir += "appid1/"
