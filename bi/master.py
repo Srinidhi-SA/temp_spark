@@ -138,6 +138,7 @@ def main(configJson):
         metaParserInstance = MetaParser()
         if debugMode != True:
             print "#"*1000
+            print "METADATA"*200
             if jobType != "metaData":
                 print "#"*1000
                 print "Retrieving MetaData"
