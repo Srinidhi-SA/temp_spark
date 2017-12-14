@@ -48,11 +48,15 @@ def main(configJson):
     base_directory = os.path.dirname(os.path.realpath(__file__))
     if base_directory.endswith(".egg/bi"):
         dir_list = base_directory.split("/")
-        base_directory = "/".join(dir_list[:-2]+["bi"])
-    print "#"*1000
-    print base_directory
-    print type(configJson)
-    print "#"*1000
+        base_directory = "/".join(dir_list[:-1])
+    print "base directory:-", base_directory
+    print "configJson type:-",type(configJson)
+    import jinja2
+    templateEnv = jinja2.Environment(loader=PackageLoader('bi','templates'))
+    template = templateEnv.get_template("dimensions/test.html")
+    output = template.render({"name":"GULSHAN"})
+    print output
+
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
