@@ -23,18 +23,20 @@ class DFTwoWayAnovaResult:
         return self.result[measure].get_OneWayAnovaSignificantDimensions()
 
 class TrendData:
-    def __init__(self,grouped_data=None,startDate=None,endDate=None,duration=None,durationString=None,dataLevel=None):
+    def __init__(self,grouped_data=None,level_pivot=None,startDate=None,endDate=None,duration=None,durationString=None,dataLevel=None):
         self.grouped_data = grouped_data
+        self.level_pivot = level_pivot
         self.endDate = endDate
         self.startDate = startDate
         self.duration = duration
         self.durationString = durationString
         self.dataLevel = dataLevel
 
-    @accepts(object,grouped_data=pd.DataFrame,endDate=datetime,startDate=datetime,
+    @accepts(object,grouped_data=pd.DataFrame,level_pivot=pd.DataFrame,endDate=datetime,startDate=datetime,
             duration=(int,float),durationString=basestring,dataLevel=basestring)
-    def set_params(self,grouped_data,endDate,startDate,duration,durationString,dataLevel):
+    def set_params(self,grouped_data,level_pivot,endDate,startDate,duration,durationString,dataLevel):
         self.grouped_data = grouped_data
+        self.level_pivot = level_pivot
         self.endDate = endDate
         self.startDate = startDate
         self.duration = duration
@@ -46,6 +48,11 @@ class TrendData:
         self.grouped_data = data
     def get_grouped_data(self):
         return self.grouped_data.copy()
+    @accepts(object,data=pd.DataFrame)
+    def set_level_pivot(self,data):
+        self.level_pivot = data
+    def get_level_pivot(self):
+        return self.level_pivot.copy()
     def get_end_date(self):
         return self.endDate
     def get_start_date(self):

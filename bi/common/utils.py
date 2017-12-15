@@ -335,7 +335,7 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
     print "#####ERROR#####"*5
     print error
     print "#####ERROR#####"*5
-    print "{} Script Failed".format("scriptName")
+    print "{} Script Failed".format(scriptName)
 
 def get_duration_string(datarange):
     yr = str(datarange//365)

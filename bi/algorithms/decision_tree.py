@@ -222,8 +222,7 @@ class DecisionTrees:
         mapping_dict = {}
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
-        decision_tree_result.set_freq_distribution(self.calculate_frequencies(), self._important_vars)
-
+        decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
         self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
         # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
         standard_measure_index = {0.0:'Low',1.0:'Below Average',2.0:'Average',3.0:'Above Average',4.0:'High'}
@@ -273,7 +272,3 @@ class DecisionTrees:
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
         return decision_tree_result
-
-    def calculate_frequencies(self):
-        freq_tab = self._data_frame.dropna(subset = [self._target_dimension]).groupby(self._target_dimension).count().toPandas()
-        return dict([tuple(x) for x in freq_tab.values])

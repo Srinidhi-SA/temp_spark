@@ -78,7 +78,7 @@ def get_story_config():
                                         "value" : None
                                     }
                                 ],
-                                "status" : False,
+                                "status" : True,
                             },
                             {
                                 "analysisSubTypes" : [],
@@ -111,14 +111,14 @@ def get_story_config():
                                         "value" : None
                                     }
                                 ],
-                                "status" : True
+                                "status" : False
                             },
                             {
                                 "analysisSubTypes" : [],
                                 "displayName" : "Prediction",
                                 "name" : "prediction",
                                 "noOfColumnsToUse" : None,
-                                "status" : True
+                                "status" : False
                             }
                         ],
                         "trendSettings" : [

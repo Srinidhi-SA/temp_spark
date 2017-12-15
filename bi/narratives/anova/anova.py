@@ -1,7 +1,9 @@
 import os
+import json
 import jinja2
 import math
 import numpy as np
+import pandas as pd
 from bi.common.utils import accepts
 from bi.common.results.two_way_anova import OneWayAnovaResult
 # from bi.stats import TuckeyHSD
@@ -131,10 +133,8 @@ class OneWayAnovaNarratives:
         totals = dim_table['total']
         means = dim_table['average']
         counts = dim_table['count']
-
         if len(keys)>=5:
             self._card3_required=True
-
 
         group_by_total = {}
         group_by_mean = {}
@@ -283,7 +283,6 @@ class OneWayAnovaNarratives:
         output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
-        print output['content']
         lines = []
         lines += NarrativesUtils.block_splitter('<h4>'+output['header']+'</h4>',self._blockSplitter)
         for cnt in output['content']:
@@ -332,7 +331,7 @@ class OneWayAnovaNarratives:
             subset_df.columns = ['key', subset_measure]
         inner_join = overall_df.merge(subset_df[['key',subset_measure]], how='inner', on = 'key')
         inner_join["key"] = inner_join["key"].apply(lambda x:str(x))
-        print inner_join
+        print "inner_join", inner_join
         correlation = inner_join[[total_measure,subset_measure]].corr()[total_measure][subset_measure]
         if self._dataLevel == "month":
             data = {
@@ -438,6 +437,7 @@ class OneWayAnovaNarratives:
                     'top_dimension' : top_level_name,
                     'dimension' : self._dimension_column,
         }
+        print json.dumps(data_dict,indent=2)
         output = {}
         output['header'] = ''
         output['content'] = []
@@ -512,29 +512,38 @@ class OneWayAnovaNarratives:
                                                 'Based on the absolute '+ self._measure_column+' values and the overall growth rates, mAdvisor presents the decision matrix for '+self._measure_column+' for '+ self._dimension_column +' as displayed below.',
                                                 self._blockSplitter)
         grouped_data_frame = self._dimension_trend_data.get_grouped_data()
-        print grouped_data_frame
+        pivot_df = self._dimension_trend_data.get_level_pivot()
         grouped_data_frame['increase'] = [0]+[round((x-y)*100/float(y),2) for x,y in zip(grouped_data_frame["value"].iloc[1:],grouped_data_frame["value"])]
         grouped_data_frame['contribution'] = grouped_data_frame['value']*100/float(grouped_data_frame['value'].sum())
 
-        # grouped_data_frame['increase'] = (grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100/grouped_data_frame['measure']['first']
-        # grouped_data_frame['contribution'] = grouped_data_frame['measure']['sum']*100/sum(grouped_data_frame['measure']['sum'])
         self._contribution_limit = grouped_data_frame['contribution'].mean()
         self._increase_limit = max(0.0, grouped_data_frame['increase'].mean())
-        grouped_data_frame['category'] = grouped_data_frame.apply(self.get_category, axis=1)
+        dimensionLevel = list(set(pivot_df.columns)-set(["year_month","key"]))
+        print dimensionLevel
+        share = []
+        growth = []
+        for lvl in dimensionLevel:
+            lvl_share = float(np.nansum(pivot_df[lvl]))*100/np.nansum(grouped_data_frame["value"])
+            share.append(lvl_share)
+            lvl_val_array = list(pivot_df[lvl][~np.isnan(pivot_df[lvl])])
+            lvl_growth = float(lvl_val_array[-1]-lvl_val_array[0])*100/lvl_val_array[0]
+            growth.append(lvl_growth)
+        tempDf = pd.DataFrame({"dimension":dimensionLevel,"increase":growth,"contribution":share})
+        tempDf['category'] = tempDf.apply(self.get_category, axis=1)
         data = {
-                      'Share of '+self._measure_column : list(grouped_data_frame['contribution']),
-                      self._measure_column_capitalized+' growth' : list(grouped_data_frame['increase']),
-                      self._dimension_column : list(grouped_data_frame['dimension']),
-                      'Category' : list(grouped_data_frame['category']),
+                      'Share of '+self._measure_column           : list(tempDf['contribution']),
+                      self._measure_column_capitalized+' growth' : list(tempDf['increase']),
+                      self._dimension_column                     : list(tempDf['dimension']),
+                      'Category'                                 : list(tempDf['category']),
         }
         # data_c3 = [[self._measure_column_capitalized+' growth'] + list(grouped_data_frame['increase']),
         #             ['Share of '+self._measure_column] + list(grouped_data_frame['contribution']),
         #             [self._dimension_column] + list(grouped_data_frame['dimension']),
         #             ['Category'] + list(grouped_data_frame['category'])]
-        growth = list(grouped_data_frame['increase'])
-        share = list(grouped_data_frame['contribution'])
-        label = list(grouped_data_frame['dimension'])
-        category_legend = list(grouped_data_frame['category'])
+        growth = list(tempDf['increase'])
+        share = list(tempDf['contribution'])
+        label = list(tempDf['dimension'])
+        category_legend = list(tempDf['category'])
         all_data = sorted(zip(share, growth, label, category_legend))
 
         share = [i[0] for i in all_data]
@@ -562,10 +571,10 @@ class OneWayAnovaNarratives:
         chart_data = chart(data=data, labels={})
         chart_data.add_data_c3(data_c3)
         self.card3.add_chart('decision_matrix', chart_data)
-        leaders_club = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Leaders Club'])
-        playing_safe = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Playing Safe'])
-        opportunity_bay = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Opportunity Bay'])
-        red_alert = list(grouped_data_frame['dimension'][grouped_data_frame['category']=='Red Alert'])
+        leaders_club = list(tempDf['dimension'][tempDf['category']=='Leaders Club'])
+        playing_safe = list(tempDf['dimension'][tempDf['category']=='Playing Safe'])
+        opportunity_bay = list(tempDf['dimension'][tempDf['category']=='Opportunity Bay'])
+        red_alert = list(tempDf['dimension'][tempDf['category']=='Red Alert'])
         data_dict = {
                     'leaders_club' : leaders_club,
                     'playing_safe' : playing_safe,

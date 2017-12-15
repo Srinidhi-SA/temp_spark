@@ -95,11 +95,6 @@ class ContextSetter:
         self.metaIgnoreMsgFlag = False
         self._max_dimension_level_allowed = 200
 
-    @accepts(object,path=basestring)
-    def set_base_directory(self,path):
-        self._BASE_DIR = path
-    def get_base_directory(self):
-        return self._BASE_DIR
     def get_anova_max_levels(self):
         return self._max_dimension_level_allowed
     def get_datasource_type(self):
