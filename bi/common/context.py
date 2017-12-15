@@ -94,6 +94,7 @@ class ContextSetter:
         self.trendSettings = None
         self.metaIgnoreMsgFlag = False
         self._max_dimension_level_allowed = 200
+        self.customAnalysisDetails = None
 
     def get_anova_max_levels(self):
         return self._max_dimension_level_allowed
