@@ -13,6 +13,7 @@ from sklearn import metrics
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
+from bi.common import MLModelSummary
 from bi.algorithms import XgboostClassifier
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
@@ -25,7 +26,8 @@ from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class XgboostScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+        self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
         self._data_frame = data_frame
@@ -92,80 +94,49 @@ class XgboostScript:
 
         clf_xgb = xgboost_obj.initiate_xgboost_classifier()
         objs = xgboost_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,[])
-
+        runtime = round((time.time() - st),2)
         model_filepath = model_path+"/"+self._slug+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
-        # confusion matrix keys are the predicted class
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
-        self._model_summary["feature_importance"] = objs["feature_importance"]
-        # self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
 
-        self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
-        self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
-
-        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
-        self._model_summary["precision_recall_stats"] = overall_precision_recall["classwise_stats"]
-        self._model_summary["model_precision"] = overall_precision_recall["precision"]
-        self._model_summary["model_recall"] = overall_precision_recall["recall"]
-        self._model_summary["target_variable"] = result_column
-        self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
-        self._model_summary["algorithm_name"] = "Xgboost"
-        self._model_summary["validation_method"] = "Train and Test"
-        self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
         cat_cols = list(set(categorical_columns)-set([result_column]))
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
-
-        self._model_summary["total_trees"] = 100
-        self._model_summary["total_rules"] = 300
-
-        prediction_split_dict = dict(collections.Counter(objs["predicted"]))
-        prediction_split_array = []
-        for k,v in prediction_split_dict.items():
-            prediction_split_array.append([k,v])
-        prediction_split_array = sorted(prediction_split_array,key=lambda x:x[1],reverse=True)
-        total = len(objs["predicted"])
-        prediction_split_array = [[val[0],round(float(val[1])*100/total,2)] for val in prediction_split_array]
-        self._result_setter.set_model_summary({"xgboost":self._model_summary})
-        xgbCard1 = NormalCard()
-        xgbCard1Data = []
-        xgbCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>XGBoost</h4>"))
-        xgbCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        xgbCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
-        xgbCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
-        xgbCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
-        for val in prediction_split_array:
-            xgbCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
-        xgbCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(self._model_summary["algorithm_name"])))
-        xgbCard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(self._model_summary["total_trees"])))
-        xgbCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(self._model_summary["total_rules"])))
-        xgbCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
-        xgbCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
-        xgbCard1.set_card_data(xgbCard1Data)
-
-        confusion_matrix_data = MLUtils.reformat_confusion_matrix(self._model_summary["confusion_matrix"])
-        xgbCard2 = NormalCard()
-        xgbCard2Data = []
-        xgbCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10' >Confusion Matrix</h5>"))
-        card2Table = TableData()
-        card2Table.set_table_data(confusion_matrix_data)
-        card2Table.set_table_type("confusionMatrix")
-        card2Table.set_table_top_header("Actual")
-        card2Table.set_table_left_header("Predicted")
-        xgbCard2Data.append(card2Table)
-        xgbCard2.set_card_data(xgbCard2Data)
-        self._prediction_narrative.add_a_card(xgbCard1)
-        self._prediction_narrative.add_a_card(xgbCard2)
+        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
+        self._model_summary = MLModelSummary()
+        self._model_summary.set_algorithm_name("Xgboost")
+        self._model_summary.set_algorithm_display_name("XGBoost")
+        self._model_summary.set_training_time(runtime)
+        self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
+        self._model_summary.set_feature_importance(objs["feature_importance"])
+        self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
+        self._model_summary.set_training_time(round((time.time() - st),2))
+        self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
+        self._model_summary.set_model_precision(overall_precision_recall["precision"])
+        self._model_summary.set_model_recall(overall_precision_recall["recall"])
+        self._model_summary.set_target_variable(result_column)
+        self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
+        self._model_summary.set_validation_method("Train and Test")
+        self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
+        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(cat_cols))
+        # self._model_summary.set_level_counts(CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator()))
+        self._model_summary.set_num_trees(100)
+        self._model_summary.set_num_rules(300)
         modelSummaryJson = {
-            "dropdown":{"name":"Xgboost","accuracy":self._model_summary["model_accuracy"],"slug":self._slug},
-            "levelcount":[self._model_summary["level_counts"]],
+            "dropdown":{
+                        "name":self._model_summary.get_algorithm_name(),
+                        "accuracy":self._model_summary.get_model_accuracy(),
+                        "slug":self._model_summary.get_slug()},
+            "levelcount":[self._model_summary.get_level_counts()],
             "modelFeatures":[],
         }
+
+        xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in xgbCards:
+            self._prediction_narrative.add_a_card(card)
+
+        self._result_setter.set_model_summary({"xgboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_xgboost_model_summary(modelSummaryJson)
-        xgbCard1 = json.loads(CommonUtils.convert_python_object_to_json(xgbCard1))
-        xgbCard2 = json.loads(CommonUtils.convert_python_object_to_json(xgbCard2))
-        self._result_setter.set_xgb_cards([xgbCard1,xgbCard2])
+        self._result_setter.set_xgb_cards(xgbCards)
 
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\

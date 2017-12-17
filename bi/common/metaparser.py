@@ -1,4 +1,4 @@
-# from bi.decorators import accepts
+from bi.common.decorators import accepts
 class MetaParser:
 
     def __init__(self):
@@ -40,5 +40,12 @@ class MetaParser:
     def get_num_unique_values(self, column_name):
         return self.column_dict[column_name]['numberOfUniqueValues']
 
+    @accepts(object,column_name=(list,tuple,str))
     def get_unique_level_dict(self,column_name):
-        return self.column_dict[column_name]["LevelCount"]
+        if isinstance(column_name,str):
+            return self.column_dict[column_name]["LevelCount"]
+        elif isinstance(column_name,list) or isinstance(column_name,tuple):
+            out = {}
+            for col in column_name:
+                out[col] = self.column_dict[col]["LevelCount"]
+            return out

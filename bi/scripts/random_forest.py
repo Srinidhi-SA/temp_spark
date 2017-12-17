@@ -14,6 +14,7 @@ from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
+from bi.common import MLModelSummary
 from bi.common import DataFrameHelper
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -27,7 +28,8 @@ from bi.common import ScatterChartData,NormalChartData,ChartJson,ModelSummary
 
 
 class RandomForestScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+        self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
         self._data_frame = data_frame
@@ -96,79 +98,50 @@ class RandomForestScript:
 
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
         objs = random_forest_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
+        runtime = round((time.time() - st),2)
         model_filepath = str(model_path)+"/"+str(self._slug)+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         print model_filepath
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
-        # confusion matrix keys are the predicted class
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
-        self._model_summary["feature_importance"] = objs["feature_importance"]
-        # self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(objs["feature_importance"])
-        self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
-        self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
-        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
-        self._model_summary["precision_recall_stats"] = overall_precision_recall["classwise_stats"]
-        self._model_summary["model_precision"] = overall_precision_recall["precision"]
-        self._model_summary["model_recall"] = overall_precision_recall["recall"]
-        self._model_summary["target_variable"] = result_column
-        self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
-        self._model_summary["algorithm_name"] = "Random Forest"
-        self._model_summary["validation_method"] = "Train and Test"
-        self._model_summary["independent_variables"] = len(list(set(x_train.columns)-set([result_column])))
         cat_cols = list(set(categorical_columns)-set([result_column]))
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
-        self._model_summary["total_trees"] = 100
-        self._model_summary["total_rules"] = 300
-
-
-        prediction_split_dict = dict(collections.Counter(objs["predicted"]))
-        prediction_split_array = []
-        for k,v in prediction_split_dict.items():
-            prediction_split_array.append([k,v])
-        prediction_split_array = sorted(prediction_split_array,key=lambda x:x[1],reverse=True)
-        total = len(objs["predicted"])
-        prediction_split_array = [[val[0],round(float(val[1])*100/total,2)] for val in prediction_split_array]
-        self._result_setter.set_model_summary({"randomforest":self._model_summary})
-        rfCard1 = NormalCard()
-        rfCard1Data = []
-        rfCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>Random Forest</h4>"))
-        rfCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        rfCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
-        rfCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
-        rfCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
-        for val in prediction_split_array:
-            rfCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
-        rfCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(self._model_summary["algorithm_name"])))
-        rfCard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(self._model_summary["total_trees"])))
-        rfCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(self._model_summary["total_rules"])))
-        rfCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
-        rfCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
-        rfCard1.set_card_data(rfCard1Data)
-
-        confusion_matrix_data = MLUtils.reformat_confusion_matrix(self._model_summary["confusion_matrix"])
-        rfCard2 = NormalCard()
-        rfCard2Data = []
-        rfCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h5>"))
-        rfcard2Table = TableData()
-        rfcard2Table.set_table_data(confusion_matrix_data)
-        rfcard2Table.set_table_type("confusionMatrix")
-        rfcard2Table.set_table_top_header("Actual")
-        rfcard2Table.set_table_left_header("Predicted")
-        rfCard2Data.append(rfcard2Table)
-        rfCard2.set_card_data(rfCard2Data)
-        self._prediction_narrative.add_a_card(rfCard1)
-        self._prediction_narrative.add_a_card(rfCard2)
+        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
+        self._model_summary = MLModelSummary()
+        self._model_summary.set_algorithm_name("Random Forest")
+        self._model_summary.set_algorithm_display_name("Random Forest")
+        self._model_summary.set_training_time(runtime)
+        self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
+        self._model_summary.set_feature_importance(objs["feature_importance"])
+        self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
+        self._model_summary.set_training_time(round((time.time() - st),2))
+        self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
+        self._model_summary.set_model_precision(overall_precision_recall["precision"])
+        self._model_summary.set_model_recall(overall_precision_recall["recall"])
+        self._model_summary.set_target_variable(result_column)
+        self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
+        self._model_summary.set_validation_method("Train and Test")
+        self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
+        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(cat_cols))
+        self._model_summary.set_num_trees(100)
+        self._model_summary.set_num_rules(300)
         modelSummaryJson = {
-            "dropdown":{"name":"Random Forest","accuracy":self._model_summary["model_accuracy"],"slug":self._slug},
-            "levelcount":[self._model_summary["level_counts"]],
+            "dropdown":{
+                        "name":self._model_summary.get_algorithm_name(),
+                        "accuracy":self._model_summary.get_model_accuracy(),
+                        "slug":self._model_summary.get_slug()},
+            "levelcount":[self._model_summary.get_level_counts()],
             "modelFeatures":[],
         }
+
+        rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in rfCards:
+            self._prediction_narrative.add_a_card(card)
+
+        self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_random_forest_model_summary(modelSummaryJson)
-        rfCard1 = json.loads(CommonUtils.convert_python_object_to_json(rfCard1))
-        rfCard2 = json.loads(CommonUtils.convert_python_object_to_json(rfCard2))
-        self._result_setter.set_rf_cards([rfCard1,rfCard2])
+        self._result_setter.set_rf_cards(rfCards)
+
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "completion",\

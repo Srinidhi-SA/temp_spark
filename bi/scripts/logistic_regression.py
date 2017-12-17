@@ -12,6 +12,7 @@ from sklearn import metrics
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
+from bi.common import MLModelSummary
 from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
@@ -24,7 +25,8 @@ from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class LogisticRegressionScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+        self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
         self._data_frame = data_frame
@@ -83,8 +85,6 @@ class LogisticRegressionScript:
         logistic_regression_obj = LogisticRegression(df, self._dataframe_helper, self._spark)
         logistic_regression_obj.set_number_of_levels(levels)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-        cat_cols = list(set(categorical_columns)-set([result_column]))
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator())
         x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
         x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
 
@@ -108,75 +108,48 @@ class LogisticRegressionScript:
         x_test = x_test[[x for x in model_columns if x != result_column]]
         clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
         objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])
-
+        runtime = round((time.time() - st),2)
         model_filepath = model_path+"/"+self._slug+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
-        # confusion matrix keys are the predicted class
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
-        self._model_summary["feature_importance"] = objs["feature_importance"]
-        self._model_summary["model_accuracy"] = round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2)
-        self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
 
+        cat_cols = list(set(categorical_columns)-set([result_column]))
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
-        self._model_summary["precision_recall_stats"] = overall_precision_recall["classwise_stats"]
-        self._model_summary["model_precision"] = overall_precision_recall["precision"]
-        self._model_summary["model_recall"] = overall_precision_recall["recall"]
-        self._model_summary["target_variable"] = result_column
-        self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
-        self._model_summary["algorithm_name"] = "Logistic Regression"
-        self._model_summary["validation_method"] = "Train and Test"
-        self._model_summary["independent_variables"] = len(cat_cols)
-        self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
-        # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
-        # print self._model_summary
+        self._model_summary = MLModelSummary()
+        self._model_summary.set_algorithm_name("Logistic Regression")
+        self._model_summary.set_algorithm_display_name("Logistic Regression")
+        self._model_summary.set_training_time(runtime)
+        self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
+        self._model_summary.set_feature_importance(objs["feature_importance"])
+        self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
+        self._model_summary.set_training_time(round((time.time() - st),2))
+        self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
+        self._model_summary.set_model_precision(overall_precision_recall["precision"])
+        self._model_summary.set_model_recall(overall_precision_recall["recall"])
+        self._model_summary.set_target_variable(result_column)
+        self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
+        self._model_summary.set_validation_method("Train and Test")
+        self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
+        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(cat_cols))
+        # self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
 
-        prediction_split_dict = dict(collections.Counter(objs["predicted"]))
-        prediction_split_array = []
-        for k,v in prediction_split_dict.items():
-            prediction_split_array.append([k,v])
-        prediction_split_array = sorted(prediction_split_array,key=lambda x:x[1],reverse=True)
-        total = len(objs["predicted"])
-        prediction_split_array = [[val[0],round(float(val[1])*100/total,2)] for val in prediction_split_array]
-        self._result_setter.set_model_summary({"logistic":self._model_summary})
-        lrCard1 = NormalCard()
-        lrCard1Data = []
-        lrCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>Logistic Regression</h4>"))
-        lrCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        lrCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(result_column)))
-        lrCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(self._model_summary["independent_variables"])))
-        lrCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
-        for val in prediction_split_array:
-            lrCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
-        lrCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(self._model_summary["algorithm_name"])))
-        lrCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(self._model_summary["validation_method"])))
-        lrCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(self._model_summary["model_accuracy"])))
-        lrCard1.set_card_data(lrCard1Data)
-
-        confusion_matrix_data = MLUtils.reformat_confusion_matrix(self._model_summary["confusion_matrix"])
-        lrCard2 = NormalCard()
-        lrCard2Data = []
-        lrCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10' >Confusion Matrix</h5>"))
-        card2Table = TableData()
-        card2Table.set_table_data(confusion_matrix_data)
-        card2Table.set_table_type("confusionMatrix")
-        card2Table.set_table_top_header("Actual")
-        card2Table.set_table_left_header("Predicted")
-        lrCard2Data.append(card2Table)
-        lrCard2.set_card_data(lrCard2Data)
-
-        self._prediction_narrative.add_a_card(lrCard1)
-        self._prediction_narrative.add_a_card(lrCard2)
         modelSummaryJson = {
-            "dropdown":{"name":"Logistic Regression","accuracy":self._model_summary["model_accuracy"],"slug":self._slug},
-            "levelcount":[self._model_summary["level_counts"]],
-            "modelFeatures":[self._model_summary["trained_model_features"]],
+            "dropdown":{
+                        "name":self._model_summary.get_algorithm_name(),
+                        "accuracy":self._model_summary.get_model_accuracy(),
+                        "slug":self._model_summary.get_slug()},
+            "levelcount":[self._model_summary.get_level_counts()],
+            "modelFeatures":[],
         }
+
+        lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in lrCards:
+            self._prediction_narrative.add_a_card(card)
+
+        self._result_setter.set_model_summary({"logistic":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_logistic_regression_model_summary(modelSummaryJson)
-        lrCard1 = json.loads(CommonUtils.convert_python_object_to_json(lrCard1))
-        lrCard2 = json.loads(CommonUtils.convert_python_object_to_json(lrCard2))
-        self._result_setter.set_lr_cards([lrCard1,lrCard2])
+        self._result_setter.set_lr_cards(lrCards)
 
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\

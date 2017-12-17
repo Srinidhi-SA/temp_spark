@@ -25,8 +25,9 @@ from pyspark.ml.feature import Bucketizer
 from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
+from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import utils as CommonUtils
 
 def bucket_all_measures(df, measure_columns, dimension_columns,target_measure=[]):
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns+target_measure])
@@ -480,7 +481,7 @@ def get_model_comparison(collated_summary):
         out.append(algos_dict[val])
     out = [[""]+out]
     first_column = ["Accuracy","Precision","Recall"]
-    data_keys = ["model_accuracy","model_precision","model_recall"]
+    data_keys = ["modelAccuracy","modelPrecision","modelRecall"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
     map_dict = dict(zip(first_column,data_keys))
     for key in first_column:
@@ -492,7 +493,7 @@ def get_model_comparison(collated_summary):
         summary.append(["Best "+key,algos_dict[algos[max_index]]])
     runtime = []
     for val in algos:
-        runtime.append(collated_summary[val]["runtime_in_seconds"])
+        runtime.append(collated_summary[val]["trainingTime"])
     max_runtime_index = __builtin__.max(xrange(len(runtime)), key = lambda x: runtime[x])
     summary.append(["Best Runtime",algos_dict[algos[max_runtime_index]]])
     inner_html = []
@@ -507,7 +508,7 @@ def get_model_comparison(collated_summary):
     return modelTable,summaryData
 
 def get_feature_importance(collated_summary):
-    feature_importance = collated_summary["randomforest"]["feature_importance"]
+    feature_importance = collated_summary["randomforest"]["featureImportance"]
     feature_importance_list = [[k,v] for k,v in feature_importance.items()]
     sorted_feature_importance_list = sorted(feature_importance_list,key = lambda x:x[1],reverse=True)
     feature_importance_data = [{"name":x[0],"value":x[1]} for x in sorted_feature_importance_list]
@@ -526,12 +527,12 @@ def get_total_models(collated_summary):
     n_model = 0
     algorithm_name = []
     for val in algos:
-        trees = collated_summary[val].get("total_trees")
-        algorithm_name.append(collated_summary[val].get("algorithm_name"))
+        trees = collated_summary[val].get("nTrees")
+        algorithm_name.append(collated_summary[val].get("algorithmName"))
         if trees:
             n_model += trees
     output = "<p>mAdvisor has built {} models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["target_variable"])
+        has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def create_model_folders(model_slug,basefoldername,subfolders=[]):
@@ -582,3 +583,95 @@ def reformat_confusion_matrix(confusion_matrix):
             inner_list.append(confusion_matrix[inner][outer])
         confusion_matrix_data.append(inner_list)
     return [list(x) for x in np.array(confusion_matrix_data).T]
+
+
+def create_model_summary_cards(modelSummaryClass):
+    modelSummaryCard1 = NormalCard()
+    modelSummaryCard1Data = []
+    modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
+    modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
+    modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
+    modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
+    modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
+    prediction_split_array = sorted([(k,v) for k,v in modelSummaryClass.get_prediction_split().items()],key=lambda x:x[1],reverse=True)
+    for val in prediction_split_array:
+        modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
+    modelSummaryCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(modelSummaryClass.get_algorithm_name())))
+    if modelSummaryClass.get_num_trees():
+        modelSummaryCard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(modelSummaryClass.get_num_trees())))
+    if modelSummaryClass.get_num_rules():
+        modelSummaryCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(modelSummaryClass.get_num_rules())))
+    modelSummaryCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(modelSummaryClass.get_validation_method())))
+    modelSummaryCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(modelSummaryClass.get_model_accuracy())))
+    modelSummaryCard1.set_card_data(modelSummaryCard1Data)
+
+    modelSummaryCard2 = NormalCard()
+    modelSummaryCard2Data = []
+    modelSummaryCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h5>"))
+    modelSummaryCard2Table = TableData()
+    modelSummaryCard2Table.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
+    modelSummaryCard2Table.set_table_type("confusionMatrix")
+    modelSummaryCard2Table.set_table_top_header("Actual")
+    modelSummaryCard2Table.set_table_left_header("Predicted")
+    modelSummaryCard2Data.append(modelSummaryCard2Table)
+    modelSummaryCard2.set_card_data(modelSummaryCard2Data)
+    return [modelSummaryCard1,modelSummaryCard2]
+
+
+def collated_model_summary_card(result_setter,prediction_narrative):
+    collated_summary = result_setter.get_model_summary()
+    card1 = NormalCard()
+    card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
+    card1Data.append(HtmlData(data = get_total_models(collated_summary)))
+    card1.set_card_data(card1Data)
+    card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
+
+    card2 = NormalCard()
+    card2_elements = get_model_comparison(collated_summary)
+    card2Data = [card2_elements[0],card2_elements[1]]
+    card2.set_card_data(card2Data)
+    # prediction_narrative.insert_card_at_given_index(card2,1)
+    card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
+
+    card3 = NormalCard()
+    card3Data = [HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h5>")]
+    card3Data.append(get_feature_importance(collated_summary))
+    card3.set_card_data(card3Data)
+    # prediction_narrative.insert_card_at_given_index(card3,2)
+    card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+
+    modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
+    modelResult = json.loads(modelResult)
+    existing_cards = modelResult["listOfCards"]
+    existing_cards = result_setter.get_all_algos_cards()
+
+    # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
+    all_cards = [card1,card2,card3] + existing_cards
+
+    modelResult = NarrativesTree()
+    modelResult.add_cards(all_cards)
+    modelResult = CommonUtils.convert_python_object_to_json(modelResult)
+    modelJsonOutput = ModelSummary()
+    modelJsonOutput.set_model_summary(json.loads(modelResult))
+
+    rfModelSummary = result_setter.get_random_forest_model_summary()
+    lrModelSummary = result_setter.get_logistic_regression_model_summary()
+    xgbModelSummary = result_setter.get_xgboost_model_summary()
+    model_dropdowns = []
+
+    model_features = {}
+    model_configs = {}
+    for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
+        if obj != {}:
+            model_dropdowns.append(obj["dropdown"])
+            model_features[obj["dropdown"]["slug"]] = obj["modelFeatures"]
+            model_configs["dimensionLevelCount"] = obj["levelcount"]
+
+    model_configs = {"target_variable":[collated_summary[collated_summary.keys()[0]]["targetVariable"]]}
+    model_configs["modelFeatures"] = model_features
+    # print "Model Configs",model_configs
+
+    modelJsonOutput.set_model_dropdown(model_dropdowns)
+    modelJsonOutput.set_model_config(model_configs)
+    modelJsonOutput = modelJsonOutput.get_json_data()
+    return modelJsonOutput
