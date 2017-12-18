@@ -82,7 +82,7 @@ class ContextSetter:
             "Dimension vs. Dimension":{"total":20,"script":20,"narratives":20}
         }
         self.metadataScriptWeight = {
-            "initialization":{"total":2,"script":1,"narratives":1},
+            "initialization":{"total":3,"script":2,"narratives":1},
         }
         self.measureAnalysisWeight = {}
         self.dimensionAnalysisWeight = {}
@@ -95,6 +95,8 @@ class ContextSetter:
         self.metaIgnoreMsgFlag = False
         self._max_dimension_level_allowed = 200
         self.customAnalysisDetails = None
+        self.jobType = None
+        self.storyOnScoredData = False
 
     def get_anova_max_levels(self):
         return self._max_dimension_level_allowed
@@ -500,3 +502,14 @@ class ContextSetter:
 
     def get_message_url(self):
         return self.message_url
+
+    def set_job_type(self,data):
+        self.jobType = data
+
+    def get_job_type(self):
+        return self.jobType
+
+    def set_story_on_scored_data(self,data):
+        self.storyOnScoredData = data
+    def get_story_on_scored_data(self):
+        return self.storyOnScoredData

@@ -110,6 +110,7 @@ class RandomForestScript:
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Random Forest")
         self._model_summary.set_algorithm_display_name("Random Forest")
+        self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
         self._model_summary.set_feature_importance(objs["feature_importance"])
@@ -129,7 +130,8 @@ class RandomForestScript:
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
                         "accuracy":self._model_summary.get_model_accuracy(),
-                        "slug":self._model_summary.get_slug()},
+                        "slug":self._model_summary.get_slug()
+                        },
             "levelcount":[self._model_summary.get_level_counts()],
             "modelFeatures":[],
         }
@@ -260,14 +262,17 @@ class RandomForestScript:
                     columns_to_drop = considercolumns
                 elif considercolumnstype == ["including"]:
                     columns_to_keep = considercolumns
+
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
             columns_to_drop += ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
+        print "columns_to_drop",columns_to_drop
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
+        self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)

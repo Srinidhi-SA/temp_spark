@@ -105,6 +105,7 @@ class XgboostScript:
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Xgboost")
         self._model_summary.set_algorithm_display_name("XGBoost")
+        self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
         self._model_summary.set_feature_importance(objs["feature_importance"])
@@ -125,10 +126,12 @@ class XgboostScript:
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
                         "accuracy":self._model_summary.get_model_accuracy(),
-                        "slug":self._model_summary.get_slug()},
+                        "slug":self._model_summary.get_slug()
+                        },
             "levelcount":[self._model_summary.get_level_counts()],
             "modelFeatures":[],
         }
+        print modelSummaryJson
 
         xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
         for card in xgbCards:
@@ -261,6 +264,7 @@ class XgboostScript:
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
+        self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)

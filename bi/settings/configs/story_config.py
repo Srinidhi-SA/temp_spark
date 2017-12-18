@@ -16,7 +16,7 @@ def get_story_config():
                                 "displayName" : "Trend",
                                 "name" : "trend",
                                 "noOfColumnsToUse" : None,
-                                "status" : False
+                                "status" : True
                             },
                             {
                                 "analysisSubTypes" : [],
@@ -165,7 +165,7 @@ def get_story_config():
                             }
                         ],
                         "date_columns" : [
-                            "new_date"
+                            "Order Date"
                         ],
                         "date_format" : None,
                         "ignore_column_suggestion" : [],

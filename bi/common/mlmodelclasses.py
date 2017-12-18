@@ -1,6 +1,51 @@
 from decorators import accepts
 from exception import BIException
 
+class ModelSummary:
+    """
+    modelJsonOutput = {
+                        "model_summary":modelResult,
+                        "model_dropdown":[
+                                    {"name":"Random Forest","accuracy":89,"slug":"djksjkdsjdsk12NN2156"},
+                                    {"name":"Logistic Regression","accuracy":86,"slug":"djk18jjsjdsk12NN2156"},
+                                    {"name":"Xgboost","accuracy":80,"slug":"djkjkd77661sk12NN2156"}
+                        ],
+                        "config":{
+                            "target_variable":[None],
+                            "targetVariableLevelcount":[],
+                            "modelFeatures":{
+                                "slug1":[],
+                                "slug2":[],
+                                "slug3":[],
+                            }
+                        }
+                    }
+    """
+    def __init__(self,model_summary={}, model_dropdown=[], modelConfig={}):
+        self.model_summary = model_summary
+        self.model_dropdown = model_dropdown
+        self.config = modelConfig
+
+    def set_model_summary(self,data):
+        self.model_summary = data
+    def get_model_summary(self):
+        return self.model_summary
+    def set_model_dropdown(self,data):
+        self.model_dropdown = data
+    def get_model_dropdown(self):
+        return self.model_dropdown
+    def set_model_config(self,data):
+        self.config = data
+    def get_model_config(self):
+        return self.config
+    def get_json_data(self):
+        output =  {
+                "model_summary":self.model_summary,
+                "model_dropdown":self.model_dropdown,
+                "config":self.config,
+                }
+        return output
+
 class MLModelSummary:
     def __init__(self):
         self.confusionMatrix = None

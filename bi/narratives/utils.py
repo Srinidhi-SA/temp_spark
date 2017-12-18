@@ -818,8 +818,8 @@ def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFo
 
     return output
 
-@accepts(df=DataFrame,selectedateColumn=(basestring,None),dateColsuggested=basestring,trendOnTdCol=bool)
-def calculate_data_range_stats(df,selectedateColumn,dateColsuggested,trendOnTdCol):
+@accepts(df=DataFrame,existingDateFormat=(basestring,None),selectedateColumn=(basestring,None),dateColsuggested=basestring,trendOnTdCol=bool)
+def calculate_data_range_stats(df,existingDateFormat,selectedateColumn,dateColsuggested,trendOnTdCol):
     if selectedateColumn != None and trendOnTdCol == False:
         date_format = existingDateFormat
         string_to_date = PysparkFN.udf(lambda x: datetime.strptime(x,date_format), DateType())

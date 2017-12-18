@@ -653,7 +653,7 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     modelResult = CommonUtils.convert_python_object_to_json(modelResult)
     modelJsonOutput = ModelSummary()
     modelJsonOutput.set_model_summary(json.loads(modelResult))
-
+    ####
     rfModelSummary = result_setter.get_random_forest_model_summary()
     lrModelSummary = result_setter.get_logistic_regression_model_summary()
     xgbModelSummary = result_setter.get_xgboost_model_summary()

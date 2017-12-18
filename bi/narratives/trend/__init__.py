@@ -117,7 +117,10 @@ class TimeSeriesNarrative:
             self._existingDateFormat = dateColCheck["existingDateFormat"]
             self._date_column_suggested = dateColCheck["suggestedDateColumn"]
         if self._existingDateFormat:
-            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
+            print "HOHOHO"
+            print self._existingDateFormat
+            print self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column
+            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
             print dataRangeStats
             self._durationString = dataRangeStats["durationString"]
             self._duration = dataRangeStats["duration"]

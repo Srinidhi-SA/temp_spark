@@ -94,13 +94,54 @@ class DataFrameHelper:
         print "#"*30
         print "colsToBin:-",colsToBin
         print "#"*30
-        self._data_frame = self._data_frame.select(colsToKeep)
+        if self._dataframe_context.get_job_type() != "prediction" and self._dataframe_context.get_story_on_scored_data() == True:
+            self._data_frame = self._data_frame.select(colsToKeep)
+            self.columns = self._data_frame.columns
+        elif self._dataframe_context.get_job_type() == "prediction" and self._dataframe_context.get_story_on_scored_data() == False:
+            result_column = self._dataframe_context.get_result_column()
+            updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
+            self._data_frame = self._data_frame.select(updatedColsToKeep)
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
-
         self.update_column_data()
         self.populate_column_data()
 
+    def update_column_data(self):
+        self.columns = [field.name for field in self._data_frame.schema.fields]
+        self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
+        self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
+        self.string_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
+        self.timestamp_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
+        self.num_rows = self._data_frame.count()
+        self.num_columns = len(self._data_frame.columns)
+
+    def populate_column_data(self):
+        for measure_column in self.numeric_columns:
+            null_values = self.get_num_null_values(measure_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.MEASURE_COLUMNS][measure_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
+
+        for dimension_column in self.string_columns:
+            null_values = self.get_num_null_values(dimension_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.DIMENSION_COLUMNS][dimension_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
+
+        for time_dimension_column in self.timestamp_columns:
+            null_values = self.get_num_null_values(time_dimension_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.TIME_DIMENSION_COLUMNS][time_dimension_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
 
     def set_train_test_data(self,df):
         # from bi.algorithms import utils as MLUtils
@@ -144,17 +185,7 @@ class DataFrameHelper:
         self._data_frame = self._data_frame.filter(col(column_name).isNotNull())
         self.num_rows = self._data_frame.count()
 
-    def update_column_data(self):
-        self.columns = [field.name for field in self._data_frame.schema.fields]
-        self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
-        self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
-        self.string_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
-        self.timestamp_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
-        self.num_rows = self._data_frame.count()
-        self.num_columns = len(self._data_frame.columns)
+
 
     def bin_columns(self,colsToBin):
         for bincol in colsToBin:
@@ -241,30 +272,7 @@ class DataFrameHelper:
                 return row[1]
         return 0
 
-    def populate_column_data(self):
-        for measure_column in self.numeric_columns:
-            null_values = self.get_num_null_values(measure_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.MEASURE_COLUMNS][measure_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
 
-        for dimension_column in self.string_columns:
-            null_values = self.get_num_null_values(dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.DIMENSION_COLUMNS][dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-        for time_dimension_column in self.timestamp_columns:
-            null_values = self.get_num_null_values(time_dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.TIME_DIMENSION_COLUMNS][time_dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
 
     def filter_dataframe(self, colname, values):
         if type(values) == str:
