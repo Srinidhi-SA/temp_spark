@@ -63,7 +63,7 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "training"
+            jobType = "story"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
@@ -83,6 +83,7 @@ def main(configJson):
         dataframe_context.set_environment("debugMode")
     jobType = job_config["job_type"]
     messageUrl = configJson["job_config"]["message_url"]
+    dataframe_context.set_job_type(jobType)
     dataframe_context.set_message_url(messageUrl)
     jobName = job_config["job_name"]
     messageURL = dataframe_context.get_message_url()
@@ -130,10 +131,7 @@ def main(configJson):
         print "Data Loading Time ",data_load_time," Seconds"
         metaParserInstance = MetaParser()
         if debugMode != True:
-            print "#"*1000
-            print "METADATA"*200
             if jobType != "metaData":
-                print "#"*1000
                 print "Retrieving MetaData"
                 metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 if metaDataObj:
@@ -147,22 +145,23 @@ def main(configJson):
                     metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
                     print "metaData Analysis Done in ", time.time() - fs, " seconds."
                     metaParserInstance.set_params(metaDataObj)
-        else:
-            # checking if metadata exist for the dataset
-            # else it will run metadata first
-            # while running in debug mode the dataset_slug should be correct or some random String
-            metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
-            if metaDataObj:
-                metaParserInstance.set_params(metaDataObj)
-            else:
-                fs = time.time()
-                print "starting Metadata"
-                dataframe_context.set_metadata_ignore_msg_flag(True)
-                meta_data_class = MetaDataScript(df,spark,dataframe_context)
-                meta_data_object = meta_data_class.run()
-                metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
-                print "metaData Analysis Done in ", time.time() - fs, " seconds."
-                metaParserInstance.set_params(metaDataObj)
+        elif debugMode == True:
+            if jobType != "metaData":
+                # checking if metadata exist for the dataset
+                # else it will run metadata first
+                # while running in debug mode the dataset_slug should be correct or some random String
+                metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                if metaDataObj:
+                    metaParserInstance.set_params(metaDataObj)
+                else:
+                    fs = time.time()
+                    print "starting Metadata"
+                    dataframe_context.set_metadata_ignore_msg_flag(True)
+                    meta_data_class = MetaDataScript(df,spark,dataframe_context)
+                    meta_data_object = meta_data_class.run()
+                    metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
+                    print "metaData Analysis Done in ", time.time() - fs, " seconds."
+                    metaParserInstance.set_params(metaDataObj)
 
         if jobType != "metaData":
             print "Setting Dataframe Helper Class"
@@ -182,14 +181,15 @@ def main(configJson):
 
     if jobType == "metaData":
         fs = time.time()
-        print "#"*100
-        print "starting Metadata"
+        print "Running Metadata"
         meta_data_class = MetaDataScript(df,spark,dataframe_context)
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
         print metaDataJson
         print "metaData Analysis Done in ", time.time() - fs, " seconds."
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        CommonUtils.save_progress_message(messageURL,progressMessage)
         return response
     ############################################################################
 
@@ -215,6 +215,8 @@ def main(configJson):
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         else:
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        CommonUtils.save_progress_message(messageURL,progressMessage)
         print "SubSetting Analysis Completed in", time.time()-st," Seconds"
         return response
     ############################################################################
@@ -443,6 +445,9 @@ def main(configJson):
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
             print "Measure Analysis Completed in :", time.time()-st," Seconds"
             return response
+
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        CommonUtils.save_progress_message(messageURL,progressMessage)
     ############################################################################
 
     ################################ Model Training ############################
@@ -460,7 +465,6 @@ def main(configJson):
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         df_helper.set_train_test_data(df)
         model_slug = dataframe_context.get_model_path()
-        # model_slug = "slug1"
         basefoldername = "mAdvisorModels"
         subfolders = MLUtils.slug_model_mapping().keys()
         model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=subfolders)
@@ -468,7 +472,7 @@ def main(configJson):
 
         try:
             st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
+            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
             # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
             rf_obj.Train()
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
@@ -477,83 +481,33 @@ def main(configJson):
 
         try:
             st = time.time()
-            lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
+            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+            xgb_obj.Train()
+            print "XGBoost Model Done in ", time.time() - st,  " seconds."
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+
+        try:
+            st = time.time()
+            lr_obj = LogisticRegressionScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
             # lr_obj = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
             lr_obj.Train()
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
 
-        try:
-            st = time.time()
-            xgb_obj = XgboostScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
-            xgb_obj.Train()
-            print "XGBoost Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
-
-
-        collated_summary = result_setter.get_model_summary()
-        card1 = NormalCard()
-        card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
-        card1Data.append(HtmlData(data = MLUtils.get_total_models(collated_summary)))
-        card1.set_card_data(card1Data)
-        # prediction_narrative.insert_card_at_given_index(card1,0)
-        card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
-
-        card2 = NormalCard()
-        card2_elements = MLUtils.get_model_comparison(collated_summary)
-        card2Data = [card2_elements[0],card2_elements[1]]
-        card2.set_card_data(card2Data)
-        # prediction_narrative.insert_card_at_given_index(card2,1)
-        card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
-
-        card3 = NormalCard()
-        card3Data = [HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h5>")]
-        card3Data.append(MLUtils.get_feature_importance(collated_summary))
-        card3.set_card_data(card3Data)
-        # prediction_narrative.insert_card_at_given_index(card3,2)
-        card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
-
-        modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
-        modelResult = json.loads(modelResult)
-        existing_cards = modelResult["listOfCards"]
-        existing_cards = result_setter.get_all_algos_cards()
-
-        # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
-        all_cards = [card1,card2,card3] + existing_cards
-
-        modelResult = NarrativesTree()
-        modelResult.add_cards(all_cards)
-        modelResult = CommonUtils.convert_python_object_to_json(modelResult)
-        modelJsonOutput = ModelSummary()
-        modelJsonOutput.set_model_summary(json.loads(modelResult))
-
-        rfModelSummary = result_setter.get_random_forest_model_summary()
-        lrModelSummary = result_setter.get_logistic_regression_model_summary()
-        xgbModelSummary = result_setter.get_xgboost_model_summary()
-        model_dropdowns = []
-        model_configs = {"target_variable":[result_column]}
-        model_features = {}
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
-            if obj != {}:
-                model_dropdowns.append(obj["dropdown"])
-                model_features[obj["dropdown"]["slug"]] = obj["modelFeatures"]
-                model_configs["dimensionLevelCount"] = obj["levelcount"]
-        model_configs["modelFeatures"] = model_features
-        # print "Model Configs",model_configs
-
-        modelJsonOutput.set_model_dropdown(model_dropdowns)
-        modelJsonOutput.set_model_config(model_configs)
-        modelJsonOutput = modelJsonOutput.get_json_data()
+        modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative)
         print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(modelJsonOutput))
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        CommonUtils.save_progress_message(messageURL,progressMessage)
         print "Model Training Completed in ", time.time() - st, " seconds."
         return response
     ############################################################################
 
     ############################## Model Prediction ############################
     elif jobType == 'prediction':
+        print "Prediction Started"
         st = time.time()
         story_narrative = NarrativesTree()
         story_narrative.set_name("scores")
@@ -570,31 +524,28 @@ def main(configJson):
         print "score_slug",score_slug
         basefoldername = "mAdvisorScores"
         score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
-
         algorithm_name_list = ["randomforest","xgboost","logisticregression"]
         algorithm_name = dataframe_context.get_algorithm_slug()[0]
         print "algorithm_name",algorithm_name
         model_path = score_file_path.split(basefoldername)[0]+"/mAdvisorModels/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
-        dataframe_context.set_model_path(model_path)
-
         selected_model_for_prediction = [MLUtils.slug_model_mapping()[algorithm_name]]
-        print selected_model_for_prediction
+        print "selected_model_for_prediction", selected_model_for_prediction
         if "randomforest" in selected_model_for_prediction:
             df = df.toPandas()
-            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+            trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "xgboost" in selected_model_for_prediction:
             df = df.toPandas()
-            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+            trainedModel = XgboostScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "logisticregression" in selected_model_for_prediction:
             df = df.toPandas()
-            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+            trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)
             trainedModel.Predict()
             print "Scoring Done in ", time.time() - st,  " seconds."
@@ -609,6 +560,8 @@ def main(configJson):
         scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        CommonUtils.save_progress_message(messageURL,progressMessage)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
         return response
     ############################################################################

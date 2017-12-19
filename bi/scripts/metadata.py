@@ -19,7 +19,7 @@ from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
 class MetaDataScript:
     def __init__(self, data_frame, spark, dataframe_context):
         self._dataframe_context = dataframe_context
-        self._completionStatus = 0
+        self._completionStatus = self._dataframe_context.get_completion_status()
         self._start_time = time.time()
         self._analysisName = "metadata"
         self._messageURL = self._dataframe_context.get_message_url()
@@ -27,7 +27,7 @@ class MetaDataScript:
         self._scriptStages = {
             "schema":{
                 "summary":"Loaded the data and Schema is Run",
-                "weight":15
+                "weight":12
                 },
             "sampling":{
                 "summary":"Sampling the dataframe",
@@ -43,11 +43,11 @@ class MetaDataScript:
                 },
             "timedimensionstats":{
                 "summary":"calculating stats for time dimension columns",
-                "weight":0
+                "weight":5
                 },
             "suggestions":{
                 "summary":"Ignore and Date Suggestions",
-                "weight":30
+                "weight":25
                 },
             }
 

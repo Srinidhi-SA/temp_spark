@@ -313,6 +313,7 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
         "globalCompletionPercentage" : globalCompletionPercentage,
         "stageCompletionPercentage" : stageCompletionPercentage
     }
+    print "completionStatus for the Job:- ",globalCompletionPercentage
     return progressMessage
 
 def save_progress_message(url,jsonData,ignore=False):
