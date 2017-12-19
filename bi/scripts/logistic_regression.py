@@ -22,6 +22,8 @@ from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,NormalCard
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.algorithms import DecisionTrees
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
 
 class LogisticRegressionScript:
@@ -287,6 +289,8 @@ class LogisticRegressionScript:
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
+        resultColLevelCount = dict(df[result_column].value_counts())
+        self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
         self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
@@ -337,3 +341,17 @@ class LogisticRegressionScript:
             chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName))
         except:
             print "ChiSquare Analysis Failed "
+
+        try:
+            fs = time.time()
+            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+            if narratives_file.startswith("file"):
+                narratives_file = narratives_file[7:]
+            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
+            if result_file.startswith("file"):
+                result_file = result_file[7:]
+            df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+            narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
+            print narratives_obj
+        except:
+            print "DecisionTree Analysis Failed "

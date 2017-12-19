@@ -79,7 +79,8 @@ class ContextSetter:
             "logisticRegression":{"total":20,"script":20,"narratives":20},
             "xgboost":{"total":20,"script":20,"narratives":20},
             "Descriptive analysis":{"total":10,"script":10,"narratives":10},
-            "Dimension vs. Dimension":{"total":20,"script":20,"narratives":20}
+            "Dimension vs. Dimension":{"total":10,"script":5,"narratives":5},
+            "Predictive modeling":{"total":10,"script":5,"narratives":5}
         }
         self.metadataScriptWeight = {
             "initialization":{"total":3,"script":2,"narratives":1},

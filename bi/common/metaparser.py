@@ -35,6 +35,8 @@ class MetaParser:
             return_dict[each['name']] = each['value']
         return return_dict
 
+    def update_column_dict(self,colname,columnStats):
+        self.column_dict.update({colname:columnStats})
     # ---------------------- All the getters ---------------------------------
 
     def get_num_unique_values(self, column_name):

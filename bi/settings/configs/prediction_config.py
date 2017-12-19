@@ -106,7 +106,7 @@ def get_prediction_config():
        u'Capital-gain', u'Capital-loss', u'hours-per-week', u'native-country'
                 ],
                 "algorithmslug": [
-                  "f77631ce2ab24cf78c55bb6a5fce4db8xgb"
+                  "f77631ce2ab24cf78c55bb6a5fce4db8rf"
                 ],
                 "levelcounts": [
                     {' >50K': 7841, ' <=50K': 24720}

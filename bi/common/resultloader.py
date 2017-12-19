@@ -25,27 +25,26 @@ class ResultSetter:
         self.rfcards = []
         self.lrcards = []
         self.xgbcards = []
-        self.scorefreqcard = None
+        self.scorefreqcard = []
         self.scorechicards = []
+        self.scoredtreecards = []
         self.stockAdvisorNode = None
 
 
     def get_score_cards(self):
         if self.scorefreqcard != None:
-            out = [self.scorefreqcard]+self.scorechicards
-        else:
-            out = self.scorechicards
-        return out[:5]
+            out = [self.scorefreqcard]+self.scorechicards[:3]+self.scoredtreecards
+        return out
+    def set_score_dtree_cards(self,data):
+        self.scoredtreecards = data
     def set_score_freq_card(self,data):
         self.scorefreqcard  = data
-        # self.scorefreqcard = json.loads(CommonUtils.convert_python_object_to_json(data))
     def get_score_freq_card(self):
         return self.scorefreqcard
     def set_score_chi_cards(self,data):
         self.scorechicards = data
     def add_a_score_chi_card(self,data):
         self.scorechicards.append(data)
-        # self.scorechicards.append(json.loads(CommonUtils.convert_python_object_to_json(data)))
     def get_score_chi_cards(self):
         return self.scorechicards
     def set_lr_cards(self,data):
