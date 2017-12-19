@@ -150,7 +150,10 @@ def main(configJson):
                 # checking if metadata exist for the dataset
                 # else it will run metadata first
                 # while running in debug mode the dataset_slug should be correct or some random String
-                metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                try:
+                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                except:
+                    metaDataObj = None
                 if metaDataObj:
                     metaParserInstance.set_params(metaDataObj)
                 else:
