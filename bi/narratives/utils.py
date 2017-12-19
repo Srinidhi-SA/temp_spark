@@ -529,7 +529,10 @@ def get_level_cont_dict(level_cont):
         out_data["category_flag"] = False
     out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
-    out_data["highest_contributing_level_range"] = str(out_dict[out_data["highest_contributing_variable"]]["maxval"])+" vis-a-vis "+str(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"])
+    out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
+    print "_"*100
+    print out_data
+    print "_"*100
     output = []
     for k,v in levelContributionSummary.items():
         max_level = min(v,key=lambda x: v[x]["diff"])
@@ -542,7 +545,11 @@ def get_level_cont_dict(level_cont):
     out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
     out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
     out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
-    out_data["lowest_contributing_level_range"] = str(out_dict[out_data["lowest_contributing_variable"]]["minval"])+" vis-a-vis "+str(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"])
+    out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
+
+    print "_"*100
+    print out_dict
+    print "_"*100
 
     return out_data
 
