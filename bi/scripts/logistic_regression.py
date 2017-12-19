@@ -123,6 +123,7 @@ class LogisticRegressionScript:
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
         self._model_summary.set_feature_importance(objs["feature_importance"])
+        self._model_summary.set_feature_list(objs["featureList"])
         self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
         self._model_summary.set_training_time(round((time.time() - st),2))
         self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
@@ -131,8 +132,9 @@ class LogisticRegressionScript:
         self._model_summary.set_target_variable(result_column)
         self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
         self._model_summary.set_validation_method("Train and Test")
-        self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
-        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(cat_cols))
+        # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
+        self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
+        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
         # self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
 
         modelSummaryJson = {
@@ -141,8 +143,8 @@ class LogisticRegressionScript:
                         "accuracy":self._model_summary.get_model_accuracy(),
                         "slug":self._model_summary.get_slug()
                         },
-            "levelcount":[self._model_summary.get_level_counts()],
-            "modelFeatures":[],
+            "levelcount":self._model_summary.get_level_counts(),
+            "modelFeatureList":self._model_summary.get_feature_list(),
         }
 
         lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
@@ -232,8 +234,6 @@ class LogisticRegressionScript:
         if score_summary_path.startswith("file"):
             score_summary_path = score_summary_path[7:]
         model_columns = self._dataframe_context.get_model_features()
-
-
         trained_model = joblib.load(trained_model_path)
         df = self._data_frame
         pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -245,6 +245,7 @@ class LogisticRegressionScript:
         for col in missing_columns:
             pandas_df[col] = [0]*df_shape[0]
         pandas_df = pandas_df[[x for x in model_columns if x != result_column]]
+        pandas_df = pandas_df[model_columns]
         score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]

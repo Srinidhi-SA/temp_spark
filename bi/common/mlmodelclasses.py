@@ -50,6 +50,7 @@ class MLModelSummary:
     def __init__(self):
         self.confusionMatrix = None
         self.featureImportance = None
+        self.featureList = None
         self.trainingTime = None
         self.precisionRecallStats = None
         self.modelAccuracy = None
@@ -71,6 +72,9 @@ class MLModelSummary:
 
     def set_feature_importance(self,data):
         self.featureImportance = data
+
+    def set_feature_list(self,data):
+        self.featureList = data
 
     def set_training_time(self,data):
         self.trainingTime = data
@@ -122,6 +126,9 @@ class MLModelSummary:
 
     def get_feature_importance(self):
         return self.featureImportance
+
+    def get_feature_list(self):
+        return self.featureList
 
     def get_training_time(self):
         return self.trainingTime

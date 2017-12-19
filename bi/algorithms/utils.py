@@ -657,19 +657,22 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     rfModelSummary = result_setter.get_random_forest_model_summary()
     lrModelSummary = result_setter.get_logistic_regression_model_summary()
     xgbModelSummary = result_setter.get_xgboost_model_summary()
-    model_dropdowns = []
 
+    model_dropdowns = []
     model_features = {}
     model_configs = {}
+    targetVariableLevelcount = {}
+    target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
     for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
         if obj != {}:
             model_dropdowns.append(obj["dropdown"])
-            model_features[obj["dropdown"]["slug"]] = obj["modelFeatures"]
-            model_configs["dimensionLevelCount"] = obj["levelcount"]
-
-    model_configs = {"target_variable":[collated_summary[collated_summary.keys()[0]]["targetVariable"]]}
+            model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
+            if targetVariableLevelcount == {}:
+                print obj["levelcount"]
+                targetVariableLevelcount = obj["levelcount"][target_variable]
+    model_configs = {"target_variable":[target_variable]}
     model_configs["modelFeatures"] = model_features
-    # print "Model Configs",model_configs
+    model_configs["targetVariableLevelcount"] = targetVariableLevelcount
 
     modelJsonOutput.set_model_dropdown(model_dropdowns)
     modelJsonOutput.set_model_config(model_configs)

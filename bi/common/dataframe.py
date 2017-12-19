@@ -144,7 +144,6 @@ class DataFrameHelper:
             }
 
     def set_train_test_data(self,df):
-        # from bi.algorithms import utils as MLUtils
         result_column = self._dataframe_context.get_result_column()
         train_test_ratio = float(self._dataframe_context.get_train_test_split())
         date_suggestion_columns = self._dataframe_context.get_date_columns()

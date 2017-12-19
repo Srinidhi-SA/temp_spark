@@ -190,11 +190,11 @@ class ContextSetter:
             if "modelname" in fileSettingKeys:
                 self.MODELS =self.FILE_SETTINGS['modelname'][0]
             if "modelfeatures" in fileSettingKeys:
-                modelfeaturedata = self.FILE_SETTINGS['modelfeatures']
-                if modelfeaturedata != None and len(modelfeaturedata) > 0:
-                    modelfeaturedata = modelfeaturedata[0]
-                    if self._column_separator in modelfeaturedata:
-                        self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
+                self.MODELFEATURES = self.FILE_SETTINGS['modelfeatures']
+                # if modelfeaturedata != None and len(modelfeaturedata) > 0:
+                #     modelfeaturedata = modelfeaturedata[0]
+                #     if self._column_separator in modelfeaturedata:
+                #         self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
 
             if "levelcounts" in fileSettingKeys:
                 levelcountdata = self.FILE_SETTINGS['levelcounts']

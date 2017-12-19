@@ -387,7 +387,10 @@ class LinearRegressionNarrative:
                   }
         if measure_column in result["coeff"].keys():
             output["coeff"] = result["coeff"][measure_column]["coefficient"]
-            output["elasticity_value"] = output["coeff"] * Stats.mean(df,result_column)/Stats.mean(df,measure_column)
+            try:
+                output["elasticity_value"] = output["coeff"] * Stats.mean(df,result_column)/Stats.mean(df,measure_column)
+            except:
+                output["elasticity_value"] = 0
         else:
             output["coeff"] = 0
             output["elasticity_value"] = 0
