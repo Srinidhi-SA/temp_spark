@@ -672,7 +672,7 @@ def collated_model_summary_card(result_setter,prediction_narrative):
                 targetVariableLevelcount = obj["levelcount"][target_variable]
     model_configs = {"target_variable":[target_variable]}
     model_configs["modelFeatures"] = model_features
-    model_configs["targetVariableLevelcount"] = targetVariableLevelcount
+    model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
 
     modelJsonOutput.set_model_dropdown(model_dropdowns)
     modelJsonOutput.set_model_config(model_configs)
