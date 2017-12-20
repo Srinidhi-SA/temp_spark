@@ -271,11 +271,11 @@ class LogisticRegressionScript:
                 uidTableData.append(levelDf[:5])
             uidTableData = pd.concat(uidTableData)
             uidTableData  = [list(arr) for arr in list(uidTableData.values)]
-            uidTableData = [uidCol,"predicted_probability",result_column] + uidTableData
+            uidTableData = [[uidCol,"Probability",result_column]] + uidTableData
             uidTable = TableData()
-            uidTable.set_table_width(30)
+            uidTable.set_table_width(25)
             uidTable.set_table_data(uidTableData)
-            uidTable.set_table_type("normal")
+            uidTable.set_table_type("normalHideColumn")
             self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
 
 

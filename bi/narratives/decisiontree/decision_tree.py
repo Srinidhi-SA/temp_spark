@@ -208,6 +208,7 @@ class DecisionTreeNarrative:
                 richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
                 richRulesArray.append(richRule)
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
+            probabilityArray = map(lambda x:str(round(x)),probabilityArray)
             targetArray = zip(richRulesArray,probabilityArray,predictionArray,freqArray,groupArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
@@ -243,7 +244,7 @@ class DecisionTreeNarrative:
 
         main_card_table = TableData()
         if self._dataframe_context.get_story_on_scored_data() == True:
-            main_card_table.set_table_width(70)
+            main_card_table.set_table_width(75)
         main_card_table.set_table_data(tableArray)
         main_card_table.set_table_type("popupDecisionTreeTable")
         main_card_data.append(main_card_table)

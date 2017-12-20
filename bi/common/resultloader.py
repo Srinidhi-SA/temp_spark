@@ -33,9 +33,9 @@ class ResultSetter:
 
 
     def get_score_cards(self):
-        if self.scorefreqcard != None:
-            out = [self.scorefreqcard]+self.scorechicards[:3]+self.scoredtreecards
-        return out
+        # if self.scorefreqcard != None:
+        #     out = [self.scorefreqcard]+self.scorechicards[:3]+self.scoredtreecards
+        return self.scoredtreecards
     def set_score_dtree_cards(self,data):
         self.scoredtreecards = data
     def set_score_freq_card(self,data):
