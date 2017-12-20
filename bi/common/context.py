@@ -79,7 +79,8 @@ class ContextSetter:
             "logisticRegression":{"total":20,"script":20,"narratives":20},
             "xgboost":{"total":20,"script":20,"narratives":20},
             "Descriptive analysis":{"total":10,"script":10,"narratives":10},
-            "Dimension vs. Dimension":{"total":20,"script":20,"narratives":20}
+            "Dimension vs. Dimension":{"total":10,"script":5,"narratives":5},
+            "Predictive modeling":{"total":10,"script":5,"narratives":5}
         }
         self.metadataScriptWeight = {
             "initialization":{"total":3,"script":2,"narratives":1},
@@ -190,11 +191,11 @@ class ContextSetter:
             if "modelname" in fileSettingKeys:
                 self.MODELS =self.FILE_SETTINGS['modelname'][0]
             if "modelfeatures" in fileSettingKeys:
-                modelfeaturedata = self.FILE_SETTINGS['modelfeatures']
-                if modelfeaturedata != None and len(modelfeaturedata) > 0:
-                    modelfeaturedata = modelfeaturedata[0]
-                    if self._column_separator in modelfeaturedata:
-                        self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
+                self.MODELFEATURES = self.FILE_SETTINGS['modelfeatures']
+                # if modelfeaturedata != None and len(modelfeaturedata) > 0:
+                #     modelfeaturedata = modelfeaturedata[0]
+                #     if self._column_separator in modelfeaturedata:
+                #         self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
 
             if "levelcounts" in fileSettingKeys:
                 levelcountdata = self.FILE_SETTINGS['levelcounts']

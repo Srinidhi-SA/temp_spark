@@ -20,7 +20,7 @@ Decision Tree
 class DecisionTrees:
 
     # @accepts(object, DataFrame)
-    def __init__(self, data_frame, df_helper, df_context, spark, meta_parser):
+    def __init__(self, data_frame, df_helper, df_context, spark, meta_parser,scriptWeight=None, analysisName=None):
         self._spark = spark
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
@@ -46,9 +46,15 @@ class DecisionTrees:
         self._important_vars = {}
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
 
         self._scriptStages = {
             "initialization":{
@@ -249,7 +255,10 @@ class DecisionTrees:
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
-        dimension_classes = self._data_frame.select(dimension).distinct().count()
+        # dimension_classes = self._data_frame.select(dimension).distinct().count()
+        dimension_classes = self._metaParser.get_num_unique_values(dimension)
+        print dimension_classes
+        print self._data_frame.columns
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])

@@ -179,9 +179,9 @@ def get_story_config():
                 "action" : "get_config",
                 "method" : "GET"
             },
-            "job_name" : "UL new Analysis",
+            "job_name" : "UL Analysis",
             "job_type" : "story",
-            "job_url" : "http://madvisordev.marlabsai.com/api/job/master-checkk-all-in-churn-jqorgvlxit-psm1ro4oas/",
+            "job_url" : "http://madvisordev.marlabsai.com/api/job/master-credit-balance-mitali-9w9vpxv6oh-6wf67cym8h/",
             "message_url" : "http://luke.marlabsai.com:80/api/messages/Insight_ul-analysis-0k69xakvku_123/",
             "set_result" : {
                 "action" : "result",

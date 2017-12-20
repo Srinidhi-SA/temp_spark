@@ -38,13 +38,9 @@ class LogisticRegression:
         y_prob = clf.predict_proba(x_test)
         y_prob = [0]*len(y_score)
 
-        # importances = clf.feature_importances_
-        # feature_importance = clf.feature_importances_.argsort()[::-1]
-        # imp_cols = [x_train.columns[x] for x in feature_importance]
-        # feature_importance = dict(zip(imp_cols,importances))
-        feature_importance = {}
+        feature_importance={}
 
-        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance}
+        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns)}
 
     def predict(self,x_test,trained_model,drop_cols):
         """

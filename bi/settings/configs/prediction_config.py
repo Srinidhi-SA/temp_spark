@@ -101,14 +101,15 @@ def get_prediction_config():
                 "analysis_type": [
                   "score"
                 ],
-                "modelfeatures": [
-
+                "modelfeatures": [u'age', u'workclass', u'fnlwgt', u'education', u'education-num',
+       u'marital-status', u'occupation', u'relationship', u'race', u'sex',
+       u'Capital-gain', u'Capital-loss', u'hours-per-week', u'native-country'
                 ],
                 "algorithmslug": [
                   "f77631ce2ab24cf78c55bb6a5fce4db8rf"
                 ],
                 "levelcounts": [
-
+                    {' >50K': 7841, ' <=50K': 24720}
                 ],
                 "inputfile": [
                   "file:///home/gulshan/marlabs/datasets/adult_test.csv"

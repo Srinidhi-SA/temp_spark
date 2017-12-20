@@ -63,7 +63,7 @@ def main(configJson):
             cfgMode = False
             debugMode = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
+            jobType = "prediction"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
@@ -116,12 +116,14 @@ def main(configJson):
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
     CommonUtils.save_progress_message(messageURL,progressMessage)
     datasource_type = dataframe_context.get_datasource_type()
-    if datasource_type == "Hana":
-        dbConnectionParams = dataframe_context.get_dbconnection_params()
-        df = DataLoader.create_dataframe_from_hana_connector(spark, dbConnectionParams)
-    elif datasource_type == "fileUpload":
+    # if datasource_type == "Hana":
+    #     dbConnectionParams = dataframe_context.get_dbconnection_params()
+    #     df = DataLoader.create_dataframe_from_hana_connector(spark, dbConnectionParams)
+    if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-
+    else:
+        dbConnectionParams = dataframe_context.get_dbconnection_params()
+        df = DataLoader.create_dataframe_from_jdbc_connector(spark, datasource_type, dbConnectionParams)
     if df != None:
         # Dropping blank rows
         df = df.dropna(how='all', thresh=None, subset=None)
@@ -148,7 +150,10 @@ def main(configJson):
                 # checking if metadata exist for the dataset
                 # else it will run metadata first
                 # while running in debug mode the dataset_slug should be correct or some random String
-                metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                try:
+                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                except:
+                    metaDataObj = None
                 if metaDataObj:
                     metaParserInstance.set_params(metaDataObj)
                 else:

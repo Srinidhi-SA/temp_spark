@@ -23,6 +23,8 @@ from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.algorithms import DecisionTrees
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
 
 class XgboostScript:
@@ -109,6 +111,7 @@ class XgboostScript:
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
         self._model_summary.set_feature_importance(objs["feature_importance"])
+        self._model_summary.set_feature_list(objs["featureList"])
         self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
         self._model_summary.set_training_time(round((time.time() - st),2))
         self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
@@ -117,9 +120,9 @@ class XgboostScript:
         self._model_summary.set_target_variable(result_column)
         self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
         self._model_summary.set_validation_method("Train and Test")
-        self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
-        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(cat_cols))
-        # self._model_summary.set_level_counts(CommonUtils.get_level_count_dict(x_train,cat_cols,self._dataframe_context.get_column_separator()))
+        # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
+        self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
+        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
         self._model_summary.set_num_trees(100)
         self._model_summary.set_num_rules(300)
         modelSummaryJson = {
@@ -128,10 +131,9 @@ class XgboostScript:
                         "accuracy":self._model_summary.get_model_accuracy(),
                         "slug":self._model_summary.get_slug()
                         },
-            "levelcount":[self._model_summary.get_level_counts()],
-            "modelFeatures":[],
+            "levelcount":self._model_summary.get_level_counts(),
+            "modelFeatureList":self._model_summary.get_feature_list(),
         }
-        print modelSummaryJson
 
         xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
         for card in xgbCards:
@@ -223,6 +225,8 @@ class XgboostScript:
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
         pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        model_feature_list = self._dataframe_context.get_model_features()
+        pandas_df = pandas_df[model_feature_list]
         score = xgboost_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
@@ -264,6 +268,9 @@ class XgboostScript:
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
+
+        resultColLevelCount = dict(df[result_column].value_counts())
+        self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
         self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
@@ -314,3 +321,17 @@ class XgboostScript:
             chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName))
         except:
             print "ChiSquare Analysis Failed "
+
+        try:
+            fs = time.time()
+            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+            if narratives_file.startswith("file"):
+                narratives_file = narratives_file[7:]
+            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
+            if result_file.startswith("file"):
+                result_file = result_file[7:]
+            df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+            narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
+            print narratives_obj
+        except:
+            print "DecisionTree Analysis Failed "

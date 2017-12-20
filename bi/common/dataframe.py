@@ -94,22 +94,17 @@ class DataFrameHelper:
         print "#"*30
         print "colsToBin:-",colsToBin
         print "#"*30
-        if self._dataframe_context.get_job_type() != "prediction" and self._dataframe_context.get_story_on_scored_data() == True:
-            self._data_frame = self._data_frame.select(colsToKeep)
-            self.columns = self._data_frame.columns
-        elif self._dataframe_context.get_job_type() != "prediction" and self._dataframe_context.get_story_on_scored_data() == False:
-            print "colsToKeep inside:-",colsToKeep
-            self._data_frame = self._data_frame.select(colsToKeep)
-            self.columns = self._data_frame.columns
-        elif self._dataframe_context.get_job_type() == "prediction" and self._dataframe_context.get_story_on_scored_data() == False:
-            result_column = self._dataframe_context.get_result_column()
-            updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
-            self._data_frame = self._data_frame.select(updatedColsToKeep)
-        self.columns = self._data_frame.columns
-        print "*"*100
-        print "columns : ", self.columns
-        print "*"*100
 
+        if self._dataframe_context.get_job_type() != "prediction":
+            self._data_frame = self._data_frame.select(colsToKeep)
+        else:
+            if self._dataframe_context.get_story_on_scored_data() == False:
+                result_column = self._dataframe_context.get_result_column()
+                updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
+                self._data_frame = self._data_frame.select(updatedColsToKeep)
+            elif self._dataframe_context.get_story_on_scored_data() == True:
+                self._data_frame = self._data_frame.select(colsToKeep)
+        self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
         self.populate_column_data()
@@ -152,7 +147,6 @@ class DataFrameHelper:
             }
 
     def set_train_test_data(self,df):
-        # from bi.algorithms import utils as MLUtils
         result_column = self._dataframe_context.get_result_column()
         train_test_ratio = float(self._dataframe_context.get_train_test_split())
         date_suggestion_columns = self._dataframe_context.get_date_columns()

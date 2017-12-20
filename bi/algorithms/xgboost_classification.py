@@ -1,8 +1,7 @@
 import xgboost as xgb
+import operator
 
 from bi.algorithms import utils as MLUtils
-import xgboost as xgb
-
 from bi.common import utils as CommonUtils
 
 
@@ -33,21 +32,15 @@ class XgboostClassifier:
         if len(drop_cols) > 0:
             x_train = drop_columns(x_train,drop_cols)
             x_test = drop_columns(x_test,drop_cols)
-
         clf.fit(x_train, y_train)
         y_score = clf.predict(x_test)
         y_prob = clf.predict_proba(x_test)
         y_prob = [0]*len(y_score)
 
-        importances = clf.feature_importances_
-        importances = map(float,importances)
-        feature_importance = clf.feature_importances_.argsort()[::-1]
-        imp_cols = [x_train.columns[x] for x in feature_importance]
-        feature_importance = dict(zip(imp_cols,importances))
+        feature_importance = dict(sorted(zip(x_train.columns,clf.feature_importances_),key=lambda x: x[1],reverse=True))
         for k, v in feature_importance.iteritems():
             feature_importance[k] = CommonUtils.round_sig(v)
-
-        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance}
+        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns)}
 
     def predict(self,x_test,trained_model,drop_cols):
         """
