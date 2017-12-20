@@ -29,6 +29,7 @@ class ResultSetter:
         self.scorechicards = []
         self.scoredtreecards = []
         self.stockAdvisorNode = None
+        self.uidTable = None
 
 
     def get_score_cards(self):
@@ -117,7 +118,6 @@ class ResultSetter:
         """
         self.model_summary.update(data)
 
-
     def get_trend_section_name(self):
         return self.trend_subsection_name
 
@@ -132,3 +132,9 @@ class ResultSetter:
 
     def get_model_summary(self):
         return self.model_summary
+
+    def set_unique_identifier_table(self,data):
+        self.uidTable = data
+
+    def get_unique_identifier_table(self):
+        return self.uidTable

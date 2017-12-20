@@ -17,6 +17,7 @@ def get_prediction_config():
             },
             "config": {
               "COLUMN_SETTINGS": {
+                "uidColumn" : {"colName":"workclass","colSlug":""},
                 "polarity": [
                   "positive"
                 ],

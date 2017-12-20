@@ -242,9 +242,16 @@ class DecisionTreeNarrative:
         main_card_data.append(dropdownDict)
 
         main_card_table = TableData()
+        if self._dataframe_context.get_story_on_scored_data() == True:
+            main_card_table.set_table_width(70)
         main_card_table.set_table_data(tableArray)
         main_card_table.set_table_type("popupDecisionTreeTable")
         main_card_data.append(main_card_table)
+        uidTable = self._result_setter.get_unique_identifier_table()
+        if uidTable != None:
+            main_card_data.append(uidTable)
+        else:
+            main_card_table.set_table_width(100)
         main_card.set_card_data(main_card_data)
         main_card.set_card_name("Predicting Key Drivers of {}".format(self._colname))
         self._decisionTreeNode.add_a_card(main_card)

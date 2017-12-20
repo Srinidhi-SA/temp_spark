@@ -320,6 +320,8 @@ def save_progress_message(url,jsonData,ignore=False):
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
         return res
+    else:
+        return True
 
 
 def keyWithMaxVal(dictObj):
