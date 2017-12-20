@@ -2,6 +2,7 @@ import os
 import random
 import json
 import itertools
+import humanize
 from bi.common.dataframe import DataFrameHelper
 from bi.common.context import ContextSetter
 from bi.common.results import DecisionTreeResult
@@ -208,7 +209,7 @@ class DecisionTreeNarrative:
                 richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
                 richRulesArray.append(richRule)
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
-            probabilityArray = map(lambda x:str(round(x))[:-2]+"%",probabilityArray)
+            probabilityArray = map(lambda x:humanize.apnumber(x)+"%",probabilityArray)
             targetArray = zip(richRulesArray,probabilityArray,predictionArray,freqArray,groupArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray

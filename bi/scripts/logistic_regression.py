@@ -2,6 +2,7 @@ import json
 import time
 import collections
 import pandas as pd
+import humanize
 
 try:
     import cPickle as pickle
@@ -268,7 +269,7 @@ class LogisticRegressionScript:
                 levelDf = df[df[result_column] == level]
                 levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
                 levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
-                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: str(round(x*100))[:-2]+"%")
+                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%")
                 uidTableData.append(levelDf[:5])
             uidTableData = pd.concat(uidTableData)
             uidTableData  = [list(arr) for arr in list(uidTableData.values)]
