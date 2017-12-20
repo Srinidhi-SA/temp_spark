@@ -208,7 +208,7 @@ class DecisionTreeNarrative:
                 richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
                 richRulesArray.append(richRule)
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
-            probabilityArray = map(lambda x:str(round(x)),probabilityArray)
+            probabilityArray = map(lambda x:str(round(x))[:-2]+"%",probabilityArray)
             targetArray = zip(richRulesArray,probabilityArray,predictionArray,freqArray,groupArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
