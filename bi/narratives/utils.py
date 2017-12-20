@@ -19,6 +19,7 @@ from pyspark.sql import DataFrame
 import pyspark.sql.functions as PysparkFN
 from pyspark.sql.types import *
 from pyspark.sql import DataFrame
+from bi.common import MetaParser
 
 
 # def round_number(num, digits=2, as_string=True):
@@ -458,7 +459,7 @@ def calculate_dimension_contribution(levelContObject):
     output["negGrowthArray"] = [x for x in increasingDataArray if float(x[1]["growth"]) < 0][:2]
     return output
 
-def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time):
+def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time, meta_parser):
     out = {}
     for column_name in columns:
         print "calculate_level_contribution for ",column_name
@@ -471,8 +472,13 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
                     "contribution":None,
                     "growth":None
                     }
-        column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
+        try:
+            column_levels = meta_parser.get_unique_level_names(column_name)
+        except:
+            column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
         print "column_levels",len(column_levels)
+        print "column_levels : ", column_levels
+        print "----here----"*10
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
         st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)

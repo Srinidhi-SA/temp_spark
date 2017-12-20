@@ -49,3 +49,6 @@ class MetaParser:
             for col in column_name:
                 out[col] = self.column_dict[col]["LevelCount"]
             return out
+
+    def get_unique_level_names(self,column_name):
+        return self.column_dict[column_name]["LevelCount"].keys()
