@@ -57,10 +57,12 @@ class MetaParser:
                 out[col] = self.column_dict[col]["LevelCount"]
             return out
 
-
     def get_uid_column(self):
         uidCol = None
         for k,v in self.ignoreColDict.items():
             if v.startswith("Index Column"):
                 uidCol = k
         return uidCol
+        
+    def get_unique_level_names(self,column_name):
+        return self.column_dict[column_name]["LevelCount"].keys()

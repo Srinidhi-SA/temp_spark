@@ -412,6 +412,7 @@ def calculate_sparkml_feature_importance(df,modelFit,categorical_columns,numeric
     start_idx = 0
     end_idx = 0
     for level in sorted(categorical_columns):
+        # Not calling from meta here now, as this function is called only in logistic_regression_pyspark and random_forest_pyspark
         count = len(df.select(level).distinct().collect())
         end_idx += count
         col_percentage = 0

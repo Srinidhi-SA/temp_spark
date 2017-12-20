@@ -35,13 +35,14 @@ class DataLoader:
     def create_dataframe_from_mysql_db(spark_session, dbConnectionParams):
         df = None
         # change jdbc_url
-        jdbc_url = "jdbc:mysql//{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], dbConnectionParams["schema"])
+
+        jdbc_url = "jdbc:mysql//{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
         password = dbConnectionParams.get("password")
         try:
             df = spark_session.read.format("jdbc").option(
-                "url", "{}/{}".format(jdbc_url, dbConnectionParams["schema"])).option(
+                "url", "{}/{}".format(jdbc_url, DataLoader.get_db_name(dbConnectionParams))).option(
                 "dbtable", "{}".format(table_name)).option(
                 "user", username).option("password", password).load()
         except Exception as e:
@@ -54,7 +55,7 @@ class DataLoader:
         df = None
         # change jdbc_url
         jdbc_url = "jdbc:sqlserver://{}:{};databaseName={};".format(dbConnectionParams["host"], dbConnectionParams["port"],
-                                                                dbConnectionParams["schema"])
+                                                                    DataLoader.get_db_name(dbConnectionParams))
         try:
             df = spark_session.read.format("jdbc").option("url", jdbc_url).option("dbtable", "{}".format(
                 dbConnectionParams.get("tablename"))).option("user", dbConnectionParams.get("username")).option(
@@ -67,27 +68,13 @@ class DataLoader:
     @staticmethod
     @accepts(SparkSession, dict)
     def create_dataframe_from_oracle_db(spark_session, dbConnectionParams):
-        df = None
-        # change jdbc_url
-        jdbc_url = "jdbc:mysql//{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"],
-                                                                dbConnectionParams["schema"])
-        table_name = dbConnectionParams.get("tablename")
-        username = dbConnectionParams.get("username")
-        password = dbConnectionParams.get("password")
-        try:
-            df = spark_session.read.format("jdbc").option(
-                "url", "{}/{}".format(jdbc_url, dbConnectionParams["schema"])).option(
-                "dbtable", "{}".format(table_name)).option(
-                "user", username).option("password", password).load()
-        except Exception as e:
-            print("couldn't connect to database")
-        return df
+        pass
 
     @staticmethod
     @accepts(SparkSession, dict)
     def create_dataframe_from_hana_connector(spark_session, dbConnectionParams):
         df = None
-        jdbc_url = "jdbc:sap://{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], dbConnectionParams["schema"])
+        jdbc_url = "jdbc:sap://{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
         password = dbConnectionParams.get("password")
@@ -101,4 +88,9 @@ class DataLoader:
         return df
 
 
-
+    @staticmethod
+    def get_db_name(dbConnectionParams):
+        if "schema" in dbConnectionParams.keys():
+            return dbConnectionParams.get("schema")
+        elif "databasename" in dbConnectionParams.keys():
+            return dbConnectionParams.get("schema")

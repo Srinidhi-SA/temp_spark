@@ -10,7 +10,7 @@ from bi.narratives import utils as NarrativesUtils
 
 class TrendNarrative:
 
-    def __init__(self, measure_column, time_dimension_column, grouped_data, existingDateFormat,requestedDateFormat,base_dir):
+    def __init__(self, measure_column, time_dimension_column, grouped_data, existingDateFormat,requestedDateFormat,base_dir, meta_parser):
         self._measure_column = measure_column
         self._td_column = time_dimension_column
         self._grouped_data = grouped_data
@@ -27,6 +27,7 @@ class TrendNarrative:
         self._base_dir = base_dir+"/templates/trend/"
 
         self.month_dict = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
+        self._metaParser = meta_parser
 
 
     def formatDateColumn(self,df,requestedDateFormat):
@@ -157,7 +158,7 @@ class TrendNarrative:
         print significant_columns
         print sparkdf.show(3)
         print index_col,datetime_pattern,value_col,reference_time
-        level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,datetime_pattern,value_col,reference_time)
+        level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,datetime_pattern,value_col,reference_time, self._metaParser)
         print "level_cont finished in ",time.time()-st
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)

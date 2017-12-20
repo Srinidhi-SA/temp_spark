@@ -26,7 +26,7 @@ from pyspark.sql import DataFrame
 
 
 class TimeSeriesNarrative:
-    def __init__(self, df_helper, df_context, result_setter, spark, story_narrative):
+    def __init__(self, df_helper, df_context, result_setter, spark, story_narrative, meta_parser):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._spark = spark
@@ -34,6 +34,7 @@ class TimeSeriesNarrative:
         self._dataframe_context = df_context
         self._data_frame = df_helper.get_data_frame()
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
+        self._metaParser = meta_parser
 
 
         self._result_column = self._dataframe_context.get_result_column()
@@ -161,7 +162,7 @@ class TimeSeriesNarrative:
                         grouped_data = grouped_data.select(["key",measure_column,result_column,"year_month"]).toPandas()
                         grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
 
-                    trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir)
+                    trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
 
                     card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column,self._dataLevel,self._durationString)
 
@@ -213,7 +214,7 @@ class TimeSeriesNarrative:
                         else:
                             significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
                         print "significant_dimensions",significant_dimensions
-                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir)
+                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
                         # grouped_data.to_csv("/home/gulshan/marlabs/datasets/trend_grouped_pandas.csv",index=False)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         # # update reference time with max value
@@ -390,6 +391,9 @@ class TimeSeriesNarrative:
             if self._selected_date_columns != None:
                 if self._dateFormatDetected:
                     result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
+                    print "-"*100
+                    # Implement meta parser getter here
+                    print result_column_levels
                     level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
                     level_count_df_rows =  level_count_df.collect()
                     top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
@@ -415,7 +419,7 @@ class TimeSeriesNarrative:
                         leveldf = leveldf.withColumn('value_col', lit(1))
                         print "#"*40
 
-                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir)
+                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
                         dataDict["target_column"] = dataDict["measure"]
                         dataDict["measure"] = level

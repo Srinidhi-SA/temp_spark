@@ -268,7 +268,7 @@ def main(configJson):
                 try:
                     fs = time.time()
                     dataframe_context.set_analysis_name("Trend")
-                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative)
+                    trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative, metaParserInstance)
                     trend_obj.Run()
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
@@ -386,7 +386,7 @@ def main(configJson):
                 try:
                     fs = time.time()
                     dataframe_context.set_analysis_name("Trend")
-                    trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative)
+                    trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative, metaParserInstance)
                     trend_obj.Run()
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
