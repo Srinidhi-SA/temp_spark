@@ -102,12 +102,13 @@ def get_prediction_config():
                 "analysis_type": [
                   "score"
                 ],
-                "modelfeatures": [u'age', u'workclass', u'fnlwgt', u'education', u'education-num',
-       u'marital-status', u'occupation', u'relationship', u'race', u'sex',
-       u'Capital-gain', u'Capital-loss', u'hours-per-week', u'native-country'
-                ],
+    #             "modelfeatures": [u'age', u'workclass', u'fnlwgt', u'education', u'education-num',
+    #    u'marital-status', u'occupation', u'relationship', u'race', u'sex',
+    #    u'Capital-gain', u'Capital-loss', u'hours-per-week', u'native-country'
+    #             ],
+                'modelfeatures':[u'workclass', u'relationship', u'age', u'Capital-gain', u'sex', u'hours-per-week', u'race', u'native-country', u'education-num', u'Capital-loss', u'education', u'fnlwgt', u'marital-status', u'occupation'],
                 "algorithmslug": [
-                  "f77631ce2ab24cf78c55bb6a5fce4db8rf"
+                  "f77631ce2ab24cf78c55bb6a5fce4db8xgb"
                 ],
                 "levelcounts": [
                     {' >50K': 7841, ' <=50K': 24720}

@@ -42,6 +42,7 @@ class RandomForestScript:
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
         self._score_summary = {}
@@ -81,7 +82,7 @@ class RandomForestScript:
                                     self._scriptStages["initialization"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -100,7 +101,7 @@ class RandomForestScript:
                                     self._scriptStages["training"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
@@ -166,7 +167,7 @@ class RandomForestScript:
                                     self._scriptStages["completion"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
@@ -205,7 +206,7 @@ class RandomForestScript:
                                     self._scriptStages["initialization"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
         # Match with the level_counts and then clean the data
         dataSanity = True
@@ -280,7 +281,7 @@ class RandomForestScript:
                                     self._scriptStages["prediction"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
         # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
@@ -340,7 +341,7 @@ class RandomForestScript:
         #                                 self._scriptStages["frequency"]["summary"],\
         #                                 self._completionStatus,\
         #                                 self._completionStatus)
-        #     CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        #     CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         #     self._dataframe_context.update_completion_status(self._completionStatus)
         #     print "Frequency ",self._completionStatus
         # except:
@@ -361,16 +362,16 @@ class RandomForestScript:
         # except:
         #     print "ChiSquare Analysis Failed "
 
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-            if narratives_file.startswith("file"):
-                narratives_file = narratives_file[7:]
-            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            if result_file.startswith("file"):
-                result_file = result_file[7:]
-            df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
-            narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
-            print narratives_obj
-        except:
-            print "DecisionTree Analysis Failed "
+        # try:
+        fs = time.time()
+        narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+        if narratives_file.startswith("file"):
+            narratives_file = narratives_file[7:]
+        result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
+        if result_file.startswith("file"):
+            result_file = result_file[7:]
+        df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+        narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
+        print narratives_obj
+        # except:
+        #     print "DecisionTree Analysis Failed "

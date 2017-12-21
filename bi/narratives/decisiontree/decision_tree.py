@@ -33,6 +33,7 @@ class DecisionTreeNarrative:
     def __init__(self, column_name, decision_tree_rules,df_helper,df_context,result_setter,story_narrative=None,analysisName=None,scriptWeight=None):
         self._story_narrative = story_narrative
         self._dataframe_context = df_context
+        self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._result_setter = result_setter
         self._blockSplitter = "|~NEWBLOCK~|"
         self._column_name = column_name.lower()
@@ -85,7 +86,7 @@ class DecisionTreeNarrative:
                                     self._scriptStages["dtreeNarrativeStart"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
         self._decisionTreeNode = NarrativesTree()
@@ -102,7 +103,7 @@ class DecisionTreeNarrative:
                                     self._scriptStages["dtreeNarrativeEnd"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
 
@@ -189,9 +190,16 @@ class DecisionTreeNarrative:
         chartDict = {}
         for idx,target in enumerate(rules_dict.keys()):
             if idx == 0:
-                dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
+                if self._dataframe_context.get_story_on_scored_data() != True:
+                    dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
+                else:
+                    dropdownData.append({"displayName":"{} : {}".format(self._colname,target),"name":target,"selected":True,"id":idx+1})
             else:
-                dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
+                if self._dataframe_context.get_story_on_scored_data() != True:
+                    dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
+                else:
+                    dropdownData.append({"displayName":"{} : {}".format(self._colname,target),"name":target,"selected":False,"id":idx+1})
+
             rulesArray = rules_dict[target]
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
             groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
@@ -232,9 +240,22 @@ class DecisionTreeNarrative:
         }
 
         data_dict["probabilityGroups"] = probabilityGroups
-
-        maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
-                                                    'decisiontreesummary.html',data_dict)
+        if self._dataframe_context.get_story_on_scored_data() != True:
+            maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
+                                                        'decisiontreesummary.html',data_dict)
+        else:
+            levelCountDict = self._dataframe_context.get_level_count_dict()
+            total = float(sum([x for x in levelCountDict.values() if x != None]))
+            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
+            levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
+            print levelCountTuple
+            data_dict["blockSplitter"] = self._blockSplitter
+            data_dict["targetcol"] = self._colname
+            data_dict["nlevel"] = len(levelCountDict.keys())
+            data_dict["topLevel"] = levelCountTuple[0]
+            data_dict["secondLevel"] = levelCountTuple[1]
+            maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
+                                                        'decisiontreescore.html',data_dict)
         main_card = NormalCard()
         main_card_data = []
         main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,self._blockSplitter)

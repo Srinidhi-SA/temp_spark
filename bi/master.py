@@ -52,18 +52,21 @@ def main(configJson):
     if isinstance(configJson,pyhocon.config_tree.ConfigTree) or isinstance(configJson,dict):
         deployEnv = True
         debugMode = False
+        ignoreMsg = False
     elif isinstance(configJson,basestring):
         if configJson.endswith(".cfg"):
             ######################## Running in cfgMode ########################
             cfgMode = True
             debugMode = False
+            ignoreMsg = False
         else:
             ######################## Running in debugMode ######################
             print "Running in debugMode"
             cfgMode = False
             debugMode = True
+            ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
-            jobType = "training"
+            jobType = "prediction"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
@@ -81,6 +84,8 @@ def main(configJson):
     dataframe_context.set_params()
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
+        dataframe_context.set_message_ignore(True)
+        ignoreMsg = True
     jobType = job_config["job_type"]
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_job_type(jobType)
@@ -114,7 +119,7 @@ def main(configJson):
     df = None
     data_loading_st = time.time()
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
-    CommonUtils.save_progress_message(messageURL,progressMessage)
+    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     datasource_type = dataframe_context.get_datasource_type()
     # if datasource_type == "Hana":
     #     dbConnectionParams = dataframe_context.get_dbconnection_params()
@@ -177,7 +182,7 @@ def main(configJson):
         print scriptWeightDict
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
-        CommonUtils.save_progress_message(messageURL,progressMessage)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
 
     ############################ MetaData Calculation ##########################
@@ -192,7 +197,7 @@ def main(configJson):
         print "metaData Analysis Done in ", time.time() - fs, " seconds."
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
-        CommonUtils.save_progress_message(messageURL,progressMessage)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         return response
     ############################################################################
 
@@ -219,7 +224,7 @@ def main(configJson):
         else:
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
-        CommonUtils.save_progress_message(messageURL,progressMessage)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "SubSetting Analysis Completed in", time.time()-st," Seconds"
         return response
     ############################################################################
@@ -248,7 +253,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Dimension vs. Dimension' in scripts_to_run):
                 try:
@@ -262,7 +267,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Trend' in scripts_to_run):
                 try:
@@ -277,7 +282,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
@@ -293,7 +298,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             dataframe_context.update_completion_status(max(completionStatus,100))
             ordered_node_name_list = ["Overview","Trend","Association","Prediction"]
@@ -340,7 +345,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             measure_columns = df_helper.get_numeric_columns()
             dimension_columns = df_helper.get_string_columns()
@@ -358,7 +363,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
                 try:
@@ -380,7 +385,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Measure vs. Measure"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Measure","failedState","error","Regression failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Trend' in scripts_to_run):
                 try:
@@ -395,7 +400,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Predictive modeling' in scripts_to_run):
                 try:
@@ -411,7 +416,7 @@ def main(configJson):
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
-                    CommonUtils.save_progress_message(messageURL,progressMessage)
+                    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             # try:
             #     fs = time.time()
@@ -450,7 +455,7 @@ def main(configJson):
             return response
 
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
-        CommonUtils.save_progress_message(messageURL,progressMessage)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     ############################################################################
 
     ################################ Model Training ############################
@@ -503,7 +508,7 @@ def main(configJson):
         print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(modelJsonOutput))
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
-        CommonUtils.save_progress_message(messageURL,progressMessage)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Training Completed in ", time.time() - st, " seconds."
         return response
     ############################################################################
@@ -564,7 +569,7 @@ def main(configJson):
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
-        CommonUtils.save_progress_message(messageURL,progressMessage)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
         return response
     ############################################################################

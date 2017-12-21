@@ -25,6 +25,7 @@ class DecisionTrees:
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._date_column = self._dataframe_context.get_date_columns()
@@ -73,7 +74,7 @@ class DecisionTrees:
                                     self._scriptStages["initialization"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
     def parse(self, lines, df):
@@ -278,6 +279,6 @@ class DecisionTrees:
                                     self._scriptStages["treegeneration"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
         return decision_tree_result
