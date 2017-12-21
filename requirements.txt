@@ -14,3 +14,4 @@ python-dateutil==2.6.0
 humanize==0.5.1
 pyhocon==0.3.36
 sklearn
+sklearn2pmml==0.27.0

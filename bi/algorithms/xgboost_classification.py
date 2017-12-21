@@ -32,7 +32,7 @@ class XgboostClassifier:
         if len(drop_cols) > 0:
             x_train = drop_columns(x_train,drop_cols)
             x_test = drop_columns(x_test,drop_cols)
-        clf.fit(x_train, y_train)
+        clf = clf.fit(x_train, y_train)
         y_score = clf.predict(x_test)
         y_prob = clf.predict_proba(x_test)
         y_prob = [0]*len(y_score)

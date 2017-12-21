@@ -245,15 +245,16 @@ class TableData:
     def __init__(self,data={}):
         self.dataType = "table"
         self.data = data
+        self.tableWidth = 100
 
     def set_data(self,data):
         self.data = data
 
+    def set_table_width(self,data):
+        self.tableWidth = data
+        
     def set_table_data(self,data):
         self.data["tableData"] = data
-        print "#"*10
-        print self.data["tableData"]
-        print "#"*10
 
     def set_table_type(self,data):
         self.data["tableType"] = data

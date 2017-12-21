@@ -98,7 +98,13 @@ class ContextSetter:
         self.customAnalysisDetails = None
         self.jobType = None
         self.storyOnScoredData = False
+        self.uidColObject = {}
 
+    def get_uid_column(self):
+        if self.uidColObject != {}:
+            return self.uidColObject["colName"]
+        else:
+            return None
     def get_anova_max_levels(self):
         return self._max_dimension_level_allowed
     def get_datasource_type(self):
@@ -254,6 +260,8 @@ class ContextSetter:
                 self.dateTimeSuggestions = self.COLUMN_SETTINGS.get('dateTimeSuggestions')
             if "customAnalysisDetails" in columnSettingKeys:
                 self.customAnalysisDetails = self.COLUMN_SETTINGS.get('customAnalysisDetails')
+            if "uidColumn" in columnSettingKeys:
+                self.uidColObject = self.COLUMN_SETTINGS.get('uidColumn')
 
         if len(filterSettingKeys) > 0:
             if "dimensionColumnFilters" in filterSettingKeys:

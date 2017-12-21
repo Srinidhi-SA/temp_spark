@@ -4,14 +4,19 @@ class MetaParser:
     def __init__(self):
         self.meta_data = {}
         self.column_dict = {}
-
-
+        self.ignoreColDict = {}
     def set_params(self, meta_data):
         print "Setting Meta Data Parser"
         self.meta_data = meta_data
         # dict_out = self.extract(self.meta_data['metaData'], self.meta_data['metaData'])
         # self.column_dict = self.get_column_stats(dict_out['columnData'])
         self.column_dict = self.get_column_stats(self.meta_data['columnData'])
+        ignorecolobject = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnSuggestions"]
+        ignorereasonobj = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnReason"]
+
+        if len(ignorecolobject) > 0:
+            if ignorecolobject[0] != {} and len(ignorecolobject[0]["value"]) >0:
+                self.ignoreColDict = dict(zip(ignorecolobject[0]["value"],ignorereasonobj[0]["value"]))
 
 
     def extract(self,dict_in, dict_out):
@@ -52,5 +57,12 @@ class MetaParser:
                 out[col] = self.column_dict[col]["LevelCount"]
             return out
 
+    def get_uid_column(self):
+        uidCol = None
+        for k,v in self.ignoreColDict.items():
+            if v.startswith("Index Column"):
+                uidCol = k
+        return uidCol
+        
     def get_unique_level_names(self,column_name):
         return self.column_dict[column_name]["LevelCount"].keys()

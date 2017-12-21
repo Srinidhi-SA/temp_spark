@@ -1,6 +1,8 @@
 import json
 import time
 import collections
+import pandas as pd
+import humanize
 
 
 try:
@@ -99,7 +101,6 @@ class XgboostScript:
         runtime = round((time.time() - st),2)
         model_filepath = model_path+"/"+self._slug+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
-        trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
 
         cat_cols = list(set(categorical_columns)-set([result_column]))
@@ -237,6 +238,27 @@ class XgboostScript:
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
 
+        uidCol = self._dataframe_context.get_uid_column()
+        if uidCol == None:
+            uidCol = self._metaParser.get_uid_column()
+        uidTableData = []
+        if uidCol:
+            for level in list(df[result_column].unique()):
+                levelDf = df[df[result_column] == level]
+                levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
+                levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
+                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%")
+                uidTableData.append(levelDf[:5])
+            uidTableData = pd.concat(uidTableData)
+            uidTableData  = [list(arr) for arr in list(uidTableData.values)]
+            uidTableData = [[uidCol,"Probability",result_column]] + uidTableData
+            uidTable = TableData()
+            uidTable.set_table_width(25)
+            uidTable.set_table_data(uidTableData)
+            uidTable.set_table_type("normalHideColumn")
+            self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
+
+
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "prediction",\
@@ -279,48 +301,48 @@ class XgboostScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-            if narratives_file.startswith("file"):
-                narratives_file = narratives_file[7:]
-            result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            if result_file.startswith("file"):
-                result_file = result_file[7:]
-            init_freq_dim = FreqDimensions(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
-            df_freq_dimension_obj = init_freq_dim.test_all(dimension_columns=[result_column])
-            df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
-            narratives = CommonUtils.as_dict(narratives_obj)
-
-            print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-            self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["frequency"]["weight"]/10
-            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                        "frequency",\
-                                        "info",\
-                                        self._scriptStages["frequency"]["summary"],\
-                                        self._completionStatus,\
-                                        self._completionStatus)
-            CommonUtils.save_progress_message(self._messageURL,progressMessage)
-            self._dataframe_context.update_completion_status(self._completionStatus)
-            print "Frequency ",self._completionStatus
-        except:
-            print "Frequency Analysis Failed "
-
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-            if narratives_file.startswith("file"):
-                narratives_file = narratives_file[7:]
-            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            if result_file.startswith("file"):
-                result_file = result_file[7:]
-            init_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
-            df_chisquare_obj = init_chisquare_obj.test_all(dimension_columns= [result_column])
-            df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName))
-        except:
-            print "ChiSquare Analysis Failed "
+        # try:
+        #     fs = time.time()
+        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
+        #     if narratives_file.startswith("file"):
+        #         narratives_file = narratives_file[7:]
+        #     result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
+        #     if result_file.startswith("file"):
+        #         result_file = result_file[7:]
+        #     init_freq_dim = FreqDimensions(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+        #     df_freq_dimension_obj = init_freq_dim.test_all(dimension_columns=[result_column])
+        #     df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
+        #     narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj,self._result_setter,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+        #     narratives = CommonUtils.as_dict(narratives_obj)
+        #
+        #     print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+        #     self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["frequency"]["weight"]/10
+        #     progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                                 "frequency",\
+        #                                 "info",\
+        #                                 self._scriptStages["frequency"]["summary"],\
+        #                                 self._completionStatus,\
+        #                                 self._completionStatus)
+        #     CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        #     self._dataframe_context.update_completion_status(self._completionStatus)
+        #     print "Frequency ",self._completionStatus
+        # except:
+        #     print "Frequency Analysis Failed "
+        #
+        # try:
+        #     fs = time.time()
+        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+        #     if narratives_file.startswith("file"):
+        #         narratives_file = narratives_file[7:]
+        #     result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
+        #     if result_file.startswith("file"):
+        #         result_file = result_file[7:]
+        #     init_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+        #     df_chisquare_obj = init_chisquare_obj.test_all(dimension_columns= [result_column])
+        #     df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
+        #     chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName))
+        # except:
+        #     print "ChiSquare Analysis Failed "
 
         try:
             fs = time.time()
