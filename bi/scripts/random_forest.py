@@ -2,6 +2,7 @@ import json
 import time
 import collections
 import pandas as pd
+import numpy as np
 import humanize
 
 try:
@@ -10,6 +11,8 @@ except:
     import pickle
 
 from sklearn.externals import joblib
+from sklearn2pmml import sklearn2pmml
+from sklearn2pmml import PMMLPipeline
 from sklearn import metrics
 
 from pyspark.sql import SQLContext
@@ -105,9 +108,15 @@ class RandomForestScript:
         runtime = round((time.time() - st),2)
         model_filepath = str(model_path)+"/"+str(self._slug)+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
-        print model_filepath
-        trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
+
+        # pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
+        # modelPmmlPipeline = PMMLPipeline([
+        #   ("pretrained-estimator", objs["trained_model"])
+        # ])
+        # modelPmmlPipeline.target_field = result_column
+        # modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
+        # sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
 
         cat_cols = list(set(categorical_columns)-set([result_column]))
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])

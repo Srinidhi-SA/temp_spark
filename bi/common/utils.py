@@ -11,7 +11,7 @@ import md5
 
 import pandas as pd
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from numpy import size, zeros, where, transpose
 from numpy.random import normal
 from scipy import linspace
@@ -363,7 +363,7 @@ def get_splits(minVal,maxVal,n_split):
     splits_data["bin_mapping"] = dict(zip(range(len(splits_range)),str_splits_range))
     return splits_data
 
-def ret_opt_bins(x):
+def return_optimum_bins(x):
 	sd = np.std(x)
 	mean = np.mean(x)
 

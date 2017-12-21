@@ -101,7 +101,6 @@ class XgboostScript:
         runtime = round((time.time() - st),2)
         model_filepath = model_path+"/"+self._slug+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
-        trained_model_string = pickle.dumps(objs["trained_model"])
         joblib.dump(objs["trained_model"],model_filepath)
 
         cat_cols = list(set(categorical_columns)-set([result_column]))
