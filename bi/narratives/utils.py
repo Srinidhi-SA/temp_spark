@@ -503,8 +503,6 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
                 print "calculations for level",level
                 if level != None:
                     data_dict = {"overall_avg":None,"excluding_avg":None,"minval":None,"maxval":None,"diff":None,"contribution":None,"growth":None}
-                    from pprint import pprint
-                    print pprint(k)
                     data_dict["contribution"] = float(np.nansum(k[level]))*100/np.nansum(k["total"])
                     data = list(k[level])
                     growth_data = [x for x in data if np.isnan(x) != True and x != 0]
@@ -542,7 +540,7 @@ def get_level_cont_dict(level_cont):
     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
     out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
     print "_"*100
-    print out_data
+    # print out_data
     print "_"*100
     output = []
     for k,v in levelContributionSummary.items():
@@ -559,7 +557,7 @@ def get_level_cont_dict(level_cont):
     out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
 
     print "_"*100
-    print out_dict
+    # print out_dict
     print "_"*100
 
     return out_data
