@@ -109,6 +109,7 @@ metastore_db/*
 
 # Local Config File
 #configs/config.cfg
+bi/settings/configs/*.py
 
 .idea/
 
