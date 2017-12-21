@@ -37,7 +37,7 @@ PARASEPARATOR
   {% endif%}
   ,{{highest_contributing_level}}.
   The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
-  <b>{{highest_contributing_level_increase}}</b> percentage points ({{highest_contributing_level_range}})
+  <b>{{highest_contributing_level_increase|round_number}}</b> percentage points ({{highest_contributing_level_range}})
   compared to rest of the observation period.
 
 {% elif level_index == 1%}
@@ -81,7 +81,7 @@ PARASEPARATOR
     {% endif%}
    ,{{highest_contributing_level}}.
   The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
-  <b>{{highest_contributing_level_increase}}</b> percentage points ({{highest_contributing_level_range}})
+  <b>{{highest_contributing_level_increase|round_number}}</b> percentage points ({{highest_contributing_level_range}})
   compared to rest of the observation period.
 
 {% endif %}

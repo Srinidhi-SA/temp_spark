@@ -71,7 +71,14 @@ def main(configJson):
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
-    APP_NAME = 'mAdvisor'
+    if debugMode:
+        APP_NAME = "mAdvisor_running_in_debug_mode"
+    else:
+        if "job_config" in configJson.keys() and "job_name" in configJson["job_config"].keys():
+            APP_NAME = configJson["job_config"]["job_name"]
+        else:
+            APP_NAME = "--missing--"
+
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     ######################### Creating the configs #############################

@@ -93,4 +93,4 @@ class DataLoader:
         if "schema" in dbConnectionParams.keys():
             return dbConnectionParams.get("schema")
         elif "databasename" in dbConnectionParams.keys():
-            return dbConnectionParams.get("schema")
+            return dbConnectionParams.get("databasename")
