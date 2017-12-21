@@ -99,6 +99,7 @@ class ContextSetter:
         self.jobType = None
         self.storyOnScoredData = False
         self.uidColObject = {}
+        self.ignoremessages = False
 
     def get_uid_column(self):
         if self.uidColObject != {}:
@@ -520,5 +521,12 @@ class ContextSetter:
 
     def set_story_on_scored_data(self,data):
         self.storyOnScoredData = data
+
     def get_story_on_scored_data(self):
         return self.storyOnScoredData
+
+    def set_message_ignore(self,data):
+        self.ignoremessages = data
+
+    def get_message_ignore(self):
+        return self.ignoremessages
