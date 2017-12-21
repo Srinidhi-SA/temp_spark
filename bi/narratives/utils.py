@@ -451,12 +451,12 @@ def calculate_dimension_contribution(levelContObject):
     for k,v in levelContObject.items():
         for k1,v1 in v.items():
             new_key = (k,k1)
-            dataArray.append((new_key, v1))
+            if v1["diff"] != None :
+                dataArray.append((new_key, v1))
     decreasingDataArray = sorted(dataArray,key=lambda x:x[1]["diff"],reverse=True)
     increasingDataArray = sorted(dataArray,key=lambda x:x[1]["diff"],reverse=False)
-
-    output["posGrowthArray"] = [x for x in decreasingDataArray if float(x[1]["growth"]) > 0][:2]
-    output["negGrowthArray"] = [x for x in increasingDataArray if float(x[1]["growth"]) < 0][:2]
+    output["posGrowthArray"] = [x for x in decreasingDataArray if x[1]["growth"] != None and float(x[1]["growth"]) > 0][:2]
+    output["negGrowthArray"] = [x for x in increasingDataArray if x[1]["growth"] != None and float(x[1]["growth"]) < 0][:2]
     return output
 
 def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time, meta_parser):
@@ -499,23 +499,28 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
             max_index = None
         # print k.head(2)
         for level in column_levels:
-            print "calculations for level",level
-            if level != None:
-                data_dict = {"overall_avg":None,"excluding_avg":None,"minval":None,"maxval":None,"diff":None,"contribution":None,"growth":None}
-                data_dict["contribution"] = float(np.nansum(k[level]))*100/np.nansum(k["total"])
-                data = list(k[level])
-                growth_data = [x for x in data if np.isnan(x) != True and x != 0]
-                data_dict["growth"] = (growth_data[-1]-growth_data[0])*100/growth_data[0]
-                k[level] = (k[level]/k["total"])*100
-                data = list(k[level])
-                data_dict["overall_avg"] = np.nanmean(data)
-                data_dict["maxval"] = np.nanmax(data)
-                data_dict["minval"] = np.nanmin(data)
-                if max_index:
-                    del(data[max_index])
-                data_dict["excluding_avg"] = np.nanmean(data)
-                data_dict["diff"] = data_dict["maxval"] - data_dict["excluding_avg"]
-                out[column_name][level] = data_dict
+            try:
+                print "calculations for level",level
+                if level != None:
+                    data_dict = {"overall_avg":None,"excluding_avg":None,"minval":None,"maxval":None,"diff":None,"contribution":None,"growth":None}
+                    from pprint import pprint
+                    print pprint(k)
+                    data_dict["contribution"] = float(np.nansum(k[level]))*100/np.nansum(k["total"])
+                    data = list(k[level])
+                    growth_data = [x for x in data if np.isnan(x) != True and x != 0]
+                    data_dict["growth"] = (growth_data[-1]-growth_data[0])*100/growth_data[0]
+                    k[level] = (k[level]/k["total"])*100
+                    data = list(k[level])
+                    data_dict["overall_avg"] = np.nanmean(data)
+                    data_dict["maxval"] = np.nanmax(data)
+                    data_dict["minval"] = np.nanmin(data)
+                    if max_index:
+                        del(data[max_index])
+                    data_dict["excluding_avg"] = np.nanmean(data)
+                    data_dict["diff"] = data_dict["maxval"] - data_dict["excluding_avg"]
+                    out[column_name][level] = data_dict
+            except:
+                pass
     return out
 
 def get_level_cont_dict(level_cont):
@@ -541,11 +546,11 @@ def get_level_cont_dict(level_cont):
     print "_"*100
     output = []
     for k,v in levelContributionSummary.items():
-        max_level = min(v,key=lambda x: v[x]["diff"])
+        min_level = min(v,key=lambda x: v[x]["diff"] if v[x]["diff"] != None else 9999999999999999999)
         t_dict = {}
-        for k1,v1 in levelContributionSummary[k][max_level].items():
+        for k1,v1 in levelContributionSummary[k][min_level].items():
             t_dict[k1] = v1
-            t_dict.update({"level":max_level})
+            t_dict.update({"level":min_level})
         output.append(t_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
     out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])

@@ -156,7 +156,8 @@ class TrendNarrative:
         print "level contribution started"
         st = time.time()
         print significant_columns
-        print sparkdf.show(3)
+        print "----here---------"*10
+        # print sparkdf.show(3)
         print index_col,datetime_pattern,value_col,reference_time
         level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,datetime_pattern,value_col,reference_time, self._metaParser)
         print "level_cont finished in ",time.time()-st

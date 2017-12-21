@@ -390,10 +390,17 @@ class TimeSeriesNarrative:
                                }
             if self._selected_date_columns != None:
                 if self._dateFormatDetected:
-                    result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
+                    # result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
+                    try:
+                        result_column_levels = self._metaParser.get_unique_level_names(self._result_column)
+                    except:
+                        result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
+
                     print "-"*100
                     # Implement meta parser getter here
                     print result_column_levels
+                    # import sys
+                    # sys.exit()
                     level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
                     level_count_df_rows =  level_count_df.collect()
                     top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
