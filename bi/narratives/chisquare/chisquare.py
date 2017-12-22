@@ -27,13 +27,13 @@ class ChiSquareAnalysis:
 
         significant_variables=list(set(significant_variables)-set([analysed_dimension]))
         significant_variables = list(set(significant_variables)-set(measure_columns))
-        if len(significant_variables)<=3:
+        if len(significant_variables)<=5:
             self._second_level_dimensions = list(significant_variables)
             random.shuffle(significant_variables)
             self._second_level_dimensions1 = list(significant_variables)
-        elif len(significant_variables)>=3:
-            self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
-            self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
+        elif len(significant_variables)>=5:
+            self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
+            self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
         self._appid = appid
         self._card1 = NormalCard()
         self._card2 = NormalCard()
@@ -342,7 +342,11 @@ class ChiSquareAnalysis:
             key_factors = ''
             num_key_factors = len(self._second_level_dimensions)
 
-            if len(self._second_level_dimensions)==3:
+            if len(self._second_level_dimensions)==5:
+                key_factors = ', '.join(self._second_level_dimensions[:4]) + ' and ' + self._second_level_dimensions[4]
+            elif len(self._second_level_dimensions)==4:
+                key_factors = ', '.join(self._second_level_dimensions[:3]) + ' and ' + self._second_level_dimensions[3]
+            elif len(self._second_level_dimensions)==3:
                 key_factors = ', '.join(self._second_level_dimensions[:2]) + ' and ' + self._second_level_dimensions[2]
             elif len(self._second_level_dimensions)==2:
                 key_factors = ' and '.join(self._second_level_dimensions)
@@ -355,8 +359,12 @@ class ChiSquareAnalysis:
             key_factors1 = ''
             num_key_factors1 = len(self._second_level_dimensions1)
 
-            if len(self._second_level_dimensions1)==3:
-                key_factors1 = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
+            if len(self._second_level_dimensions1)==5:
+                key_factors1 = ', '.join(self._second_level_dimensions1[:4]) + ' and ' + self._second_level_dimensions1[4]
+            elif len(self._second_level_dimensions)==4:
+                key_factors = ', '.join(self._second_level_dimensions1[:3]) + ' and ' + self._second_level_dimensions1[3]
+            elif len(self._second_level_dimensions)==3:
+                key_factors = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
             elif len(self._second_level_dimensions1)==2:
                 key_factors1 = ' and '.join(self._second_level_dimensions1)
             elif len(self._second_level_dimensions1)==1:

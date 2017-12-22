@@ -8,7 +8,7 @@ def get_story_config():
                         "displayName" : "Overview",
                         "name" : "overview",
                         "noOfColumnsToUse" : None,
-                        "status" : True
+                        "status" : False
                     },
                     {
                         "analysisSubTypes" : [],
@@ -48,7 +48,7 @@ def get_story_config():
                                 "value" : 12
                             }
                         ],
-                        "status" : True
+                        "status" : False
                     },
                     {
                         "analysisSubTypes" : [],
@@ -114,7 +114,7 @@ def get_story_config():
                                 "value" : 12
                             }
                         ],
-                        "status" : False
+                        "status" : True
                     },
                     {
                         "analysisSubTypes" : [],
@@ -130,57 +130,49 @@ def get_story_config():
                                 # {"colName":"Marketing_Cost"},
                             ],
                 "analysis_type" : [
-                    "measure"
+                    "dimension"
                 ],
                 "consider_columns" : [
-                    "Channel",
-                    "Order Status",
-                    "City",
-                    "State",
-                    "Replacement_Cancellation_Reason",
-                    "Payment_Method",
-                    "Customer_Type",
-                    "order_month",
-                    "order_day",
-                    "BEDS",
-                    "OUTDOOR",
-                    "MATTRESS",
-                    "DINING - OTHERS",
-                    "LIVING SEATING",
-                    "DECOR",
-                    "DINING",
-                    "NOT_REQUIRED",
-                    "LIVING ESSENTIALS",
-                    "STUDY",
-                    "WARDROBES",
-                    "BEDROOM - OTHERS",
-                    "KIDS",
-                    "Sales Amount",
-                    "Discount",
-                    "Customer_Id",
-                    "Order Date"
+                    "SEX",
+                    "EDUCATION",
+                    "MARRIAGE",
+                    "AGE_CATEGORY",
+                    "PAYMENT_DECEMBER",
+                    "PAYMENT_NOVEMBER",
+                    "BILL_AMOUNT_DECEMBER",
+                    "BILL_AMOUNT_NOVEMBER",
+                    "AMOUNT_PAID_DECEMBER",
+                    "AMOUNT_PAID_NOVEMBER",
+                    "STATE",
+                    "OCCUPATION",
+                    "CREDIT_RATING",
+                    "TENURE_RANGE",
+                    "AVERAGE_SPEND",
+                    "STATUS",
+                    "CREDIT_BALANCE"
                 ],
                 "consider_columns_type" : [
                     "including"
                 ],
                 "dateTimeSuggestions" : [
                     {
-                        "Cancellation Date" : "%d-%m-%Y",
-                        "Order Date" : "%d-%m-%Y"
+                        # "Cancellation Date" : "%d-%m-%Y",
+                        # "Order Date" : "%d-%m-%Y"
                     }
                 ],
                 "date_columns" : [
-                    "Order Date"
+                    # "Order Date"
                 ],
                 "date_format" : None,
                 "ignore_column_suggestion" : [
-                    "Order_Code"
+                    # "Order_Code"
                 ],
                 "polarity" : [
                     "positive"
                 ],
                 "result_column" : [
-                    "Sales Amount"
+                    # "Order Status"
+                    'STATUS'
                 ],
                 "utf8_column_suggestions" : []
             },
@@ -190,7 +182,9 @@ def get_story_config():
             },
             "FILE_SETTINGS" : {
                 "inputfile" : [
-                    "/home/marlabs/Documents/mAdvisor/Datasets/ul_new.csv"
+                    # "/home/marlabs/Documents/mAdvisor/Datasets/ul_new.csv"
+                    "/home/marlabs/Documents/mAdvisor/Datasets/trial_data.csv"
+
                 ],
                 "script_to_run" : [
                     "Descriptive analysis",
