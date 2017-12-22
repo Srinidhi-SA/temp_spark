@@ -14,7 +14,6 @@ def get_prediction_config():
               },
               "message_url": "http://34.196.204.54:9012/api/messages/Score_kkkk_score_rf-31fm2m25bj_123/",
               "job_name": "kkkk_score_rf",
-              "xml_url": "http://34.196.204.54:9012/api/xml/model-somerandommkdela-ys05d31fzi-8w81aqsa2q_pmml/"
             },
             "config": {
               "COLUMN_SETTINGS": {
@@ -111,6 +110,9 @@ def get_prediction_config():
                 ],
                 "levelcounts": [
                     {' >50K': 7841, ' <=50K': 24720}
+                ],
+                "labelMappingDict":[
+                    {0: u' <=50K', 1: u' >50K'}
                 ],
                 "inputfile": [
                   "file:///home/gulshan/marlabs/datasets/adult_test.csv"

@@ -484,14 +484,14 @@ def main(configJson):
         model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=subfolders)
         dataframe_context.set_model_path(model_file_path)
 
-        try:
-            st = time.time()
-            rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-            # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
-            rf_obj.Train()
-            print "Random Forest Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+        # try:
+        st = time.time()
+        rf_obj = RandomForestScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+        # rf_obj = RandomForestPysparkScript(df, df_helper, dataframe_context, spark, prediction_narrative,result_setter)
+        rf_obj.Train()
+        print "Random Forest Model Done in ", time.time() - st,  " seconds."
+        # except Exception as e:
+        #     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
 
         try:
             st = time.time()

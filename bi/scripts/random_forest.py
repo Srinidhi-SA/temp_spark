@@ -122,8 +122,7 @@ class RandomForestScript:
         pmmlfile = open(pmml_filepath,"r")
         pmmlText = pmmlfile.read()
         pmmlfile.close()
-        algoSlug = self._dataframe_context.get_algorithm_slug()[0]
-        self._result_setter.update_pmml_object({algoSlug:pmmlText})
+        self._result_setter.update_pmml_object({self._slug:pmmlText})
         cat_cols = list(set(categorical_columns)-set([result_column]))
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary = MLModelSummary()
@@ -142,6 +141,7 @@ class RandomForestScript:
         self._model_summary.set_target_variable(result_column)
         self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
         self._model_summary.set_validation_method("Train and Test")
+        self._model_summary.set_level_map_dict(objs["labelMapping"])
         # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
         self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
         self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
@@ -155,6 +155,7 @@ class RandomForestScript:
                         },
             "levelcount":self._model_summary.get_level_counts(),
             "modelFeatureList":self._model_summary.get_feature_list(),
+            "levelMapping":self._model_summary.get_level_map_dict()
         }
 
         rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
@@ -251,6 +252,9 @@ class RandomForestScript:
         pandas_df = pandas_df[model_feature_list]
         score = random_forest_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
+        labelMappingDict = self._dataframe_context.get_label_map()
+        df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")
+        print df["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column

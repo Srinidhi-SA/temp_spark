@@ -66,7 +66,14 @@ class MLModelSummary:
         self.nTrees = None
         self.nRules = None
         self.slug = None
+        self.levelMap = None
 
+    def set_level_map_dict(self,data):
+        self.levelMap = data
+
+    def get_level_map_dict(self):
+        return self.levelMap
+        
     def set_confusion_matrix(self,data):
         self.confusionMatrix = data
 

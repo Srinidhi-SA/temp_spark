@@ -100,7 +100,10 @@ class ContextSetter:
         self.storyOnScoredData = False
         self.uidColObject = {}
         self.ignoremessages = False
+        self.labelMappingDict = []
 
+    def get_label_map(self):
+        return self.labelMappingDict[0]
     def get_uid_column(self):
         if self.uidColObject != {}:
             return self.uidColObject["colName"]
@@ -219,6 +222,8 @@ class ContextSetter:
                 self.scripts_to_run = []
             if "algorithmslug" in fileSettingKeys:
                 self.algorithmslug = self.FILE_SETTINGS['algorithmslug']
+            if 'labelMappingDict' in fileSettingKeys:
+                self.labelMappingDict = self.FILE_SETTINGS['labelMappingDict']
 
         if len(columnSettingKeys) > 0:
             if "app_id" in columnSettingKeys:
