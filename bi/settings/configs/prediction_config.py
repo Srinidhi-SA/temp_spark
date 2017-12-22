@@ -102,8 +102,7 @@ def get_prediction_config():
                 "analysis_type": [
                   "score"
                 ],
-                "modelfeatures": ['age','workclass','fnlwgt','education','education-num','marital-status','occupation','relationship','race','sex','Capital-gain','Capital-loss','hours-per-week','native-country'
-                ],
+                "modelfeatures": ['age','workclass','fnlwgt','education','education-num','marital-status','occupation','relationship','race','sex','Capital-gain','Capital-loss','hours-per-week','native-country'],
                 # 'modelfeatures':[u'workclass', u'relationship', u'age', u'Capital-gain', u'sex', u'hours-per-week', u'race', u'native-country', u'education-num', u'Capital-loss', u'education', u'fnlwgt', u'marital-status', u'occupation'],
                 "algorithmslug": [
                   "f77631ce2ab24cf78c55bb6a5fce4db8rf"
