@@ -252,6 +252,9 @@ class RandomForestScript:
         pandas_df = pandas_df[model_feature_list]
         score = random_forest_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
+        labelMappingDict = self._dataframe_context.get_label_map()
+        df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")
+        print df["predicted_class"]
         df["predicted_probability"] = score["predicted_probability"]
         self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
         self._score_summary["result_column"] = result_column

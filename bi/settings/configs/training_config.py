@@ -12,7 +12,9 @@ def get_training_config():
             "method": "GET"
           },
           "message_url": "http://34.196.204.54:9012/api/messages/Trainer_kkkk-9sldrt5c8z_123/",
-          "job_name": "kkkk"
+          "job_name": "kkkk",
+          "xml_url": "http://34.196.204.54:9012/api/xml/model-kkkk-9sldrt5c8z-9gb7xd99xn_pmml/"
+
         },
         "config": {
           "COLUMN_SETTINGS": {

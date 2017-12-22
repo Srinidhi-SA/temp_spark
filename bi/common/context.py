@@ -100,10 +100,10 @@ class ContextSetter:
         self.storyOnScoredData = False
         self.uidColObject = {}
         self.ignoremessages = False
-        self.labelMappingDict = {}
+        self.labelMappingDict = []
 
     def get_label_map(self):
-        return self.labelMappingDict
+        return self.labelMappingDict[0]
     def get_uid_column(self):
         if self.uidColObject != {}:
             return self.uidColObject["colName"]
