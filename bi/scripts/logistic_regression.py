@@ -282,8 +282,9 @@ class LogisticRegressionScript:
         if uidCol == None:
             uidCol = self._metaParser.get_uid_column()
         uidTableData = []
+        predictedClasses = list(df[result_column].unique())
         if uidCol:
-            for level in list(df[result_column].unique()):
+            for level in predictedClasses:
                 levelDf = df[df[result_column] == level]
                 levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
                 levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
@@ -339,7 +340,7 @@ class LogisticRegressionScript:
 
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
-        df = df_helper.get_data_frame()
+        spark_scored_df = df_helper.get_data_frame()
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
@@ -382,17 +383,54 @@ class LogisticRegressionScript:
         #     chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df,self._prediction_narrative,self._result_setter,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName))
         # except:
         #     print "ChiSquare Analysis Failed "
+        if len(predictedClasses) >=2:
+            try:
+                fs = time.time()
+                df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
+                print narratives_obj
+            except:
+                print "DecisionTree Analysis Failed "
+        else:
+            data_dict = {}
+            data_dict["npred"] = len(predictedClasses)
+            data_dict["nactual"] = len(labelMappingDict.values())
+            if data_dict["nactual"] > 2:
+                levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
+                levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])
+            else:
+                levelCountDict = resultColLevelCount
+                otherClass = list(set(labelMappingDict.values())-set(predictedClasses))[0]
+                levelCountDict[otherClass] = 0
 
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-            if narratives_file.startswith("file"):
-                narratives_file = narratives_file[7:]
-            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            if result_file.startswith("file"):
-                result_file = result_file[7:]
-            df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
-            narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
-            print narratives_obj
-        except:
-            print "DecisionTree Analysis Failed "
+                print levelCountDict
+
+            total = float(sum([x for x in levelCountDict.values() if x != None]))
+            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
+            levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
+            data_dict["blockSplitter"] = "|~NEWBLOCK~|"
+            data_dict["targetcol"] = result_column
+            data_dict["nlevel"] = len(levelCountDict.keys())
+            data_dict["topLevel"] = levelCountTuple[0]
+            data_dict["secondLevel"] = levelCountTuple[1]
+            maincardSummary = NarrativesUtils.get_template_output("/apps/",'scorewithoutdtree.html',data_dict)
+
+            main_card = NormalCard()
+            main_card_data = []
+            main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,"|~NEWBLOCK~|")
+            main_card_data += main_card_narrative
+
+            chartData = NormalChartData([levelCountDict]).get_data()
+            chartJson = ChartJson(data=chartData)
+            chartJson.set_title(result_column)
+            chartJson.set_chart_type("donut")
+            mainCardChart = C3ChartData(data=chartJson)
+            mainCardChart.set_width_percent(33)
+            main_card_data.append(mainCardChart)
+
+            uidTable = self._result_setter.get_unique_identifier_table()
+            if uidTable != None:
+                main_card_data.append(uidTable)
+            main_card.set_card_data(main_card_data)
+            main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
+            self._result_setter.set_score_dtree_cards([main_card])

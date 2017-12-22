@@ -215,6 +215,7 @@ class HtmlData:
     def __init__(self,data=None):
         self.dataType = "html"
         self.data = data
+        self.classTag = None
 
     def set_data(self,data):
         self.data = data
