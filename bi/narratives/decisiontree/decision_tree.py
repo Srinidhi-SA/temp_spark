@@ -30,8 +30,9 @@ class DecisionTreeNarrative:
             self._decisionTreeCard1Table.append(keyTable)
 
     # @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ContextSetter,ResultSetter,NarrativesTree,basestring,dict)
-    def __init__(self, column_name, decision_tree_rules,df_helper,df_context,result_setter,story_narrative=None,analysisName=None,scriptWeight=None):
+    def __init__(self, column_name, decision_tree_rules,df_helper,df_context,meta_parser,result_setter,story_narrative=None,analysisName=None,scriptWeight=None):
         self._story_narrative = story_narrative
+        self._metaParser = meta_parser
         self._dataframe_context = df_context
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._result_setter = result_setter
@@ -244,16 +245,16 @@ class DecisionTreeNarrative:
             maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'decisiontreesummary.html',data_dict)
         else:
-            levelCountDict = self._dataframe_context.get_level_count_dict()
+            levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
-            print levelCountTuple
             data_dict["blockSplitter"] = self._blockSplitter
             data_dict["targetcol"] = self._colname
             data_dict["nlevel"] = len(levelCountDict.keys())
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
+            print data_dict
             maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'decisiontreescore.html',data_dict)
         main_card = NormalCard()

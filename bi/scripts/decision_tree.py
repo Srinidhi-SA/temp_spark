@@ -24,7 +24,7 @@ class DecisionTreeScript:
         # DataWriter.write_dict_as_json(self._spark, df_decision_tree_result, self._dataframe_context.get_result_file()+'DecisionTree/')
 
         #Narratives
-        narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper, self._dataframe_context, self._result_setter,self._story_narrative)
+        narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,self._story_narrative)
         # narratives = CommonUtils.as_dict(narratives_obj)
 
         # print "Narratives: %s" % (json.dumps(narratives, indent=2))

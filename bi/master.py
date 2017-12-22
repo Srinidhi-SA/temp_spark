@@ -66,7 +66,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
-            jobType = "prediction"
+            jobType = "training"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
@@ -185,7 +185,6 @@ def main(configJson):
             df = df_helper.get_data_frame()
             measure_columns = df_helper.get_numeric_columns()
             dimension_columns = df_helper.get_string_columns()
-
         print scriptWeightDict
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
@@ -514,6 +513,8 @@ def main(configJson):
         modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative)
         print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(modelJsonOutput))
+        pmmlModels = result_setter.get_pmml_object()
+        savepmml = CommonUtils.save_pmml_models(configJson["job_config"]["xml_url"],pmmlModels)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Training Completed in ", time.time() - st, " seconds."

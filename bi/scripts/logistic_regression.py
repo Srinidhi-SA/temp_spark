@@ -120,13 +120,18 @@ class LogisticRegressionScript:
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         joblib.dump(objs["trained_model"],model_filepath)
 
-        # pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
-        # modelPmmlPipeline = PMMLPipeline([
-        #   ("pretrained-estimator", objs["trained_model"])
-        # ])
-        # modelPmmlPipeline.target_field = result_column
-        # modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
-        # sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
+        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
+        modelPmmlPipeline = PMMLPipeline([
+          ("pretrained-estimator", objs["trained_model"])
+        ])
+        modelPmmlPipeline.target_field = result_column
+        modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
+        sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
+        pmmlfile = open(pmml_filepath,"r")
+        pmmlText = pmmlfile.read()
+        pmmlfile.close()
+        algoSlug = self._dataframe_context.get_algorithm_slug()[0]
+        self._result_setter.update_pmml_object({algoSlug:pmmlText})
 
         cat_cols = list(set(categorical_columns)-set([result_column]))
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
@@ -384,7 +389,7 @@ class LogisticRegressionScript:
             if result_file.startswith("file"):
                 result_file = result_file[7:]
             df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
-            narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
+            narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
             print narratives_obj
         except:
             print "DecisionTree Analysis Failed "

@@ -203,22 +203,22 @@ class ContextSetter:
                 #     modelfeaturedata = modelfeaturedata[0]
                 #     if self._column_separator in modelfeaturedata:
                 #         self.MODELFEATURES =modelfeaturedata.split(self._column_separator)
-
             if "levelcounts" in fileSettingKeys:
                 levelcountdata = self.FILE_SETTINGS['levelcounts']
                 if levelcountdata != None and len(levelcountdata) > 0:
                     levelcountdata = levelcountdata[0]
-                    if self._column_separator in levelcountdata:
-                        self.levelcounts =self.FILE_SETTINGS['levelcounts'][0].split(self._column_separator)
-                        self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
-                    else:
-                        self.levelcount_dict = {}
+                    # if self._column_separator in levelcountdata:
+                    #     self.levelcounts =self.FILE_SETTINGS['levelcounts'][0].split(self._column_separator)
+                    #     self.levelcount_dict = dict([(self.levelcounts[i*2],self.levelcounts[i*2+1]) for i in range(len(self.levelcounts)/2)])
+                    # else:
+                    #     self.levelcount_dict = {}
+                    self.levelcount_dict = levelcountdata
             if "script_to_run" in fileSettingKeys:
                 self.scripts_to_run =self.FILE_SETTINGS.get('script_to_run')
             else:
                 self.scripts_to_run = []
             if "algorithmslug" in fileSettingKeys:
-                self.algorithmslug = self.FILE_SETTINGS.get('algorithmslug')
+                self.algorithmslug = self.FILE_SETTINGS['algorithmslug']
 
         if len(columnSettingKeys) > 0:
             if "app_id" in columnSettingKeys:

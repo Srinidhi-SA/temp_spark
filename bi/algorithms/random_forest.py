@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn import preprocessing
 
 from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
@@ -50,12 +51,15 @@ class RandomForest:
         feature_importance => features ranked by their Importance
         feature_Weight => weight of features
         """
+        labelEncoder = preprocessing.LabelEncoder()
+        labelEncoder.fit(y_train)
         if len(drop_cols) > 0:
             x_train = drop_columns(x_train,drop_cols)
             x_test = drop_columns(x_test,drop_cols)
-
+        y_train = labelEncoder.transform(y_train)
         clf = clf.fit(x_train, y_train)
         y_score = clf.predict(x_test)
+        y_score = labelEncoder.inverse_transform(y_score)
         y_prob = clf.predict_proba(x_test)
         results = pd.DataFrame({"actual":y_test,"predicted":y_score,"prob":list(y_prob)})
 

@@ -63,6 +63,6 @@ class MetaParser:
             if v.startswith("Index Column"):
                 uidCol = k
         return uidCol
-        
+
     def get_unique_level_names(self,column_name):
         return self.column_dict[column_name]["LevelCount"].keys()

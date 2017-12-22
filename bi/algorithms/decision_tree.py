@@ -22,6 +22,7 @@ class DecisionTrees:
     # @accepts(object, DataFrame)
     def __init__(self, data_frame, df_helper, df_context, spark, meta_parser,scriptWeight=None, analysisName=None):
         self._spark = spark
+        self._maxDepth = 5
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -256,15 +257,16 @@ class DecisionTrees:
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
-        # dimension_classes = self._data_frame.select(dimension).distinct().count()
-        dimension_classes = self._metaParser.get_num_unique_values(dimension)
+        try:
+            dimension_classes = self._metaParser.get_num_unique_values(dimension)
+        except:
+            dimension_classes = self._data_frame.select(dimension).distinct().count()
         print dimension_classes
-        print self._data_frame.columns
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=3, maxBins=max_length)
+        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
         output_result = model.toDebugString()
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)

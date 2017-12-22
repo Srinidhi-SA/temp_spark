@@ -30,8 +30,12 @@ class ResultSetter:
         self.scoredtreecards = []
         self.stockAdvisorNode = None
         self.uidTable = None
+        self.pmmlObjects = {}
 
-
+    def update_pmml_object(self,data):
+        self.pmmlObjects.update(data)
+    def get_pmml_object(self):
+        return self.pmmlObjects
     def get_score_cards(self):
         # if self.scorefreqcard != None:
         #     out = [self.scorefreqcard]+self.scorechicards[:3]+self.scoredtreecards
