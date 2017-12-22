@@ -226,6 +226,7 @@ class DimensionColumnNarrative:
         chart_json.set_data(chart_data.get_data())
         chart_json.set_chart_type("bar")
         chart_json.set_axes({"x":"key","y":"value"})
+        chart_json.set_label_text({'x':' ','y': 'No. of Observations'})
         chart_json.set_yaxis_number_format(".2f")
         lines += output1
         lines += [C3ChartData(data=chart_json)]

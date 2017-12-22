@@ -8,14 +8,14 @@ def get_story_config():
                         "displayName" : "Overview",
                         "name" : "overview",
                         "noOfColumnsToUse" : None,
-                        "status" : False
+                        "status" : True
                     },
                     {
                         "analysisSubTypes" : [],
                         "displayName" : "Trend",
                         "name" : "trend",
                         "noOfColumnsToUse" : None,
-                        "status" : False
+                        "status" : True
                     },
                     {
                         "analysisSubTypes" : [],
@@ -97,7 +97,7 @@ def get_story_config():
                                 # {"colName":"Marketing_Cost"},
                             ],
                 "analysis_type" : [
-                    "measure"
+                    "dimension"
                 ],
                 "consider_columns" : [
                     "Channel",
@@ -147,7 +147,7 @@ def get_story_config():
                     "positive"
                 ],
                 "result_column" : [
-                    "Sales Amount"
+                    "Order Status"
                 ],
                 "utf8_column_suggestions" : []
             },

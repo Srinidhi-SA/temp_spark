@@ -381,6 +381,7 @@ class ChiSquareAnalysis:
             card2ChartJson.set_types({"total":"bar","percentage":"line"})
             card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
             card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
+            card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
             output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
 
             card2Data.append(HtmlData(data=card2Heading))
