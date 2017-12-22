@@ -252,7 +252,7 @@ class TableData:
 
     def set_table_width(self,data):
         self.tableWidth = data
-        
+
     def set_table_data(self,data):
         self.data["tableData"] = data
 
@@ -273,11 +273,12 @@ class TableData:
 
 
 class C3ChartData:
-    def __init__(self,data=None):
+    def __init__(self,data=None,info=[]):
         self.dataType = "c3Chart"
         self.data = data
         self.widthPercent=100
-        self.chartInfo = []
+        self.chartInfo = info
+        # self.chartInfo = ["Statistical Test : Avova","Variables : Call Volume","Effect Size : 0.2"]
 
     def set_data(self,data):
         self.data = data
