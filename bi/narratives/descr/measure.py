@@ -81,7 +81,7 @@ class MeasureColumnNarrative:
             data_c3.append({'bin_name':'< '+ humanize.intcomma(bin['end_value']),
                             'count':bin['num_records']})
         data_c3 = NormalChartData(data_c3)
-        return ChartJson(data=data_c3.get_data(), axes={'x':'bin_name','y':'count'},label_text={'x':'','y':'# of Observations'},chart_type='bar')
+        return ChartJson(data=data_c3.get_data(), axes={'x':'bin_name','y':'count'},label_text={'x':'','y':'No. of Observations'},chart_type='bar')
 
     def _generate_narratives(self):
         lines = []
