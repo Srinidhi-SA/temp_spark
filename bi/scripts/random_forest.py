@@ -14,6 +14,7 @@ from sklearn.externals import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 from sklearn import metrics
+from sklearn import preprocessing
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
@@ -111,14 +112,18 @@ class RandomForestScript:
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
         joblib.dump(objs["trained_model"],model_filepath)
 
-        # pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
-        # modelPmmlPipeline = PMMLPipeline([
-        #   ("pretrained-estimator", objs["trained_model"])
-        # ])
-        # modelPmmlPipeline.target_field = result_column
-        # modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
-        # sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
-
+        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
+        modelPmmlPipeline = PMMLPipeline([
+          ("pretrained-estimator", objs["trained_model"])
+        ])
+        modelPmmlPipeline.target_field = result_column
+        modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
+        sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
+        pmmlfile = open(pmml_filepath,"r")
+        pmmlText = pmmlfile.read()
+        pmmlfile.close()
+        algoSlug = self._dataframe_context.get_algorithm_slug()[0]
+        self._result_setter.update_pmml_object({algoSlug:pmmlText})
         cat_cols = list(set(categorical_columns)-set([result_column]))
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary = MLModelSummary()
@@ -253,7 +258,6 @@ class RandomForestScript:
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
-
         uidCol = self._dataframe_context.get_uid_column()
         if uidCol == None:
             uidCol = self._metaParser.get_uid_column()
@@ -306,8 +310,6 @@ class RandomForestScript:
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         print "columns_to_drop",columns_to_drop
         df.drop(columns_to_drop, axis=1, inplace=True)
-        # # Dropping predicted_probability column
-        # df.drop('predicted_probability', axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
@@ -362,16 +364,16 @@ class RandomForestScript:
         # except:
         #     print "ChiSquare Analysis Failed "
 
-        # try:
-        fs = time.time()
-        narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-        if narratives_file.startswith("file"):
-            narratives_file = narratives_file[7:]
-        result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-        if result_file.startswith("file"):
-            result_file = result_file[7:]
-        df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
-        narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
-        print narratives_obj
-        # except:
-        #     print "DecisionTree Analysis Failed "
+        try:
+            fs = time.time()
+            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+            if narratives_file.startswith("file"):
+                narratives_file = narratives_file[7:]
+            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
+            if result_file.startswith("file"):
+                result_file = result_file[7:]
+            df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+            narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
+            print narratives_obj
+        except:
+            print "DecisionTree Analysis Failed "

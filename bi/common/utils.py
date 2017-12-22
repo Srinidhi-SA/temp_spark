@@ -288,12 +288,6 @@ def byteify(input):
         return input
 
 
-def save_result_json(url,jsonData):
-    url += "set_result"
-    print "url",url
-    res = requests.put(url=url,data=jsonData)
-    return res
-
 def create_progress_message_object(sectionDict,name,timeTaken,completionStatus):
     progressMessage = {
         "name" : name,
@@ -316,7 +310,20 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
     print "completionStatus for the Job:- ",globalCompletionPercentage
     return progressMessage
 
+def save_result_json(url,jsonData):
+    url += "set_result"
+    print "url",url
+    res = requests.put(url=url,data=jsonData)
+    return res
+
 def save_progress_message(url,jsonData,ignore=False):
+    if ignore == False:
+        res = requests.put(url=url,data=json.dumps(jsonData))
+        return res
+    else:
+        return True
+
+def save_pmml_models(url,jsonData,ignore=False):
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
         return res

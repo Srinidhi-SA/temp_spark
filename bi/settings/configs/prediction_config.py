@@ -13,7 +13,8 @@ def get_prediction_config():
                 "method": "GET"
               },
               "message_url": "http://34.196.204.54:9012/api/messages/Score_kkkk_score_rf-31fm2m25bj_123/",
-              "job_name": "kkkk_score_rf"
+              "job_name": "kkkk_score_rf",
+              "xml_url": "http://34.196.204.54:9012/api/xml/model-somerandommkdela-ys05d31fzi-8w81aqsa2q_pmml/"
             },
             "config": {
               "COLUMN_SETTINGS": {
@@ -102,13 +103,11 @@ def get_prediction_config():
                 "analysis_type": [
                   "score"
                 ],
-    #             "modelfeatures": [u'age', u'workclass', u'fnlwgt', u'education', u'education-num',
-    #    u'marital-status', u'occupation', u'relationship', u'race', u'sex',
-    #    u'Capital-gain', u'Capital-loss', u'hours-per-week', u'native-country'
-    #             ],
-                'modelfeatures':[u'workclass', u'relationship', u'age', u'Capital-gain', u'sex', u'hours-per-week', u'race', u'native-country', u'education-num', u'Capital-loss', u'education', u'fnlwgt', u'marital-status', u'occupation'],
+                "modelfeatures": ['age','workclass','fnlwgt','education','education-num','marital-status','occupation','relationship','race','sex','Capital-gain','Capital-loss','hours-per-week','native-country'
+                ],
+                # 'modelfeatures':[u'workclass', u'relationship', u'age', u'Capital-gain', u'sex', u'hours-per-week', u'race', u'native-country', u'education-num', u'Capital-loss', u'education', u'fnlwgt', u'marital-status', u'occupation'],
                 "algorithmslug": [
-                  "f77631ce2ab24cf78c55bb6a5fce4db8xgb"
+                  "f77631ce2ab24cf78c55bb6a5fce4db8rf"
                 ],
                 "levelcounts": [
                     {' >50K': 7841, ' <=50K': 24720}
