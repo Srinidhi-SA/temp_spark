@@ -15,7 +15,7 @@ def get_story_config():
                         "displayName" : "Trend",
                         "name" : "trend",
                         "noOfColumnsToUse" : None,
-                        "status" : False
+                        "status" : True
                     },
                     {
                         "analysisSubTypes" : [],

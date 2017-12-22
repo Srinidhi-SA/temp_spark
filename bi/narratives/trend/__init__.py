@@ -286,7 +286,7 @@ class TimeSeriesNarrative:
                         card1chartdata = ScatterChartData(data=card1chartdata)
                         chartJson = ChartJson()
                         chartJson.set_data(card1chartdata.get_data())
-                        # chartJson.set_label_text()
+                        chartJson.set_label_text({'x':' ','y': 'No. of Observations'})
                         chartJson.set_legend({"actual":"Observed","predicted":"Forecast"})
                         chartJson.set_chart_type("scatter_line")
                         chartJson.set_axes({"x":"key","y":"value"})
