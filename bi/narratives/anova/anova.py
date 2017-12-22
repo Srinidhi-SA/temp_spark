@@ -566,6 +566,7 @@ class OneWayAnovaNarratives:
                     ['Category'] + category_legend]
         decisionMatrixChartJson = ChartJson(data = NormalChartData(data_c3).get_data(), chart_type='scatter_tooltip')
         decisionMatrixChartJson.set_legend({"legendWillNotBeUsed":"legendWillNotBeUsed"})
+        decisionMatrixChartJson.set_label_text({'x':'Percentage share of '+ self._measure_column,'y': "Growth over time"})
         lines += [C3ChartData(decisionMatrixChartJson)]
 
         chart_data = chart(data=data, labels={})
