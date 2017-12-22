@@ -15,7 +15,7 @@ def get_story_config():
                         "displayName" : "Trend",
                         "name" : "trend",
                         "noOfColumnsToUse" : None,
-                        "status" : True
+                        "status" : False
                     },
                     {
                         "analysisSubTypes" : [],
@@ -48,12 +48,45 @@ def get_story_config():
                                 "value" : 12
                             }
                         ],
-                        "status" : False
+                        "status" : True
                     },
                     {
                         "analysisSubTypes" : [],
                         "displayName" : "Influencer",
                         "name" : "influencer",
+                        "noOfColumnsToUse" : [
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Low",
+                                "name" : "low",
+                                "status" : True
+                            },
+                            {
+                                "defaultValue" : 5,
+                                "displayName" : "Medium",
+                                "name" : "medium",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 8,
+                                "displayName" : "High",
+                                "name" : "high",
+                                "status" : False
+                            },
+                            {
+                                "defaultValue" : 3,
+                                "displayName" : "Custom",
+                                "name" : "custom",
+                                "status" : False,
+                                "value" : 12
+                            }
+                        ],
+                        "status" : False
+                    },
+                    {
+                        "analysisSubTypes" : [],
+                        "displayName" : "Association",
+                        "name" : "association",
                         "noOfColumnsToUse" : [
                             {
                                 "defaultValue" : 3,
@@ -97,7 +130,7 @@ def get_story_config():
                                 # {"colName":"Marketing_Cost"},
                             ],
                 "analysis_type" : [
-                    "dimension"
+                    "measure"
                 ],
                 "consider_columns" : [
                     "Channel",
@@ -147,7 +180,7 @@ def get_story_config():
                     "positive"
                 ],
                 "result_column" : [
-                    "Order Status"
+                    "Sales Amount"
                 ],
                 "utf8_column_suggestions" : []
             },
