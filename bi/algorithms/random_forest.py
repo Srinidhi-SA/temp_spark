@@ -57,6 +57,9 @@ class RandomForest:
             x_train = drop_columns(x_train,drop_cols)
             x_test = drop_columns(x_test,drop_cols)
         y_train = labelEncoder.transform(y_train)
+        classes = labelEncoder.classes_
+        transformed = labelEncoder.transform(classes)
+        labelMapping = dict(zip(transformed,classes))
         clf = clf.fit(x_train, y_train)
         y_score = clf.predict(x_test)
         y_score = labelEncoder.inverse_transform(y_score)
@@ -92,4 +95,4 @@ class RandomForest:
 
         # return {"y_prob":y_prob,"results":results,"feature_importance":feature_importance,
                 # "feature_weight":importances,"auc":roc_auc["response"],"trained_model":clf}
-        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns)}
+        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}

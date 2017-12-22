@@ -112,6 +112,9 @@ def get_prediction_config():
                 "levelcounts": [
                     {' >50K': 7841, ' <=50K': 24720}
                 ],
+                "labelMappingDict":[
+                    {0: u' <=50K', 1: u' >50K'}
+                ],
                 "inputfile": [
                   "file:///home/gulshan/marlabs/datasets/adult_test.csv"
                 ]

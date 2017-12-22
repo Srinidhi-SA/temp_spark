@@ -662,17 +662,19 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     model_dropdowns = []
     model_features = {}
     model_configs = {}
+    labelMappingDict = {}
     targetVariableLevelcount = {}
     target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
     for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
         if obj != {}:
             model_dropdowns.append(obj["dropdown"])
             model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
+            labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]
             if targetVariableLevelcount == {}:
-                print obj["levelcount"]
                 targetVariableLevelcount = obj["levelcount"][target_variable]
     model_configs = {"target_variable":[target_variable]}
     model_configs["modelFeatures"] = model_features
+    model_configs["labelMappingDict"] = labelMappingDict
     model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
 
     modelJsonOutput.set_model_dropdown(model_dropdowns)
