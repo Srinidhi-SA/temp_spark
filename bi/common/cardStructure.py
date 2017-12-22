@@ -215,6 +215,7 @@ class HtmlData:
     def __init__(self,data=None):
         self.dataType = "html"
         self.data = data
+        self.classTag = None
 
     def set_data(self,data):
         self.data = data
@@ -252,7 +253,7 @@ class TableData:
 
     def set_table_width(self,data):
         self.tableWidth = data
-        
+
     def set_table_data(self,data):
         self.data["tableData"] = data
 
