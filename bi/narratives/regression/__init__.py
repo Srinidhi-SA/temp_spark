@@ -230,7 +230,8 @@ class RegressionNarrative:
             # card3 = {"paragraphs":card4paragraphs}
             card0['paragraphs'] = card1paragraphs+card4paragraphs
             card4Chart = card4data["charts"]
-            card4paragraphs.insert(2,C3ChartData(data=card4Chart))
+            st_info = ["Test : Regression", "Variables : "+ self.result_column +", "+measure_column,"Intercept : "+str(round(self._df_regression_result.get_intercept(),2)), "Regression Coefficient : "+ str(round(self._df_regression_result.get_coeff(measure_column),2))]
+            card4paragraphs.insert(2,C3ChartData(data=card4Chart,info=st_info))
             measureCard1Data += card4paragraphs
 
             self.narratives['cards'].append(measure_column_cards)
