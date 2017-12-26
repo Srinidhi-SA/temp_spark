@@ -95,15 +95,16 @@ class DataFrameHelper:
         print "colsToBin:-",colsToBin
         print "#"*30
 
-        if self._dataframe_context.get_job_type() != "prediction":
-            self._data_frame = self._data_frame.select(colsToKeep)
-        else:
-            if self._dataframe_context.get_story_on_scored_data() == False:
-                result_column = self._dataframe_context.get_result_column()
-                updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
-                self._data_frame = self._data_frame.select(updatedColsToKeep)
-            elif self._dataframe_context.get_story_on_scored_data() == True:
+        if self._dataframe_context.get_job_type() != "subSetting":
+            if self._dataframe_context.get_job_type() != "prediction":
                 self._data_frame = self._data_frame.select(colsToKeep)
+            else:
+                if self._dataframe_context.get_story_on_scored_data() == False:
+                    result_column = self._dataframe_context.get_result_column()
+                    updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
+                    self._data_frame = self._data_frame.select(updatedColsToKeep)
+                elif self._dataframe_context.get_story_on_scored_data() == True:
+                    self._data_frame = self._data_frame.select(colsToKeep)
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()

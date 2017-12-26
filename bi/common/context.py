@@ -85,6 +85,9 @@ class ContextSetter:
         self.metadataScriptWeight = {
             "initialization":{"total":3,"script":2,"narratives":1},
         }
+        self.subsettingScriptWeight = {
+            "initialization":{"total":3,"script":2,"narratives":1},
+        }
         self.measureAnalysisWeight = {}
         self.dimensionAnalysisWeight = {}
         self.globalCompletionStatus = 0
@@ -128,6 +131,8 @@ class ContextSetter:
         self.metaIgnoreMsgFlag = data
     def get_metadata_script_weight(self):
         return self.metadataScriptWeight
+    def get_subsetting_script_weight(self):
+        return self.subsettingScriptWeight
     def set_model_path(self,data):
         self.MODEL_PATH = data
     def set_environment(self,data):
