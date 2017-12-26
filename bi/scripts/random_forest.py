@@ -117,13 +117,16 @@ class RandomForestScript:
         modelPmmlPipeline = PMMLPipeline([
           ("pretrained-estimator", objs["trained_model"])
         ])
-        modelPmmlPipeline.target_field = result_column
-        modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
-        sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
-        pmmlfile = open(pmml_filepath,"r")
-        pmmlText = pmmlfile.read()
-        pmmlfile.close()
-        self._result_setter.update_pmml_object({self._slug:pmmlText})
+        try:
+            modelPmmlPipeline.target_field = result_column
+            modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
+            sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
+            pmmlfile = open(pmml_filepath,"r")
+            pmmlText = pmmlfile.read()
+            pmmlfile.close()
+            self._result_setter.update_pmml_object({self._slug:pmmlText})
+        except:
+            pass
         cat_cols = list(set(categorical_columns)-set([result_column]))
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary = MLModelSummary()

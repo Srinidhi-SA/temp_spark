@@ -103,7 +103,14 @@ class ContextSetter:
         self.labelMappingDict = []
 
     def get_label_map(self):
-        return self.labelMappingDict[0]
+        if len(self.labelMappingDict) > 0:
+            original = self.labelMappingDict[0]
+            modified = {}
+            for val in original:
+                modified[int(val)] = original[val]
+            return modified
+        else:
+            return []
     def get_uid_column(self):
         if self.uidColObject != {}:
             return self.uidColObject["colName"]
