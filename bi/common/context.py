@@ -85,6 +85,9 @@ class ContextSetter:
         self.metadataScriptWeight = {
             "initialization":{"total":3,"script":2,"narratives":1},
         }
+        self.subsettingScriptWeight = {
+            "initialization":{"total":3,"script":2,"narratives":1},
+        }
         self.measureAnalysisWeight = {}
         self.dimensionAnalysisWeight = {}
         self.globalCompletionStatus = 0
@@ -103,7 +106,14 @@ class ContextSetter:
         self.labelMappingDict = []
 
     def get_label_map(self):
-        return self.labelMappingDict[0]
+        if len(self.labelMappingDict) > 0:
+            original = self.labelMappingDict[0]
+            modified = {}
+            for val in original:
+                modified[int(val)] = original[val]
+            return modified
+        else:
+            return []
     def get_uid_column(self):
         if self.uidColObject != {}:
             return self.uidColObject["colName"]
@@ -121,6 +131,8 @@ class ContextSetter:
         self.metaIgnoreMsgFlag = data
     def get_metadata_script_weight(self):
         return self.metadataScriptWeight
+    def get_subsetting_script_weight(self):
+        return self.subsettingScriptWeight
     def set_model_path(self,data):
         self.MODEL_PATH = data
     def set_environment(self,data):

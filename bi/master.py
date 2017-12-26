@@ -118,7 +118,9 @@ def main(configJson):
         scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
     elif jobType == "metaData":
         scriptWeightDict = dataframe_context.get_metadata_script_weight()
-
+    elif jobType == "subSetting":
+        scriptWeightDict = dataframe_context.get_subsetting_script_weight()
+    print scriptWeightDict
     completionStatus = 0
 
 
@@ -185,7 +187,6 @@ def main(configJson):
             df = df_helper.get_data_frame()
             measure_columns = df_helper.get_numeric_columns()
             dimension_columns = df_helper.get_string_columns()
-        print scriptWeightDict
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
