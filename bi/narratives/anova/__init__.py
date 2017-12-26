@@ -121,7 +121,8 @@ class AnovaNarratives:
                                         label_text={'x':'','y':'Effect Size'},chart_type='bar')
                 chart_json.set_axis_rotation(True)
                 chart_json.set_yaxis_number_format(".2f")
-                lines += [C3ChartData(chart_json)]
+                st_info = ["Test : ANOVA", "Threshold for p-value : 0.05", "Effect Size : Tukey's HSD"]
+                lines += [C3ChartData(data=chart_json,info=st_info)]
                 lines += NarrativesUtils.block_splitter(output1['content'],self._blockSplitter)
                 mainCard.set_card_data(lines)
                 self._anovaNodes.add_a_card(mainCard)

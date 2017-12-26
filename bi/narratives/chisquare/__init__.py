@@ -153,7 +153,8 @@ class ChiSquareNarratives:
             main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,'main_card.html',data_dict)
             main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
             main_card_data += main_card_narrative
-            main_card_data.append(C3ChartData(data=chart_json))
+            st_info = ["Test : Chi Square", "Threshold for p-value : 0.05", "Effect Size : Cramer's V"]
+            main_card_data.append(C3ChartData(data=chart_json,info=st_info))
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Key Influencers")
             self._chiSquareNode.add_a_card(main_card)

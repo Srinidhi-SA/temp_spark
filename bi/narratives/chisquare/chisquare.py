@@ -27,11 +27,15 @@ class ChiSquareAnalysis:
 
         significant_variables=list(set(significant_variables)-set([analysed_dimension]))
         significant_variables = list(set(significant_variables)-set(measure_columns))
-        if len(significant_variables)<=5:
-            self._second_level_dimensions = list(significant_variables)
-            random.shuffle(significant_variables)
-            self._second_level_dimensions1 = list(significant_variables)
-        elif len(significant_variables)>=5:
+        if len(significant_variables)<=20:
+            if len(significant_variables)<=3:
+                self._second_level_dimensions = list(significant_variables)
+                random.shuffle(significant_variables)
+                self._second_level_dimensions1 = list(significant_variables)
+            else:
+                self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
+                self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
+        elif len(significant_variables)>=20:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
         self._appid = appid
@@ -393,7 +397,8 @@ class ChiSquareAnalysis:
             output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
 
             card2Data.append(HtmlData(data=card2Heading))
-            card2Data.append(C3ChartData(data=card2ChartJson))
+            st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
+            card2Data.append(C3ChartData(data=card2ChartJson,info=st_info))
             card2Data += output2
             card2BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
             card2Data.append(HtmlData(data=card2BubbleData))
@@ -414,7 +419,8 @@ class ChiSquareAnalysis:
             output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)
 
             card4Data.append(HtmlData(data=card4Heading))
-            card4Data.append(C3ChartData(data=card4ChartJson))
+            st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V : "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic: '+str(round(self._chisquare_result.get_stat(),3))]
+            card4Data.append(C3ChartData(data=card4ChartJson,info=st_info))
             card4Data += output4
             card4BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
             card4Data.append(HtmlData(data=card4BubbleData))

@@ -179,6 +179,7 @@ class ChiSquareResult:
         self.nh = chi_square_result.nullHypothesis
         self.pv = chi_square_result.pValue
         self.stat = chi_square_result.statistic
+        # self.cramers_v = chi_square_result.cramers_v
 
     def get_pvalue(self):
         return self.pv
@@ -187,6 +188,12 @@ class ChiSquareResult:
         return self.contingency_table
 
     def get_effect_size(self):
+        return self.cramers_v
+
+    def get_stat(self):
+        return self.stat
+
+    def get_v_value(self):
         return self.cramers_v
 
     @accepts(object, ContingencyTable)

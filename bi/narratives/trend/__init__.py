@@ -291,7 +291,8 @@ class TimeSeriesNarrative:
                         chartJson.set_chart_type("scatter_line")
                         chartJson.set_axes({"x":"key","y":"value"})
                         chartJson.set_yaxis_number_format(".2f")
-                        measureTrendcard1Data.insert(1,C3ChartData(data=chartJson))
+                        st_info = ["Trend Analysis", "Forecast Method : Holt Winters method"]
+                        measureTrendcard1Data.insert(1,C3ChartData(data=chartJson,info=st_info))
                         measureTrendcard1Data.append(HtmlData(data=card1BubbleData))
                         cardData = measureTrendcard1Data+measureTrendcard2Data
                         measureTrendCard.set_card_data(cardData)
@@ -509,7 +510,8 @@ class TimeSeriesNarrative:
                     chartJson.set_chart_type("line")
                     chartJson.set_yaxis_number_format(".2f")
                     chartJson.set_axes(labels)
-                    cardData1.insert(1,C3ChartData(data=chartJson))
+                    st_info = ["Trend Analysis", "Forecast Method : Holt Winters method"]
+                    cardData1.insert(1,C3ChartData(data=chartJson,info=st_info))
                     trendCard = NormalCard(name="Trend Analysis",slug=None,cardData = cardData1)
                     trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
                     self._story_narrative.add_a_node(trendStoryNode)
