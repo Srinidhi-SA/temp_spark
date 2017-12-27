@@ -297,7 +297,11 @@ def create_progress_message_object(sectionDict,name,timeTaken,completionStatus):
     }
     return progressMessage
 
-def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage):
+def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=False):
+    """
+    messageType = ["info","failure"]
+
+    """
     progressMessage = {
         "analysisName" : analysisName,
         "stageName" : stageName,
@@ -305,7 +309,8 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
         "shortExplanation" : shortExplanation,
         "stageCompletionTimestamp" : time.time(),
         "globalCompletionPercentage" : globalCompletionPercentage,
-        "stageCompletionPercentage" : stageCompletionPercentage
+        "stageCompletionPercentage" : stageCompletionPercentage,
+        "display":display
     }
     print "completionStatus for the Job:- ",globalCompletionPercentage
     return progressMessage
@@ -346,6 +351,8 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
     print error
     print "#####ERROR#####"*5
     print "{} Script Failed".format(scriptName)
+    print loggerDict[scriptName]
+
 
 def get_duration_string(datarange):
     yr = str(datarange//365)

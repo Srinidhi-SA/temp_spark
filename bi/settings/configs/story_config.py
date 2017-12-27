@@ -1,9 +1,9 @@
 def get_story_config():
     storyConfig = {
-        "job_config": {
-      "job_url": "http://34.196.204.54:9012/api/job/master-measure-test0-r0q0vt7gq5-owf4cnoe2f/",
+    "job_config": {
+      "job_url": "http://34.196.204.54:9012/api/job/master-measure-test1-gd721qkcc3-yjifx6qlwo/",
       "job_type": "story",
-      "xml_url": "http://34.196.204.54:9012/api/xml/master-measure-test0-r0q0vt7gq5-owf4cnoe2f/",
+      "xml_url": "http://34.196.204.54:9012/api/xml/master-measure-test1-gd721qkcc3-yjifx6qlwo/",
       "get_config": {
         "action": "get_config",
         "method": "GET"
@@ -12,8 +12,8 @@ def get_story_config():
         "action": "result",
         "method": "PUT"
       },
-      "message_url": "http://34.196.204.54:9012/api/messages/Insight_measure-test0-r0q0vt7gq5_123/",
-      "job_name": "measure-test0"
+      "message_url": "http://34.196.204.54:9012/api/messages/Insight_measure-test1-gd721qkcc3_123/",
+      "job_name": "measure-test1"
     },
     "config": {
       "COLUMN_SETTINGS": {

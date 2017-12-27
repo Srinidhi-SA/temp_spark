@@ -42,9 +42,8 @@ from parser import configparser
 from pyspark.sql.functions import col, udf
 from bi.scripts.stock_advisor import StockAdvisor
 #if __name__ == '__main__':
-LOGGER = {}
 def main(configJson):
-    global LOGGER
+    LOGGER = {}
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
@@ -66,7 +65,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
+            jobType = "subSetting"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
@@ -130,9 +129,6 @@ def main(configJson):
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     datasource_type = dataframe_context.get_datasource_type()
-    # if datasource_type == "Hana":
-    #     dbConnectionParams = dataframe_context.get_dbconnection_params()
-    #     df = DataLoader.create_dataframe_from_hana_connector(spark, dbConnectionParams)
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
     else:
@@ -198,14 +194,17 @@ def main(configJson):
         fs = time.time()
         print "Running Metadata"
         meta_data_class = MetaDataScript(df,spark,dataframe_context)
-        meta_data_object = meta_data_class.run()
-        metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-        print metaDataJson
-        print "metaData Analysis Done in ", time.time() - fs, " seconds."
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        return response
+        try:
+            meta_data_object = meta_data_class.run()
+            metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
+            print metaDataJson
+            print "metaData Analysis Done in ", time.time() - fs, " seconds."
+            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
+            progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            return response
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"metadata",e)
     ############################################################################
 
     ################################ Data Sub Setting ##########################
@@ -213,23 +212,29 @@ def main(configJson):
         st = time.time()
         print "starting subsetting"
         subsetting_class = DataFrameFilterer(df,df_helper,dataframe_context)
-        filtered_df = subsetting_class.applyFilter()
-        if filtered_df.count() > 0:
-            transform_class = DataFrameTransformer(filtered_df,df_helper,dataframe_context)
-            transform_class.applyTransformations()
-            transformed_df = transform_class.get_transformed_data_frame()
-        if transformed_df.count() > 0:
-            output_filepath = dataframe_context.get_output_filepath()
-            print output_filepath
-            transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
-            print "starting Metadata for the Filtered Dataframe"
-            meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
-            meta_data_object = meta_data_class.run()
-            metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-            print metaDataJson
-            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
-        else:
-            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
+        try:
+            filtered_df = subsetting_class.applyFilter()
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"filterDf",e)
+        try:
+            if filtered_df.count() > 0:
+                transform_class = DataFrameTransformer(filtered_df,df_helper,dataframe_context)
+                transform_class.applyTransformations()
+                transformed_df = transform_class.get_transformed_data_frame()
+            if transformed_df.count() > 0:
+                output_filepath = dataframe_context.get_output_filepath()
+                print output_filepath
+                transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
+                print "starting Metadata for the Filtered Dataframe"
+                meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
+                meta_data_object = meta_data_class.run()
+                metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
+                print metaDataJson
+                response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
+            else:
+                response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"transformDf",e)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "SubSetting Analysis Completed in", time.time()-st," Seconds"
@@ -553,21 +558,31 @@ def main(configJson):
             df = df.toPandas()
             trainedModel = RandomForestScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = RandomForestPysparkScript(df, df_helper, dataframe_context, spark)
-            trainedModel.Predict()
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "xgboost" in selected_model_for_prediction:
             df = df.toPandas()
             trainedModel = XgboostScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
-            trainedModel.Predict()
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "logisticregression" in selected_model_for_prediction:
             df = df.toPandas()
             trainedModel = LogisticRegressionScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = LogisticRegressionPysparkScript(df, df_helper, dataframe_context, spark)
-            trainedModel.Predict()
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
+
 
         # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
         storycards = result_setter.get_score_cards()
