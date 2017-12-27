@@ -172,7 +172,7 @@ class NormalChartData:
 
 class ChartJson:
     """
-    formats = ['.2s','$','$,.2s','.2f']
+    formats = ['.2s','$','$,'.2f']
     """
     def __init__(self, data = None, axes = {}, label_text = {}, legend = {}, chart_type = None, types = None):
         self.data = data
