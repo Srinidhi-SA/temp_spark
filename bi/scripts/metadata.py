@@ -243,7 +243,8 @@ class MetaDataScript:
         for utfCol in utf8ColumnSuggestion:
             ignoreColumnSuggestions.append(utfCol)
             ignoreColumnReason.append("utf8 values present")
-
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Validating Metadata Informatio",self._completionStatus,self._completionStatus,display=True)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
         metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
         metaData.append(MetaData(name="ignoreColumnReason",value = ignoreColumnReason,display=False))
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))

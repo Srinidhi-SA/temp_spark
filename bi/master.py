@@ -65,7 +65,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
+            jobType = "metaData"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
@@ -93,7 +93,10 @@ def main(configJson):
         dataframe_context.set_message_ignore(True)
         ignoreMsg = True
     jobType = job_config["job_type"]
-    errorURL = job_config["error_reporting_url"]+APP_NAME+"/"
+    try:
+        errorURL = job_config["error_reporting_url"]+APP_NAME+"/"
+    except:
+        errorURL = None
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_job_type(jobType)
     dataframe_context.set_message_url(messageUrl)
@@ -129,6 +132,14 @@ def main(configJson):
             progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
         else:
             progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        dataframe_context.update_completion_status(completionStatus)
+    elif jobType == "metaData":
+        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
 
@@ -211,13 +222,18 @@ def main(configJson):
         fs = time.time()
         print "Running Metadata"
         meta_data_class = MetaDataScript(df,spark,dataframe_context)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Meta data for the dataset",completionStatus,completionStatus,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             meta_data_object = meta_data_class.run()
             metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
             print metaDataJson
             print "metaData Analysis Done in ", time.time() - fs, " seconds."
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
-            progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+            completionStatus = dataframe_context.get_completion_status()
+            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Your data is uploaded",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             return response
         except Exception as e:
