@@ -345,11 +345,12 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
     print loggerDict[scriptName]
 
 def save_error_messages(url,error,ignore=False):
-    if ignore == False:
-        res = requests.post(url=url,data=json.dumps({"error":error,"traceback":traceback.format_exc()}))
-        return res
-    else:
-        return True
+    if url != None:
+        if ignore == False:
+            res = requests.post(url=url,data=json.dumps({"error":error,"traceback":traceback.format_exc()}))
+            return res
+        else:
+            return True
 
 
 def get_duration_string(datarange):

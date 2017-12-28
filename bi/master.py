@@ -92,8 +92,8 @@ def main(configJson):
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
         ignoreMsg = True
-    jobType = job_config["error_reporting_url"]
-    errorURL = job_config[]
+    jobType = job_config["job_type"]
+    errorURL = job_config["error_reporting_url"]+APP_NAME+"/"
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_job_type(jobType)
     dataframe_context.set_message_url(messageUrl)
