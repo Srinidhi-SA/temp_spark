@@ -4,6 +4,7 @@ def get_story_config():
       "job_url": "http://34.196.204.54:9012/api/job/master-measure-test1-gd721qkcc3-yjifx6qlwo/",
       "job_type": "story",
       "xml_url": "http://34.196.204.54:9012/api/xml/master-measure-test1-gd721qkcc3-yjifx6qlwo/",
+      "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-error-check0-m302es9p2d-qm34cqk7mt/",
       "get_config": {
         "action": "get_config",
         "method": "GET"
