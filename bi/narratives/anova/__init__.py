@@ -133,6 +133,8 @@ class AnovaNarratives:
                                       'data' : significant_dimensions_dict}
                 print significant_dimensions_dict
                 self.narratives['main_card'][AnovaNarratives.KEY_CHART]['effect_size'] = effect_size_chart
+                progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing key drivers",self._completionStatus,self._completionStatus,display=True)
+                CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
                 self._generate_dimension_narratives(significant_dimensions, measure_anova_result, measure_column)
 
     def _generate_dimension_narratives(self, significant_dimensions, measure_anova_result, measure):

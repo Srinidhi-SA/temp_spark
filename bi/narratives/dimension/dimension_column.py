@@ -64,6 +64,7 @@ class DimensionColumnNarrative:
                 "weight":0
                 },
             }
+
         self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["initialization"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "initialization",\

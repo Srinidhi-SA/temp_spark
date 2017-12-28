@@ -289,20 +289,9 @@ def byteify(input):
     else:
         return input
 
-
-def create_progress_message_object(sectionDict,name,timeTaken,completionStatus):
-    progressMessage = {
-        "name" : name,
-        "displayName" : sectionDict[name]["displayName"],
-        "timeTaken" : timeTaken,
-        "completionStatus" : completionStatus
-    }
-    return progressMessage
-
 def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=False):
     """
     messageType = ["info","failure"]
-
     """
     progressMessage = {
         "analysisName" : analysisName,
@@ -354,6 +343,13 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
     print "#####ERROR#####"*5
     print "{} Script Failed".format(scriptName)
     print loggerDict[scriptName]
+
+def save_error_messages(url,error,ignore=False):
+    if ignore == False:
+        res = requests.post(url=url,data=json.dumps({"error":error,"traceback":traceback.format_exc()}))
+        return res
+    else:
+        return True
 
 
 def get_duration_string(datarange):

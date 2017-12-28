@@ -221,6 +221,8 @@ class RegressionNarrative:
             #
             #
             # card3 = {}
+            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing key influencers",self._completionStatus,self._completionStatus,display=True)
+            CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
             card4data = regression_narrative_obj.generate_card4_data(self.result_column,measure_column)
             card4data.update({"blockSplitter":self._blockSplitter})
             # card4heading = "Sensitivity Analysis: Effect of "+self.result_column+" on Segments of "+measure_column

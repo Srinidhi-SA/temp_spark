@@ -410,7 +410,6 @@ class ContextSetter:
         return self.mlModelPredictionWeight
 
     def update_completion_status(self,data):
-        print "completionStatus",data
         self.globalCompletionStatus = data
 
     def get_completion_status(self):

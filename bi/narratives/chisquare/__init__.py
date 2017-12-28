@@ -166,6 +166,10 @@ class ChiSquareNarratives:
             else:
                 if self._nColsToUse != None:
                     significant_variables = significant_variables[:self._nColsToUse]
+
+            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing key drivers",self._completionStatus,self._completionStatus,display=True)
+            CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
+
             for analysed_dimension in significant_variables:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':

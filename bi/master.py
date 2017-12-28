@@ -65,7 +65,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
-            jobType = "subSetting"
+            jobType = "story"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
@@ -92,7 +92,8 @@ def main(configJson):
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
         ignoreMsg = True
-    jobType = job_config["job_type"]
+    jobType = job_config["error_reporting_url"]
+    errorURL = job_config[]
     messageUrl = configJson["job_config"]["message_url"]
     dataframe_context.set_job_type(jobType)
     dataframe_context.set_message_url(messageUrl)
@@ -122,12 +123,20 @@ def main(configJson):
     print scriptWeightDict
     completionStatus = 0
 
-
     ########################## Load the dataframe ##############################
+    if jobType == "story":
+        if analysistype == "measure":
+            progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
+        else:
+            progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        dataframe_context.update_completion_status(completionStatus)
+
     df = None
     data_loading_st = time.time()
-    progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Dataset Loading Process Started",0,0)
+    progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+    dataframe_context.update_completion_status(completionStatus)
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
@@ -188,6 +197,14 @@ def main(configJson):
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
 
+        if jobType == "story":
+            if analysistype == "measure":
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Transforming data for analysis",completionStatus,completionStatus,display=True)
+            else:
+                progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Transforming data for analysis",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            dataframe_context.update_completion_status(completionStatus)
+
     ############################ MetaData Calculation ##########################
 
     if jobType == "metaData":
@@ -200,11 +217,12 @@ def main(configJson):
             print metaDataJson
             print "metaData Analysis Done in ", time.time() - fs, " seconds."
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
-            progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+            progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             return response
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"metadata",e)
+            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
     ############################################################################
 
     ################################ Data Sub Setting ##########################
@@ -216,6 +234,7 @@ def main(configJson):
             filtered_df = subsetting_class.applyFilter()
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"filterDf",e)
+            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
         try:
             if filtered_df.count() > 0:
                 transform_class = DataFrameTransformer(filtered_df,df_helper,dataframe_context)
@@ -235,7 +254,8 @@ def main(configJson):
                 response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"transformDf",e)
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "SubSetting Analysis Completed in", time.time()-st," Seconds"
         return response
@@ -246,7 +266,8 @@ def main(configJson):
         messageURL = dataframe_context.get_message_url()
         result_setter = ResultSetter(dataframe_context)
         story_narrative = NarrativesTree()
-        story_narrative.set_name("{} Performance Report".format(dataframe_context.get_result_column()))
+        targetVal = dataframe_context.get_result_column()
+        story_narrative.set_name("{} Performance Report".format(targetVal))
 
         if analysistype == 'dimension':
             st = time.time()
@@ -254,52 +275,70 @@ def main(configJson):
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
             if ('Descriptive analysis' in scripts_to_run):
+                dataframe_context.set_analysis_name("Descriptive analysis")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Choosing statistical and Machine Learning techniques for analysis",completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Descriptive analysis")
                     freq_obj = FreqDimensionsScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
                     freq_obj.Run()
                     print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Dimension vs. Dimension' in scripts_to_run):
+                dataframe_context.set_analysis_name("Dimension vs. Dimension")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Evaluating variables for Statistical Association",completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Dimension vs. Dimension")
                     chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
                     chisquare_obj.Run()
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Dimension vs. Dimension","failedState","error","Dimension vs. Dimension failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Trend' in scripts_to_run):
+                dataframe_context.set_analysis_name("Trend")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing trend for {}".format(targetVal),completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Trend")
                     trend_obj = TrendScript(df_helper, dataframe_context, result_setter, spark, story_narrative, metaParserInstance)
                     trend_obj.Run()
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Predictive modeling' in scripts_to_run):
+                dataframe_context.set_analysis_name("Predictive modeling")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Creating Prediction Model for {}".format(targetVal),completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Predictive modeling")
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
                     decision_tree_obj = DecisionTreeScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -307,12 +346,24 @@ def main(configJson):
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
+            progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Validating analysis results",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            time.sleep(3)
+            progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Creating Visualizations",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            time.sleep(3)
+            progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Creating Narratives",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            time.sleep(3)
             dataframe_context.update_completion_status(max(completionStatus,100))
+
             ordered_node_name_list = ["Overview","Trend","Association","Prediction"]
             # story_narrative.reorder_nodes(ordered_node_name_list)
             dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
@@ -336,6 +387,8 @@ def main(configJson):
             print json.dumps(headNode,indent=2)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
             print "Dimension Analysis Completed in", time.time()-st," Seconds"
+            progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your signal is ready",100,100,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             return response
 
         elif analysistype == 'measure':
@@ -343,44 +396,55 @@ def main(configJson):
             print "STARTING MEASURE ANALYSIS ..."
             df_helper.remove_null_rows(dataframe_context.get_result_column())
             df = df_helper.get_data_frame()
-            story_narrative.set_name("Measure analysis")
+            measure_columns = df_helper.get_numeric_columns()
+            dimension_columns = df_helper.get_string_columns()
+            #df = df.na.drop(subset=dataframe_context.get_result_column())
 
             if ('Descriptive analysis' in scripts_to_run):
+                dataframe_context.set_analysis_name("Descriptive analysis")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Choosing statistical and Machine Learning techniques for analysis",completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Descriptive analysis")
                     descr_stats_obj = DescriptiveStatsScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     descr_stats_obj.Run()
                     print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
-            measure_columns = df_helper.get_numeric_columns()
-            dimension_columns = df_helper.get_string_columns()
-            df = df_helper.get_data_frame()
-            #df = df.na.drop(subset=dataframe_context.get_result_column())
             if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
+                dataframe_context.set_analysis_name("Measure vs. Dimension")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Evaluating variables for Performance Analysis",completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Measure vs. Dimension")
                     two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
                     two_way_obj.Run()
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Dimension",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
+                dataframe_context.set_analysis_name("Measure vs. Measure")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Finding factors that influence target variable",completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Measure vs. Measure")
                     correlation_obj = CorrelationScript(df, df_helper, dataframe_context, spark)
                     correlations = correlation_obj.Run()
                     print "Correlation Analysis Done in ", time.time() - fs ," seconds."
@@ -392,32 +456,43 @@ def main(configJson):
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"regression",e)
+                        CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Measure",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Measure vs. Measure"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Measure vs. Measure","failedState","error","Regression failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Trend' in scripts_to_run):
+                dataframe_context.set_analysis_name("Trend")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing trend for {}".format(targetVal),completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Trend")
                     trend_obj = TrendScript(df_helper,dataframe_context,result_setter,spark,story_narrative, metaParserInstance)
                     trend_obj.Run()
                     print "Trend Analysis Done in ", time.time() - fs, " seconds."
 
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
             if ('Predictive modeling' in scripts_to_run):
+                dataframe_context.set_analysis_name("Predictive modeling")
+                completionStatus = dataframe_context.get_completion_status()
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Creating Prediction Model for {}".format(targetVal),completionStatus,completionStatus,display=True)
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    dataframe_context.set_analysis_name("Predictive modeling")
                     df_helper.fill_na_dimension_nulls()
                     df = df_helper.get_data_frame()
                     dt_reg = DecisionTreeRegressionScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative,metaParserInstance)
@@ -425,6 +500,8 @@ def main(configJson):
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
+                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
@@ -437,11 +514,20 @@ def main(configJson):
             #     print "Executive Summary Done in ", time.time() - fs, " seconds."
             # except Exception as e:
             #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Executive Summary",e)
+
+
+            progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Validating analysis results",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            time.sleep(3)
+            progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Creating Visualizations",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            time.sleep(3)
+            progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Creating Narratives",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            time.sleep(3)
             dataframe_context.update_completion_status(max(completionStatus,100))
+
             measureResult = CommonUtils.convert_python_object_to_json(story_narrative)
-            # dimensionResult = CommonUtils.as_dict(story_narrative)
-            # print measureResult
-            # response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],measureResult)
             headNode = result_setter.get_head_node()
             if headNode != None:
                 headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
@@ -464,9 +550,11 @@ def main(configJson):
             print json.dumps(headNode)
             response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(headNode))
             print "Measure Analysis Completed in :", time.time()-st," Seconds"
+            progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Your signal is ready",100,100,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             return response
 
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     ############################################################################
 
@@ -498,6 +586,7 @@ def main(configJson):
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
 
         try:
             st = time.time()
@@ -506,6 +595,7 @@ def main(configJson):
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
 
         try:
             st = time.time()
@@ -515,13 +605,14 @@ def main(configJson):
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
 
         modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative)
         print modelJsonOutput
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],json.dumps(modelJsonOutput))
         pmmlModels = result_setter.get_pmml_object()
         savepmml = CommonUtils.save_pmml_models(configJson["job_config"]["xml_url"],pmmlModels)
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Training Completed in ", time.time() - st, " seconds."
         return response
@@ -562,6 +653,7 @@ def main(configJson):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "xgboost" in selected_model_for_prediction:
             df = df.toPandas()
@@ -570,6 +662,7 @@ def main(configJson):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "logisticregression" in selected_model_for_prediction:
             df = df.toPandas()
@@ -579,6 +672,7 @@ def main(configJson):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
@@ -592,7 +686,7 @@ def main(configJson):
         scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
         print scoreSummary
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],scoreSummary)
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
         return response

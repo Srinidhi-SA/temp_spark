@@ -173,6 +173,8 @@ class DecisionTreeRegNarrative:
               ]]
         dropdownData = []
         chartDict = {}
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Generating Prediction rules",self._completionStatus,self._completionStatus,display=True)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
         for idx,target in enumerate(rules_dict.keys()):
             if idx == 0:
                 dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
