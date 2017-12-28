@@ -96,7 +96,7 @@ class MeasureColumnNarrative:
                             [NarrativesUtils.round_number(self._measure_descr_stats.get_min()),
                              NarrativesUtils.round_number(self._five_point_summary_stats.get_q1_split()),
                              NarrativesUtils.round_number(self._five_point_summary_stats.get_q2_split()),
-                             NarrativesUtils.round_number(self._five_point_summary_stats.get_q3_split()),
+                             NarrativesUtils.round_number(self._five_point_summary_stats.get_q6_split()),
                              NarrativesUtils.round_number(self._measure_descr_stats.get_max())]]
         lines += [TableData({'tableType':'normal','tableData':self._tableData})]
         lines += NarrativesUtils.block_splitter(self._analysis2,self._blockSplitter)
