@@ -245,7 +245,7 @@ class ChiSquareAnalysis:
         print table2Data
         targetDimCard1Table2.set_table_data(table2Data)
 
-        toggledata.set_toggleoff_data({"data":{"tableData":table2Data,"tableType":"normal"},"dataType":"table"})
+        toggledata.set_toggleoff_data({"data":{"tableData":table2Data,"tableType":"heatMap"},"dataType":"table"})
 
         targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
         # targetDimCard1Data.append(targetDimCard1Table1)
