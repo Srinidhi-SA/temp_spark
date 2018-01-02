@@ -66,6 +66,7 @@ class TimeSeriesNarrative:
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
         self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._highlightFlag = "|~HIGHLIGHT~|"
         self._trend_on_td_column = False
         self._number_of_dimensions_to_consider = 10
 
@@ -457,7 +458,7 @@ class TimeSeriesNarrative:
                         if dimensionCount != None:
                             dataDict.update(dimensionCount)
 
-                        dataDict.update({"level_index":idx,"blockSplitter":self._blockSplitter})
+                        dataDict.update({"level_index":idx,"blockSplitter":self._blockSplitter,"highlightFlag":self._highlightFlag})
 
 
                         self._result_setter.update_executive_summary_data(dataDict)

@@ -1,5 +1,6 @@
 import os
 import random
+import humanize
 
 from bi.common.dataframe import DataFrameHelper
 from bi.common.results import DecisionTreeResult
@@ -190,6 +191,13 @@ class DecisionTreeRegNarrative:
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
+            success = self.succesful_predictions[target]
+            success_percent = self.success_percent[target]
+            richRulesArray = []
+            for idx,crudeRule in enumerate(rulesArray):
+                richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
+                richRulesArray.append(richRule)
+            probabilityArray = map(lambda x:humanize.apnumber(x)+"%",probabilityArray)
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
             targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
