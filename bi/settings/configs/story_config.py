@@ -53,7 +53,7 @@ def get_story_config():
 
         ],
         "result_column": [
-          "Sales"
+          "Platform"
         ],
         "ignore_column_suggestion": [
 
@@ -80,7 +80,7 @@ def get_story_config():
           "new_date"
         ],
         "analysis_type": [
-          "measure"
+          "dimension"
         ],
         "dateTimeSuggestions": [
           {
@@ -210,7 +210,42 @@ def get_story_config():
             ],
             "displayName": "Prediction",
             "name": "prediction"
-          }
+          },
+          {
+            "status": True,
+            "noOfColumnsToUse": [
+              {
+                "status": False,
+                "defaultValue": 3,
+                "displayName": "Low",
+                "name": "low"
+              },
+              {
+                "status": False,
+                "defaultValue": 5,
+                "displayName": "Medium",
+                "name": "medium"
+              },
+              {
+                "status": True,
+                "defaultValue": 8,
+                "displayName": "High",
+                "name": "high"
+              },
+              {
+                "status": False,
+                "defaultValue": 3,
+                "displayName": "Custom",
+                "name": "custom",
+                "value": None
+              }
+            ],
+            "analysisSubTypes": [
+
+            ],
+            "displayName": "Association",
+            "name": "association"
+          },
         ]
       },
       "FILE_SETTINGS": {

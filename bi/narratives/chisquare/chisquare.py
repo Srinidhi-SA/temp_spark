@@ -240,10 +240,12 @@ class ChiSquareAnalysis:
         print "Table 2"
         targetDimCard1Table2 = TableData()
         targetDimCard1Table2.set_table_type("normal")
-        print targetDimTable2Data["data1"]
-        targetDimCard1Table2.set_table_data(targetDimTable2Data["data1"])
+        table2Data = targetDimTable2Data["data1"]
+        table2Data = [innerList[1:] for innerList in table2Data if innerList[0].strip() != ""]
+        print table2Data
+        targetDimCard1Table2.set_table_data(table2Data)
 
-        toggledata.set_toggleoff_data({"data":{"tableData":targetDimTable2Data["data1"],"tableType":"normal"},"dataType":"table"})
+        toggledata.set_toggleoff_data({"data":{"tableData":table2Data,"tableType":"heatMap"},"dataType":"table"})
 
         targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
         # targetDimCard1Data.append(targetDimCard1Table1)
