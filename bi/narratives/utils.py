@@ -91,12 +91,15 @@ def block_splitter(summary,blockSplitter,highlightFlag=None):
     paragraphs = summary.split(blockSplitter)
     for val in paragraphs:
         if highlightFlag != None:
-            highlightBlocks = val.split(highlightFlag)
-            for text in highlightBlocks:
-                if text.strip() != "":
-                    htmlObj = HtmlData(data=val)
-                    htmlObj.set_class_tag("highlight")
-                    output.append(htmlObj)
+            if highlightFlag in val:
+                highlightBlocks = val.split(highlightFlag)
+                for text in highlightBlocks:
+                    if text.strip() != "":
+                        htmlObj = HtmlData(data=text)
+                        htmlObj.set_class_tag("highlight")
+                        output.append(htmlObj)
+            else:
+                output.append(HtmlData(data=val))
         else:
             output.append(HtmlData(data=val))
     return output

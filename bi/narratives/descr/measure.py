@@ -102,15 +102,10 @@ class MeasureColumnNarrative:
         lines += [TableData({'tableType':'normal','tableData':self._tableData})]
         lines += NarrativesUtils.block_splitter(self._analysis2,self._blockSplitter)
         if self.card2 != '':
-            new_paragraph = '<h2>'+self.card2['data']['heading']+ '</h2><br>'
-            new_paragraph += self.card2['data']['content']
-            lines += NarrativesUtils.block_splitter(new_paragraph,self._blockSplitter)
+            lines += self.card2['data']['content']
         measureCard1 = NormalCard(name=self.sub_heading,slug=None,cardData = lines)
         self._measureSummaryNode.add_a_card(measureCard1)
         self._measureSummaryNode.set_name("Overview")
-        # if self.card2 != '':
-        #     # measureCard2 = NormalCard(name=self.card2['data']['heading'])
-        #     self._measureSummaryNode
         self.analysis = [self._analysis1, self._analysis2]
         self.take_away = self._generate_take_away()
 
@@ -230,10 +225,13 @@ class MeasureColumnNarrative:
         self._result_setter.update_executive_summary_data({"skew":data_dict["skew"]})
         if abs(self._measure_descr_stats.get_skew())>0.1:
             content = NarrativesUtils.get_template_output(self._base_dir,\
-                                            'descriptive_card2.html',data_dict,highlightFlag=self._highlightFlag)
+                                            'descriptive_card2.html',data_dict)
+            blocks = NarrativesUtils.block_splitter(content,self._blockSplitter,highlightFlag=self._highlightFlag)
             self.card2 = {}
-            self.card2['data'] = {'heading': 'Concentration of High & Low segments',
-                                    'content': content}
+            self.card2['data'] = {
+                                    'heading': 'Concentration of High & Low segments',
+                                    'content': blocks
+                                }
             quartiles = ['q1','q2','q3','q4']
             observations = [0.0] + [quartile_frequencies[i]*100.0/counts for i in quartiles]
             totals = [0.0] + [quartile_sums[i]*100.0/total for i in quartiles]

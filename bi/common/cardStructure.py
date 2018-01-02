@@ -229,6 +229,9 @@ class HtmlData:
     def set_class_tag(self,data):
         self.classTag = data
 
+    def get_class_tag(self):
+        return self.classTag
+
 class TreeData:
 
     def __init__(self,data=None, datatype = 'tree'):
