@@ -226,6 +226,9 @@ class HtmlData:
     def get_data_type(self):
         return self.dataType
 
+    def set_class_tag(self,data):
+        self.classTag = data
+
 class TreeData:
 
     def __init__(self,data=None, datatype = 'tree'):

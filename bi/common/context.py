@@ -43,6 +43,7 @@ class ContextSetter:
         self.METADATA_SLUGS = None
         self.dbConnectionParams = {}
         self.dataSourceType = None
+        self.blockSplitter = "|~NEWBLOCK~|"
 
         self.scriptsMapping = {
             "overview" : "Descriptive analysis",
@@ -104,6 +105,9 @@ class ContextSetter:
         self.uidColObject = {}
         self.ignoremessages = False
         self.labelMappingDict = []
+
+    def get_block_splitter(self):
+        return self.blockSplitter
 
     def get_label_map(self):
         if len(self.labelMappingDict) > 0:

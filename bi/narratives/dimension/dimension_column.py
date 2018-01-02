@@ -34,7 +34,7 @@ class DimensionColumnNarrative:
                 self._base_dir += "appid2/"
         self._dataframe_context = df_context
         self._dataframe_helper = df_helper
-        self._blockSplitter = "|~NEWBLOCK~|"
+        self._blockSplitter = self._dataframe_context.get_block_splitter()
         self._dimensionSummaryNode = NarrativesTree()
         self._dimensionSummaryNode.set_name("Overview")
         self._headNode = NarrativesTree()

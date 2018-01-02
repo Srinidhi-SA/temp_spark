@@ -65,7 +65,7 @@ class TimeSeriesNarrative:
 
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
-        self._blockSplitter = "|~NEWBLOCK~|"
+        self._blockSplitter = self._dataframe_context.get_block_splitter()
         self._trend_on_td_column = False
         self._number_of_dimensions_to_consider = 10
 

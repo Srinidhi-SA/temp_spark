@@ -27,7 +27,6 @@ class DecisionTreeRegNarrative:
     # @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ResultSetter)
     def __init__(self, column_name, decision_tree_rules,df_helper,df_context,result_setter,story_narrative):
         self._story_narrative = story_narrative
-        self._blockSplitter = "|~NEWBLOCK~|"
         self._result_setter = result_setter
         self._dataframe_context = df_context
         self._column_name = column_name.lower()
@@ -46,6 +45,7 @@ class DecisionTreeRegNarrative:
         self.subheader = None
         self.dropdownComment = None
         self.dropdownValues = None
+        self._blockSplitter = self._dataframe_context.get_block_splitter()
         self._base_dir = "/decisiontree/"
         self._decisionTreeNode = NarrativesTree(name='Prediction')
         # self._decisionTreeNode.set_name("Decision Tree Regression")

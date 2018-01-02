@@ -16,7 +16,6 @@ class ChiSquareNarratives:
     def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative,result_setter,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
-        self._blockSplitter = "|~NEWBLOCK~|"
         self._data_frame = data_frame
         self._dataframe_context = df_context
         self._df_helper = df_helper
@@ -27,6 +26,7 @@ class ChiSquareNarratives:
         self._appid = df_context.get_app_id()
         self._chiSquareNode = NarrativesTree()
         self._chiSquareNode.set_name("Association")
+        self._blockSplitter = self._dataframe_context.get_block_splitter()
         self._base_dir = "/chisquare/"
         if self._appid != None:
             if self._appid == "1":

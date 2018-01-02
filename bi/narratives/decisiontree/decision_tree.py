@@ -36,7 +36,7 @@ class DecisionTreeNarrative:
         self._dataframe_context = df_context
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._result_setter = result_setter
-        self._blockSplitter = "|~NEWBLOCK~|"
+        self._blockSplitter = self._dataframe_context.get_block_splitter()
         self._column_name = column_name.lower()
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])

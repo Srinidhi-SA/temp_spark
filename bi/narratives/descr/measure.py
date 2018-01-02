@@ -28,7 +28,8 @@ class MeasureColumnNarrative:
         self.analysis = None
         self.take_away = None
         self.card2 = ''
-        self._blockSplitter = "|~NEWBLOCK~|"
+        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._highlightFlag = "|~HIGHLIGHT~|"
         self._base_dir = "/descriptive/"
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())
         self.num_dimensions = len(self._dataframe_helper.get_string_columns())
@@ -222,12 +223,14 @@ class MeasureColumnNarrative:
                     "q4_overall_mean" : round(quartile_means['q4']*1.0/avg, 2),
                     "q4_q1_mean" : round(quartile_means['q4']*1.0/quartile_means['q1'] - 1, 1),
                     "total" : NarrativesUtils.round_number(total,2),
-                    "avg" : NarrativesUtils.round_number(avg,2)
+                    "avg" : NarrativesUtils.round_number(avg,2),
+                    "highlightFlag":self._highlightFlag,
+                    "blockSplitter":self._blockSplitter
         }
         self._result_setter.update_executive_summary_data({"skew":data_dict["skew"]})
         if abs(self._measure_descr_stats.get_skew())>0.1:
             content = NarrativesUtils.get_template_output(self._base_dir,\
-                                            'descriptive_card2.html',data_dict)
+                                            'descriptive_card2.html',data_dict,highlightFlag=self._highlightFlag)
             self.card2 = {}
             self.card2['data'] = {'heading': 'Concentration of High & Low segments',
                                     'content': content}

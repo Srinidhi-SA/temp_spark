@@ -86,13 +86,19 @@ def paragraph_splitter(summary):
             output.append(temp)
     return output
 
-def block_splitter(summary,blockSplitter):
+def block_splitter(summary,blockSplitter,highlightFlag=None):
     output = []
     paragraphs = summary.split(blockSplitter)
-    # paragraphs = ["{}{}{}".format("<p>",val,"</p>") for val in paragraphs]
     for val in paragraphs:
-        # output.append({"dataType":"html","data":val})
-        output.append(HtmlData(data=val))
+        if highlightFlag != None:
+            highlightBlocks = val.split(highlightFlag)
+            for text in highlightBlocks:
+                if text.strip() != "":
+                    htmlObj = HtmlData(data=val)
+                    htmlObj.set_class_tag("highlight")
+                    output.append(htmlObj)
+        else:
+            output.append(HtmlData(data=val))
     return output
 
 def clean_narratives(output):

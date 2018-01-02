@@ -33,7 +33,7 @@ class AnovaNarratives:
         self._df_helper = df_helper
         self.narratives = {}
         self.narratives['variables'] = ''
-        self._blockSplitter = "|~NEWBLOCK~|"
+        self._blockSplitter = self._dataframe_context.get_block_splitter()
         self._base_dir = "/anova/"
 
         self._completionStatus = self._dataframe_context.get_completion_status()
