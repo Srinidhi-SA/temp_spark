@@ -626,7 +626,7 @@ def get_bucket_data_dict(bucket_dict):
     out["bucket_contribution"] = round(bucket_dict[key]["contribution"],2)
     out["bucket_start"] = bucket_dict[key]["start_streak"]
     out["bucket_end"] = bucket_dict[key]["end_streak"]
-    print "end_streak",bucket_dict[key]["end_streak"]
+    # print "end_streak",bucket_dict[key]["end_streak"]
     out["bucket_start_value"] = bucket_dict[key]["start_streak_value"]
     out["bucket_end_value"] = bucket_dict[key]["end_streak_value"]
     out["bucket_duration"] = str(bucket_dict[key]["start_streak"])+" to "+str(bucket_dict[key]["end_streak"])
@@ -889,3 +889,14 @@ def calculate_data_range_stats(df,existingDateFormat,selectedateColumn,dateColsu
         durationString = CommonUtils.get_duration_string(dataRange)
 
     return (df,{"duration":duration,"durationString":durationString,"dataLevel":dataLevel,"firstDate":first_date,"lastDate":last_date})
+
+
+def restructure_donut_chart_data(dataDict,nLevels=None):
+    if nLevels == None:
+        nLevels = 10
+    dataTuple = [(k,v) for k,v in dataDict.items()]
+    dataTuple = sorted(dataTuple,key=lambda x:x[1],reverse=True)
+    mainData = dataTuple[:nLevels-1]
+    otherData = [x[1] for x in dataTuple[nLevels-1:]]
+    finalData = mainData+[("Others",sum(otherData))]
+    return dict(finalData)

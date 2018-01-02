@@ -247,9 +247,9 @@ class OneWayAnovaNarratives:
 
     def generate_top_dimension_narratives(self):
         topLevelAnova = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column)
-        print topLevelAnova
+        # print topLevelAnova
         top_level = topLevelAnova.get_top_level_name()
-        print top_level
+        # print top_level
         # tuple of (dimension name,anovaResult,effect_size)
         top_level_sig_dimensions = topLevelAnova.get_top_significant_dimensions(3)
         significant_dimensions = [x[0] for x in top_level_sig_dimensions]

@@ -190,10 +190,12 @@ class DecisionTreeRegNarrative:
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
-            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
+            # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
+            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
+        chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=10)
         chartData = NormalChartData([chartDict]).get_data()
         chartJson = ChartJson(data=chartData)
         chartJson.set_title(self._colname)

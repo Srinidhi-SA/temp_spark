@@ -219,14 +219,14 @@ class DecisionTreeNarrative:
             for idx,crudeRule in enumerate(rulesArray):
                 richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
                 richRulesArray.append(richRule)
-            # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%",probabilityArray)
-            targetArray = zip(richRulesArray,probabilityArray,predictionArray,freqArray,groupArray)
+            # targetArray = zip(richRulesArray,probabilityArray,predictionArray,freqArray,groupArray)
+            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
 
-
+        chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=10)
         chartData = NormalChartData([chartDict]).get_data()
         chartJson = ChartJson(data=chartData)
         chartJson.set_title(self._colname)

@@ -240,7 +240,7 @@ class TimeSeriesNarrative:
                         # print measureTrendcard1Data
 
                         bubbledata = dataDict["bubbleData"]
-                        print bubbledata
+                        # print bubbledata
                         card1BubbleData = "<div class='col-md-6 col-xs-12 xs-p-20'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div><div class='col-md-6 col-xs-12 xs-p-20'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div>".format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
                         # print card1BubbleData
 
@@ -282,7 +282,7 @@ class TimeSeriesNarrative:
                             forecasted_list = [{"key":val[0].strftime("%Y-%m-%d"),"value":val[1]} for val in forecasted_list]
                         forecasted_data += forecasted_list
                         card1chartdata["predicted"] = forecasted_data
-                        print json.dumps(card1chartdata,indent=2)
+                        # print json.dumps(card1chartdata,indent=2)
                         card1chartdata = ScatterChartData(data=card1chartdata)
                         chartJson = ChartJson()
                         chartJson.set_data(card1chartdata.get_data())
