@@ -209,7 +209,7 @@ class DataFrameHelper:
 
     def get_cols_to_bin(self):
         return self.colsToBin
-        
+
     def get_column_data_types(self):
         return self.column_data_types
 
@@ -420,6 +420,13 @@ class DataFrameHelper:
         y_train = train_test_data["y_train"]
         y_test = train_test_data["y_test"]
         return (x_train,x_test,y_train,y_test)
+
+    @accepts(object,(tuple,list))
+    def get_level_counts(self,colList):
+        levelCont = {}
+        for column in colList:
+            levelCont[column] = self._data_frame.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+        return levelCont
 
 class DataFrameColumnMetadata:
     @accepts(object, basestring, type(ColumnType.MEASURE), type(ColumnType.INTEGER))

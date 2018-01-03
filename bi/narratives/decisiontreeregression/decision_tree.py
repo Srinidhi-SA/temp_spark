@@ -162,6 +162,7 @@ class DecisionTreeRegNarrative:
         data_dict = {}
         rules_dict = self._table
         data_dict["blockSplitter"] = self._blockSplitter
+        data_dict["targetcol"] = self._colname
         groups = rules_dict.keys()
         probabilityCutoff = 75
         probabilityGroups=[{"probability":probabilityCutoff,"count":0,"range":[probabilityCutoff,100]},{"probability":probabilityCutoff-1,"count":0,"range":[0,probabilityCutoff-1]}]
@@ -170,7 +171,8 @@ class DecisionTreeRegNarrative:
                 "Probability",
                 "Prediction",
                 "Freq",
-                "group"
+                "group",
+                "richRules"
               ]]
         dropdownData = []
         chartDict = {}
@@ -197,13 +199,15 @@ class DecisionTreeRegNarrative:
             for idx,crudeRule in enumerate(rulesArray):
                 richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
                 richRulesArray.append(richRule)
-            probabilityArray = map(lambda x:humanize.apnumber(x)+"%",probabilityArray)
+            probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
             targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
-        chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=10)
+        donutChartMaxLevel = 10
+        if len(chartDict) > donutChartMaxLevel:
+            chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)
         chartData = NormalChartData([chartDict]).get_data()
         chartJson = ChartJson(data=chartData)
         chartJson.set_title(self._colname)

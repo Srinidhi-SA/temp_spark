@@ -261,8 +261,8 @@ class DecisionTrees:
             dimension_classes = self._metaParser.get_num_unique_values(dimension)
         except:
             dimension_classes = self._data_frame.select(dimension).distinct().count()
-        print dimension_classes
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
+
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
