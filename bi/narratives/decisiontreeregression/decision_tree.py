@@ -170,7 +170,8 @@ class DecisionTreeRegNarrative:
                 "Probability",
                 "Prediction",
                 "Freq",
-                "group"
+                "group",
+                "richRules"
               ]]
         dropdownData = []
         chartDict = {}
@@ -203,7 +204,9 @@ class DecisionTreeRegNarrative:
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
-        chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=10)
+        donutChartMaxLevel = 10
+        if len(chartDict) > donutChartMaxLevel:
+            chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)
         chartData = NormalChartData([chartDict]).get_data()
         chartJson = ChartJson(data=chartData)
         chartJson.set_title(self._colname)

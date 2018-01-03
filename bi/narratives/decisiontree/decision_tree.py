@@ -185,7 +185,7 @@ class DecisionTreeNarrative:
                 "Prediction",
                 "Freq",
                 "group",
-                # "richRules"
+                "richRules"
               ]]
         dropdownData = []
         chartDict = {}
@@ -225,8 +225,9 @@ class DecisionTreeNarrative:
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
-
-        chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=10)
+        donutChartMaxLevel = 10
+        if len(chartDict) > donutChartMaxLevel:
+            chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)
         chartData = NormalChartData([chartDict]).get_data()
         chartJson = ChartJson(data=chartData)
         chartJson.set_title(self._colname)
@@ -256,7 +257,6 @@ class DecisionTreeNarrative:
             data_dict["nlevel"] = len(levelCountDict.keys())
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
-            print data_dict
             maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'decisiontreescore.html',data_dict)
         main_card = NormalCard()
