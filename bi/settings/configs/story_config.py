@@ -324,10 +324,14 @@ def get_story_config():
             "including"
           ],
           "customAnalysisDetails": [
-
-          ],
+              {
+                "colSlug": "3b2449a11eff43c699e373894af2ab3a",
+                "colName": "age",
+                "treatAs": "percentage"
+              }
+            ],
           "result_column": [
-            "education"
+            "age"
           ],
           "ignore_column_suggestion": [
 

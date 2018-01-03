@@ -28,6 +28,11 @@ class MetaParser:
                 dict_out[key] = value
         return dict_out
 
+    def update_level_counts(self,columnList,levelCountDict):
+        for val in columnList:
+            self.column_dict[val]["LevelCount"] = levelCountDict[val]
+            self.column_dict[val]['numberOfUniqueValues'] = len(levelCountDict[val])
+
     def get_column_stats(self, columnData):
         for each in columnData:
             self.column_dict[each['name']] = self.parse_stats(each['columnStats'])
