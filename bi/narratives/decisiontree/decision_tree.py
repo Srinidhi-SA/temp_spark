@@ -39,6 +39,7 @@ class DecisionTreeNarrative:
         self._blockSplitter = self._dataframe_context.get_block_splitter()
         self._column_name = column_name.lower()
         self._colname = column_name
+
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
         self._decision_tree_json = CommonUtils.as_dict(decision_tree_rules)
@@ -176,6 +177,7 @@ class DecisionTreeNarrative:
         data_dict = {}
         rules_dict = self._table
         data_dict["blockSplitter"] = self._blockSplitter
+        data_dict["targetcol"] = self._colname
         groups = rules_dict.keys()
         probabilityCutoff = 75
         probabilityGroups=[{"probability":probabilityCutoff,"count":0,"range":[probabilityCutoff,100]},{"probability":probabilityCutoff-1,"count":0,"range":[0,probabilityCutoff-1]}]
@@ -219,7 +221,7 @@ class DecisionTreeNarrative:
             for idx,crudeRule in enumerate(rulesArray):
                 richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
                 richRulesArray.append(richRule)
-            probabilityArray = map(lambda x:humanize.apnumber(x)+"%",probabilityArray)
+            probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
             # targetArray = zip(richRulesArray,probabilityArray,predictionArray,freqArray,groupArray)
             targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
@@ -252,8 +254,6 @@ class DecisionTreeNarrative:
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
-            data_dict["blockSplitter"] = self._blockSplitter
-            data_dict["targetcol"] = self._colname
             data_dict["nlevel"] = len(levelCountDict.keys())
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
