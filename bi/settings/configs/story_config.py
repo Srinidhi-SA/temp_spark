@@ -190,6 +190,7 @@ def get_story_config():
           "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
           "slug_list": [
             "adultcsv-roudox26di"
+>>>>>>> f25d9d884369e56acbf0ca5586bf54c04daadc87
           ]
         },
         "inputfile": [
