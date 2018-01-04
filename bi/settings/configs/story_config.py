@@ -327,7 +327,7 @@ def get_story_config():
 
           ],
           "result_column": [
-            "education"
+            "age"
           ],
           "ignore_column_suggestion": [
 
@@ -476,7 +476,7 @@ def get_story_config():
             ]
           },
           "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/adult.csv"
+            "file:///home/marlabs/Downloads/adult.csv"
           ]
         }
       }
