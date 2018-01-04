@@ -203,6 +203,12 @@ def main(configJson):
             df = df_helper.get_data_frame()
             measure_columns = df_helper.get_numeric_columns()
             dimension_columns = df_helper.get_string_columns()
+            # updating metaData for binned Cols
+            colsToBin = df_helper.get_cols_to_bin()
+            levelCountDict = df_helper.get_level_counts(colsToBin)
+            metaParserInstance.update_level_counts(colsToBin,levelCountDict)
+
+
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
