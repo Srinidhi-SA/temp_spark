@@ -177,11 +177,11 @@ class DimensionColumnNarrative:
             for k,v in freq_dict[colname][colname].items():
                 temp_dict[v] = freq_dict[colname]["count"][k]
             for each in keys_to_sort:
-                freq_data.append({"key":each,"value":temp_dict[each]})
+                freq_data.append({"key":each,"Count":temp_dict[each]})
         else:
             for k,v in freq_dict[colname][colname].items():
-                freq_data.append({"key":v,"value":freq_dict[colname]["count"][k]})
-            freq_data = sorted(freq_data,key=lambda x:x["value"],reverse=True)
+                freq_data.append({"key":v,"Count":freq_dict[colname]["count"][k]})
+            freq_data = sorted(freq_data,key=lambda x:x["Count"],reverse=True)
         print "freq_data : ", freq_data
         data_dict = {"colname":self._colname}
         data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
@@ -239,7 +239,7 @@ class DimensionColumnNarrative:
         chart_json = ChartJson()
         chart_json.set_data(chart_data.get_data())
         chart_json.set_chart_type("bar")
-        chart_json.set_axes({"x":"key","y":"value"})
+        chart_json.set_axes({"x":"key","y":"Count"})
         chart_json.set_label_text({'x':' ','y': 'No. of Observations'})
         chart_json.set_yaxis_number_format(".2f")
         lines += output1

@@ -193,7 +193,7 @@ def get_story_config():
           ]
         },
         "inputfile": [
-          "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/adultcsv-roudox26di/adult_YGVxCWQ.csv"
+        #   "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/adultcsv-roudox26di/adult_YGVxCWQ.csv"
             "/home/marlabs/Documents/mAdvisor/Datasets/adult.csv"
 
         ]
