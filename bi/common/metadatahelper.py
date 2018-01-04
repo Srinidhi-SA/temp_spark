@@ -11,6 +11,7 @@ from pyspark.sql.functions import udf, col
 from pyspark.sql.types import DateType, FloatType
 from pyspark.sql.types import StringType
 from pyspark.sql.functions import monotonically_increasing_id
+from pyspark.sql.functions import regexp_extract
 
 
 from bi.common import utils as CommonUtils
@@ -21,8 +22,11 @@ from bi.common.decorators import accepts
 
 class MetaDataHelper():
 
-    def __init__(self):
+    def __init__(self, df, rows):
         print "Initialize"
+        self.df = df
+        self.rows = rows
+        self._sample_data = self.set_sample_data()
 
 
     def get_binned_stat(self,df,colname,col_stat,n_split = 10):
@@ -406,3 +410,29 @@ class MetaDataHelper():
                     if len(unique_timestamps) == 1 and unique_timestamps[0] == "00:00:00":
                         pandasDf[colname] = pandasDf[colname].apply(lambda x:x[:10])
         return pandasDf.values.tolist()
+
+    def set_sample_data(self):
+        if self.rows > 50:
+            sample_data = self.df.sample(False, float(50)/self.rows, seed=420)
+            return sample_data
+        else:
+            return self.df
+
+    def get_sample_data(self):
+        return self._sample_data
+
+    def get_percentage_columns(self, dimension_columns):
+        sdf = self._sample_data
+        orig_count = sdf.count()
+        percentage_columns = []
+        for col in dimension_columns:
+            df = sdf.withColumn('new_column', sdf[col].substr(-1, 1))
+            df = df.select('new_column').distinct()
+            if df.count()==1 and df.first()['new_column']=='%':
+                print "percentage"
+                result = sdf.withColumn('percent', regexp_extract(sdf[col], '^(((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)[^%]*)',1))
+                result = result.select(result.percent.cast('float'))
+                not_nulls = result.select('percent').na.drop().count()
+                if orig_count == not_nulls:
+                    percentage_columns.append(col)
+        return percentage_columns
