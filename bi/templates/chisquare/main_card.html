@@ -24,11 +24,11 @@
 {% if num_significant_variables == 1 %}
   It implies that specific categories within {{significant_variables[0]}} show <b>considerable amount of variation </b>
   in distribution of {{target}} categories.
-  The chart above displays the <b> impact of {{significant_variables[0]}}</b> on {{target}}, as measured by effect size.
+  The chart below displays the <b> impact of {{significant_variables[0]}}</b> on {{target}}, as measured by effect size.
 {% elif num_significant_variables>1 %}
   It implies that specific categories within each of the dimensions show <b>considerable amount of variation </b>
   in distribution of {{target}} categories.
-  The chart above displays the<b> impact of key dimensions </b> on {{target}}, as measured by effect size.
+  The chart below displays the<b> impact of key dimensions </b> on {{target}}, as measured by effect size.
 {% endif %}
 {% if num_significant_variables >= 1%}
   Let us take a deeper look at some of the most important relationships.
