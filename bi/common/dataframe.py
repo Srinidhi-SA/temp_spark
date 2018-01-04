@@ -31,6 +31,7 @@ class DataFrameHelper:
     MEASURE_COLUMNS = "measure_columns"
     DIMENSION_COLUMNS = "dimension_columns"
     TIME_DIMENSION_COLUMNS = "time_dimension_columns"
+    BOOLEAN_COLUMNS = "boolean_columns"
     NULL_VALUES = 'num_nulls'
     NON_NULL_VALUES = 'num_non_nulls'
 
@@ -45,12 +46,14 @@ class DataFrameHelper:
         self.numeric_columns = []
         self.string_columns = []
         self.timestamp_columns = []
+        self.boolean_columns = []
         self.num_rows = 0
         self.num_columns = 0
         self.column_details = {
             DataFrameHelper.MEASURE_COLUMNS: {},
             DataFrameHelper.DIMENSION_COLUMNS: {},
-            DataFrameHelper.TIME_DIMENSION_COLUMNS: {}
+            DataFrameHelper.TIME_DIMENSION_COLUMNS: {},
+            DataFrameHelper.BOOLEAN_COLUMNS: {}
         }
 
         self.measure_suggestions = []
@@ -119,6 +122,8 @@ class DataFrameHelper:
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
         self.string_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
+        self.boolean_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
         self.timestamp_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
         self.num_rows = self._data_frame.count()
@@ -145,6 +150,13 @@ class DataFrameHelper:
             null_values = self.get_num_null_values(time_dimension_column)
             non_null_values = self.num_rows - null_values
             self.column_details[DataFrameHelper.TIME_DIMENSION_COLUMNS][time_dimension_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
+        for bool_column in self.boolean_columns:
+            null_values = self.get_num_null_values(bool_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.BOOLEAN_COLUMNS][bool_column] = {
                 DataFrameHelper.NULL_VALUES: null_values,
                 DataFrameHelper.NON_NULL_VALUES: non_null_values
             }
@@ -253,6 +265,9 @@ class DataFrameHelper:
 
     def get_num_columns(self):
         return self.num_columns
+
+    def get_boolean_columns(self):
+        return self.boolean_columns
 
     def get_data_frame(self):
         return self._data_frame

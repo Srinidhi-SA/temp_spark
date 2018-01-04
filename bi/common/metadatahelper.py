@@ -117,7 +117,7 @@ class MetaDataHelper():
         output = {}
         chart_data = {}
         summary_df = df.describe().toPandas()
-        print summary_df
+        # print summary_df
         displayNameDict = {"count":"Count",
                             "mean":"Mean",
                             "stddev":"Standard Deviation",
@@ -135,6 +135,7 @@ class MetaDataHelper():
             if level_count_flag:
                 fs1 = time.time()
                 levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+                levelCount = {str(k):v for k,v in levelCount.items()}
                 print "time for levelCount ",time.time()-fs1,"Seconds"
                 col_stat["LevelCount"] = levelCount
                 if None in levelCount.keys():
@@ -276,7 +277,7 @@ class MetaDataHelper():
 
             modified_col_stat = []
             for k,v in col_stat.items():
-                if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls"]:
+                if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls","MaxLevel","MinLevel"]:
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})

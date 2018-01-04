@@ -80,7 +80,7 @@ def get_training_config():
           ]
         },
         "inputfile": [
-          "file:///home/gulshan/marlabs/datasets/adult.csv"
+          "file:///home/gulshan/marlabs/datasets/sampleDatasets/demography.csv"
         ]
       }
     }
