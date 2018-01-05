@@ -69,12 +69,8 @@ class MetaDataScript:
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
         self._boolean_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
-        self._column_type_dict = dict(\
-                                        zip(self._numeric_columns,["measure"]*len(self._numeric_columns))+\
-                                        zip(self._string_columns,["dimension"]*len(self._string_columns))+\
-                                        zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
-                                        zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
-                                     )
+        self._column_type_dict = {}
+        self.update_column_type_dict()
 
         time_taken_schema = time.time()-self._start_time
         self._completionStatus += self._scriptStages["schema"]["weight"]
@@ -87,16 +83,44 @@ class MetaDataScript:
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
+    def update_column_type_dict(self):
+        self._column_type_dict = dict(\
+                                        zip(self._numeric_columns,["measure"]*len(self._numeric_columns))+\
+                                        zip(self._string_columns,["dimension"]*len(self._string_columns))+\
+                                        zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
+                                        zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
+                                     )
 
     def run(self):
         self._start_time = time.time()
         metaHelperInstance = MetaDataHelper(self._data_frame, self._total_rows)
+        sampleData = metaHelperInstance.get_sample_data()
+        sampleData = sampleData.toPandas()
+        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
+
+        time_taken_sampling = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["sampling"]["weight"]
+        print "sampling takes",time_taken_sampling
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "sampling",\
+                                    "info",\
+                                    self._scriptStages["sampling"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+
         metaData = []
         metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
         metaData.append(MetaData(name="noOfColumns",value=self._total_columns,display=True,displayName="Columns"))
         self._percentage_columns = metaHelperInstance.get_percentage_columns(self._string_columns)
+        if len(self._percentage_columns)>0:
+            self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame,self._percentage_columns)
+            self._numeric_columns = self._numeric_columns + self._percentage_columns
+            self._string_columns = list(set(self._string_columns)-set(self._percentage_columns))
+            self.update_column_type_dict()
 
         if len(self._numeric_columns) > 1:
+            print "self._numeric_columns : ", self._numeric_columns
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measures"))
         else:
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measure"))
@@ -112,22 +136,9 @@ class MetaDataScript:
         metaData.append(MetaData(name="measureColumns",value = self._numeric_columns,display=False))
         metaData.append(MetaData(name="dimensionColumns",value = self._string_columns,display=False))
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
+        metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
         columnData = []
         headers = []
-        sampleData = metaHelperInstance.get_sample_data()
-        sampleData = sampleData.toPandas()
-        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
-
-        time_taken_sampling = time.time()-self._start_time
-        self._completionStatus += self._scriptStages["sampling"]["weight"]
-        print "sampling takes",time_taken_sampling
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "sampling",\
-                                    "info",\
-                                    self._scriptStages["sampling"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
         print "Count of Numeric columns",len(self._numeric_columns)
