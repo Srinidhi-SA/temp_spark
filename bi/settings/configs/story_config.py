@@ -189,13 +189,12 @@ def get_story_config():
         "metadata": {
           "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
           "slug_list": [
-            "adultcsv-roudox26di"
->>>>>>> f25d9d884369e56acbf0ca5586bf54c04daadc87
+            "adult_newcsv-j0ak4a53pp"
           ]
         },
         "inputfile": [
         #   "hdfs://ec2-34-205-203-38.compute-1.amazonaws.com:8020/dev/dataset/adultcsv-roudox26di/adult_YGVxCWQ.csv"
-            "/home/marlabs/Documents/mAdvisor/Datasets/adult.csv"
+            "/home/marlabs/Documents/mAdvisor/Datasets/adult_new.csv"
 
         ]
       }
