@@ -950,7 +950,6 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                 crude_narrative = temp_narrative
 
     temp_narrative_arr = temp_narrative.split(customSeparator)[:-1]
-    # print temp_narrative_arr
     if len(temp_narrative_arr) > 2:
         temp_narrative = ", ".join(temp_narrative_arr[:-2])+" and "+temp_narrative_arr[-1]
     elif len(temp_narrative_arr) == 2:
@@ -959,14 +958,12 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
         temp_narrative = ", ".join(temp_narrative_arr)
 
     crude_narrative_arr = crude_narrative.split(customSeparator)[:-1]
-    # print crude_narrative_arr
-    if len(crude_narrative_arr) >=2:
+    if len(crude_narrative_arr) > 2:
         crude_narrative = ", ".join(crude_narrative_arr[:-2])+" and "+crude_narrative_arr[-1]
     elif len(crude_narrative_arr) == 2:
         crude_narrative = crude_narrative_arr[0]+" and "+crude_narrative_arr[1]
     else:
         crude_narrative = ", ".join(crude_narrative_arr)
-
     if temp_narrative == '':
         temp_narrative = ""
     else:
