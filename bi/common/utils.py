@@ -22,6 +22,8 @@ import array
 
 from pyspark.conf import SparkConf
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import regexp_extract, col
+
 
 from decorators import accepts
 from math import log10, floor
@@ -420,6 +422,12 @@ def return_optimum_bins(x):
 	edges = linspace(x_min,x_max,N[idx]+1)
 
 	return edges
+
+def convert_percentage_columns(df, percentage_columns):
+    for column in percentage_columns:
+        df = df.withColumn(column, regexp_extract(df[column], '^(((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)[^%]*)',1))
+        df = df.withColumn(column, col(column).cast('double'))
+    return df
 
 
 if __name__ == '__main__':
