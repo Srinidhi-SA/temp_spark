@@ -31,7 +31,7 @@ def get_metadata_config():
           },
           "FILE_SETTINGS": {
             "inputfile": [
-              "file:///home/gulshan/marlabs/datasets/boolTest.csv"
+              "file:///home/gulshan/marlabs/datasets/RetailSalesData.csv"
             ]
           }
         }
