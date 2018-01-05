@@ -2,6 +2,7 @@ import json
 import operator
 import os
 import time
+import re
 
 from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
@@ -167,9 +168,21 @@ class DimensionColumnNarrative:
         freq_dict = json.loads(freq_dict)
         colname = self._colname
         freq_data = []
-        for k,v in freq_dict[colname][colname].items():
-            freq_data.append({"key":v,"value":freq_dict[colname]["count"][k]})
-        freq_data = sorted(freq_data,key=lambda x:x["value"],reverse=True)
+        if colname in self._dataframe_helper.get_cols_to_bin():
+            keys_to_sort = freq_dict[colname][colname].values()
+            convert = lambda text: int(text) if text.isdigit() else text
+            alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)',key)]
+            keys_to_sort.sort(key=alphanum_key)
+            temp_dict={}
+            for k,v in freq_dict[colname][colname].items():
+                temp_dict[v] = freq_dict[colname]["count"][k]
+            for each in keys_to_sort:
+                freq_data.append({"key":each,"Count":temp_dict[each]})
+        else:
+            for k,v in freq_dict[colname][colname].items():
+                freq_data.append({"key":v,"Count":freq_dict[colname]["count"][k]})
+            freq_data = sorted(freq_data,key=lambda x:x["Count"],reverse=True)
+        print "freq_data : ", freq_data
         data_dict = {"colname":self._colname}
         data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']
@@ -226,7 +239,7 @@ class DimensionColumnNarrative:
         chart_json = ChartJson()
         chart_json.set_data(chart_data.get_data())
         chart_json.set_chart_type("bar")
-        chart_json.set_axes({"x":"key","y":"value"})
+        chart_json.set_axes({"x":"key","y":"Count"})
         chart_json.set_label_text({'x':' ','y': 'No. of Observations'})
         chart_json.set_yaxis_number_format(".2f")
         lines += output1

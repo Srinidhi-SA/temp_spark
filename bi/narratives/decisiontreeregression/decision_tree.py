@@ -1,6 +1,7 @@
 import os
 import random
 import humanize
+import numpy as np
 
 from bi.common.dataframe import DataFrameHelper
 from bi.common.results import DecisionTreeResult
@@ -197,11 +198,12 @@ class DecisionTreeRegNarrative:
             success_percent = self.success_percent[target]
             richRulesArray = []
             for idx,crudeRule in enumerate(rulesArray):
-                richRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
+                richRule,crudeRule = self._generate_rules(target,crudeRule, freqArray[idx], success[idx], success_percent[idx])
                 richRulesArray.append(richRule)
+                crudeRuleArray.append(crudeRule)
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
-            targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
+            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
@@ -247,39 +249,80 @@ class DecisionTreeRegNarrative:
     def _generate_rules(self,target,rules, total, success, success_percent):
         colname = self._colname
         key_dimensions,key_measures=NarrativesUtils.get_rules_dictionary(rules)
+        # print "Sumit...."
+        print key_dimensions
+        print key_measures
         temp_narrative = ''
-        for var in key_measures.keys():
-            if key_measures[var].has_key('upper_limit') and key_measures[var].has_key('lower_limit'):
-                temp_narrative = temp_narrative + 'the value of ' + var + ' falls between ' + key_measures[var]['lower_limit'] + ' and ' + key_measures[var]['upper_limit']+', '
-            elif key_measures[var].has_key('upper_limit'):
-                temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + key_measures[var]['upper_limit']+', '
-            elif key_measures[var].has_key('lower_limit'):
-                temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + key_measures[var]['lower_limit']+', '
-        for var in key_dimensions.keys():
-            if key_dimensions[var].has_key('in'):
-                temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + ', '
-            elif key_dimensions[var].has_key('not_in'):
-                temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + ', '
+        crude_narrative = ''
 
+        customSeparator = "|~%%~| "
+        for var in key_measures.keys():
+            print var
+            if key_measures[var].has_key('upper_limit') and key_measures[var].has_key('lower_limit'):
+                temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + key_measures[var]['lower_limit'] + ' to ' + key_measures[var]['upper_limit']+customSeparator
+            elif key_measures[var].has_key('upper_limit'):
+                temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + key_measures[var]['upper_limit']+customSeparator
+            elif key_measures[var].has_key('lower_limit'):
+                temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + key_measures[var]['lower_limit']+customSeparator
+        crude_narrative = temp_narrative
+        for var in key_dimensions.keys():
+            print var
+            if key_dimensions[var].has_key('in'):
+                key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')))
+                if len(key_dimensions_tuple) > 5:
+
+                    if (len(key_dimensions_tuple)-5) == 1:
+                        key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " other",)
+                    else:
+                        key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
+
+                    temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dims) + customSeparator
+                    crude_narrative = crude_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
+
+                else:
+                    temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
+                    crude_narrative = temp_narrative
+
+            elif key_dimensions[var].has_key('not_in'):
+                key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
+                if len(key_dimensions_tuple) > 5:
+
+                    if (len(key_dimensions_tuple)-5) == 1:
+                        key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " other",)
+                    else:
+                        key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
+
+                    temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + str(key_dims) + customSeparator
+                    crude_narrative = crude_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
+
+                else:
+                    temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
+                    crude_narrative = temp_narrative
+
+        temp_narrative_arr = temp_narrative.split(customSeparator)[:-1]
+        temp_narrative = ", ".join(temp_narrative_arr[:-2])+" and "+temp_narrative_arr[-1]
+
+        crude_narrative_arr = crude_narrative.split(customSeparator)[:-1]
+        crude_narrative = ", ".join(crude_narrative_arr[:-2])+" and "+crude_narrative_arr[-1]
         if temp_narrative == '':
             temp_narrative = ""
         else:
             r = random.randint(0,99)%5
             if r == 0:
-                narrative = 'Nearly <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            '</b> of observations that have ' + temp_narrative + ' result in '+ \
-                            target + ' '+ self._column_name + ' values.'
+                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + NarrativesUtils.round_number(success_percent)+ '% ' + \
+                            ' <b>probability that the ' + self._column_name +' is '+ target+'.'
+
             elif r == 1:
-                narrative = 'If ' + temp_narrative +' it is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            '</b> likely that the observations are ' + target + ' segment.'
+                narrative = 'If ' +temp_narrative+ ' it is  <b>' + NarrativesUtils.round_number(success_percent)+ '% ' + \
+                            ' <b>likely that the ' + self._column_name +' is '+ target+'.'
+
             elif r == 2:
-                narrative = 'When ' +  temp_narrative + ' the probability of ' + target + \
-                            ' is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + '</b>.'
+                narrative = 'When ' +temp_narrative+ ' the probability of '+target+ ' is  <b>' + NarrativesUtils.round_number(success_percent)+ ' % <b>.'
+
             elif r == 3:
-                narrative = 'If ' + temp_narrative +' then there is <b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            '</b> probability that the ' + self._column_name + ' observations would be ' + target + ' valued.'
+                narrative = 'If ' + temp_narrative +' then there is  <b>' + NarrativesUtils.round_number(success_percent)+ '% ' + \
+                            ' <b>probability that the ' + self._column_name + ' would be ' + target +'.'
             else:
-                narrative = 'There is a very high chance(<b>' + NarrativesUtils.round_number(success_percent)+ '%' + \
-                            '</b>) that ' +  self._column_name + ' would be relatively ' + target + ' when, ' + \
-                            temp_narrative[:-2] + '.'
-            return narrative
+                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + NarrativesUtils.round_number(success_percent)+ '% ' + \
+                            ' <b>chance that '+ self._column_name + ' would be ' + target +'.'
+            return narrative,crude_narrative

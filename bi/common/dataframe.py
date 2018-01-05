@@ -219,7 +219,6 @@ class DataFrameHelper:
             self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
             self._data_frame = self._data_frame.select(self.columns)
 
-
     def get_cols_to_bin(self):
         return self.colsToBin
 
