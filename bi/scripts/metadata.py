@@ -69,6 +69,8 @@ class MetaDataScript:
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
         self._boolean_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
+        self._real_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_actual_data_type() == ColumnType.REAL]
         self._column_type_dict = {}
         self.update_column_type_dict()
 
@@ -209,14 +211,15 @@ class MetaDataScript:
                 data.set_column_chart(dimensionCharts[column])
 
             if self._column_type_dict[column] == "measure":
-                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
-                if ignoreSuggestion:
-                    ignoreColumnSuggestions.append(column)
-                    ignoreColumnReason.append(ignoreReason)
-                    data.set_level_count_to_null()
-                    data.set_chart_data_to_null()
-                    data.set_ignore_suggestion_flag(True)
-                    data.set_ignore_suggestion_message(ignoreReason)
+                if column not in self._real_columns:
+                    ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
+                    if ignoreSuggestion:
+                        ignoreColumnSuggestions.append(column)
+                        ignoreColumnReason.append(ignoreReason)
+                        data.set_level_count_to_null()
+                        data.set_chart_data_to_null()
+                        data.set_ignore_suggestion_flag(True)
+                        data.set_ignore_suggestion_message(ignoreReason)
 
             elif self._column_type_dict[column] == "dimension":
                 if self._level_count_flag:
