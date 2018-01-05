@@ -17,7 +17,7 @@ class MetaParser:
         if len(ignorecolobject) > 0:
             if ignorecolobject[0] != {} and len(ignorecolobject[0]["value"]) >0:
                 self.ignoreColDict = dict(zip(ignorecolobject[0]["value"],ignorereasonobj[0]["value"]))
-
+        self.percentage_columns = [x["value"] for x in self.meta_data['metaData'] if x["name"] == "percentageColumns"][0]
 
     def extract(self,dict_in, dict_out):
         for key, value in dict_in.iteritems():
@@ -71,3 +71,6 @@ class MetaParser:
 
     def get_unique_level_names(self,column_name):
         return self.column_dict[column_name]["LevelCount"].keys()
+
+    def get_percentage_columns(self):
+        return self.percentage_columns
