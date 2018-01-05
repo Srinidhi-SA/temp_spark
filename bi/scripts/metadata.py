@@ -125,16 +125,16 @@ class MetaDataScript:
         else:
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measure"))
         if len(self._string_columns) > 1:
-            metaData.append(MetaData(name="dimensions",value=len(self._string_columns),display=True,displayName="Dimensions"))
+            metaData.append(MetaData(name="dimensions",value=len(self._string_columns+self._boolean_columns),display=True,displayName="Dimensions"))
         else:
-            metaData.append(MetaData(name="dimensions",value=len(self._string_columns),display=True,displayName="Dimension"))
+            metaData.append(MetaData(name="dimensions",value=len(self._string_columns+self._boolean_columns),display=True,displayName="Dimension"))
         if len(self._timestamp_columns) > 1:
             metaData.append(MetaData(name="timeDimension",value=len(self._timestamp_columns),display=True,displayName="Time Dimensions"))
         else:
             metaData.append(MetaData(name="timeDimension",value=len(self._timestamp_columns),display=True,displayName="Time Dimension"))
 
         metaData.append(MetaData(name="measureColumns",value = self._numeric_columns,display=False))
-        metaData.append(MetaData(name="dimensionColumns",value = self._string_columns,display=False))
+        metaData.append(MetaData(name="dimensionColumns",value = self._string_columns+self._boolean_columns,display=False))
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
         metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
         columnData = []
@@ -155,7 +155,7 @@ class MetaDataScript:
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
-        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns,levelCount=self._level_count_flag)
+        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
         time_taken_dimensionstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["dimensionstats"]["weight"]
         print "dimension stats takes",time_taken_dimensionstats
@@ -204,6 +204,9 @@ class MetaDataScript:
             elif self._column_type_dict[column] == "datetime":
                 data.set_column_stats(timeDimensionColumnStat[column])
                 data.set_column_chart(timeDimensionCharts[column])
+            elif self._column_type_dict[column] == "boolean":
+                data.set_column_stats(dimensionColumnStat[column])
+                data.set_column_chart(dimensionCharts[column])
 
             if self._column_type_dict[column] == "measure":
                 ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)

@@ -270,12 +270,12 @@ class DecisionTreeRegNarrative:
             if key_dimensions[var].has_key('in'):
                 key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')))
                 if len(key_dimensions_tuple) > 5:
-                    
+
                     if (len(key_dimensions_tuple)-5) == 1:
                         key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " other",)
                     else:
                         key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
-                    
+
                     temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dims) + customSeparator
                     crude_narrative = crude_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
 
@@ -283,7 +283,7 @@ class DecisionTreeRegNarrative:
                     temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
                     crude_narrative = temp_narrative
 
-            elif key_dimensions[var].has_key('not_in'):     
+            elif key_dimensions[var].has_key('not_in'):
                 key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
                 if len(key_dimensions_tuple) > 5:
 
@@ -294,7 +294,7 @@ class DecisionTreeRegNarrative:
 
                     temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + str(key_dims) + customSeparator
                     crude_narrative = crude_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
-                
+
                 else:
                     temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
                     crude_narrative = temp_narrative
@@ -321,7 +321,7 @@ class DecisionTreeRegNarrative:
 
             elif r == 3:
                 narrative = 'If ' + temp_narrative +' then there is  <b>' + NarrativesUtils.round_number(success_percent)+ '% ' + \
-                            ' <b>probability that the ' + self._column_name + ' would be' + target +'.'
+                            ' <b>probability that the ' + self._column_name + ' would be ' + target +'.'
             else:
                 narrative = 'When ' +temp_narrative+ ' then there is  <b>' + NarrativesUtils.round_number(success_percent)+ '% ' + \
                             ' <b>chance that '+ self._column_name + ' would be ' + target +'.'
