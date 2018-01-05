@@ -200,10 +200,11 @@ class DecisionTreeRegNarrative:
             crudeRuleArray = []
             analysisType = self._dataframe_context.get_analysis_type()
             targetCol = self._dataframe_context.get_result_column()
-            binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
             binFlag = False
-            if binnedColObj != None and targetCol in binnedColObj:
-                binFlag = True
+            if self._dataframe_context.get_custom_analysis_details() != None:
+                binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
+                if binnedColObj != None and targetCol in binnedColObj:
+                    binFlag = True
             for idx,crudeRule in enumerate(rulesArray):
                 richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx], success[idx], success_percent[idx],analysisType,binFlag=binFlag)
                 richRulesArray.append(richRule)
