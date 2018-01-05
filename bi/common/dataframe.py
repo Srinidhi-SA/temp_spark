@@ -67,10 +67,12 @@ class DataFrameHelper:
         self.resultcolumn = self._dataframe_context.get_result_column()
         self.consider_columns = self._dataframe_context.get_consider_columns()
         self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
+        self.percentage_columns = self._dataframe_context.get_percentage_columns()
         self.colsToBin = []
 
     def set_params(self):
         print "Setting the dataframe"
+        self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
         customDetails = self._dataframe_context.get_custom_analysis_details()
         if customDetails != None:
             colsToBin = [x["colName"] for x in customDetails]

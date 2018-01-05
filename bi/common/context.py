@@ -105,6 +105,14 @@ class ContextSetter:
         self.uidColObject = {}
         self.ignoremessages = False
         self.labelMappingDict = []
+        self.percentageColumns = []
+
+    @accepts(object,(list,tuple))
+    def set_percentage_columns(self,data):
+        self.percentageColumns = data
+
+    def get_percentage_columns(self):
+        return self.percentageColumns
 
     def get_block_splitter(self):
         return self.blockSplitter
