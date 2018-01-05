@@ -60,6 +60,7 @@ class MetaDataScript:
         self._total_rows = self._data_frame.count()
         self._max_levels = min(200, round(self._total_rows**0.5))
 
+        self._percentage_columns = []
         self._numeric_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
         self._string_columns = [field.name for field in self._data_frame.schema.fields if
@@ -89,10 +90,12 @@ class MetaDataScript:
 
     def run(self):
         self._start_time = time.time()
-        metaHelperInstance = MetaDataHelper()
+        metaHelperInstance = MetaDataHelper(self._data_frame, self._total_rows)
         metaData = []
         metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
         metaData.append(MetaData(name="noOfColumns",value=self._total_columns,display=True,displayName="Columns"))
+        self._percentage_columns = metaHelperInstance.get_percentage_columns(self._string_columns)
+
         if len(self._numeric_columns) > 1:
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measures"))
         else:
@@ -111,14 +114,9 @@ class MetaDataScript:
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
         columnData = []
         headers = []
-        if self._data_frame.count() > 100:
-            sampleData = self._data_frame.sample(False, float(100)/self._total_rows, seed=420)
-            sampleData = sampleData.toPandas()
-            sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
-        else:
-            sampleData = self._data_frame
-            sampleData = sampleData.toPandas()
-            sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
+        sampleData = metaHelperInstance.get_sample_data()
+        sampleData = sampleData.toPandas()
+        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
 
         time_taken_sampling = time.time()-self._start_time
         self._completionStatus += self._scriptStages["sampling"]["weight"]
