@@ -438,7 +438,7 @@ class OneWayAnovaNarratives:
                     'top_dimension' : top_level_name,
                     'dimension' : self._dimension_column,
         }
-        print json.dumps(data_dict,indent=2)
+        # print json.dumps(data_dict,indent=2)
         output = {}
         output['header'] = ''
         output['content'] = []

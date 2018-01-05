@@ -225,7 +225,7 @@ def get_story_config():
           ]
         },
         "inputfile": [
-          "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
+          "/home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
         ]
       }
     }
