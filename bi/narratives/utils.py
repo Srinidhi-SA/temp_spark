@@ -5,6 +5,7 @@ Utility functions to be used by various narrative objects
 import math
 import re
 import time
+import random
 import humanize
 import enchant
 import jinja2
@@ -900,3 +901,98 @@ def restructure_donut_chart_data(dataDict,nLevels=None):
     otherData = [x[1] for x in dataTuple[nLevels-1:]]
     finalData = mainData+[("Others",sum(otherData))]
     return dict(finalData)
+
+def generate_rules(colname,target,rules, total, success, success_percent,analysisType,binFlag=False):
+    key_dimensions,key_measures = get_rules_dictionary(rules)
+    temp_narrative = ''
+    crude_narrative = ''
+
+    customSeparator = "|~%%~| "
+    for var in key_measures.keys():
+        if key_measures[var].has_key('upper_limit') and key_measures[var].has_key('lower_limit'):
+            temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + key_measures[var]['lower_limit'] + ' to ' + key_measures[var]['upper_limit']+customSeparator
+        elif key_measures[var].has_key('upper_limit'):
+            temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + key_measures[var]['upper_limit']+customSeparator
+        elif key_measures[var].has_key('lower_limit'):
+            temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + key_measures[var]['lower_limit']+customSeparator
+    crude_narrative = temp_narrative
+    for var in key_dimensions.keys():
+        if key_dimensions[var].has_key('in'):
+            key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')))
+            if len(key_dimensions_tuple) > 5:
+
+                if (len(key_dimensions_tuple)-5) == 1:
+                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " other",)
+                else:
+                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
+
+                temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dims) + customSeparator
+                crude_narrative = crude_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
+
+            else:
+                temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
+                crude_narrative = temp_narrative
+
+        elif key_dimensions[var].has_key('not_in'):
+            key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
+            if len(key_dimensions_tuple) > 5:
+
+                if (len(key_dimensions_tuple)-5) == 1:
+                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " other",)
+                else:
+                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
+
+                temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + str(key_dims) + customSeparator
+                crude_narrative = crude_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
+
+            else:
+                temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
+                crude_narrative = temp_narrative
+
+    temp_narrative_arr = temp_narrative.split(customSeparator)[:-1]
+    if len(temp_narrative_arr) >=2:
+        temp_narrative = ", ".join(temp_narrative_arr[:-2])+" and "+temp_narrative_arr[-1]
+    else:
+        temp_narrative = ", ".join(temp_narrative_arr)
+
+    crude_narrative_arr = crude_narrative.split(customSeparator)[:-1]
+    if len(crude_narrative_arr) >=2:
+        crude_narrative = ", ".join(crude_narrative_arr[:-2])+" and "+crude_narrative_arr[-1]
+    else:
+        crude_narrative = ", ".join(crude_narrative_arr)
+
+    if temp_narrative == '':
+        temp_narrative = ""
+    else:
+        r = random.randint(0,99)%5
+        if binFlag != True:
+            if r == 0:
+                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>probability that the ' + colname +' is '+ target+'.'
+            elif r == 1:
+                narrative = 'If ' +temp_narrative+ ' it is  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>likely that the ' + colname +' is '+ target+'.'
+            elif r == 2:
+                narrative = 'When ' +temp_narrative+ ' the probability of '+target+ ' is  <b>' + round_number(success_percent)+ ' % <b>.'
+            elif r == 3:
+                narrative = 'If ' + temp_narrative +' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>probability that the ' + colname + ' would be ' + target +'.'
+            else:
+                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>chance that '+ colname + ' would be ' + target +'.'
+        else:
+            if r == 0:
+                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>probability that the ' + colname +' range will be '+ target+'.'
+            elif r == 1:
+                narrative = 'If ' +temp_narrative+ ' it is  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>likely that the ' + colname +' range will be '+ target+'.'
+            elif r == 2:
+                narrative = 'When ' +temp_narrative+ ' the probability of <b>'+colname+" range being "+target+ '</b> is <b>' + round_number(success_percent)+ ' % <b>.'
+            elif r == 3:
+                narrative = 'If ' + temp_narrative +' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>probability that the ' + colname + ' range would be ' + target +'.'
+            else:
+                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                            ' <b>chance that '+ colname + 'range would be ' + target +'.'
+        return narrative,crude_narrative
