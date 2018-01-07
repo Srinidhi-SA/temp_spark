@@ -129,7 +129,7 @@ def get_story_config():
               "name": "performance"
             },
             {
-              "status": False,
+              "status": True,
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -144,7 +144,7 @@ def get_story_config():
                   "name": "medium"
                 },
                 {
-                  "status": False,
+                  "status": True,
                   "defaultValue": 8,
                   "displayName": "High",
                   "name": "high"
@@ -164,7 +164,7 @@ def get_story_config():
               "name": "influencer"
             },
             {
-              "status": False,
+              "status": True,
               "noOfColumnsToUse": None,
               "analysisSubTypes": [
 
@@ -177,7 +177,9 @@ def get_story_config():
         "FILE_SETTINGS": {
           "script_to_run": [
             "Descriptive analysis",
-            "Measure vs. Dimension"
+            "Measure vs. Dimension",
+            "Measure vs. Measure",
+            "Predictive modeling"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
@@ -191,20 +193,20 @@ def get_story_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-test-demography-3s1qenhsv4-84mqewjhir_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-anova-without-trend-bj86ztoqzg-c6sj1inn6m_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-test-demography-3s1qenhsv4-84mqewjhir/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-anova-without-trend-bj86ztoqzg-c6sj1inn6m/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-test-demography-3s1qenhsv4-84mqewjhir/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-anova-without-trend-bj86ztoqzg-c6sj1inn6m/",
         "job_type": "story",
-        "job_name": "test-demography",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-test-demography-3s1qenhsv4-84mqewjhir/"
+        "job_name": "anova-without trend",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-anova-without-trend-bj86ztoqzg-c6sj1inn6m/"
       }
     }
     return storyConfig
