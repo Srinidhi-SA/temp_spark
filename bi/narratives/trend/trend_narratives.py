@@ -181,8 +181,7 @@ class TrendNarrative:
         return prediction
 
     def generate_sub_heading(self,measure_column):
-        sub_heading = "How %s is changing over Time" %(measure_column)
-        # sub_heading = "This section provides insights on how %s is performing over time and captures the most significant moments that defined the overall pattern or trend over the observation period." %(measure_column)
+        sub_heading = "This section provides insights on how %s is performing over time and captures the most significant moments that defined the overall pattern or trend over the observation period." %(measure_column)
         return sub_heading
 
     def generate_summary(self,dataDict):

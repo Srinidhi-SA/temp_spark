@@ -184,7 +184,7 @@ class DimensionColumnNarrative:
             freq_data = sorted(freq_data,key=lambda x:x["Count"],reverse=True)
         print "freq_data : ", freq_data
         data_dict = {"colname":self._colname}
-        data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
+        data_dict["plural_colname"] = pattern.en.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']
         max_key = max(count,key=count.get)
         min_key = min(count, key=count.get)
@@ -260,7 +260,7 @@ class DimensionColumnNarrative:
         freq_dict = json.loads(freq_dict)
         colname = self._colname
         data_dict = {"colname":self._colname}
-        data_dict["plural_colname"] = NarrativesUtils.pluralize(data_dict["colname"])
+        data_dict["plural_colname"] = pattern.en.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']
         max_key = max(count,key=count.get)
         min_key = min(count, key=count.get)
