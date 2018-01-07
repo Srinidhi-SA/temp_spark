@@ -1,24 +1,16 @@
-from pyspark.sql import DataFrame
-from pyspark.sql import functions as FN
-
-from bi.common.decorators import accepts
-from bi.common import BIException
-from bi.common import DataFrameHelper
-from bi.common.datafilterer import DataFrameFilterer
-from bi.common.results import DecisionTreeResult
-from bi.common import utils
-
-
 import json
 import re
-import pandas as pd
 
-from pyspark.sql.functions import UserDefinedFunction
 from pyspark.mllib.regression import LabeledPoint
-from pyspark.mllib.tree import DecisionTree, DecisionTreeModel
-from pyspark.mllib.util import MLUtils
-from pyspark.sql.types import StringType
-from pyspark.sql import SQLContext
+from pyspark.mllib.tree import DecisionTree
+
+from bi.common.datafilterer import DataFrameFilterer
+from bi.common.decorators import accepts
+from bi.common.results import DecisionTreeResult
+
+from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
+
 
 """
 Decision Tree
@@ -27,21 +19,64 @@ Decision Tree
 
 class DecisionTrees:
 
-    #@accepts(object, DataFrame)
-    def __init__(self, data_frame, data_frame_helper, spark):
+    # @accepts(object, DataFrame)
+    def __init__(self, data_frame, df_helper, df_context, spark, meta_parser,scriptWeight=None, analysisName=None):
         self._spark = spark
-        self._data_frame = data_frame
-        self._data_frame1 = data_frame
-        #data_frame_helper = DataFrameHelper(data_frame)
-        #self._data_frame_filterer = DataFrameFilterer(data_frame)
-        self._measure_columns = data_frame_helper.get_numeric_columns()
-        self._dimension_columns = data_frame_helper.get_string_columns()
+        self._maxDepth = 5
+        self._metaParser = meta_parser
+        self._dataframe_helper = df_helper
+        self._dataframe_context = df_context
+        self._ignoreMsg = self._dataframe_context.get_message_ignore()
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._dimension_columns = self._dataframe_helper.get_string_columns()
+        self._date_column = self._dataframe_context.get_date_columns()
+        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
+        if self._date_column != None:
+            if len(self._date_column) >0 :
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
+        if len(self._date_column_suggestions) > 0:
+            if self._date_column_suggestions[0] != {}:
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
+        self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns)
+        self._data_frame1 = self._data_frame
         self._mapping_dict = {}
         self._new_rules = {}
         self._total = {}
         self._success = {}
         self._probability = {}
         self._alias_dict = {}
+        self._important_vars = {}
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        self._messageURL = self._dataframe_context.get_message_url()
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
+
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Decision Tree Script",
+                "weight":0
+                },
+            "treegeneration":{
+                "summary":"Decision tree generation finished",
+                "weight":10
+                }
+            }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["initialization"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     def parse(self, lines, df):
         block = []
@@ -96,10 +131,13 @@ class DecisionTrees:
 
     @accepts(object, rule_list=list,target=str)
     def extract_rules(self, rule_list, target):
+        if not self._important_vars.has_key(target):
+            self._important_vars[target] = []
         DFF = DataFrameFilterer(self._data_frame1)
         colname = self._target_dimension
         success = 0
         total = 0
+        important_vars = []
         for rule in rule_list:
             if ' <= ' in rule:
                 var,limit = re.split(' <= ',rule)
@@ -117,10 +155,12 @@ class DecisionTrees:
                 levels=levels[1:-1].split(",")
                 levels = [self._alias_dict[x] for x in levels]
                 DFF.values_in(var,levels)
+            important_vars.append(var)
         for rows in DFF.get_aggregated_result(colname,target):
             if(rows[0]==target):
                 success = rows[1]
             total = total + rows[1]
+        self._important_vars[target] = list(set(self._important_vars[target] + important_vars))
         if (total > 0):
             if not self._new_rules.has_key(target):
                 self._new_rules[target] = []
@@ -174,36 +214,28 @@ class DecisionTrees:
 
 
 
-    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
-    def test_all(self, measure_columns=None, dimension_columns=None):
+    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
+    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=50):
         measures = measure_columns
         if measure_columns is None:
             measures = self._measure_columns
         self._target_dimension = dimension_columns[0]
         dimension = self._target_dimension
-        all_dimensions = self._dimension_columns
+        max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
+        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
         cat_feature_info = []
-        columns_without_dimension = list(x for x in all_dimensions if x != dimension)
+        columns_without_dimension = [x for x in all_dimensions if x != dimension]
         mapping_dict = {}
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
-        for column in all_dimensions:
-            mapping_dict[column] = dict(enumerate(self._data_frame.select(column).distinct().rdd.map(lambda x: str(x[0])).collect()))
-        # for c in mapping_dict:
-        #     name = c
-        #     reverseMap = {v: k for k, v in mapping_dict[c].iteritems()}
-        #     udf = UserDefinedFunction(lambda x: reverseMap[x], StringType())
-        #     self._data_frame = self._data_frame.select(*[udf(column).alias(name) if column == name else column for column in self._data_frame.columns])
-
-        # converting spark dataframe to pandas for transformation and then back to spark dataframe
-        pandasDataFrame = self._data_frame.toPandas()
-        for key in mapping_dict:
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: 'None' if x==None else x)
-            reverseMap = {v: k for k, v in mapping_dict[key].iteritems()}
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: reverseMap[x])
-        # sqlCtx = SQLContext(self._spark)
-        self._data_frame = self._spark.createDataFrame(pandasDataFrame)
+        decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
+        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
+        # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
+        standard_measure_index = {0.0:'Low',1.0:'Below Average',2.0:'Average',3.0:'Above Average',4.0:'High'}
+        for measure in all_measures:
+            mapping_dict[measure] = standard_measure_index
 
         for k,v in mapping_dict.items():
             temp = {}
@@ -216,17 +248,25 @@ class DecisionTrees:
 
         for c in columns_without_dimension:
             cat_feature_info.append(self._data_frame.select(c).distinct().count())
+        for c in all_measures:
+            cat_feature_info.append(5)
+        columns_without_dimension = columns_without_dimension+all_measures
+        all_measures = []
         if len(cat_feature_info)>0:
             max_length = max(cat_feature_info)
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
-        dimension_classes = self._data_frame.select(dimension).distinct().count()
+        try:
+            dimension_classes = self._metaParser.get_num_unique_values(dimension)
+        except:
+            dimension_classes = self._data_frame.select(dimension).distinct().count()
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
+
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=3, maxBins=max_length)
+        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
         output_result = model.toDebugString()
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)
@@ -234,4 +274,13 @@ class DecisionTrees:
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["treegeneration"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "treegeneration",\
+                                    "info",\
+                                    self._scriptStages["treegeneration"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         return decision_tree_result

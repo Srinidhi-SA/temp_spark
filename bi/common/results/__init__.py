@@ -8,6 +8,8 @@ from two_way_anova import DFTwoWayAnovaResult
 from two_way_anova import MeasureAnovaResult
 from two_way_anova import TwoWayAnovaResult
 from two_way_anova import OneWayAnovaResult
+from two_way_anova import TopDimensionStats,TopLevelDfAnovaStats
+from two_way_anova import TrendResult,TrendData
 
 from correlation import ColumnCorrelations
 from correlation import CorrelationStats
@@ -32,6 +34,8 @@ from frequency_dimensions import FreqDimensionResult
 
 from decision_tree import DecisionTreeResult
 
+from metadata import DfMetaData,MetaData,ColumnData,ColumnHeader
+
 __all__ = [
     # anova
     'AnovaColumnValueGroupStats', 'AnovaResult', 'ColumnValueGroup',
@@ -48,5 +52,8 @@ __all__ = [
     # chisquare
     'ChiSquareResult', 'FreqDimensionResult', 'DecisionTreeResult',
     # two_way_anova
-    'DFTwoWayAnovaResult', 'MeasureAnovaResult', 'TwoWayAnovaResult' , 'OneWayAnovaResult'
+    'DFTwoWayAnovaResult', 'MeasureAnovaResult', 'TwoWayAnovaResult' , 'OneWayAnovaResult','TopLevelDfAnovaStats','TopDimensionStats','TrendResult','Trend_Dimenion_Result','TrendData',
+
+    #MetaData
+    'DfMetaData','MetaData','ColumnData','ColumnHeader',
 ]

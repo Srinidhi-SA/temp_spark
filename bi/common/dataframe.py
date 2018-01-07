@@ -1,20 +1,26 @@
-from pyspark.sql import functions as FN
-from exception import BIException
-from decorators import accepts
-from column import ColumnType
-from pyspark.sql.functions import udf,col,unix_timestamp
-from pyspark.sql.types import StringType
-from pyspark.sql.types import *
+from functools import reduce
+import json
+import time
+import datetime as dt
+# import dateparser
+import pandas as pd
+from datetime import datetime
 from pyspark.sql import DataFrame
+from pyspark.sql import functions as FN
+from pyspark.sql.functions import udf, col
+from pyspark.sql.types import *
+from pyspark.sql.types import StringType
+from sklearn.model_selection import train_test_split
 
 from bi.common import utils as CommonUtils
-from bi.common.datafilterer import DataFrameFilterer
+from bi.common import ContextSetter
+from column import ColumnType
+from decorators import accepts
+from exception import BIException
 
-import datetime as dt
-from functools import reduce
-from datetime import datetime
-import pandas as pd
-from sklearn.model_selection import train_test_split
+from pyspark.ml.feature import QuantileDiscretizer,Bucketizer
+from pyspark.sql.functions import col, create_map, lit
+from itertools import chain
 
 
 class DataFrameHelper:
@@ -25,141 +31,198 @@ class DataFrameHelper:
     MEASURE_COLUMNS = "measure_columns"
     DIMENSION_COLUMNS = "dimension_columns"
     TIME_DIMENSION_COLUMNS = "time_dimension_columns"
+    BOOLEAN_COLUMNS = "boolean_columns"
     NULL_VALUES = 'num_nulls'
     NON_NULL_VALUES = 'num_non_nulls'
 
+    @accepts(object,data_frame=DataFrame,df_context=ContextSetter)
     def __init__(self, data_frame, df_context):
-        self._data_frame = data_frame
         # stripping spaces from column names
-        self._data_frame = self._data_frame.select(*[col(c.name).alias(c.name.strip()) for c in self._data_frame.schema.fields])
-
-        self._sample_data_frame = None
+        self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
+        self.columns = self._data_frame.columns
+        self._dataframe_context = df_context
 
         self.column_data_types = {}
-        self.columns = []
         self.numeric_columns = []
         self.string_columns = []
         self.timestamp_columns = []
+        self.boolean_columns = []
         self.num_rows = 0
         self.num_columns = 0
         self.column_details = {
             DataFrameHelper.MEASURE_COLUMNS: {},
             DataFrameHelper.DIMENSION_COLUMNS: {},
-            DataFrameHelper.TIME_DIMENSION_COLUMNS: {}
+            DataFrameHelper.TIME_DIMENSION_COLUMNS: {},
+            DataFrameHelper.BOOLEAN_COLUMNS: {}
         }
-        self.ignorecolumns = ""
-        self.consider_columns = ""
-        self._df_context = df_context
+
         self.measure_suggestions = []
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
+        self._date_formats = {}
+        self.significant_dimensions = {}
+        self.chisquare_significant_dimensions = {}
+
+        self.ignorecolumns = self._dataframe_context.get_ignore_column_suggestions()
+        self.utf8columns = self._dataframe_context.get_utf8_columns()
+        self.resultcolumn = self._dataframe_context.get_result_column()
+        self.consider_columns = self._dataframe_context.get_consider_columns()
+        self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
+        self.percentage_columns = self._dataframe_context.get_percentage_columns()
+        self.colsToBin = []
 
     def set_params(self):
-
-        self.columns = [field.name for field in self._data_frame.schema.fields]
-        self.ignorecolumns = self._df_context.get_ignore_column_suggestions()
-        self.utf8columns = self._df_context.get_utf8_columns()
-        self.resultcolumn = self._df_context.get_result_column()
-        self.consider_columns = self._df_context.get_consider_columns()
-        self.considercolumnstype = self._df_context.get_consider_columns_type()
-
+        print "Setting the dataframe"
+        self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
+        customDetails = self._dataframe_context.get_custom_analysis_details()
+        if customDetails != None:
+            colsToBin = [x["colName"] for x in customDetails]
+        else:
+            colsToBin = []
+        print "initial colsToBin:-",colsToBin
+        print "#"*30
+        if self.ignorecolumns == None:
+            self.ignorecolumns = []
+        if self.utf8columns == None:
+            self.utf8columns = []
+        if self.consider_columns == None:
+            self.consider_columns = []
+        print "ignorecolumns:-",self.ignorecolumns
+        # removing any columns which comes in customDetails from ignore columns
+        self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
         if self.considercolumnstype[0] == "including":
-            if self.consider_columns != None:
-                if self.utf8columns != None:
-                    self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-                for colname in self.consider_columns:
-                    if colname in self.ignorecolumns:
-                        self.ignorecolumns.remove(colname)
-        if self.ignorecolumns != None:
-            if self.resultcolumn in self.ignorecolumns:
-                self.ignorecolumns.remove(self.resultcolumn)
-            if self.utf8columns != None:
-                self.ignorecolumns += self.utf8columns
-        else:
-            if self.utf8columns != None:
-                self.ignorecolumns = self.utf8columns
+            self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
+            colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        elif self.considercolumnstype[0] == "excluding":
+            setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
+            colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
+        colsToBin = list(set(colsToBin)&set(colsToKeep))
+        print "colsToKeep:-",colsToKeep
+        print "#"*30
+        print "colsToBin:-",colsToBin
+        print "#"*30
+        self.colsToBin = colsToBin
 
-        self.subset_data()
-        #self.df_filterer = DataFrameFilterer(self._data_frame)
-        #self.dimension_filter = self._df_context.get_dimension_filters()
-        self.__subset_data()
+        if self._dataframe_context.get_job_type() != "subSetting":
+            if self._dataframe_context.get_job_type() != "prediction":
+                self._data_frame = self._data_frame.select(colsToKeep)
+            else:
+                if self._dataframe_context.get_story_on_scored_data() == False:
+                    result_column = self._dataframe_context.get_result_column()
+                    updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
+                    self._data_frame = self._data_frame.select(updatedColsToKeep)
+                elif self._dataframe_context.get_story_on_scored_data() == True:
+                    self._data_frame = self._data_frame.select(colsToKeep)
+        self.columns = self._data_frame.columns
+        self.bin_columns(colsToBin)
+        self.update_column_data()
+        self.populate_column_data()
 
-        self.measure_suggestions = self._df_context.get_measure_suggestions()
-
-        if self.measure_suggestions != None:
-            if self.ignorecolumns != None:
-                self.measure_suggestions = list(set(self.measure_suggestions)-set(self.ignorecolumns))
-            elif self.ignorecolumns == None:
-                self.measure_suggestions = list(set(self.measure_suggestions))
-
-            self.measure_suggestions = [m for m in self.measure_suggestions if m in self.columns]
-            if len(self.measure_suggestions)>0:
-                    self.clean_data_frame()
-        # for colmn in self.dimension_filter.keys():
-        #     self.df_filterer.values_in(colmn, self.dimension_filter[colmn])
-        #
-        # self.measure_filter = self._df_context.get_measure_filters()
-        # print self.measure_filter
-        # for colmn in self.measure_filter.keys():
-        #     self.df_filterer.values_between(colmn, self.measure_filter[colmn][0],self.measure_filter[colmn][1],1,1)
-
-        # self._data_frame = self.df_filterer.get_filtered_data_frame()
-        self.date_settings = self._df_context.get_date_settings()
-        self.columns = [field.name for field in self._data_frame.schema.fields]
-        for colmn in self.date_settings.keys():
-            if colmn in self.columns:
-                self.change_to_date(colmn, self.date_settings[colmn][0])
-                # print self.date_settings[colmn][0]
-        #self.date_filter = self._df_context.get_date_filters()
-        #for colmn in self.date_filter.keys():
-        #    self.df_filterer.dates_between(colmn, dt.date(int(self.date_filter[colmn][2]),int(self.date_filter[colmn][1]),int(self.date_filter[colmn][0])),
-        #                                        dt.date(int(self.date_filter[colmn][5]),int(self.date_filter[colmn][4]),int(self.date_filter[colmn][3])))
-        self.__update_meta()
-        self.__populate_data()
-
-        if self._data_frame.count() > 5000:
-            self._sample_data_frame = self._data_frame.sample(False, 4000/float(self._data_frame.count()), seed=0)
-        else:
-            self._sample_data_frame = self._data_frame
-
-    def set_train_test_data(self,df):
-        # from bi.algorithms import utils as MLUtils
-        df = df
-        result_column = self._df_context.get_result_column()
-        train_test_ratio = float(self._df_context.get_train_test_split())
-        print train_test_ratio
-        if train_test_ratio == None:
-            train_test_ratio = 0.7
-        x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col != result_column]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
-        # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
-        self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
-
-    def remove_nulls(self, col):
-        self._data_frame = self._data_frame.na.drop(subset=col)
-        self.num_rows = self._data_frame.count()
-
-    def clean_data_frame(self):
-        """
-        used to convert dimension columns to measures takes input from config (measure suggestions).
-        """
-        try:
-            func = udf(lambda x: CommonUtils.tryconvert(x), FloatType())
-            self._data_frame = self._data_frame.select(*[func(c).alias(c) if c in self.measure_suggestions else c for c in self.columns])
-            self._data_frame.schema.fields
-        except:
-            pass
-
-    def __update_meta(self):
+    def update_column_data(self):
         self.columns = [field.name for field in self._data_frame.schema.fields]
         self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
         self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
         self.string_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
-
+        self.boolean_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
         self.timestamp_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
         self.num_rows = self._data_frame.count()
         self.num_columns = len(self._data_frame.columns)
+
+    def populate_column_data(self):
+        for measure_column in self.numeric_columns:
+            null_values = self.get_num_null_values(measure_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.MEASURE_COLUMNS][measure_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
+
+        for dimension_column in self.string_columns:
+            null_values = self.get_num_null_values(dimension_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.DIMENSION_COLUMNS][dimension_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
+
+        for time_dimension_column in self.timestamp_columns:
+            null_values = self.get_num_null_values(time_dimension_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.TIME_DIMENSION_COLUMNS][time_dimension_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
+        for bool_column in self.boolean_columns:
+            null_values = self.get_num_null_values(bool_column)
+            non_null_values = self.num_rows - null_values
+            self.column_details[DataFrameHelper.BOOLEAN_COLUMNS][bool_column] = {
+                DataFrameHelper.NULL_VALUES: null_values,
+                DataFrameHelper.NON_NULL_VALUES: non_null_values
+            }
+
+    def set_train_test_data(self,df):
+        result_column = self._dataframe_context.get_result_column()
+        train_test_ratio = float(self._dataframe_context.get_train_test_split())
+        date_suggestion_columns = self._dataframe_context.get_date_columns()
+        print "DATE suggestions",date_suggestion_columns
+        if date_suggestion_columns == None:
+            date_suggestion_columns = []
+        time_dimension_columns = self.timestamp_columns
+        columns_to_ignore = [result_column]+date_suggestion_columns+time_dimension_columns
+        print "These Columns are Ignored:- ",  columns_to_ignore
+        if train_test_ratio == None:
+            train_test_ratio = 0.7
+        x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+        # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
+        self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
+
+    def fill_missing_values(self,df):
+        """
+        Filling missing values
+        missing values in categorical columns are replaced by 'NA'
+        missing values in numerical columns are replaced by 0
+        if there is missing value in target column those rows are deleted
+        """
+        categorical_columns = self.get_string_columns()
+        numerical_columns = self.get_numeric_columns()
+        replacement_dict = {}
+        for col in numerical_columns:
+            replacement_dict[col] = 0
+        for col in categorical_columns:
+            replacement_dict[col] = "NA"
+        df = df.fillna(replacement_dict)
+        return df
+
+    def remove_null_rows(self, column_name):
+        """
+        remove rowls where the given column has null values
+        """
+        # self._data_frame = self._data_frame.na.drop(subset=col)
+        self._data_frame = self._data_frame.filter(col(column_name).isNotNull())
+        self.num_rows = self._data_frame.count()
+
+
+
+    def bin_columns(self,colsToBin):
+        for bincol in colsToBin:
+            minval,maxval = self._data_frame.select([FN.max(bincol).alias("max"),FN.min(bincol).alias("min")]).collect()[0]
+            n_split=10
+            splitsData = CommonUtils.get_splits(minval,maxval,n_split)
+            splits = splitsData["splits"]
+            self._data_frame = self._data_frame.withColumn(bincol, self._data_frame[bincol].cast(DoubleType()))
+            bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
+            bucketizer.setSplits(splits)
+            self._data_frame = bucketizer.transform(self._data_frame)
+            mapping_expr = create_map([lit(x) for x in chain(*splitsData["bin_mapping"].items())])
+            self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
+            self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
+            self._data_frame = self._data_frame.select(self.columns)
+
+    def get_cols_to_bin(self):
+        return self.colsToBin
 
     def get_column_data_types(self):
         return self.column_data_types
@@ -204,11 +267,23 @@ class DataFrameHelper:
     def get_num_columns(self):
         return self.num_columns
 
+    def get_boolean_columns(self):
+        return self.boolean_columns
+
     def get_data_frame(self):
         return self._data_frame
 
-    def subset_data_frame(self, columns):
-        return self._data_frame.select(*columns)
+    def add_significant_dimension(self, dimension, effect_size):
+        self.significant_dimensions[dimension] = effect_size
+
+    def get_significant_dimension(self):
+        return self.significant_dimensions
+
+    def add_chisquare_significant_dimension(self, dimension, effect_size):
+        self.chisquare_significant_dimensions[dimension] = effect_size
+
+    def get_chisquare_significant_dimension(self):
+        return self.chisquare_significant_dimensions
 
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
@@ -221,78 +296,20 @@ class DataFrameHelper:
                 return row[1]
         return 0
 
-    def __populate_data(self):
-        for measure_column in self.numeric_columns:
-            null_values = self.get_num_null_values(measure_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.MEASURE_COLUMNS][measure_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-        for dimension_column in self.string_columns:
-            null_values = self.get_num_null_values(dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.DIMENSION_COLUMNS][dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-        for time_dimension_column in self.timestamp_columns:
-            null_values = self.get_num_null_values(time_dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.TIME_DIMENSION_COLUMNS][time_dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-    def __subset_data(self):
-        """
-        dropping or keeping columns based on consider column input coming from users.
-        """
-        if self.considercolumnstype[0] == 'excluding':
-            if self.consider_columns != None:
-                self.consider_columns = list(set(self.consider_columns)-set([self.resultcolumn]))
-                self._data_frame = reduce(DataFrame.drop, self.consider_columns, self._data_frame)
-                self.columns = [field.name for field in self._data_frame.schema.fields]
-            else:
-                self._data_frame = self._data_frame
-        elif self.considercolumnstype[0] == 'including':
-            if self.consider_columns != None:
-                self.consider_columns = self.consider_columns + [self.resultcolumn]
-                self.consider_columns = list(set(self.columns) - set(self.consider_columns))
-                self._data_frame = reduce(DataFrame.drop, self.consider_columns, self._data_frame)
-                self.columns = [field.name for field in self._data_frame.schema.fields]
-        self.__update_meta()
 
 
-    def subset_data(self):
-        """
-        drops columns from ignore_column_suggestions coming from config.
-        """
-        if self.ignorecolumns != None:
-            #self._data_frame = reduce(DataFrame.drop, *self.ignorecolumns, self._data_frame)
-            self._data_frame = self._data_frame.select(*[c for c in self.columns if c not in self.ignorecolumns ])
-            self.__update_meta()
-        else:
-            self._data_frame = self._data_frame
+    def filter_dataframe(self, colname, values):
+        if type(values) == str:
+            values = values[1:-1]
+            values = values.split(',')
+        df = self._data_frame.where(col(colname).isin(values))
+        return df
 
-    def get_sample_data(self, column_name1, column_name2, outputLength):
-        rowCount = self._sample_data_frame.count()
-        if rowCount <= outputLength:
-            newDf = self._sample_data_frame.select(column_name1,column_name2).toPandas()
-            newDF = newDF[[column_name1, column_name2]]
-        else:
-            newDf = self._sample_data_frame.select(column_name1,column_name2).toPandas()[:outputLength]
-
-        output = {column_name1:None,column_name2:None}
-        output[column_name1] = [float(x) for x in newDf[column_name1]]
-        output[column_name2] = [float(x) for x in newDf[column_name2]]
-        return output
 
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if existingDateFormat != None and requestedDateFormat != None:
+            print existingDateFormat,requestedDateFormat
             # def date(s):
             #   return str(s.date())
             # date_udf = udf(date, StringType())
@@ -308,7 +325,38 @@ class DataFrameHelper:
         else:
             agg_data = self._data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
             agg_data.columns = ["key","value"]
+        return agg_data
 
+    def get_agg_data_frame(self,aggregate_column, measure_column, result_column,existingDateFormat=None,requestedDateFormat=None):
+        data_frame = self._data_frame
+        if existingDateFormat != None and requestedDateFormat != None:
+            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            except Exception as e:
+                print e
+                print '----  ABOVE EXCEPTION  ----' * 10
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            agg_data = agg_data.sort_values('date_col')
+            agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
+            agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
+            agg_data = agg_data[[aggregate_column,measure_column, result_column]]
+        elif existingDateFormat != None:
+            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+            try:
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            except Exception as e:
+                print e
+                print '----  ABOVE EXCEPTION  ----' * 10
+                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+            agg_data = agg_data.sort_values('date_col')
+            agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
+            agg_data = agg_data[['Date','measure']]
+        else:
+            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+            agg_data.columns = [aggregate_column,measure_column,result_column]
         return agg_data
 
     def fill_na_measure_mean(self):
@@ -328,7 +376,8 @@ class DataFrameHelper:
         dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
 
         for dims in self.string_columns:
-            row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+            # row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+            row_vals = self._data_frame.select(dims).na.drop().distinct().collect()
             x = row_vals[0][dims]
             for format1 in formats:
                 try:
@@ -345,43 +394,40 @@ class DataFrameHelper:
                     break
                 except ValueError as err:
                     pass
-
-    def has_date_suggestions(self):
-        if len(self.date_time_suggestions)>0:
-            return True
-        return False
-
-    def get_formats(self):
-        self.formats_to_convert = ["mm/dd/YYYY","dd/mm/YYYY","YYYY/mm/dd", "dd <month>, YYYY"]
-
-    ###### An alternative is present in datacleansing. Can fix after final product plan
-    def change_format(self,colname,frmt1,frmt2):
-        # below line is just for testing a specific type.
-        # func = udf(lambda x: datetime.strptime(x.strip("*"),frmt1).strftime(frmt2), StringType())
-        func = udf(lambda x: datetime.strptime(x,frmt1).strftime(frmt2), StringType())
-        self._data_frame = self._data_frame.select(*[func(column).alias(colname) if column==colname else column for column in self._data_frame.columns])
-        return self._data_frame.collect()
-
-    def change_to_date(self, colname, format1):
-        func = udf(lambda x: datetime.strptime(x, format1), DateType())
-        #self._data_frame = self._data_frame.withColumn(colname, func(col(colname)))
-        self._data_frame = self._data_frame.select(*[func(column).alias(colname) if column==colname else column for column in self._data_frame.columns])
-        #return self._data_frame.collect()
+        print self.date_time_suggestions
 
     def get_datetime_format(self,colname):
         date_time_suggestions = {}
-        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
-        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
-
-        row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
-        x = row_vals[0][colname]
-        for format1 in formats:
-            try:
-                t = datetime.strptime(x,format1)
-                date_time_suggestions[colname] = format1
-                break
-            except ValueError as err:
-                pass
+        if self._date_formats.has_key(colname):
+            date_time_suggestions[colname] = self._date_formats[colname]
+        else:
+            date_time_suggestions = {}
+            formats = CommonUtils.dateTimeFormatsSupported()["formats"]
+            dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
+            # row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
+            row_vals = self._data_frame.select(colname).na.drop().distinct().collect()
+            sample1 = row_vals[0][colname]
+            sample2 = row_vals[-1][colname]
+            for format1 in formats:
+                try:
+                    t = datetime.strptime(sample1,format1)
+                    sample1_format = format1
+                    break
+                except ValueError as err:
+                    pass
+            for format1 in formats:
+                try:
+                    t = datetime.strptime(sample2,format1)
+                    sample2_format = format1
+                    break
+                except ValueError as err:
+                    pass
+            if sample1_format == sample2_format:
+                date_time_suggestions[colname] = sample1_format
+                self._date_formats[colname] = sample1_format
+            else:
+                date_time_suggestions[colname] = sample2_format
+                self._date_formats[colname] = sample2_format
         return date_time_suggestions
 
     def get_train_test_data(self):
@@ -391,6 +437,13 @@ class DataFrameHelper:
         y_train = train_test_data["y_train"]
         y_test = train_test_data["y_test"]
         return (x_train,x_test,y_train,y_test)
+
+    @accepts(object,(tuple,list))
+    def get_level_counts(self,colList):
+        levelCont = {}
+        for column in colList:
+            levelCont[column] = self._data_frame.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+        return levelCont
 
 class DataFrameColumnMetadata:
     @accepts(object, basestring, type(ColumnType.MEASURE), type(ColumnType.INTEGER))

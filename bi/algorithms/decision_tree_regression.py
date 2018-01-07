@@ -1,27 +1,15 @@
-from pyspark.sql import DataFrame
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import col
-
-from bi.common.decorators import accepts
-from bi.common import BIException
-from bi.common import DataFrameHelper
-from bi.common.datafilterer import DataFrameFilterer
-from bi.common.results import DecisionTreeResult
-from bi.common import utils
-from bi.narratives import utils as NarrativesUtils
-
-
 import json
 import re
-import pandas as pd
 
-from pyspark.sql.functions import UserDefinedFunction
 from pyspark.mllib.regression import LabeledPoint
-from pyspark.mllib.tree import DecisionTree, DecisionTreeModel
-from pyspark.mllib.util import MLUtils
-from pyspark.sql.types import StringType
-from pyspark.sql import SQLContext
+from pyspark.mllib.tree import DecisionTree
 
+from bi.common.datafilterer import DataFrameFilterer
+from bi.common.decorators import accepts
+from bi.common.results import DecisionTreeResult
+
+from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
 
 """
 Decision Tree
@@ -31,23 +19,55 @@ Decision Tree
 class DecisionTreeRegression:
 
     #@accepts(object, DataFrame)
-    def __init__(self, data_frame, df_context, data_frame_helper, spark):
+    def __init__(self, data_frame, df_context, df_helper, spark, meta_parser):
         self._spark = spark
+        self._metaParser = meta_parser
         self._data_frame = data_frame
         self._data_frame1 = data_frame
-        #data_frame_helper = DataFrameHelper(data_frame)
-        #self._data_frame_filterer = DataFrameFilterer(data_frame)
-        self._measure_columns = data_frame_helper.get_numeric_columns()
-        self._dimension_columns = data_frame_helper.get_string_columns()
-        self.date_columns = df_context.get_date_column_suggestions()
-        self._dimension_columns = list(set(self._dimension_columns)-set(self.date_columns))
+        self._dataframe_helper = df_helper
+        self._dataframe_context = df_context
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._dimension_columns = self._dataframe_helper.get_string_columns()
+        self._date_column = self._dataframe_context.get_date_columns()
+        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
+        if self._date_column != None:
+            if len(self._date_column) >0 :
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
+        if len(self._date_column_suggestions) > 0:
+            if self._date_column_suggestions[0] != {}:
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
         self._mapping_dict = {}
         self._new_rules = {}
         self._total = {}
         self._success = {}
         self._probability = {}
-        self._predicts = []
-        self._map = {}
+        self._alias_dict = {}
+        self._important_vars = {}
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        self._scriptStages = {
+            "dtreeTrainingStart":{
+                "summary":"Started the Decision Tree Regression Script",
+                "weight":0
+                },
+            "dtreeTrainingEnd":{
+                "summary":"Decision Tree Regression Learning Finished",
+                "weight":10
+                },
+            }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "dtreeTrainingStart",\
+                                    "info",\
+                                    self._scriptStages["dtreeTrainingStart"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
 
     def parse(self, lines, df):
         block = []
@@ -78,11 +98,8 @@ class DecisionTreeRegression:
                 if "feature" in block2:
                     block2 = "%s %s" % (df.columns[int(block2.split()[1])], ' '.join(block2.split()[2:]))
                 if "Predict" in block2:
-                    temp = float(block2.split(':')[1].strip())
-                    self._predicts.append(temp)
-                    self._predicts.sort()
-                #     outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(':')[1].strip()))]
-                #     block2 = "Predict: %s" % (outcome)
+                    outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(':')[1].strip()))]
+                    block2 = "Predict: %s" % (outcome)
                 block.append({'name':block2})
             else:
                 break
@@ -99,148 +116,158 @@ class DecisionTreeRegression:
             if not line : break
         res = []
         res.append({'name': 'Root', 'children':self.parse(data[1:], df)})
-        measure_column_name = self._target_column
-        self._splits = []
-        start = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.min(measure_column_name)).collect()[0][0]
-        self._splits.append(start)
-        self._label_code = {}
-        label_code = 0.0
-        self._coding = []
-        for idx in range(len(self._predicts)):
-            if idx == len(self._predicts) - 1:
-                end = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.max(measure_column_name)).collect()[0][0]
-            else:
-                end = (self._predicts[idx]+self._predicts[idx+1])/2
-            group_name = NarrativesUtils.round_number(start,2) + ' to ' + NarrativesUtils.round_number(end,2)
-            self._map[self._predicts[idx]] ={'start':start, 'end': end, 'group': group_name}
-            self._label_code[label_code] = group_name
-            start = end
-            label_code = label_code+1
-            self._splits.append(start)
         return res[0]
 
-    @accepts(object, rules = dict, colname = str, rule_list=list)
-    def extract_rules(self, rules, colname, rule_list = []):
-        case = 0
-        var = ''
-        limit = None
-        levels = ''
-        return_value = False
-        new_tree = {}
-        new_tree['name'] = rules['name']
 
+
+    @accepts(object, rule_list=list,target=str)
+    def extract_rules(self, rule_list, target):
+        if not self._important_vars.has_key(target):
+            self._important_vars[target] = []
+        target = self._reverse_map[target]
+        DFF = DataFrameFilterer(self._data_frame1)
+        colname = self._target_dimension
+        success = 0
+        total = 0
+        important_vars = []
+        for rule in rule_list:
+            if ' <= ' in rule:
+                var,limit = re.split(' <= ',rule)
+                DFF.values_below(var,limit)
+            elif ' > ' in rule:
+                var,limit = re.split(' > ',rule)
+                DFF.values_above(var,limit)
+            elif ' not in ' in rule:
+                var,levels = re.split(' not in ',rule)
+                levels=levels[1:-1].split(",")
+                levels = [self._alias_dict[x] for x in levels]
+                DFF.values_not_in(var,levels)
+            elif ' in ' in rule:
+                var,levels = re.split(' in ',rule)
+                levels=levels[1:-1].split(",")
+                levels = [self._alias_dict[x] for x in levels]
+                DFF.values_in(var,levels)
+            important_vars.append(var)
+        for rows in DFF.get_aggregated_result(colname,target):
+            if(rows[0]==target):
+                success = rows[1]
+            total = total + rows[1]
+        target = self._mapping_dict[self._target_dimension][target]
+        self._important_vars[target] = list(set(self._important_vars[target] + important_vars))
+        if (total > 0):
+            if not self._new_rules.has_key(target):
+                self._new_rules[target] = []
+                self._total[target] = []
+                self._success[target] = []
+                self._probability[target] = []
+            self._new_rules[target].append(','.join(rule_list))
+            self._total[target].append(total)
+            self._success[target].append(success)
+            self._probability[target].append(success*100.0/total)
+            return success
+
+
+
+    def generate_new_tree(self,rules, rule_list = []):
+        rules_list=rule_list
+        new_rules = {'name':rules['name']}
         if rules.has_key('children'):
-            new_tree['children'] = []
-            for children in rules['children']:
-                new_tree['children'].append(self.extract_rules(rules=children, colname = colname, rule_list = rule_list+[rules['name']]))
-            return new_tree
+            for rule in rules['children']:
+                if rules['name']!='Root':
+                    val = self.generate_new_tree(rule,rule_list=rules_list+[rules['name']])
+                else:
+                    val = self.generate_new_tree(rule,rule_list=rules_list)
+                if val!=None:
+                    if not new_rules.has_key('children'):
+                        new_rules['children'] = []
+                    new_rules['children'].append(val)
+            return new_rules
         else:
-            DFF = DataFrameFilterer(self._data_frame1)
-            success = 0
-            total = 0
             target = rules['name'][9:]
-            for rule in rule_list:
-                if ' <= ' in rule:
-                    var,limit = re.split(' <= ',rule)
-                    DFF.values_below(var,limit)
-                elif ' > ' in rule:
-                    var,limit = re.split(' > ',rule)
-                    DFF.values_above(var,limit)
-                elif ' not in ' in rule:
-                    var,levels = re.split(' not in ',rule)
-                    DFF.values_not_in(var,levels)
-                elif ' in ' in rule:
-                    var,levels = re.split(' in ',rule)
-                    DFF.values_in(var,levels)
-            self._splits.sort()
-            self._splits = list(set(self._splits))
-            binned_colname = DFF.bucketize(self._splits, colname)
-            target = self._map[float(target.strip())]['group']
-            agg_result = DFF.get_aggregated_result(binned_colname,target)
-            for rows in agg_result:
-                if(self._label_code[rows[0]]==target):
-                    success = rows[1]
-                total = total + rows[1]
-            if (total > 0):
-                if not self._new_rules.has_key(target):
-                    self._new_rules[target] = []
-                    self._total[target] = []
-                    self._success[target] = []
-                    self._probability[target] = []
-                self._new_rules[target].append(','.join(rule_list))
-                self._total[target].append(total)
-                self._success[target].append(success)
-                self._probability[target].append(success*100.0/total)
-                key = float(new_tree['name'][9:])
-                new_tree['name'] = 'Predict: ' + self._map[key]['group']
-                return new_tree
+            num_success = self.extract_rules(rules_list,target)
+            if 'Predict:' in rules['name'] and num_success>0:
+                return new_rules
 
-    @accepts(object, decision_tree = dict, target = str)
-    def generate_probabilities(self, decision_tree, target):
-        colname = target
-        self._new_tree = {}
-        self._new_tree['name'] = decision_tree['name']
-        # self._new_tree['children']=[]
-        for rules in decision_tree['children']:
-            if not self._new_tree.has_key('children'):
-                self._new_tree['children']=[]
-            self._new_tree['children'].append(self.extract_rules(rules=rules, colname=colname))
-            # else:
-            #     self._new_tree['children']=[]
+    def wrap_tree(self, tree):
+        new_tree = {}
+        if "children" in tree.keys() and len(tree['children'])>0:
+            new_tree['name'] = tree['name']
+            for child in tree['children']:
+                val = self.wrap_tree(child)
+                if val!= None:
+                    if not new_tree.has_key('children'):
+                        new_tree['children']=[]
+                    new_tree['children'].append(val)
+            if new_tree.has_key('children'):
+                if len(new_tree['children'])>0:
+                    return new_tree
+        elif 'Predict: ' in tree['name'] or 'Root' in tree['name']:
+            new_tree['name'] = tree['name']
+            return new_tree
 
-    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
-    def test_all(self, measure_columns=None, dimension_columns=None):
-        measures = measure_columns[0]
-        self._target_column = measures
-        #dimension = dimension_columns[0]
-        all_dimensions = self._dimension_columns
-        all_measures = list(x for x in self._measure_columns if x != measures)
-        cat_feature_info = []
-        #columns_without_dimension = list(x for x in all_dimensions if x != dimension)
-        columns_without_dimension = all_dimensions
-        mapping_dict = {}
-        masterMappingDict = {}
-        decision_tree_result = DecisionTreeResult()
-        for column in all_dimensions:
-            mapping_dict[column] = dict(enumerate(self._data_frame.select(column).distinct().rdd.map(lambda x: str(x[0])).collect()))
-        # for c in mapping_dict:
-        #     name = c
-        #     reverseMap = {v: k for k, v in mapping_dict[c].iteritems()}
-        #     udf = UserDefinedFunction(lambda x: reverseMap[x], StringType())
-        #     self._data_frame = self._data_frame.select(*[udf(column).alias(name) if column == name else column for column in self._data_frame.columns])
+    def transform_data_frames(self):
+        self._data_frame, self._mapping_dict = MLUtils.add_string_index(self._data_frame, self._dimension_columns)
+        self._data_frame, clusters = MLUtils.cluster_by_column(self._data_frame, self._target_dimension)
+        self._data_frame1, self._aggr_data = MLUtils.cluster_by_column(self._data_frame1, self._target_dimension, get_aggregation=True)
+        self._cluster_order = [x[1] for x in sorted(zip(clusters,[0,1,2]))]
+        self._mapping_dict[self._target_dimension] = dict(zip(self._cluster_order,\
+                                                    ['Low','Medium','High']))
+        self._reverse_map = {}
+        for k,v in self._mapping_dict[self._target_dimension].iteritems():
+            self._reverse_map[v] = k
+        self.set_alias_dict()
 
-        # converting spark dataframe to pandas for transformation and then back to spark dataframe
-        pandasDataFrame = self._data_frame.toPandas()
-        for key in mapping_dict:
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: 'None' if x==None else x)
-            reverseMap = {v: k for k, v in mapping_dict[key].iteritems()}
-            pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: reverseMap[x])
-        # sqlCtx = SQLContext(self._spark)
-        self._data_frame = self._spark.createDataFrame(pandasDataFrame)
+    def set_alias_dict(self):
+        mapping_dict = self._mapping_dict
+        for k,v in mapping_dict.items():
+            temp = {}
+            for k1,v1 in v.items():
+                self._alias_dict[v1.replace(",","")] = v1
+                temp[k1] = v1.replace(",","")
+            mapping_dict[k] = temp
         self._mapping_dict = mapping_dict
-        for c in columns_without_dimension:
-            cat_feature_info.append(self._data_frame.select(c).distinct().count())
+
+    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
+    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=50):
+        if dimension_columns is None:
+            dimensions = self._dimension_columns
+        self._target_dimension = measure_columns[0]
+        dimension = self._target_dimension
+        max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
+        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
+        all_measures = [x for x in self._measure_columns if x!=self._target_dimension]
+        self.transform_data_frames()
+        decision_tree_result = DecisionTreeResult()
+        cat_feature_info = [len(self._mapping_dict[c]) for c in all_dimensions]
         if len(cat_feature_info)>0:
             max_length = max(cat_feature_info)
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
-        #dimension_classes = self._data_frame.select(dimension).distinct().count()
-        self._data_frame = self._data_frame[[measures] + columns_without_dimension + all_measures]
+        dimension_classes = self._data_frame.select(dimension).distinct().count()
+        self._data_frame = self._data_frame[[dimension] + all_dimensions + all_measures]
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        model = DecisionTree.trainRegressor(trainingData,  categoricalFeaturesInfo=cat_feature_info, impurity='variance', maxDepth=3, maxBins=max_length)
+        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=3, maxBins=max_length)
         output_result = model.toDebugString()
         decision_tree = self.tree_json(output_result, self._data_frame)
-        self.generate_probabilities(decision_tree, measures)
+        self._new_tree = self.generate_new_tree(decision_tree)
+        self._new_tree = self.wrap_tree(self._new_tree)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
-        # print '^'*100
-        # print 'TREE : ', {'tree':self._new_tree}
-        # print 'RULES : ' , self._new_rules
-        # print 'Total : ', self._total
-        # print 'Success : ', self._success
-        # print 'Probability : ', self._probability
+        decision_tree_result.set_target_map(self._mapping_dict[self._target_dimension], self._aggr_data, self._important_vars)
+
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "dtreeTrainingEnd",\
+                                    "info",\
+                                    self._scriptStages["dtreeTrainingEnd"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
+
         return decision_tree_result

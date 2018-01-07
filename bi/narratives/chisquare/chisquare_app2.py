@@ -1,14 +1,8 @@
-import os
-import jinja2
-import re
-import pattern.en
-from bi.common.utils import accepts
-from bi.common.results import ChiSquareResult
-from bi.common.results import DFChiSquareResult
-# from bi.narratives.utils import NarrativesUtils
 import operator
-import numpy
-import json
+import os
+
+from bi.narratives import utils as NarrativesUtils
+
 
 def combine(l):
     if len(l) == 1:
@@ -21,7 +15,7 @@ def combine(l):
     return ''
 
 class ChiSquareAnalysisApp2:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, appid=None):
+    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables,base_dir,appid=None):
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
         self._analysed_dimension = analysed_dimension
@@ -31,13 +25,7 @@ class ChiSquareAnalysisApp2:
         self.effect_size = chisquare_result.get_effect_size()
         self.analysis = {}
         self.appid = appid
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/chisquare/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/chisquare/"
-        if self.appid != None:
-            if self.appid == "1":
-                self._base_dir += "appid1/"
-            elif self.appid == "2":
-                self._base_dir += "appid2/"
+        self._base_dir = base_dir
         self._generate_narratives()
 
     def _get_bin_names (self,splits):
@@ -174,17 +162,9 @@ class ChiSquareAnalysisApp2:
                       'maximums' : maximums,
                       'minimums' : minimums
         }
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('chisquare_template3.temp')
-        analysis1 = template.render(data_dict).replace("\n", "")
-        analysis1 = re.sub(' +',' ',analysis1)
+        analysis1 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template3.html',data_dict)
         title1 = ''
-        templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-        template = templateEnv.get_template('chisquare_template4.temp')
-        analysis2 = template.render(data_dict).replace("\n", "")
-        analysis2 = re.sub(' +',' ',analysis2)
+        analysis2 = NarrativesUtils.get_template_output(self._base_dir,'chisquare_template4.html',data_dict)
         title2 = ''
 
         self.analysis = {'title1':'',

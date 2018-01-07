@@ -1,5 +1,0 @@
-The different categories of {{target_dimension}} have significant portion of their observations coming from specific segments of {{analysed_dimension}}.
-{% for k in maximums %} {{analysed_dimension}}-{{k}} contributes to the most number of {{maximums[k]}}. {% endfor %}
-{% if num_categories>2 %}
-{% for k in minimums %} {{analysed_dimension}}-{{k}} is the least significant contributor of {{minimums[k]}}. {% endfor %}
-{% endif %}

@@ -1,8 +1,7 @@
-from pyspark.ml.regression import LinearRegression as LR
 from pyspark.ml.linalg import DenseVector
+from pyspark.ml.regression import LinearRegression as LR
 from pyspark.sql.functions import col
 
-from bi.common.utils import accepts
 from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult
 from bi.common.results.regression import RegressionResult
@@ -24,6 +23,7 @@ class LinearRegression:
         self._string_columns = [c for c in self._string_columns if df_helper.get_num_unique_values(c)<=15]
         self._levels = {}
         for c in self._string_columns:
+            # Not calling meta here, this file is not being used
             self._levels[c] = df_helper.get_all_levels(c)
 
     def fit_all(self):

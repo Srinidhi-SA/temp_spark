@@ -1,0 +1,39 @@
+<h3>Score Summary</h3>
+{{blockSplitter}}
+{% if nlevel >2 %}
+  <p>
+    The {{targetcol}} variable has {{nlevel}} sublevels,
+    top two being {{topLevel["name"]}} and {{secondLevel["name"]}}
+    with {{topLevel["count"]}} and {{secondLevel["count"]}} observations respectively.
+  </p>
+{% elif nlevel==2 %}
+  <p>
+    The {{targetcol}} variable has only {{nlevel}} values, i.e,{{topLevel["name"]}} and {{secondLevel["name"]}}.
+    {{topLevel["name"]}} is the largest with {{topLevel["count"]}} whereas {{secondLevel["name"]}} is the smallest with {{secondLevel["count"]}} observations.
+  </p>
+{% endif %}
+{{blockSplitter}}
+<div className='col-md-4 pred_disp_block_store cursor'>
+    <h1 class="text-warning">{{topLevel["percentage"]}}
+      <small>
+         {{topLevel["name"]}}
+      </small>
+    </h1>
+    <h3 class="pull-left xs-pr-10 xs-mt-10 xs-pb-10"><b>{{topLevel["count"]}}</b></h3>
+  <p>
+    Observations are predicted to have {{targetcol}} as {{topLevel["name"]}}
+  </p>
+</div>
+{{blockSplitter}}
+
+<div className='col-md-4 pred_disp_block_store cursor'>
+    <h1 class="text-warning">{{secondLevel["percentage"]}}
+      <small>
+        {{secondLevel["name"]}}
+      </small>
+    </h1>
+    <h3 class="pull-left xs-pr-10 xs-mt-10 xs-pb-10"><b>{{secondLevel["count"]}}</b></h3>
+  <p>
+    Observations are predicted to have {{targetcol}} as {{secondLevel["name"]}}
+  </p>
+</div>

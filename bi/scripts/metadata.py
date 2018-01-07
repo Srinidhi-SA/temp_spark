@@ -1,50 +1,285 @@
-# -*- coding: utf-8 -*-
-"""Gathers descriptive stats for all columns in a dataframe"""
-
-import sys
-import argparse
 import json
+import random
+import time
+import uuid
+import datetime as dt
 
-from bi.common import utils
-from bi.common import DataLoader
+from pyspark.sql import functions as FN
+from pyspark.sql.functions import udf, col
+from pyspark.sql.types import DateType, FloatType
+from pyspark.sql.types import StringType
+
 from bi.common import DataWriter
+from bi.common import ColumnType
+from bi.common import utils as CommonUtils
 from bi.common import MetaDataHelper
-# from bi.common import ContextSetter
-
-def get_argument_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input', type=str, help='HDFS location of input csv file')
-    parser.add_argument('--result', type=str, help='HDFS output location to store descriptive stats')
-    return parser
+from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
 
 
-#if __name__ == '__main__':
-def main(inputPath,resultPath):
-    APP_NAME = "DataFrame Metadata"
-    spark = utils.get_spark_session(app_name=APP_NAME)
-    spark.sparkContext.setLogLevel("ERROR")
-    CSV_FILE = inputPath #arguments.input
-    RESULT_FILE = resultPath#arguments.result
-    df = DataLoader.load_csv_file(spark, CSV_FILE)
-    # df_context = ContextSetter(df)
-    meta_helper = MetaDataHelper(df, transform = 1)
-    #meta_helper.get_datetime_suggestions()
-    if meta_helper.has_date_suggestions():
-        meta_helper.get_formats()
-    print "File loaded: ", CSV_FILE
-    meta_data = utils.as_dict(meta_helper)
-    meta_data = json.dumps(meta_data)
-    # print  meta_data
-    print '-'*20
+class MetaDataScript:
+    def __init__(self, data_frame, spark, dataframe_context):
+        self._dataframe_context = dataframe_context
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        self._start_time = time.time()
+        self._analysisName = "metadata"
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._ignoreMsgFlag = self._dataframe_context.get_metadata_ignore_msg_flag()
+        self._scriptStages = {
+            "schema":{
+                "summary":"Loaded the data and Schema is Run",
+                "weight":12
+                },
+            "sampling":{
+                "summary":"Sampling the dataframe",
+                "weight":5
+                },
+            "measurestats":{
+                "summary":"calculating stats for measure columns",
+                "weight":25
+                },
+            "dimensionstats":{
+                "summary":"calculating stats for dimension columns",
+                "weight":25
+                },
+            "timedimensionstats":{
+                "summary":"calculating stats for time dimension columns",
+                "weight":5
+                },
+            "suggestions":{
+                "summary":"Ignore and Date Suggestions",
+                "weight":25
+                },
+            }
 
-    DataWriter.write_dict_as_json(spark, {'Metadata':meta_data}, RESULT_FILE)
-     #spark.stop()
+        self._binned_stat_flag = True
+        self._level_count_flag = True
+        self._stripTimestamp = True
+        self._data_frame = data_frame
+        self._spark = spark
+        self._total_columns = len([field.name for field in self._data_frame.schema.fields])
+        self._total_rows = self._data_frame.count()
+        self._max_levels = min(200, round(self._total_rows**0.5))
 
-if __name__ == '__main__':
-    argument_parser = get_argument_parser()
-    arguments = argument_parser.parse_args()
-    if arguments.input is None \
-            or arguments.result is None:
-        print 'One of the aguments --input / --result is missing'
-        sys.exit(-1)
-    main(arguments.input,arguments.result)
+        self._percentage_columns = []
+        self._numeric_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
+        self._string_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
+        self._timestamp_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
+        self._boolean_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
+        self._real_columns = [field.name for field in self._data_frame.schema.fields if
+                ColumnType(type(field.dataType)).get_actual_data_type() == ColumnType.REAL]
+        self._column_type_dict = {}
+        self.update_column_type_dict()
+
+        time_taken_schema = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["schema"]["weight"]
+        print "schema trendering takes",time_taken_schema
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "schema",\
+                                    "info",\
+                                    self._scriptStages["schema"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+
+    def update_column_type_dict(self):
+        self._column_type_dict = dict(\
+                                        zip(self._numeric_columns,[{"actual":"measure","abstract":"measure"}]*len(self._numeric_columns))+\
+                                        zip(self._string_columns,[{"actual":"dimension","abstract":"dimension"}]*len(self._string_columns))+\
+                                        zip(self._timestamp_columns,[{"actual":"datetime","abstract":"datetime"}]*len(self._timestamp_columns))+\
+                                        zip(self._boolean_columns,[{"actual":"boolean","abstract":"dimension"}]*len(self._boolean_columns))\
+                                     )
+
+    def run(self):
+        self._start_time = time.time()
+        metaHelperInstance = MetaDataHelper(self._data_frame, self._total_rows)
+        sampleData = metaHelperInstance.get_sample_data()
+        sampleData = sampleData.toPandas()
+        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
+
+        time_taken_sampling = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["sampling"]["weight"]
+        print "sampling takes",time_taken_sampling
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "sampling",\
+                                    "info",\
+                                    self._scriptStages["sampling"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+
+        metaData = []
+        metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
+        metaData.append(MetaData(name="noOfColumns",value=self._total_columns,display=True,displayName="Columns"))
+        self._percentage_columns = metaHelperInstance.get_percentage_columns(self._string_columns)
+        if len(self._percentage_columns)>0:
+            self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame,self._percentage_columns)
+            self._numeric_columns = self._numeric_columns + self._percentage_columns
+            self._string_columns = list(set(self._string_columns)-set(self._percentage_columns))
+            self.update_column_type_dict()
+
+        if len(self._numeric_columns) > 1:
+            print "self._numeric_columns : ", self._numeric_columns
+            metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measures"))
+        else:
+            metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measure"))
+        if len(self._string_columns) > 1:
+            metaData.append(MetaData(name="dimensions",value=len(self._string_columns+self._boolean_columns),display=True,displayName="Dimensions"))
+        else:
+            metaData.append(MetaData(name="dimensions",value=len(self._string_columns+self._boolean_columns),display=True,displayName="Dimension"))
+        if len(self._timestamp_columns) > 1:
+            metaData.append(MetaData(name="timeDimension",value=len(self._timestamp_columns),display=True,displayName="Time Dimensions"))
+        else:
+            metaData.append(MetaData(name="timeDimension",value=len(self._timestamp_columns),display=True,displayName="Time Dimension"))
+
+        metaData.append(MetaData(name="measureColumns",value = self._numeric_columns,display=False))
+        metaData.append(MetaData(name="dimensionColumns",value = self._string_columns+self._boolean_columns,display=False))
+        metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
+        metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
+        columnData = []
+        headers = []
+
+        self._start_time = time.time()
+        print "Count of Numeric columns",len(self._numeric_columns)
+        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
+        time_taken_measurestats = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["measurestats"]["weight"]
+        print "measure stats takes",time_taken_measurestats
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "measurestats",\
+                                    "info",\
+                                    self._scriptStages["measurestats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+
+        self._start_time = time.time()
+        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
+        time_taken_dimensionstats = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["dimensionstats"]["weight"]
+        print "dimension stats takes",time_taken_dimensionstats
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "dimensionstats",\
+                                    "info",\
+                                    self._scriptStages["dimensionstats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+
+        self._start_time = time.time()
+        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        time_taken_tdstats = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["timedimensionstats"]["weight"]
+        print "time dimension stats takes",time_taken_tdstats
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "timedimensionstats",\
+                                    "info",\
+                                    self._scriptStages["timedimensionstats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+
+        self._start_time = time.time()
+        ignoreColumnSuggestions = []
+        ignoreColumnReason = []
+        utf8ColumnSuggestion = []
+        dateTimeSuggestions = {}
+        for column in self._data_frame.columns:
+            random_slug = uuid.uuid4().hex
+            headers.append(ColumnHeader(name=column,slug=random_slug))
+            data = ColumnData()
+            data.set_slug(random_slug)
+            data.set_name(column)
+            data.set_abstract_datatype(self._column_type_dict[column]["abstract"])
+
+            columnStat = []
+            columnChartData = None
+            if self._column_type_dict[column]["abstract"] == "measure":
+                data.set_column_stats(measureColumnStat[column])
+                data.set_column_chart(measureCharts[column])
+                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+            elif self._column_type_dict[column]["abstract"] == "dimension":
+                data.set_column_stats(dimensionColumnStat[column])
+                data.set_column_chart(dimensionCharts[column])
+                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+            elif self._column_type_dict[column]["abstract"] == "datetime":
+                data.set_column_stats(timeDimensionColumnStat[column])
+                data.set_column_chart(timeDimensionCharts[column])
+                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+
+
+            if self._column_type_dict[column]["abstract"] == "measure":
+                if column not in self._real_columns:
+                    ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
+                    if ignoreSuggestion:
+                        ignoreColumnSuggestions.append(column)
+                        ignoreColumnReason.append(ignoreReason)
+                        data.set_level_count_to_null()
+                        data.set_chart_data_to_null()
+                        data.set_ignore_suggestion_flag(True)
+                        data.set_ignore_suggestion_message(ignoreReason)
+
+            elif self._column_type_dict[column]["abstract"] == "dimension":
+                if self._level_count_flag:
+                    utf8Suggestion = metaHelperInstance.get_utf8_suggestions(dimensionColumnStat[column])
+                else:
+                    utf8Suggestion = False
+                # dateColumn = metaHelperInstance.get_datetime_suggestions(self._data_frame,column)
+                uniqueVals = self._data_frame.select(column).distinct().na.drop().collect()
+                if len(uniqueVals) > 0:
+                    dateColumnFormat = metaHelperInstance.get_datetime_format([uniqueVals[0][column]])
+                else:
+                    dateColumnFormat = None
+                if dateColumnFormat:
+                    dateTimeSuggestions.update({column:dateColumnFormat})
+                    data.set_level_count_to_null()
+                    data.set_chart_data_to_null()
+                    data.set_date_suggestion_flag(True)
+
+                if utf8Suggestion:
+                    utf8ColumnSuggestion.append(column)
+                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
+                if ignoreSuggestion:
+                    ignoreColumnSuggestions.append(column)
+                    ignoreColumnReason.append(ignoreReason)
+                    data.set_level_count_to_null()
+                    data.set_chart_data_to_null()
+                    data.set_ignore_suggestion_flag(True)
+                    data.set_ignore_suggestion_message(ignoreReason)
+
+            columnData.append(data)
+        for dateColumn in dateTimeSuggestions.keys():
+            if dateColumn in ignoreColumnSuggestions:
+                ignoreColIdx = ignoreColumnSuggestions.index(dateColumn)
+                ignoreColumnSuggestions.remove(dateColumn)
+                del(ignoreColumnReason[ignoreColIdx])
+        for utfCol in utf8ColumnSuggestion:
+            ignoreColumnSuggestions.append(utfCol)
+            ignoreColumnReason.append("utf8 values present")
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Validating Metadata Informatio",self._completionStatus,self._completionStatus,display=True)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+        metaData.append(MetaData(name="ignoreColumnSuggestions",value = ignoreColumnSuggestions,display=False))
+        metaData.append(MetaData(name="ignoreColumnReason",value = ignoreColumnReason,display=False))
+        metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
+        metaData.append(MetaData(name="dateTimeSuggestions",value = dateTimeSuggestions,display=False))
+        dfMetaData = DfMetaData()
+        dfMetaData.set_column_data(columnData)
+        dfMetaData.set_header(headers)
+        dfMetaData.set_meta_data(metaData)
+        dfMetaData.set_sample_data(sampleData)
+
+        time_taken_suggestions = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["suggestions"]["weight"]
+        print "suggestions take",time_taken_suggestions
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "suggestions",\
+                                    "info",\
+                                    self._scriptStages["suggestions"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+
+        return dfMetaData

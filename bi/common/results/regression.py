@@ -26,17 +26,17 @@ class RegressionResult:
             RegressionResult.COEFFICIENTS: {}
         }
 
-    @accepts(object, intercept=(int, long, float), coefficients=(tuple, list), rmse=(int, long, float),
-        r2=(int, long, float), t_values=(tuple, list), p_values=(tuple, list), sample_data_dict=(dict), lr_dimension=dict)
+    # @accepts(object, intercept=(int, long, float), coefficients=(tuple, list), rmse=(int, long, float),
+    #     r2=(int, long, float), t_values=(tuple, list), p_values=(tuple, list), sample_data_dict=(dict), lr_dimension=dict)
 
-    def set_params(self, intercept=0.0, coefficients=[], rmse=0.0, r2=0.0, t_values=[], p_values=[], sample_data_dict={},lr_dimension={}):
+    def set_params(self, intercept=[], coefficients=[], rmse=[], r2=[], t_values=[], p_values=[], sample_data_dict={},lr_dimension={}):
         self.stats[RegressionResult.INTERCEPT] = intercept
         self.stats[RegressionResult.RMSE] = rmse
         self.stats[RegressionResult.R2] = r2
         self.MVD_analysis = lr_dimension
         indexed_coefficients = [(self._input_columns[index], coefficients[index], index) \
                                 for index in range(0, len(coefficients)) if coefficients[index] != 0.0]
-        sorted_indexed_coefficients = sorted(indexed_coefficients, key=lambda x: x[1])
+        sorted_indexed_coefficients = sorted(indexed_coefficients, key=lambda x: abs(x[1]),reverse=True)
         for coeff_tuple in sorted_indexed_coefficients:
             input_col = coeff_tuple[0]
             self.sample_data[input_col] = sample_data_dict[input_col]
@@ -45,7 +45,7 @@ class RegressionResult:
             index = coeff_tuple[2]
             self.stats[RegressionResult.COEFFICIENTS][input_col] = {
                 RegressionResult.COEFF: coeff,
-                RegressionResult.P_VALUE: 0.0, #p_values[index],
+                RegressionResult.P_VALUE: p_values[index], #p_values[index],
                 RegressionResult.T_VALUE: 0.0 #t_values[index]
             }
 
@@ -72,6 +72,8 @@ class RegressionResult:
 
         return self.stats.get(RegressionResult.COEFFICIENTS).get(input_column).get(RegressionResult.COEFF)
 
+    def get_all_coeff(self):
+        return self.stats[RegressionResult.COEFFICIENTS]
 
 class DFRegressionResult:
     def __init__(self):

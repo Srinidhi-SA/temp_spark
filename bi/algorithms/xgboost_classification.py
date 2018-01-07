@@ -1,31 +1,9 @@
-from pyspark.sql import DataFrame
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import UserDefinedFunction
-from pyspark.sql import SQLContext
-
-from bi.common.decorators import accepts
-from bi.common import BIException
-from bi.common import DataFrameHelper
-from bi.common.datafilterer import DataFrameFilterer
-from bi.common import utils
-
-import time
-import math
-import random
-import itertools
-from datetime import datetime
-from datetime import timedelta
-from collections import Counter
-
-import numpy as np
-import pandas as pd
 import xgboost as xgb
+import operator
+from sklearn import preprocessing
 
-from sklearn.feature_extraction import DictVectorizer as DV
-from sklearn import linear_model, cross_validation, grid_search
-from sklearn.metrics import roc_curve, auc
-from sklearn.feature_selection import RFECV
 from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
 
 
 
@@ -52,22 +30,25 @@ class XgboostClassifier:
         feature_importance => features ranked by their Importance
         feature_Weight => weight of features
         """
+        labelEncoder = preprocessing.LabelEncoder()
+        labelEncoder.fit(y_train)
         if len(drop_cols) > 0:
             x_train = drop_columns(x_train,drop_cols)
             x_test = drop_columns(x_test,drop_cols)
-
-        clf.fit(x_train, y_train)
+        y_train = labelEncoder.transform(y_train)
+        classes = labelEncoder.classes_
+        transformed = labelEncoder.transform(classes)
+        labelMapping = dict(zip(transformed,classes))
+        clf = clf.fit(x_train, y_train)
         y_score = clf.predict(x_test)
+        y_score = labelEncoder.inverse_transform(y_score)
         y_prob = clf.predict_proba(x_test)
         y_prob = [0]*len(y_score)
 
-        importances = clf.feature_importances_
-        importances = map(float,importances)
-        feature_importance = clf.feature_importances_.argsort()[::-1]
-        imp_cols = [x_train.columns[x] for x in feature_importance]
-        feature_importance = dict(zip(imp_cols,importances))
-
-        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance}
+        feature_importance = dict(sorted(zip(x_train.columns,clf.feature_importances_),key=lambda x: x[1],reverse=True))
+        for k, v in feature_importance.iteritems():
+            feature_importance[k] = CommonUtils.round_sig(v)
+        return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
 
     def predict(self,x_test,trained_model,drop_cols):
         """

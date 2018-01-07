@@ -10,6 +10,8 @@ from pyspark.sql.types import LongType
 from pyspark.sql.types import ShortType
 from pyspark.sql.types import StringType
 from pyspark.sql.types import TimestampType
+from pyspark.sql.types import BooleanType
+
 
 from decorators import accepts
 
@@ -22,12 +24,14 @@ class ColumnType:
     MEASURE = 'Measure'
     DIMENSION = 'Dimension'
     TIME_DIMENSION = 'TimeDimension'
+    BOOLEAN = 'Boolean'
     # actual data types generalized
     INTEGER = 'INTEGER'
     REAL = 'REAL NUMBER'
     STRING = 'STRING'
     DATE = 'DATE'
     TIME_STAMP = 'TIME STAMP'
+    BOOL = 'BOOLEAN'
 
     def __init__(self, data_type):
         self._data_type = data_type
@@ -55,6 +59,10 @@ class ColumnType:
         elif self._data_type in (TimestampType,):
             self._actual_data_type = ColumnType.TIME_STAMP
             self._abstract_data_type = ColumnType.TIME_DIMENSION
+
+        elif self._data_type in (BooleanType, ):
+            self._actual_data_type = ColumnType.BOOL
+            self._abstract_data_type = ColumnType.BOOLEAN
 
         else:
             self._actual_data_type = ColumnType.UNKNOWN

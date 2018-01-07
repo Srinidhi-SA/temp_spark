@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
-import sys
 import argparse
-import numpy as np
+import json
+import sys
+from collections import Counter
+
 import pandas as pd
 from datetime import datetime
-from datetime import timedelta
-import json
-from collections import Counter
-from functools import reduce
-from pyspark.sql import DataFrame
 
-from bi.common import utils
 from bi.common import DataLoader
 from bi.common import DataWriter
-from bi.common import DataFrameHelper
+from bi.common import utils as CommonUtils
+
 
 def get_argument_parser():
     parser = argparse.ArgumentParser()
@@ -40,7 +37,7 @@ if __name__ == '__main__':
         print 'One of the aguments --input1 / --input2 / --input3 / --result / --narratives is missing'
         sys.exit(-1)
 
-    spark = utils.get_spark_session(app_name=APP_NAME)
+    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
 
     input1 = arguments.input1

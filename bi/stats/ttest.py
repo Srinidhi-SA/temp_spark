@@ -2,9 +2,9 @@ import math
 
 import pyspark.sql.functions as FN
 
-from ..common import DataFrameHelper
 from bi.common.exception import BIException
 from bi.stats.util import Stats
+from ..common import DataFrameHelper
 
 
 class IndependentSampleTTest:

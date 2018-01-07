@@ -1,21 +1,18 @@
-from pyspark.sql import functions as FN
+import math
+import time
+from itertools import chain
 
-from bi.common.decorators import accepts
+from pyspark.ml.feature import Bucketizer
+from pyspark.mllib.linalg import Matrices
+from pyspark.mllib.stat import Statistics
+from pyspark.sql.types import DoubleType
+
 from bi.common import BIException
-
-from bi.common.results.chisquare import ContingencyTable
+from bi.common.decorators import accepts
 from bi.common.results import ChiSquareResult
 from bi.common.results import DFChiSquareResult
-
-
-from pyspark.mllib.stat import Statistics
-from pyspark.mllib.linalg import Matrices
-from pyspark.sql.types import DoubleType
-from pyspark.ml.feature import Bucketizer
-
-import json
-import math
-from itertools import chain
+from bi.common.results.chisquare import ContingencyTable
+from bi.common import utils as CommonUtils
 
 """
 Chi Square Test
@@ -27,30 +24,86 @@ class ChiSquare:
     COUNT_COLUMN_NAME = '__count'
     SUM_OF_SQUARES = '__sum_of_squares'
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context,scriptWeight=None, analysisName=None):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._dimension_columns = self._dataframe_helper.get_string_columns()
+        self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
+        self._date_column = self._dataframe_context.get_date_columns()
+        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
+        if self._date_column != None:
+            if len(self._date_column) >0 :
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
+        if len(self._date_column_suggestions) > 0:
+            if self._date_column_suggestions[0] != {}:
+                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        self._analysisDict = self._dataframe_context.get_analysis_dict()
+        self._messageURL = self._dataframe_context.get_message_url()
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Chisquare Scripts",
+                "weight":1
+                },
+            "chisquareStats":{
+                "summary":"running chisquare for relevant dimension columns",
+                "weight":2
+                },
+            "completion":{
+                "summary":"Chisquare Stats Calculated",
+                "weight":7
+                },
+            }
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["initialization"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "initialization",\
+                                    "info",\
+                                    self._scriptStages["initialization"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
     def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=40):
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["chisquareStats"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "chisquareStats",\
+                                    "info",\
+                                    self._scriptStages["chisquareStats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         dimension = dimension_columns[0]
-        all_dimensions = self._dataframe_helper.get_string_columns()
-        all_measures = self._dataframe_helper.get_numeric_columns()
-
+        all_dimensions = self._dimension_columns
+        all_dimensions = [x for x in all_dimensions if x != dimension]
+        # if self._analysisDict != {}:
+        #     nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        # else:
+        #     nColsToUse = None
+        # if nColsToUse != None:
+        #     all_dimensions = all_dimensions[:nColsToUse]
+        all_measures = self._measure_columns
         df_chisquare_result = DFChiSquareResult()
-        date_cols = self._dataframe_context.get_date_column_suggestions()
-        if date_cols == None:
-            date_cols = []
-
         for d in all_dimensions:
-            if d != dimension and d not in date_cols:
-                try:
-                    chisquare_result = self.test(dimension, d)
-                    df_chisquare_result.add_chisquare_result(dimension, d, chisquare_result)
-                except Exception, e:
-                    print repr(e), d
-                    continue
+            try:
+                chisquare_result = self.test(dimension, d)
+                df_chisquare_result.add_chisquare_result(dimension, d, chisquare_result)
+            except Exception, e:
+                print repr(e), d
+                continue
         for m in all_measures:
             try:
                 chisquare_result = self.test_measures(dimension, m)
@@ -59,69 +112,68 @@ class ChiSquare:
                 print str(e), m
                 continue
 
+        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["completion"]["weight"]/10
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "completion",\
+                                    "info",\
+                                    self._scriptStages["completion"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
         return df_chisquare_result
 
     @accepts(object, basestring, basestring)
     def test(self, dimension_name, dimension_column_name):
         if not dimension_name in self._dataframe_helper.get_string_columns():
             raise BIException.non_string_column(dimension_column_name)
-
         chisquare_result = ChiSquareResult()
-
-        pivot_table = self._data_frame.stat.crosstab(dimension_name, dimension_column_name)
+        pivot_table = self._data_frame.stat.crosstab("{}".format(dimension_name), dimension_column_name)
         # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns) - 1, rdd)
-
         result = Statistics.chiSqTest(data_matrix)
-
         chisquare_result.set_params(result)
-
-        freq_table = self._get_contingency_table_of_freq(pivot_table)
-        percentage_table = self._get_contigency_table_of_percentages(pivot_table)
-        percentage_table_rounded = self._get_contigency_table_of_percentages_rounded(pivot_table)
-        percentage_table_rounded_by_target = self._get_contigency_table_of_percentages_rounded_by_target(pivot_table)
-        chisquare_result.set_table_result(freq_table, percentage_table,percentage_table_rounded,percentage_table_rounded_by_target)
-
+        freq_table = self._get_contingency_table_of_freq(pivot_table, need_sorting = True)
+        freq_table.set_tables()
+        chisquare_result.set_table_result(freq_table)
         # Cramers V Calculation
-
         stat_value = result.statistic
         n = freq_table.get_total()
         t = min(len(freq_table.column_one_values), len(freq_table.column_two_values))
-
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
         chisquare_result.set_v_value(v_value)
-
+        freq_table.set_tables()
+        self._dataframe_helper.add_chisquare_significant_dimension(dimension_column_name,v_value)
         return chisquare_result
 
     @accepts(object, basestring, basestring)
     def test_measures(self, dimension_name, measure_column_name):
         chisquare_result = ChiSquareResult()
-
         df = self._data_frame.withColumn(measure_column_name, self._data_frame[measure_column_name].cast(DoubleType()))
+        measureSummaryDict = dict(df.describe([measure_column_name]).toPandas().values)
+        if float(measureSummaryDict["count"]) > 10:
+            maxval = float(measureSummaryDict["max"])
+            minval = float(measureSummaryDict["min"])
+            step = (maxval - minval) / 5.0
+            splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3), minval + (step * 4), math.ceil(maxval)]
+            bucketizer = Bucketizer(splits=splits, inputCol=measure_column_name, outputCol="bucketedColumn")
+            # bucketedData = bucketizer.transform(df)
+            bucketedData = bucketizer.transform(df.na.drop(subset=measure_column_name))
+            pivot_table = bucketedData.stat.crosstab("{}".format(dimension_name), 'bucketedColumn')
+        else:
+            pivot_table = df.stat.crosstab("{}".format(dimension_name), measure_column_name)
 
-        maxval = df.select(measure_column_name).toPandas().max()[0]
-        minval = df.select(measure_column_name).toPandas().min()[0]
-        step = (maxval - minval) / 5.0
-        splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3), minval + (step * 4), math.ceil(maxval)]
-        bucketizer = Bucketizer(splits=splits, inputCol=measure_column_name, outputCol="bucketedColumn")
-        # bucketedData = bucketizer.transform(df)
-        bucketedData = bucketizer.transform(df.na.drop(subset=measure_column_name))
-
-        pivot_table = bucketedData.stat.crosstab(dimension_name, 'bucketedColumn')
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
         result = Statistics.chiSqTest(data_matrix)
         chisquare_result.set_params(result)
 
         freq_table = self._get_contingency_table_of_freq(pivot_table)
-        percentage_table = self._get_contigency_table_of_percentages(pivot_table)
-        percentage_table_rounded = self._get_contigency_table_of_percentages_rounded(pivot_table)
-        percentage_table_rounded_by_target = self._get_contigency_table_of_percentages_rounded_by_target(pivot_table)
-        chisquare_result.set_table_result(freq_table, percentage_table,percentage_table_rounded,percentage_table_rounded_by_target)
-
+        freq_table.update_col2_names(splits)
+        freq_table.set_tables()
+        chisquare_result.set_table_result(freq_table)
         # Cramers V Calculation
-
         stat_value = result.statistic
         n = freq_table.get_total()
         t = min(len(freq_table.column_one_values), len(freq_table.column_two_values))
@@ -129,11 +181,11 @@ class ChiSquare:
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
         chisquare_result.set_v_value(v_value)
         chisquare_result.set_split_values([float(x) for x in splits])
-
+        # chisquare_result.set_buckeddata(bucketedData)
         return chisquare_result
 
 
-    def _get_contingency_table_of_freq(self, pivot_table):
+    def _get_contingency_table_of_freq(self, pivot_table, need_sorting=False):
         '''
 
         :param pivot_table:
@@ -149,6 +201,8 @@ class ChiSquare:
             column_one_values.append(row[0])
 
         contigency_table = ContingencyTable(column_one_values, column_two_values)
+        if need_sorting:
+            contigency_table.update_col2_order()
         for row in rows:
             column_one_val = row[0]
             contigency_table.add_row(column_one_val, [float(value) for value in row[1:]])

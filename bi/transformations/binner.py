@@ -1,12 +1,10 @@
-from pyspark.sql import DataFrame
+from pyspark.ml.feature import Bucketizer
 from pyspark.sql import functions as FN
 from pyspark.sql.types import DoubleType
-from pyspark.ml.feature import Bucketizer
 
 from bi.common import BIException
-from bi.common import utils
+from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
-
 from bi.common.results import DataFrameHistogram
 from bi.common.results import Histogram
 
@@ -72,7 +70,14 @@ class Binner:
             min_max = self._data_frame.agg(FN.min(column_name).alias('min'), FN.max(column_name).alias('max')).collect()
             min_value = min_max[0]['min']
             max_value = min_max[0]['max']
-            splits = utils.frange(min_value, max_value, num_bins)
+            # splits = CommonUtils.frange(min_value, max_value, num_bins)
+            splits = CommonUtils.return_optimum_bins(self._data_frame.select(column_name).toPandas()[column_name])
+            if splits[0]>min_value:
+                splits = [min_value]+list(splits)
+                print "Min Point Added"
+            if splits[-1]<max_value:
+                splits = list(splits)+[max_value]
+                print "Max Point Added"
         else:
             splits = split_points
         # cast column_name to double type if needed, otherwise Bucketizer does not work

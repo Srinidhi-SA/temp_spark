@@ -1,29 +1,20 @@
 import os
-import jinja2
-import re
-import pattern.en
-import re
-from bi.common.utils import accepts
-from bi.common import utils
-from bi.narratives import utils as NarrativesUtils
-from bi.common.results.anova import AnovaResult
-from bi.stats.posthoctests import TuckeyHSD
-from bi.narratives import utils as NarrativesUtils
 
 from pyspark.sql import functions as FN
 
+from bi.narratives import utils as NarrativesUtils
+
+
 class AnovaDrilldownNarratives:
 
-    def __init__(self, measure_column, dimension_columns, df_helper, anova_narratives):
+    def __init__(self, measure_column, dimension_columns, df_helper, anova_narratives,base_dir):
         self.measure_column = measure_column
         self.dimension_columns = dimension_columns
         self.anova_narratives = anova_narratives
-        # self._base_dir = os.path.dirname(os.path.realpath(__file__))+"/../../templates/anova/"
-        self._base_dir = os.environ.get('MADVISOR_BI_HOME')+"/templates/anova/"
+        self._base_dir = base_dir
         self.df = df_helper.get_data_frame()
         self.analysis = {}
         self._generate_analysis()
-        # print self.analysis
 
 
     def get_aggregared_count(self, df, dimension_columns):
@@ -124,18 +115,10 @@ class AnovaDrilldownNarratives:
                 inner_dict_sum["measure_column"] = self.measure_column
                 inner_dict_sum["highest_level_by_sum"] = highest_level_by_sum
                 data_dict["sum"] = inner_dict_sum
-                # print data_dict
-                templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-                templateEnv = jinja2.Environment( loader=templateLoader )
-                template = templateEnv.get_template('anova_drilldown_avg.temp')
-
-                narr_avg = template.render(data_dict["avg"]).replace("\n", "")
-                narr_avg = re.sub(' +',' ',narr_avg)
-                self.analysis[dim]["avg"] = narr_avg
-
-                narr_sum = template.render(data_dict["sum"]).replace("\n", "")
-                narr_sum = re.sub(' +',' ',narr_sum)
-                self.analysis[dim]["sum"] = narr_sum
+                self.analysis[dim]["avg"] = \
+                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.html',data_dict['avg'])
+                self.analysis[dim]["sum"] = \
+                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.html',data_dict['sum'])
             else:
                 df_avg = df1.filter(df1[dim] == highest_level_by_avg)
                 inner_dict = self.generate_inner_data_dict(highest_level_by_avg,df_avg,dim,self.dimension_columns,overall_aggregation,anova_narr)
@@ -143,10 +126,5 @@ class AnovaDrilldownNarratives:
                 inner_dict["highest_level_by_avg"] = highest_level_by_avg
                 data_dict["avg"] = inner_dict
                 data_dict["sum"] = data_dict["avg"]
-                # print data_dict
-                templateLoader = jinja2.FileSystemLoader( searchpath=self._base_dir)
-                templateEnv = jinja2.Environment( loader=templateLoader )
-                template = templateEnv.get_template('anova_drilldown_avg.temp')
-                narr = template.render(data_dict["avg"]).replace("\n", "")
-                narr = re.sub(' +',' ',narr)
-                self.analysis[dim]["avg"] = narr
+                self.analysis[dim]["avg"] = \
+                        NarrativesUtils.get_template_output(self._base_dir,'anova_drilldown_avg.html',data_dict['avg'])
