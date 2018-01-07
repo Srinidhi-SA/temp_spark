@@ -90,6 +90,7 @@ class AnovaNarratives:
             significant_dimensions = [k for k,v in sorted(significant_dimensions_dict.items(), key=lambda x: -x[1])]
             num_significant_dimensions = len(significant_dimensions)
             num_insignificant_dimensions = len(insignificant_dimensions)
+            print "num_significant_dimensions",num_significant_dimensions
             if num_significant_dimensions > 0:
                 mainCard = NormalCard(name = "Overview of Key Factors")
                 data_c3 = []

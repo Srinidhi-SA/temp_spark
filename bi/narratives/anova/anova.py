@@ -63,7 +63,12 @@ class OneWayAnovaNarratives:
         self._measure_anova_result = measure_anova_result
         self._dimension_anova_result = self._measure_anova_result.get_one_way_anova_result(self._dimension_column)
         self._overall_trend_data = self._measure_anova_result.get_trend_data()
-        self._dataLevel = self._overall_trend_data.get_data_level()
+        if self._overall_trend_data:
+            self._dataLevel = self._overall_trend_data.get_data_level()
+            self._trendDuration = self._overall_trend_data.get_duration()
+        else:
+            self._trendDuration = 0
+            self._dataLevel = None
         self._dimension_trend_data = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column).get_trend_data()
         self._blockSplitter = "|~NEWBLOCK~|"
         # self.effect_size = anova_result.get_effect_size()
@@ -76,14 +81,14 @@ class OneWayAnovaNarratives:
     def _generate_narratives(self):
         self._card3_required = False
         self._generate_card1()
-        trendDuration = self._overall_trend_data.get_duration()
-        print "duration is ",trendDuration
-        if trendDuration > 0:
+
+        print "duration is ",self._trendDuration
+        if self._trendDuration > 0:
             self._generate_card2()
             if self._card3_required:
                 self._generate_card3()
         self._dimensionNode.add_a_card(self._anovaCard1)
-        if self._card3_required and trendDuration >0 :
+        if self._card3_required and self._trendDuration >0 :
             self._dimensionNode.add_a_card(self._anovaCard3)
 
     def _generate_title(self):
@@ -128,7 +133,7 @@ class OneWayAnovaNarratives:
         lines += NarrativesUtils.block_splitter('<h3>'+self._measure_column_capitalized+': Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized+'</h3>',self._blockSplitter)
         self.card1 = Card('Impact of '+self._dimension_column_capitalized+' on '+self._measure_column_capitalized)
         dim_table = self._dimension_anova_result.get_level_dataframe()
-        print dim_table
+        # print dim_table
         keys = dim_table['levels']
         totals = dim_table['total']
         means = dim_table['average']
@@ -317,7 +322,6 @@ class OneWayAnovaNarratives:
 
     def _generate_card2(self):
         subset_df = self._dimension_trend_data.get_grouped_data()
-        print subset_df
         overall_df = self._overall_trend_data.get_grouped_data()
         total_measure = 'Total '+ self._measure_column_capitalized
         if len(overall_df.columns) == 3:
@@ -332,7 +336,7 @@ class OneWayAnovaNarratives:
             subset_df.columns = ['key', subset_measure]
         inner_join = overall_df.merge(subset_df[['key',subset_measure]], how='inner', on = 'key')
         inner_join["key"] = inner_join["key"].apply(lambda x:str(x))
-        print "inner_join", inner_join
+        # print "inner_join", inner_join
         correlation = inner_join[[total_measure,subset_measure]].corr()[total_measure][subset_measure]
         if self._dataLevel == "month":
             data = {

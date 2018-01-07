@@ -62,6 +62,7 @@ class ColumnData:
         self.columnStats = columnStats
         self.chartData = chartData
         self.columnType = columnType
+        self.actualColumnType = None
 
     def set_name(self,data):
         self.name = data
@@ -75,8 +76,12 @@ class ColumnData:
     def set_column_chart(self,data):
         self.chartData = data
 
-    def set_column_type(self,data):
+    def set_abstract_datatype(self,data):
         self.columnType = data
+
+    def set_actual_datatype(self,data):
+        self.actualColumnType = data
+
 
     def set_level_count_to_null(self):
         self.columnStats = [obj if obj["name"] != "LevelCount" else {"name":obj["name"],"value":None,"display":False} for obj in self.columnStats]

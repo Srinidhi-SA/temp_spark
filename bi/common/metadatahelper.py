@@ -328,7 +328,7 @@ class MetaDataHelper():
         """
         detectedFormat = None
         availableDateTimeFormat = CommonUtils.dateTimeFormatsSupported()["formats"]
-        sample1 = columnVector[0]
+        sample1 = str(columnVector[0])
         for dt_format in availableDateTimeFormat:
             try:
                 t = datetime.strptime(sample1,dt_format)

@@ -106,6 +106,13 @@ class ContextSetter:
         self.ignoremessages = False
         self.labelMappingDict = []
         self.percentageColumns = []
+        self.dateFormatDetails = {}
+
+    def set_date_format_details(self,data):
+        self.dateFormatDetails = data
+
+    def get_date_format_details(self):
+        return self.dateFormatDetails
 
     @accepts(object,(list,tuple))
     def set_percentage_columns(self,data):

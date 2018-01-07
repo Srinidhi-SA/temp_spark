@@ -1,233 +1,210 @@
 def get_story_config():
     storyConfig = {
-      "job_config": {
-      "message_url": "http://34.196.204.54:9012/api/messages/Job_master-measure-dtree-ln7hn5xc8w-25sw2v8thv_123/",
-      "get_config": {
-        "action": "get_config",
-        "method": "GET"
-      },
-      "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-measure-dtree-ln7hn5xc8w-25sw2v8thv/",
-      "set_result": {
-        "action": "result",
-        "method": "PUT"
-      },
-      "job_url": "http://34.196.204.54:9012/api/job/master-measure-dtree-ln7hn5xc8w-25sw2v8thv/",
-      "job_type": "story",
-      "job_name": "measure-dtree",
-      "xml_url": "http://34.196.204.54:9012/api/xml/master-measure-dtree-ln7hn5xc8w-25sw2v8thv/"
-    },
-    "config": {
-      "COLUMN_SETTINGS": {
-        "polarity": [
-          {
-            "colSlug": "416c3889bd044d1ba8fe7ad94b53feb2",
-            "polarity": "positive",
-            "colName": "Tenure_in_Days"
-          },
-          {
-            "colSlug": "948a3583116d414998ade3d4a5782a40",
-            "polarity": "positive",
-            "colName": "Sales"
-          },
-          {
-            "colSlug": "8b2b24e7fd274bf48365963e261bc66e",
-            "polarity": "positive",
-            "colName": "Marketing_Cost"
-          },
-          {
-            "colSlug": "8a0a5135473241d7af1a7ca91b6774e7",
-            "polarity": "positive",
-            "colName": "Shipping_Cost"
-          },
-          {
-            "colSlug": "185ed7989464496a9d82b54c102e2e16",
-            "polarity": "positive",
-            "colName": "Last_Transaction"
-          }
-        ],
-        "date_format": None,
-        "consider_columns_type": [
-          "including"
-        ],
-        "customAnalysisDetails": [
+      "config": {
+        "COLUMN_SETTINGS": {
+          "polarity": [
+            {
+              "colSlug": "45acf251d8fb4a64a574213211fff4fe",
+              "polarity": "positive",
+              "colName": "age"
+            },
+            {
+              "colSlug": "612c305f7ed44751bddd2b03aed0de76",
+              "polarity": "positive",
+              "colName": "fnlwgt"
+            },
+            {
+              "colSlug": "00869a1a210644738cbf3b64b37541ba",
+              "polarity": "positive",
+              "colName": "education-num"
+            },
+            {
+              "colSlug": "c553feb40fb542dc86d68e91854c1c34",
+              "polarity": "positive",
+              "colName": "Capital-gain"
+            },
+            {
+              "colSlug": "cfa46535fb844c4a97242128b29bcc1c",
+              "polarity": "positive",
+              "colName": "Capital-loss"
+            },
+            {
+              "colSlug": "e20604526aec42b080ee56971a9961e3",
+              "polarity": "positive",
+              "colName": "hours-per-week"
+            }
+          ],
+          "date_format": None,
+          "consider_columns_type": [
+            "including"
+          ],
+          "customAnalysisDetails": [
 
-        ],
-        "result_column": [
-          "Sales"
-        ],
-        "ignore_column_suggestion": [
+          ],
+          "result_column": [
+            "age"
+          ],
+          "ignore_column_suggestion": [
 
-        ],
-        "consider_columns": [
-          "Deal_Type",
-          "Price_Range",
-          "Discount_Range",
-          "Source",
-          "Platform",
-          "Buyer_Age",
-          "Buyer_Gender",
-          "Tenure_in_Days",
-          "Sales",
-          "Marketing_Cost",
-          "Shipping_Cost",
-          "Last_Transaction",
-          "new_date"
-        ],
-        "utf8_column_suggestions": [
+          ],
+          "consider_columns": [
+            "workclass",
+            "education",
+            "marital-status",
+            "occupation",
+            "relationship",
+            "race",
+            "sex",
+            "native-country",
+            "class_label",
+            "fnlwgt",
+            "education-num",
+            "Capital-gain",
+            "Capital-loss",
+            "hours-per-week"
+          ],
+          "utf8_column_suggestions": [
 
-        ],
-        "date_columns": [
-          "new_date"
-        ],
-        "analysis_type": [
-          "measure"
-        ],
-        "dateTimeSuggestions": [
-          {
-            "Order Date": "%d-%m-%Y",
-            "Month": "%b-%y"
-          }
-        ]
-      },
-      "DATA_SOURCE": {
-        "datasource_type": "fileUpload",
-        "datasource_details": ""
-      },
-      "ADVANCED_SETTINGS": {
-        "analysis": [
-          {
-            "status": True,
-            "noOfColumnsToUse": None,
-            "analysisSubTypes": [
+          ],
+          "date_columns": [
 
-            ],
-            "displayName": "Overview",
-            "name": "overview"
-          },
-          {
-            "status": False,
-            "noOfColumnsToUse": None,
-            "analysisSubTypes": [
-              {
-                "status": False,
-                "displayName": "Overview",
-                "name": "overview"
-              },
-              {
-                "status": False,
-                "displayName": "Factors that drive up",
-                "name": "factors that drive up"
-              },
-              {
-                "status": False,
-                "displayName": "Factors that drive down",
-                "name": "factors that drive down"
-              },
-              {
-                "status": False,
-                "displayName": "Forecast",
-                "name": "forecast"
-              }
-            ],
-            "displayName": "Trend",
-            "name": "trend"
-          },
-          {
-            "status": False,
-            "noOfColumnsToUse": [
-              {
-                "status": False,
-                "defaultValue": 3,
-                "displayName": "Low",
-                "name": "low"
-              },
-              {
-                "status": False,
-                "defaultValue": 5,
-                "displayName": "Medium",
-                "name": "medium"
-              },
-              {
-                "status": False,
-                "defaultValue": 8,
-                "displayName": "High",
-                "name": "high"
-              },
-              {
-                "status": False,
-                "defaultValue": 3,
-                "displayName": "Custom",
-                "name": "custom",
-                "value": None
-              }
-            ],
-            "analysisSubTypes": [
+          ],
+          "analysis_type": [
+            "measure"
+          ],
+          "dateTimeSuggestions": [
+            {
 
-            ],
-            "displayName": "Performance",
-            "name": "performance"
-          },
-          {
-            "status": False,
-            "noOfColumnsToUse": [
-              {
-                "status": False,
-                "defaultValue": 3,
-                "displayName": "Low",
-                "name": "low"
-              },
-              {
-                "status": False,
-                "defaultValue": 5,
-                "displayName": "Medium",
-                "name": "medium"
-              },
-              {
-                "status": False,
-                "defaultValue": 8,
-                "displayName": "High",
-                "name": "high"
-              },
-              {
-                "status": False,
-                "defaultValue": 3,
-                "displayName": "Custom",
-                "name": "custom",
-                "value": None
-              }
-            ],
-            "analysisSubTypes": [
-
-            ],
-            "displayName": "Influencer",
-            "name": "influencer"
-          },
-          {
-            "status": True,
-            "noOfColumnsToUse": None,
-            "analysisSubTypes": [
-
-            ],
-            "displayName": "Prediction",
-            "name": "prediction"
-          }
-        ]
-      },
-      "FILE_SETTINGS": {
-        "script_to_run": [
-          "Descriptive analysis",
-          "Predictive modeling"
-        ],
-        "metadata": {
-          "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
-          "slug_list": [
-            "ecommercecsv-ttkyjgl2q8"
+            }
           ]
         },
-        "inputfile": [
-          "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
-        ]
+        "DATA_SOURCE": {
+          "datasource_type": "fileUpload",
+          "datasource_details": ""
+        },
+        "ADVANCED_SETTINGS": {
+          "analysis": [
+            {
+              "status": True,
+              "noOfColumnsToUse": None,
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Overview",
+              "name": "overview"
+            },
+            {
+              "status": True,
+              "noOfColumnsToUse": [
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Low",
+                  "name": "low"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 5,
+                  "displayName": "Medium",
+                  "name": "medium"
+                },
+                {
+                  "status": True,
+                  "defaultValue": 8,
+                  "displayName": "High",
+                  "name": "high"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Custom",
+                  "name": "custom",
+                  "value": None
+                }
+              ],
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Performance",
+              "name": "performance"
+            },
+            {
+              "status": False,
+              "noOfColumnsToUse": [
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Low",
+                  "name": "low"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 5,
+                  "displayName": "Medium",
+                  "name": "medium"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 8,
+                  "displayName": "High",
+                  "name": "high"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Custom",
+                  "name": "custom",
+                  "value": None
+                }
+              ],
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Influencer",
+              "name": "influencer"
+            },
+            {
+              "status": False,
+              "noOfColumnsToUse": None,
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Prediction",
+              "name": "prediction"
+            }
+          ]
+        },
+        "FILE_SETTINGS": {
+          "script_to_run": [
+            "Descriptive analysis",
+            "Measure vs. Dimension"
+          ],
+          "metadata": {
+            "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
+            "slug_list": [
+              "demographycsv-9xczlu9n11"
+            ]
+          },
+          "inputfile": [
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/demography.csv"
+          ]
+        }
+      },
+      "job_config": {
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-test-demography-3s1qenhsv4-84mqewjhir_123/",
+        "get_config": {
+          "action": "get_config",
+          "method": "GET"
+        },
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-test-demography-3s1qenhsv4-84mqewjhir/",
+        "set_result": {
+          "action": "result",
+          "method": "PUT"
+        },
+        "job_url": "http://34.196.204.54:9012/api/job/master-test-demography-3s1qenhsv4-84mqewjhir/",
+        "job_type": "story",
+        "job_name": "test-demography",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-test-demography-3s1qenhsv4-84mqewjhir/"
       }
     }
-      }
     return storyConfig

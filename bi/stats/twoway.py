@@ -72,8 +72,9 @@ class TwoWayAnova:
                                                     self._dateColumnFormatDict,\
                                                     self._dateFormatConversionDict,
                                                     self._requestedDateFormat)
-        print dateColCheck
+        # print dateColCheck
         if dateColCheck:
+            self._dataframe_context.set_date_format_details(dateColCheck)
             self._dateFormatDetected = dateColCheck["dateFormatDetected"]
             self._trend_on_td_column = dateColCheck["trendOnTdCol"]
             if self._dateFormatDetected:
@@ -134,19 +135,21 @@ class TwoWayAnova:
             measureColCount = measureColStat[0][2]
             measureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
             self._anova_result = MeasureAnovaResult(measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
+            print self._dataRangeStats
+            if self._dateFormatDetected:
+                grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataRangeStats["dataLevel"],measure,"measure")
+                trendData = TrendData()
+                trendData.set_params(grouped_data,None,\
+                                    self._dataRangeStats["lastDate"],\
+                                    self._dataRangeStats["firstDate"],\
+                                    self._dataRangeStats["duration"],\
+                                    self._dataRangeStats["durationString"],\
+                                    self._dataRangeStats["dataLevel"]
+                                    )
+                self._anova_result.set_trend_data(trendData)
 
-            grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataRangeStats["dataLevel"],measure,"measure")
-            trendData = TrendData()
-            trendData.set_params(grouped_data,None,\
-                                self._dataRangeStats["lastDate"],\
-                                self._dataRangeStats["firstDate"],\
-                                self._dataRangeStats["duration"],\
-                                self._dataRangeStats["durationString"],\
-                                self._dataRangeStats["dataLevel"]
-                                )
-            self._anova_result.set_trend_data(trendData)
-
-            for dimension in self._dimensions_to_test[:3]:
+            for dimension in self._dimensions_to_test:
+                print "dimension--",dimension
                 anovaResult = self.one_way_anova_test(self._data_frame,measure,dimension,measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
                 dimensionAnovaResult = OneWayAnovaResult()
                 dimensionAnovaResult.set_params(df_within=anovaResult["df_within"],
@@ -170,17 +173,17 @@ class TwoWayAnova:
                     self._dataframe_helper.add_significant_dimension(dimension,effect_size)
                     topLevelAnova = TopLevelDfAnovaStats()
                     levelDf = anovaResult["levelDf"]
-                    levelPivot = NarrativesUtils.get_level_pivot(self._data_frame,self._dataRangeStats["dataLevel"],measure,dimension,index_col=None)
                     toplevelStats = levelDf.ix[levelDf["total"].argmax()]
                     print "toplevelStats",toplevelStats
                     topLevelAnova.set_top_level_stat(toplevelStats)
                     topLevelDf = self._data_frame.where(col(dimension).isin([toplevelStats.levels]))
-
-                    topLevelGroupedData = NarrativesUtils.get_grouped_data_for_trend(topLevelDf,self._dataRangeStats["dataLevel"],measure,"measure")
-                    trendData = TrendData()
-                    trendData.set_grouped_data(topLevelGroupedData)
-                    trendData.set_level_pivot(levelPivot)
-                    topLevelAnova.set_trend_data(trendData)
+                    if self._dateFormatDetected:
+                        levelPivot = NarrativesUtils.get_level_pivot(self._data_frame,self._dataRangeStats["dataLevel"],measure,dimension,index_col=None)
+                        topLevelGroupedData = NarrativesUtils.get_grouped_data_for_trend(topLevelDf,self._dataRangeStats["dataLevel"],measure,"measure")
+                        trendData = TrendData()
+                        trendData.set_grouped_data(topLevelGroupedData)
+                        trendData.set_level_pivot(levelPivot)
+                        topLevelAnova.set_trend_data(trendData)
 
                     topLevelDfMeasureColStat = topLevelDf.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
                     topLevelDfMeasureColMean = measureColStat[0][1]

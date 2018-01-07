@@ -87,10 +87,10 @@ class MetaDataScript:
 
     def update_column_type_dict(self):
         self._column_type_dict = dict(\
-                                        zip(self._numeric_columns,["measure"]*len(self._numeric_columns))+\
-                                        zip(self._string_columns,["dimension"]*len(self._string_columns))+\
-                                        zip(self._timestamp_columns,["datetime"]*len(self._timestamp_columns))+\
-                                        zip(self._boolean_columns,["boolean"]*len(self._boolean_columns))\
+                                        zip(self._numeric_columns,[{"actual":"measure","abstract":"measure"}]*len(self._numeric_columns))+\
+                                        zip(self._string_columns,[{"actual":"dimension","abstract":"dimension"}]*len(self._string_columns))+\
+                                        zip(self._timestamp_columns,[{"actual":"datetime","abstract":"datetime"}]*len(self._timestamp_columns))+\
+                                        zip(self._boolean_columns,[{"actual":"boolean","abstract":"dimension"}]*len(self._boolean_columns))\
                                      )
 
     def run(self):
@@ -193,24 +193,25 @@ class MetaDataScript:
             data = ColumnData()
             data.set_slug(random_slug)
             data.set_name(column)
-            data.set_column_type(self._column_type_dict[column])
+            data.set_abstract_datatype(self._column_type_dict[column]["abstract"])
 
             columnStat = []
             columnChartData = None
-            if self._column_type_dict[column] == "measure":
+            if self._column_type_dict[column]["abstract"] == "measure":
                 data.set_column_stats(measureColumnStat[column])
                 data.set_column_chart(measureCharts[column])
-            elif self._column_type_dict[column] == "dimension":
+                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+            elif self._column_type_dict[column]["abstract"] == "dimension":
                 data.set_column_stats(dimensionColumnStat[column])
                 data.set_column_chart(dimensionCharts[column])
-            elif self._column_type_dict[column] == "datetime":
+                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+            elif self._column_type_dict[column]["abstract"] == "datetime":
                 data.set_column_stats(timeDimensionColumnStat[column])
                 data.set_column_chart(timeDimensionCharts[column])
-            elif self._column_type_dict[column] == "boolean":
-                data.set_column_stats(dimensionColumnStat[column])
-                data.set_column_chart(dimensionCharts[column])
+                data.set_actual_datatype(self._column_type_dict[column]["actual"])
 
-            if self._column_type_dict[column] == "measure":
+
+            if self._column_type_dict[column]["abstract"] == "measure":
                 if column not in self._real_columns:
                     ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
                     if ignoreSuggestion:
@@ -221,7 +222,7 @@ class MetaDataScript:
                         data.set_ignore_suggestion_flag(True)
                         data.set_ignore_suggestion_message(ignoreReason)
 
-            elif self._column_type_dict[column] == "dimension":
+            elif self._column_type_dict[column]["abstract"] == "dimension":
                 if self._level_count_flag:
                     utf8Suggestion = metaHelperInstance.get_utf8_suggestions(dimensionColumnStat[column])
                 else:
