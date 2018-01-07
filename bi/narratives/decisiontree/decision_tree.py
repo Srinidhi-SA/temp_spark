@@ -54,6 +54,7 @@ class DecisionTreeNarrative:
         self._get_new_table()
         self._df_helper = df_helper
         self.subheader = None
+        #self.table = {}
         self.dropdownComment = None
         self.dropdownValues = None
         self._base_dir = "/decisiontree/"

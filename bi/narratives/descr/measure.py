@@ -17,6 +17,12 @@ class MeasureColumnNarrative:
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._measure_descr_stats = measure_descr_stats
         self._five_point_summary_stats = measure_descr_stats.get_five_point_summary_stats()
+        # self._histogram = measure_descr_stats.get_histogram()
+        # self._num_columns = context.get_column_count()
+        # self._num_rows = context.get_row_count()
+        # self._measures = context.get_measures()
+        # self._dimensions = context.get_dimensions()
+        # self._time_dimensions = context.get_time_dimension()
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self.title = None
@@ -141,7 +147,7 @@ class MeasureColumnNarrative:
         self._headNode.add_a_card(MeasureSummaryCard)
 
     def _generate_analysis_para1(self):
-        output = ''
+        output = 'Para1 entered'
         data_dict = {"cols" : self._dataframe_helper.get_num_columns(),
                     "min" : NarrativesUtils.round_number(self._measure_descr_stats.get_min(), 0),
                     "max" : NarrativesUtils.round_number(self._measure_descr_stats.get_max(), 0),
@@ -160,7 +166,7 @@ class MeasureColumnNarrative:
         return output
 
     def _generate_analysis_para2(self):
-        output = ''
+        output = 'Para2 entered'
         histogram_buckets = self._measure_descr_stats.get_histogram()
         threshold = self._dataframe_helper.get_num_rows() * 0.75
         s = 0
@@ -245,7 +251,7 @@ class MeasureColumnNarrative:
         return output
 
     def _generate_take_away(self):
-        output = ''
+        output = 'Takeaway entered'
         histogram_buckets = self._measure_descr_stats.get_histogram()
         threshold = self._dataframe_helper.get_num_rows() * 0.75
         s = 0
