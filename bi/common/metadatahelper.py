@@ -77,6 +77,8 @@ class MetaDataHelper():
                             "numberOfUniqueValues":"Unique Values",
                             "numberOfNotNulls":"Not Nulls"
                             }
+        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7}
+
         for column in measure_columns:
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
             for k,v in col_stat.items():
@@ -106,6 +108,7 @@ class MetaDataHelper():
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+            modified_col_stat = sorted(modified_col_stat,key=lambda x:displayOrderDict[x["name"]])
             output[column] = modified_col_stat
         return output,chart_data
 
@@ -134,6 +137,7 @@ class MetaDataHelper():
                             "MinLevel":"Min Level",
                             "LevelCount":"LevelCount"
                             }
+        displayOrderDict = {"MinLevel":0,"MaxLevel":1,"numberOfUniqueValues":2,"numberOfNulls":3,"numberOfUniqueValues":4,"numberOfNotNulls":5,"count":6,"min":7,"max":8,"stddev":9,"mean":10,"LevelCount":11}
         for column in dimension_columns:
             col_stat = {}
             if level_count_flag:
@@ -183,6 +187,7 @@ class MetaDataHelper():
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+            modified_col_stat = sorted(modified_col_stat,key=lambda x:displayOrderDict[x["name"]])
             output[column] = modified_col_stat
         return output,chart_data
 
@@ -215,6 +220,7 @@ class MetaDataHelper():
                             "firstDate":"Start Date",
                             "lastDate":"Last Date",
                             }
+        displayOrderDict = {"firstDate":0,"lastDate":1,"MinLevel":12,"MaxLevel":13,"numberOfUniqueValues":2,"numberOfNulls":3,"numberOfUniqueValues":4,"numberOfNotNulls":5,"count":6,"min":7,"max":8,"stddev":9,"mean":10,"LevelCount":11}
         for column in td_columns:
             col_stat = {}
             notNullDf = df.select(column).distinct().na.drop()
@@ -285,6 +291,7 @@ class MetaDataHelper():
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+            modified_col_stat = sorted(modified_col_stat,key=lambda x:displayOrderDict[x["name"]])
             output[column] = modified_col_stat
         return output,chart_data
 
