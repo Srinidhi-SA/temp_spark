@@ -115,6 +115,7 @@ class DataFrameHelper:
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
+        self.boolean_to_string(list(set(colsToKeep)-set(self.boolean_columns)))
         self.populate_column_data()
 
     def update_column_data(self):
@@ -220,6 +221,10 @@ class DataFrameHelper:
             self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
             self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
             self._data_frame = self._data_frame.select(self.columns)
+
+    def boolean_to_string(self,colsToConvert):
+        for column in colsToConvert:
+            self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType))
 
     def get_cols_to_bin(self):
         return self.colsToBin
