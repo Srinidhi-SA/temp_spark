@@ -127,7 +127,7 @@ class RegressionNarrative:
         main_card_chart = NormalChartData(data=main_card_chart_data)
         mainCardChartJson = ChartJson()
         mainCardChartJson.set_data(main_card_chart.get_data())
-        mainCardChartJson.set_label_text({'x':'Measure Name','y': 'Change in ' + self.result_column + ' per unit increase'})
+        mainCardChartJson.set_label_text({'x':'Influencing Factors','y': 'Change in ' + self.result_column + ' per unit increase'})
         mainCardChartJson.set_chart_type("bar")
         mainCardChartJson.set_axes({"x":"key","y":"value"})
         mainCardChartJson.set_yaxis_number_format(".2f")
