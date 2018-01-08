@@ -115,7 +115,7 @@ class DataFrameHelper:
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
-        self.boolean_to_string(list(set(colsToKeep)-set(self.boolean_columns)))
+        # self.boolean_to_string(list(set(colsToKeep)-set(self.boolean_columns)))
         self.populate_column_data()
 
     def update_column_data(self):
