@@ -351,7 +351,7 @@ class LinearRegressionNarrative:
         scatterChart.set_data(scatterData.get_data())
         scatterChart.set_legend(plot_labels)
         scatterChart.set_label_text({"x":col1,"y":col2})
-        scatterChart.set_axes({"x":col1,"y":col2})
+        scatterChart.set_axes({"x":col2,"y":col1})
         scatterChart.set_chart_type("scatter")
         data_dict["charts"] = scatterChart
         print "dsa Analysis Done in ", time.time() - fs, " seconds."
