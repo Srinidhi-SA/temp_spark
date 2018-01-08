@@ -260,7 +260,8 @@ class DecisionTreeNarrative:
         else:
             levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
             total = float(sum([x for x in levelCountDict.values() if x != None]))
-            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
+            perc = v*100/total
+            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(perc)+"%" if perc >=10 else str(int(perc))+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["nlevel"] = len(levelCountDict.keys())
             data_dict["topLevel"] = levelCountTuple[0]
