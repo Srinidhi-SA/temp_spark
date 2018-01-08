@@ -4,34 +4,29 @@ def get_story_config():
         "COLUMN_SETTINGS": {
           "polarity": [
             {
-              "colSlug": "45acf251d8fb4a64a574213211fff4fe",
+              "colSlug": "39c018d65d6d4cae9cc2cc229595661f",
               "polarity": "positive",
-              "colName": "age"
+              "colName": "Tenure_in_Days"
             },
             {
-              "colSlug": "612c305f7ed44751bddd2b03aed0de76",
+              "colSlug": "5d36e79778ac4cd99e0221597888d286",
               "polarity": "positive",
-              "colName": "fnlwgt"
+              "colName": "Sales"
             },
             {
-              "colSlug": "00869a1a210644738cbf3b64b37541ba",
+              "colSlug": "4a82908f2f334367a64fc31fe36431c2",
               "polarity": "positive",
-              "colName": "education-num"
+              "colName": "Marketing_Cost"
             },
             {
-              "colSlug": "c553feb40fb542dc86d68e91854c1c34",
+              "colSlug": "181898e929bb4691a597ec1eae1c7dab",
               "polarity": "positive",
-              "colName": "Capital-gain"
+              "colName": "Shipping_Cost"
             },
             {
-              "colSlug": "cfa46535fb844c4a97242128b29bcc1c",
+              "colSlug": "0a4fd0611f914598b13ccc53cdfe6b6d",
               "polarity": "positive",
-              "colName": "Capital-loss"
-            },
-            {
-              "colSlug": "e20604526aec42b080ee56971a9961e3",
-              "polarity": "positive",
-              "colName": "hours-per-week"
+              "colName": "Last_Transaction"
             }
           ],
           "date_format": None,
@@ -42,39 +37,38 @@ def get_story_config():
 
           ],
           "result_column": [
-            "age"
+            "Platform"
           ],
           "ignore_column_suggestion": [
 
           ],
           "consider_columns": [
-            "workclass",
-            "education",
-            "marital-status",
-            "occupation",
-            "relationship",
-            "race",
-            "sex",
-            "native-country",
-            "class_label",
-            "fnlwgt",
-            "education-num",
-            "Capital-gain",
-            "Capital-loss",
-            "hours-per-week"
+            "Deal_Type",
+            "Price_Range",
+            "Discount_Range",
+            "Source",
+            "Buyer_Age",
+            "Buyer_Gender",
+            "Tenure_in_Days",
+            "Sales",
+            "Marketing_Cost",
+            "Shipping_Cost",
+            "Last_Transaction",
+            "new_date"
           ],
           "utf8_column_suggestions": [
 
           ],
           "date_columns": [
-
+            "new_date"
           ],
           "analysis_type": [
-            "measure"
+            "dimension"
           ],
           "dateTimeSuggestions": [
             {
-
+              "Order Date": "%d-%m-%Y",
+              "Month": "%b-%y"
             }
           ]
         },
@@ -83,6 +77,22 @@ def get_story_config():
           "datasource_details": ""
         },
         "ADVANCED_SETTINGS": {
+          "trendSettings": [
+            {
+              "status": False,
+              "name": "Count"
+            },
+            {
+              "status": False,
+              "name": "Specific Measure",
+              "selectedMeasure": None
+            }
+          ],
+          "targetLevels": [
+            [
+
+            ]
+          ],
           "analysis": [
             {
               "status": True,
@@ -94,42 +104,37 @@ def get_story_config():
               "name": "overview"
             },
             {
-              "status": True,
-              "noOfColumnsToUse": [
+              "status": False,
+              "noOfColumnsToUse": None,
+              "analysisSubTypes": [
                 {
                   "status": False,
-                  "defaultValue": 3,
-                  "displayName": "Low",
-                  "name": "low"
+                  "displayName": "Overview",
+                  "name": "overview"
                 },
                 {
                   "status": False,
-                  "defaultValue": 5,
-                  "displayName": "Medium",
-                  "name": "medium"
-                },
-                {
-                  "status": True,
-                  "defaultValue": 8,
-                  "displayName": "High",
-                  "name": "high"
+                  "displayName": "Factors that drive up",
+                  "name": "factors that drive up"
                 },
                 {
                   "status": False,
-                  "defaultValue": 3,
-                  "displayName": "Custom",
-                  "name": "custom",
-                  "value": None
+                  "displayName": "Factors that drive down",
+                  "name": "factors that drive down"
+                },
+                {
+                  "status": False,
+                  "displayName": "Forecast",
+                  "name": "forecast"
                 }
               ],
-              "analysisSubTypes": [
-
-              ],
-              "displayName": "Performance",
-              "name": "performance"
+              "displayName": "Trend",
+              "name": "trend"
             },
             {
-              "status": True,
+              "status": False,
+              "displayName": "Association",
+              "name": "association",
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -144,7 +149,7 @@ def get_story_config():
                   "name": "medium"
                 },
                 {
-                  "status": True,
+                  "status": False,
                   "defaultValue": 8,
                   "displayName": "High",
                   "name": "high"
@@ -160,8 +165,28 @@ def get_story_config():
               "analysisSubTypes": [
 
               ],
-              "displayName": "Influencer",
-              "name": "influencer"
+              "binSetting": [
+                {
+                  "displayName": "Binning of Numerical Values",
+                  "name": "heading"
+                },
+                {
+                  "displayName": "Number of Bin Levels",
+                  "name": "binLevels",
+                  "min": 2,
+                  "max": 10,
+                  "defaultValue": 5,
+                  "value": 5
+                },
+                {
+                  "displayName": "Do not bin numerical values with cardinality less than:",
+                  "name": "binCardinality",
+                  "min": 2,
+                  "max": 10,
+                  "defaultValue": 5,
+                  "value": 5
+                }
+              ]
             },
             {
               "status": True,
@@ -177,36 +202,34 @@ def get_story_config():
         "FILE_SETTINGS": {
           "script_to_run": [
             "Descriptive analysis",
-            "Measure vs. Dimension",
-            "Measure vs. Measure",
             "Predictive modeling"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "demographycsv-9xczlu9n11"
+              "ecommercecsv-3l9blqooh7"
             ]
           },
           "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/sampleDatasets/demography.csv"
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
           ]
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-anova-without-trend-bj86ztoqzg-c6sj1inn6m_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-dtree-chopped-wnb0pz9t2o-mlftwl2s17_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-anova-without-trend-bj86ztoqzg-c6sj1inn6m/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-dtree-chopped-wnb0pz9t2o-mlftwl2s17/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-anova-without-trend-bj86ztoqzg-c6sj1inn6m/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-dtree-chopped-wnb0pz9t2o-mlftwl2s17/",
         "job_type": "story",
-        "job_name": "anova-without trend",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-anova-without-trend-bj86ztoqzg-c6sj1inn6m/"
+        "job_name": "dtree-chopped",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-dtree-chopped-wnb0pz9t2o-mlftwl2s17/"
       }
     }
     return storyConfig

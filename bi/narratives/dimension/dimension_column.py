@@ -3,6 +3,7 @@ import operator
 import os
 import time
 import re
+import pattern
 
 from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils

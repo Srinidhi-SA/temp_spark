@@ -65,7 +65,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
-            jobType = "subSetting"
+            jobType = "story"
             # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 

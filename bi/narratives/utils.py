@@ -190,6 +190,33 @@ def get_leaf_nodes(node):
 def generate_rule_text(rule_path_list,separator):
     return separator.join(rule_path_list[:-1])
 
+def get_rules_dictionary(rules):
+    key_dimensions = {}
+    key_measures = {}
+    rules_list = re.split(r',\s*(?![^()]*\))',rules)
+    for rx in rules_list:
+        if ' <= ' in rx:
+            var,limit = re.split(' <= ',rx)
+            if not key_measures.has_key(var):
+                key_measures[var] ={}
+            key_measures[var]['upper_limit'] = limit
+        elif ' > ' in rx:
+            var,limit = re.split(' > ',rx)
+            if not key_measures.has_key(var):
+                key_measures[var] = {}
+            key_measures[var]['lower_limit'] = limit
+        elif ' not in ' in rx:
+            var,levels = re.split(' not in ',rx)
+            if not key_dimensions.has_key(var):
+                key_dimensions[var]={}
+            key_dimensions[var]['not_in'] = levels
+        elif ' in ' in rx:
+            var,levels = re.split(' in ',rx)
+            if not key_dimensions.has_key(var):
+                key_dimensions[var]={}
+            key_dimensions[var]['in'] = levels
+    return [key_dimensions,key_measures]
+
 def generate_leaf_rule_dict(rule_list,separator):
     out = {}
     leaf_list = list(set([x[-1] for x in rule_list]))
