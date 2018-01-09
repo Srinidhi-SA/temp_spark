@@ -145,7 +145,7 @@ class DimensionColumnNarrative:
                     "td" : self._dataframe_helper.get_timestamp_columns(),
                     "observations" : self._dataframe_helper.get_num_rows(),
                     "ignorecolumns" : ignored_columns,
-                    "n_t" : self._dataframe_helper.get_string_columns()+self._dataframe_helper.get_numeric_columns()+self._dataframe_helper.get_timestamp_columns()
+                    "n_t" : self._dataframe_helper.get_string_columns()+self._dataframe_helper.get_numeric_columns()+self._dataframe_helper.get_timestamp_columns(),
                     # "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns),
                     "blockSplitter" : self._blockSplitter
         }
