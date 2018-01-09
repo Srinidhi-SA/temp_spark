@@ -243,7 +243,7 @@ class DecisionTreeNarrative:
         chartJson.set_title(self._colname)
         chartJson.set_chart_type("donut")
         mainCardChart = C3ChartData(data=chartJson)
-        mainCardChart.set_width_percent(25)
+        mainCardChart.set_width_percent(45)
         # mainCardChart = {"dataType": "c3Chart","widthPercent":33 ,"data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
 
 
