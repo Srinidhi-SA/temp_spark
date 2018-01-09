@@ -134,7 +134,8 @@ class MeasureColumnNarrative:
                     "td" : self._dataframe_helper.get_timestamp_columns(),
                     "observations" : self._dataframe_helper.get_num_rows(),
                     "ignorecolumns" : ignored_columns,
-                    "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns)
+                    "n_t" : self._dataframe_helper.get_string_columns()+self._dataframe_helper.get_numeric_columns()+self._dataframe_helper.get_timestamp_columns()
+                    # "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns)
         }
         self.summary = NarrativesUtils.get_template_output(self._base_dir,\
                                         'descr_stats_summary.html',data_dict)
