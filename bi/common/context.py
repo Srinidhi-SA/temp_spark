@@ -125,7 +125,7 @@ class ContextSetter:
     def set_dollar_columns(self,data):
         self.dollarColumns = data
 
-    def get_dollar_columns(self,data):
+    def get_dollar_columns(self):
         return self.dollarColumns
 
     def get_block_splitter(self):
