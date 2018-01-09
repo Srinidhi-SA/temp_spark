@@ -130,7 +130,7 @@ class RegressionNarrative:
         mainCardChartJson.set_label_text({'x':'Influencing Factors','y': 'Change in ' + self.result_column + ' per unit increase'})
         mainCardChartJson.set_chart_type("bar")
         mainCardChartJson.set_axes({"x":"key","y":"value"})
-        mainCardChartJson.set_yaxis_number_format(".2s")
+        mainCardChartJson.set_yaxis_number_format(".2f")
         st_info = ["Test : Regression","Threshold for p-value: 0.05", "Effect Size: Regression Coefficient"]
         main_card.set_card_data(data = [main_card_header]+main_card_paragraphs+[C3ChartData(data=mainCardChartJson,info=st_info)])
         main_card.set_card_name("Key Influencers")
