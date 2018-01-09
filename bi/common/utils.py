@@ -429,6 +429,11 @@ def convert_percentage_columns(df, percentage_columns):
         df = df.withColumn(column, col(column).cast('double'))
     return df
 
+def convert_dollar_columns(df, dollar_columns):
+    for column in dollar_columns:
+        df = df.withColumn(column, regexp_extract(df[column], '^([$]((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)*)',2))
+        df = df.withColumn(column, col(column).cast('double'))
+    return df
 
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

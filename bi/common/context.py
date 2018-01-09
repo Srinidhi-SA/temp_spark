@@ -106,6 +106,7 @@ class ContextSetter:
         self.ignoremessages = False
         self.labelMappingDict = []
         self.percentageColumns = []
+        self.dollarColumns = []
         self.dateFormatDetails = {}
 
     def set_date_format_details(self,data):
@@ -120,6 +121,12 @@ class ContextSetter:
 
     def get_percentage_columns(self):
         return self.percentageColumns
+
+    def set_dollar_columns(self,data):
+        self.dollarColumns = data
+
+    def get_dollar_columns(self,data):
+        return self.dollarColumns
 
     def get_block_splitter(self):
         return self.blockSplitter

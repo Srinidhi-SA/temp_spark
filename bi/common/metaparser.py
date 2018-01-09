@@ -22,6 +22,11 @@ class MetaParser:
         except:
             self.percentage_columns=[]
 
+        try:
+            self.dollar_columns = [x["value"] for x in self.meta_data['metaData'] if x["name"] == "dollarColumns"][0]
+        except:
+            self.dollar_columns = []
+
     def extract(self,dict_in, dict_out):
         for key, value in dict_in.iteritems():
             if isinstance(value, dict): # If value itself is dictionary
@@ -77,3 +82,6 @@ class MetaParser:
 
     def get_percentage_columns(self):
         return self.percentage_columns
+
+    def get_dollar_columns(self):
+        return self.dollar_columns

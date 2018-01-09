@@ -121,6 +121,13 @@ class MetaDataScript:
             self._string_columns = list(set(self._string_columns)-set(self._percentage_columns))
             self.update_column_type_dict()
 
+        self._dollar_columns = metaHelperInstance.get_dollar_columns(self._string_columns)
+        if len(self._dollar_columns)>0:
+            self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame,self._dollar_columns)
+            self._numeric_columns = self._numeric_columns + self._dollar_columns
+            self._string_columns = list(set(self._string_columns)-set(self._dollar_columns))
+            self.update_column_type_dict()
+
         if len(self._numeric_columns) > 1:
             print "self._numeric_columns : ", self._numeric_columns
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measures"))
@@ -139,6 +146,7 @@ class MetaDataScript:
         metaData.append(MetaData(name="dimensionColumns",value = self._string_columns+self._boolean_columns,display=False))
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
         metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
+        metaData.append(MetaData(name="dollarColumns",value = self._dollar_columns,display=False))
         columnData = []
         headers = []
 

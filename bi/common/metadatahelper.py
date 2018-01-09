@@ -444,3 +444,19 @@ class MetaDataHelper():
                 if orig_count == not_nulls:
                     percentage_columns.append(col)
         return percentage_columns
+
+    def get_dollar_columns(self, dimension_columns):
+        sdf = self._sample_data
+        orig_count = sdf.count()
+        dollar_columns = []
+        for col in dimension_columns:
+            df = sdf.withColumn('new_column', sdf[col].substr(1, 1))
+            df = df.select('new_column').distinct()
+            if df.count()==1 and df.first()['new_column']=='$':
+                print "dollar_columns"
+                result = sdf.withColumn('dollar', regexp_extract(sdf[col], '^([$]((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)*)',2))
+                result = result.select(result.dollar.cast('float'))
+                not_nulls = result.select('dollar').na.drop().count()
+                if orig_count == not_nulls:
+                    dollar_columns.append(col)
+        return dollar_columns
