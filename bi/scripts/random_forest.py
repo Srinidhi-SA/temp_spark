@@ -275,7 +275,7 @@ class RandomForestScript:
                 levelDf = df[df[result_column] == level]
                 levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
                 levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
-                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%")
+                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%")
                 uidTableData.append(levelDf[:5])
             uidTableData = pd.concat(uidTableData)
             uidTableData  = [list(arr) for arr in list(uidTableData.values)]
@@ -394,7 +394,7 @@ class RandomForestScript:
                 print levelCountDict
 
             total = float(sum([x for x in levelCountDict.values() if x != None]))
-            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
+            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%" if v*100/total >=10 else str(int(v*100/total))+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["blockSplitter"] = "|~NEWBLOCK~|"
             data_dict["targetcol"] = result_column

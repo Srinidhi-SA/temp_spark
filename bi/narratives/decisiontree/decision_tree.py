@@ -4,6 +4,7 @@ import numpy as np
 import json
 import itertools
 import humanize
+from collections import defaultdict
 from bi.common.dataframe import DataFrameHelper
 from bi.common.context import ContextSetter
 from bi.common.results import DecisionTreeResult
@@ -258,7 +259,17 @@ class DecisionTreeNarrative:
             maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'decisiontreesummary.html',data_dict)
         else:
-            levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
+            predictedLevelcountArray = [(x[2],x[3]) for x in tableArray[1:]]
+            predictedLevelCountDict  = {}
+            # predictedLevelcountDict = defaultdict(predictedLevelcountArray)
+            for val in predictedLevelcountArray:
+                predictedLevelCountDict.setdefault(val[0], []).append(val[1])
+
+            levelCountDict = {}
+            for k,v in predictedLevelCountDict.items():
+                levelCountDict[k] = sum(v)
+
+            # levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%" if v*100/total >=10 else str(int(v*100/total))+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)

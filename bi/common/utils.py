@@ -29,6 +29,8 @@ from decorators import accepts
 from math import log10, floor
 
 
+# def possible_analysis():
+#     stringCols =
 
 def round_sig(x, sig=3):
     try:
