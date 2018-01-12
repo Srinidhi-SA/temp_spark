@@ -399,8 +399,16 @@ class ChiSquareAnalysis:
             output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
 
             card2Data.append(HtmlData(data=card2Heading))
-            st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
-            card2Data.append(C3ChartData(data=card2ChartJson,info=st_info))
+            # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
+            statistical_info_array=[
+                ("Test Type","Chi-Square"),
+                ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
+                ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
+                ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
+                ]
+            statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+
+            card2Data.append(C3ChartData(data=card2ChartJson,info=statistical_info_array))
             card2Data += output2
             card2BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
             card2Data.append(HtmlData(data=card2BubbleData))
@@ -421,8 +429,17 @@ class ChiSquareAnalysis:
             output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)
 
             card4Data.append(HtmlData(data=card4Heading))
-            st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V : "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic: '+str(round(self._chisquare_result.get_stat(),3))]
-            card4Data.append(C3ChartData(data=card4ChartJson,info=st_info))
+
+            # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V : "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic: '+str(round(self._chisquare_result.get_stat(),3))]
+            statistical_info_array=[
+                ("Test Type","Chi-Square"),
+                ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
+                ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
+                ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
+                ]
+            statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+
+            card4Data.append(C3ChartData(data=card4ChartJson,info=statistical_info_array))
             card4Data += output4
             card4BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
             card4Data.append(HtmlData(data=card4BubbleData))

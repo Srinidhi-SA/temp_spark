@@ -153,8 +153,16 @@ class OneWayAnovaNarratives:
 
         self.card1.add_chart('group_by_total',chart1)
         self.card1.add_chart('group_by_mean',chart2)
-        st_info = ["Test : ANOVA", "p-value: 0.05", "F-stat: "+str(round(self._dimension_anova_result.get_f_value(),2))]
-        lines += [C3ChartData(data=self._get_c3chart_card1_chart1(group_by_total,group_by_mean),info=st_info)]
+        # st_info = ["Test : ANOVA", "p-value: 0.05", "F-stat: "+str(round(self._dimension_anova_result.get_f_value(),2))]
+        statistical_info_array=[
+            ("Test Type","ANOVA"),
+            ("P-Value","0.05"),
+            ("F Value",str(round(self._dimension_anova_result.get_f_value(),2))),
+            ("Inference","There is a significant effect of {} on {} (target).".format(self._dimension_column_capitalized,self._measure_column_capitalized) )
+            ]
+        statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+
+        lines += [C3ChartData(data=self._get_c3chart_card1_chart1(group_by_total,group_by_mean),info=statistical_info_array)]
 
         # top_group_by_total = keys[totals.index(max(totals))]
         top_group_by_total = keys[totals.argmax()]

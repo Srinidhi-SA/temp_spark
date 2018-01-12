@@ -131,8 +131,28 @@ class RegressionNarrative:
         mainCardChartJson.set_chart_type("bar")
         mainCardChartJson.set_axes({"x":"key","y":"value"})
         mainCardChartJson.set_yaxis_number_format(".2f")
-        st_info = ["Test : Regression","Threshold for p-value: 0.05", "Effect Size: Regression Coefficient"]
-        main_card.set_card_data(data = [main_card_header]+main_card_paragraphs+[C3ChartData(data=mainCardChartJson,info=st_info)])
+        # st_info = ["Test : Regression","Threshold for p-value: 0.05", "Effect Size: Regression Coefficient"]
+        chart_data = sorted(main_card_chart_data,key=lambda x:x["value"],reverse=True)
+        statistical_info_array=[
+            ("Test Type","Regression"),
+            ("Effect Size","CoefficientsV"),
+            ("Max Effect Size",chart_data[0]["key"]),
+            ("Min Effect Size",chart_data[-1]["key"]),
+            ]
+        statistical_inferenc = ""
+        if len(chart_data) == 1:
+            statistical_inference = "{} is the only variable that have significant influence over {} (Target) having an \
+             Effect size of {}".format(chart_data[0]["key"],self._dataframe_context.get_result_column(),chart_data[0]["value"])
+        elif len(chart_data) == 2:
+            statistical_inference = "There are two variables ({} and {}) that have significant influence over {} (Target) and the \
+             Effect size ranges are {} and {} respectively".format(chart_data[0]["key"],chart_data[1]["key"],self._dataframe_context.get_result_column(),chart_data[0]["value"],chart_data[1]["value"])
+        else:
+            statistical_inference = "There are {} variables that have significant influence over {} (Target) and the \
+             Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),chart_data[0]["value"],chart_data[-1]["value"])
+        if statistical_inference != "":
+            statistical_info_array.append(("Inference",statistical_inference))
+        statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+        main_card.set_card_data(data = [main_card_header]+main_card_paragraphs+[C3ChartData(data=mainCardChartJson,info=statistical_info_array)])
         main_card.set_card_name("Key Influencers")
         self._regressionNode.add_a_card(main_card)
 
@@ -232,8 +252,25 @@ class RegressionNarrative:
             # card3 = {"paragraphs":card4paragraphs}
             card0['paragraphs'] = card1paragraphs+card4paragraphs
             card4Chart = card4data["charts"]
-            st_info = ["Test : Regression", "Variables : "+ self.result_column +", "+measure_column,"Intercept : "+str(round(self._df_regression_result.get_intercept(),2)), "Regression Coefficient : "+ str(round(self._df_regression_result.get_coeff(measure_column),2))]
-            card4paragraphs.insert(2,C3ChartData(data=card4Chart,info=st_info))
+            # st_info = ["Test : Regression", "Variables : "+ self.result_column +", "+measure_column,"Intercept : "+str(round(self._df_regression_result.get_intercept(),2)), "Regression Coefficient : "+ str(round(self._df_regression_result.get_coeff(measure_column),2))]
+            statistical_info_array=[
+                ("Test Type","Regression"),
+                ("Coefficient",str(round(self._df_regression_result.get_coeff(measure_column),2))),
+                ("P-Value","<= 0.05"),
+                ("Intercept",str(round(self._df_regression_result.get_intercept(),2))),
+                ("R Square ",str(round(self._df_regression_result.get_rsquare(measure_column),2))),
+                ]
+            inferenceTuple = ()
+            coeff = self._df_regression_result.get_coeff(measure_column)
+            if coeff > 0:
+                inferenceTuple = ("Inference","For every additional unit of increase in {} there will be an increase of {} units in {} (target).".format(measure_column,str(round(coeff,2)),self._dataframe_context.get_result_column()))
+            else:
+                inferenceTuple = ("Inference","For every additional unit of decrease in {} there will be an decrease of {} units in {} (target).".format(measure_column,str(round(coeff,2)),self._dataframe_context.get_result_column()))
+            if len(inferenceTuple) > 0:
+                statistical_info_array.append(inferenceTuple)
+            statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+
+            card4paragraphs.insert(2,C3ChartData(data=card4Chart,info=statistical_info_array))
             measureCard1Data += card4paragraphs
 
             self.narratives['cards'].append(measure_column_cards)
