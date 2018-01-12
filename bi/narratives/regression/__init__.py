@@ -258,7 +258,7 @@ class RegressionNarrative:
                 ("Coefficient",str(round(self._df_regression_result.get_coeff(measure_column),2))),
                 ("P-Value","<= 0.05"),
                 ("Intercept",str(round(self._df_regression_result.get_intercept(),2))),
-                ("R Square ",str(round(self._df_regression_result.get_rsquare(measure_column),2))),
+                ("R Square ",str(round(self._df_regression_result.get_rsquare(),2))),
                 ]
             inferenceTuple = ()
             coeff = self._df_regression_result.get_coeff(measure_column)
