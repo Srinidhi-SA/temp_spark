@@ -142,13 +142,13 @@ class RegressionNarrative:
         statistical_inferenc = ""
         if len(chart_data) == 1:
             statistical_inference = "{} is the only variable that have significant influence over {} (Target) having an \
-             Effect size of {}".format(chart_data[0]["key"],self._dataframe_context.get_result_column(),chart_data[0]["value"])
+             Effect size of {}".format(chart_data[0]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4))
         elif len(chart_data) == 2:
             statistical_inference = "There are two variables ({} and {}) that have significant influence over {} (Target) and the \
-             Effect size ranges are {} and {} respectively".format(chart_data[0]["key"],chart_data[1]["key"],self._dataframe_context.get_result_column(),chart_data[0]["value"],chart_data[1]["value"])
+             Effect size ranges are {} and {} respectively".format(chart_data[0]["key"],chart_data[1]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[1]["value"],4))
         else:
             statistical_inference = "There are {} variables that have significant influence over {} (Target) and the \
-             Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),chart_data[0]["value"],chart_data[-1]["value"])
+             Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[-1]["value"],4))
         if statistical_inference != "":
             statistical_info_array.append(("Inference",statistical_inference))
         statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)

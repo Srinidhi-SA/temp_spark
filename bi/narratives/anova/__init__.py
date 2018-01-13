@@ -133,13 +133,13 @@ class AnovaNarratives:
                 statistical_inferenc = ""
                 if len(chart_data) == 1:
                     statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
-                     Effect size of {}".format(chart_data[0]["dimension"],self._dataframe_context.get_result_column(),chart_data[0]["effect_size"])
+                     Effect size of {}".format(chart_data[0]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4))
                 elif len(chart_data) == 2:
                     statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
-                     Effect size ranges are {} and {} respectively".format(chart_data[0]["dimension"],chart_data[1]["dimension"],self._dataframe_context.get_result_column(),chart_data[0]["effect_size"],chart_data[1]["effect_size"])
+                     Effect size ranges are {} and {} respectively".format(chart_data[0]["dimension"],chart_data[1]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[1]["effect_size"],4))
                 else:
                     statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
-                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),chart_data[0]["effect_size"],chart_data[-1]["effect_size"])
+                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[-1]["effect_size"],4))
                 if statistical_inference != "":
                     statistical_info_array.append(("Inference",statistical_inference))
                 statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
