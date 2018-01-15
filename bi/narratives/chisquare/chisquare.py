@@ -403,16 +403,24 @@ class ChiSquareAnalysis:
             num_key_factors1 = len(self._second_level_dimensions1)
             print "------------------------key_factors1------------------"
             print key_factors1
+            print "self._second_level_dimensions...."
+            print self._second_level_dimensions
+            print num_key_factors1
+
             if len(self._second_level_dimensions1)==5:
                 key_factors1 = ', '.join(self._second_level_dimensions1[:4]) + ' and ' + self._second_level_dimensions1[4]
             elif len(self._second_level_dimensions)==4:
-                key_factors = ', '.join(self._second_level_dimensions1[:3]) + ' and ' + self._second_level_dimensions1[3]
+                key_factors1 = ', '.join(self._second_level_dimensions1[:3]) + ' and ' + self._second_level_dimensions1[3]
             elif len(self._second_level_dimensions)==3:
-                key_factors = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
+                key_factors1 = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
             elif len(self._second_level_dimensions1)==2:
                 key_factors1 = ' and '.join(self._second_level_dimensions1)
             elif len(self._second_level_dimensions1)==1:
                 key_factors1 = self._second_level_dimensions1[0]
+
+            print key_factors1
+            print "Data Dictionary--Keys------------"
+            print data_dict.keys()
 
             data_dict['num_key_factors1'] = num_key_factors1
             data_dict['key_factors1'] = key_factors1
