@@ -135,7 +135,7 @@ class RegressionNarrative:
         chart_data = sorted(main_card_chart_data,key=lambda x:x["value"],reverse=True)
         statistical_info_array=[
             ("Test Type","Regression"),
-            ("Effect Size","CoefficientsV"),
+            ("Effect Size","Coefficients"),
             ("Max Effect Size",chart_data[0]["key"]),
             ("Min Effect Size",chart_data[-1]["key"]),
             ]
