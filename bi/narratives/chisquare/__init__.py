@@ -50,8 +50,6 @@ class ChiSquareNarratives:
         else:
             self._nColsToUse = None
 
-
-
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized the Frequency Narratives",
@@ -197,17 +195,17 @@ class ChiSquareNarratives:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
                     print "APPID 2 is used"
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, self._base_dir,None,target_chisquare_result)
+                    card = ChiSquareAnalysis(self._dataframe_context,self._df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, self._base_dir,None,target_chisquare_result)
                     # self.narratives['cards'].append(card)
                     self._result_setter.add_a_score_chi_card(json.loads(CommonUtils.convert_python_object_to_json(card.get_dimension_card1())))
 
                 elif self._appid=='1':
                     print "APPID 1 is used"
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
+                    card = ChiSquareAnalysis(self._dataframe_context,self._df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
                     # self.narratives['cards'].append(card)
                     self._result_setter.add_a_score_chi_card(json.loads(CommonUtils.convert_python_object_to_json(card.get_dimension_card1())))
                 else:
-                    target_dimension_card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
+                    target_dimension_card = ChiSquareAnalysis(self._dataframe_context,self._df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
                     self.narratives['cards'].append(target_dimension_card)
                     self._chiSquareNode.add_a_node(target_dimension_card.get_dimension_node())
         self._story_narrative.add_a_node(self._chiSquareNode)
