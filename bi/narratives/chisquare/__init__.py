@@ -11,7 +11,6 @@ from bi.common import utils as CommonUtils
 
 
 class ChiSquareNarratives:
-    print "Starting Narratives"
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
     def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative,result_setter,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
@@ -74,7 +73,6 @@ class ChiSquareNarratives:
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
-
         self._generate_narratives()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["summarygeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -98,7 +96,8 @@ class ChiSquareNarratives:
 
     def _generate_narratives(self):
         for target_dimension in self._df_chisquare_result.keys():
-
+            print "#"*110
+            print target_dimension
             target_chisquare_result = self._df_chisquare_result[target_dimension]
             analysed_variables = target_chisquare_result.keys()
             significant_variables = [dim for dim in target_chisquare_result.keys() if target_chisquare_result[dim].get_pvalue()<=0.05]

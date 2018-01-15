@@ -43,6 +43,8 @@ class TimeSeriesNarrative:
 
         # self._selected_date_columns = None
         self._selected_date_columns = self._dataframe_context.get_date_columns()
+        self._string_columns = list(set(self._string_columns)-set(self._selected_date_columns))
+
         self._dateFormatDetected = False
         self._existingDateFormat = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
