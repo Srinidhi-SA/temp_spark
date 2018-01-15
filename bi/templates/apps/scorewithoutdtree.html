@@ -8,9 +8,8 @@
          {{topLevel["name"]}}
       </small>
     </h1>
-    <h3 class="pull-left xs-pr-10 xs-mt-10 xs-pb-10"><b>{{topLevel["count"]}}</b></h3>
   <p>
-    Observations are predicted to have {{targetcol}} as {{topLevel["name"]}}
+    <b>{{topLevel["count"]}}</b> Observations are predicted to have {{targetcol}} as {{topLevel["name"]}}
   </p>
 </div>
 {{blockSplitter}}
@@ -21,12 +20,11 @@
         {{secondLevel["name"]}}
       </small>
     </h1>
-    <h3 class="pull-left xs-pr-10 xs-mt-10 xs-pb-10"><b>{{secondLevel["count"]}}</b></h3>
   <p>
     {% if nactual == 2 %}
-      Observations are predicted to have {{targetcol}} as {{secondLevel["name"]}}
+      <b>{{secondLevel["count"]}}</b> Observations are predicted to have {{targetcol}} as {{secondLevel["name"]}}
     {% else %}
-      Predicted for all other sub-levels combined.
+      <b>{{secondLevel["count"]}}</b> Predicted for all other sub-levels combined.
     {% endif %}
   </p>
 </div>

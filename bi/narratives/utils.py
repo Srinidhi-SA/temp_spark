@@ -1002,3 +1002,16 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                 narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
                             ' <b>chance that '+ colname + 'range would be ' + target +'.'
         return narrative,crude_narrative
+
+def statistical_info_array_formatter(st_array):
+    outArray = []
+    if len(st_array) > 0:
+        maxLen = max([len(x[0]) for x in st_array[:-1]])
+        if maxLen < len("inference"):
+            maxLen = len("inference")
+        maxLen += 2
+        for val in st_array:
+            size = len(val[0])
+            sent = (str(val[0])+" "*(maxLen-size)+" : "+str(val[1]))
+            outArray.append(sent)
+    return outArray

@@ -118,12 +118,32 @@ class AnovaNarratives:
                 lines = []
                 lines += NarrativesUtils.block_splitter(output['content'],self._blockSplitter)
                 data_c3 = NormalChartData(data_c3)
-                chart_json = ChartJson(data = data_c3.get_data(),axes={'x':'dimension','y':'effect_size'},
+                chart_data = data_c3.get_data()
+                chart_json = ChartJson(data = chart_data,axes={'x':'dimension','y':'effect_size'},
                                         label_text={'x':'','y':'Effect Size'},chart_type='bar')
                 chart_json.set_axis_rotation(True)
                 chart_json.set_yaxis_number_format(".4f")
-                st_info = ["Test : ANOVA", "Threshold for p-value : 0.05", "Effect Size : Tukey's HSD"]
-                lines += [C3ChartData(data=chart_json,info=st_info)]
+                # st_info = ["Test : ANOVA", "Threshold for p-value : 0.05", "Effect Size : Tukey's HSD"]
+                statistical_info_array=[
+                    ("Test Type","ANOVA"),
+                    ("Effect Size","Eta squared"),
+                    ("Max Effect Size",chart_data[0]["dimension"]),
+                    ("Min Effect Size",chart_data[-1]["dimension"]),
+                    ]
+                statistical_inferenc = ""
+                if len(chart_data) == 1:
+                    statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
+                     Effect size of {}".format(chart_data[0]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4))
+                elif len(chart_data) == 2:
+                    statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
+                     Effect size ranges are {} and {} respectively".format(chart_data[0]["dimension"],chart_data[1]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[1]["effect_size"],4))
+                else:
+                    statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
+                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[-1]["effect_size"],4))
+                if statistical_inference != "":
+                    statistical_info_array.append(("Inference",statistical_inference))
+                statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+                lines += [C3ChartData(data=chart_json,info=statistical_info_array)]
                 lines += NarrativesUtils.block_splitter(output1['content'],self._blockSplitter)
                 mainCard.set_card_data(lines)
                 self._anovaNodes.add_a_card(mainCard)
