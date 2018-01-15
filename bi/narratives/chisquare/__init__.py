@@ -154,25 +154,29 @@ class ChiSquareNarratives:
             main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
             main_card_data += main_card_narrative
             # st_info = ["Test : Chi Square", "Threshold for p-value : 0.05", "Effect Size : Cramer's V"]
-            statistical_info_array=[
-                ("Test Type","Chi-Square"),
-                ("Effect Size","Cramer's V"),
-                ("Max Effect Size",chart_data[0]["key"]),
-                ("Min Effect Size",chart_data[-1]["key"]),
-                ]
-            statistical_inferenc = ""
-            if len(chart_data) == 1:
-                statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
-                 Effect size of {}".format(chart_data[0]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4))
-            elif len(chart_data) == 2:
-                statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
-                 Effect size ranges are {} and {} respectively".format(chart_data[0]["key"],chart_data[1]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[1]["value"],4))
+            # print "chartdata",chart_data
+            if len(chart_data) > 0:
+                statistical_info_array=[
+                    ("Test Type","Chi-Square"),
+                    ("Effect Size","Cramer's V"),
+                    ("Max Effect Size",chart_data[0]["key"]),
+                    ("Min Effect Size",chart_data[-1]["key"]),
+                    ]
+                statistical_inferenc = ""
+                if len(chart_data) == 1:
+                    statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
+                     Effect size of {}".format(chart_data[0]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4))
+                elif len(chart_data) == 2:
+                    statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
+                     Effect size ranges are {} and {} respectively".format(chart_data[0]["key"],chart_data[1]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[1]["value"],4))
+                else:
+                    statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
+                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[-1]["value"],4))
+                if statistical_inference != "":
+                    statistical_info_array.append(("Inference",statistical_inference))
+                statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
             else:
-                statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
-                 Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[-1]["value"],4))
-            if statistical_inference != "":
-                statistical_info_array.append(("Inference",statistical_inference))
-            statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+                statistical_info_array = []
             main_card_data.append(C3ChartData(data=chart_json,info=statistical_info_array))
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Key Influencers")
