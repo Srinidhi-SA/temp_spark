@@ -465,7 +465,7 @@ class TimeSeriesNarrative:
 
                         self._result_setter.update_executive_summary_data(dataDict)
                         trendStory = NarrativesUtils.get_template_output(self._base_dir,\
-                                                                        'dimension_trend_new.html',dataDict)
+                                                                        'dimension_trend.html',dataDict)
                         blocks = NarrativesUtils.block_splitter(trendStory,self._blockSplitter)
 
                         if idx != 0:

@@ -83,6 +83,8 @@ class TrendNarrative:
 
         peak_index = df["value"].argmax()
         low_index = df["value"].argmin()
+        dataDict["peakIndex"] = peak_index
+        dataDict["lowIndex"] = low_index
         dataDict["peakValue"] = df["value"][peak_index]
         dataDict["lowestValue"] = df["value"][low_index]
         if dataDict["dataLevel"] == "day":

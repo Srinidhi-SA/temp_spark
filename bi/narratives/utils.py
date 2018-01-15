@@ -470,6 +470,19 @@ def calculate_dimension_contribution(levelContObject):
     return output
 
 def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time, meta_parser):
+    """
+    calculates level contribution dictionary for each level each column
+    sample Dict = {
+                "overall_avg":overall average",
+                "excluding_avg":"average excluding the max_time",
+                "minval":None,
+                "maxval":None,
+                "diff":",max val - excluding avg",
+                "contribution":"percent contribution",
+                "growth":None
+                }
+
+    """
     out = {}
     for column_name in columns:
         print "calculate_level_contribution for ",column_name
@@ -503,11 +516,13 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
         k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,datetime_pattern))
         k = k.sort_values(by="rank", ascending=True)
         occurance_index = np.where(k[index_col] == max_time)
+        print "occurance_index",occurance_index
+        print "max_time",max_time
         if len(occurance_index[0]) > 0:
             max_index = occurance_index[0][0]
         else:
             max_index = None
-        # print k.head(2)
+        print k
         for level in column_levels:
             try:
                 print "calculations for level",level
@@ -549,9 +564,6 @@ def get_level_cont_dict(level_cont):
     out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
     out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
-    print "_"*100
-    # print out_data
-    print "_"*100
     output = []
     for k,v in levelContributionSummary.items():
         min_level = min(v,key=lambda x: v[x]["diff"] if v[x]["diff"] != None else 9999999999999999999)
@@ -565,11 +577,6 @@ def get_level_cont_dict(level_cont):
     out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
     out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
     out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
-
-    print "_"*100
-    # print out_dict
-    print "_"*100
-
     return out_data
 
 def calculate_bucket_data(grouped_data,dataLevel):
