@@ -126,7 +126,7 @@ class AnovaNarratives:
                 # st_info = ["Test : ANOVA", "Threshold for p-value : 0.05", "Effect Size : Tukey's HSD"]
                 statistical_info_array=[
                     ("Test Type","ANOVA"),
-                    ("Effect Size","Eta squared"),
+                    ("Effect Size","ETA squared"),
                     ("Max Effect Size",chart_data[0]["dimension"]),
                     ("Min Effect Size",chart_data[-1]["dimension"]),
                     ]
