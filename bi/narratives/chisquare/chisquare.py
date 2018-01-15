@@ -11,16 +11,19 @@ from bi.common import utils as CommonUtils
 
 
 class ChiSquareAnalysis:
-    def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns,base_dir,appid=None,target_chisquare_result=None):
+    def __init__ (self, df_context, df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns,base_dir,appid=None,target_chisquare_result=None):
         self._blockSplitter = "|~NEWBLOCK~|"
         self._dimensionNode = NarrativesTree()
         self._dimensionNode.set_name(target_dimension)
         self._data_frame = data_frame
+        self._dataframe_context = df_context
+        self._dataframe_helper = df_helper
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
         self._analysed_dimension = analysed_dimension
         self._significant_variables =  significant_variables
         self._target_chisquare_result = target_chisquare_result
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
 
         self._num_analysed_variables = num_analysed_variables
         self._chiSquareTable = chisquare_result.get_contingency_table()
@@ -44,6 +47,24 @@ class ChiSquareAnalysis:
         self._card4 = NormalCard()
         self._base_dir = base_dir
 
+        self._binTargetCol = False
+        self._binAnalyzedCol = False
+        print "Custom Analysis Staus-------------------;;;;;;;;;;;;;"
+        print self._dataframe_context.get_custom_analysis_details()
+
+        if self._dataframe_context.get_custom_analysis_details() != None:
+            binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
+            print binnedColObj
+            print "analysed_dimension----------------------------------"
+            print self._analysed_dimension
+            if binnedColObj != None and self._target_dimension in binnedColObj:
+                self._binTargetCol = True
+            if binnedColObj != None and (self._analysed_dimension in binnedColObj or self._analysed_dimension in self._measure_columns):
+                self._binAnalyzedCol = True
+        print "binTargetCol-------------"
+        print self._binTargetCol
+        print "BinAnalyzedCol..........."
+        print self._binAnalyzedCol
         if self._appid == None:
             self._generate_narratives()
             self._dimensionNode.add_cards([self._card1,self._card2,self._card4])
@@ -90,6 +111,7 @@ class ChiSquareAnalysis:
         sorted_target_levels = sorted(zip(target_counts,target_levels),reverse=True)
         top_target_count, top_target = sorted_target_levels[0]
         second_target_count, second_target = sorted_target_levels[1]
+        print "--------Target------------"
         print "top_target",top_target
         print "second_target",second_target
 
@@ -221,7 +243,22 @@ class ChiSquareAnalysis:
         data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/sum(top_target_contributions),2)
 
         data_dict["blockSplitter"] = self._blockSplitter
-        output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter)
+        data_dict["binTargetCol"] = self._binTargetCol
+        data_dict["binAnalyzedCol"] = self._binAnalyzedCol
+        
+
+        print "-----------data_dict - card1------------"
+        print data_dict
+
+        if (self._binTargetCol == True & self._binAnalyzedCol == False):
+            print "Only Target Column is Binned"
+            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter)
+        elif (self._binTargetCol == True & self._binAnalyzedCol == True):
+            print "Target Column and IV is Binned"
+            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter)
+        else:
+            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter)
+        
         targetDimCard1Data = []
         targetDimcard1Heading = '<h3>Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension+"</h3>"
 
@@ -364,7 +401,8 @@ class ChiSquareAnalysis:
 
             key_factors1 = ''
             num_key_factors1 = len(self._second_level_dimensions1)
-
+            print "------------------------key_factors1------------------"
+            print key_factors1
             if len(self._second_level_dimensions1)==5:
                 key_factors1 = ', '.join(self._second_level_dimensions1[:4]) + ' and ' + self._second_level_dimensions1[4]
             elif len(self._second_level_dimensions)==4:
@@ -385,6 +423,13 @@ class ChiSquareAnalysis:
             data_dict['random_card4'] = random.randint(1,100)
             # print data_dict['distribution_second']
             # print data_dict['random_card2']
+            print "------------------------------"
+            print data_dict['key_factors1']
+            print data_dict['key_factors']
+            print "------------------------------"
+            
+
+
             card2Data = []
             card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
             chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
@@ -396,9 +441,18 @@ class ChiSquareAnalysis:
             card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
             card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
             card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
-            output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
+
+            if (self._binTargetCol == True & self._binAnalyzedCol == False):
+                print "Only Target Column is Binned"
+                output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',data_dict),self._blockSplitter)
+            elif (self._binTargetCol == True & self._binAnalyzedCol == True):
+                print "Target Column and IV is Binned"
+                output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',data_dict),self._blockSplitter)            
+            else:
+                output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
 
             card2Data.append(HtmlData(data=card2Heading))
+            print card2Data
             st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
             card2Data.append(C3ChartData(data=card2ChartJson,info=st_info))
             card2Data += output2
@@ -418,8 +472,16 @@ class ChiSquareAnalysis:
             card4ChartJson.set_types({"total":"bar","percentage":"line"})
             card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
             card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-            output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)
-
+            
+            if (self._binTargetCol == True & self._binAnalyzedCol == False):
+                print "Only Target Column is Binned" 
+                output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target.html',data_dict),self._blockSplitter)
+            elif (self._binTargetCol == True & self._binAnalyzedCol == True):
+                print "Target Column and IV is Binned"
+                output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target_and_IV.html',data_dict),self._blockSplitter)            
+            else:
+                output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)                
+            
             card4Data.append(HtmlData(data=card4Heading))
             st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V : "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic: '+str(round(self._chisquare_result.get_stat(),3))]
             card4Data.append(C3ChartData(data=card4ChartJson,info=st_info))
