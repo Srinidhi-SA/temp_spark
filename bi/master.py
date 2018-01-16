@@ -66,7 +66,6 @@ def main(configJson):
             ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
             jobType = "story"
-            # configJson = GlobalSettings.get_test_configs(jobType)
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -84,6 +83,7 @@ def main(configJson):
 
     config = configJson["config"]
     job_config = configJson["job_config"]
+
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
     dataframe_context = ContextSetter(configJsonObj)
@@ -110,19 +110,8 @@ def main(configJson):
     if scripts_to_run==None:
         scripts_to_run = []
     appid = dataframe_context.get_app_id()
-    if jobType == "story":
-        if analysistype == "dimension":
-            scriptWeightDict = dataframe_context.get_dimension_analysis_weight()
-        elif analysistype == "measure":
-            scriptWeightDict = dataframe_context.get_measure_analysis_weight()
-    elif jobType == "training":
-        scriptWeightDict = dataframe_context.get_ml_model_training_weight()
-    elif jobType == "prediction":
-        scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
-    elif jobType == "metaData":
-        scriptWeightDict = dataframe_context.get_metadata_script_weight()
-    elif jobType == "subSetting":
-        scriptWeightDict = dataframe_context.get_subsetting_script_weight()
+    
+    scriptWeightDict = dataframe_context.get_script_weights()
     print scriptWeightDict
     completionStatus = 0
 
@@ -135,11 +124,11 @@ def main(configJson):
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
     elif jobType == "metaData":
-        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
 

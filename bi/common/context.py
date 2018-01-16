@@ -573,3 +573,21 @@ class ContextSetter:
 
     def get_message_ignore(self):
         return self.ignoremessages
+
+    def get_script_weights(self):
+        jobType = self.get_job_type()
+        analysistype = self.get_analysis_type()
+        if jobType == "story":
+            if analysistype == "dimension":
+                scriptWeightDict = self.get_dimension_analysis_weight()
+            elif analysistype == "measure":
+                scriptWeightDict = self.get_measure_analysis_weight()
+        elif jobType == "training":
+            scriptWeightDict = self.get_ml_model_training_weight()
+        elif jobType == "prediction":
+            scriptWeightDict = self.get_ml_model_prediction_weight()
+        elif jobType == "metaData":
+            scriptWeightDict = self.get_metadata_script_weight()
+        elif jobType == "subSetting":
+            scriptWeightDict = self.get_subsetting_script_weight()
+        return scriptWeightDict
