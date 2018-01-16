@@ -1,4 +1,5 @@
 from bi.common.decorators import accepts
+from bi.settings import setting as GLOBALSETTINGS
 import ast
 class ContextSetter:
 
@@ -43,52 +44,6 @@ class ContextSetter:
         self.METADATA_SLUGS = None
         self.dbConnectionParams = {}
         self.dataSourceType = None
-        self.blockSplitter = "|~NEWBLOCK~|"
-
-        self.scriptsMapping = {
-            "overview" : "Descriptive analysis",
-            "performance" : "Measure vs. Dimension",
-            "influencer" : "Measure vs. Measure",
-            "prediction" : "Predictive modeling",
-            "trend" : "Trend",
-            "association" : "Dimension vs. Dimension"
-        }
-        self.measureAnalysisRelativeWeight = {
-            "initialization":0.25,
-            "Descriptive analysis":1,
-            "Measure vs. Dimension":3,
-            "Measure vs. Measure":3,
-            "Trend":1.5,
-            "Predictive modeling":1.5
-        }
-        self.dimensionAnalysisRelativeWeight = {
-            "initialization":0.25,
-            "Descriptive analysis":1,
-            "Dimension vs. Dimension":4,
-            "Trend":2.5,
-            "Predictive modeling":2.5
-        }
-        self.mlModelTrainingWeight = {
-            "initialization":{"total":10,"script":10,"narratives":10},
-            "randomForest":{"total":30,"script":30,"narratives":30},
-            "logisticRegression":{"total":30,"script":30,"narratives":30},
-            "xgboost":{"total":30,"script":30,"narratives":30}
-        }
-        self.mlModelPredictionWeight = {
-            "initialization":{"total":10,"script":10,"narratives":10},
-            "randomForest":{"total":20,"script":20,"narratives":20},
-            "logisticRegression":{"total":20,"script":20,"narratives":20},
-            "xgboost":{"total":20,"script":20,"narratives":20},
-            "Descriptive analysis":{"total":10,"script":10,"narratives":10},
-            "Dimension vs. Dimension":{"total":10,"script":5,"narratives":5},
-            "Predictive modeling":{"total":10,"script":5,"narratives":5}
-        }
-        self.metadataScriptWeight = {
-            "initialization":{"total":3,"script":2,"narratives":1},
-        }
-        self.subsettingScriptWeight = {
-            "initialization":{"total":3,"script":2,"narratives":1},
-        }
         self.measureAnalysisWeight = {}
         self.dimensionAnalysisWeight = {}
         self.globalCompletionStatus = 0
@@ -98,7 +53,6 @@ class ContextSetter:
         self.dataAPI = ""
         self.trendSettings = None
         self.metaIgnoreMsgFlag = False
-        self._max_dimension_level_allowed = 200
         self.customAnalysisDetails = None
         self.jobType = None
         self.storyOnScoredData = False
@@ -128,9 +82,6 @@ class ContextSetter:
     def get_dollar_columns(self):
         return self.dollarColumns
 
-    def get_block_splitter(self):
-        return self.blockSplitter
-
     def get_label_map(self):
         if len(self.labelMappingDict) > 0:
             original = self.labelMappingDict[0]
@@ -145,8 +96,6 @@ class ContextSetter:
             return self.uidColObject["colName"]
         else:
             return None
-    def get_anova_max_levels(self):
-        return self._max_dimension_level_allowed
     def get_datasource_type(self):
         return self.dataSourceType
     def get_dbconnection_params(self):
@@ -156,9 +105,9 @@ class ContextSetter:
     def set_metadata_ignore_msg_flag(self,data):
         self.metaIgnoreMsgFlag = data
     def get_metadata_script_weight(self):
-        return self.metadataScriptWeight
+        return GLOBALSETTINGS.metadataScriptWeight
     def get_subsetting_script_weight(self):
-        return self.subsettingScriptWeight
+        return GLOBALSETTINGS.subsettingScriptWeight
     def set_model_path(self,data):
         self.MODEL_PATH = data
     def set_environment(self,data):
@@ -174,9 +123,9 @@ class ContextSetter:
     def set_analysis_weights(self,scriptsToRun,analysis_type):
         scriptsToRun += ["initialization"]
         if analysis_type == "measure":
-            relativeWeightArray = [self.measureAnalysisRelativeWeight[x] for x in scriptsToRun]
+            relativeWeightArray = [GLOBALSETTINGS.measureAnalysisRelativeWeight[x] for x in scriptsToRun]
         elif analysis_type == "dimension":
-            relativeWeightArray = [self.dimensionAnalysisRelativeWeight[x] for x in scriptsToRun]
+            relativeWeightArray = [GLOBALSETTINGS.dimensionAnalysisRelativeWeight[x] for x in scriptsToRun]
         totalWeight = sum(relativeWeightArray)
         percentWeight = [int(round(x*100/float(totalWeight))) for x in relativeWeightArray]
         diff = sum(percentWeight) - 100
@@ -357,7 +306,7 @@ class ContextSetter:
                             "status" : True
                         }
                     )
-                self.analysisList = [self.scriptsMapping[x] for x in analysisList]
+                self.analysisList = [GLOBALSETTINGS.scriptsMapping[x] for x in analysisList]
                 self.analysisDict = dict(zip(self.analysisList,analysisDictList))
             if "trendSettings" in advanceSettingKeys:
                 trendSettingObj = self.ADVANCE_SETTINGS["trendSettings"]
@@ -431,10 +380,10 @@ class ContextSetter:
         return self.dimensionAnalysisWeight
 
     def get_ml_model_training_weight(self):
-        return self.mlModelTrainingWeight
+        return GLOBALSETTINGS.mlModelTrainingWeight
 
     def get_ml_model_prediction_weight(self):
-        return self.mlModelPredictionWeight
+        return GLOBALSETTINGS.mlModelPredictionWeight
 
     def update_completion_status(self,data):
         self.globalCompletionStatus = data

@@ -5,6 +5,7 @@ from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.settings import setting as GLOBALSETTINGS
 
 class MeasureColumnNarrative:
 
@@ -34,7 +35,7 @@ class MeasureColumnNarrative:
         self.analysis = None
         self.take_away = None
         self.card2 = ''
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._highlightFlag = "|~HIGHLIGHT~|"
         self._base_dir = "/descriptive/"
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())

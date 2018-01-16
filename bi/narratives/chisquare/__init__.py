@@ -8,6 +8,8 @@ from bi.narratives import utils as NarrativesUtils
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 class ChiSquareNarratives:
@@ -25,7 +27,7 @@ class ChiSquareNarratives:
         self._appid = df_context.get_app_id()
         self._chiSquareNode = NarrativesTree()
         self._chiSquareNode.set_name("Association")
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._base_dir = "/chisquare/"
         if self._appid != None:
             if self._appid == "1":

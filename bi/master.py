@@ -12,8 +12,9 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import ConfigParser
 
-from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
 from bi.settings import *
+from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser,DataWriter,DataFrameHelper,ContextSetter,ResultSetter
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -110,7 +111,7 @@ def main(configJson):
     if scripts_to_run==None:
         scripts_to_run = []
     appid = dataframe_context.get_app_id()
-    
+
     scriptWeightDict = dataframe_context.get_script_weights()
     print scriptWeightDict
     completionStatus = 0

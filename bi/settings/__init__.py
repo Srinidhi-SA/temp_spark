@@ -1,5 +1,4 @@
 from configs import *
-
 def get_test_configs(jobType):
     testConfigs = {
         "story"        : get_story_config(),

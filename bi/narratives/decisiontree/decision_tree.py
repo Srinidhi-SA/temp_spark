@@ -15,6 +15,7 @@ from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import ResultSetter
+from bi.settings import setting as GLOBALSETTINGS
 
 class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2
@@ -35,7 +36,7 @@ class DecisionTreeNarrative:
         self._dataframe_context = df_context
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._result_setter = result_setter
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._column_name = column_name.lower()
         self._colname = column_name
 

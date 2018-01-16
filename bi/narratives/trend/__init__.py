@@ -19,6 +19,7 @@ from pyspark.sql.types import *
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.functions import lit
 from pyspark.sql import DataFrame
+from bi.settings import setting as GLOBALSETTINGS
 
 
 
@@ -67,7 +68,7 @@ class TimeSeriesNarrative:
 
         self._trend_subsection = self._result_setter.get_trend_section_name()
         self._regression_trend_card = None
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._highlightFlag = "|~HIGHLIGHT~|"
         self._trend_on_td_column = False
         self._number_of_dimensions_to_consider = 10

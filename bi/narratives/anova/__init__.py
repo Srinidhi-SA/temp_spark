@@ -6,6 +6,8 @@ from bi.narratives.anova.anova import OneWayAnovaNarratives
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 class AnovaNarratives:
@@ -33,7 +35,7 @@ class AnovaNarratives:
         self._df_helper = df_helper
         self.narratives = {}
         self.narratives['variables'] = ''
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._base_dir = "/anova/"
 
         self._completionStatus = self._dataframe_context.get_completion_status()

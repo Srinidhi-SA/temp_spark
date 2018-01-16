@@ -14,6 +14,7 @@ from bi.narratives.trend import TimeSeriesNarrative
 from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
 
 
 
@@ -26,7 +27,7 @@ class RegressionNarrative:
         self._correlations = correlations
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
 
         # self._result_setter.set_trend_section_name("regression")
         self._measure_columns = self._dataframe_helper.get_numeric_columns()

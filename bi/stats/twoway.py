@@ -14,6 +14,8 @@ from bi.common.results import TopDimensionStats, TrendResult,TopLevelDfAnovaStat
 
 from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 
@@ -122,7 +124,7 @@ class TwoWayAnova:
         if nColsToUse != None:
             dimensions = dimensions[:nColsToUse]
         sqrt_nrows = round(self._dataframe_helper.get_num_rows()**0.5)
-        acceptable_level_count = self._dataframe_context.get_anova_max_levels()
+        acceptable_level_count = GLOBALSETTINGS.ANOVAMAXLEVEL
         print acceptable_level_count,sqrt_nrows
         max_levels = __builtin__.min([acceptable_level_count,int(sqrt_nrows)])
         df_anova_result = DFTwoWayAnovaResult()
