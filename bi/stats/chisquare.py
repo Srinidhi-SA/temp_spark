@@ -37,8 +37,7 @@ class ChiSquare:
             if len(self._date_column) >0 :
                 self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
         if len(self._date_column_suggestions) > 0:
-            if self._date_column_suggestions[0] != {}:
-                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
+            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions))
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         if analysisName == None:

@@ -35,8 +35,7 @@ class DecisionTrees:
             if len(self._date_column) >0 :
                 self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
         if len(self._date_column_suggestions) > 0:
-            if self._date_column_suggestions[0] != {}:
-                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
+            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions))
         self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns)
         self._data_frame1 = self._data_frame
         self._mapping_dict = {}

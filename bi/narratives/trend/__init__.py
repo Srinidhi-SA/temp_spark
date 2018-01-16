@@ -51,7 +51,7 @@ class TimeSeriesNarrative:
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._dateColumnFormatDict =  df_context.get_datetime_suggestions()[0]
         if self._dataframe_context.get_requested_date_format() != None:
-            self._requestedDateFormat = df_context.get_requested_date_format()[0]
+            self._requestedDateFormat = df_context.get_requested_date_format()
         else:
             self._requestedDateFormat = None
 

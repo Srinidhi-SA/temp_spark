@@ -188,6 +188,10 @@ def main(configJson):
 
         if jobType != "metaData":
             print "Setting Dataframe Helper Class"
+            dataframe_context.set_ignore_column_suggestions(metaParserInstance.get_ignore_columns())
+            dataframe_context.set_utf8_columns(metaParserInstance.get_utf8_columns())
+            dataframe_context.set_date_format(metaParserInstance.get_date_format())
+
             percentageColumns = metaParserInstance.get_percentage_columns()
             dollarColumns = metaParserInstance.get_dollar_columns()
             dataframe_context.set_percentage_columns(percentageColumns)

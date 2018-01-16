@@ -5,18 +5,32 @@ class MetaParser:
         self.meta_data = {}
         self.column_dict = {}
         self.ignoreColDict = {}
+
     def set_params(self, meta_data):
         print "Setting Meta Data Parser"
+        self.utf8ColumnSuggestion = []
+        self.ignoreColumnSuggestions = []
+        self.dateTimeSuggestions = {}
         self.meta_data = meta_data
+
         # dict_out = self.extract(self.meta_data['metaData'], self.meta_data['metaData'])
         # self.column_dict = self.get_column_stats(dict_out['columnData'])
         self.column_dict = self.get_column_stats(self.meta_data['columnData'])
         ignorecolobject = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnSuggestions"]
         ignorereasonobj = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnReason"]
-
         if len(ignorecolobject) > 0:
             if ignorecolobject[0] != {} and len(ignorecolobject[0]["value"]) >0:
+                self.ignoreColumnSuggestions = ignorecolobject[0]["value"]
                 self.ignoreColDict = dict(zip(ignorecolobject[0]["value"],ignorereasonobj[0]["value"]))
+        utf8Colobj = [x for x in self.meta_data["metaData"] if x["name"]=="utf8ColumnSuggestion"]
+        if len(utf8Colobj) > 0:
+            if utf8Colobj[0] != {} and len(utf8Colobj[0]["value"]) >0:
+                self.utf8ColumnSuggestion = utf8Colobj[0]["value"]
+        dateSugColObj = [x for x in self.meta_data["metaData"] if x["name"]=="dateTimeSuggestions"]
+        if len(dateSugColObj) > 0:
+            if dateSugColObj[0] != {}:
+                self.dateTimeSuggestions = dateSugColObj[0]["value"]
+
         try:
             self.percentage_columns = [x["value"] for x in self.meta_data['metaData'] if x["name"] == "percentageColumns"][0]
         except:
@@ -85,3 +99,15 @@ class MetaParser:
 
     def get_dollar_columns(self):
         return self.dollar_columns
+
+    def get_ignore_columns(self):
+        return self.ignoreColumnSuggestions
+
+    def get_measure_suggestions(self):
+        return []
+
+    def get_date_format(self):
+        return self.dateTimeSuggestions
+
+    def get_utf8_columns(self):
+        return self.utf8ColumnSuggestion
