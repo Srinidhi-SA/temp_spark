@@ -31,13 +31,9 @@ class ChiSquare:
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
-        self._date_column = self._dataframe_context.get_date_columns()
-        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
-        if self._date_column != None:
-            if len(self._date_column) >0 :
-                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
-        if len(self._date_column_suggestions) > 0:
-            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions))
+        self._date_columns = self._dataframe_context.get_date_columns()
+        if len(self._date_columns) >0 :
+            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         if analysisName == None:

@@ -810,7 +810,6 @@ def get_grouped_count_data_for_dimension_trend(df,dataLevel,resultCol):
 def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFormatDict,dateFormatConversionDict,requestedDateFormat):
     dateFormatDetected = False
     trendOnTdCol = False
-    print selectedDateColumns
     if selectedDateColumns != None and len(selectedDateColumns) > 0:
         suggested_date_column = selectedDateColumns[0]
         existingDateFormat = None

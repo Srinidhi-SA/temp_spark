@@ -44,30 +44,25 @@ class TwoWayAnova:
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
 
-        self._date_column = self._dataframe_context.get_date_columns()
-        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()[0]
-        if self._date_column != None:
-            if len(self._date_column) >0 :
-                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
-        if self._date_column_suggestions != {}:
-            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions.keys()))
+        self._date_columns = self._dataframe_context.get_date_columns()
+        if len(self._date_columns) >0 :
+            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self.top_dimension_result = {}
         # if selected date col empty then on td_node
         self._dataRangeStats = None
         self._dateFormatDetected = False
         self._trend_on_td_column = False
         self._existingDateFormat = None
-        self._selected_date_columns = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
-        self._dateColumnFormatDict =  df_context.get_datetime_suggestions()[0]
+        self._dateColumnFormatDict =  df_context.get_date_format_dict()
         if self._dataframe_context.get_requested_date_format() != None:
-            self._requestedDateFormat = df_context.get_requested_date_format()[0]
+            self._requestedDateFormat = df_context.get_requested_date_format()
         else:
             self._requestedDateFormat = None
         dateColCheck = None
         scriptsToRun = self._dataframe_context.get_analysis_name_list()
-        if len(self._date_column) > 0:
-            self._selected_date_columns = self._date_column
+
+        self._selected_date_columns = self._dataframe_context.get_selected_date_columns()
         if self._selected_date_columns != None:
             dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
                                                     self._timestamp_columns,\
@@ -82,9 +77,9 @@ class TwoWayAnova:
             if self._dateFormatDetected:
                 self._requestedDateFormat = dateColCheck["requestedDateFormat"]
                 self._existingDateFormat = dateColCheck["existingDateFormat"]
-                self._date_column_suggested = dateColCheck["suggestedDateColumn"]
+                self._date_columns_suggested = dateColCheck["suggestedDateColumn"]
         if self._dateFormatDetected:
-            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
+            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._selected_date_columns,self._date_columns_suggested,self._trend_on_td_column)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()

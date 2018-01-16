@@ -43,13 +43,14 @@ class TimeSeriesNarrative:
         self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
 
         # self._selected_date_columns = None
-        self._selected_date_columns = self._dataframe_context.get_date_columns()
-        self._string_columns = list(set(self._string_columns)-set(self._selected_date_columns))
+        self._selected_date_columns = self._dataframe_context.get_selected_date_columns()
+        self._all_date_columns = self._dataframe_context.get_date_columns()
+        self._string_columns = list(set(self._string_columns)-set(self._all_date_columns))
 
         self._dateFormatDetected = False
         self._existingDateFormat = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
-        self._dateColumnFormatDict =  df_context.get_datetime_suggestions()[0]
+        self._dateColumnFormatDict =  df_context.get_date_format_dict()
         if self._dataframe_context.get_requested_date_format() != None:
             self._requestedDateFormat = df_context.get_requested_date_format()
         else:

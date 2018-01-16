@@ -25,13 +25,11 @@ class ContextSetter:
         self.considercolumns = []
         self.considercolumnstype = ["including"]
         self.measure_suggestions = []
-        self.date_columns = []
-        self.string_to_date_columns = {}
+
         self.MODELFEATURES = []
         self.appid = None
         self.algorithmslug = []
         self.levelcount_dict = {}
-        self.dateTimeSuggestions = []
         self.dimension_filter = {}
         self.measure_filter = {}
         self.time_dimension_filter = {}
@@ -53,7 +51,7 @@ class ContextSetter:
         self.dataAPI = ""
         self.trendSettings = None
         self.metaIgnoreMsgFlag = False
-        self.customAnalysisDetails = None
+        self.customAnalysisDetails = []
         self.jobType = None
         self.storyOnScoredData = False
         self.uidCol = None
@@ -61,9 +59,17 @@ class ContextSetter:
         self.labelMappingDict = []
         self.percentageColumns = []
         self.dollarColumns = []
-        self.dateFormatDetails = {}
         self.colPolarity = []
+
         self.requestedDateFormat = None
+        self.dateFormatDict = {}
+        self.allDateColumns = []
+        self.string_to_date_columns = {}
+        self.dateFormatDetails = {}
+        self.dateTimeSuggestions = []
+        self.selected_date_columns = []
+
+
 
     def set_params(self):
         self.FILE_SETTINGS = self._config_obj.get_file_settings()
@@ -147,13 +153,18 @@ class ContextSetter:
                     if colSetting["targetColumn"] == True:
                         self.resultcolumn = colSetting["name"]
                         if colSetting["columnType"] == "measure":
-                            self.analysistype = "measure"
+                            if colSetting["setVarAs"] != None:
+                                self.analysistype = "dimension"
+                            else:
+                                self.analysistype = "measure"
                         elif colSetting["columnType"] == "dimension":
                             self.analysistype = "dimension"
                     if colSetting["uidCol"] == True:
                         self.uidCol = colSetting["name"]
                     if colSetting["columnType"] == "datetime" or colSetting["dateSuggestionFlag"] == True:
-                        self.date_columns.append(colSetting["name"])
+                        self.allDateColumns.append(colSetting["name"])
+                        if colSetting["selected"] == True:
+                            self.selected_date_columns.append(colSetting["name"])
                     if colSetting["dateSuggestionFlag"] == True:
                         self.dateTimeSuggestions.append(colSetting["name"])
                     if colSetting["setVarAs"] != None:
@@ -261,7 +272,13 @@ class ContextSetter:
         self.utf8columns = utf8Cols
 
     def set_date_format(self,dateFormat):
-        self.date_format = dateFormat
+        self.dateFormatDict = dateFormat
+
+    def get_date_format_dict(self):
+        return self.dateFormatDict
+
+    def get_selected_date_columns(self):
+        return self.selected_date_columns
 
     def set_measure_suggestions(self,measureSugCols):
         self.measure_suggestions = measureSugCols
@@ -466,7 +483,7 @@ class ContextSetter:
         return self.date_filter
 
     def get_date_columns(self):
-        return self.date_columns
+        return self.allDateColumns
 
     def get_requested_date_format(self):
         return self.requestedDateFormat
