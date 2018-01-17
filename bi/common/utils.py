@@ -307,7 +307,7 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
         "stageCompletionPercentage" : stageCompletionPercentage,
         "display":display
     }
-    print "completionStatus for the Job:- ",globalCompletionPercentage
+    print "completionStatus for the Job:- ",globalCompletionPercentage,"timestamp:- ",progressMessage["stageCompletionTimestamp"]
     return progressMessage
 
 def save_result_json(url,jsonData):
@@ -317,8 +317,10 @@ def save_result_json(url,jsonData):
     return res
 
 def save_progress_message(url,jsonData,ignore=False):
+    print jsonData["analysisName"],jsonData["shortExplanation"],jsonData["globalCompletionPercentage"]
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
+        print res
         return res
     else:
         return True

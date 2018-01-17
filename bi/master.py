@@ -66,7 +66,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
+            jobType = "metaData"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -92,7 +92,9 @@ def main(configJson):
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
-        ignoreMsg = True
+        # ignoreMsg = True
+        ignoreMsg = False
+
     jobType = job_config["job_type"]
     try:
         errorURL = job_config["error_reporting_url"]+APP_NAME+"/"
@@ -187,7 +189,6 @@ def main(configJson):
                     metaParserInstance.set_params(metaDataObj)
 
         if jobType != "metaData":
-            print "Setting Dataframe Helper Class"
             dataframe_context.set_ignore_column_suggestions(metaParserInstance.get_ignore_columns())
             dataframe_context.set_utf8_columns(metaParserInstance.get_utf8_columns())
             dataframe_context.set_date_format(metaParserInstance.get_date_format())
@@ -207,11 +208,12 @@ def main(configJson):
             levelCountDict = df_helper.get_level_counts(colsToBin)
             metaParserInstance.update_level_counts(colsToBin,levelCountDict)
 
-
+        print "completionStatus1",completionStatus
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
+        print "completionStatus2",completionStatus
 
         if jobType == "story":
             if analysistype == "measure":
@@ -225,8 +227,8 @@ def main(configJson):
 
     if jobType == "metaData":
         fs = time.time()
-        print "Running Metadata"
         meta_data_class = MetaDataScript(df,spark,dataframe_context)
+        completionStatus = dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Meta data for the dataset",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:

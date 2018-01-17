@@ -23,7 +23,6 @@ from bi.common.decorators import accepts
 class MetaDataHelper():
 
     def __init__(self, df, rows):
-        print "Initialize"
         self.df = df
         self.rows = rows
         self._sample_data = self.set_sample_data()
@@ -144,7 +143,7 @@ class MetaDataHelper():
                 fs1 = time.time()
                 levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
                 levelCount = {str(k):v for k,v in levelCount.items()}
-                print "time for levelCount ",time.time()-fs1,"Seconds"
+                # print "time for levelCount ",time.time()-fs1,"Seconds"
                 col_stat["LevelCount"] = levelCount
                 if None in levelCount.keys():
                     col_stat["numberOfNulls"] = levelCount[None]
@@ -173,7 +172,7 @@ class MetaDataHelper():
                     col_stat["MinLevel"] = None
             else:
                 col_stat = dict(zip(summary_df["summary"],summary_df[column]))
-                print col_stat
+                # print col_stat
                 col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
                 col_stat["numberOfNotNulls"] = total_count - int(col_stat["count"])
                 col_stat["numberOfUniqueValues"] = None
@@ -199,7 +198,7 @@ class MetaDataHelper():
             xtraArgs[key] =  kwargs[key]
         if "level_count_flag" in xtraArgs:
             level_count_flag = xtraArgs[key]
-        print level_count_flag
+        # print level_count_flag
         df = df.select(td_columns)
         total_count = df.count()
         output = {}
@@ -241,7 +240,7 @@ class MetaDataHelper():
             # col_stat["count"] = df.select(column).distinct().na.drop().count()
             col_stat["count"] = notNullDf.count()
             if level_count_flag:
-                print "start level count"
+                # print "start level count"
                 fs1 = time.time()
                 tdLevelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
                 levelCount = {}
@@ -250,7 +249,7 @@ class MetaDataHelper():
                         levelCount[str(pd.to_datetime(k).date())] = v
                     else:
                         levelCount[k] = v
-                print "time for levelCount ",time.time()-fs1,"Seconds"
+                # print "time for levelCount ",time.time()-fs1,"Seconds"
                 col_stat["LevelCount"] = levelCount
                 if None in levelCount.keys():
                     col_stat["numberOfNulls"] = levelCount[None]
@@ -437,7 +436,7 @@ class MetaDataHelper():
             df = sdf.withColumn('new_column', sdf[col].substr(-1, 1))
             df = df.select('new_column').distinct()
             if df.count()==1 and df.first()['new_column']=='%':
-                print "percentage"
+                # print "percentage"
                 result = sdf.withColumn('percent', regexp_extract(sdf[col], '^(((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)[^%]*)',1))
                 result = result.select(result.percent.cast('float'))
                 not_nulls = result.select('percent').na.drop().count()
@@ -453,7 +452,7 @@ class MetaDataHelper():
             df = sdf.withColumn('new_column', sdf[col].substr(1, 1))
             df = df.select('new_column').distinct()
             if df.count()==1 and df.first()['new_column']=='$':
-                print "dollar_columns"
+                # print "dollar_columns"
                 result = sdf.withColumn('dollar', regexp_extract(sdf[col], '^([$]((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)*)',2))
                 result = result.select(result.dollar.cast('float'))
                 not_nulls = result.select('dollar').na.drop().count()
