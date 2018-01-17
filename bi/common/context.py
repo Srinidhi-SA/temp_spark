@@ -169,6 +169,8 @@ class ContextSetter:
                         self.dateTimeSuggestions.append(colSetting["name"])
                     if colSetting["setVarAs"] != None:
                         self.customAnalysisDetails.append({"colName":colSetting["name"],"treatAs":colSetting["setVarAs"]})
+                    if colSetting["targetColSetVarAs"] != None:
+                        self.customAnalysisDetails.append({"colName":colSetting["name"],"treatAs":colSetting["targetColSetVarAs"]})
                     if colSetting["polarity"] != None:
                         self.colPolarity.append({"colName":colSetting["name"],"polarity":colSetting["polarity"]})
 

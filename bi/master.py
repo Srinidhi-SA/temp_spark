@@ -124,11 +124,11 @@ def main(configJson):
             progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
         else:
             progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
         dataframe_context.update_completion_status(completionStatus)
     elif jobType == "metaData":
         progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
         progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)

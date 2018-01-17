@@ -316,8 +316,9 @@ def save_result_json(url,jsonData):
     res = requests.put(url=url,data=jsonData)
     return res
 
-def save_progress_message(url,jsonData,ignore=False):
-    print jsonData["analysisName"],jsonData["shortExplanation"],jsonData["globalCompletionPercentage"]
+def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
+    if emptyBin == True:
+        url += "?emptyBin=True"
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
         print res
