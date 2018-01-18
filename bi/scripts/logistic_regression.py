@@ -288,7 +288,7 @@ class LogisticRegressionScript:
         uidTableData = []
         predictedClasses = list(df[result_column].unique())
         if uidCol:
-            if uidCol in df.columns
+            if uidCol in df.columns:
                 for level in predictedClasses:
                     levelDf = df[df[result_column] == level]
                     levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
