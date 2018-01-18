@@ -64,9 +64,9 @@ def main(configJson):
             print "Running in debugMode"
             cfgMode = False
             debugMode = True
-            ignoreMsg = False
+            ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "metaData"
+            jobType = "prediction"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -84,26 +84,24 @@ def main(configJson):
 
     config = configJson["config"]
     job_config = configJson["job_config"]
+    jobType = job_config["job_type"]
+    messageUrl = configJson["job_config"]["message_url"]
+    jobName = job_config["job_name"]
 
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
     dataframe_context = ContextSetter(configJsonObj)
+    dataframe_context.set_job_type(jobType)
+    dataframe_context.set_message_url(messageUrl)
     dataframe_context.set_params()
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
-        # ignoreMsg = True
-        ignoreMsg = False
-
-    jobType = job_config["job_type"]
     try:
         errorURL = job_config["error_reporting_url"]+APP_NAME+"/"
     except:
         errorURL = None
-    messageUrl = configJson["job_config"]["message_url"]
-    dataframe_context.set_job_type(jobType)
-    dataframe_context.set_message_url(messageUrl)
-    jobName = job_config["job_name"]
+
     messageURL = dataframe_context.get_message_url()
     analysistype = dataframe_context.get_analysis_type()
     result_setter = ResultSetter(dataframe_context)
@@ -118,7 +116,7 @@ def main(configJson):
     print scriptWeightDict
     completionStatus = 0
 
-    ########################## Load the dataframe ##############################
+    ########################## Initializing messages ##############################
     if jobType == "story":
         if analysistype == "measure":
             progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
@@ -140,6 +138,7 @@ def main(configJson):
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     dataframe_context.update_completion_status(completionStatus)
+    ########################## Load the dataframe ##############################
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
@@ -208,12 +207,10 @@ def main(configJson):
             levelCountDict = df_helper.get_level_counts(colsToBin)
             metaParserInstance.update_level_counts(colsToBin,levelCountDict)
 
-        print "completionStatus1",completionStatus
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
-        print "completionStatus2",completionStatus
 
         if jobType == "story":
             if analysistype == "measure":
@@ -663,6 +660,8 @@ def main(configJson):
         algorithm_name_list = ["randomforest","xgboost","logisticregression"]
         algorithm_name = dataframe_context.get_algorithm_slug()[0]
         print "algorithm_name",algorithm_name
+        print "score_file_path",score_file_path
+        print "model_slug",model_slug
         model_path = score_file_path.split(basefoldername)[0]+"/mAdvisorModels/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)

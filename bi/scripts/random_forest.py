@@ -230,18 +230,15 @@ class RandomForestScript:
                         dataSanity = False
                 else:
                     dataSanity = False
-
         random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
         score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
-        print "score_data_path",score_data_path
         if score_data_path.startswith("file"):
             score_data_path = score_data_path[7:]
         trained_model_path = self._dataframe_context.get_model_path()
-        print "trained_model_path",trained_model_path
         trained_model_path += "/model.pkl"
         if trained_model_path.startswith("file"):
             trained_model_path = trained_model_path[7:]
@@ -302,15 +299,16 @@ class RandomForestScript:
         columns_to_keep = []
         columns_to_drop = []
 
-        considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
-        considercolumns = self._dataframe_context.get_score_consider_columns()
-        if considercolumnstype != None:
-            if considercolumns != None:
-                if considercolumnstype == ["excluding"]:
-                    columns_to_drop = considercolumns
-                elif considercolumnstype == ["including"]:
-                    columns_to_keep = considercolumns
+        # considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
+        # considercolumns = self._dataframe_context.get_score_consider_columns()
+        # if considercolumnstype != None:
+        #     if considercolumns != None:
+        #         if considercolumnstype == ["excluding"]:
+        #             columns_to_drop = considercolumns
+        #         elif considercolumnstype == ["including"]:
+        #             columns_to_keep = considercolumns
 
+        columns_to_keep = self._dataframe_context.get_score_consider_columns()
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:

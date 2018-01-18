@@ -297,14 +297,15 @@ class XgboostScript:
         print "STARTING DIMENSION ANALYSIS ..."
         columns_to_keep = []
         columns_to_drop = []
-        considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
-        considercolumns = self._dataframe_context.get_score_consider_columns()
-        if considercolumnstype != None:
-            if considercolumns != None:
-                if considercolumnstype == ["excluding"]:
-                    columns_to_drop = considercolumns
-                elif considercolumnstype == ["including"]:
-                    columns_to_keep = considercolumns
+        # considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
+        # considercolumns = self._dataframe_context.get_score_consider_columns()
+        # if considercolumnstype != None:
+        #     if considercolumns != None:
+        #         if considercolumnstype == ["excluding"]:
+        #             columns_to_drop = considercolumns
+        #         elif considercolumnstype == ["including"]:
+        #             columns_to_keep = considercolumns
+        columns_to_keep = self._dataframe_context.get_score_consider_columns()
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:

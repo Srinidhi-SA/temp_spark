@@ -145,11 +145,23 @@ class ContextSetter:
                 self.labelMappingDict = self.FILE_SETTINGS['labelMappingDict']
 
         if len(columnSettingKeys) > 0:
-            if "variableSelection" in columnSettingKeys:
-                varSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
+            varSelectionArr = []
+            if self.jobType != "prediction":
+                if "variableSelection" in columnSettingKeys:
+                    varSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
+            else:
+                if "variableSelection" in columnSettingKeys:
+                    scoreVarSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
+                if "modelvariableSelection" in columnSettingKeys:
+                    modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
+                varSelectionArr = modelVarSelectionArr
+            if self.jobType == "prediction":
+                self.scoreconsidercolumns = [x["name"] for x in scoreVarSelectionArr if x["selected"]==True]
+            if len(varSelectionArr) >0:
                 self.considercolumns = []
                 for colSetting in varSelectionArr:
-                    self.considercolumns.append(colSetting["name"])
+                    if colSetting["selected"] == True:
+                        self.considercolumns.append(colSetting["name"])
                     if colSetting["targetColumn"] == True:
                         self.resultcolumn = colSetting["name"]
                         if colSetting["columnType"] == "measure":
@@ -159,7 +171,7 @@ class ContextSetter:
                                 self.analysistype = "measure"
                         elif colSetting["columnType"] == "dimension":
                             self.analysistype = "dimension"
-                    if colSetting["uidCol"] == True:
+                    if colSetting["uidCol"] == True and colSetting["selected"] == True:
                         self.uidCol = colSetting["name"]
                     if colSetting["columnType"] == "datetime" or colSetting["dateSuggestionFlag"] == True:
                         self.allDateColumns.append(colSetting["name"])
@@ -167,12 +179,15 @@ class ContextSetter:
                             self.selected_date_columns.append(colSetting["name"])
                     if colSetting["dateSuggestionFlag"] == True:
                         self.dateTimeSuggestions.append(colSetting["name"])
-                    if colSetting["setVarAs"] != None:
+                    if colSetting["setVarAs"] != None and colSetting["selected"] == True:
                         self.customAnalysisDetails.append({"colName":colSetting["name"],"treatAs":colSetting["setVarAs"]})
-                    if colSetting["targetColSetVarAs"] != None:
-                        self.customAnalysisDetails.append({"colName":colSetting["name"],"treatAs":colSetting["targetColSetVarAs"]})
-                    if colSetting["polarity"] != None:
+                    if "targetColSetVarAs" in colSetting and colSetting["targetColumn"] == True:
+                        if colSetting["targetColSetVarAs"] != None:
+                            self.customAnalysisDetails.append({"colName":colSetting["name"],"treatAs":colSetting["targetColSetVarAs"]})
+                    if colSetting["polarity"] != None and colSetting["selected"] == True:
                         self.colPolarity.append({"colName":colSetting["name"],"polarity":colSetting["polarity"]})
+                if self.jobType == "prediction":
+                    self.considercolumns = [x for x in self.considercolumns if x != self.resultcolumn]
 
         if len(filterSettingKeys) > 0:
             if "dimensionColumnFilters" in filterSettingKeys:

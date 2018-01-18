@@ -321,7 +321,6 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
         url += "?emptyBin=True"
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
-        print res
         return res
     else:
         return True
