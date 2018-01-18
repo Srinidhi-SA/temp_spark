@@ -1023,8 +1023,11 @@ def statistical_info_array_formatter(st_array):
     return outArray
 
 def select_y_axis_format(dataArray):
-    minval = min(dataArray)
-    if minval >= 0.01:
+    if len(dataArray)>0:
+        minval = min(dataArray)
+        if minval >= 0.01:
+            return ".2f"
+        elif minval < 0.01:
+            return ".4f"
+    else:
         return ".2f"
-    elif minval < 0.01:
-        return ".4f"
