@@ -25,7 +25,7 @@ def get_prediction_config():
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "slug": "cc1e8369051a4b41b8450fa0c31bbfa8",
-              "uidCol": False
+              "uidCol": True
             },
             {
               "polarity": None,
@@ -49,7 +49,7 @@ def get_prediction_config():
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "slug": "f47d64a311fc458db253871a8bd0b0be",
-              "uidCol": True
+              "uidCol": False
             },
             {
               "polarity": None,
@@ -92,7 +92,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "relationship",
-              "selected": True,
+              "selected": False,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -104,7 +104,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "race",
-              "selected": True,
+              "selected": False,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -164,7 +164,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "native-country",
-              "selected": True,
+              "selected": False,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -202,7 +202,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "workclass",
-              "selected": False,
+              "selected": True,
               "slug": "f5f395ac182b413e8e5fe876204a23d0",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -214,7 +214,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "measure",
               "name": "fnlwgt",
-              "selected": False,
+              "selected": True,
               "slug": "77e2a1fb14ea455e99085bfcf45fa04c",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -238,7 +238,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "measure",
               "name": "education-num",
-              "selected": False,
+              "selected": True,
               "slug": "959a913627434aad9116151565788208",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -250,7 +250,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "marital-status",
-              "selected": False,
+              "selected": True,
               "slug": "47c5c27708074173baf8ced7e3a91bdd",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -262,7 +262,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "occupation",
-              "selected": False,
+              "selected": True,
               "slug": "004d31bb52444c9b9b94de80ba461f99",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -310,7 +310,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "measure",
               "name": "Capital-gain",
-              "selected": False,
+              "selected": True,
               "slug": "194b7505adc84fd9a1340e17aaf5ec2c",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -322,7 +322,7 @@ def get_prediction_config():
               "setVarAs": None,
               "columnType": "measure",
               "name": "Capital-loss",
-              "selected": False,
+              "selected": True,
               "slug": "a82480ec0daa40f4bbc801fa58c16876",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -368,28 +368,25 @@ def get_prediction_config():
           },
           "labelMappingDict": [
             {
-              "1": " >50K",
-              "0": " <=50K"
+              "0": " <=50K",
+              "1": " >50K"
             }
           ],
           "scorepath": [
-            "score-uid-b1tyzlapy6"
+            "ss-4mi7k5x67z"
           ],
           "modelpath": [
-            "uid-model-1e9umd38kh"
+            "jj-kypgzvklet"
           ],
           "analysis_type": [
             "score"
           ],
           "modelfeatures": [
             "workclass",
-            "relationship",
             "age",
             "Capital-gain",
             "sex",
             "hours-per-week",
-            "race",
-            "native-country",
             "education-num",
             "Capital-loss",
             "education",
@@ -412,20 +409,20 @@ def get_prediction_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_score-score-uid-b1tyzlapy6-s91dkmwpan_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_score-ss-4mi7k5x67z-ot78zpvwmh_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/score-score-uid-b1tyzlapy6-s91dkmwpan/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/score-ss-4mi7k5x67z-ot78zpvwmh/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/score-score-uid-b1tyzlapy6-s91dkmwpan/",
+        "job_url": "http://34.196.204.54:9012/api/job/score-ss-4mi7k5x67z-ot78zpvwmh/",
         "job_type": "prediction",
-        "job_name": "score-uid",
-        "xml_url": "http://34.196.204.54:9012/api/xml/score-score-uid-b1tyzlapy6-s91dkmwpan/",
+        "job_name": "ss",
+        "xml_url": "http://34.196.204.54:9012/api/xml/score-ss-4mi7k5x67z-ot78zpvwmh/",
         "app_id": 1
       }
     }

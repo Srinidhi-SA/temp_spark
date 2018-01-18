@@ -72,7 +72,7 @@ def get_story_config():
               "slug": "66f4f08701864877a1041393c78964e2",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": False,
+              "targetColumn": True,
               "uidCol": False
             },
             {
@@ -118,9 +118,9 @@ def get_story_config():
               "name": "Sales",
               "selected": True,
               "slug": "be262c1a685c4e64b123f0c2fb04fe4a",
-              "targetColSetVarAs": "percentage",
+              "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": True,
+              "targetColumn": False,
               "uidCol": False
             },
             {
@@ -214,17 +214,13 @@ def get_story_config():
             }
           ],
           "targetLevels": [
-            [
-
-            ]
+            []
           ],
           "analysis": [
             {
               "status": True,
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [
-
-              ],
+              "analysisSubTypes": [],
               "displayName": "Overview",
               "name": "overview"
             },
@@ -287,9 +283,7 @@ def get_story_config():
                   "value": None
                 }
               ],
-              "analysisSubTypes": [
-
-              ],
+              "analysisSubTypes": [],
               "binSetting": [
                 {
                   "displayName": "Binning of Numerical Values",
@@ -318,12 +312,8 @@ def get_story_config():
               "displayName": "Prediction",
               "name": "prediction",
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [
-
-              ],
-              "levelSetting": [
-
-              ]
+              "analysisSubTypes": [],
+              "levelSetting": []
             }
           ]
         },
@@ -346,20 +336,20 @@ def get_story_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-dim-gul-kmxqxs682x-yvbg5v1aui_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-dim-gul-kmxqxs682x-yvbg5v1aui/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-dim-gul-kmxqxs682x-yvbg5v1aui/",
         "job_type": "story",
-        "job_name": "dim-trend-setvaras",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q/",
+        "job_name": "dim-gul",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-dim-gul-kmxqxs682x-yvbg5v1aui/",
         "app_id": None
       }
     }

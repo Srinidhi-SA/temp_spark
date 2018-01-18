@@ -554,8 +554,8 @@ class ContextSetter:
         return self.ignoremessages
 
     def get_script_weights(self):
-        jobType = self.get_job_type()
-        analysistype = self.get_analysis_type()
+        jobType = self.jobType
+        analysistype = self.analysistype
         if jobType == "story":
             if analysistype == "dimension":
                 scriptWeightDict = self.get_dimension_analysis_weight()

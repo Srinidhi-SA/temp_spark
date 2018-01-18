@@ -66,7 +66,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "training"
+            jobType = "story"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -111,7 +111,10 @@ def main(configJson):
     if scripts_to_run==None:
         scripts_to_run = []
     appid = dataframe_context.get_app_id()
-
+    print "#"*100
+    print "analysistype",analysistype
+    print "jobType",jobType
+    print "#"*100
     scriptWeightDict = dataframe_context.get_script_weights()
     print scriptWeightDict
     completionStatus = 0
