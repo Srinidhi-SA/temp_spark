@@ -81,6 +81,9 @@ class LogisticRegressionScript:
         self._dataframe_context.update_completion_status(self._completionStatus)
 
         categorical_columns = self._dataframe_helper.get_string_columns()
+        uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_colum_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
@@ -241,6 +244,9 @@ class LogisticRegressionScript:
 
         logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
+        uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_colum_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
