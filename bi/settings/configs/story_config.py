@@ -118,7 +118,7 @@ def get_story_config():
               "name": "Sales",
               "selected": True,
               "slug": "be262c1a685c4e64b123f0c2fb04fe4a",
-              "targetColSetVarAs": None,
+              "targetColSetVarAs": "percentage",
               "dateSuggestionFlag": False,
               "targetColumn": True,
               "uidCol": False
@@ -202,6 +202,22 @@ def get_story_config():
           "datasource_details": ""
         },
         "ADVANCED_SETTINGS": {
+          "trendSettings": [
+            {
+              "status": True,
+              "name": "Count"
+            },
+            {
+              "status": False,
+              "name": "Specific Measure",
+              "selectedMeasure": None
+            }
+          ],
+          "targetLevels": [
+            [
+
+            ]
+          ],
           "analysis": [
             {
               "status": True,
@@ -242,6 +258,8 @@ def get_story_config():
             },
             {
               "status": True,
+              "displayName": "Association",
+              "name": "association",
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -272,43 +290,28 @@ def get_story_config():
               "analysisSubTypes": [
 
               ],
-              "displayName": "Performance",
-              "name": "performance"
-            },
-            {
-              "status": True,
-              "noOfColumnsToUse": [
+              "binSetting": [
                 {
-                  "status": False,
-                  "defaultValue": 3,
-                  "displayName": "Low",
-                  "name": "low"
+                  "displayName": "Binning of Numerical Values",
+                  "name": "heading"
                 },
                 {
-                  "status": False,
+                  "displayName": "Number of Bin Levels",
+                  "name": "binLevels",
+                  "min": 2,
+                  "max": 10,
                   "defaultValue": 5,
-                  "displayName": "Medium",
-                  "name": "medium"
+                  "value": 5
                 },
                 {
-                  "status": True,
-                  "defaultValue": 8,
-                  "displayName": "High",
-                  "name": "high"
-                },
-                {
-                  "status": False,
-                  "defaultValue": 3,
-                  "displayName": "Custom",
-                  "name": "custom",
-                  "value": None
+                  "displayName": "Do not bin numerical values with cardinality less than:",
+                  "name": "binCardinality",
+                  "min": 2,
+                  "max": 10,
+                  "defaultValue": 5,
+                  "value": 5
                 }
-              ],
-              "analysisSubTypes": [
-
-              ],
-              "displayName": "Influencer",
-              "name": "influencer"
+              ]
             },
             {
               "status": True,
@@ -328,8 +331,7 @@ def get_story_config():
           "script_to_run": [
             "Descriptive analysis",
             "Trend",
-            "Measure vs. Dimension",
-            "Measure vs. Measure",
+            "Dimension vs. Dimension",
             "Predictive modeling"
           ],
           "metadata": {
@@ -344,22 +346,21 @@ def get_story_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-normal-trend-vlkhkxn912-zav1q2214l_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-normal-trend-vlkhkxn912-zav1q2214l/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-normal-trend-vlkhkxn912-zav1q2214l/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q/",
         "job_type": "story",
-        "job_name": "normal-trend",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-normal-trend-vlkhkxn912-zav1q2214l/",
+        "job_name": "dim-trend-setvaras",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-dim-trend-setvaras-s0gi3lpw57-azscrvm17q/",
         "app_id": None
       }
     }
-
     return storyConfig

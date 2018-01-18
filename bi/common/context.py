@@ -165,7 +165,7 @@ class ContextSetter:
                     if colSetting["targetColumn"] == True:
                         self.resultcolumn = colSetting["name"]
                         if colSetting["columnType"] == "measure":
-                            if colSetting["setVarAs"] != None:
+                            if colSetting["targetColSetVarAs"] != None:
                                 self.analysistype = "dimension"
                             else:
                                 self.analysistype = "measure"
