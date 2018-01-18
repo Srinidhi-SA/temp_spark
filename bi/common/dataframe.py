@@ -82,7 +82,6 @@ class DataFrameHelper:
         else:
             colsToBin = []
         print "initial colsToBin:-",colsToBin
-        print "#"*30
         if self.ignorecolumns == None:
             self.ignorecolumns = []
         if self.utf8columns == None:
@@ -102,11 +101,8 @@ class DataFrameHelper:
         colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         print "colsToKeep:-",colsToKeep
-        print "#"*30
         print "colsToBin:-",colsToBin
-        print "#"*30
         self.colsToBin = colsToBin
-
         if self._dataframe_context.get_job_type() != "subSetting":
             if self._dataframe_context.get_job_type() != "prediction":
                 self._data_frame = self._data_frame.select(colsToKeep)

@@ -155,8 +155,7 @@ class ContextSetter:
                 if "modelvariableSelection" in columnSettingKeys:
                     self.modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
                 varSelectionArr = self.modelVarSelectionArr
-            if self.jobType == "prediction":
-                self.scoreconsidercolumns = [str(x["name"]) for x in self.scoreVarSelectionArr if x["selected"]==True]
+
             if len(varSelectionArr) >0:
                 self.considercolumns = []
                 for colSetting in varSelectionArr:
@@ -188,6 +187,8 @@ class ContextSetter:
                         self.colPolarity.append({"colName":str(colSetting["name"]),"polarity":colSetting["polarity"]})
                 if self.jobType == "prediction":
                     self.considercolumns = [x for x in self.considercolumns if x != self.resultcolumn]
+                    self.scoreconsidercolumns = [str(x["name"]) for x in self.scoreVarSelectionArr if x["selected"]==True]
+                    self.scoreconsidercolumns = [x for x in self.scoreconsidercolumns if x in self.considercolumns]
 
         if len(filterSettingKeys) > 0:
             if "dimensionColumnFilters" in filterSettingKeys:
