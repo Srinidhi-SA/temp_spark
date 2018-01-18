@@ -323,7 +323,8 @@ class RandomForestScript:
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
-
+        print "WAAHHHHHHHHH"
+        self._dataframe_context.update_consider_columns(columns_to_keep)
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         spark_scored_df = df_helper.get_data_frame()

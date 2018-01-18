@@ -66,7 +66,7 @@ class DataFrameHelper:
         self.utf8columns = self._dataframe_context.get_utf8_columns()
         self.resultcolumn = self._dataframe_context.get_result_column()
         self.consider_columns = self._dataframe_context.get_consider_columns()
-        self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
+        # self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
         self.percentage_columns = self._dataframe_context.get_percentage_columns()
         self.dollar_columns = self._dataframe_context.get_dollar_columns()
         self.colsToBin = []
@@ -92,12 +92,14 @@ class DataFrameHelper:
         print "ignorecolumns:-",self.ignorecolumns
         # removing any columns which comes in customDetails from ignore columns
         self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
-        if self.considercolumnstype[0] == "including":
-            self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-            colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
-        elif self.considercolumnstype[0] == "excluding":
-            setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
-            colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
+        # if self.considercolumnstype[0] == "including":
+        #     self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
+        #     colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        # elif self.considercolumnstype[0] == "excluding":
+        #     setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
+        #     colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
+        self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
+        colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         print "colsToKeep:-",colsToKeep
         print "#"*30

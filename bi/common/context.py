@@ -151,12 +151,12 @@ class ContextSetter:
                     varSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
             else:
                 if "variableSelection" in columnSettingKeys:
-                    scoreVarSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
+                    self.scoreVarSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
                 if "modelvariableSelection" in columnSettingKeys:
-                    modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
-                varSelectionArr = modelVarSelectionArr
+                    self.modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
+                varSelectionArr = self.modelVarSelectionArr
             if self.jobType == "prediction":
-                self.scoreconsidercolumns = [x["name"] for x in scoreVarSelectionArr if x["selected"]==True]
+                self.scoreconsidercolumns = [x["name"] for x in self.scoreVarSelectionArr if x["selected"]==True]
             if len(varSelectionArr) >0:
                 self.considercolumns = []
                 for colSetting in varSelectionArr:
@@ -281,6 +281,9 @@ class ContextSetter:
 
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
+
+    def update_consider_columns(self,considerCols):
+        self.considercolumns = considerCols
 
     def set_ignore_column_suggestions(self,ignoreSuggestions):
         self.ignorecolumns = ignoreSuggestions
