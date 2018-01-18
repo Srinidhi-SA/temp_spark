@@ -82,7 +82,7 @@ class LogisticRegressionScript:
 
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
-        if self._metaParser.check_colum_isin_ignored_suggestion(uid_col):
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -245,7 +245,7 @@ class LogisticRegressionScript:
         logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
-        if self._metaParser.check_colum_isin_ignored_suggestion(uid_col):
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -274,6 +274,8 @@ class LogisticRegressionScript:
             pandas_df[col] = [0]*df_shape[0]
         pandas_df = pandas_df[[x for x in model_columns if x != result_column]]
         pandas_df = pandas_df[model_columns]
+        if uid_col:
+            pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
         score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()

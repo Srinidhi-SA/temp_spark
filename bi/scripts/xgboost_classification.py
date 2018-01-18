@@ -82,7 +82,7 @@ class XgboostScript:
 
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
-        if self._metaParser.check_colum_isin_ignored_suggestion(uid_col):
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -230,7 +230,7 @@ class XgboostScript:
         xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
-        if self._metaParser.check_colum_isin_ignored_suggestion(uid_col):
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -254,6 +254,8 @@ class XgboostScript:
         model_feature_list = self._dataframe_context.get_model_features()
         print model_feature_list
         pandas_df = pandas_df[model_feature_list]
+        if uid_col:
+            pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
         score = xgboost_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()

@@ -66,7 +66,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "training"
+            jobType = "prediction"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -591,6 +591,9 @@ def main(configJson):
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
         categorical_columns = df_helper.get_string_columns()
+        uid_col = dataframe_context.get_uid_column()
+        if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns)-set([uid_col]))
         result_column = dataframe_context.get_result_column()
         df = df.toPandas()
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])

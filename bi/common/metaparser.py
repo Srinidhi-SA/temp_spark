@@ -103,7 +103,7 @@ class MetaParser:
     def get_ignore_columns(self):
         return self.ignoreColumnSuggestions
 
-    def check_colum_isin_ignored_suggestion(self,colname):
+    def check_column_isin_ignored_suggestion(self,colname):
         if colname in self.ignoreColumnSuggestions:
             return True
         else:

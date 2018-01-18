@@ -218,10 +218,10 @@ def get_training_config():
             "training"
           ],
           "modelpath": [
-            "uidmodel-h8aranz0y1"
+            "llllll-ui5h22aaz6"
           ],
           "train_test_split": [
-            0.65
+            0.68
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
@@ -234,21 +234,21 @@ def get_training_config():
           ]
         }
       },
-      "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-uidmodel-h8aranz0y1-5051zfygkj_123/",
+     "job_config": {
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-llllll-ui5h22aaz6-med3jt1vtl_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-uidmodel-h8aranz0y1-5051zfygkj/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-llllll-ui5h22aaz6-med3jt1vtl/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/model-uidmodel-h8aranz0y1-5051zfygkj/",
+        "job_url": "http://34.196.204.54:9012/api/job/model-llllll-ui5h22aaz6-med3jt1vtl/",
         "job_type": "training",
-        "job_name": "uidmodel",
-        "xml_url": "http://34.196.204.54:9012/api/xml/model-uidmodel-h8aranz0y1-5051zfygkj/",
+        "job_name": "llllll",
+        "xml_url": "http://34.196.204.54:9012/api/xml/model-llllll-ui5h22aaz6-med3jt1vtl/",
         "app_id": 2
       }
     }

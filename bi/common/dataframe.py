@@ -169,8 +169,11 @@ class DataFrameHelper:
         result_column = self._dataframe_context.get_result_column()
         train_test_ratio = float(self._dataframe_context.get_train_test_split())
         date_columns = self._dataframe_context.get_date_columns()
+        uidCol = self._dataframe_context.get_uid_column()
         print "All DATE Columns",date_columns
         columns_to_ignore = [result_column]+date_columns
+        if uidCol:
+            columns_to_ignore += [uidCol]
         print "These Columns are Ignored:- ",  columns_to_ignore
         if train_test_ratio == None:
             train_test_ratio = 0.7
