@@ -262,24 +262,27 @@ class XgboostScript:
 
         uidCol = self._dataframe_context.get_uid_column()
         if uidCol == None:
-            uidCol = self._metaParser.get_uid_column()
+            uidCols = self._metaParser.get_suggested_uid_columns()
+            if len(uidCols) > 0:
+                uidCol = uidCols[0]
         uidTableData = []
         predictedClasses = list(df[result_column].unique())
         if uidCol:
-            for level in predictedClasses:
-                levelDf = df[df[result_column] == level]
-                levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
-                levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
-                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%" if x*100 >=10 else str(int(x*100))+"%")
-                uidTableData.append(levelDf[:5])
-            uidTableData = pd.concat(uidTableData)
-            uidTableData  = [list(arr) for arr in list(uidTableData.values)]
-            uidTableData = [[uidCol,"Probability",result_column]] + uidTableData
-            uidTable = TableData()
-            uidTable.set_table_width(25)
-            uidTable.set_table_data(uidTableData)
-            uidTable.set_table_type("normalHideColumn")
-            self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
+            if uidCol in df.columns
+                for level in predictedClasses:
+                    levelDf = df[df[result_column] == level]
+                    levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
+                    levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
+                    levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%" if x*100 >=10 else str(int(x*100))+"%")
+                    uidTableData.append(levelDf[:5])
+                uidTableData = pd.concat(uidTableData)
+                uidTableData  = [list(arr) for arr in list(uidTableData.values)]
+                uidTableData = [[uidCol,"Probability",result_column]] + uidTableData
+                uidTable = TableData()
+                uidTable.set_table_width(25)
+                uidTable.set_table_data(uidTableData)
+                uidTable.set_table_type("normalHideColumn")
+                self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
 
 
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"]/10

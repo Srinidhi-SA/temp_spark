@@ -320,7 +320,7 @@ def main(configJson):
                 CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
                     chisquare_obj.Run()
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -446,7 +446,7 @@ def main(configJson):
                 CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative,metaParserInstance)
                     two_way_obj.Run()
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:

@@ -36,15 +36,19 @@ class TwoWayAnova:
 
     '''
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context, meta_parser):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._metaParser = meta_parser
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
 
         self._date_columns = self._dataframe_context.get_date_columns()
+        self._uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_colum_isin_ignored_suggestion(self._uid_col):
+            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self.top_dimension_result = {}
