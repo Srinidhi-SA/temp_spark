@@ -60,7 +60,7 @@ def get_story_config():
               "slug": "2cc19c3b13e44206841d75deab962178",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": True,
+              "targetColumn": False,
               "uidCol": False
             },
             {
@@ -120,7 +120,7 @@ def get_story_config():
               "slug": "be262c1a685c4e64b123f0c2fb04fe4a",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": False,
+              "targetColumn": True,
               "uidCol": False
             },
             {
@@ -202,30 +202,18 @@ def get_story_config():
           "datasource_details": ""
         },
         "ADVANCED_SETTINGS": {
-          "trendSettings": [
-            {
-              "status": False,
-              "name": "Count"
-            },
-            {
-              "status": False,
-              "name": "Specific Measure",
-              "selectedMeasure": None
-            }
-          ],
-          "targetLevels": [
-            []
-          ],
           "analysis": [
             {
               "status": True,
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [],
+              "analysisSubTypes": [
+
+              ],
               "displayName": "Overview",
               "name": "overview"
             },
             {
-              "status": False,
+              "status": True,
               "noOfColumnsToUse": None,
               "analysisSubTypes": [
                 {
@@ -253,9 +241,7 @@ def get_story_config():
               "name": "trend"
             },
             {
-              "status": False,
-              "displayName": "Association",
-              "name": "association",
+              "status": True,
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -270,7 +256,7 @@ def get_story_config():
                   "name": "medium"
                 },
                 {
-                  "status": False,
+                  "status": True,
                   "defaultValue": 8,
                   "displayName": "High",
                   "name": "high"
@@ -283,43 +269,67 @@ def get_story_config():
                   "value": None
                 }
               ],
-              "analysisSubTypes": [],
-              "binSetting": [
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Performance",
+              "name": "performance"
+            },
+            {
+              "status": True,
+              "noOfColumnsToUse": [
                 {
-                  "displayName": "Binning of Numerical Values",
-                  "name": "heading"
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Low",
+                  "name": "low"
                 },
                 {
-                  "displayName": "Number of Bin Levels",
-                  "name": "binLevels",
-                  "min": 2,
-                  "max": 10,
+                  "status": False,
                   "defaultValue": 5,
-                  "value": 5
+                  "displayName": "Medium",
+                  "name": "medium"
                 },
                 {
-                  "displayName": "Do not bin numerical values with cardinality less than:",
-                  "name": "binCardinality",
-                  "min": 2,
-                  "max": 10,
-                  "defaultValue": 5,
-                  "value": 5
+                  "status": True,
+                  "defaultValue": 8,
+                  "displayName": "High",
+                  "name": "high"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Custom",
+                  "name": "custom",
+                  "value": None
                 }
-              ]
+              ],
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Influencer",
+              "name": "influencer"
             },
             {
               "status": True,
               "displayName": "Prediction",
               "name": "prediction",
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [],
-              "levelSetting": []
+              "analysisSubTypes": [
+
+              ],
+              "levelSetting": [
+
+              ]
             }
           ]
         },
         "FILE_SETTINGS": {
           "script_to_run": [
             "Descriptive analysis",
+            "Trend",
+            "Measure vs. Dimension",
+            "Measure vs. Measure",
             "Predictive modeling"
           ],
           "metadata": {
@@ -334,20 +344,20 @@ def get_story_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-uid-check-8seff61goy-p5ub04jpwu_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-normal-trend-vlkhkxn912-zav1q2214l_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-uid-check-8seff61goy-p5ub04jpwu/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-normal-trend-vlkhkxn912-zav1q2214l/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-uid-check-8seff61goy-p5ub04jpwu/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-normal-trend-vlkhkxn912-zav1q2214l/",
         "job_type": "story",
-        "job_name": "uid check",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-uid-check-8seff61goy-p5ub04jpwu/",
+        "job_name": "normal-trend",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-normal-trend-vlkhkxn912-zav1q2214l/",
         "app_id": None
       }
     }
