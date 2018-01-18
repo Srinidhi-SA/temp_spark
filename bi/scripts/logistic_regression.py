@@ -290,7 +290,7 @@ class LogisticRegressionScript:
                 levelDf = df[df[result_column] == level]
                 levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
                 levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
-                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%")
+                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%" if x*100 >=10 else str(int(x*100))+"%")
                 uidTableData.append(levelDf[:5])
             uidTableData = pd.concat(uidTableData)
             uidTableData  = [list(arr) for arr in list(uidTableData.values)]
@@ -340,7 +340,7 @@ class LogisticRegressionScript:
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
-
+        self._dataframe_context.update_consider_columns(columns_to_keep)
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         spark_scored_df = df_helper.get_data_frame()
