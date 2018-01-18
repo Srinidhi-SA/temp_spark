@@ -156,14 +156,14 @@ class ContextSetter:
                     self.modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
                 varSelectionArr = self.modelVarSelectionArr
             if self.jobType == "prediction":
-                self.scoreconsidercolumns = [x["name"] for x in self.scoreVarSelectionArr if x["selected"]==True]
+                self.scoreconsidercolumns = [str(x["name"]) for x in self.scoreVarSelectionArr if x["selected"]==True]
             if len(varSelectionArr) >0:
                 self.considercolumns = []
                 for colSetting in varSelectionArr:
                     if colSetting["selected"] == True:
-                        self.considercolumns.append(colSetting["name"])
+                        self.considercolumns.append(str(colSetting["name"]))
                     if colSetting["targetColumn"] == True:
-                        self.resultcolumn = colSetting["name"]
+                        self.resultcolumn = str(colSetting["name"])
                         if colSetting["columnType"] == "measure":
                             if colSetting["targetColSetVarAs"] != None:
                                 self.analysistype = "dimension"
@@ -172,20 +172,20 @@ class ContextSetter:
                         elif colSetting["columnType"] == "dimension":
                             self.analysistype = "dimension"
                     if colSetting["uidCol"] == True and colSetting["selected"] == True:
-                        self.uidCol = colSetting["name"]
+                        self.uidCol = str(colSetting["name"])
                     if colSetting["columnType"] == "datetime" or colSetting["dateSuggestionFlag"] == True:
-                        self.allDateColumns.append(colSetting["name"])
+                        self.allDateColumns.append(str(colSetting["name"]))
                         if colSetting["selected"] == True:
-                            self.selected_date_columns.append(colSetting["name"])
+                            self.selected_date_columns.append(str(colSetting["name"]))
                     if colSetting["dateSuggestionFlag"] == True:
-                        self.dateTimeSuggestions.append(colSetting["name"])
+                        self.dateTimeSuggestions.append(str(colSetting["name"]))
                     if colSetting["setVarAs"] != None and colSetting["selected"] == True:
-                        self.customAnalysisDetails.append({"colName":colSetting["name"],"treatAs":colSetting["setVarAs"]})
+                        self.customAnalysisDetails.append({"colName":str(colSetting["name"]),"treatAs":colSetting["setVarAs"]})
                     if "targetColSetVarAs" in colSetting and colSetting["targetColumn"] == True:
                         if colSetting["targetColSetVarAs"] != None:
-                            self.customAnalysisDetails.append({"colName":colSetting["name"],"treatAs":colSetting["targetColSetVarAs"]})
+                            self.customAnalysisDetails.append({"colName":str(colSetting["name"]),"treatAs":colSetting["targetColSetVarAs"]})
                     if colSetting["polarity"] != None and colSetting["selected"] == True:
-                        self.colPolarity.append({"colName":colSetting["name"],"polarity":colSetting["polarity"]})
+                        self.colPolarity.append({"colName":str(colSetting["name"]),"polarity":colSetting["polarity"]})
                 if self.jobType == "prediction":
                     self.considercolumns = [x for x in self.considercolumns if x != self.resultcolumn]
 

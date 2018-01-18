@@ -25,7 +25,7 @@ def get_training_config():
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
-              "uidCol": False
+              "uidCol": True
             },
             {
               "polarity": None,
@@ -49,7 +49,7 @@ def get_training_config():
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
-              "uidCol": True
+              "uidCol": False
             },
             {
               "polarity": None,
@@ -92,7 +92,7 @@ def get_training_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "relationship",
-              "selected": True,
+              "selected": False,
               "slug": "e8484b368b674748ad69f23aac7fa1ba",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -104,7 +104,7 @@ def get_training_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "race",
-              "selected": True,
+              "selected": False,
               "slug": "9a028a747e46455f9d637a2124c1fd01",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -164,7 +164,7 @@ def get_training_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "native-country",
-              "selected": True,
+              "selected": False,
               "slug": "71daec723ab4416ebd8ade9918a73dd3",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -194,10 +194,10 @@ def get_training_config():
             "training"
           ],
           "modelpath": [
-            "uid-model-1e9umd38kh"
+            "jj-kypgzvklet"
           ],
           "train_test_split": [
-            0.72
+            0.67
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
@@ -211,20 +211,20 @@ def get_training_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-uid-model-1e9umd38kh-inxr0rq180_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-jj-kypgzvklet-rbk51r7can_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-uid-model-1e9umd38kh-inxr0rq180/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-jj-kypgzvklet-rbk51r7can/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/model-uid-model-1e9umd38kh-inxr0rq180/",
+        "job_url": "http://34.196.204.54:9012/api/job/model-jj-kypgzvklet-rbk51r7can/",
         "job_type": "training",
-        "job_name": "uid-model",
-        "xml_url": "http://34.196.204.54:9012/api/xml/model-uid-model-1e9umd38kh-inxr0rq180/",
+        "job_name": "jj",
+        "xml_url": "http://34.196.204.54:9012/api/xml/model-jj-kypgzvklet-rbk51r7can/",
         "app_id": 2
       }
     }
