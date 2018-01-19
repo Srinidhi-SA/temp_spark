@@ -71,6 +71,7 @@ class OneWayAnovaNarratives:
             self._dataLevel = None
         self._dimension_trend_data = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column).get_trend_data()
         self._blockSplitter = "|~NEWBLOCK~|"
+        self._highlightFlag = "|~HIGHLIGHT~|"
         # self.effect_size = anova_result.get_effect_size()
         self.card1 = ''
         self.card2 = ''
@@ -292,15 +293,22 @@ class OneWayAnovaNarratives:
                     # 'num_top3_contributors' : len(top3_contributors),
                     'target' : self._measure_column,
                     'dimension' : self._dimension_column,
-                    'top_level' : top_level
+                    'top_level' : top_level,
+                    'highlightFlag':self._highlightFlag,
+                    'blockSplitter':self._blockSplitter
+
         }
+
+        print "data_dict - For anova_template_4 -------------------"
+        print data_dict
+
         output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
         lines = []
         lines += NarrativesUtils.block_splitter('<h4>'+output['header']+'</h4>',self._blockSplitter)
         for cnt in output['content']:
-            lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
+            lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter,highlightFlag=self._highlightFlag)
         self._anovaCard1.add_card_data(lines)
         self.card1.add_paragraph(dict(output))
 
@@ -450,6 +458,12 @@ class OneWayAnovaNarratives:
                     'top_dimension' : top_level_name,
                     'dimension' : self._dimension_column,
         }
+
+        print "data_dict - For anova_template_6 -------------------"
+        print data_dict
+
+
+
         # print json.dumps(data_dict,indent=2)
         output = {}
         output['header'] = ''
