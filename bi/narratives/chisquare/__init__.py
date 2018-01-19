@@ -8,10 +8,11 @@ from bi.narratives import utils as NarrativesUtils
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 class ChiSquareNarratives:
-    print "Starting Narratives"
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
     def __init__(self, df_helper, df_chisquare_result, df_context, data_frame, story_narrative,result_setter,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
@@ -26,7 +27,7 @@ class ChiSquareNarratives:
         self._appid = df_context.get_app_id()
         self._chiSquareNode = NarrativesTree()
         self._chiSquareNode.set_name("Association")
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._base_dir = "/chisquare/"
         if self._appid != None:
             if self._appid == "1":
@@ -49,8 +50,6 @@ class ChiSquareNarratives:
             self._nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
         else:
             self._nColsToUse = None
-
-
 
         self._scriptStages = {
             "initialization":{
@@ -76,7 +75,6 @@ class ChiSquareNarratives:
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
-
         self._generate_narratives()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["summarygeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -100,7 +98,8 @@ class ChiSquareNarratives:
 
     def _generate_narratives(self):
         for target_dimension in self._df_chisquare_result.keys():
-
+            print "#"*110
+            print target_dimension
             target_chisquare_result = self._df_chisquare_result[target_dimension]
             analysed_variables = target_chisquare_result.keys()
             significant_variables = [dim for dim in target_chisquare_result.keys() if target_chisquare_result[dim].get_pvalue()<=0.05]
@@ -133,8 +132,10 @@ class ChiSquareNarratives:
                                 'y':'Effect Size (Cramers-V)'}
 
             chart_data = []
+            chartDataValues = []
             for k,v in effect_size_dict.items():
                 chart_data.append({"key":k,"value":float(v)})
+                chartDataValues.append(float(v))
             chart_data = sorted(chart_data,key=lambda x:x["value"],reverse=True)
             chart_json = ChartJson()
             chart_json.set_data(chart_data)
@@ -143,7 +144,8 @@ class ChiSquareNarratives:
             chart_json.set_label_text({'x':'  ','y':'Effect Size (Cramers-V)'})
             chart_json.set_axis_rotation(True)
             chart_json.set_axes({"x":"key","y":"value"})
-            chart_json.set_yaxis_number_format(".2f")
+            # chart_json.set_yaxis_number_format(".4f")
+            chart_json.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
             self.narratives['main_card']['chart']=chart
 
 
@@ -153,8 +155,31 @@ class ChiSquareNarratives:
             main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,'main_card.html',data_dict)
             main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
             main_card_data += main_card_narrative
-            st_info = ["Test : Chi Square", "Threshold for p-value : 0.05", "Effect Size : Cramer's V"]
-            main_card_data.append(C3ChartData(data=chart_json,info=st_info))
+            # st_info = ["Test : Chi Square", "Threshold for p-value : 0.05", "Effect Size : Cramer's V"]
+            # print "chartdata",chart_data
+            if len(chart_data) > 0:
+                statistical_info_array=[
+                    ("Test Type","Chi-Square"),
+                    ("Effect Size","Cramer's V"),
+                    ("Max Effect Size",chart_data[0]["key"]),
+                    ("Min Effect Size",chart_data[-1]["key"]),
+                    ]
+                statistical_inferenc = ""
+                if len(chart_data) == 1:
+                    statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
+                     Effect size of {}".format(chart_data[0]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4))
+                elif len(chart_data) == 2:
+                    statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
+                     Effect size ranges are {} and {} respectively".format(chart_data[0]["key"],chart_data[1]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[1]["value"],4))
+                else:
+                    statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
+                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[-1]["value"],4))
+                if statistical_inference != "":
+                    statistical_info_array.append(("Inference",statistical_inference))
+                statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+            else:
+                statistical_info_array = []
+            main_card_data.append(C3ChartData(data=chart_json,info=statistical_info_array))
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Key Influencers")
             self._chiSquareNode.add_a_card(main_card)
@@ -174,17 +199,17 @@ class ChiSquareNarratives:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
                     print "APPID 2 is used"
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, self._base_dir,None,target_chisquare_result)
+                    card = ChiSquareAnalysis(self._dataframe_context,self._df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns, self._base_dir,None,target_chisquare_result)
                     # self.narratives['cards'].append(card)
                     self._result_setter.add_a_score_chi_card(json.loads(CommonUtils.convert_python_object_to_json(card.get_dimension_card1())))
 
                 elif self._appid=='1':
                     print "APPID 1 is used"
-                    card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
+                    card = ChiSquareAnalysis(self._dataframe_context,self._df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
                     # self.narratives['cards'].append(card)
                     self._result_setter.add_a_score_chi_card(json.loads(CommonUtils.convert_python_object_to_json(card.get_dimension_card1())))
                 else:
-                    target_dimension_card = ChiSquareAnalysis(chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
+                    target_dimension_card = ChiSquareAnalysis(self._dataframe_context,self._df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, self._data_frame, self._measure_columns,self._base_dir, None,target_chisquare_result)
                     self.narratives['cards'].append(target_dimension_card)
                     self._chiSquareNode.add_a_node(target_dimension_card.get_dimension_node())
         self._story_narrative.add_a_node(self._chiSquareNode)

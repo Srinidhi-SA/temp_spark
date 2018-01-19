@@ -190,6 +190,33 @@ def get_leaf_nodes(node):
 def generate_rule_text(rule_path_list,separator):
     return separator.join(rule_path_list[:-1])
 
+def get_rules_dictionary(rules):
+    key_dimensions = {}
+    key_measures = {}
+    rules_list = re.split(r',\s*(?![^()]*\))',rules)
+    for rx in rules_list:
+        if ' <= ' in rx:
+            var,limit = re.split(' <= ',rx)
+            if not key_measures.has_key(var):
+                key_measures[var] ={}
+            key_measures[var]['upper_limit'] = limit
+        elif ' > ' in rx:
+            var,limit = re.split(' > ',rx)
+            if not key_measures.has_key(var):
+                key_measures[var] = {}
+            key_measures[var]['lower_limit'] = limit
+        elif ' not in ' in rx:
+            var,levels = re.split(' not in ',rx)
+            if not key_dimensions.has_key(var):
+                key_dimensions[var]={}
+            key_dimensions[var]['not_in'] = levels
+        elif ' in ' in rx:
+            var,levels = re.split(' in ',rx)
+            if not key_dimensions.has_key(var):
+                key_dimensions[var]={}
+            key_dimensions[var]['in'] = levels
+    return [key_dimensions,key_measures]
+
 def generate_leaf_rule_dict(rule_list,separator):
     out = {}
     leaf_list = list(set([x[-1] for x in rule_list]))
@@ -443,6 +470,19 @@ def calculate_dimension_contribution(levelContObject):
     return output
 
 def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time, meta_parser):
+    """
+    calculates level contribution dictionary for each level each column
+    sample Dict = {
+                "overall_avg":overall average",
+                "excluding_avg":"average excluding the max_time",
+                "minval":None,
+                "maxval":None,
+                "diff":",max val - excluding avg",
+                "contribution":"percent contribution",
+                "growth":None
+                }
+
+    """
     out = {}
     for column_name in columns:
         print "calculate_level_contribution for ",column_name
@@ -476,11 +516,13 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
         k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,datetime_pattern))
         k = k.sort_values(by="rank", ascending=True)
         occurance_index = np.where(k[index_col] == max_time)
+        print "occurance_index",occurance_index
+        print "max_time",max_time
         if len(occurance_index[0]) > 0:
             max_index = occurance_index[0][0]
         else:
             max_index = None
-        # print k.head(2)
+        print k
         for level in column_levels:
             try:
                 print "calculations for level",level
@@ -522,9 +564,6 @@ def get_level_cont_dict(level_cont):
     out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
     out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
-    print "_"*100
-    # print out_data
-    print "_"*100
     output = []
     for k,v in levelContributionSummary.items():
         min_level = min(v,key=lambda x: v[x]["diff"] if v[x]["diff"] != None else 9999999999999999999)
@@ -538,11 +577,6 @@ def get_level_cont_dict(level_cont):
     out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
     out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
     out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
-
-    print "_"*100
-    # print out_dict
-    print "_"*100
-
     return out_data
 
 def calculate_bucket_data(grouped_data,dataLevel):
@@ -776,7 +810,6 @@ def get_grouped_count_data_for_dimension_trend(df,dataLevel,resultCol):
 def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFormatDict,dateFormatConversionDict,requestedDateFormat):
     dateFormatDetected = False
     trendOnTdCol = False
-    print selectedDateColumns
     if selectedDateColumns != None and len(selectedDateColumns) > 0:
         suggested_date_column = selectedDateColumns[0]
         existingDateFormat = None
@@ -884,11 +917,14 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
     for var in key_measures.keys():
         if key_measures[var].has_key('upper_limit') and key_measures[var].has_key('lower_limit'):
             temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + key_measures[var]['lower_limit'] + ' to ' + key_measures[var]['upper_limit']+customSeparator
+            crude_narrative = crude_narrative + 'value of ' + var + ' is between ' + key_measures[var]['lower_limit'] + ' to ' + key_measures[var]['upper_limit']+customSeparator
         elif key_measures[var].has_key('upper_limit'):
             temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + key_measures[var]['upper_limit']+customSeparator
+            crude_narrative = crude_narrative + 'value of ' + var + ' is less than or equal to ' + key_measures[var]['upper_limit']+customSeparator
         elif key_measures[var].has_key('lower_limit'):
             temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + key_measures[var]['lower_limit']+customSeparator
-    crude_narrative = temp_narrative
+            crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + key_measures[var]['lower_limit']+customSeparator
+    # crude_narrative = temp_narrative
     for var in key_dimensions.keys():
         if key_dimensions[var].has_key('in'):
             key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')))
@@ -900,11 +936,11 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                     key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
 
                 temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dims) + customSeparator
-                crude_narrative = crude_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
+                crude_narrative = crude_narrative + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
 
             else:
                 temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
-                crude_narrative = temp_narrative
+                crude_narrative = crude_narrative + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
 
         elif key_dimensions[var].has_key('not_in'):
             key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
@@ -916,11 +952,11 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                     key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
 
                 temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + str(key_dims) + customSeparator
-                crude_narrative = crude_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
+                crude_narrative = crude_narrative + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
 
             else:
                 temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
-                crude_narrative = temp_narrative
+                crude_narrative = crude_narrative +  var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
 
     temp_narrative_arr = temp_narrative.split(customSeparator)[:-1]
     if len(temp_narrative_arr) > 2:
@@ -972,3 +1008,26 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                 narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
                             ' <b>chance that '+ colname + 'range would be ' + target +'.'
         return narrative,crude_narrative
+
+def statistical_info_array_formatter(st_array):
+    outArray = []
+    if len(st_array) > 0:
+        maxLen = max([len(x[0]) for x in st_array[:-1]])
+        if maxLen < len("inference"):
+            maxLen = len("inference")
+        maxLen += 2
+        for val in st_array:
+            size = len(val[0])
+            sent = (str(val[0])+" "*(maxLen-size)+" : "+str(val[1]))
+            outArray.append(sent)
+    return outArray
+
+def select_y_axis_format(dataArray):
+    if len(dataArray)>0:
+        minval = min(dataArray)
+        if minval >= 0.01:
+            return ".2f"
+        elif minval < 0.01:
+            return ".4f"
+    else:
+        return ".2f"

@@ -66,20 +66,22 @@ class DataFrameHelper:
         self.utf8columns = self._dataframe_context.get_utf8_columns()
         self.resultcolumn = self._dataframe_context.get_result_column()
         self.consider_columns = self._dataframe_context.get_consider_columns()
-        self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
+        # self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
         self.percentage_columns = self._dataframe_context.get_percentage_columns()
+        self.dollar_columns = self._dataframe_context.get_dollar_columns()
         self.colsToBin = []
 
     def set_params(self):
         print "Setting the dataframe"
         self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
+        self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame, self.dollar_columns)
+
         customDetails = self._dataframe_context.get_custom_analysis_details()
         if customDetails != None:
             colsToBin = [x["colName"] for x in customDetails]
         else:
             colsToBin = []
         print "initial colsToBin:-",colsToBin
-        print "#"*30
         if self.ignorecolumns == None:
             self.ignorecolumns = []
         if self.utf8columns == None:
@@ -89,19 +91,18 @@ class DataFrameHelper:
         print "ignorecolumns:-",self.ignorecolumns
         # removing any columns which comes in customDetails from ignore columns
         self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
-        if self.considercolumnstype[0] == "including":
-            self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-            colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
-        elif self.considercolumnstype[0] == "excluding":
-            setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
-            colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
+        # if self.considercolumnstype[0] == "including":
+        #     self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
+        #     colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        # elif self.considercolumnstype[0] == "excluding":
+        #     setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
+        #     colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
+        self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
+        colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         print "colsToKeep:-",colsToKeep
-        print "#"*30
         print "colsToBin:-",colsToBin
-        print "#"*30
         self.colsToBin = colsToBin
-
         if self._dataframe_context.get_job_type() != "subSetting":
             if self._dataframe_context.get_job_type() != "prediction":
                 self._data_frame = self._data_frame.select(colsToKeep)
@@ -115,6 +116,7 @@ class DataFrameHelper:
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
+        # self.boolean_to_string(list(set(colsToKeep)-set(self.boolean_columns)))
         self.populate_column_data()
 
     def update_column_data(self):
@@ -166,12 +168,12 @@ class DataFrameHelper:
     def set_train_test_data(self,df):
         result_column = self._dataframe_context.get_result_column()
         train_test_ratio = float(self._dataframe_context.get_train_test_split())
-        date_suggestion_columns = self._dataframe_context.get_date_columns()
-        print "DATE suggestions",date_suggestion_columns
-        if date_suggestion_columns == None:
-            date_suggestion_columns = []
-        time_dimension_columns = self.timestamp_columns
-        columns_to_ignore = [result_column]+date_suggestion_columns+time_dimension_columns
+        date_columns = self._dataframe_context.get_date_columns()
+        uidCol = self._dataframe_context.get_uid_column()
+        print "All DATE Columns",date_columns
+        columns_to_ignore = [result_column]+date_columns
+        if uidCol:
+            columns_to_ignore += [uidCol]
         print "These Columns are Ignored:- ",  columns_to_ignore
         if train_test_ratio == None:
             train_test_ratio = 0.7
@@ -220,6 +222,10 @@ class DataFrameHelper:
             self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
             self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
             self._data_frame = self._data_frame.select(self.columns)
+
+    def boolean_to_string(self,colsToConvert):
+        for column in colsToConvert:
+            self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType))
 
     def get_cols_to_bin(self):
         return self.colsToBin

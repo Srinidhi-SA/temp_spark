@@ -5,6 +5,7 @@ from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.settings import setting as GLOBALSETTINGS
 
 class MeasureColumnNarrative:
 
@@ -34,7 +35,7 @@ class MeasureColumnNarrative:
         self.analysis = None
         self.take_away = None
         self.card2 = ''
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._highlightFlag = "|~HIGHLIGHT~|"
         self._base_dir = "/descriptive/"
         self.num_measures = len(self._dataframe_helper.get_numeric_columns())
@@ -134,7 +135,8 @@ class MeasureColumnNarrative:
                     "td" : self._dataframe_helper.get_timestamp_columns(),
                     "observations" : self._dataframe_helper.get_num_rows(),
                     "ignorecolumns" : ignored_columns,
-                    "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns)
+                    "n_t" : len(self._dataframe_helper.get_string_columns())+len(self._dataframe_helper.get_numeric_columns())+len(self._dataframe_helper.get_timestamp_columns())
+                    # "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns)
         }
         self.summary = NarrativesUtils.get_template_output(self._base_dir,\
                                         'descr_stats_summary.html',data_dict)

@@ -14,6 +14,8 @@ from bi.common.results import TopDimensionStats, TrendResult,TopLevelDfAnovaStat
 
 from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 
@@ -34,38 +36,37 @@ class TwoWayAnova:
 
     '''
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context, meta_parser):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._metaParser = meta_parser
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
 
-        self._date_column = self._dataframe_context.get_date_columns()
-        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()[0]
-        if self._date_column != None:
-            if len(self._date_column) >0 :
-                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
-        if self._date_column_suggestions != {}:
-            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions.keys()))
+        self._date_columns = self._dataframe_context.get_date_columns()
+        self._uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
+            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+        if len(self._date_columns) >0 :
+            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self.top_dimension_result = {}
         # if selected date col empty then on td_node
         self._dataRangeStats = None
         self._dateFormatDetected = False
         self._trend_on_td_column = False
         self._existingDateFormat = None
-        self._selected_date_columns = None
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
-        self._dateColumnFormatDict =  df_context.get_datetime_suggestions()[0]
+        self._dateColumnFormatDict =  df_context.get_date_format_dict()
         if self._dataframe_context.get_requested_date_format() != None:
-            self._requestedDateFormat = df_context.get_requested_date_format()[0]
+            self._requestedDateFormat = df_context.get_requested_date_format()
         else:
             self._requestedDateFormat = None
         dateColCheck = None
         scriptsToRun = self._dataframe_context.get_analysis_name_list()
-        if len(self._date_column) > 0:
-            self._selected_date_columns = self._date_column
+
+        self._selected_date_columns = self._dataframe_context.get_selected_date_columns()
         if self._selected_date_columns != None:
             dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
                                                     self._timestamp_columns,\
@@ -80,9 +81,9 @@ class TwoWayAnova:
             if self._dateFormatDetected:
                 self._requestedDateFormat = dateColCheck["requestedDateFormat"]
                 self._existingDateFormat = dateColCheck["existingDateFormat"]
-                self._date_column_suggested = dateColCheck["suggestedDateColumn"]
+                self._date_columns_suggested = dateColCheck["suggestedDateColumn"]
         if self._dateFormatDetected:
-            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
+            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._selected_date_columns,self._date_columns_suggested,self._trend_on_td_column)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -122,7 +123,7 @@ class TwoWayAnova:
         if nColsToUse != None:
             dimensions = dimensions[:nColsToUse]
         sqrt_nrows = round(self._dataframe_helper.get_num_rows()**0.5)
-        acceptable_level_count = self._dataframe_context.get_anova_max_levels()
+        acceptable_level_count = GLOBALSETTINGS.ANOVAMAXLEVEL
         print acceptable_level_count,sqrt_nrows
         max_levels = __builtin__.min([acceptable_level_count,int(sqrt_nrows)])
         df_anova_result = DFTwoWayAnovaResult()

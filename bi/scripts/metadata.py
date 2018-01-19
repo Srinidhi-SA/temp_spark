@@ -76,7 +76,7 @@ class MetaDataScript:
 
         time_taken_schema = time.time()-self._start_time
         self._completionStatus += self._scriptStages["schema"]["weight"]
-        print "schema trendering takes",time_taken_schema
+        # print "schema trendering takes",time_taken_schema
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "schema",\
                                     "info",\
@@ -84,7 +84,7 @@ class MetaDataScript:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
-
+        self._dataframe_context.update_completion_status(self._completionStatus)
     def update_column_type_dict(self):
         self._column_type_dict = dict(\
                                         zip(self._numeric_columns,[{"actual":"measure","abstract":"measure"}]*len(self._numeric_columns))+\
@@ -102,7 +102,7 @@ class MetaDataScript:
 
         time_taken_sampling = time.time()-self._start_time
         self._completionStatus += self._scriptStages["sampling"]["weight"]
-        print "sampling takes",time_taken_sampling
+        # print "sampling takes",time_taken_sampling
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "sampling",\
                                     "info",\
@@ -121,8 +121,15 @@ class MetaDataScript:
             self._string_columns = list(set(self._string_columns)-set(self._percentage_columns))
             self.update_column_type_dict()
 
+        self._dollar_columns = metaHelperInstance.get_dollar_columns(self._string_columns)
+        if len(self._dollar_columns)>0:
+            self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame,self._dollar_columns)
+            self._numeric_columns = self._numeric_columns + self._dollar_columns
+            self._string_columns = list(set(self._string_columns)-set(self._dollar_columns))
+            self.update_column_type_dict()
+
         if len(self._numeric_columns) > 1:
-            print "self._numeric_columns : ", self._numeric_columns
+            # print "self._numeric_columns : ", self._numeric_columns
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measures"))
         else:
             metaData.append(MetaData(name="measures",value=len(self._numeric_columns),display=True,displayName="Measure"))
@@ -139,15 +146,16 @@ class MetaDataScript:
         metaData.append(MetaData(name="dimensionColumns",value = self._string_columns+self._boolean_columns,display=False))
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
         metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
+        metaData.append(MetaData(name="dollarColumns",value = self._dollar_columns,display=False))
         columnData = []
         headers = []
 
         self._start_time = time.time()
-        print "Count of Numeric columns",len(self._numeric_columns)
+        # print "Count of Numeric columns",len(self._numeric_columns)
         measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
-        print "measure stats takes",time_taken_measurestats
+        # print "measure stats takes",time_taken_measurestats
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "measurestats",\
                                     "info",\
@@ -160,7 +168,7 @@ class MetaDataScript:
         dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
         time_taken_dimensionstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["dimensionstats"]["weight"]
-        print "dimension stats takes",time_taken_dimensionstats
+        # print "dimension stats takes",time_taken_dimensionstats
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dimensionstats",\
                                     "info",\
@@ -173,7 +181,7 @@ class MetaDataScript:
         timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
         time_taken_tdstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["timedimensionstats"]["weight"]
-        print "time dimension stats takes",time_taken_tdstats
+        # print "time dimension stats takes",time_taken_tdstats
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "timedimensionstats",\
                                     "info",\
@@ -273,7 +281,7 @@ class MetaDataScript:
 
         time_taken_suggestions = time.time()-self._start_time
         self._completionStatus += self._scriptStages["suggestions"]["weight"]
-        print "suggestions take",time_taken_suggestions
+        # print "suggestions take",time_taken_suggestions
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "suggestions",\
                                     "info",\
@@ -281,5 +289,5 @@ class MetaDataScript:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
-
+        self._dataframe_context.update_completion_status(self._completionStatus)
         return dfMetaData

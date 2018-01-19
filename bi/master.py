@@ -12,8 +12,9 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import ConfigParser
 
-from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
 from bi.settings import *
+from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser,DataWriter,DataFrameHelper,ContextSetter,ResultSetter
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
@@ -63,10 +64,9 @@ def main(configJson):
             print "Running in debugMode"
             cfgMode = False
             debugMode = True
-            ignoreMsg = False
+            ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
-            # configJson = GlobalSettings.get_test_configs(jobType)
+            jobType = "prediction"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -84,23 +84,24 @@ def main(configJson):
 
     config = configJson["config"]
     job_config = configJson["job_config"]
+    jobType = job_config["job_type"]
+    messageUrl = configJson["job_config"]["message_url"]
+    jobName = job_config["job_name"]
+
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
     dataframe_context = ContextSetter(configJsonObj)
+    dataframe_context.set_job_type(jobType)
+    dataframe_context.set_message_url(messageUrl)
     dataframe_context.set_params()
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
-        ignoreMsg = True
-    jobType = job_config["job_type"]
     try:
         errorURL = job_config["error_reporting_url"]+APP_NAME+"/"
     except:
         errorURL = None
-    messageUrl = configJson["job_config"]["message_url"]
-    dataframe_context.set_job_type(jobType)
-    dataframe_context.set_message_url(messageUrl)
-    jobName = job_config["job_name"]
+
     messageURL = dataframe_context.get_message_url()
     analysistype = dataframe_context.get_analysis_type()
     result_setter = ResultSetter(dataframe_context)
@@ -110,36 +111,28 @@ def main(configJson):
     if scripts_to_run==None:
         scripts_to_run = []
     appid = dataframe_context.get_app_id()
-    if jobType == "story":
-        if analysistype == "dimension":
-            scriptWeightDict = dataframe_context.get_dimension_analysis_weight()
-        elif analysistype == "measure":
-            scriptWeightDict = dataframe_context.get_measure_analysis_weight()
-    elif jobType == "training":
-        scriptWeightDict = dataframe_context.get_ml_model_training_weight()
-    elif jobType == "prediction":
-        scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
-    elif jobType == "metaData":
-        scriptWeightDict = dataframe_context.get_metadata_script_weight()
-    elif jobType == "subSetting":
-        scriptWeightDict = dataframe_context.get_subsetting_script_weight()
+    print "#"*100
+    print "analysistype",analysistype
+    print "jobType",jobType
+    print "#"*100
+    scriptWeightDict = dataframe_context.get_script_weights()
     print scriptWeightDict
     completionStatus = 0
 
-    ########################## Load the dataframe ##############################
+    ########################## Initializing messages ##############################
     if jobType == "story":
         if analysistype == "measure":
             progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
         else:
             progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
         dataframe_context.update_completion_status(completionStatus)
     elif jobType == "metaData":
-        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        progressMessage = CommonUtils.create_progress_message_object("Data Upload","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         dataframe_context.update_completion_status(completionStatus)
 
@@ -148,6 +141,7 @@ def main(configJson):
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     dataframe_context.update_completion_status(completionStatus)
+    ########################## Load the dataframe ##############################
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
@@ -197,9 +191,15 @@ def main(configJson):
                     metaParserInstance.set_params(metaDataObj)
 
         if jobType != "metaData":
-            print "Setting Dataframe Helper Class"
+            dataframe_context.set_ignore_column_suggestions(metaParserInstance.get_ignore_columns())
+            dataframe_context.set_utf8_columns(metaParserInstance.get_utf8_columns())
+            dataframe_context.set_date_format(metaParserInstance.get_date_format())
+
             percentageColumns = metaParserInstance.get_percentage_columns()
+            dollarColumns = metaParserInstance.get_dollar_columns()
             dataframe_context.set_percentage_columns(percentageColumns)
+            dataframe_context.set_dollar_columns(dollarColumns)
+
             df_helper = DataFrameHelper(df, dataframe_context)
             df_helper.set_params()
             df = df_helper.get_data_frame()
@@ -209,7 +209,6 @@ def main(configJson):
             colsToBin = df_helper.get_cols_to_bin()
             levelCountDict = df_helper.get_level_counts(colsToBin)
             metaParserInstance.update_level_counts(colsToBin,levelCountDict)
-
 
         completionStatus += scriptWeightDict["initialization"]["total"]
         progressMessage = CommonUtils.create_progress_message_object("dataLoading","dataLoading","info","Dataset Loading Finished",completionStatus,completionStatus)
@@ -228,8 +227,8 @@ def main(configJson):
 
     if jobType == "metaData":
         fs = time.time()
-        print "Running Metadata"
         meta_data_class = MetaDataScript(df,spark,dataframe_context)
+        completionStatus = dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Meta data for the dataset",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
@@ -317,14 +316,14 @@ def main(configJson):
                     progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
-            if ('Dimension vs. Dimension' in scripts_to_run):
+            if (len(dimension_columns)>=2 and 'Dimension vs. Dimension' in scripts_to_run):
                 dataframe_context.set_analysis_name("Dimension vs. Dimension")
                 completionStatus = dataframe_context.get_completion_status()
                 progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Evaluating variables for Statistical Association",completionStatus,completionStatus,display=True)
                 CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter)
+                    chisquare_obj = ChiSquareScript(df, df_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
                     chisquare_obj.Run()
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -450,7 +449,7 @@ def main(configJson):
                 CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
                 try:
                     fs = time.time()
-                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative)
+                    two_way_obj = TwoWayAnovaScript(df, df_helper, dataframe_context, result_setter, spark,story_narrative,metaParserInstance)
                     two_way_obj.Run()
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
@@ -592,6 +591,9 @@ def main(configJson):
         df = df_helper.get_data_frame()
         df = df_helper.fill_missing_values(df)
         categorical_columns = df_helper.get_string_columns()
+        uid_col = dataframe_context.get_uid_column()
+        if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns)-set([uid_col]))
         result_column = dataframe_context.get_result_column()
         df = df.toPandas()
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -664,6 +666,8 @@ def main(configJson):
         algorithm_name_list = ["randomforest","xgboost","logisticregression"]
         algorithm_name = dataframe_context.get_algorithm_slug()[0]
         print "algorithm_name",algorithm_name
+        print "score_file_path",score_file_path
+        print "model_slug",model_slug
         model_path = score_file_path.split(basefoldername)[0]+"/mAdvisorModels/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)

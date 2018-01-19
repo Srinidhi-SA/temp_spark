@@ -29,14 +29,12 @@ class DecisionTrees:
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
-        self._date_column = self._dataframe_context.get_date_columns()
-        self._date_column_suggestions = self._dataframe_context.get_datetime_suggestions()
-        if self._date_column != None:
-            if len(self._date_column) >0 :
-                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column))
-        if len(self._date_column_suggestions) > 0:
-            if self._date_column_suggestions[0] != {}:
-                self._dimension_columns = list(set(self._dimension_columns)-set(self._date_column_suggestions[0].keys()))
+        self._date_columns = self._dataframe_context.get_date_columns()
+        self._uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
+            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+        if len(self._date_columns) >0 :
+            self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns)
         self._data_frame1 = self._data_frame
         self._mapping_dict = {}

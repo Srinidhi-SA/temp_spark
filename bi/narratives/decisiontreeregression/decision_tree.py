@@ -12,6 +12,8 @@ from bi.common import utils as CommonUtils
 from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 class DecisionTreeRegNarrative:
@@ -47,7 +49,7 @@ class DecisionTreeRegNarrative:
         self.subheader = None
         self.dropdownComment = None
         self.dropdownValues = None
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._base_dir = "/decisiontree/"
         self._decisionTreeNode = NarrativesTree(name='Prediction')
         # self._decisionTreeNode.set_name("Decision Tree Regression")
@@ -223,7 +225,7 @@ class DecisionTreeRegNarrative:
         chartJson.set_title(self._colname)
         chartJson.set_chart_type("donut")
         mainCardChart = C3ChartData(data=chartJson)
-        mainCardChart.set_width_percent(33)
+        mainCardChart.set_width_percent(45)
         # mainCardChart = {"dataType": "c3Chart","widthPercent":33 ,"data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
 
 

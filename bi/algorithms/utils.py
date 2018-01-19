@@ -608,7 +608,7 @@ def create_model_summary_cards(modelSummaryClass):
 
     modelSummaryCard2 = NormalCard()
     modelSummaryCard2Data = []
-    modelSummaryCard2Data.append(HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h5>"))
+    modelSummaryCard2Data.append(HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>"))
     modelSummaryCard2Table = TableData()
     modelSummaryCard2Table.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
     modelSummaryCard2Table.set_table_type("confusionMatrix")
@@ -635,7 +635,7 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
     card3 = NormalCard()
-    card3Data = [HtmlData(data="<h5 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h5>")]
+    card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
     card3Data.append(get_feature_importance(collated_summary))
     card3.set_card_data(card3Data)
     # prediction_narrative.insert_card_at_given_index(card3,2)

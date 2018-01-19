@@ -29,6 +29,8 @@ from decorators import accepts
 from math import log10, floor
 
 
+# def possible_analysis():
+#     stringCols =
 
 def round_sig(x, sig=3):
     try:
@@ -305,7 +307,7 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
         "stageCompletionPercentage" : stageCompletionPercentage,
         "display":display
     }
-    print "completionStatus for the Job:- ",globalCompletionPercentage
+    print "completionStatus for the Job:- ",globalCompletionPercentage,"timestamp:- ",progressMessage["stageCompletionTimestamp"]
     return progressMessage
 
 def save_result_json(url,jsonData):
@@ -314,7 +316,9 @@ def save_result_json(url,jsonData):
     res = requests.put(url=url,data=jsonData)
     return res
 
-def save_progress_message(url,jsonData,ignore=False):
+def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
+    if emptyBin == True:
+        url += "?emptyBin=True"
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
         return res
@@ -429,6 +433,11 @@ def convert_percentage_columns(df, percentage_columns):
         df = df.withColumn(column, col(column).cast('double'))
     return df
 
+def convert_dollar_columns(df, dollar_columns):
+    for column in dollar_columns:
+        df = df.withColumn(column, regexp_extract(df[column], '^([$]((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)*)',2))
+        df = df.withColumn(column, col(column).cast('double'))
+    return df
 
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

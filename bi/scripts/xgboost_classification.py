@@ -81,6 +81,9 @@ class XgboostScript:
         self._dataframe_context.update_completion_status(self._completionStatus)
 
         categorical_columns = self._dataframe_helper.get_string_columns()
+        uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
@@ -226,6 +229,9 @@ class XgboostScript:
 
         xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
+        uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns)-set([uid_col]))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
@@ -248,6 +254,8 @@ class XgboostScript:
         model_feature_list = self._dataframe_context.get_model_features()
         print model_feature_list
         pandas_df = pandas_df[model_feature_list]
+        if uid_col:
+            pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
         score = xgboost_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()
@@ -262,24 +270,27 @@ class XgboostScript:
 
         uidCol = self._dataframe_context.get_uid_column()
         if uidCol == None:
-            uidCol = self._metaParser.get_uid_column()
+            uidCols = self._metaParser.get_suggested_uid_columns()
+            if len(uidCols) > 0:
+                uidCol = uidCols[0]
         uidTableData = []
         predictedClasses = list(df[result_column].unique())
         if uidCol:
-            for level in predictedClasses:
-                levelDf = df[df[result_column] == level]
-                levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
-                levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
-                levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%")
-                uidTableData.append(levelDf[:5])
-            uidTableData = pd.concat(uidTableData)
-            uidTableData  = [list(arr) for arr in list(uidTableData.values)]
-            uidTableData = [[uidCol,"Probability",result_column]] + uidTableData
-            uidTable = TableData()
-            uidTable.set_table_width(25)
-            uidTable.set_table_data(uidTableData)
-            uidTable.set_table_type("normalHideColumn")
-            self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
+            if uidCol in df.columns:
+                for level in predictedClasses:
+                    levelDf = df[df[result_column] == level]
+                    levelDf = levelDf[[uidCol,"predicted_probability",result_column]]
+                    levelDf.sort_values(by="predicted_probability", ascending=False,inplace=True)
+                    levelDf["predicted_probability"] = levelDf["predicted_probability"].apply(lambda x: humanize.apnumber(x*100)+"%" if x*100 >=10 else str(int(x*100))+"%")
+                    uidTableData.append(levelDf[:5])
+                uidTableData = pd.concat(uidTableData)
+                uidTableData  = [list(arr) for arr in list(uidTableData.values)]
+                uidTableData = [[uidCol,"Probability",result_column]] + uidTableData
+                uidTable = TableData()
+                uidTable.set_table_width(25)
+                uidTable.set_table_data(uidTableData)
+                uidTable.set_table_type("normalHideColumn")
+                self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
 
 
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"]/10
@@ -297,14 +308,15 @@ class XgboostScript:
         print "STARTING DIMENSION ANALYSIS ..."
         columns_to_keep = []
         columns_to_drop = []
-        considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
-        considercolumns = self._dataframe_context.get_score_consider_columns()
-        if considercolumnstype != None:
-            if considercolumns != None:
-                if considercolumnstype == ["excluding"]:
-                    columns_to_drop = considercolumns
-                elif considercolumnstype == ["including"]:
-                    columns_to_keep = considercolumns
+        # considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
+        # considercolumns = self._dataframe_context.get_score_consider_columns()
+        # if considercolumnstype != None:
+        #     if considercolumns != None:
+        #         if considercolumnstype == ["excluding"]:
+        #             columns_to_drop = considercolumns
+        #         elif considercolumnstype == ["including"]:
+        #             columns_to_keep = considercolumns
+        columns_to_keep = self._dataframe_context.get_score_consider_columns()
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
@@ -320,7 +332,7 @@ class XgboostScript:
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
-
+        self._dataframe_context.update_consider_columns(columns_to_keep)
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
         df_helper.set_params()
         spark_scored_df = df_helper.get_data_frame()

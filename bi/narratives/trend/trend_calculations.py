@@ -27,13 +27,13 @@ class TimeSeriesCalculations:
 
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._dateFormatDetected = False
-        self._date_suggestion_columns = df_context.get_date_columns()
+        self._date_columns = df_context.get_date_columns()
         self._dateFormatConversionDict = NarrativesUtils.date_formats_mapping_dict()
         self._td_columns = df_helper.get_timestamp_columns()
         self._result_column = df_context.get_result_column()
 
-        if self._date_suggestion_columns != None:
-            time_dimension_column = self._date_suggestion_columns[0]
+        if self._date_columns != None:
+            time_dimension_column = self._date_columns[0]
             existingDateFormat = None
             dateColumnFormatDict =  df_helper.get_datetime_format(time_dimension_column)
             if time_dimension_column in dateColumnFormatDict:
@@ -56,7 +56,7 @@ class TimeSeriesCalculations:
 
 
     def chisquare_trend(self,column_name,base_dir):
-        if self._date_suggestion_columns != None:
+        if self._date_columns != None:
             if self._dateFormatDetected:
                 output = []
                 date_column = self._date_column_suggested

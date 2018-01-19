@@ -4,6 +4,7 @@ import numpy as np
 import json
 import itertools
 import humanize
+from collections import defaultdict
 from bi.common.dataframe import DataFrameHelper
 from bi.common.context import ContextSetter
 from bi.common.results import DecisionTreeResult
@@ -14,6 +15,7 @@ from bi.common import NarrativesTree
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import ResultSetter
+from bi.settings import setting as GLOBALSETTINGS
 
 class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2
@@ -34,7 +36,7 @@ class DecisionTreeNarrative:
         self._dataframe_context = df_context
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._result_setter = result_setter
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._column_name = column_name.lower()
         self._colname = column_name
 
@@ -243,7 +245,7 @@ class DecisionTreeNarrative:
         chartJson.set_title(self._colname)
         chartJson.set_chart_type("donut")
         mainCardChart = C3ChartData(data=chartJson)
-        mainCardChart.set_width_percent(33)
+        mainCardChart.set_width_percent(45)
         # mainCardChart = {"dataType": "c3Chart","widthPercent":33 ,"data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
 
 
@@ -258,9 +260,19 @@ class DecisionTreeNarrative:
             maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'decisiontreesummary.html',data_dict)
         else:
-            levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
+            predictedLevelcountArray = [(x[2],x[3]) for x in tableArray[1:]]
+            predictedLevelCountDict  = {}
+            # predictedLevelcountDict = defaultdict(predictedLevelcountArray)
+            for val in predictedLevelcountArray:
+                predictedLevelCountDict.setdefault(val[0], []).append(val[1])
+
+            levelCountDict = {}
+            for k,v in predictedLevelCountDict.items():
+                levelCountDict[k] = sum(v)
+
+            # levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
             total = float(sum([x for x in levelCountDict.values() if x != None]))
-            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
+            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%" if v*100/total >=10 else str(int(v*100/total))+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["nlevel"] = len(levelCountDict.keys())
             data_dict["topLevel"] = levelCountTuple[0]

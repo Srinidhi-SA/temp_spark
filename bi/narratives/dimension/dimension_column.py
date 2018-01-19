@@ -3,12 +3,14 @@ import operator
 import os
 import time
 import re
+import pattern
 
 from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
 
 from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.settings import setting as GLOBALSETTINGS
 
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
@@ -35,7 +37,7 @@ class DimensionColumnNarrative:
                 self._base_dir += "appid2/"
         self._dataframe_context = df_context
         self._dataframe_helper = df_helper
-        self._blockSplitter = self._dataframe_context.get_block_splitter()
+        self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._dimensionSummaryNode = NarrativesTree()
         self._dimensionSummaryNode.set_name("Overview")
         self._headNode = NarrativesTree()
@@ -144,7 +146,8 @@ class DimensionColumnNarrative:
                     "td" : self._dataframe_helper.get_timestamp_columns(),
                     "observations" : self._dataframe_helper.get_num_rows(),
                     "ignorecolumns" : ignored_columns,
-                    "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns),
+                    "n_t" : len(self._dataframe_helper.get_string_columns())+len(self._dataframe_helper.get_numeric_columns())+len(self._dataframe_helper.get_timestamp_columns()),
+                    # "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns),
                     "blockSplitter" : self._blockSplitter
         }
         output = NarrativesUtils.get_template_output(self._base_dir,\

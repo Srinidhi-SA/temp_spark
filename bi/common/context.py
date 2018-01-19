@@ -1,4 +1,5 @@
 from bi.common.decorators import accepts
+from bi.settings import setting as GLOBALSETTINGS
 import ast
 class ContextSetter:
 
@@ -22,15 +23,13 @@ class ContextSetter:
         self.ignorecolumns = []
         self.utf8columns = []
         self.considercolumns = []
-        self.considercolumnstype = ["excluding"]
+        self.considercolumnstype = ["including"]
         self.measure_suggestions = []
-        self.date_columns = []
-        self.string_to_date_columns = {}
+
         self.MODELFEATURES = []
         self.appid = None
         self.algorithmslug = []
         self.levelcount_dict = {}
-        self.dateTimeSuggestions = []
         self.dimension_filter = {}
         self.measure_filter = {}
         self.time_dimension_filter = {}
@@ -43,52 +42,6 @@ class ContextSetter:
         self.METADATA_SLUGS = None
         self.dbConnectionParams = {}
         self.dataSourceType = None
-        self.blockSplitter = "|~NEWBLOCK~|"
-
-        self.scriptsMapping = {
-            "overview" : "Descriptive analysis",
-            "performance" : "Measure vs. Dimension",
-            "influencer" : "Measure vs. Measure",
-            "prediction" : "Predictive modeling",
-            "trend" : "Trend",
-            "association" : "Dimension vs. Dimension"
-        }
-        self.measureAnalysisRelativeWeight = {
-            "initialization":0.25,
-            "Descriptive analysis":1,
-            "Measure vs. Dimension":3,
-            "Measure vs. Measure":3,
-            "Trend":1.5,
-            "Predictive modeling":1.5
-        }
-        self.dimensionAnalysisRelativeWeight = {
-            "initialization":0.25,
-            "Descriptive analysis":1,
-            "Dimension vs. Dimension":4,
-            "Trend":2.5,
-            "Predictive modeling":2.5
-        }
-        self.mlModelTrainingWeight = {
-            "initialization":{"total":10,"script":10,"narratives":10},
-            "randomForest":{"total":30,"script":30,"narratives":30},
-            "logisticRegression":{"total":30,"script":30,"narratives":30},
-            "xgboost":{"total":30,"script":30,"narratives":30}
-        }
-        self.mlModelPredictionWeight = {
-            "initialization":{"total":10,"script":10,"narratives":10},
-            "randomForest":{"total":20,"script":20,"narratives":20},
-            "logisticRegression":{"total":20,"script":20,"narratives":20},
-            "xgboost":{"total":20,"script":20,"narratives":20},
-            "Descriptive analysis":{"total":10,"script":10,"narratives":10},
-            "Dimension vs. Dimension":{"total":10,"script":5,"narratives":5},
-            "Predictive modeling":{"total":10,"script":5,"narratives":5}
-        }
-        self.metadataScriptWeight = {
-            "initialization":{"total":3,"script":2,"narratives":1},
-        }
-        self.subsettingScriptWeight = {
-            "initialization":{"total":3,"script":2,"narratives":1},
-        }
         self.measureAnalysisWeight = {}
         self.dimensionAnalysisWeight = {}
         self.globalCompletionStatus = 0
@@ -98,90 +51,25 @@ class ContextSetter:
         self.dataAPI = ""
         self.trendSettings = None
         self.metaIgnoreMsgFlag = False
-        self._max_dimension_level_allowed = 200
-        self.customAnalysisDetails = None
+        self.customAnalysisDetails = []
         self.jobType = None
         self.storyOnScoredData = False
-        self.uidColObject = {}
+        self.uidCol = None
         self.ignoremessages = False
         self.labelMappingDict = []
         self.percentageColumns = []
+        self.dollarColumns = []
+        self.colPolarity = []
+
+        self.requestedDateFormat = None
+        self.dateFormatDict = {}
+        self.allDateColumns = []
+        self.string_to_date_columns = {}
         self.dateFormatDetails = {}
+        self.dateTimeSuggestions = []
+        self.selected_date_columns = []
 
-    def set_date_format_details(self,data):
-        self.dateFormatDetails = data
 
-    def get_date_format_details(self):
-        return self.dateFormatDetails
-
-    @accepts(object,(list,tuple))
-    def set_percentage_columns(self,data):
-        self.percentageColumns = data
-
-    def get_percentage_columns(self):
-        return self.percentageColumns
-
-    def get_block_splitter(self):
-        return self.blockSplitter
-
-    def get_label_map(self):
-        if len(self.labelMappingDict) > 0:
-            original = self.labelMappingDict[0]
-            modified = {}
-            for val in original:
-                modified[int(val)] = original[val]
-            return modified
-        else:
-            return []
-    def get_uid_column(self):
-        if self.uidColObject != {}:
-            return self.uidColObject["colName"]
-        else:
-            return None
-    def get_anova_max_levels(self):
-        return self._max_dimension_level_allowed
-    def get_datasource_type(self):
-        return self.dataSourceType
-    def get_dbconnection_params(self):
-        return self.dbConnectionParams
-    def get_metadata_ignore_msg_flag(self):
-        return self.metaIgnoreMsgFlag
-    def set_metadata_ignore_msg_flag(self,data):
-        self.metaIgnoreMsgFlag = data
-    def get_metadata_script_weight(self):
-        return self.metadataScriptWeight
-    def get_subsetting_script_weight(self):
-        return self.subsettingScriptWeight
-    def set_model_path(self,data):
-        self.MODEL_PATH = data
-    def set_environment(self,data):
-        self.runEnvironment = data
-    def get_environement(self):
-        return self.runEnvironment
-    def set_score_path(self,data):
-        self.SCORE_PATH = data
-    def set_analysis_name(self,name):
-        self.currentAnalysis = name
-    def get_analysis_name(self):
-        return self.currentAnalysis
-    def set_analysis_weights(self,scriptsToRun,analysis_type):
-        scriptsToRun += ["initialization"]
-        if analysis_type == "measure":
-            relativeWeightArray = [self.measureAnalysisRelativeWeight[x] for x in scriptsToRun]
-        elif analysis_type == "dimension":
-            relativeWeightArray = [self.dimensionAnalysisRelativeWeight[x] for x in scriptsToRun]
-        totalWeight = sum(relativeWeightArray)
-        percentWeight = [int(round(x*100/float(totalWeight))) for x in relativeWeightArray]
-        diff = sum(percentWeight) - 100
-        percentWeight = percentWeight[:-1] + [percentWeight[-1]+-(diff)]
-        weightDict = dict(zip(scriptsToRun,percentWeight))
-        outputdict = {}
-        for k,v in weightDict.items():
-            outputdict[k] = {"total":v,"script":v/2,"narratives":v-v/2}
-        if analysis_type == "measure":
-            self.measureAnalysisWeight = outputdict
-        elif analysis_type == "dimension":
-            self.dimensionAnalysisWeight = outputdict
 
     def set_params(self):
         self.FILE_SETTINGS = self._config_obj.get_file_settings()
@@ -257,48 +145,50 @@ class ContextSetter:
                 self.labelMappingDict = self.FILE_SETTINGS['labelMappingDict']
 
         if len(columnSettingKeys) > 0:
-            if "app_id" in columnSettingKeys:
-                if self.COLUMN_SETTINGS['app_id'] != None and len(self.COLUMN_SETTINGS['app_id']) > 0:
-                    self.appid = str(self.COLUMN_SETTINGS['app_id'][0])
-                else:
-                    self.appid = None
-            if "result_column" in columnSettingKeys:
-                self.resultcolumn = "{}".format(self.COLUMN_SETTINGS['result_column'][0].strip())
-            if "analysis_type" in columnSettingKeys:
-                self.analysistype = self.COLUMN_SETTINGS['analysis_type'][0].strip()
-            if "ignore_column_suggestion" in columnSettingKeys:
-                self.ignorecolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('ignore_column_suggestion')]
-            if "utf8_columns" in columnSettingKeys:
-                self.utf8columns = self.COLUMN_SETTINGS.get('utf8_columns')
-            if self.ignorecolumns!=None:
-                self.ignorecolumns = ["{}".format(col) for col in list(set(self.ignorecolumns)-set([self.resultcolumn]))]
-            if "consider_columns" in columnSettingKeys:
-                self.considercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('consider_columns')]
-            if "score_consider_columns" in columnSettingKeys:
-                self.scoreconsidercolumns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('score_consider_columns')]
-            if "consider_columns_type" in columnSettingKeys:
-                self.considercolumnstype = self.COLUMN_SETTINGS.get('consider_columns_type')
+            varSelectionArr = []
+            if self.jobType != "prediction":
+                if "variableSelection" in columnSettingKeys:
+                    varSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
+            else:
+                if "variableSelection" in columnSettingKeys:
+                    self.scoreVarSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
+                if "modelvariableSelection" in columnSettingKeys:
+                    self.modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
+                varSelectionArr = self.modelVarSelectionArr
 
-            if self.considercolumnstype == ["including"]:
-                if self.resultcolumn != None and self.considercolumns != None:
-                    self.considercolumns.append(self.resultcolumn)
-                    self.considercolumns = list(set(self.considercolumns))
-
-
-            if "date_columns" in columnSettingKeys:
-                self.date_columns = ["{}".format(col) for col in self.COLUMN_SETTINGS.get('date_columns')]
-            if "date_format" in columnSettingKeys:
-                self.date_format = self.COLUMN_SETTINGS.get('date_format')
-            if "measure_suggestions" in columnSettingKeys:
-                self.measure_suggestions = self.COLUMN_SETTINGS.get('measure_suggestions')
-            if "score_consider_columns_type" in columnSettingKeys:
-                self.scoreconsidercolumnstype = self.COLUMN_SETTINGS.get('score_consider_columns_type')
-            if "dateTimeSuggestions" in columnSettingKeys:
-                self.dateTimeSuggestions = self.COLUMN_SETTINGS.get('dateTimeSuggestions')
-            if "customAnalysisDetails" in columnSettingKeys:
-                self.customAnalysisDetails = self.COLUMN_SETTINGS.get('customAnalysisDetails')
-            if "uidColumn" in columnSettingKeys:
-                self.uidColObject = self.COLUMN_SETTINGS.get('uidColumn')
+            if len(varSelectionArr) >0:
+                self.considercolumns = []
+                for colSetting in varSelectionArr:
+                    if colSetting["selected"] == True:
+                        self.considercolumns.append(str(colSetting["name"]))
+                    if colSetting["targetColumn"] == True:
+                        self.resultcolumn = str(colSetting["name"])
+                        if colSetting["columnType"] == "measure":
+                            if colSetting["targetColSetVarAs"] != None:
+                                self.analysistype = "dimension"
+                            else:
+                                self.analysistype = "measure"
+                        elif colSetting["columnType"] == "dimension":
+                            self.analysistype = "dimension"
+                    if colSetting["uidCol"] == True and colSetting["selected"] == True:
+                        self.uidCol = str(colSetting["name"])
+                    if colSetting["columnType"] == "datetime" or colSetting["dateSuggestionFlag"] == True:
+                        self.allDateColumns.append(str(colSetting["name"]))
+                        if colSetting["selected"] == True:
+                            self.selected_date_columns.append(str(colSetting["name"]))
+                    if colSetting["dateSuggestionFlag"] == True:
+                        self.dateTimeSuggestions.append(str(colSetting["name"]))
+                    if colSetting["setVarAs"] != None and colSetting["selected"] == True:
+                        self.customAnalysisDetails.append({"colName":str(colSetting["name"]),"treatAs":colSetting["setVarAs"]})
+                    if "targetColSetVarAs" in colSetting and colSetting["targetColumn"] == True:
+                        if colSetting["targetColSetVarAs"] != None:
+                            self.customAnalysisDetails.append({"colName":str(colSetting["name"]),"treatAs":colSetting["targetColSetVarAs"]})
+                    if colSetting["polarity"] != None and colSetting["selected"] == True:
+                        self.colPolarity.append({"colName":str(colSetting["name"]),"polarity":colSetting["polarity"]})
+                if self.jobType == "prediction":
+                    self.considercolumns = [x for x in self.considercolumns if x != self.resultcolumn]
+                    self.scoreconsidercolumns = [str(x["name"]) for x in self.scoreVarSelectionArr if x["selected"]==True]
+                    self.scoreconsidercolumns = [x for x in self.scoreconsidercolumns if x in self.considercolumns]
 
         if len(filterSettingKeys) > 0:
             if "dimensionColumnFilters" in filterSettingKeys:
@@ -350,7 +240,7 @@ class ContextSetter:
                             "status" : True
                         }
                     )
-                self.analysisList = [self.scriptsMapping[x] for x in analysisList]
+                self.analysisList = [GLOBALSETTINGS.scriptsMapping[x] for x in analysisList]
                 self.analysisDict = dict(zip(self.analysisList,analysisDictList))
             if "trendSettings" in advanceSettingKeys:
                 trendSettingObj = self.ADVANCE_SETTINGS["trendSettings"]
@@ -376,6 +266,7 @@ class ContextSetter:
                             valid = True
                             validColumnSetting.append(action)
                     actionOrder = {"delete":0,"rename":2,"replace":1,"data_type":3}
+                    validColumnSetting = [x for x in validColumnSetting if x in actionOrder.keys()]
                     validColumnSetting = sorted(validColumnSetting,key=lambda x:actionOrder[x["actionName"]])
                     if valid:
                         validObj = transformObj
@@ -391,6 +282,103 @@ class ContextSetter:
 
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
+
+    def update_consider_columns(self,considerCols):
+        self.considercolumns = considerCols
+
+    def set_ignore_column_suggestions(self,ignoreSuggestions):
+        self.ignorecolumns = ignoreSuggestions
+
+    def set_utf8_columns(self,utf8Cols):
+        self.utf8columns = utf8Cols
+
+    def set_date_format(self,dateFormat):
+        self.dateFormatDict = dateFormat
+
+    def get_date_format_dict(self):
+        return self.dateFormatDict
+
+    def get_selected_date_columns(self):
+        return self.selected_date_columns
+
+    def set_measure_suggestions(self,measureSugCols):
+        self.measure_suggestions = measureSugCols
+
+    # need to check its usage
+    def set_date_format_details(self,data):
+        self.dateFormatDetails = data
+
+    def get_date_format_details(self):
+        return self.dateFormatDetails
+
+    @accepts(object,(list,tuple))
+    def set_percentage_columns(self,data):
+        self.percentageColumns = data
+
+    def get_percentage_columns(self):
+        return self.percentageColumns
+
+    def set_dollar_columns(self,data):
+        self.dollarColumns = data
+
+    def get_dollar_columns(self):
+        return self.dollarColumns
+
+    def get_label_map(self):
+        if len(self.labelMappingDict) > 0:
+            original = self.labelMappingDict[0]
+            modified = {}
+            for val in original:
+                modified[int(val)] = original[val]
+            return modified
+        else:
+            return []
+    def get_uid_column(self):
+        return self.uidCol
+    def get_datasource_type(self):
+        return self.dataSourceType
+    def get_dbconnection_params(self):
+        return self.dbConnectionParams
+    def get_metadata_ignore_msg_flag(self):
+        return self.metaIgnoreMsgFlag
+    def set_metadata_ignore_msg_flag(self,data):
+        self.metaIgnoreMsgFlag = data
+    def get_metadata_script_weight(self):
+        return GLOBALSETTINGS.metadataScriptWeight
+    def get_subsetting_script_weight(self):
+        return GLOBALSETTINGS.subsettingScriptWeight
+    def set_model_path(self,data):
+        self.MODEL_PATH = data
+    def set_environment(self,data):
+        self.runEnvironment = data
+    def get_environement(self):
+        return self.runEnvironment
+    def set_score_path(self,data):
+        self.SCORE_PATH = data
+    def set_analysis_name(self,name):
+        self.currentAnalysis = name
+    def get_analysis_name(self):
+        return self.currentAnalysis
+    def set_analysis_weights(self,scriptsToRun,analysis_type):
+        scriptsToRun += ["initialization"]
+        if analysis_type == "measure":
+            relativeWeightArray = [GLOBALSETTINGS.measureAnalysisRelativeWeight[x] for x in scriptsToRun]
+        elif analysis_type == "dimension":
+            relativeWeightArray = [GLOBALSETTINGS.dimensionAnalysisRelativeWeight[x] for x in scriptsToRun]
+        totalWeight = sum(relativeWeightArray)
+        percentWeight = [int(round(x*100/float(totalWeight))) for x in relativeWeightArray]
+        diff = sum(percentWeight) - 100
+        percentWeight = percentWeight[:-1] + [percentWeight[-1]+-(diff)]
+        weightDict = dict(zip(scriptsToRun,percentWeight))
+        outputdict = {}
+        for k,v in weightDict.items():
+            outputdict[k] = {"total":v,"script":v/2,"narratives":v-v/2}
+        if analysis_type == "measure":
+            self.measureAnalysisWeight = outputdict
+        elif analysis_type == "dimension":
+            self.dimensionAnalysisWeight = outputdict
+
+
 
     def get_custom_analysis_details(self):
         if self.customAnalysisDetails:
@@ -423,10 +411,10 @@ class ContextSetter:
         return self.dimensionAnalysisWeight
 
     def get_ml_model_training_weight(self):
-        return self.mlModelTrainingWeight
+        return GLOBALSETTINGS.mlModelTrainingWeight
 
     def get_ml_model_prediction_weight(self):
-        return self.mlModelPredictionWeight
+        return GLOBALSETTINGS.mlModelPredictionWeight
 
     def update_completion_status(self,data):
         self.globalCompletionStatus = data
@@ -516,10 +504,10 @@ class ContextSetter:
         return self.date_filter
 
     def get_date_columns(self):
-        return self.date_columns
+        return self.allDateColumns
 
     def get_requested_date_format(self):
-        return self.date_format
+        return self.requestedDateFormat
 
     def get_train_test_split(self):
         return self.train_test_split
@@ -565,3 +553,21 @@ class ContextSetter:
 
     def get_message_ignore(self):
         return self.ignoremessages
+
+    def get_script_weights(self):
+        jobType = self.jobType
+        analysistype = self.analysistype
+        if jobType == "story":
+            if analysistype == "dimension":
+                scriptWeightDict = self.get_dimension_analysis_weight()
+            elif analysistype == "measure":
+                scriptWeightDict = self.get_measure_analysis_weight()
+        elif jobType == "training":
+            scriptWeightDict = self.get_ml_model_training_weight()
+        elif jobType == "prediction":
+            scriptWeightDict = self.get_ml_model_prediction_weight()
+        elif jobType == "metaData":
+            scriptWeightDict = self.get_metadata_script_weight()
+        elif jobType == "subSetting":
+            scriptWeightDict = self.get_subsetting_script_weight()
+        return scriptWeightDict
