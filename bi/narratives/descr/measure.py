@@ -64,7 +64,7 @@ class MeasureColumnNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update(self._completionStatus)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
         self._measureSummaryNode = NarrativesTree()
         self._headNode = NarrativesTree()
@@ -82,7 +82,7 @@ class MeasureColumnNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update(self._completionStatus)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     def _get_c3_histogram(self):
         data = self._measure_descr_stats.get_histogram()

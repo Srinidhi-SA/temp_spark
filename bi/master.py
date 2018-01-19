@@ -64,7 +64,7 @@ def main(configJson):
             print "Running in debugMode"
             cfgMode = False
             debugMode = True
-            ignoreMsg = True
+            ignoreMsg = False
             # Test Configs are defined in bi/settings/config.py
             jobType = "story"
             configJson = get_test_configs(jobType)

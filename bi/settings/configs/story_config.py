@@ -164,7 +164,7 @@ def get_story_config():
               "setVarAs": None,
               "columnType": "datetime",
               "name": "new_date",
-              "selected": False,
+              "selected": True,
               "slug": "57016c35904640ff8cf45d70a780041d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -176,7 +176,7 @@ def get_story_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "Order Date",
-              "selected": True,
+              "selected": False,
               "slug": "d1ab01e4118749e085e426233be4bb4d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
@@ -264,7 +264,7 @@ def get_story_config():
               "name": "performance"
             },
             {
-              "status": False,
+              "status": True,
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -279,7 +279,7 @@ def get_story_config():
                   "name": "medium"
                 },
                 {
-                  "status": False,
+                  "status": True,
                   "defaultValue": 8,
                   "displayName": "High",
                   "name": "high"
@@ -299,7 +299,7 @@ def get_story_config():
               "name": "influencer"
             },
             {
-              "status": False,
+              "status": True,
               "displayName": "Prediction",
               "name": "prediction",
               "noOfColumnsToUse": None,
@@ -316,7 +316,9 @@ def get_story_config():
           "script_to_run": [
             "Descriptive analysis",
             "Trend",
-            "Measure vs. Dimension"
+            "Measure vs. Dimension",
+            "Measure vs. Measure",
+            "Predictive modeling"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
@@ -330,20 +332,20 @@ def get_story_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-anova-sumit-4lt664l76a-p3anmz33cv_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-message-check5-j9e3mv34rp-nc7aqvzo0p_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-anova-sumit-4lt664l76a-p3anmz33cv/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-message-check5-j9e3mv34rp-nc7aqvzo0p/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-anova-sumit-4lt664l76a-p3anmz33cv/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-message-check5-j9e3mv34rp-nc7aqvzo0p/",
         "job_type": "story",
-        "job_name": "anova-sumit",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-anova-sumit-4lt664l76a-p3anmz33cv/",
+        "job_name": "message-check5",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-message-check5-j9e3mv34rp-nc7aqvzo0p/",
         "app_id": None
       }
     }
