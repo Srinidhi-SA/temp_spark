@@ -84,11 +84,11 @@ class MetaParser:
                 out[col] = self.column_dict[col]["LevelCount"]
             return out
 
-    def get_uid_column(self):
-        uidCol = None
+    def get_suggested_uid_columns(self):
+        uidCol = []
         for k,v in self.ignoreColDict.items():
             if v.startswith("Index Column"):
-                uidCol = k
+                uidCol.append(k)
         return uidCol
 
     def get_unique_level_names(self,column_name):
@@ -102,6 +102,12 @@ class MetaParser:
 
     def get_ignore_columns(self):
         return self.ignoreColumnSuggestions
+
+    def check_column_isin_ignored_suggestion(self,colname):
+        if colname in self.ignoreColumnSuggestions:
+            return True
+        else:
+            return False
 
     def get_measure_suggestions(self):
         return []

@@ -1021,3 +1021,13 @@ def statistical_info_array_formatter(st_array):
             sent = (str(val[0])+" "*(maxLen-size)+" : "+str(val[1]))
             outArray.append(sent)
     return outArray
+
+def select_y_axis_format(dataArray):
+    if len(dataArray)>0:
+        minval = min(dataArray)
+        if minval >= 0.01:
+            return ".2f"
+        elif minval < 0.01:
+            return ".4f"
+    else:
+        return ".2f"

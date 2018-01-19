@@ -121,10 +121,14 @@ class AnovaNarratives:
                 lines += NarrativesUtils.block_splitter(output['content'],self._blockSplitter)
                 data_c3 = NormalChartData(data_c3)
                 chart_data = data_c3.get_data()
+                chartDataValues = []
+                for obj in chart_data:
+                    chartDataValues.append(obj["effect_size"])
                 chart_json = ChartJson(data = chart_data,axes={'x':'dimension','y':'effect_size'},
                                         label_text={'x':'','y':'Effect Size'},chart_type='bar')
                 chart_json.set_axis_rotation(True)
-                chart_json.set_yaxis_number_format(".4f")
+                # chart_json.set_yaxis_number_format(".4f")
+                chart_json.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
                 # st_info = ["Test : ANOVA", "Threshold for p-value : 0.05", "Effect Size : Tukey's HSD"]
                 statistical_info_array=[
                     ("Test Type","ANOVA"),
