@@ -330,7 +330,7 @@ class OneWayAnovaNarratives:
     def compute_level_contributions(self,df):
         df = df.sort_values(by=['total'], ascending = False)
         df.reset_index(drop=True,inplace=True)
-        df['percent'] = df['total']/float(df["total"].sum())
+        df['percent'] = (df['total']*100/float(df["total"].sum())).round()
         # calculating the point where maximum difference is occuring
         max_diff_index = df.total.diff(1).argmax()
         df = df.iloc[:max_diff_index+1]
@@ -466,7 +466,7 @@ class OneWayAnovaNarratives:
 
         # print json.dumps(data_dict,indent=2)
         output = {}
-        output['header'] = ''
+        output['header'] = top_level_name+"'s "+self._measure_column+" Performance over time"
         output['content'] = []
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.html',data_dict))
         # self.card2.add_paragraph(output)
@@ -506,7 +506,7 @@ class OneWayAnovaNarratives:
                     'dimension' : self._dimension_column,
                     'overall_growth_rate' : NarrativesUtils.round_number(overall_growth_rate),
         }
-        output = {'header' : '',
+        output = {'header' : "",
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_7.html',data_dict))
         # self.card2.add_paragraph(output)

@@ -116,14 +116,16 @@ class TimeSeriesNarrative:
                                                     self._dateFormatConversionDict,
                                                     self._requestedDateFormat)
         print dateColCheck
+
         self._dateFormatDetected = dateColCheck["dateFormatDetected"]
         self._trend_on_td_column = dateColCheck["trendOnTdCol"]
         if self._dateFormatDetected:
             self._requestedDateFormat = dateColCheck["requestedDateFormat"]
             self._existingDateFormat = dateColCheck["existingDateFormat"]
+            # self._date_column_suggested is the column used for trend
             self._date_column_suggested = dateColCheck["suggestedDateColumn"]
         if self._existingDateFormat:
-            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._selected_date_columns,self._date_column_suggested,self._trend_on_td_column)
+            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_column_suggested,self._trend_on_td_column)
             print dataRangeStats
             self._durationString = dataRangeStats["durationString"]
             self._duration = dataRangeStats["duration"]
@@ -136,10 +138,6 @@ class TimeSeriesNarrative:
                     self._selected_date_columns = self._timestamp_columns
                 else:
                     self._selected_date_columns += self._timestamp_columns
-            print self._durationString
-            print self._dataLevel
-            print self._existingDateFormat
-
         if self._trend_subsection=="regression":
             if self._selected_date_columns != None:
                 if self._dateFormatDetected:
@@ -208,7 +206,7 @@ class TimeSeriesNarrative:
                     if self._dateFormatDetected:
                         grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataLevel,self._result_column,self._analysistype)
                         self._data_frame = self._data_frame.drop(self._date_column_suggested)
-                        self._data_frame = self._data_frame.withColumnRenamed("year_month", self._date_column_suggested)
+                        # self._data_frame = self._data_frame.withColumnRenamed("year_month", self._date_column_suggested)
 
                         significant_dimensions = []
                         significant_dimension_dict = df_helper.get_significant_dimension()
@@ -229,7 +227,12 @@ class TimeSeriesNarrative:
                         dataDict["durationString"] = self._durationString
                         dataDict["significant_dimensions"] = significant_dimensions
                         if len(significant_dimensions) > 0:
-                            xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
+                            if self._dataLevel=="day":
+                                datetimeformat = self._existingDateFormat
+                            elif self._dataLevel=="month":
+                                datetimeformat = "%b-%y"
+                            # xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
+                            xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,datetimeformat,reference_time,self._dataLevel)
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))

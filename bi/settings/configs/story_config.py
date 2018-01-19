@@ -164,7 +164,7 @@ def get_story_config():
               "setVarAs": None,
               "columnType": "datetime",
               "name": "new_date",
-              "selected": True,
+              "selected": False,
               "slug": "57016c35904640ff8cf45d70a780041d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
@@ -176,7 +176,7 @@ def get_story_config():
               "setVarAs": None,
               "columnType": "dimension",
               "name": "Order Date",
-              "selected": False,
+              "selected": True,
               "slug": "d1ab01e4118749e085e426233be4bb4d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
@@ -229,7 +229,7 @@ def get_story_config():
               "name": "trend"
             },
             {
-              "status": False,
+              "status": True,
               "noOfColumnsToUse": [
                 {
                   "status": False,

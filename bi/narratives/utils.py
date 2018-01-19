@@ -469,7 +469,7 @@ def calculate_dimension_contribution(levelContObject):
     output["negGrowthArray"] = [x for x in increasingDataArray if x[1]["growth"] != None and float(x[1]["growth"]) < 0][:2]
     return output
 
-def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time, meta_parser):
+def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,value_col,max_time, meta_parser):
     """
     calculates level contribution dictionary for each level each column
     sample Dict = {
@@ -483,6 +483,10 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
                 }
 
     """
+    print "index_col",index_col
+    print "dateColDateFormat",dateColDateFormat
+    print "value_col",value_col
+    print "max_time",max_time
     out = {}
     for column_name in columns:
         print "calculate_level_contribution for ",column_name
@@ -510,7 +514,8 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
         k = pivotdf.toPandas()
         # print "time taken for pandas conversion of pivotdf",time.time()-st
         k["total"] = k.sum(axis=1)
-        k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,datetime_pattern))
+        k[index_col] = k[index_col].apply(str)
+        k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,dateColDateFormat))
         k = k.sort_values(by="rank", ascending=True)
         occurance_index = np.where(k[index_col] == max_time)
         # print "occurance_index",occurance_index
@@ -519,7 +524,6 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
             max_index = occurance_index[0][0]
         else:
             max_index = None
-        # print k
         for level in column_levels:
             try:
                 # print "calculations for level",level
@@ -562,6 +566,7 @@ def get_level_cont_dict(level_cont):
     out_dict = dict(zip(levelContributionSummary.keys(),output))
     out_data = {"category_flag":True}
     out_data["highest_contributing_variable"] = max(out_dict,key=lambda x:out_dict[x]["diff"])
+    print "highest_contributing_variable",out_data["highest_contributing_variable"]
     if "category" in out_data["highest_contributing_variable"].lower():
         out_data["category_flag"] = False
     out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
@@ -582,6 +587,7 @@ def get_level_cont_dict(level_cont):
         output.append(t_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
     out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
+    print "lowest_contributing_variable",out_data["lowest_contributing_variable"]
     out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
     out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
     out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
@@ -858,19 +864,23 @@ def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFo
 
     return output
 
-@accepts(df=DataFrame,existingDateFormat=(basestring,None),selectedateColumn=(basestring,None),dateColsuggested=basestring,trendOnTdCol=bool)
-def calculate_data_range_stats(df,existingDateFormat,selectedateColumn,dateColsuggested,trendOnTdCol):
-    if selectedateColumn != None and trendOnTdCol == False:
+@accepts(df=DataFrame,existingDateFormat=(basestring,None),dateColToBeUsedForAnalysis=basestring,trendOnTdCol=bool)
+def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,trendOnTdCol):
+    """
+    dateColToBeUsedForAnalysis: date column selected for analysis
+    """
+
+    if trendOnTdCol == False:
         date_format = existingDateFormat
         string_to_date = PysparkFN.udf(lambda x: datetime.strptime(x,date_format), DateType())
         date_to_month_year = PysparkFN.udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
-        df = df.withColumn("suggestedDate", string_to_date(dateColsuggested))
-        df = df.withColumn("year_month", date_to_month_year(dateColsuggested))
+        df = df.withColumn("suggestedDate", string_to_date(dateColToBeUsedForAnalysis))
+        df = df.withColumn("year_month", date_to_month_year(dateColToBeUsedForAnalysis))
         df = df.orderBy(["suggestedDate"],ascending=[True])
         df = df.withColumn("_id_", PysparkFN.monotonically_increasing_id())
     else:
-        df = df.withColumn("suggestedDate", PysparkFN.udf(lambda x:x.date(),DateType())(dateColsuggested))
-        df = df.withColumn("year_month", PysparkFN.udf(lambda x:x.date().strftime("%b-%y"),StringType())(dateColsuggested))
+        df = df.withColumn("suggestedDate", PysparkFN.udf(lambda x:x.date(),DateType())(dateColToBeUsedForAnalysis))
+        df = df.withColumn("year_month", PysparkFN.udf(lambda x:x.date().strftime("%b-%y"),StringType())(dateColToBeUsedForAnalysis))
         df = df.orderBy(["suggestedDate"],ascending=[True])
         df = df.withColumn("_id_", PysparkFN.monotonically_increasing_id())
     first_date = df.select("suggestedDate").first()[0]
