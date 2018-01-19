@@ -499,48 +499,45 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
             column_levels = meta_parser.get_unique_level_names(column_name)
         except:
             column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
-        print "column_levels",len(column_levels)
-        print "column_levels : ", column_levels
-        print "----here----"*10
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
         st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
-        print "time for pivot",time.time()-st
+        # print "time for pivot",time.time()-st
         # pivotdf = pivotdf.na.fill(0)
         # pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
         st=time.time()
-        print "converting to pandas"
+        # print "converting to pandas"
         k = pivotdf.toPandas()
-        print "time taken for pandas conversion of pivotdf",time.time()-st
+        # print "time taken for pandas conversion of pivotdf",time.time()-st
         k["total"] = k.sum(axis=1)
         k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,datetime_pattern))
         k = k.sort_values(by="rank", ascending=True)
         occurance_index = np.where(k[index_col] == max_time)
-        print "occurance_index",occurance_index
-        print "max_time",max_time
+        # print "occurance_index",occurance_index
+        # print "max_time",max_time
         if len(occurance_index[0]) > 0:
             max_index = occurance_index[0][0]
         else:
             max_index = None
-        print k
+        # print k
         for level in column_levels:
             try:
-                print "calculations for level",level
+                # print "calculations for level",level
                 if level != None:
                     data_dict = {"overall_avg":None,"excluding_avg":None,"minval":None,"maxval":None,"diff":None,"contribution":None,"growth":None}
                     data_dict["contribution"] = float(np.nansum(k[level]))*100/np.nansum(k["total"])
                     data = list(k[level])
                     growth_data = [x for x in data if np.isnan(x) != True and x != 0]
                     data_dict["growth"] = (growth_data[-1]-growth_data[0])*100/growth_data[0]
-                    k[level] = (k[level]/k["total"])*100
-                    data = list(k[level])
+                    k["percentLevel"] = (k[level]/k["total"])*100
+                    data = list(k["percentLevel"])
                     data_dict["overall_avg"] = np.nanmean(data)
                     data_dict["maxval"] = np.nanmax(data)
                     data_dict["minval"] = np.nanmin(data)
                     if max_index:
                         del(data[max_index])
                     data_dict["excluding_avg"] = np.nanmean(data)
-                    data_dict["diff"] = data_dict["maxval"] - data_dict["excluding_avg"]
+                    data_dict["diff"] = (data_dict["maxval"] - data_dict["excluding_avg"])*100/float(data_dict["excluding_avg"])
                     out[column_name][level] = data_dict
             except:
                 pass
@@ -549,11 +546,17 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
 def get_level_cont_dict(level_cont):
     levelContributionSummary = level_cont
     output = []
-    for k,v in levelContributionSummary.items():
+    # k is the dimension name
+    for k,valdict in levelContributionSummary.items():
+        v = {k1:v1 for (k1,v1) in valdict.items() if v1["contribution"] >= 5}
+        if len(v) == 0:
+            print "#"*200
+            print "all levels have contribution less than 5"
+            v = valdict
         max_level = max(v,key=lambda x: v[x]["diff"])
         contribution_dict = {}
-        for k1,v1 in levelContributionSummary[k][max_level].items():
-            contribution_dict[k1] = v1
+        for level,value in levelContributionSummary[k][max_level].items():
+            contribution_dict[level] = value
             contribution_dict.update({"level":max_level})
         output.append(contribution_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
@@ -565,7 +568,12 @@ def get_level_cont_dict(level_cont):
     out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
     out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
     output = []
-    for k,v in levelContributionSummary.items():
+    for k,valdict in levelContributionSummary.items():
+        v = {k1:v1 for (k1,v1) in valdict.items() if v1["contribution"] >= 5}
+        if len(v) == 0:
+            print "#"*200
+            print "all levels have contribution less than 5"
+            v = valdict
         min_level = min(v,key=lambda x: v[x]["diff"] if v[x]["diff"] != None else 9999999999999999999)
         t_dict = {}
         for k1,v1 in levelContributionSummary[k][min_level].items():

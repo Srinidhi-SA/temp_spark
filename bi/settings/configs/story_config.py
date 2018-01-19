@@ -9,7 +9,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Month",
               "selected": False,
-              "slug": "b501227d44a04f8ba03b56770b4acd5d",
+              "slug": "4342fa163f3a4108a376222a2326505d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -21,7 +21,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Deal_Type",
               "selected": True,
-              "slug": "81bf54cc137942cabf56c2aa0dbba528",
+              "slug": "e0f9557403654dbdbeacf9397a1fc693",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -33,7 +33,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Price_Range",
               "selected": True,
-              "slug": "74c836af52014f9d83e3d4326657add1",
+              "slug": "5d67416f5bab466bbc251234309bb6bb",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -45,7 +45,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Discount_Range",
               "selected": True,
-              "slug": "984322638b154e7abdcbabf2c8871186",
+              "slug": "cb927a057fd34bb7babefc52ded78536",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -57,7 +57,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Source",
               "selected": True,
-              "slug": "2cc19c3b13e44206841d75deab962178",
+              "slug": "1bcb4b9d51d44a83b626f56fe004f73e",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -69,10 +69,10 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Platform",
               "selected": True,
-              "slug": "66f4f08701864877a1041393c78964e2",
+              "slug": "2df287170deb48a9a1f5c7291bcda9ee",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": True,
+              "targetColumn": False,
               "uidCol": False
             },
             {
@@ -81,7 +81,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Buyer_Age",
               "selected": True,
-              "slug": "4cfea1a4dbc74f9daaf3ca34eac9043e",
+              "slug": "ce2e6a55ff9446d9a680b5aef3db433d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -93,7 +93,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Buyer_Gender",
               "selected": True,
-              "slug": "59e9473ae53d4f0bb9daf25bcf27c2cc",
+              "slug": "578e6bd338074b12ad70a3fb9d25109b",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -105,7 +105,7 @@ def get_story_config():
               "columnType": "measure",
               "name": "Tenure_in_Days",
               "selected": True,
-              "slug": "4e1f9abaebb94022bf95ff49a26bf06a",
+              "slug": "39c018d65d6d4cae9cc2cc229595661f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -117,10 +117,10 @@ def get_story_config():
               "columnType": "measure",
               "name": "Sales",
               "selected": True,
-              "slug": "be262c1a685c4e64b123f0c2fb04fe4a",
+              "slug": "5d36e79778ac4cd99e0221597888d286",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": False,
+              "targetColumn": True,
               "uidCol": False
             },
             {
@@ -129,7 +129,7 @@ def get_story_config():
               "columnType": "measure",
               "name": "Marketing_Cost",
               "selected": True,
-              "slug": "6b594d8804634495ac9799696a46c107",
+              "slug": "4a82908f2f334367a64fc31fe36431c2",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -141,7 +141,7 @@ def get_story_config():
               "columnType": "measure",
               "name": "Shipping_Cost",
               "selected": True,
-              "slug": "b2b5e4231f164078be5a3170bae80bf3",
+              "slug": "181898e929bb4691a597ec1eae1c7dab",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -153,7 +153,7 @@ def get_story_config():
               "columnType": "measure",
               "name": "Last_Transaction",
               "selected": True,
-              "slug": "74d5c13420464b03a67c5638f28d015b",
+              "slug": "0a4fd0611f914598b13ccc53cdfe6b6d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -165,7 +165,7 @@ def get_story_config():
               "columnType": "datetime",
               "name": "new_date",
               "selected": True,
-              "slug": "c2556ed2222341deb12012ed6e24b551",
+              "slug": "57016c35904640ff8cf45d70a780041d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -177,19 +177,7 @@ def get_story_config():
               "columnType": "dimension",
               "name": "Order Date",
               "selected": False,
-              "slug": "3ef2616ac7df4730b3a9001f4583a944",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "newCol",
-              "selected": False,
-              "slug": "584d980dd1b94ffa9dd7590bef9a44a6",
+              "slug": "d1ab01e4118749e085e426233be4bb4d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -202,25 +190,13 @@ def get_story_config():
           "datasource_details": ""
         },
         "ADVANCED_SETTINGS": {
-          "trendSettings": [
-            {
-              "status": True,
-              "name": "Count"
-            },
-            {
-              "status": False,
-              "name": "Specific Measure",
-              "selectedMeasure": None
-            }
-          ],
-          "targetLevels": [
-            []
-          ],
           "analysis": [
             {
               "status": True,
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [],
+              "analysisSubTypes": [
+
+              ],
               "displayName": "Overview",
               "name": "overview"
             },
@@ -253,9 +229,7 @@ def get_story_config():
               "name": "trend"
             },
             {
-              "status": True,
-              "displayName": "Association",
-              "name": "association",
+              "status": False,
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -270,7 +244,7 @@ def get_story_config():
                   "name": "medium"
                 },
                 {
-                  "status": True,
+                  "status": False,
                   "defaultValue": 8,
                   "displayName": "High",
                   "name": "high"
@@ -283,73 +257,92 @@ def get_story_config():
                   "value": None
                 }
               ],
-              "analysisSubTypes": [],
-              "binSetting": [
-                {
-                  "displayName": "Binning of Numerical Values",
-                  "name": "heading"
-                },
-                {
-                  "displayName": "Number of Bin Levels",
-                  "name": "binLevels",
-                  "min": 2,
-                  "max": 10,
-                  "defaultValue": 5,
-                  "value": 5
-                },
-                {
-                  "displayName": "Do not bin numerical values with cardinality less than:",
-                  "name": "binCardinality",
-                  "min": 2,
-                  "max": 10,
-                  "defaultValue": 5,
-                  "value": 5
-                }
-              ]
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Performance",
+              "name": "performance"
             },
             {
-              "status": True,
+              "status": False,
+              "noOfColumnsToUse": [
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Low",
+                  "name": "low"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 5,
+                  "displayName": "Medium",
+                  "name": "medium"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 8,
+                  "displayName": "High",
+                  "name": "high"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Custom",
+                  "name": "custom",
+                  "value": None
+                }
+              ],
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Influencer",
+              "name": "influencer"
+            },
+            {
+              "status": False,
               "displayName": "Prediction",
               "name": "prediction",
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [],
-              "levelSetting": []
+              "analysisSubTypes": [
+
+              ],
+              "levelSetting": [
+
+              ]
             }
           ]
         },
         "FILE_SETTINGS": {
           "script_to_run": [
             "Descriptive analysis",
-            "Trend",
-            "Dimension vs. Dimension",
-            "Predictive modeling"
+            "Trend"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "ecommerce_uidcsv-afzlqzqiym"
+              "ecommercecsv-3l9blqooh7"
             ]
           },
           "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce_UID.csv"
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
           ]
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-dim-gul-kmxqxs682x-yvbg5v1aui_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-trend-test-oivpd6a0j3-1vvev442s2_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-dim-gul-kmxqxs682x-yvbg5v1aui/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-trend-test-oivpd6a0j3-1vvev442s2/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-dim-gul-kmxqxs682x-yvbg5v1aui/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-trend-test-oivpd6a0j3-1vvev442s2/",
         "job_type": "story",
-        "job_name": "dim-gul",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-dim-gul-kmxqxs682x-yvbg5v1aui/",
+        "job_name": "trend-test",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-trend-test-oivpd6a0j3-1vvev442s2/",
         "app_id": None
       }
     }

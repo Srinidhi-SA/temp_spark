@@ -117,16 +117,16 @@
               {% if negGrowthArray[0][0][0] == negGrowthArray[1][0][0]%}
                 {{negGrowthArray[0][0][0]}} has been an area of concern,
                 as {{negGrowthArray[0][0][1]}} and {{negGrowthArray[1][0][1]}}
-                shrunk over {{negGrowthArray[0][1]["growth"]|round_number}}% and {{negGrowthArray[1][1]["growth"]|round_number}}% respectively.
+                shrunk over {{negGrowthArray[0][1]["growth"]|abs|round_number}}% and {{negGrowthArray[1][1]["growth"]|abs|round_number}}% respectively.
               {% else %}
                 {# when top 2 are from different dimension#}
                 {{negGrowthArray[0][0][0]}} and {{negGrowthArray[1][0][0]}} have been an area of concern,
                 as their respective levels {{negGrowthArray[0][0][1]}} and {{negGrowthArray[1][0][1]}}
-                shrunk by {{negGrowthArray[0][1]["growth"]|round_number}}% and {{negGrowthArray[1][1]["growth"]|round_number}}% respectively.
+                shrunk by {{negGrowthArray[0][1]["growth"]|abs|round_number}}% and {{negGrowthArray[1][1]["growth"]|abs|round_number}}% respectively.
               {% endif %}
             {% else %}
               {{negGrowthArray[0][0][0]}} has been an area of concern
-              as {{negGrowthArray[0][0][1]}} shrunk by {{negGrowthArray[0][1]["growth"]|round_number}}% .
+              as {{negGrowthArray[0][0][1]}} shrunk by {{negGrowthArray[0][1]["growth"]|abs|round_number}}% .
             {% endif %}
           </li>
         </ul>
