@@ -244,7 +244,7 @@ def get_story_config():
                   "name": "medium"
                 },
                 {
-                  "status": False,
+                  "status": True,
                   "defaultValue": 8,
                   "displayName": "High",
                   "name": "high"
@@ -315,7 +315,8 @@ def get_story_config():
         "FILE_SETTINGS": {
           "script_to_run": [
             "Descriptive analysis",
-            "Trend"
+            "Trend",
+            "Measure vs. Dimension"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
@@ -329,20 +330,20 @@ def get_story_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-trend-test-oivpd6a0j3-1vvev442s2_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-anova-sumit-4lt664l76a-p3anmz33cv_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-trend-test-oivpd6a0j3-1vvev442s2/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-anova-sumit-4lt664l76a-p3anmz33cv/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-trend-test-oivpd6a0j3-1vvev442s2/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-anova-sumit-4lt664l76a-p3anmz33cv/",
         "job_type": "story",
-        "job_name": "trend-test",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-trend-test-oivpd6a0j3-1vvev442s2/",
+        "job_name": "anova-sumit",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-anova-sumit-4lt664l76a-p3anmz33cv/",
         "app_id": None
       }
     }

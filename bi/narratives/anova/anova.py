@@ -376,8 +376,7 @@ class OneWayAnovaNarratives:
         chart1.add_data_c3(data_c3)
         # self.card2.add_chart('trend_chart',chart1)
         self.card1.add_chart('trend_chart',chart1)
-        lines = []
-        lines += [C3ChartData(self._get_c3chart_trend(data,'Time Period',total_measure,subset_measure))]
+
         overall_increase_percent = (overall_df[total_measure].iloc[-1]*100/overall_df[total_measure].iloc[0]) - 100
         subset_increase_percent = (subset_df[subset_measure].iloc[-1]*100/subset_df[subset_measure].iloc[0]) - 100
 
@@ -466,10 +465,13 @@ class OneWayAnovaNarratives:
 
         # print json.dumps(data_dict,indent=2)
         output = {}
-        output['header'] = top_level_name+"'s "+self._measure_column+" Performance over time"
+        output['header'] = "<h4>"+top_level_name+"'s "+self._measure_column+" Performance over time"+"</h4>"
         output['content'] = []
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.html',data_dict))
         # self.card2.add_paragraph(output)
+        lines = []
+        lines += [HtmlData(data=output['header'])]
+        lines += [C3ChartData(self._get_c3chart_trend(data,'Time Period',total_measure,subset_measure))]
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
         self._anovaCard1.add_card_data(lines)

@@ -83,7 +83,7 @@ class TwoWayAnova:
                 self._existingDateFormat = dateColCheck["existingDateFormat"]
                 self._date_columns_suggested = dateColCheck["suggestedDateColumn"]
         if self._dateFormatDetected:
-            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._selected_date_columns,self._date_columns_suggested,self._trend_on_td_column)
+            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_columns_suggested,self._trend_on_td_column)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
