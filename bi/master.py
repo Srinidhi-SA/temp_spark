@@ -375,7 +375,7 @@ def main(configJson):
                     dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-
+            completionStatus = dataframe_context.get_completion_status()
             progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Validating analysis results",completionStatus,completionStatus,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             time.sleep(3)
@@ -538,7 +538,7 @@ def main(configJson):
             # except Exception as e:
             #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Executive Summary",e)
 
-
+            completionStatus = dataframe_context.get_completion_status()
             progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Validating analysis results",completionStatus,completionStatus,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             time.sleep(3)

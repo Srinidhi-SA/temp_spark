@@ -131,7 +131,7 @@ class LinearRegression:
                                      r2=float(lr_summary.r2),\
                                      sample_data_dict=sample_data_dict)
 
-
+        self._completionStatus = self._dataframe_context.get_completion_status()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "regressionTrainingEnd",\
@@ -140,5 +140,6 @@ class LinearRegression:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
         return regression_result

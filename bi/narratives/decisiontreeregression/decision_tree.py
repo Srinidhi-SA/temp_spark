@@ -83,6 +83,7 @@ class DecisionTreeRegNarrative:
         self._story_narrative.add_a_node(self._decisionTreeNode)
         self._result_setter.set_decision_tree_node(self._decisionTreeNode)
 
+        self._completionStatus = self._dataframe_context.get_completion_status()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dtreeNarrativeEnd",\
@@ -179,6 +180,7 @@ class DecisionTreeRegNarrative:
               ]]
         dropdownData = []
         chartDict = {}
+        self._completionStatus = self._dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Generating Prediction rules",self._completionStatus,self._completionStatus,display=True)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
         for idx,target in enumerate(rules_dict.keys()):

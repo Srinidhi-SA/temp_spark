@@ -74,9 +74,6 @@ class AnovaNarratives:
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
-        print "self._completionStatus",self._completionStatus
-
-
 
         if self._anovaNodes.get_card_count() > 0:
             self._story_narrative.add_a_node(self._anovaNodes)
