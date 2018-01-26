@@ -83,7 +83,7 @@ class LogisticRegressionScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
@@ -137,7 +137,7 @@ class LogisticRegressionScript:
         except:
             pass
 
-        cat_cols = list(set(categorical_columns)-set([result_column]))
+        cat_cols = list(set(categorical_columns) - {result_column})
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Logistic Regression")
@@ -246,7 +246,7 @@ class LogisticRegressionScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()

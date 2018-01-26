@@ -531,7 +531,7 @@ class OneWayAnovaNarratives:
 
         self._contribution_limit = grouped_data_frame['contribution'].mean()
         self._increase_limit = max(0.0, grouped_data_frame['increase'].mean())
-        dimensionLevel = list(set(pivot_df.columns)-set(["year_month","key"]))
+        dimensionLevel = list(set(pivot_df.columns) - {"year_month", "key"})
         print dimensionLevel
         share = []
         growth = []

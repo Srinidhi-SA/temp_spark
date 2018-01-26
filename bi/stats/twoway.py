@@ -47,7 +47,7 @@ class TwoWayAnova:
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
-            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+            self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self.top_dimension_result = {}
@@ -189,7 +189,7 @@ class TwoWayAnova:
                     topLevelDfMeasureColMean = measureColStat[0][1]
                     topLevelDfMeasureColCount = measureColStat[0][2]
                     topLevelDfMeasureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
-                    dimensions_to_test_for_top_level = list(set(self._dimensions_to_test)-set([dimension]))
+                    dimensions_to_test_for_top_level = list(set(self._dimensions_to_test) - {dimension})
                     topLevelAnovaDimensions = {}
                     for dimensionlTopLevel in dimensions_to_test_for_top_level:
                         print "top level dimensions",dimensionlTopLevel

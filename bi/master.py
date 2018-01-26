@@ -593,7 +593,7 @@ def main(configJson):
         categorical_columns = df_helper.get_string_columns()
         uid_col = dataframe_context.get_uid_column()
         if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         result_column = dataframe_context.get_result_column()
         df = df.toPandas()
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])

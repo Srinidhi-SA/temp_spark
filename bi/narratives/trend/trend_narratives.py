@@ -270,7 +270,7 @@ class TrendNarrative:
         if type(agg_data["key"][0]) == "str":
             agg_data["key"] = agg_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         agg_data = agg_data.sort_values(by = "key",ascending=True)
-        relevant_columns = list(set(agg_data.columns)-set(["key","year_month"]))
+        relevant_columns = list(set(agg_data.columns) - {"key", "year_month"})
         chart_data = dict(zip(relevant_columns,[[]]*len(relevant_columns)))
         label = {"y":"","y2":""}
         label["y"] = relevant_columns[0]

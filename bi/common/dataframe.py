@@ -98,7 +98,7 @@ class DataFrameHelper:
         #     setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
         #     colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
         self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-        colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        colsToKeep = list(set(self.consider_columns).union({self.resultcolumn}))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         print "colsToKeep:-",colsToKeep
         print "colsToBin:-",colsToBin
@@ -109,7 +109,7 @@ class DataFrameHelper:
             else:
                 if self._dataframe_context.get_story_on_scored_data() == False:
                     result_column = self._dataframe_context.get_result_column()
-                    updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
+                    updatedColsToKeep = list(set(colsToKeep) - {result_column})
                     self._data_frame = self._data_frame.select(updatedColsToKeep)
                 elif self._dataframe_context.get_story_on_scored_data() == True:
                     self._data_frame = self._data_frame.select(colsToKeep)

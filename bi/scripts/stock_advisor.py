@@ -270,7 +270,7 @@ class StockAdvisor:
         print colMaps
         reverseMap = dict(zip(colMaps,df.columns))
         df.columns = colMaps
-        reg_model = ols("{} ~ ".format(targetCol)+"+".join(list(set(df.columns)-set([targetCol]))), data=df).fit()
+        reg_model = ols("{} ~ ".format(targetCol) +"+".join(list(set(df.columns) - {targetCol})), data=df).fit()
         # summarize our model
         model_summary = reg_model.summary()
         modelParams = reg_model.params
@@ -398,7 +398,7 @@ class StockAdvisor:
         for current_stock in self._file_names:
             regressionDf = masterDfDict[current_stock]
             regressionDf.index = regressionDf["time"]
-            remaining_stocks = list(set(self._file_names)-set([current_stock]))
+            remaining_stocks = list(set(self._file_names) - {current_stock})
             if len(remaining_stocks) > 0:
                 for other_stock in remaining_stocks:
                     colsToConsider = ["time","overallSentiment","close"]
