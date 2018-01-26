@@ -45,15 +45,16 @@ class MeasureAnovaResult:
 class TwoWayAnovaResult:
     def __init__(self, var):
         self._n_mean2 = var.var5.sum()
-        self._dim_table = self.set_dim_table(var)
+        self.set_dim_table(var)
 
     def set_dim_table(self, var):
+        """Sets dim table and won't return anything"""
         self._dim_table = {}
-        self._dim_table['level1']=var.level1.tolist()
-        self._dim_table['level2']=var.level2.tolist()
-        self._dim_table['counts']=var.counts.tolist()
-        self._dim_table['means']=var.means.tolist()
-        self._dim_table['total']=var.total.tolist()
+        self._dim_table['level1'] = var.level1.tolist()
+        self._dim_table['level2'] = var.level2.tolist()
+        self._dim_table['counts'] = var.counts.tolist()
+        self._dim_table['means'] = var.means.tolist()
+        self._dim_table['total'] = var.total.tolist()
 
     def set_results(self, var1, var2, anova_row, anova_column):
         self.ss_row = anova_row.get_ss_between()
@@ -100,9 +101,10 @@ class OneWayAnovaResult:
         self.df_total = var.counts.sum() - 1
         self.df_between = len(var.index) - 1
         self.df_within = self.df_total - self.df_between
-        self._dim_table = self.set_dim_table(var)
+        self.set_dim_table(var)
 
     def set_dim_table(self, var):
+        """sets dim table"""
         self._dim_table = {}
         self._dim_table['levels']=var.levels.tolist()
         self._dim_table['counts']=var.counts.tolist()
