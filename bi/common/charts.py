@@ -66,7 +66,9 @@ class ScatterChartData:
     }
     ```
     """
-    def __init__(self, data = {}):
+    def __init__(self, data=None):
+        if data is None:
+            data = {}
         self.data = data
 
     def set_data(self,data):
@@ -155,7 +157,9 @@ class NormalChartData:
     ```
 
     """
-    def __init__(self, data = []):
+    def __init__(self, data=None):
+        if data is None:
+            data = []
         self.data = data
 
     def set_data(self,data):
@@ -174,7 +178,13 @@ class ChartJson:
     """
     formats = ['.2s','$','$,'.2f']
     """
-    def __init__(self, data = None, axes = {}, label_text = {}, legend = {}, chart_type = None, types = None):
+    def __init__(self, data = None, axes=None, label_text=None, legend=None, chart_type = None, types = None):
+        if axes is None:
+            axes = {}
+        if label_text is None:
+            label_text = {}
+        if legend is None:
+            legend = {}
         self.data = data
         self.axes = axes
         self.label_text = label_text

@@ -5,7 +5,6 @@ import uuid
 import datetime as dt
 
 from pyspark.sql import functions as FN
-from pyspark.sql.functions import udf, col
 from pyspark.sql.types import DateType, FloatType
 from pyspark.sql.types import StringType
 

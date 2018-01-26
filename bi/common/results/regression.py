@@ -29,7 +29,26 @@ class RegressionResult:
     # @accepts(object, intercept=(int, long, float), coefficients=(tuple, list), rmse=(int, long, float),
     #     r2=(int, long, float), t_values=(tuple, list), p_values=(tuple, list), sample_data_dict=(dict), lr_dimension=dict)
 
-    def set_params(self, intercept=[], coefficients=[], rmse=[], r2=[], t_values=[], p_values=[], sample_data_dict={},lr_dimension={}):
+    def set_params(self, intercept=None, coefficients=None, rmse=None, r2=None, t_values=None, p_values=None,
+                   sample_data_dict=None, lr_dimension=None):
+        """"""
+        if p_values is None:
+            p_values = []
+        if t_values is None:
+            t_values = []
+        if r2 is None:
+            r2 = []
+        if rmse is None:
+            rmse = []
+        if coefficients is None:
+            coefficients = []
+        if intercept is None:
+            intercept = []
+        if sample_data_dict is None:
+            sample_data_dict = {}
+        if lr_dimension is None:
+            lr_dimension = {}
+
         self.stats[RegressionResult.INTERCEPT] = intercept
         self.stats[RegressionResult.RMSE] = rmse
         self.stats[RegressionResult.R2] = r2

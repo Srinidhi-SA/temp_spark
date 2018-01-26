@@ -29,7 +29,9 @@ from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
 from bi.common import ScatterChartData,NormalChartData,ChartJson
 from bi.common import utils as CommonUtils
 
-def bucket_all_measures(df, measure_columns, dimension_columns,target_measure=[]):
+def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
+    if target_measure is None:
+        target_measure = []
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns+target_measure])
     for measure_column in measure_columns:
         # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
@@ -536,7 +538,9 @@ def get_total_models(collated_summary):
         has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
-def create_model_folders(model_slug,basefoldername,subfolders=[]):
+def create_model_folders(model_slug, basefoldername, subfolders=None):
+    if subfolders is None:
+        subfolders = []
     home_dir = os.path.expanduser("~")
     filepath = home_dir+"/"+basefoldername
     if not os.path.isdir(filepath):

@@ -21,7 +21,13 @@ class ModelSummary:
                         }
                     }
     """
-    def __init__(self,model_summary={}, model_dropdown=[], modelConfig={}):
+    def __init__(self, model_summary=None, model_dropdown=None, modelConfig=None):
+        if model_summary is None:
+            model_summary = {}
+        if model_dropdown is None:
+            model_dropdown = []
+        if modelConfig is None:
+            modelConfig = {}
         self.model_summary = model_summary
         self.model_dropdown = model_dropdown
         self.config = modelConfig

@@ -173,7 +173,9 @@ class DecisionTrees:
 
 
 
-    def generate_new_tree(self,rules, rule_list = []):
+    def generate_new_tree(self, rules, rule_list=None):
+        if rule_list is None:
+            rule_list = []
         rules_list=rule_list
         new_rules = {'name':rules['name']}
         if rules.has_key('children'):
