@@ -136,7 +136,11 @@ class MetaDataHelper():
                             "MinLevel":"Min Level",
                             "LevelCount":"LevelCount"
                             }
-        displayOrderDict = {"MinLevel":0,"MaxLevel":1,"numberOfUniqueValues":2,"numberOfNulls":3,"numberOfUniqueValues":4,"numberOfNotNulls":5,"count":6,"min":7,"max":8,"stddev":9,"mean":10,"LevelCount":11}
+
+        #TODO: FIX copy paste error numberOfUniqueValues
+        displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
+                            "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7, "max": 8,
+                            "stddev": 9, "mean": 10, "LevelCount": 11}
         for column in dimension_columns:
             col_stat = {}
             if level_count_flag:
@@ -219,7 +223,10 @@ class MetaDataHelper():
                             "firstDate":"Start Date",
                             "lastDate":"Last Date",
                             }
-        displayOrderDict = {"firstDate":0,"lastDate":1,"MinLevel":12,"MaxLevel":13,"numberOfUniqueValues":2,"numberOfNulls":3,"numberOfUniqueValues":4,"numberOfNotNulls":5,"count":6,"min":7,"max":8,"stddev":9,"mean":10,"LevelCount":11}
+        # TODO: FIX copy paste error numberOfUniqueValues
+        displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 12, "MaxLevel": 13, "numberOfUniqueValues": 2,
+                            "numberOfNulls": 3, "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7,
+                            "max": 8, "stddev": 9, "mean": 10, "LevelCount": 11}
         for column in td_columns:
             col_stat = {}
             notNullDf = df.select(column).distinct().na.drop()
