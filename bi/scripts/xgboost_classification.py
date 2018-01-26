@@ -387,9 +387,7 @@ class XgboostScript:
             except:
                 print "DecisionTree Analysis Failed "
         else:
-            data_dict = {}
-            data_dict["npred"] = len(predictedClasses)
-            data_dict["nactual"] = len(labelMappingDict.values())
+            data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
             if data_dict["nactual"] > 2:
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])

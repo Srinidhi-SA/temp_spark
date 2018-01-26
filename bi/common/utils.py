@@ -205,40 +205,41 @@ def recursiveRemoveNoneNodes(tree):
             return tree
 
 def dateTimeFormatsSupported():
-    data = {}
-    data["formats"] = ('%m/%d/%Y %H:%M','%d/%m/%Y %H:%M','%m/%d/%y %H:%M','%d/%m/%y %H:%M',
-            '%m-%d-%Y %H:%M','%d-%m-%Y %H:%M','%m-%d-%y %H:%M','%d-%m-%y %H:%M',
-            '%b/%d/%Y %H:%M','%d/%b/%Y %H:%M','%b/%d/%y %H:%M','%d/%b/%y %H:%M',
-            '%b-%d-%Y %H:%M','%d-%b-%Y %H:%M','%b-%d-%y %H:%M','%d-%b-%y %H:%M',
-            '%B/%d/%Y %H:%M','%d/%B/%Y %H:%M','%B/%d/%y %H:%M','%d/%B/%y %H:%M',
-            '%B-%d-%Y %H:%M','%d-%B-%Y %H:%M','%B-%d-%y %H:%M','%d-%B-%y %H:%M',
-            '%Y-%m-%d %H:%M','%Y/%m/%d %H:%M','%Y-%b-%d %H:%M','%Y-%B-%d %H:%M',
-            '%m-%d-%Y %r','%d-%m-%Y %r','%m-%d-%Y %R',
-            '%d-%m-%Y %R', '%m-%d-%y %r','%d-%m-%y %r','%m-%d-%y %R',
-            '%d-%m-%y %R', '%b-%d-%Y %r','%d-%b-%Y %r', '%Y-%b-%d %r','%b-%d-%Y %R',
-            '%d-%b-%Y %R', '%b-%d-%y %r','%d-%b-%y %r','%b-%d-%y %R','%d-%b-%y %R',
-            '%B-%d-%Y %r','%d-%B-%Y %r','%B-%d-%Y %R','%d-%B-%y %R',
-            '%d-%B-%Y %R', '%B-%d-%y %r','%d-%B-%y %r','%B-%d-%y %R',
-            '%y-%m-%d %R','%y-%m-%d %r','%Y-%m-%d %r','%Y-%B-%d %r',
-            '%d %B %Y', '%d %B %y', '%d %b %y', '%d %b %Y',
-            '%m/%d/%Y','%d/%m/%Y','%m/%d/%y','%d/%m/%y',
-            '%m-%d-%Y','%d-%m-%Y','%m-%d-%y','%d-%m-%y',
-            '%b/%d/%Y','%d/%b/%Y','%b/%d/%y','%d/%b/%y',
-            '%b-%d-%Y','%d-%b-%Y','%b-%d-%y','%d-%b-%y',
-            '%B/%d/%Y','%d/%B/%Y','%B/%d/%y','%d/%B/%y',
-            '%B-%d-%Y','%d-%B-%Y','%B-%d-%y','%d-%B-%y',
-            '%Y-%m-%d','%Y/%m/%d','%Y-%b-%d','%Y-%B-%d',
-            '%b %d, %Y','%B %d, %Y','%B %d %Y','%m/%d/%Y',
-            '%d %B, %Y', '%d %B, %y','%d %b, %Y', '%d %b, %y',
-            '%m/%d/%y', '%b %Y','%B %y','%m/%y','%m/%Y',
-            '%B%Y','%b %d,%Y','%m.%d.%Y','%m.%d.%y','%b/%y',
-            '%m - %d - %Y','%m - %d - %y','%B %d, %y','%b %d, %y',
-            '%d-%B','%d-%b', '%b,%y','%B,%y','%b,%Y','%B,%Y',
-            '%b %Y', '%b %y','%B %Y','%B %y','%b-%y','%b/%Y','%b-%Y')
+    data = {"formats": ('%m/%d/%Y %H:%M', '%d/%m/%Y %H:%M', '%m/%d/%y %H:%M', '%d/%m/%y %H:%M',
+                        '%m-%d-%Y %H:%M', '%d-%m-%Y %H:%M', '%m-%d-%y %H:%M', '%d-%m-%y %H:%M',
+                        '%b/%d/%Y %H:%M', '%d/%b/%Y %H:%M', '%b/%d/%y %H:%M', '%d/%b/%y %H:%M',
+                        '%b-%d-%Y %H:%M', '%d-%b-%Y %H:%M', '%b-%d-%y %H:%M', '%d-%b-%y %H:%M',
+                        '%B/%d/%Y %H:%M', '%d/%B/%Y %H:%M', '%B/%d/%y %H:%M', '%d/%B/%y %H:%M',
+                        '%B-%d-%Y %H:%M', '%d-%B-%Y %H:%M', '%B-%d-%y %H:%M', '%d-%B-%y %H:%M',
+                        '%Y-%m-%d %H:%M', '%Y/%m/%d %H:%M', '%Y-%b-%d %H:%M', '%Y-%B-%d %H:%M',
+                        '%m-%d-%Y %r', '%d-%m-%Y %r', '%m-%d-%Y %R',
+                        '%d-%m-%Y %R', '%m-%d-%y %r', '%d-%m-%y %r', '%m-%d-%y %R',
+                        '%d-%m-%y %R', '%b-%d-%Y %r', '%d-%b-%Y %r', '%Y-%b-%d %r', '%b-%d-%Y %R',
+                        '%d-%b-%Y %R', '%b-%d-%y %r', '%d-%b-%y %r', '%b-%d-%y %R', '%d-%b-%y %R',
+                        '%B-%d-%Y %r', '%d-%B-%Y %r', '%B-%d-%Y %R', '%d-%B-%y %R',
+                        '%d-%B-%Y %R', '%B-%d-%y %r', '%d-%B-%y %r', '%B-%d-%y %R',
+                        '%y-%m-%d %R', '%y-%m-%d %r', '%Y-%m-%d %r', '%Y-%B-%d %r',
+                        '%d %B %Y', '%d %B %y', '%d %b %y', '%d %b %Y',
+                        '%m/%d/%Y', '%d/%m/%Y', '%m/%d/%y', '%d/%m/%y',
+                        '%m-%d-%Y', '%d-%m-%Y', '%m-%d-%y', '%d-%m-%y',
+                        '%b/%d/%Y', '%d/%b/%Y', '%b/%d/%y', '%d/%b/%y',
+                        '%b-%d-%Y', '%d-%b-%Y', '%b-%d-%y', '%d-%b-%y',
+                        '%B/%d/%Y', '%d/%B/%Y', '%B/%d/%y', '%d/%B/%y',
+                        '%B-%d-%Y', '%d-%B-%Y', '%B-%d-%y', '%d-%B-%y',
+                        '%Y-%m-%d', '%Y/%m/%d', '%Y-%b-%d', '%Y-%B-%d',
+                        '%b %d, %Y', '%B %d, %Y', '%B %d %Y', '%m/%d/%Y',
+                        '%d %B, %Y', '%d %B, %y', '%d %b, %Y', '%d %b, %y',
+                        '%m/%d/%y', '%b %Y', '%B %y', '%m/%y', '%m/%Y',
+                        '%B%Y', '%b %d,%Y', '%m.%d.%Y', '%m.%d.%y', '%b/%y',
+                        '%m - %d - %Y', '%m - %d - %y', '%B %d, %y', '%b %d, %y',
+                        '%d-%B', '%d-%b', '%b,%y', '%B,%y', '%b,%Y', '%B,%Y',
+                        '%b %Y', '%b %y', '%B %Y', '%B %y', '%b-%y', '%b/%Y', '%b-%Y'), "dual_checks": (
+    '%m/%d/%Y %H:%M', '%m/%d/%y %H:%M', '%m-%d-%Y %H:%M', '%m-%d-%y %H:%M', '%m-%d-%Y %r', '%m-%d-%Y %R', '%m-%d-%y %r',
+    '%m-%d-%y %R',
+    '%m/%d/%Y %r', '%m/%d/%Y %R', '%m/%d/%y %r', '%m/%d/%y %R', '%m/%d/%Y', '%m/%d/%y', '%m-%d-%Y', '%m-%d-%y',
+    '%m.%d.%Y', '%m.%d.%y', '%m - %d - %Y',
+    '%m - %d - %y')}
 
-    data["dual_checks"] = ('%m/%d/%Y %H:%M','%m/%d/%y %H:%M','%m-%d-%Y %H:%M','%m-%d-%y %H:%M','%m-%d-%Y %r','%m-%d-%Y %R', '%m-%d-%y %r','%m-%d-%y %R',
-                            '%m/%d/%Y %r','%m/%d/%Y %R', '%m/%d/%y %r','%m/%d/%y %R','%m/%d/%Y','%m/%d/%y','%m-%d-%Y','%m-%d-%y','%m.%d.%Y','%m.%d.%y','%m - %d - %Y',
-                            '%m - %d - %y')
     return data
 
 def write_to_file(filepath,obj):
@@ -265,11 +266,7 @@ def get_level_count_dict(df,categorical_columns,separator,output_type="string",d
 
 def send_message_API(monitor_api, task, message, complete, progress):
     url = monitor_api
-    message_dict = {}
-    message_dict['task'] = task
-    message_dict['message'] = message
-    message_dict['complete'] = complete
-    message_dict['progress'] = progress
+    message_dict = {'task': task, 'message': message, 'complete': complete, 'progress': progress}
     #r = requests.post(url, data=json.dumps(message_dict))
     #print json.loads(r.content)['message'] + " for ", task +'\n'
 
