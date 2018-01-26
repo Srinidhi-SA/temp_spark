@@ -1,28 +1,23 @@
-import os
+import sys
 import sys
 import time
-import json
+
 import pyhocon
-import traceback
 
 # from asn1crypto._ffi import None
 # from pyhocon.tool import HOCONConverter
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-import ConfigParser
 
-from bi.settings import setting as GLOBALSETTINGS
 from bi.settings import *
 from bi.common import utils as CommonUtils
-from bi.common import DataLoader,MetaParser,DataWriter,DataFrameHelper,ContextSetter,ResultSetter
+from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
 from bi.scripts.decision_tree import DecisionTreeScript
 from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
-from bi.scripts.density_histogram import DensityHistogramsScript
-from bi.scripts.histogram import HistogramsScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.linear_regression import LinearRegressionScript
 from bi.scripts.timeseries import TrendScript
@@ -30,17 +25,12 @@ from bi.scripts.random_forest import RandomForestScript
 from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
-from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
-from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
-from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
 from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
 from parser import configparser
-from pyspark.sql.functions import col, udf
 from bi.scripts.stock_advisor import StockAdvisor
 #if __name__ == '__main__':
 def main(configJson):

@@ -1,6 +1,4 @@
-import os
 import time
-import numpy as np
 from datetime import datetime
 
 from bi.algorithms import TimeSeriesAnalysis

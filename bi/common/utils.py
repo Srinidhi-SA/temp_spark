@@ -1,23 +1,20 @@
-import os
-import math
 import json
+import md5
 import time
-import requests
-from math import *
-from re import sub
 import traceback
 import uuid
-import md5
+from math import *
+from re import sub
 
-import pandas as pd
-import numpy as np
 import matplotlib
+import numpy as np
+import pandas as pd
+import requests
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from numpy import size, zeros, where, transpose
-from numpy.random import normal
+from numpy import size, zeros, where
 from scipy import linspace
-import array
 # from matplotlib.pyplot import hist
 
 from pyspark.conf import SparkConf

@@ -1,21 +1,14 @@
-import os
-import random
-import numpy as np
 import json
-import itertools
+import json
+
 import humanize
-from collections import defaultdict
-from bi.common.dataframe import DataFrameHelper
-from bi.common.context import ContextSetter
-from bi.common.results import DecisionTreeResult
-from bi.common.utils import accepts
-from bi.narratives import utils as NarrativesUtils
+
+from bi.common import NormalCard, NarrativesTree, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
-from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-from bi.common import ResultSetter
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
+
 
 class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2

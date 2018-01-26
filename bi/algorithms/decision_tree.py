@@ -4,13 +4,11 @@ import re
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.tree import DecisionTree
 
+from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
 from bi.common.datafilterer import DataFrameFilterer
 from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
-
-from bi.algorithms import utils as MLUtils
-from bi.common import utils as CommonUtils
-
 
 """
 Decision Tree

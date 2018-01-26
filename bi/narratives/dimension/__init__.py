@@ -1,5 +1,3 @@
-import os
-
 from bi.common.results.frequency_dimensions import FreqDimensionResult
 from bi.common.utils import accepts
 from dimension_column import DimensionColumnNarrative

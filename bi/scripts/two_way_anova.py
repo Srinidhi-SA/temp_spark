@@ -1,7 +1,3 @@
-import json
-
-from bi.common import DataWriter
-from bi.common import utils as CommonUtils
 from bi.narratives.anova import AnovaNarratives
 from bi.stats import TwoWayAnova
 

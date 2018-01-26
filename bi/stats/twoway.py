@@ -1,23 +1,17 @@
-import pandas as pd
-import time
-from datetime import datetime
-from scipy.stats import f
 import __builtin__
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import mean, sum, min, max, count, udf, col
-from pyspark.sql.types import StringType
+import time
 
-from bi.common.decorators import accepts
-from bi.common.results import DFTwoWayAnovaResult,OneWayAnovaResult
-from bi.common.results import MeasureAnovaResult,TrendData
-from bi.common.results import TopDimensionStats, TrendResult,TopLevelDfAnovaStats
+import pandas as pd
+from pyspark.sql.functions import mean, sum, count, col
+from scipy.stats import f
 
-from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
+from bi.common.decorators import accepts
+from bi.common.results import DFTwoWayAnovaResult, OneWayAnovaResult
+from bi.common.results import MeasureAnovaResult, TrendData
+from bi.common.results import TopLevelDfAnovaStats
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
-
-
 
 #from bi.stats.descr import DescriptiveStats
 

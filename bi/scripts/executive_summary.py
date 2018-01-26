@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """Gathers descriptive stats for all columns in a dataframe"""
-import json
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
 from bi.narratives.executive_summary import ExecutiveSummaryNarrative
 

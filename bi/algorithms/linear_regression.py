@@ -1,7 +1,4 @@
-from pyspark.ml.linalg import DenseVector
 from pyspark.ml.regression import LinearRegression as LR
-from pyspark.sql.functions import  col, udf, count
-from pyspark.ml.linalg import Vectors, VectorUDT
 
 from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult

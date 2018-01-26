@@ -1,22 +1,16 @@
 import time
-import random
-import math
 from datetime import datetime
-import pandas as pd
 
+import pandas as pd
 from pyspark.ml.feature import Bucketizer
-from pyspark.sql.types import DoubleType
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import udf, col
-from pyspark.sql.types import DateType, FloatType
-from pyspark.sql.types import StringType
+from pyspark.sql.functions import col
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.functions import regexp_extract
-
+from pyspark.sql.types import DoubleType
 
 from bi.common import utils as CommonUtils
-from bi.common.charts import ChartJson,NormalChartData
 from bi.common.cardStructure import C3ChartData
+from bi.common.charts import ChartJson, NormalChartData
 from bi.common.decorators import accepts
 
 

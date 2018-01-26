@@ -1,15 +1,13 @@
-import os
-import json
-import jinja2
 import math
+import math
+
 import numpy as np
 import pandas as pd
-from bi.common.utils import accepts
-from bi.common.results.two_way_anova import OneWayAnovaResult
+
+from bi.common import NormalCard, C3ChartData
+from bi.common import NormalChartData, ChartJson
 # from bi.stats import TuckeyHSD
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class Card:

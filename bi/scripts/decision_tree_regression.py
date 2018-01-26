@@ -1,6 +1,6 @@
 import json
+
 from bi.algorithms import DecisionTreeRegression
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
 from bi.narratives.decisiontreeregression.decision_tree import DecisionTreeRegNarrative
 

@@ -1,26 +1,25 @@
-from functools import reduce
-import json
-import time
 import datetime as dt
 # import dateparser
-import pandas as pd
+import datetime as dt
 from datetime import datetime
+from itertools import chain
+
+# import dateparser
+import pandas as pd
+from pyspark.ml.feature import Bucketizer
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as FN
-from pyspark.sql.functions import udf, col
+from pyspark.sql.functions import col, create_map, lit
+from pyspark.sql.functions import udf
 from pyspark.sql.types import *
 from pyspark.sql.types import StringType
 from sklearn.model_selection import train_test_split
 
-from bi.common import utils as CommonUtils
 from bi.common import ContextSetter
+from bi.common import utils as CommonUtils
 from column import ColumnType
 from decorators import accepts
 from exception import BIException
-
-from pyspark.ml.feature import QuantileDiscretizer,Bucketizer
-from pyspark.sql.functions import col, create_map, lit
-from itertools import chain
 
 
 class DataFrameHelper:

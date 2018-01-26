@@ -1,9 +1,9 @@
 import json
 import time
-import collections
-import pandas as pd
-import numpy as np
+
 import humanize
+import numpy as np
+import pandas as pd
 
 try:
     import cPickle as pickle
@@ -14,7 +14,6 @@ from sklearn.externals import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 from sklearn import metrics
-from sklearn import preprocessing
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
@@ -22,12 +21,8 @@ from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
 from bi.common import MLModelSummary
 from bi.common import DataFrameHelper
-from bi.stats.frequency_dimensions import FreqDimensions
-from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
-from bi.stats.chisquare import ChiSquare
-from bi.narratives.chisquare import ChiSquareNarratives
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson,ModelSummary
+from bi.common import NormalCard, C3ChartData,TableData
+from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.narratives import utils as NarrativesUtils

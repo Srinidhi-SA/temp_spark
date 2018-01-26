@@ -1,13 +1,13 @@
-import operator
-import os
+import json
 import json
 import random
-import numpy
+
 from pyspark.sql.functions import col
-from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,ToggleData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ToggleData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
 
 
 class ChiSquareAnalysis:

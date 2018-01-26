@@ -1,14 +1,14 @@
 from pyspark.sql import functions as FN
+
 from bi.common import BIException
 from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
 from bi.common.results import DataFrameDescriptiveStats
 from bi.common.results import DimensionDescriptiveStats
 from bi.common.results import MeasureDescriptiveStats
-from bi.transformations import Binner,DensityBinner
+from bi.transformations import Binner
 from bi.transformations import Quantizer
 from util import Stats
-import time
 
 
 class DescriptiveStats:

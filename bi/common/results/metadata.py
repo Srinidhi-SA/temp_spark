@@ -1,5 +1,3 @@
-from bi.common.decorators import accepts
-
 class DfMetaData:
     """
     Functionalities:

@@ -1,8 +1,8 @@
 import json
-import time
+
+from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
 from bi.common.results import FreqDimensionResult
-from bi.common import utils as CommonUtils
 
 """
 Count Frequency in a Dimension

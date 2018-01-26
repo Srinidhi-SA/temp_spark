@@ -1,8 +1,3 @@
-import operator
-import os
-
-import numpy
-
 from bi.narratives import utils as NarrativesUtils
 
 

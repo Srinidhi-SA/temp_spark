@@ -1,4 +1,3 @@
-from pyspark.sql import functions as FN
 import json
 import re
 

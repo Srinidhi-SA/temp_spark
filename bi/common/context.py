@@ -1,6 +1,7 @@
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
-import ast
+
+
 class ContextSetter:
 
     MEASUREC_COLUMNS = "measure_columns"

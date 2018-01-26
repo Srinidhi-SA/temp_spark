@@ -1,18 +1,10 @@
-import json
-import random
 import time
 import uuid
-import datetime as dt
 
-from pyspark.sql import functions as FN
-from pyspark.sql.types import DateType, FloatType
-from pyspark.sql.types import StringType
-
-from bi.common import DataWriter
 from bi.common import ColumnType
-from bi.common import utils as CommonUtils
 from bi.common import MetaDataHelper
-from bi.common.results import DfMetaData,MetaData,ColumnData,ColumnHeader
+from bi.common import utils as CommonUtils
+from bi.common.results import DfMetaData, MetaData, ColumnData, ColumnHeader
 
 
 class MetaDataScript:

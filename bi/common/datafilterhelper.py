@@ -1,6 +1,4 @@
 from pyspark.sql.functions import udf
-from bi.common.datafilterer import DataFrameFilterer
-from pyspark.sql.functions import udf
 
 from bi.common.datafilterer import DataFrameFilterer
 

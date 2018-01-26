@@ -1,12 +1,8 @@
 import time
-import json
 
 from bi.algorithms import LinearRegression
-from bi.algorithms import KmeansClustering
-from bi.narratives.regression import RegressionNarrative
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
-from bi.narratives.regression import LinearRegressionNarrative
+from bi.narratives.regression import RegressionNarrative
 
 
 # from bi.stats import Correlation

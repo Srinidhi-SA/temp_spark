@@ -1,21 +1,12 @@
-import os
-import time
-import re
 import json
-import pandas as pd
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import sum
 
 from bi.algorithms import LinearRegression
-from linear_regression import LinearRegressionNarrative
-from bi.narratives import utils as NarrativesUtils
-from bi.narratives.trend import TimeSeriesNarrative
-
-from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import NarrativesTree, NormalCard, HtmlData, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
+from linear_regression import LinearRegressionNarrative
 
 
 class RegressionNarrative:

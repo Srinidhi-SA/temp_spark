@@ -1,25 +1,6 @@
-from pyspark.sql import DataFrame
-from pyspark.sql import functions as FN
-from pyspark.sql import SQLContext
-from pyspark.sql.types import *
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer
-from pyspark.ml.feature import MinMaxScaler,StandardScaler
+from pyspark.ml.feature import StandardScaler
+from pyspark.ml.feature import StandardScaler
 from pyspark.ml.feature import VectorAssembler
-from pyspark.ml.linalg import Vectors
-from pyspark.ml.clustering import KMeans
-
-from bi.common import DataFrameHelper
-from bi.common import utils as CommonUtils
-from bi.algorithms import utils as MLUtils
-
-import time
-import math
-import random
-import itertools
-from datetime import datetime
-from datetime import timedelta
-from collections import Counter
-
 
 
 class KmeansClustering:

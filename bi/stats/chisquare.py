@@ -1,5 +1,4 @@
 import math
-import time
 from itertools import chain
 
 from pyspark.ml.feature import Bucketizer
@@ -8,11 +7,11 @@ from pyspark.mllib.stat import Statistics
 from pyspark.sql.types import DoubleType
 
 from bi.common import BIException
+from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
 from bi.common.results import ChiSquareResult
 from bi.common.results import DFChiSquareResult
 from bi.common.results.chisquare import ContingencyTable
-from bi.common import utils as CommonUtils
 
 """
 Chi Square Test

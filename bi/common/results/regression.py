@@ -1,7 +1,5 @@
-from pyspark.ml.regression import LinearRegressionModel
-
-from bi.common.utils import accepts
 from bi.common.exception import BIException
+from bi.common.utils import accepts
 
 
 class RegressionResult:

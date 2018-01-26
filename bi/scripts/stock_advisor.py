@@ -1,16 +1,14 @@
-import json
-from pyspark.sql import SQLContext
-import pandas as pd
-import numpy as np
-import scipy.stats as scs
-import urllib2
 import random
-
+import urllib2
 from collections import Counter
-from bi.stats.chisquare import ChiSquare
-from bi.common import utils as CommonUtils
-import statsmodels.api as sm
+
+import numpy as np
+import pandas as pd
+import scipy.stats as scs
+from pyspark.sql import SQLContext
 from statsmodels.formula.api import ols
+
+from bi.common import utils as CommonUtils
 
 
 class StockAdvisor:
@@ -106,8 +104,6 @@ class StockAdvisor:
         return (end_price-start_price, ((end_price-start_price)*100.0)/start_price )
 
     def identify_concepts(self, df):
-        from pyspark.sql.functions import udf, col
-        from pyspark.sql.types import ArrayType
 
         # temp_fun = udf( lambda x: self.get_concepts_for_item(x), ArrayType)
         # new_df = df.withColumn("concepts", temp_fun(col("keywords")))
