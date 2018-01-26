@@ -13,11 +13,11 @@ from bi.common.decorators import accepts
 
 
 class ContingencyTable:
-    '''
+    """
     Represents a two dimensional contingency table of M x N dimension.
         M rows      - one for each unique value of column one
         N columns   - one for each unique value of column two
-    '''
+    """
     @accepts(object, (list, tuple), (list, tuple))
     def __init__(self, column_one_values, column_two_values):
         self.column_one_values = column_one_values

@@ -27,14 +27,13 @@ Two way ANOVA test
 
 
 class TwoWayAnova:
-
-    '''
+    """
         var1 = n*mean2
         var2 = sum(x2)
         var5 = n*mean2 for each group(a,b)
         var3 = n*mean2 for each group a
 
-    '''
+    """
 
     def __init__(self, data_frame, df_helper, df_context, meta_parser):
         self._data_frame = data_frame

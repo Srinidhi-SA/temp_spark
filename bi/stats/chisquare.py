@@ -185,13 +185,14 @@ class ChiSquare:
 
 
     def _get_contingency_table_of_freq(self, pivot_table, need_sorting=False):
-        '''
+        """
 
         :param pivot_table:
                 column_names[1:] correspond to unique values of column two
                 values in first column correspond to unique values of column one
         :return:
-        '''
+        """
+
         column_one_values = []
         column_two_values = pivot_table.columns[1:]
         rows = pivot_table.collect()

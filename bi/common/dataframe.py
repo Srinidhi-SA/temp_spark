@@ -468,9 +468,9 @@ class DataFrameColumnMetadata:
         return self._actual_data_type
 
     def as_dict(self):
-        ''' Utility function return object as a dict for persisting as a JSON object
+        """ Utility function return object as a dict for persisting as a JSON object
         :return:
-        '''
+        """
         return {
             self._column_name: self._column_type,
             'actual_data_type': self._actual_data_type,

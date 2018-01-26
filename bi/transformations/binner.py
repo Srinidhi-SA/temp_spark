@@ -27,9 +27,9 @@ class BinnerConstants:
 
 
 class Binner:
-    '''
+    """
     Utility class for binning numeric columns of a data frame
-    '''
+    """
     def __init__(self, data_frame, data_frame_helper):
         self._data_frame = data_frame
         self._numeric_columns = data_frame_helper.get_numeric_columns()
@@ -53,7 +53,7 @@ class Binner:
 
     @accepts(object, basestring, num_bins=int, split_points=(list, tuple))
     def get_bins(self, column_name, num_bins=10, split_points=None):
-        '''
+        """
         Finds number of items in each bin. Only one of the params num_bins ot split_points need to be supplied.
 
         :param column_name: column to be binned
@@ -61,7 +61,7 @@ class Binner:
         :param split_points:    list of tupels [(a,b), (b, c), ...] such that
                                 all values in the range [a, b) assigned to bucket1
         :return:
-        '''
+        """
         if not column_name in self._numeric_columns:
             raise BIException.column_does_not_exist(column_name)
 
