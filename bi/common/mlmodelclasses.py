@@ -200,7 +200,8 @@ class MLModelMetaData:
     This module contains Meta Data for a corresponding ML Model
     """
 
-    def __init__():
+    # TODO FIX first parameter should be self
+    def __init__(self):
         self.algorithmName = None
         self.modelType = None                   #ensemble or single model
         self.trainingTime = None

@@ -21,6 +21,7 @@ class ChiSquareAnalysis:
     def _generate_narratives(self):
         self._generate_narratives_card1()
 
+    #TODO FIX first parameter should be self
     def _get_top_and_bottom_levels(level_names, level_contributions, tops = None, bottoms = None):
         sorted_ = sorted(zip(level_names,level_contributions,range(len(level_names))),reverse=True,key = lambda x: x[1])
         level_names,level_contributions, level_indices = zip(*sorted_)
