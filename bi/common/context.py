@@ -266,7 +266,7 @@ class ContextSetter:
                             valid = True
                             validColumnSetting.append(action)
                     actionOrder = {"delete":0,"rename":2,"replace":1,"data_type":3}
-                    validColumnSetting = [x for x in validColumnSetting if x in actionOrder.keys()]
+                    validColumnSetting = [x for x in validColumnSetting if x["actionName"] in actionOrder]
                     validColumnSetting = sorted(validColumnSetting,key=lambda x:actionOrder[x["actionName"]])
                     if valid:
                         validObj = transformObj

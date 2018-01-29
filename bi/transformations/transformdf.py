@@ -47,7 +47,6 @@ class DataFrameTransformer:
         if len(existingColTransforms) > 0:
             for transformObj in existingColTransforms:
                 transformActionList = [obj["actionName"]  for obj in transformObj["columnSetting"]]
-                print transformActionList
                 if "delete" in transformActionList:
                     self.delete_column(transformObj["name"])
                 else:
