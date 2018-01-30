@@ -912,7 +912,14 @@ def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,
         duration = df.select("year_month").distinct().count()
         dataLevel = "month"
         durationString = CommonUtils.get_duration_string(dataRange)
-    return (df,{"duration":duration,"durationString":durationString,"dataLevel":dataLevel,"firstDate":first_date,"lastDate":last_date})
+    outDict = {
+        "duration":duration,
+        "durationString":durationString,
+        "dataLevel":dataLevel,
+        "firstDate":first_date,
+        "lastDate":last_date
+        }
+    return (df,outDict)
 
 
 def restructure_donut_chart_data(dataDict,nLevels=None):
