@@ -1,30 +1,17 @@
-import os
-import re
-import time
-import json
 import operator
-import random
-from collections import OrderedDict
+import time
+
 import numpy as np
-
-#from nltk import tokenize
-from bi.common.utils import accepts
-from bi.common.results.regression import RegressionResult
-from bi.common.results.correlation import CorrelationStats
-from bi.common.results.correlation import ColumnCorrelations
-from bi.algorithms import KmeansClustering
-from bi.algorithms import LinearRegression
-from bi.narratives import utils as NarrativesUtils
-from bi.stats.util import Stats
-from bi.common import utils as CommonUtils
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-
-
 import pyspark.sql.functions as FN
-from pyspark.sql.functions import avg
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.types import DoubleType
-from pyspark.sql.functions import monotonically_increasing_id
+
+# from nltk import tokenize
+from bi.algorithms import LinearRegression
+from bi.common import ScatterChartData, ChartJson
+from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
+from bi.stats.util import Stats
 
 
 class LinearRegressionNarrative:

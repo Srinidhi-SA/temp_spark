@@ -1,15 +1,12 @@
 import json
-import os
 import math
 import numpy as np
 import pandas as pd
 
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 from bi.narratives import utils as NarrativesUtils
 
-from pyspark.sql.functions import col,udf
 from pyspark.sql.types import *
 from pyspark.ml.feature import Bucketizer
 import pyspark.sql.functions as FN

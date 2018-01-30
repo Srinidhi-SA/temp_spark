@@ -13,7 +13,9 @@ class FilterContextSetter:
         self.measure_filter = self._config_obj.get_measure_filters()
         self.measure_suggestions = self._config_obj.get_file_settings().get('measure_suggestions')
 
-    def set_params_cl(self,ip,result,cc,df,mf,ms=[]):
+    def set_params_cl(self, ip, result, cc, df, mf, ms=None):
+        if ms is None:
+            ms = []
         self.CSV_FILE = ip
         self.RESULT_FILE = result
         self.considercolumns = cc

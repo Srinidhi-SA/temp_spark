@@ -1,13 +1,10 @@
-import os
-
 from anova_drilldown import AnovaDrilldownNarratives
+from bi.common import NormalCard, NarrativesTree, C3ChartData
+from bi.common import NormalChartData, ChartJson
+from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.narratives.anova.anova import OneWayAnovaNarratives
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
-
 
 
 class AnovaNarratives:

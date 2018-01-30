@@ -74,9 +74,10 @@
       {% endif %}
       The percentage of {{second_target}} for {{dim['levels'][0]}} and {{dim['levels'][1]}} are {{dim['contributions_percent'][0] | round(1) }}% and
       {{dim['contributions_percent'][1] | round(1) }}% respectively.
-    </li>
+
     {% endif %}
     </li>
-  {% endfor %}
+    {% endfor %}
+  </ul>
   </p>
 {% endif %}

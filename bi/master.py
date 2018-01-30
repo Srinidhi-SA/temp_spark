@@ -1,28 +1,23 @@
-import os
+import sys
 import sys
 import time
-import json
+
 import pyhocon
-import traceback
 
 # from asn1crypto._ffi import None
 # from pyhocon.tool import HOCONConverter
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-import ConfigParser
 
-from bi.settings import setting as GLOBALSETTINGS
 from bi.settings import *
 from bi.common import utils as CommonUtils
-from bi.common import DataLoader,MetaParser,DataWriter,DataFrameHelper,ContextSetter,ResultSetter
+from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.scripts.frequency_dimensions import FreqDimensionsScript
 from bi.scripts.chisquare import ChiSquareScript
 from bi.scripts.decision_tree import DecisionTreeScript
 from bi.scripts.correlation import CorrelationScript
 from bi.scripts.descr_stats import DescriptiveStatsScript
-from bi.scripts.density_histogram import DensityHistogramsScript
-from bi.scripts.histogram import HistogramsScript
 from bi.scripts.two_way_anova import TwoWayAnovaScript
 from bi.scripts.linear_regression import LinearRegressionScript
 from bi.scripts.timeseries import TrendScript
@@ -30,17 +25,12 @@ from bi.scripts.random_forest import RandomForestScript
 from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
-from bi.scripts.executive_summary import ExecutiveSummaryScript
 from bi.algorithms import utils as MLUtils
-from bi.scripts.random_forest_pyspark import RandomForestPysparkScript
-from bi.scripts.logistic_regression_pyspark import LogisticRegressionPysparkScript
 from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
 from parser import configparser
-from pyspark.sql.functions import col, udf
 from bi.scripts.stock_advisor import StockAdvisor
 #if __name__ == '__main__':
 def main(configJson):
@@ -593,7 +583,7 @@ def main(configJson):
         categorical_columns = df_helper.get_string_columns()
         uid_col = dataframe_context.get_uid_column()
         if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         result_column = dataframe_context.get_result_column()
         df = df.toPandas()
         df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])

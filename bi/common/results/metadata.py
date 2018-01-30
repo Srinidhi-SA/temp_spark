@@ -1,10 +1,16 @@
-from bi.common.decorators import accepts
-
 class DfMetaData:
     """
     Functionalities:
     """
-    def __init__(self,metaData = [],columnData = [] , headers=[], sampleData=[]):
+    def __init__(self, metaData=None, columnData=None, headers=None, sampleData=None):
+        if metaData is None:
+            metaData = []
+        if columnData is None:
+            columnData = []
+        if headers is None:
+            headers = []
+        if sampleData is None:
+            sampleData = []
         self.metaData = metaData
         self.columnData = columnData
         self.headers = headers
@@ -53,7 +59,11 @@ class MetaData:
         self.display = boolData
 
 class ColumnData:
-    def __init__(self,name=None,slug=None,columnStats=[],chartData={},columnType = None):
+    def __init__(self, name=None, slug=None, columnStats=None, chartData=None, columnType = None):
+        if columnStats is None:
+            columnStats = []
+        if chartData is None:
+            chartData = {}
         self.name = name
         self.slug = None
         self.ignoreSuggestionFlag = False

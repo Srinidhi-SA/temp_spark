@@ -6,23 +6,17 @@ try:
 except:
     import pickle
 
-from sklearn.externals import joblib
-from sklearn import metrics
-
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
-from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
-from pyspark.ml.classification import RandomForestClassifier as RF
-from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
-from pyspark.ml.feature import IndexToString, StringIndexer
-from pyspark.sql.functions import col, udf
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from pyspark.ml.feature import IndexToString
+from pyspark.sql.functions import udf
 from pyspark.sql.types import *
 
 from pyspark.ml.classification import LogisticRegression, OneVsRest

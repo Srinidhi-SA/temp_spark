@@ -1,15 +1,11 @@
-import os
 import json
-from bi.common import ContextSetter
-from bi.common.results import DFChiSquareResult
-from bi.common.utils import accepts
-from chisquare import ChiSquareAnalysis
-from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-from bi.common import utils as CommonUtils
-from bi.settings import setting as GLOBALSETTINGS
 
+from bi.common import ChartJson
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData
+from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
+from bi.settings import setting as GLOBALSETTINGS
+from chisquare import ChiSquareAnalysis
 
 
 class ChiSquareNarratives:

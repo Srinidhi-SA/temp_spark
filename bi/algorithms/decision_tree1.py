@@ -82,7 +82,9 @@ class DecisionTrees:
 
 
     @accepts(object, rules = dict, colname = str, rule_list=list)
-    def extract_rules(self, rules, colname, rule_list = []):
+    def extract_rules(self, rules, colname, rule_list=None):
+        if rule_list is None:
+            rule_list = []
         case = 0
         var = ''
         limit = None

@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for ChiSquare test"""
 
-import random
-import json
 import re
-from humanize import intcomma
 
+from humanize import intcomma
 from pyspark.mllib.stat.test import ChiSqTestResult
 
-from bi.common.exception import BIException
 from bi.common.decorators import accepts
+from bi.common.exception import BIException
 
 
 class ContingencyTable:
-    '''
+    """
     Represents a two dimensional contingency table of M x N dimension.
         M rows      - one for each unique value of column one
         N columns   - one for each unique value of column two
-    '''
+    """
     @accepts(object, (list, tuple), (list, tuple))
     def __init__(self, column_one_values, column_two_values):
         self.column_one_values = column_one_values

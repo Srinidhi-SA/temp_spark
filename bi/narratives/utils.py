@@ -3,24 +3,23 @@
 Utility functions to be used by various narrative objects
 """
 import math
+import random
 import re
 import time
-import random
-import humanize
+from datetime import datetime
+
 import enchant
+import humanize
 import jinja2
 import numpy as np
-import pandas as pd
 import pattern
-from datetime import datetime
+import pyspark.sql.functions as PysparkFN
+from pyspark.sql import DataFrame
+from pyspark.sql.types import *
+
 from bi.common import HtmlData
 from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
-from pyspark.sql import DataFrame
-import pyspark.sql.functions as PysparkFN
-from pyspark.sql.types import *
-from pyspark.sql import DataFrame
-from bi.common import MetaParser
 
 
 # def round_number(num, digits=2, as_string=True):

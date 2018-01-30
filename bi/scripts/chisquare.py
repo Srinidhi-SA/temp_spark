@@ -1,5 +1,3 @@
-import json
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.stats.chisquare import ChiSquare

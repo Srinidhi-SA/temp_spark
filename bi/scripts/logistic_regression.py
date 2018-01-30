@@ -1,9 +1,9 @@
 import json
 import time
-import collections
+
+import humanize
 import numpy as np
 import pandas as pd
-import humanize
 
 try:
     import cPickle as pickle
@@ -21,12 +21,8 @@ from bi.common import MLModelSummary
 from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.stats.frequency_dimensions import FreqDimensions
-from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
-from bi.stats.chisquare import ChiSquare
-from bi.narratives.chisquare import ChiSquareNarratives
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,NormalCard
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import C3ChartData,TableData, NormalCard
+from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
@@ -83,7 +79,7 @@ class LogisticRegressionScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
@@ -137,7 +133,7 @@ class LogisticRegressionScript:
         except:
             pass
 
-        cat_cols = list(set(categorical_columns)-set([result_column]))
+        cat_cols = list(set(categorical_columns) - {result_column})
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Logistic Regression")
@@ -246,7 +242,7 @@ class LogisticRegressionScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
@@ -406,9 +402,8 @@ class LogisticRegressionScript:
             except:
                 print "DecisionTree Analysis Failed "
         else:
-            data_dict = {}
-            data_dict["npred"] = len(predictedClasses)
-            data_dict["nactual"] = len(labelMappingDict.values())
+            data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
+
             if data_dict["nactual"] > 2:
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])

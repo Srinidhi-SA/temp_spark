@@ -1,9 +1,9 @@
 import json
 import time
-import collections
-import pandas as pd
-import numpy as np
+
 import humanize
+import numpy as np
+import pandas as pd
 
 try:
     import cPickle as pickle
@@ -14,7 +14,6 @@ from sklearn.externals import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 from sklearn import metrics
-from sklearn import preprocessing
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
@@ -22,12 +21,8 @@ from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
 from bi.common import MLModelSummary
 from bi.common import DataFrameHelper
-from bi.stats.frequency_dimensions import FreqDimensions
-from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
-from bi.stats.chisquare import ChiSquare
-from bi.narratives.chisquare import ChiSquareNarratives
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson,ModelSummary
+from bi.common import NormalCard, C3ChartData,TableData
+from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.narratives import utils as NarrativesUtils
@@ -90,7 +85,7 @@ class RandomForestScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         print categorical_columns
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -131,7 +126,7 @@ class RandomForestScript:
             self._result_setter.update_pmml_object({self._slug:pmmlText})
         except:
             pass
-        cat_cols = list(set(categorical_columns)-set([result_column]))
+        cat_cols = list(set(categorical_columns) - {result_column})
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Random Forest")
@@ -238,7 +233,7 @@ class RandomForestScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
@@ -390,9 +385,7 @@ class RandomForestScript:
             except:
                 print "DecisionTree Analysis Failed "
         else:
-            data_dict = {}
-            data_dict["npred"] = len(predictedClasses)
-            data_dict["nactual"] = len(labelMappingDict.values())
+            data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
             if data_dict["nactual"] > 2:
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])

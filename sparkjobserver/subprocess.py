@@ -15,14 +15,17 @@ implements all the methods that this program expects an endpoint to have.
 """
 
 from __future__ import print_function
+
 import sys
+import traceback
 from importlib import import_module
+
 from py4j.java_gateway import JavaGateway, java_import, GatewayClient
 from pyhocon import ConfigFactory
 from pyspark.context import SparkContext, SparkConf
 from pyspark.sql import SQLContext, HiveContext
+
 from sparkjobserver.api import ValidationProblem, JobEnvironment
-import traceback
 
 
 def exit_with_failure(message, exit_code=1):

@@ -1,26 +1,25 @@
-from functools import reduce
-import json
-import time
 import datetime as dt
 # import dateparser
-import pandas as pd
+import datetime as dt
 from datetime import datetime
+from itertools import chain
+
+# import dateparser
+import pandas as pd
+from pyspark.ml.feature import Bucketizer
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as FN
-from pyspark.sql.functions import udf, col
+from pyspark.sql.functions import col, create_map, lit
+from pyspark.sql.functions import udf
 from pyspark.sql.types import *
 from pyspark.sql.types import StringType
 from sklearn.model_selection import train_test_split
 
-from bi.common import utils as CommonUtils
 from bi.common import ContextSetter
+from bi.common import utils as CommonUtils
 from column import ColumnType
 from decorators import accepts
 from exception import BIException
-
-from pyspark.ml.feature import QuantileDiscretizer,Bucketizer
-from pyspark.sql.functions import col, create_map, lit
-from itertools import chain
 
 
 class DataFrameHelper:
@@ -111,7 +110,7 @@ class DataFrameHelper:
             else:
                 if self._dataframe_context.get_story_on_scored_data() == False:
                     result_column = self._dataframe_context.get_result_column()
-                    updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
+                    updatedColsToKeep = list(set(colsToKeep) - {result_column})
                     self._data_frame = self._data_frame.select(updatedColsToKeep)
                 elif self._dataframe_context.get_story_on_scored_data() == True:
                     self._data_frame = self._data_frame.select(colsToKeep)
@@ -470,9 +469,9 @@ class DataFrameColumnMetadata:
         return self._actual_data_type
 
     def as_dict(self):
-        ''' Utility function return object as a dict for persisting as a JSON object
+        """ Utility function return object as a dict for persisting as a JSON object
         :return:
-        '''
+        """
         return {
             self._column_name: self._column_type,
             'actual_data_type': self._actual_data_type,

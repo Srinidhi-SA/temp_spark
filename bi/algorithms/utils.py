@@ -1,35 +1,31 @@
-import random
-import os
-import shutil
+import __builtin__
 import json
+import os
+import random
+import shutil
 
 import numpy as np
 import pandas as pd
-import operator
-import __builtin__
-
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import mean, stddev, col, sum, count, min, max
-from pyspark.sql.types import StringType
-from pyspark.sql.types import DoubleType
-from pyspark.ml.clustering import KMeans
-
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer, IndexToString
-
-import numpy as np
-import functools
-from pyspark.ml.feature import OneHotEncoder
-from pyspark.ml.pipeline import PipelineModel
+from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
+from pyspark.ml.clustering import KMeans
 from pyspark.ml.feature import Bucketizer
-from pyspark.ml.feature import QuantileDiscretizer
+from pyspark.ml.feature import OneHotEncoder
+from pyspark.ml.feature import StringIndexer, VectorAssembler
+from pyspark.ml.pipeline import PipelineModel
+from pyspark.sql import functions as FN
+from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
-from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from pyspark.sql.types import StringType
+
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 
-def bucket_all_measures(df, measure_columns, dimension_columns,target_measure=[]):
+
+def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
+    if target_measure is None:
+        target_measure = []
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns+target_measure])
     for measure_column in measure_columns:
         # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
@@ -536,7 +532,9 @@ def get_total_models(collated_summary):
         has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
-def create_model_folders(model_slug,basefoldername,subfolders=[]):
+def create_model_folders(model_slug, basefoldername, subfolders=None):
+    if subfolders is None:
+        subfolders = []
     home_dir = os.path.expanduser("~")
     filepath = home_dir+"/"+basefoldername
     if not os.path.isdir(filepath):

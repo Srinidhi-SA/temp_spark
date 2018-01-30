@@ -1,9 +1,10 @@
+import time
+
 from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql import functions as FN
 
 from bi.common import BIException
 from bi.common.results import FivePointSummary
-import time
 
 
 class Quantizer:

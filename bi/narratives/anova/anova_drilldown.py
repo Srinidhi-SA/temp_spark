@@ -1,5 +1,3 @@
-import os
-
 from pyspark.sql import functions as FN
 
 from bi.narratives import utils as NarrativesUtils

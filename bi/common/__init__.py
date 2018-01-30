@@ -36,7 +36,7 @@ __all__ = [
     'BIException',
     'ProgressTracker', 'JobStatusResult',
     'WriteMode',
-    'ContextSetter'
+    'ContextSetter',
     'DataFrameFilterer',
     # 'MetaDataHelper',
     'DataFilterHelper',

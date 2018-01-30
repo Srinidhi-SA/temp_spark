@@ -1,21 +1,12 @@
-import os
-import time
-import re
 import json
-import pandas as pd
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import sum
 
 from bi.algorithms import LinearRegression
-from linear_regression import LinearRegressionNarrative
-from bi.narratives import utils as NarrativesUtils
-from bi.narratives.trend import TimeSeriesNarrative
-
-from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import NarrativesTree, NormalCard, HtmlData, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
+from linear_regression import LinearRegressionNarrative
 
 
 class RegressionNarrative:
@@ -35,7 +26,7 @@ class RegressionNarrative:
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
-            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+            self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self._spark = spark

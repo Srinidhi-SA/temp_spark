@@ -1,40 +1,31 @@
 
-from anova import ColumnValueGroup
 from anova import AnovaColumnValueGroupStats
 from anova import AnovaResult
+from anova import ColumnValueGroup
 from anova import DFAnovaResult
-
-from two_way_anova import DFTwoWayAnovaResult
-from two_way_anova import MeasureAnovaResult
-from two_way_anova import TwoWayAnovaResult
-from two_way_anova import OneWayAnovaResult
-from two_way_anova import TopDimensionStats,TopLevelDfAnovaStats
-from two_way_anova import TrendResult,TrendData
-
+from chisquare import ChiSquareResult
+from chisquare import DFChiSquareResult
 from correlation import ColumnCorrelations
 from correlation import CorrelationStats
 from correlation import Correlations
-
+from decision_tree import DecisionTreeResult
 from descr import DataFrameDescriptiveStats
+from descr import DimensionDescriptiveStats
 from descr import FivePointSummary
 from descr import MeasureDescriptiveStats
-from descr import DimensionDescriptiveStats
 from descr import TimeDimensionDescriptiveStats
-
-from histogram import Histogram
-from histogram import DataFrameHistogram
-
-from regression import RegressionResult
-from regression import DFRegressionResult
-
-from chisquare import ChiSquareResult
-from chisquare import DFChiSquareResult
-
 from frequency_dimensions import FreqDimensionResult
-
-from decision_tree import DecisionTreeResult
-
-from metadata import DfMetaData,MetaData,ColumnData,ColumnHeader
+from histogram import DataFrameHistogram
+from histogram import Histogram
+from metadata import DfMetaData, MetaData, ColumnData, ColumnHeader
+from regression import DFRegressionResult
+from regression import RegressionResult
+from two_way_anova import DFTwoWayAnovaResult
+from two_way_anova import MeasureAnovaResult
+from two_way_anova import OneWayAnovaResult
+from two_way_anova import TopDimensionStats, TopLevelDfAnovaStats
+from two_way_anova import TrendResult, TrendData
+from two_way_anova import TwoWayAnovaResult
 
 __all__ = [
     # anova
