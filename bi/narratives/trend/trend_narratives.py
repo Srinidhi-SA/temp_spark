@@ -157,11 +157,12 @@ class TrendNarrative:
         grouped_data.reset_index(drop=True,inplace=True)
         print "level contribution started"
         st = time.time()
-        print significant_columns
+        print "significant_columns",significant_columns
         if dataLevel == "day":
             index_col = "suggestedDate"
         else:
             index_col = "year_month"
+            dateColDateFormat = "%b-%y"
         level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,dateColDateFormat,value_col,reference_time, self._metaParser)
         print "level_cont finished in ",time.time()-st
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)

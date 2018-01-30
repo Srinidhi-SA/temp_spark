@@ -406,10 +406,8 @@ class TimeSeriesNarrative:
                         result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
 
                     print "-"*100
-                    # Implement meta parser getter here
+                    # TODO Implement meta parser getter here
                     print result_column_levels
-                    # import sys
-                    # sys.exit()
                     level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
                     level_count_df_rows =  level_count_df.collect()
                     top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
@@ -429,11 +427,11 @@ class TimeSeriesNarrative:
                         # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),self._num_significant_digits))
                         grouped_data["value"] = grouped_data["value_count"]/grouped_data["totalCount"]
                         grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,self._num_significant_digits))
-
                         leveldf = leveldf.drop(self._date_column_suggested)
                         leveldf = leveldf.withColumnRenamed("year_month", self._date_column_suggested)
+                        if "year_month" not in leveldf.columns:
+                            leveldf = leveldf.withColumn("year_month", col(self._date_column_suggested))
                         leveldf = leveldf.withColumn('value_col', lit(1))
-                        print "#"*40
 
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)

@@ -483,10 +483,10 @@ def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,val
                 }
 
     """
-    print "index_col",index_col
-    print "dateColDateFormat",dateColDateFormat
-    print "value_col",value_col
-    print "max_time",max_time
+    # print "index_col",index_col
+    # print "dateColDateFormat",dateColDateFormat
+    # print "value_col",value_col
+    # print "max_time",max_time
     out = {}
     for column_name in columns:
         print "calculate_level_contribution for ",column_name
@@ -912,7 +912,6 @@ def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,
         duration = df.select("year_month").distinct().count()
         dataLevel = "month"
         durationString = CommonUtils.get_duration_string(dataRange)
-
     return (df,{"duration":duration,"durationString":durationString,"dataLevel":dataLevel,"firstDate":first_date,"lastDate":last_date})
 
 
