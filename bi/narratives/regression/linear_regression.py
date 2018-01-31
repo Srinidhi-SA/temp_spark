@@ -19,9 +19,10 @@ class LinearRegressionNarrative:
     MODERATE_CORRELATION = 0.3
 
 
-    def __init__(self, regression_result, column_correlations, df_helper,df_context,spark):
+    def __init__(self, regression_result, column_correlations, df_helper,df_context,meta_parser,spark):
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._metaParser = meta_parser
         self._regression_result = regression_result
         self._data_frame = self._dataframe_helper.get_data_frame()
         self._spark = spark
@@ -367,7 +368,7 @@ class LinearRegressionNarrative:
     def run_regression(self,df,measure_column):
         output = {}
         result_column = self._result_column
-        result = LinearRegression(df, self._dataframe_helper, self._dataframe_context,self._spark).fit(result_column)
+        result = LinearRegression(df, self._dataframe_helper, self._dataframe_context,self._metaParser,self._spark).fit(result_column)
         result = {"intercept" : result.get_intercept(),
                   "rmse" : result.get_root_mean_square_error(),
                   "rsquare" : result.get_rsquare(),
