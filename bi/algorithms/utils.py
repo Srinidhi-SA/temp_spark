@@ -187,6 +187,7 @@ def reformat_confusion_matrix(confusion_matrix):
 def calculate_overall_precision_recall(actual,predicted):
     # get positive or negative class from the user
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
+    print df.head()
     classes = df["actual"].unique()
     val_counts_predicted = df["predicted"].value_counts().to_dict()
     for val in classes:

@@ -3,7 +3,7 @@ import md5
 import time
 import traceback
 import uuid
-from math import *
+import math
 from re import sub
 
 import matplotlib
