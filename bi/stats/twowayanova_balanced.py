@@ -24,12 +24,12 @@ class TwoWayAnova:
     """
 
     @accepts(object, DataFrame)
-    def __init__(self, data_frame):
+    def __init__(self, data_frame,df_helper):
         self._data_frame = data_frame
-        self._data_frame_helper = DataFrameHelper(data_frame)
-        self._measure_columns = self._data_frame_helper.get_numeric_columns()
-        self._dimension_columns = self._data_frame_helper.get_string_columns()
-        self._df = self._data_frame_helper.get_num_rows()
+        self._dataframe_helper = df_helper
+        self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._dimension_columns = self._dataframe_helper.get_string_columns()
+        self._df = self._dataframe_helper.get_num_rows()
         self._mean = {}
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
@@ -40,9 +40,9 @@ class TwoWayAnova:
         dimensions = dimension_columns
         if dimension_columns is None:
             dimensions = self._dimension_columns
-        max_num_levels = min(max_num_levels, round(self._data_frame_helper.get_num_rows()**0.35))
+        max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.35))
         DF_Anova_Result = DFTwoWayAnovaResult()
-        dimensions_to_test = [dim for dim in dimensions if self._data_frame_helper.get_num_unique_values(dim) <= max_num_levels]
+        dimensions_to_test = [dim for dim in dimensions if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
 
         for m in measures:
             #var = self._data_frame.select(col(m).alias('x'),(col(m)**2).alias('x2')).agg({'x':'count','x':'mean','x2':'sum'}).collect()

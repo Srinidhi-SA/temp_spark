@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 
 from bi.common import ContextSetter
 from bi.common import utils as CommonUtils
+from bi.common import MetaParser
 from column import ColumnType
 from decorators import accepts
 from exception import BIException
@@ -34,13 +35,13 @@ class DataFrameHelper:
     NULL_VALUES = 'num_nulls'
     NON_NULL_VALUES = 'num_non_nulls'
 
-    @accepts(object,data_frame=DataFrame,df_context=ContextSetter)
-    def __init__(self, data_frame, df_context):
+    @accepts(object,data_frame=DataFrame,df_context=ContextSetter,meta_parser=MetaParser)
+    def __init__(self, data_frame, df_context, meta_parser):
         # stripping spaces from column names
         self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
         self.columns = self._data_frame.columns
         self._dataframe_context = df_context
-
+        self._metaParser = meta_parser
         self.column_data_types = {}
         self.numeric_columns = []
         self.string_columns = []
@@ -48,13 +49,6 @@ class DataFrameHelper:
         self.boolean_columns = []
         self.num_rows = 0
         self.num_columns = 0
-        self.column_details = {
-            DataFrameHelper.MEASURE_COLUMNS: {},
-            DataFrameHelper.DIMENSION_COLUMNS: {},
-            DataFrameHelper.TIME_DIMENSION_COLUMNS: {},
-            DataFrameHelper.BOOLEAN_COLUMNS: {}
-        }
-
         self.measure_suggestions = []
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
         self._date_formats = {}
@@ -90,12 +84,6 @@ class DataFrameHelper:
         print "ignorecolumns:-",self.ignorecolumns
         # removing any columns which comes in customDetails from ignore columns
         self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
-        # if self.considercolumnstype[0] == "including":
-        #     self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-        #     colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
-        # elif self.considercolumnstype[0] == "excluding":
-        #     setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
-        #     colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
         self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
         print self.consider_columns
         print "self.resultcolumn",self.resultcolumn
@@ -118,53 +106,22 @@ class DataFrameHelper:
         self.bin_columns(colsToBin)
         self.update_column_data()
         # self.boolean_to_string(list(set(colsToKeep)-set(self.boolean_columns)))
-        self.populate_column_data()
 
     def update_column_data(self):
-        self.columns = [field.name for field in self._data_frame.schema.fields]
-        self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
-        self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
-        self.string_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
-        self.boolean_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
-        self.timestamp_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
-        self.num_rows = self._data_frame.count()
-        self.num_columns = len(self._data_frame.columns)
-
-    def populate_column_data(self):
-        for measure_column in self.numeric_columns:
-            null_values = self.get_num_null_values(measure_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.MEASURE_COLUMNS][measure_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-        for dimension_column in self.string_columns:
-            null_values = self.get_num_null_values(dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.DIMENSION_COLUMNS][dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-        for time_dimension_column in self.timestamp_columns:
-            null_values = self.get_num_null_values(time_dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.TIME_DIMENSION_COLUMNS][time_dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-        for bool_column in self.boolean_columns:
-            null_values = self.get_num_null_values(bool_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.BOOLEAN_COLUMNS][bool_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
+        dfSchemaFields = self._data_frame.schema.fields
+        self.columns = [field.name for field in dfSchemaFields]
+        self.num_columns = len(self.columns)
+        self.num_rows = self._metaParser.get_num_rows()
+        self.column_data_types = {field.name: field.dataType for field in dfSchemaFields}
+        for field in dfSchemaFields:
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
+                self.numeric_columns.append(field.name)
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION:
+                self.string_columns.append(field.name)
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN:
+                self.boolean_columns.append(field.name)
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION:
+                self.timestamp_columns.append(field.name)
 
     def set_train_test_data(self,df):
         result_column = self._dataframe_context.get_result_column()

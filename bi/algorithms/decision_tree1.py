@@ -20,7 +20,6 @@ class DecisionTrees:
         self._spark = spark
         self._data_frame = data_frame
         self._data_frame1 = data_frame
-        #data_frame_helper = DataFrameHelper(data_frame)
         #self._data_frame_filterer = DataFrameFilterer(data_frame)
         self._measure_columns = data_frame_helper.get_numeric_columns()
         self._dimension_columns = data_frame_helper.get_string_columns()

@@ -191,7 +191,7 @@ def main(configJson):
             dataframe_context.set_percentage_columns(percentageColumns)
             dataframe_context.set_dollar_columns(dollarColumns)
 
-            df_helper = DataFrameHelper(df, dataframe_context)
+            df_helper = DataFrameHelper(df, dataframe_context,metaParserInstance)
             df_helper.set_params()
             df = df_helper.get_data_frame()
             measure_columns = df_helper.get_numeric_columns()

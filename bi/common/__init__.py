@@ -5,6 +5,7 @@
 
 from column import ColumnType
 from context import ContextSetter
+from metaparser import MetaParser
 from dataframe import DataFrameHelper
 from dataloader import DataLoader
 from datawriter import DataWriter
@@ -19,7 +20,6 @@ from resultloader import ResultSetter
 from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData,TreeData,ToggleData
 from metadatahelper import MetaDataHelper
 from charts import ScatterChartData,NormalChartData,ChartJson
-from metaparser import MetaParser
 from datacleansing import DataCleanser
 from mlmodelclasses import MLModelSummary,ModelSummary
 
