@@ -6,10 +6,94 @@ def get_story_config():
             {
               "polarity": None,
               "setVarAs": None,
-              "columnType": "measure",
-              "name": "Call Volume",
+              "columnType": "dimension",
+              "name": "Month",
+              "selected": False,
+              "slug": "4342fa163f3a4108a376222a2326505d",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": True,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Deal_Type",
               "selected": True,
-              "slug": "6fd94da3149b4fc18bf9a5d82ece2a06",
+              "slug": "e0f9557403654dbdbeacf9397a1fc693",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Price_Range",
+              "selected": True,
+              "slug": "5d67416f5bab466bbc251234309bb6bb",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Discount_Range",
+              "selected": True,
+              "slug": "cb927a057fd34bb7babefc52ded78536",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Source",
+              "selected": True,
+              "slug": "1bcb4b9d51d44a83b626f56fe004f73e",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Platform",
+              "selected": True,
+              "slug": "2df287170deb48a9a1f5c7291bcda9ee",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Buyer_Age",
+              "selected": True,
+              "slug": "ce2e6a55ff9446d9a680b5aef3db433d",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Buyer_Gender",
+              "selected": True,
+              "slug": "578e6bd338074b12ad70a3fb9d25109b",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -19,9 +103,9 @@ def get_story_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "measure",
-              "name": "First call resolution",
+              "name": "Tenure_in_Days",
               "selected": True,
-              "slug": "e101ecf97ff94df5b74a3d0bdf36bedf",
+              "slug": "39c018d65d6d4cae9cc2cc229595661f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -31,9 +115,45 @@ def get_story_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "measure",
-              "name": "Average Call duration (in Minutes)",
+              "name": "Sales",
               "selected": True,
-              "slug": "ea0554416e66490a889d21702bfcd215",
+              "slug": "5d36e79778ac4cd99e0221597888d286",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": True,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Marketing_Cost",
+              "selected": True,
+              "slug": "4a82908f2f334367a64fc31fe36431c2",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Shipping_Cost",
+              "selected": True,
+              "slug": "181898e929bb4691a597ec1eae1c7dab",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Last_Transaction",
+              "selected": True,
+              "slug": "0a4fd0611f914598b13ccc53cdfe6b6d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -43,9 +163,9 @@ def get_story_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "datetime",
-              "name": "Call date",
+              "name": "new_date",
               "selected": True,
-              "slug": "907930c9896e4034bbef1d3086655279",
+              "slug": "57016c35904640ff8cf45d70a780041d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -55,119 +175,11 @@ def get_story_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Education",
-              "selected": True,
-              "slug": "4dd51af67eb34469a1e7055ca7f46f1d",
+              "name": "Order Date",
+              "selected": False,
+              "slug": "d1ab01e4118749e085e426233be4bb4d",
               "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": True,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Top Organization",
-              "selected": True,
-              "slug": "9c8f2f354b0d4411a3f7adf6bcc344ee",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Agent Name",
-              "selected": True,
-              "slug": "19357fe66be64c1ca9030d774e31bc0e",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Call Type",
-              "selected": True,
-              "slug": "0d062d4393344d05bd9d360e49c892f3",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "State",
-              "selected": True,
-              "slug": "89fb18022a144aaf875cb9b5c88c6844",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Region",
-              "selected": True,
-              "slug": "5429020a74d44d47a242cdd7fa544cf9",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Agent Experience",
-              "selected": True,
-              "slug": "1a2c29c2510647e0b6b736821bddb605",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Agent Rating",
-              "selected": True,
-              "slug": "2d4802e02d3d4b7884ddf5f3ffc0f803",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Agent Age",
-              "selected": True,
-              "slug": "e449bf6acf72489a8683d9f18a60799d",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Top Plan Provider",
-              "selected": True,
-              "slug": "dabac2e5ec594561baf99f650671458e",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
+              "dateSuggestionFlag": True,
               "targetColumn": False,
               "uidCol": False
             }
@@ -178,29 +190,11 @@ def get_story_config():
           "datasource_details": ""
         },
         "ADVANCED_SETTINGS": {
-          "trendSettings": [
-            {
-              "status": True,
-              "name": "Count"
-            },
-            {
-              "status": False,
-              "name": "Specific Measure",
-              "selectedMeasure": None
-            }
-          ],
-          "targetLevels": [
-            [
-
-            ]
-          ],
           "analysis": [
             {
               "status": True,
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [
-
-              ],
+              "analysisSubTypes": [],
               "displayName": "Overview",
               "name": "overview"
             },
@@ -233,9 +227,7 @@ def get_story_config():
               "name": "trend"
             },
             {
-              "status": False,
-              "displayName": "Association",
-              "name": "association",
+              "status": True,
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -250,7 +242,7 @@ def get_story_config():
                   "name": "medium"
                 },
                 {
-                  "status": False,
+                  "status": True,
                   "defaultValue": 8,
                   "displayName": "High",
                   "name": "high"
@@ -263,77 +255,87 @@ def get_story_config():
                   "value": None
                 }
               ],
-              "analysisSubTypes": [
-
-              ],
-              "binSetting": [
-                {
-                  "displayName": "Binning of Numerical Values",
-                  "name": "heading"
-                },
-                {
-                  "displayName": "Number of Bin Levels",
-                  "name": "binLevels",
-                  "min": 2,
-                  "max": 10,
-                  "defaultValue": 5,
-                  "value": 5
-                },
-                {
-                  "displayName": "Do not bin numerical values with cardinality less than:",
-                  "name": "binCardinality",
-                  "min": 2,
-                  "max": 10,
-                  "defaultValue": 5,
-                  "value": 5
-                }
-              ]
+              "analysisSubTypes": [],
+              "displayName": "Performance",
+              "name": "performance"
             },
             {
-              "status": False,
+              "status": True,
+              "noOfColumnsToUse": [
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Low",
+                  "name": "low"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 5,
+                  "displayName": "Medium",
+                  "name": "medium"
+                },
+                {
+                  "status": True,
+                  "defaultValue": 8,
+                  "displayName": "High",
+                  "name": "high"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Custom",
+                  "name": "custom",
+                  "value": None
+                }
+              ],
+              "analysisSubTypes": [],
+              "displayName": "Influencer",
+              "name": "influencer"
+            },
+            {
+              "status": True,
               "displayName": "Prediction",
               "name": "prediction",
               "noOfColumnsToUse": None,
-              "analysisSubTypes": [
-
-              ],
-              "levelSetting": [
-
-              ]
+              "analysisSubTypes": [],
+              "levelSetting": []
             }
           ]
         },
         "FILE_SETTINGS": {
           "script_to_run": [
             "Descriptive analysis",
-            "Trend"
+            "Trend",
+            "Measure vs. Dimension",
+            "Measure vs. Measure",
+            "Predictive modeling"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "health-care-callcentre-v10csv-1ww6kaai9r"
+              "ecommercecsv-3l9blqooh7"
             ]
           },
           "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/Health Care Callcentre- V10.csv"
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
           ]
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-lklsdaa-5hs5loh3nh-5d5ltbrg20_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-lll-75f3939i95-ptlhsocwja_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-lklsdaa-5hs5loh3nh-5d5ltbrg20/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-lll-75f3939i95-ptlhsocwja/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-lklsdaa-5hs5loh3nh-5d5ltbrg20/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-lll-75f3939i95-ptlhsocwja/",
         "job_type": "story",
-        "job_name": "lklsdaa",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-lklsdaa-5hs5loh3nh-5d5ltbrg20/",
+        "job_name": "lll",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-lll-75f3939i95-ptlhsocwja/",
         "app_id": None
       }
     }

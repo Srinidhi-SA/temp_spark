@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pandas as pd
 
-from bi.common import NormalCard, C3ChartData
+from bi.common import NormalCard, C3ChartData, HtmlData
 from bi.common import NormalChartData, ChartJson
 # from bi.stats import TuckeyHSD
 from bi.narratives import utils as NarrativesUtils
