@@ -135,8 +135,6 @@ class LogisticRegressionScript:
 
         cat_cols = list(set(categorical_columns) - {result_column})
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
-        print "overall_precision_recall",overall_precision_recall
-        print "####"*100
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Logistic Regression")
         self._model_summary.set_algorithm_display_name("Logistic Regression")
@@ -145,8 +143,6 @@ class LogisticRegressionScript:
         self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
         self._model_summary.set_feature_importance(objs["feature_importance"])
         self._model_summary.set_feature_list(objs["featureList"])
-        k=pd.DataFrame({"actual":objs["actual"],"predicted":objs["predicted"]})
-        k.to_csv("/home/gulshan/marlabs/datasets/sampleDatasets/gg.csv")
         self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
         self._model_summary.set_training_time(round((time.time() - st),2))
         self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
