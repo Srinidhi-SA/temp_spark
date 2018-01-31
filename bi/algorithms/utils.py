@@ -187,7 +187,6 @@ def reformat_confusion_matrix(confusion_matrix):
 def calculate_overall_precision_recall(actual,predicted):
     # get positive or negative class from the user
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
-    print df.head()
     classes = df["actual"].unique()
     val_counts_predicted = df["predicted"].value_counts().to_dict()
     for val in classes:
@@ -202,7 +201,8 @@ def calculate_overall_precision_recall(actual,predicted):
     # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
     # positive_class = __builtin__.max(val_counts,key=val_counts.get)
     positive_class = __builtin__.min(val_counts,key=val_counts.get)
-    print val_counts
+    print "val_counts_predicted",val_counts_predicted
+    print "val_counts actual",val_counts
     print "positive_class",positive_class
 
     output = {"precision":0,"recall":0,"classwise_stats":None,"prediction_split":prediction_split,"positive_class":positive_class}
@@ -222,15 +222,14 @@ def calculate_overall_precision_recall(actual,predicted):
         count_dict["fp"] = df[(df["actual"]!=positive_class) & (df["predicted"]==positive_class)].shape[0]
         count_dict["tn"] = df[(df["actual"]!=positive_class) & (df["predicted"]!=positive_class)].shape[0]
         count_dict["fn"] = df[(df["actual"]==positive_class) & (df["predicted"]!=positive_class)].shape[0]
+        print {"tp":count_dict["tp"],"fp":count_dict["fp"],"tn":count_dict["tn"],"fn":count_dict["fn"]}
         if count_dict["tp"]+count_dict["fp"] > 0:
             output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         else:
-            print "YAHA HAU"
             output["precision"] = 0.0
         if count_dict["tp"]+count_dict["fn"] > 0:
             output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
         else:
-            print "OLE OLE OLE"
             output["recall"] = 0.0
     print output
     return output
