@@ -59,7 +59,6 @@ class DataFrameHelper:
         self.utf8columns = self._dataframe_context.get_utf8_columns()
         self.resultcolumn = self._dataframe_context.get_result_column()
         self.consider_columns = self._dataframe_context.get_consider_columns()
-        # self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
         self.percentage_columns = self._dataframe_context.get_percentage_columns()
         self.dollar_columns = self._dataframe_context.get_dollar_columns()
         self.colsToBin = []
@@ -68,24 +67,11 @@ class DataFrameHelper:
         print "Setting the dataframe"
         self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
         self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame, self.dollar_columns)
-
-        customDetails = self._dataframe_context.get_custom_analysis_details()
-        if customDetails != None:
-            colsToBin = [x["colName"] for x in customDetails]
-        else:
-            colsToBin = []
-        print "initial colsToBin:-",colsToBin
-        if self.ignorecolumns == None:
-            self.ignorecolumns = []
-        if self.utf8columns == None:
-            self.utf8columns = []
-        if self.consider_columns == None:
-            self.consider_columns = []
+        colsToBin = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
         print "ignorecolumns:-",self.ignorecolumns
         # removing any columns which comes in customDetails from ignore columns
         self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
         self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-        print self.consider_columns
         print "self.resultcolumn",self.resultcolumn
         colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
@@ -105,7 +91,10 @@ class DataFrameHelper:
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
-        # self.boolean_to_string(list(set(colsToKeep)-set(self.boolean_columns)))
+        print "boolean_columns",self.boolean_columns
+        self.boolean_to_string(list(set(colsToKeep) & set(self.boolean_columns)))
+        self.update_column_data()
+
 
     def update_column_data(self):
         dfSchemaFields = self._data_frame.schema.fields
@@ -122,6 +111,11 @@ class DataFrameHelper:
                 self.boolean_columns.append(field.name)
             if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION:
                 self.timestamp_columns.append(field.name)
+
+    def boolean_to_string(self,colsToConvert):
+        if len(colsToConvert) > 0:
+            for column in colsToConvert:
+                self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType()))
 
     def set_train_test_data(self,df):
         result_column = self._dataframe_context.get_result_column()
@@ -181,9 +175,6 @@ class DataFrameHelper:
             self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
             self._data_frame = self._data_frame.select(self.columns)
 
-    def boolean_to_string(self,colsToConvert):
-        for column in colsToConvert:
-            self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType))
 
     def get_cols_to_bin(self):
         return self.colsToBin

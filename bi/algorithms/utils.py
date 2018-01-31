@@ -325,12 +325,11 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
         return final_df, aggr
     return final_df, model.clusterCenters()
 
-def add_string_index(df, string_columns=None):
+def add_string_index(df,string_columns):
+    string_columns = list(set(string_columns))
     my_df = df.select(df.columns)
     column_name_maps = {}
     mapping_dict = {}
-    if string_columns==None:
-        string_columns = [c.name for c in df.schema.fields if type(c.dataType) == StringType]
     for c in string_columns:
         my_df = StringIndexer(inputCol=c, outputCol=c+'_index').fit(my_df).transform(my_df)
         column_name_maps[c+'_index'] = c
