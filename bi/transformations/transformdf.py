@@ -57,7 +57,7 @@ class DataFrameTransformer:
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
                             if castDataType == "numeric":
                                 newDataType = 'int'
-                            elif castDataType == "string":
+                            elif castDataType == "text":
                                 newDataType = "string"
                             elif castDataType == "datetime":
                                 newDataType = "timestamp"

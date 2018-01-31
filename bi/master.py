@@ -1,6 +1,7 @@
 import sys
 import sys
 import time
+import json
 
 import pyhocon
 
@@ -56,7 +57,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
+            jobType = "training"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################

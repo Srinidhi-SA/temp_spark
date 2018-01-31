@@ -224,10 +224,12 @@ def calculate_overall_precision_recall(actual,predicted):
         if count_dict["tp"]+count_dict["fp"] > 0:
             output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         else:
+            print "YAHA HAU"
             output["precision"] = 0.0
         if count_dict["tp"]+count_dict["fn"] > 0:
             output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
         else:
+            print "OLE OLE OLE"
             output["recall"] = 0.0
     print output
     return output
