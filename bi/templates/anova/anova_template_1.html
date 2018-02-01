@@ -12,12 +12,10 @@
     There are <b>three dimensions</b> in the dataset({{significant_dimensions[0]}}, {{significant_dimensions[1]}} and {{significant_dimensions[2]}}) and
     all three of them have <b>significant influence</b> on {{target}}.
   {% else %}
-    There are <b>{{num_dimensions}} dimensions</b> in the dataset(including {{significant_dimensions[0]}}, {{significant_dimensions[1]}}, {{significant_dimensions[1]}}, etc.) and
-    all of them have a <b>significant influence</b> on {{target}}.
+    There are <b>{{num_dimensions}} dimensions</b> in the dataset(including {{significant_dimensions[0]}}, {{significant_dimensions[1]}}, {{significant_dimensions[2]}}, etc.) and all of them have a <b>significant influence</b> on {{target}}.
   {% endif %}
 {% elif num_significant_dimensions >3 %}
-  There are <b>{{num_dimensions}} dimensions</b> in the dataset and <b>{{num_significant_dimensions}} of
-  them</b>(including {{significant_dimensions[0]}}, {{significant_dimensions[1]}}, {{significant_dimensions[2]}}, etc.) have <b>significant influence</b> on {{target}}.
+  There are <b>{{num_dimensions}} dimensions</b> in the dataset and <b>{{num_significant_dimensions}} of them</b>(including {{significant_dimensions[0]}}, {{significant_dimensions[1]}}, {{significant_dimensions[2]}}, etc.) have <b>significant influence</b> on {{target}}.
 {% elif num_significant_dimensions == 3 %}
   There are <b>{{num_dimensions}} dimensions</b> in the dataset and <b>three of
   them</b>({{significant_dimensions[0]}}, {{significant_dimensions[1]}} and {{significant_dimensions[2]}}) have <b>significant influence</b> on {{target}}.

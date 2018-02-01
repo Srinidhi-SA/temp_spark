@@ -53,7 +53,8 @@ class OneWayAnovaNarratives:
     ALPHA = 0.05
 
     #@accepts(object, (str, basestring), (str, basestring), OneWayAnovaResult)
-    def __init__(self, measure_column, dimension_column, measure_anova_result, trend_result, result_setter, dimensionNode,base_dir):
+    def __init__(self, df_context, measure_column, dimension_column, measure_anova_result, trend_result, result_setter, dimensionNode,base_dir):
+        self._dataframe_context = df_context
         self._dimensionNode = dimensionNode
         self._result_setter = result_setter
         self._measure_column = measure_column
@@ -77,6 +78,14 @@ class OneWayAnovaNarratives:
         self.card2 = ''
         self.card3 = ''
         self._base_dir = base_dir
+        self._binAnalyzedCol = False
+        customAnalysis = self._dataframe_context.get_custom_analysis_details()
+        if customAnalysis != None:
+            binnedColObj = [x["colName"] for x in customAnalysis]
+            if binnedColObj != None and (self._dimension_column in binnedColObj):
+                self._binAnalyzedCol = True
+        print "BinAnalyzedCol..........."
+        print self._binAnalyzedCol
         self._generate_narratives()
 
     def _generate_narratives(self):
@@ -252,7 +261,11 @@ class OneWayAnovaNarratives:
                 'num_groups' : num_groups
                 }
         output = {'header' : 'Overview', 'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.html',data_dict))
+        if self._binAnalyzedCol == True:
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3_binned_IV.html',data_dict))
+        else:
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.html',data_dict))
+
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
         self._anovaCard1.set_card_data(lines)
@@ -299,12 +312,15 @@ class OneWayAnovaNarratives:
 
         }
 
-        print "data_dict - For anova_template_4 -------------------"
-        print data_dict
-
         output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,
                   'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
+        if self._binAnalyzedCol == True:
+            output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+ self._dimension_column+' - '+ top_level,'content': []}
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4_binned_IV.html',data_dict))
+        else:
+            output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,'content': []}
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
+
         lines = []
         lines += NarrativesUtils.block_splitter('<h4>'+output['header']+'</h4>',self._blockSplitter)
         for cnt in output['content']:
@@ -464,10 +480,18 @@ class OneWayAnovaNarratives:
 
 
         # print json.dumps(data_dict,indent=2)
-        output = {}
-        output['header'] = "<h4>"+top_level_name+"'s "+self._measure_column+" Performance over time"+"</h4>"
-        output['content'] = []
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.html',data_dict))
+
+        if self._binAnalyzedCol == True:
+            print "Binned IV"
+            output = {}
+            output['header'] = "<h4>"+ self._dimension_column + " - " +  top_level_name+"'s "+self._measure_column+" Performance over time"+"</h4>"
+            output['content'] = []
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6_binned_IV.html',data_dict))
+        else:
+            output = {}
+            output['header'] = "<h4>"+ top_level_name+"'s "+self._measure_column+" Performance over time"+"</h4>"
+            output['content'] = []
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.html',data_dict))
         # self.card2.add_paragraph(output)
         lines = []
         lines += [HtmlData(data=output['header'])]
