@@ -1,8 +1,10 @@
-from bi.common.decorators import accepts
-import pandas as pd
 from datetime import datetime
-from utils import Stats
+
+import pandas as pd
 from scipy import stats
+
+from bi.common.decorators import accepts
+
 
 class DFTwoWayAnovaResult:
     def __init__(self):

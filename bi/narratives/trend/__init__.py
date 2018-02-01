@@ -1,29 +1,18 @@
-import json
-import os
 import pandas as pd
 import time
 from datetime import datetime
+
+import pandas as pd
 from dateutil.relativedelta import relativedelta
-
-from bi.narratives import utils as NarrativesUtils
-from bi.common import utils as CommonUtils
-from bi.common import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-from bi.common.decorators import accepts
-
-
-from trend_narratives import TrendNarrative
-
-from pyspark.sql.functions import col, udf, max
-from pyspark.sql.types import *
-from pyspark.sql.functions import monotonically_increasing_id
+from pyspark.sql.functions import col, udf
 from pyspark.sql.functions import lit
-from pyspark.sql import DataFrame
+
+from bi.common import NarrativesTree, NormalCard, HtmlData, C3ChartData
+from bi.common import ScatterChartData, NormalChartData, ChartJson
+from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
-
-
-
+from trend_narratives import TrendNarrative
 
 
 class TimeSeriesNarrative:

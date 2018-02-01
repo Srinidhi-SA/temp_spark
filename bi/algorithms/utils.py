@@ -1,35 +1,31 @@
-import random
-import os
-import shutil
+import __builtin__
 import json
+import os
+import random
+import shutil
 
 import numpy as np
 import pandas as pd
-import operator
-import __builtin__
-
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import mean, stddev, col, sum, count, min, max
-from pyspark.sql.types import StringType
-from pyspark.sql.types import DoubleType
-from pyspark.ml.clustering import KMeans
-
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer, IndexToString
-
-import numpy as np
-import functools
-from pyspark.ml.feature import OneHotEncoder
-from pyspark.ml.pipeline import PipelineModel
+from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
+from pyspark.ml.clustering import KMeans
 from pyspark.ml.feature import Bucketizer
-from pyspark.ml.feature import QuantileDiscretizer
+from pyspark.ml.feature import OneHotEncoder
+from pyspark.ml.feature import StringIndexer, VectorAssembler
+from pyspark.ml.pipeline import PipelineModel
+from pyspark.sql import functions as FN
+from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
-from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from pyspark.sql.types import StringType
+
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 
-def bucket_all_measures(df, measure_columns, dimension_columns,target_measure=[]):
+
+def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
+    if target_measure is None:
+        target_measure = []
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns+target_measure])
     for measure_column in measure_columns:
         # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
@@ -205,7 +201,8 @@ def calculate_overall_precision_recall(actual,predicted):
     # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
     # positive_class = __builtin__.max(val_counts,key=val_counts.get)
     positive_class = __builtin__.min(val_counts,key=val_counts.get)
-    print val_counts
+    print "val_counts_predicted",val_counts_predicted
+    print "val_counts actual",val_counts
     print "positive_class",positive_class
 
     output = {"precision":0,"recall":0,"classwise_stats":None,"prediction_split":prediction_split,"positive_class":positive_class}
@@ -225,6 +222,7 @@ def calculate_overall_precision_recall(actual,predicted):
         count_dict["fp"] = df[(df["actual"]!=positive_class) & (df["predicted"]==positive_class)].shape[0]
         count_dict["tn"] = df[(df["actual"]!=positive_class) & (df["predicted"]!=positive_class)].shape[0]
         count_dict["fn"] = df[(df["actual"]==positive_class) & (df["predicted"]!=positive_class)].shape[0]
+        print {"tp":count_dict["tp"],"fp":count_dict["fp"],"tn":count_dict["tn"],"fn":count_dict["fn"]}
         if count_dict["tp"]+count_dict["fp"] > 0:
             output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         else:
@@ -327,12 +325,11 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
         return final_df, aggr
     return final_df, model.clusterCenters()
 
-def add_string_index(df, string_columns=None):
+def add_string_index(df,string_columns):
+    string_columns = list(set(string_columns))
     my_df = df.select(df.columns)
     column_name_maps = {}
     mapping_dict = {}
-    if string_columns==None:
-        string_columns = [c.name for c in df.schema.fields if type(c.dataType) == StringType]
     for c in string_columns:
         my_df = StringIndexer(inputCol=c, outputCol=c+'_index').fit(my_df).transform(my_df)
         column_name_maps[c+'_index'] = c
@@ -536,7 +533,9 @@ def get_total_models(collated_summary):
         has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
-def create_model_folders(model_slug,basefoldername,subfolders=[]):
+def create_model_folders(model_slug, basefoldername, subfolders=None):
+    if subfolders is None:
+        subfolders = []
     home_dir = os.path.expanduser("~")
     filepath = home_dir+"/"+basefoldername
     if not os.path.isdir(filepath):

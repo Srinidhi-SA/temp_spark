@@ -1,19 +1,10 @@
-import os
-import random
 import humanize
-import numpy as np
 
-from bi.common.dataframe import DataFrameHelper
-from bi.common.results import DecisionTreeResult
-from bi.common.utils import accepts
-from bi.common import ResultSetter
-from bi.narratives import utils as NarrativesUtils
+from bi.common import NormalCard, NarrativesTree, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
-from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
 
 
 class DecisionTreeRegNarrative:
@@ -191,10 +182,10 @@ class DecisionTreeRegNarrative:
             rulesArray = rules_dict[target]
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
             groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
-            for idx,obj in enumerate(probabilityGroups):
+            for idx2,obj in enumerate(probabilityGroups):
                 grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
                 obj["count"] += grpCount
-                probabilityGroups[idx] = obj
+                probabilityGroups[idx2] = obj
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
@@ -209,8 +200,8 @@ class DecisionTreeRegNarrative:
                 binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
                 if binnedColObj != None and targetCol in binnedColObj:
                     binFlag = True
-            for idx,crudeRule in enumerate(rulesArray):
-                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx], success[idx], success_percent[idx],analysisType,binFlag=binFlag)
+            for idx2,crudeRule in enumerate(rulesArray):
+                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx2], success[idx2], success_percent[idx2],analysisType,binFlag=binFlag)
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)

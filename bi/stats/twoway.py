@@ -1,23 +1,17 @@
-import pandas as pd
-import time
-from datetime import datetime
-from scipy.stats import f
 import __builtin__
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import mean, sum, min, max, count, udf, col
-from pyspark.sql.types import StringType
+import time
 
-from bi.common.decorators import accepts
-from bi.common.results import DFTwoWayAnovaResult,OneWayAnovaResult
-from bi.common.results import MeasureAnovaResult,TrendData
-from bi.common.results import TopDimensionStats, TrendResult,TopLevelDfAnovaStats
+import pandas as pd
+from pyspark.sql.functions import mean, sum, count, col
+from scipy.stats import f
 
-from bi.narratives import utils as NarrativesUtils
 from bi.common import utils as CommonUtils
+from bi.common.decorators import accepts
+from bi.common.results import DFTwoWayAnovaResult, OneWayAnovaResult
+from bi.common.results import MeasureAnovaResult, TrendData
+from bi.common.results import TopLevelDfAnovaStats
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
-
-
 
 #from bi.stats.descr import DescriptiveStats
 
@@ -27,14 +21,13 @@ Two way ANOVA test
 
 
 class TwoWayAnova:
-
-    '''
+    """
         var1 = n*mean2
         var2 = sum(x2)
         var5 = n*mean2 for each group(a,b)
         var3 = n*mean2 for each group a
 
-    '''
+    """
 
     def __init__(self, data_frame, df_helper, df_context, meta_parser):
         self._data_frame = data_frame
@@ -53,7 +46,7 @@ class TwoWayAnova:
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
-            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+            self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self.top_dimension_result = {}
@@ -198,7 +191,7 @@ class TwoWayAnova:
                     topLevelDfMeasureColMean = measureColStat[0][1]
                     topLevelDfMeasureColCount = measureColStat[0][2]
                     topLevelDfMeasureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
-                    dimensions_to_test_for_top_level = list(set(self._dimensions_to_test)-set([dimension]))
+                    dimensions_to_test_for_top_level = list(set(self._dimensions_to_test) - {dimension})
                     topLevelAnovaDimensions = {}
                     for dimensionlTopLevel in dimensions_to_test_for_top_level:
                         print "top level dimensions",dimensionlTopLevel

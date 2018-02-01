@@ -1,15 +1,13 @@
-import os
-import json
-import jinja2
 import math
+import math
+
 import numpy as np
 import pandas as pd
-from bi.common.utils import accepts
-from bi.common.results.two_way_anova import OneWayAnovaResult
+
+from bi.common import NormalCard, C3ChartData, HtmlData
+from bi.common import NormalChartData, ChartJson
 # from bi.stats import TuckeyHSD
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class Card:
@@ -571,7 +569,7 @@ class OneWayAnovaNarratives:
 
         self._contribution_limit = grouped_data_frame['contribution'].mean()
         self._increase_limit = max(0.0, grouped_data_frame['increase'].mean())
-        dimensionLevel = list(set(pivot_df.columns)-set(["year_month","key"]))
+        dimensionLevel = list(set(pivot_df.columns) - {"year_month", "key"})
         print dimensionLevel
         share = []
         growth = []

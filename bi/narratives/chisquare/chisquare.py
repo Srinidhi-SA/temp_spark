@@ -1,13 +1,13 @@
-import operator
-import os
+import json
 import json
 import random
-import numpy
+
 from pyspark.sql.functions import col
-from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,ToggleData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ToggleData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
 
 
 class ChiSquareAnalysis:
@@ -29,7 +29,7 @@ class ChiSquareAnalysis:
         self._num_analysed_variables = num_analysed_variables
         self._chiSquareTable = chisquare_result.get_contingency_table()
 
-        significant_variables=list(set(significant_variables)-set([analysed_dimension]))
+        significant_variables=list(set(significant_variables) - {analysed_dimension})
         significant_variables = list(set(significant_variables)-set(measure_columns))
         if len(significant_variables)<=20:
             if len(significant_variables)<=3:

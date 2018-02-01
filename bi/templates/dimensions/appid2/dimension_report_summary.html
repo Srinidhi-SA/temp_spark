@@ -1,9 +1,9 @@
 <p class="lead txt-justify">
-mAdvisor has analyzed the dataset, which contains<b>
+mAdvisor has analyzed the dataset, which contains
 {% if n_t == 1%}
-  {{n_t|intcomma}}</b> variable and <b>{{observations|round_number}}</b> observations.
+  <b>{{n_t|intcomma}}</b> variable and <b>{{observations|round_number}}</b> observations.
 {% else %}
-  {{n_t|intcomma}}</b> variables and <b>{{observations|round_number}}</b> observations.
+  <b>{{n_t|intcomma}}</b> variables and <b>{{observations|round_number}}</b> observations.
 {% endif %}
 
 {% if ignorecolumns|length == 1%}

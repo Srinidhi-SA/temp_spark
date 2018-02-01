@@ -1,11 +1,11 @@
-import os
 import humanize
 
-from bi.narratives import utils as NarrativesUtils
+from bi.common import NormalCard, SummaryCard, NarrativesTree, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
+
 
 class MeasureColumnNarrative:
 

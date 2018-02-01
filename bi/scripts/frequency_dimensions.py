@@ -1,5 +1,3 @@
-import json
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.frequency_dimensions import FreqDimensions

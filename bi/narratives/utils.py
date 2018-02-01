@@ -3,24 +3,23 @@
 Utility functions to be used by various narrative objects
 """
 import math
+import random
 import re
 import time
-import random
-import humanize
+from datetime import datetime
+
 import enchant
+import humanize
 import jinja2
 import numpy as np
-import pandas as pd
 import pattern
-from datetime import datetime
+import pyspark.sql.functions as PysparkFN
+from pyspark.sql import DataFrame
+from pyspark.sql.types import *
+
 from bi.common import HtmlData
 from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
-from pyspark.sql import DataFrame
-import pyspark.sql.functions as PysparkFN
-from pyspark.sql.types import *
-from pyspark.sql import DataFrame
-from bi.common import MetaParser
 
 
 # def round_number(num, digits=2, as_string=True):
@@ -824,6 +823,9 @@ def get_grouped_count_data_for_dimension_trend(df,dataLevel,resultCol):
 def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFormatDict,dateFormatConversionDict,requestedDateFormat):
     dateFormatDetected = False
     trendOnTdCol = False
+    existingDateFormat = None
+    requestedDateFormat = None
+    suggested_date_column = None
     if selectedDateColumns != None and len(selectedDateColumns) > 0:
         suggested_date_column = selectedDateColumns[0]
         existingDateFormat = None
@@ -854,6 +856,8 @@ def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFo
                     requestedDateFormat = dateFormatConversionDict[requestedDateFormat]
                 else:
                     requestedDateFormat = existingDateFormat
+
+
     output = {
         "dateFormatDetected":dateFormatDetected,
         "requestedDateFormat":requestedDateFormat,
@@ -912,7 +916,14 @@ def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,
         duration = df.select("year_month").distinct().count()
         dataLevel = "month"
         durationString = CommonUtils.get_duration_string(dataRange)
-    return (df,{"duration":duration,"durationString":durationString,"dataLevel":dataLevel,"firstDate":first_date,"lastDate":last_date})
+    outDict = {
+        "duration":duration,
+        "durationString":durationString,
+        "dataLevel":dataLevel,
+        "firstDate":first_date,
+        "lastDate":last_date
+        }
+    return (df,outDict)
 
 
 def restructure_donut_chart_data(dataDict,nLevels=None):

@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """Gathers descriptive stats for all columns in a dataframe"""
-import json
-from bi.common import DataWriter
+import time
+
 from bi.common import utils as CommonUtils
 # from bi.narratives.descr import DescriptiveStatsNarrative
 from bi.narratives.descr.measure import MeasureColumnNarrative
 from bi.stats.descr import DescriptiveStats
-import time
-
 
 
 class DescriptiveStatsScript:

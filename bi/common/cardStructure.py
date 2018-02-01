@@ -16,7 +16,11 @@ class NarrativesTree:
     get name => get_name
     """
 
-    def __init__(self,name=None, slug=None, listOfNodes=[], listOfCards=[]):
+    def __init__(self, name=None, slug=None, listOfNodes=None, listOfCards=None):
+        if listOfNodes is None:
+            listOfNodes = []
+        if listOfCards is None:
+            listOfCards = []
         self.name = '' if name==None else str(name)
         self.slug = '' if slug==None else str(slug)
         self.listOfNodes = list(listOfNodes)
@@ -108,7 +112,9 @@ class NormalCard:
     ```
     """
 
-    def __init__(self,name=None,slug=None,cardData = []):
+    def __init__(self, name=None, slug=None, cardData=None):
+        if cardData is None:
+            cardData = []
         self.cardType = "normal"
         self.name = name
         self.slug = slug
@@ -161,7 +167,9 @@ class SummaryCard:
     ```
     """
 
-    def __init__(self,name=None,slug=None,cardData = {}):
+    def __init__(self, name=None, slug=None, cardData=None):
+        if cardData is None:
+            cardData = {}
         self.cardType = "summary"
         self.name = name
         self.slug = slug
@@ -249,7 +257,9 @@ class TreeData:
 
 class TableData:
 
-    def __init__(self,data={}):
+    def __init__(self, data=None):
+        if data is None:
+            data = {}
         self.dataType = "table"
         self.data = data
         self.tableWidth = 100
@@ -280,7 +290,9 @@ class TableData:
 
 
 class C3ChartData:
-    def __init__(self,data=None,info=[]):
+    def __init__(self, data=None, info=None):
+        if info is None:
+            info = []
         self.dataType = "c3Chart"
         self.data = data
         self.widthPercent=100

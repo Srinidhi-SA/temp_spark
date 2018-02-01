@@ -38,7 +38,7 @@ class LinearRegression:
         measure_columns = set(self._measure_columns)
 
         for output_column in measure_columns:
-            input_columns = list(measure_columns - set([output_column]))
+            input_columns = list(measure_columns - {output_column})
             regression_result = self.fit(output_column, input_columns)
             if regression_result != None:
                 df_regression_result.add_regression_result(regression_result)
@@ -50,7 +50,7 @@ class LinearRegression:
             raise BIException('Output column: %s is not a measure column' % (output_column,))
 
         if input_columns == None:
-            input_columns = list(set(self._dataframe_helper.get_numeric_columns())-set([output_column]))
+            input_columns = list(set(self._dataframe_helper.get_numeric_columns()) - {output_column})
 
         if len(set(input_columns) - set(self._dataframe_helper.get_numeric_columns())) != 0:
             raise BIException('At least one of the input columns %r is not a measure column' % (input_columns,))

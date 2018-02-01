@@ -1,5 +1,5 @@
-from sklearn.linear_model import LogisticRegression as Logit
 from sklearn import preprocessing
+from sklearn.linear_model import LogisticRegression as Logit
 
 from bi.algorithms import utils as MLUtils
 

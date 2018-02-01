@@ -31,7 +31,7 @@ class DecisionTreeRegression:
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
-            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+            self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self._mapping_dict = {}
@@ -166,7 +166,9 @@ class DecisionTreeRegression:
 
 
 
-    def generate_new_tree(self,rules, rule_list = []):
+    def generate_new_tree(self, rules, rule_list=None):
+        if rule_list is None:
+            rule_list = []
         rules_list=rule_list
         new_rules = {'name':rules['name']}
         if rules.has_key('children'):

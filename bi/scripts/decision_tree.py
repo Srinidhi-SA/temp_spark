@@ -1,7 +1,4 @@
-import json
 from bi.algorithms import DecisionTrees
-from bi.common import DataWriter
-from bi.common import utils as CommonUtils
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
 

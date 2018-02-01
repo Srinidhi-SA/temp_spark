@@ -1,5 +1,4 @@
 import math
-import time
 from itertools import chain
 
 from pyspark.ml.feature import Bucketizer
@@ -8,11 +7,11 @@ from pyspark.mllib.stat import Statistics
 from pyspark.sql.types import DoubleType
 
 from bi.common import BIException
+from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
 from bi.common.results import ChiSquareResult
 from bi.common.results import DFChiSquareResult
 from bi.common.results.chisquare import ContingencyTable
-from bi.common import utils as CommonUtils
 
 """
 Chi Square Test
@@ -35,7 +34,7 @@ class ChiSquare:
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
-            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+            self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
 
@@ -185,13 +184,14 @@ class ChiSquare:
 
 
     def _get_contingency_table_of_freq(self, pivot_table, need_sorting=False):
-        '''
+        """
 
         :param pivot_table:
                 column_names[1:] correspond to unique values of column two
                 values in first column correspond to unique values of column one
         :return:
-        '''
+        """
+
         column_one_values = []
         column_two_values = pivot_table.columns[1:]
         rows = pivot_table.collect()

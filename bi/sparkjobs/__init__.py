@@ -1,6 +1,5 @@
 from bi import master
-from sparkjobserver.api import SparkJob, build_problems
-
+from sparkjobserver.api import SparkJob
 
 
 class JobScript(SparkJob):

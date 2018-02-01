@@ -1,30 +1,17 @@
-import os
-import re
-import time
-import json
 import operator
-import random
-from collections import OrderedDict
+import time
+
 import numpy as np
-
-#from nltk import tokenize
-from bi.common.utils import accepts
-from bi.common.results.regression import RegressionResult
-from bi.common.results.correlation import CorrelationStats
-from bi.common.results.correlation import ColumnCorrelations
-from bi.algorithms import KmeansClustering
-from bi.algorithms import LinearRegression
-from bi.narratives import utils as NarrativesUtils
-from bi.stats.util import Stats
-from bi.common import utils as CommonUtils
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-
-
 import pyspark.sql.functions as FN
-from pyspark.sql.functions import avg
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.types import DoubleType
-from pyspark.sql.functions import monotonically_increasing_id
+
+# from nltk import tokenize
+from bi.algorithms import LinearRegression
+from bi.common import ScatterChartData, ChartJson
+from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
+from bi.stats.util import Stats
 
 
 class LinearRegressionNarrative:
@@ -32,9 +19,10 @@ class LinearRegressionNarrative:
     MODERATE_CORRELATION = 0.3
 
 
-    def __init__(self, regression_result, column_correlations, df_helper,df_context,spark):
+    def __init__(self, regression_result, column_correlations, df_helper,df_context,meta_parser,spark):
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._metaParser = meta_parser
         self._regression_result = regression_result
         self._data_frame = self._dataframe_helper.get_data_frame()
         self._spark = spark
@@ -380,7 +368,7 @@ class LinearRegressionNarrative:
     def run_regression(self,df,measure_column):
         output = {}
         result_column = self._result_column
-        result = LinearRegression(df, self._dataframe_helper, self._dataframe_context,self._spark).fit(result_column)
+        result = LinearRegression(df, self._dataframe_helper, self._dataframe_context,self._metaParser,self._spark).fit(result_column)
         result = {"intercept" : result.get_intercept(),
                   "rmse" : result.get_root_mean_square_error(),
                   "rsquare" : result.get_rsquare(),

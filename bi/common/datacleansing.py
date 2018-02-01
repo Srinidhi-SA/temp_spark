@@ -1,12 +1,12 @@
-from pyspark.sql.dataframe import DataFrame
+from datetime import datetime
+
 from pyspark.sql import functions as FN
+from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.types import DateType
 from pyspark.sql.types import TimestampType
 
-from datetime import datetime
-
-from utils import accepts
 from dataframe import DataFrameHelper
+from utils import accepts
 
 
 class DataType:
@@ -56,10 +56,10 @@ class DataCleanser:
     ANY_COLUMN_IS_NULL = 'any'
     ALL_COLUMNS_ARE_NULL = 'all'
 
-    @accepts(object, DataFrame)
-    def __init__(self, data_frame):
+    @accepts(object, DataFrame, DataFrameHelper)
+    def __init__(self, data_frame, df_helper):
         self._data_frame = data_frame
-        self._data_frame_helper = DataFrameHelper(data_frame)
+        self._dataframe_helper = df_helper
         self._transformations = {}  # column_name -> ColumnTypeConversion(...)
         self._columns_to_remove = []
         self._remove_null_rows = False
@@ -68,7 +68,7 @@ class DataCleanser:
     @accepts(object, (str, basestring), (str, basestring), (DateType, TimestampType))
     def type_cast_string_column(self, column_name, orig_column_data_format, required_column_type):
         # column_name does not exist => ignore
-        if not self._data_frame_helper.has_column(column_name):
+        if not self._dataframe_helper.has_column(column_name):
             return
 
         if type(required_column_type) == DateType:
@@ -81,7 +81,7 @@ class DataCleanser:
     @accepts(object, (str, basestring))
     def remove_column(self, column_name):
         # column_name does not exist => ignore
-        if not self._data_frame_helper.has_column(column_name):
+        if not self._dataframe_helper.has_column(column_name):
             return
         if self._transformations.has_key(column_name):
             del self._transformations[column_name]
@@ -104,7 +104,7 @@ class DataCleanser:
             if self._transformations.has_key(column_name):
                 del self._transformations[column_name]
 
-        columns_to_retain = [column for column in self._data_frame_helper.get_columns() if
+        columns_to_retain = [column for column in self._dataframe_helper.get_columns() if
                              column not in self._columns_to_remove]
 
         columns_to_transform = self._transformations.keys()

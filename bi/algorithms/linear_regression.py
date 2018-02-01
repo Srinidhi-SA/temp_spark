@@ -1,13 +1,11 @@
-from pyspark.ml.linalg import DenseVector
 from pyspark.ml.regression import LinearRegression as LR
-from pyspark.sql.functions import  col, udf, count
-from pyspark.ml.linalg import Vectors, VectorUDT
 
 from bi.common.exception import BIException
 from bi.common.results.regression import DFRegressionResult
 from bi.common.results.regression import RegressionResult
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader
+from bi.common import DataFrameHelper
 from bi.algorithms import utils as MLUtils
 
 
@@ -21,10 +19,11 @@ class LinearRegression:
     MAX_ITERATIONS = 5
     REGULARIZATION_PARAM = 0.1
 
-    def __init__(self, data_frame, df_helper, df_context, spark):
+    def __init__(self, data_frame, df_helper, df_context, meta_parser,spark):
         self._data_frame = data_frame
-        self._dataframe_helper = df_helper
+        # self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._metaParser = meta_parser
         self._spark = spark
 
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -57,7 +56,10 @@ class LinearRegression:
             self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
         elif datasource_type == "fileUpload":
             self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-
+        self._dataframe_helper = DataFrameHelper(self._data_frame,self._dataframe_context,self._metaParser)
+        self._dataframe_helper.set_params()
+        self.temp_df = self._dataframe_helper.get_data_frame()
+        self._data_frame = self._dataframe_helper.fill_missing_values(self.temp_df)
 
     def fit_all(self):
         """
@@ -70,7 +72,7 @@ class LinearRegression:
         df_regression_result = DFRegressionResult()
         measure_columns = set(self._measure_columns)
         for output_column in measure_columns:
-            input_columns = list(measure_columns - set([output_column]))
+            input_columns = list(measure_columns - {output_column})
             regression_result = self.fit(output_column, input_columns)
             if regression_result != None:
                 df_regression_result.add_regression_result(regression_result)
@@ -83,7 +85,7 @@ class LinearRegression:
             raise BIException('Output column: %s is not a measure column' % (output_column,))
 
         if input_columns == None:
-            input_columns = list(set(self._dataframe_helper.get_numeric_columns())-set([output_column]))
+            input_columns = list(set(self._dataframe_helper.get_numeric_columns()) - {output_column})
 
         nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
         if nColsToUse != None:
@@ -94,7 +96,6 @@ class LinearRegression:
         all_measures = input_columns+[output_column]
         print all_measures
         measureDf = self._data_frame.select(all_measures)
-        print measureDf.show(2)
         lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
                 elasticNetParam=1.0, labelCol=LinearRegression.LABEL_COLUMN_NAME,
                 featuresCol=LinearRegression.FEATURES_COLUMN_NAME)

@@ -1,6 +1,5 @@
-
-from pyspark.sql.types import DataType
 from pyspark.sql.types import BinaryType
+from pyspark.sql.types import BooleanType
 from pyspark.sql.types import DateType
 from pyspark.sql.types import DecimalType
 from pyspark.sql.types import DoubleType
@@ -10,10 +9,7 @@ from pyspark.sql.types import LongType
 from pyspark.sql.types import ShortType
 from pyspark.sql.types import StringType
 from pyspark.sql.types import TimestampType
-from pyspark.sql.types import BooleanType
 
-
-from decorators import accepts
 
 class ColumnType:
     """

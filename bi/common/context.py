@@ -1,6 +1,7 @@
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
-import ast
+
+
 class ContextSetter:
 
     MEASUREC_COLUMNS = "measure_columns"
@@ -283,12 +284,13 @@ class ContextSetter:
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    @accepts(object,(list))
     def update_consider_columns(self,considerCols):
         self.considercolumns = considerCols
-
+    @accepts(object,(list))
     def set_ignore_column_suggestions(self,ignoreSuggestions):
         self.ignorecolumns = ignoreSuggestions
-
+    @accepts(object,(list))
     def set_utf8_columns(self,utf8Cols):
         self.utf8columns = utf8Cols
 
@@ -381,10 +383,7 @@ class ContextSetter:
 
 
     def get_custom_analysis_details(self):
-        if self.customAnalysisDetails:
-            return self.customAnalysisDetails
-        else:
-            return None
+        return self.customAnalysisDetails
 
     def get_metadata_url(self):
         return self.METADATA_URL
