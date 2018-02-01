@@ -95,6 +95,7 @@ class RegressionNarrative:
                                     self._correlations,
                                     self._dataframe_helper,
                                     self._dataframe_context,
+                                    self._metaParser,
                                     self._spark
                                     )
         main_card_data = regression_narrative_obj.generate_main_card_data()
@@ -302,7 +303,7 @@ class RegressionNarrative:
             for level in column_levels:
                 print "Filtering data for level:",level
                 filtered_df = self._dataframe_helper.filter_dataframe(col,level)
-                result = LinearRegression(filtered_df, self._dataframe_helper, self._dataframe_context,self._spark).fit(self._dataframe_context.get_result_column())
+                result = LinearRegression(filtered_df, self._dataframe_helper, self._dataframe_context,self._metaParser,self._spark).fit(self._dataframe_context.get_result_column())
                 if result == None:
                     result = {"intercept" : 0.0,
                               "rmse" : 0.0,
