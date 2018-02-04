@@ -323,6 +323,7 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
     final_df = final_df.select([col(c) if c!=col_to_cluster else col(c).alias(col_to_cluster) for c in final_df.columns])
     if (get_aggregation):
         return final_df, aggr
+    print model.clusterCenters()
     return final_df, model.clusterCenters()
 
 def add_string_index(df,string_columns):

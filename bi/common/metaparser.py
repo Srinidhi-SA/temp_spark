@@ -18,7 +18,7 @@ class MetaParser:
         self.column_dict = self.get_column_stats(self.meta_data['columnData'])
         ignorecolobject = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnSuggestions"]
         ignorereasonobj = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnReason"]
-        self.noOfRows = [x for x in self.meta_data['metaData'] if x["name"] == "noOfRows"][0]
+        self.noOfRows = [x for x in self.meta_data['metaData'] if x["name"] == "noOfRows"][0]["value"]
         self.noOfColumns = [x for x in self.meta_data['metaData'] if x["name"] == "noOfColumns"][0]
         if len(ignorecolobject) > 0:
             if ignorecolobject[0] != {} and len(ignorecolobject[0]["value"]) >0:
@@ -122,6 +122,6 @@ class MetaParser:
 
     def get_num_rows(self):
         return self.noOfRows
-        
+
     def get_num_columns(self):
         return self.noOfColumns

@@ -139,7 +139,7 @@ def get_story_config():
               "name": "overview"
             },
             {
-              "status": True,
+              "status": False,
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -172,7 +172,7 @@ def get_story_config():
               "name": "performance"
             },
             {
-              "status": True,
+              "status": False,
               "noOfColumnsToUse": [
                 {
                   "status": False,

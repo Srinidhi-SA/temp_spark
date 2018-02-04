@@ -10,6 +10,8 @@ from bi.common.results import DecisionTreeResult
 
 from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
+from bi.algorithms import KmeansClustering
+from bi.settings import setting as GLOBALSETTINGS
 
 """
 Decision Tree
@@ -41,6 +43,7 @@ class DecisionTreeRegression:
         self._probability = {}
         self._alias_dict = {}
         self._important_vars = {}
+        self._numCluster = None
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -70,7 +73,6 @@ class DecisionTreeRegression:
     def parse(self, lines, df):
         block = []
         while lines :
-
             if lines[0].startswith('If'):
                 bl = ' '.join(lines.pop(0).split()[1:]).replace('(', '').replace(')', '')
                 if "feature" in bl:
@@ -96,13 +98,15 @@ class DecisionTreeRegression:
                 if "feature" in block2:
                     block2 = "%s %s" % (df.columns[int(block2.split()[1])], ' '.join(block2.split()[2:]))
                 if "Predict" in block2:
+                    # print "block2",block2
+                    # print self._mapping_dict[df.columns[0]]
+                    # print [int(float(block2.split(':')[1].strip()))]
                     outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(':')[1].strip()))]
                     block2 = "Predict: %s" % (outcome)
                 block.append({'name':block2})
             else:
                 break
         return block
-
 
     def tree_json(self, tree, df):
         data = []
@@ -115,8 +119,6 @@ class DecisionTreeRegression:
         res = []
         res.append({'name': 'Root', 'children':self.parse(data[1:], df)})
         return res[0]
-
-
 
     @accepts(object, rule_list=list,target=str)
     def extract_rules(self, rule_list, target):
@@ -164,8 +166,6 @@ class DecisionTreeRegression:
             self._probability[target].append(success*100.0/total)
             return success
 
-
-
     def generate_new_tree(self, rules, rule_list=None):
         if rule_list is None:
             rule_list = []
@@ -210,12 +210,31 @@ class DecisionTreeRegression:
         self._data_frame, clusters = MLUtils.cluster_by_column(self._data_frame, self._target_dimension)
         self._data_frame1, self._aggr_data = MLUtils.cluster_by_column(self._data_frame1, self._target_dimension, get_aggregation=True)
         self._cluster_order = [x[1] for x in sorted(zip(clusters,[0,1,2]))]
-        self._mapping_dict[self._target_dimension] = dict(zip(self._cluster_order,\
-                                                    ['Low','Medium','High']))
+        self._mapping_dict[self._target_dimension] = dict(zip(self._cluster_order,GLOBALSETTINGS.DECISIONTREERKMEANSTARGETNAME))
         self._reverse_map = {}
         for k,v in self._mapping_dict[self._target_dimension].iteritems():
             self._reverse_map[v] = k
         self.set_alias_dict()
+
+
+    # def transform_data_frames(self):
+    #     self._data_frame, self._mapping_dict = MLUtils.add_string_index(self._data_frame, self._dimension_columns)
+    #     kmeans_obj = KmeansClustering(self._data_frame, self._dataframe_helper, self._dataframe_context, self._metaParser, self._spark)
+    #     kmeans_obj.kmeans_pipeline([self._target_dimension],cluster_count=3)
+    #     kmeans_result = {"stats":kmeans_obj.get_kmeans_result(),"data":kmeans_obj.get_prediction_data()}
+    #     self._aggr_data = kmeans_obj.get_aggregated_summary(self._target_dimension)
+    #     print "kmeans_result",kmeans_result
+    #     clusterCenters = sorted([x[0] for x in kmeans_result["stats"]["centers"]])
+    #     self._numCluster = len(clusterCenters)
+    #     print dict(zip(range(len(clusterCenters)),GLOBALSETTINGS.DECISIONTREERKMEANSTARGETNAME))
+    #     self._mapping_dict[self._target_dimension] = dict(zip(range(len(clusterCenters)),GLOBALSETTINGS.DECISIONTREERKMEANSTARGETNAME))
+    #     self._reverse_map = {}
+    #     for k,v in self._mapping_dict[self._target_dimension].iteritems():
+    #         self._reverse_map[v] = k
+    #     predictedDf = kmeans_obj.get_prediction_data()
+    #     self._data_frame = predictedDf.select([x for x in self._data_frame.columns if x != self._target_dimension]+["prediction"])
+    #     self._data_frame = self._data_frame.withColumnRenamed("prediction",self._target_dimension)
+    #     self.set_alias_dict()
 
     def set_alias_dict(self):
         mapping_dict = self._mapping_dict
@@ -245,6 +264,7 @@ class DecisionTreeRegression:
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
+        # print cat_feature_info
         dimension_classes = self._data_frame.select(dimension).distinct().count()
         self._data_frame = self._data_frame[[dimension] + all_dimensions + all_measures]
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
@@ -252,6 +272,7 @@ class DecisionTreeRegression:
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
         model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=3, maxBins=max_length)
         output_result = model.toDebugString()
+        # print "output_result",output_result
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)
         self._new_tree = self.wrap_tree(self._new_tree)
@@ -269,5 +290,5 @@ class DecisionTreeRegression:
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
-
+        # print decision_tree_result
         return decision_tree_result
