@@ -13,6 +13,7 @@ from bi.narratives import utils as NarrativesUtils
 class ChiSquareAnalysis:
     def __init__ (self, df_context, df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns,base_dir,appid=None,target_chisquare_result=None):
         self._blockSplitter = "|~NEWBLOCK~|"
+        self._highlightFlag = "|~HIGHLIGHT~|"
         self._dimensionNode = NarrativesTree()
         self._dimensionNode.set_name(target_dimension)
         self._data_frame = data_frame
@@ -245,6 +246,7 @@ class ChiSquareAnalysis:
         data_dict["blockSplitter"] = self._blockSplitter
         data_dict["binTargetCol"] = self._binTargetCol
         data_dict["binAnalyzedCol"] = self._binAnalyzedCol
+        data_dict['highlightFlag'] = self._highlightFlag
         
 
         print "-----------data_dict - card1------------"
@@ -252,12 +254,12 @@ class ChiSquareAnalysis:
 
         if (self._binTargetCol == True & self._binAnalyzedCol == False):
             print "Only Target Column is Binned"
-            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter)
+            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
         elif (self._binTargetCol == True & self._binAnalyzedCol == True):
             print "Target Column and IV is Binned"
-            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter)
+            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
         else:
-            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter)
+            output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
         
         targetDimCard1Data = []
         targetDimcard1Heading = '<h3>Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension+"</h3>"

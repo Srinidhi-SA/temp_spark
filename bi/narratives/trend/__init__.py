@@ -226,13 +226,14 @@ class TimeSeriesNarrative:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
                         self._result_setter.update_executive_summary_data(dataDict)
-                        dataDict.update({"blockSplitter":self._blockSplitter})
+                        dataDict.update({"blockSplitter":self._blockSplitter,"highlightFlag":self._highlightFlag})
+
                         summary1 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'measure_trend_card1.html',dataDict)
                         summary2 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         'measure_trend_card2.html',dataDict)
                         measureTrendCard = NormalCard()
-                        measureTrendcard1Data = NarrativesUtils.block_splitter(summary1,self._blockSplitter)
+                        measureTrendcard1Data = NarrativesUtils.block_splitter(summary1,self._blockSplitter,highlightFlag=self._highlightFlag)
                         measureTrendcard2Data = NarrativesUtils.block_splitter(summary2,self._blockSplitter)
                         # print measureTrendcard1Data
 

@@ -266,13 +266,13 @@ def main(configJson):
                 response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],metaDataJson)
             else:
                 response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],{"status":"failed","message":"Filtered Dataframe has no data"})
+            return response
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"transformDf",e)
             CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "SubSetting Analysis Completed in", time.time()-st," Seconds"
-        return response
     ############################################################################
 
     ################################ Story Creation ############################

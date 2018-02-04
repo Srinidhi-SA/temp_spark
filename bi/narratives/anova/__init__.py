@@ -158,7 +158,7 @@ class AnovaNarratives:
                 CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
                 self._generate_dimension_narratives(significant_dimensions, measure_anova_result, measure_column)
 
-    def _generate_dimension_narratives(self, significant_dimensions, measure_anova_result, measure):
+    def _generate_dimension_narratives(self,significant_dimensions, measure_anova_result, measure):
         self.narratives['cards'] = []
         anova_trend_result = measure_anova_result.get_trend_data()
         if len(significant_dimensions) == 0:
@@ -166,6 +166,6 @@ class AnovaNarratives:
         self.narratives['variables'] = significant_dimensions
         for dimension in significant_dimensions:
             dimensionNode = NarrativesTree(name = dimension)
-            narratives = OneWayAnovaNarratives(measure, dimension, measure_anova_result, anova_trend_result,self._result_setter,dimensionNode,self._base_dir)
+            narratives = OneWayAnovaNarratives(self._dataframe_context,measure, dimension, measure_anova_result, anova_trend_result,self._result_setter,dimensionNode,self._base_dir)
             self._anovaNodes.add_a_node(dimensionNode)
             self.narratives['cards'].append(narratives)

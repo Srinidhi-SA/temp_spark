@@ -38,6 +38,11 @@ class TwoWayAnova:
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
 
+        print "=================dimension columns======================"
+        print self._dimension_columns
+        print "==================measure_columns ========================"
+        print self._measure_columns
+
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
@@ -110,6 +115,7 @@ class TwoWayAnova:
         if measure_columns is None:
             measures = self._measure_columns
         dimensions = dimension_columns
+        print "===================dimensions================"
         if dimension_columns is None:
             dimensions = self._dimension_columns
         nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
@@ -121,6 +127,8 @@ class TwoWayAnova:
         max_levels = __builtin__.min([acceptable_level_count,int(sqrt_nrows)])
         df_anova_result = DFTwoWayAnovaResult()
         dimensions_to_test = [dim for dim in dimensions if self._dataframe_helper.get_num_unique_values(dim) <= max_levels]
+        print "======================= dimensions_to_test ==============================="
+        print dimensions_to_test
         self._dimensions_to_test = dimensions_to_test
         print "dimensions to test ",self._dimensions_to_test
         for measure in measures:
