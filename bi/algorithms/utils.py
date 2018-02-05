@@ -26,7 +26,7 @@ from bi.common import utils as CommonUtils
 def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
     if target_measure is None:
         target_measure = []
-    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns+target_measure])
+    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
     for measure_column in measure_columns:
         # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
         #                                                outputCol='quantile',

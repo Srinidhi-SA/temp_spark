@@ -347,7 +347,7 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
 def save_error_messages(url,error,ignore=False):
     if url != None:
         if ignore == False:
-            res = requests.post(url=url,data=json.dumps({"error":str(error),"traceback":traceback.format_exc()}))
+            res = requests.post(url=url,data=json.dumps({"error":str(error).split("\n"),"traceback":traceback.format_exc()}))
             return res
         else:
             return True
