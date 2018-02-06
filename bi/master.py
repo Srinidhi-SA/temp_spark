@@ -57,7 +57,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
+            jobType = "subSetting"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
