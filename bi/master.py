@@ -39,7 +39,7 @@ def main(configJson):
     deployEnv = False  # running the scripts from job-server env
     debugMode = True   # runnning the scripts for local testing and development
     cfgMode = False    # runnning the scripts by passing config.cfg path
-    script_start_time = time.time()
+    scriptStartTime = time.time()
     if isinstance(configJson,pyhocon.config_tree.ConfigTree) or isinstance(configJson,dict):
         deployEnv = True
         debugMode = False
@@ -78,6 +78,12 @@ def main(configJson):
     jobType = job_config["job_type"]
     messageUrl = configJson["job_config"]["message_url"]
     jobName = job_config["job_name"]
+    try:
+        errorURL = job_config["error_reporting_url"]
+    except:
+        errorURL = None
+    CommonUtils.save_error_messages(errorURL,"jobRuntime",{"startTime":scriptStartTime},ignore=ignoreMsg)
+
 
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
@@ -88,10 +94,6 @@ def main(configJson):
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
-    try:
-        errorURL = job_config["error_reporting_url"]+APP_NAME+"/"
-    except:
-        errorURL = None
 
     messageURL = dataframe_context.get_message_url()
     analysistype = dataframe_context.get_analysis_type()
@@ -236,7 +238,7 @@ def main(configJson):
             return response
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"metadata",e)
-            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
     ############################################################################
 
     ################################ Data Sub Setting ##########################
@@ -248,7 +250,7 @@ def main(configJson):
             filtered_df = subsetting_class.applyFilter()
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"filterDf",e)
-            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
         try:
             if filtered_df.count() > 0:
                 transform_class = DataFrameTransformer(filtered_df,df_helper,dataframe_context)
@@ -269,7 +271,7 @@ def main(configJson):
             return response
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"transformDf",e)
-            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "SubSetting Analysis Completed in", time.time()-st," Seconds"
@@ -300,7 +302,7 @@ def main(configJson):
                     print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -319,7 +321,7 @@ def main(configJson):
                     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Dimension vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -339,7 +341,7 @@ def main(configJson):
 
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -360,7 +362,7 @@ def main(configJson):
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -426,7 +428,7 @@ def main(configJson):
                     print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -445,7 +447,7 @@ def main(configJson):
                     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Dimension",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -470,10 +472,10 @@ def main(configJson):
                         print "Regression Analysis Done in ", time.time() - fs, " seconds."
                     except Exception as e:
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"regression",e)
-                        CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                        CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Measure",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Measure vs. Measure"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -493,7 +495,7 @@ def main(configJson):
 
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Trend"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -514,7 +516,7 @@ def main(configJson):
                     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
-                    CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     completionStatus = dataframe_context.get_completion_status()
                     completionStatus += scriptWeightDict["Predictive modeling"]["total"]
                     dataframe_context.update_completion_status(completionStatus)
@@ -603,7 +605,7 @@ def main(configJson):
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
         try:
             st = time.time()
@@ -612,7 +614,7 @@ def main(configJson):
             print "XGBoost Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
-            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
         try:
             st = time.time()
@@ -622,7 +624,7 @@ def main(configJson):
             print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
-            CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
         modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative)
         print modelJsonOutput
@@ -672,7 +674,7 @@ def main(configJson):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-                CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "xgboost" in selected_model_for_prediction:
             df = df.toPandas()
@@ -681,7 +683,7 @@ def main(configJson):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-                CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "logisticregression" in selected_model_for_prediction:
             df = df.toPandas()
@@ -691,7 +693,7 @@ def main(configJson):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-                CommonUtils.save_error_messages(errorURL,e,ignore=ignoreMsg)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
@@ -720,8 +722,9 @@ def main(configJson):
         response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
 
     ############################################################################
-
-    print "Scripts Time : ", time.time() - script_start_time, " seconds."
+    scriptEndTime = time.time()
+    CommonUtils.save_error_messages(errorURL,"jobRuntime",{"endTime":scriptEndTime},ignore=ignoreMsg)
+    print "Scripts Time : ", scriptEndTime - scriptStartTime, " seconds."
     #spark.stop()
 
 def submit_job_through_yarn():

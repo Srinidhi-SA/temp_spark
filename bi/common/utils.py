@@ -344,7 +344,9 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
     print "{} Script Failed".format(scriptName)
     print loggerDict[scriptName]
 
-def save_error_messages(url,error,ignore=False):
+def save_error_messages(url,errorKey,error,ignore=False):
+    if errorKey != None:
+        url = url+errorKey+"/"
     if url != None:
         tracebackData = str(traceback.format_exc())
         errordict = {"error":str(error).split("\n"),"traceback":tracebackData.split("\n")}
