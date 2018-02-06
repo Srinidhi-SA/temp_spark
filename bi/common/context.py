@@ -109,7 +109,6 @@ class ContextSetter:
                 cipher_suite = Fernet(GLOBALSETTINGS.HDFS_SECRET_KEY)
                 localFilepath = str(self.OUTPUT_FILEPATH).startswith("/")
                 hdfsFilePath = "hdfs" in str(self.OUTPUT_FILEPATH)
-                print "hdfs" not in str(self.OUTPUT_FILEPATH)
                 if "hdfs" not in str(self.OUTPUT_FILEPATH) and localFilepath != True:
                     self.OUTPUT_FILEPATH = cipher_suite.decrypt(self.OUTPUT_FILEPATH)
                 else:
