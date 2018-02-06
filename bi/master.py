@@ -82,8 +82,6 @@ def main(configJson):
         errorURL = job_config["error_reporting_url"]
     except:
         errorURL = None
-    CommonUtils.save_error_messages(errorURL,"jobRuntime",{"startTime":scriptStartTime},ignore=ignoreMsg)
-
 
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
@@ -405,7 +403,6 @@ def main(configJson):
             print "Dimension Analysis Completed in", time.time()-st," Seconds"
             progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your signal is ready",100,100,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-            return response
 
         elif analysistype == 'measure':
             st = time.time()
@@ -568,7 +565,6 @@ def main(configJson):
             print "Measure Analysis Completed in :", time.time()-st," Seconds"
             progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Your signal is ready",100,100,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-            return response
 
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
@@ -634,7 +630,6 @@ def main(configJson):
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Training Completed in ", time.time() - st, " seconds."
-        return response
     ############################################################################
 
     ############################## Model Prediction ############################
@@ -710,7 +705,6 @@ def main(configJson):
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
-        return response
     ############################################################################
 
     ################################### Stock ADVISOR ##########################
@@ -723,7 +717,9 @@ def main(configJson):
 
     ############################################################################
     scriptEndTime = time.time()
-    CommonUtils.save_error_messages(errorURL,"jobRuntime",{"endTime":scriptEndTime},ignore=ignoreMsg)
+    runtimeDict = {"startTime":scriptStartTime,"endTime":scriptEndTime}
+    print runtimeDict
+    CommonUtils.save_error_messages(errorURL,"jobRuntime",runtimeDict,ignore=ignoreMsg)
     print "Scripts Time : ", scriptEndTime - scriptStartTime, " seconds."
     #spark.stop()
 

@@ -348,8 +348,11 @@ def save_error_messages(url,errorKey,error,ignore=False):
     if errorKey != None:
         url = url+errorKey+"/"
     if url != None:
-        tracebackData = str(traceback.format_exc())
-        errordict = {"error":str(error).split("\n"),"traceback":tracebackData.split("\n")}
+        if errorKey != "jobRuntime":
+            tracebackData = str(traceback.format_exc())
+            errordict = {"error":str(error).split("\n"),"traceback":tracebackData.split("\n")}
+        else:
+            errordict = error
         if ignore == False:
             res = requests.post(url=url,data=json.dumps(errordict))
             return res
