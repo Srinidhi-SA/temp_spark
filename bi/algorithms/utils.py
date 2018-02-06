@@ -314,6 +314,7 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
     kmeans = KMeans(predictionCol=col_to_cluster, featuresCol='feature_vector').setK(3).setSeed(1)
     model = kmeans.fit(assembled_without_outlier)
     final_df = model.transform(assembled)
+    # print final_df.show(3)
     if (get_aggregation):
         agg_df = final_df.groupby(col_to_cluster).agg(sum('target_col').alias('sum'), count('target_col').alias('count'))
         aggr = {}
@@ -321,9 +322,9 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
             aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': row[1]*100.0/total, 'count_percent': row[2]*100.0/final_df.count()}
     final_df = final_df.select([c for c in final_df.columns if c!='feature_vector'])
     final_df = final_df.select([col(c) if c!=col_to_cluster else col(c).alias(col_to_cluster) for c in final_df.columns])
+    # print final_df.show(3)
     if (get_aggregation):
         return final_df, aggr
-    print model.clusterCenters()
     return final_df, model.clusterCenters()
 
 def add_string_index(df,string_columns):

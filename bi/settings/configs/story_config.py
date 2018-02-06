@@ -72,7 +72,7 @@ def get_story_config():
               "slug": "709d6190aafd492eb604fa527f206ab6",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": True,
+              "targetColumn": False,
               "uidCol": False
             },
             {
@@ -120,7 +120,7 @@ def get_story_config():
               "slug": "01fde3e8a3484394813838187ca5428e",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "targetColumn": False,
+              "targetColumn": True,
               "uidCol": False
             },
             {
@@ -190,22 +190,6 @@ def get_story_config():
           "datasource_details": ""
         },
         "ADVANCED_SETTINGS": {
-          "trendSettings": [
-            {
-              "status": True,
-              "name": "Count"
-            },
-            {
-              "status": False,
-              "name": "Specific Measure",
-              "selectedMeasure": None
-            }
-          ],
-          "targetLevels": [
-            [
-
-            ]
-          ],
           "analysis": [
             {
               "status": True,
@@ -217,7 +201,7 @@ def get_story_config():
               "name": "overview"
             },
             {
-              "status": True,
+              "status": False,
               "noOfColumnsToUse": None,
               "analysisSubTypes": [
                 {
@@ -245,9 +229,7 @@ def get_story_config():
               "name": "trend"
             },
             {
-              "status": True,
-              "displayName": "Association",
-              "name": "association",
+              "status": False,
               "noOfColumnsToUse": [
                 {
                   "status": False,
@@ -278,28 +260,43 @@ def get_story_config():
               "analysisSubTypes": [
 
               ],
-              "binSetting": [
+              "displayName": "Performance",
+              "name": "performance"
+            },
+            {
+              "status": False,
+              "noOfColumnsToUse": [
                 {
-                  "displayName": "Binning of Numerical Values",
-                  "name": "heading"
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Low",
+                  "name": "low"
                 },
                 {
-                  "displayName": "Number of Bin Levels",
-                  "name": "binLevels",
-                  "min": 2,
-                  "max": 10,
+                  "status": False,
                   "defaultValue": 5,
-                  "value": 5
+                  "displayName": "Medium",
+                  "name": "medium"
                 },
                 {
-                  "displayName": "Do not bin numerical values with cardinality less than:",
-                  "name": "binCardinality",
-                  "min": 2,
-                  "max": 10,
-                  "defaultValue": 5,
-                  "value": 5
+                  "status": True,
+                  "defaultValue": 8,
+                  "displayName": "High",
+                  "name": "high"
+                },
+                {
+                  "status": False,
+                  "defaultValue": 3,
+                  "displayName": "Custom",
+                  "name": "custom",
+                  "value": None
                 }
-              ]
+              ],
+              "analysisSubTypes": [
+
+              ],
+              "displayName": "Influencer",
+              "name": "influencer"
             },
             {
               "status": True,
@@ -319,7 +316,8 @@ def get_story_config():
           "script_to_run": [
             "Descriptive analysis",
             "Trend",
-            "Dimension vs. Dimension",
+            "Measure vs. Dimension",
+            "Measure vs. Measure",
             "Predictive modeling"
           ],
           "metadata": {
@@ -334,20 +332,20 @@ def get_story_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-dim2-3rcdoyfpa9-lft4vqp7cm_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_master-lk-vsmms7gey2-12xk0tkpre_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-dim2-3rcdoyfpa9-lft4vqp7cm/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/master-lk-vsmms7gey2-12xk0tkpre/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/master-dim2-3rcdoyfpa9-lft4vqp7cm/",
+        "job_url": "http://34.196.204.54:9012/api/job/master-lk-vsmms7gey2-12xk0tkpre/",
         "job_type": "story",
-        "job_name": "dim2",
-        "xml_url": "http://34.196.204.54:9012/api/xml/master-dim2-3rcdoyfpa9-lft4vqp7cm/",
+        "job_name": "lk",
+        "xml_url": "http://34.196.204.54:9012/api/xml/master-lk-vsmms7gey2-12xk0tkpre/",
         "app_id": None
       }
     }

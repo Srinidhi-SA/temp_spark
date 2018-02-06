@@ -13,6 +13,9 @@ from bi.common import utils as CommonUtils
 from bi.algorithms import KmeansClustering
 from bi.settings import setting as GLOBALSETTINGS
 
+from bi.common import DataLoader
+from bi.common import DataFrameHelper
+
 """
 Decision Tree
 """
@@ -44,6 +47,20 @@ class DecisionTreeRegression:
         self._alias_dict = {}
         self._important_vars = {}
         self._numCluster = None
+
+        datasource_type = self._dataframe_context.get_datasource_type()
+        if datasource_type == "Hana":
+            dbConnectionParams = self._dataframe_context.get_dbconnection_params()
+            self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
+            self._data_frame1 = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
+        elif datasource_type == "fileUpload":
+            self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
+            self._data_frame1 = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
+        self._dataframe_helper = DataFrameHelper(self._data_frame,self._dataframe_context,self._metaParser)
+        self._dataframe_helper.set_params()
+        self.temp_df = self._dataframe_helper.get_data_frame()
+        self._data_frame = self._dataframe_helper.fill_missing_values(self.temp_df)
+        self._data_frame1 = self._dataframe_helper.fill_missing_values(self.temp_df)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -232,6 +249,8 @@ class DecisionTreeRegression:
     #     for k,v in self._mapping_dict[self._target_dimension].iteritems():
     #         self._reverse_map[v] = k
     #     predictedDf = kmeans_obj.get_prediction_data()
+    #     print "predictedDf"*3
+    #     print predictedDf.show(3)
     #     self._data_frame = predictedDf.select([x for x in self._data_frame.columns if x != self._target_dimension]+["prediction"])
     #     self._data_frame = self._data_frame.withColumnRenamed("prediction",self._target_dimension)
     #     self.set_alias_dict()
@@ -272,7 +291,7 @@ class DecisionTreeRegression:
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
         model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=3, maxBins=max_length)
         output_result = model.toDebugString()
-        # print "output_result",output_result
+        print "output_result",output_result
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)
         self._new_tree = self.wrap_tree(self._new_tree)
