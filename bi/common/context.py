@@ -1,5 +1,6 @@
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
+from cryptography.fernet import Fernet
 
 
 class ContextSetter:
@@ -104,6 +105,9 @@ class ContextSetter:
                     self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
             if "outputfile" in fileSettingKeys:
                 self.OUTPUT_FILEPATH =self.FILE_SETTINGS['outputfile'][0]
+                cipher_suite = Fernet(GLOBALSETTINGS.HDFS_SECRET_KEY)
+                if "hdfs" not in str(self.OUTPUT_FILEPATH):
+                    self.OUTPUT_FILEPATH = cipher_suite.decrypt(self.OUTPUT_FILEPATH)
             if "narratives_file" in fileSettingKeys:
                 self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
             if "result_file" in fileSettingKeys:
