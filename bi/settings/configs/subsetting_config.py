@@ -3,13 +3,13 @@ def get_subsetting_config():
       "config": {
         "FILTER_SETTINGS": {
           "measureColumnFilters": [
-            
+
           ],
           "dimensionColumnFilters": [
-            
+
           ],
           "timeDimensionColumnFilters": [
-            
+
           ]
         },
         "DATA_SOURCE": {
@@ -24,6 +24,8 @@ def get_subsetting_config():
         "TRANSFORMATION_SETTINGS": {
           "existingColumns": [
             {
+              "slug": "1079d9b5c92347a38eb33a904ad53627",
+              "name": "Month",
               "columnSetting": [
                 {
                   "status": False,
@@ -44,10 +46,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -65,6 +63,10 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -73,11 +75,11 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "5272ccdcaec24492b5c523d1311c8717",
-              "name": "Month"
+              ]
             },
             {
+              "slug": "e9f4f6c23dcc4b1cba7d91a3de1ec3f9",
+              "name": "Deal_Type",
               "columnSetting": [
                 {
                   "status": False,
@@ -98,10 +100,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -119,6 +117,10 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -127,11 +129,11 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "7c6130e5fd1141c08971feb22cacf93d",
-              "name": "Deal_Type"
+              ]
             },
             {
+              "slug": "9ab12704c7d44fb6890e6e269e55f1ab",
+              "name": "Price_Range",
               "columnSetting": [
                 {
                   "status": False,
@@ -152,10 +154,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -173,6 +171,10 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -181,383 +183,53 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "96728e8d3bd846bb89fbe059c8bbb73b",
-              "name": "Price_Range"
+              ]
             },
             {
+              "slug": "7a9aa516250e43daba1c6d786874179b",
+              "name": "Discount_Range",
               "columnSetting": [
                 {
                   "status": False,
                   "actionName": "unique_identifier",
                   "displayName": "Unique Identifier"
-                },
-                {
-                  "status": False,
-                  "actionName": "delete",
-                  "displayName": "Delete Column"
-                },
-                {
-                  "status": False,
-                  "actionName": "rename",
-                  "displayName": "Rename Column",
-                  "newName": None
-                },
-                {
-                  "status": False,
-                  "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
-                  "replaceTypeList": [
-                    {
-                      "displayName": "Contains",
-                      "name": "contains"
-                    },
-                    {
-                      "displayName": "Equal To",
-                      "name": "equals"
-                    },
-                    {
-                      "displayName": "Starts With",
-                      "name": "startsWith"
-                    },
-                    {
-                      "displayName": "Ends With",
-                      "name": "endsWith"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "ignore_suggestion",
-                  "displayName": "Ignore for Analysis",
-                  "previous_status": False
-                }
-              ],
-              "slug": "c6a2db5490fc4daba6c72f31d80513c4",
-              "name": "Discount_Range"
-            },
-            {
-              "columnSetting": [
-                {
-                  "status": False,
-                  "actionName": "unique_identifier",
-                  "displayName": "Unique Identifier"
-                },
-                {
-                  "status": False,
-                  "actionName": "delete",
-                  "displayName": "Delete Column"
-                },
-                {
-                  "status": False,
-                  "actionName": "rename",
-                  "displayName": "Rename Column",
-                  "newName": None
-                },
-                {
-                  "status": False,
-                  "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
-                  "replaceTypeList": [
-                    {
-                      "displayName": "Contains",
-                      "name": "contains"
-                    },
-                    {
-                      "displayName": "Equal To",
-                      "name": "equals"
-                    },
-                    {
-                      "displayName": "Starts With",
-                      "name": "startsWith"
-                    },
-                    {
-                      "displayName": "Ends With",
-                      "name": "endsWith"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "ignore_suggestion",
-                  "displayName": "Ignore for Analysis",
-                  "previous_status": False
-                }
-              ],
-              "slug": "806429707f9d40ccbb9ce0943ee61db1",
-              "name": "Source"
-            },
-            {
-              "columnSetting": [
-                {
-                  "status": False,
-                  "actionName": "unique_identifier",
-                  "displayName": "Unique Identifier"
-                },
-                {
-                  "status": False,
-                  "actionName": "delete",
-                  "displayName": "Delete Column"
-                },
-                {
-                  "status": False,
-                  "actionName": "rename",
-                  "displayName": "Rename Column",
-                  "newName": None
-                },
-                {
-                  "status": False,
-                  "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
-                  "replaceTypeList": [
-                    {
-                      "displayName": "Contains",
-                      "name": "contains"
-                    },
-                    {
-                      "displayName": "Equal To",
-                      "name": "equals"
-                    },
-                    {
-                      "displayName": "Starts With",
-                      "name": "startsWith"
-                    },
-                    {
-                      "displayName": "Ends With",
-                      "name": "endsWith"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "ignore_suggestion",
-                  "displayName": "Ignore for Analysis",
-                  "previous_status": False
-                }
-              ],
-              "slug": "9223ecc8d7be47ff84a9bc646498c053",
-              "name": "Platform"
-            },
-            {
-              "columnSetting": [
-                {
-                  "status": False,
-                  "actionName": "unique_identifier",
-                  "displayName": "Unique Identifier"
-                },
-                {
-                  "status": False,
-                  "actionName": "delete",
-                  "displayName": "Delete Column"
-                },
-                {
-                  "status": False,
-                  "actionName": "rename",
-                  "displayName": "Rename Column",
-                  "newName": None
-                },
-                {
-                  "status": False,
-                  "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
-                  "replaceTypeList": [
-                    {
-                      "displayName": "Contains",
-                      "name": "contains"
-                    },
-                    {
-                      "displayName": "Equal To",
-                      "name": "equals"
-                    },
-                    {
-                      "displayName": "Starts With",
-                      "name": "startsWith"
-                    },
-                    {
-                      "displayName": "Ends With",
-                      "name": "endsWith"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "ignore_suggestion",
-                  "displayName": "Ignore for Analysis",
-                  "previous_status": False
-                }
-              ],
-              "slug": "a7c74ae2cb37457ca163abf017195f6a",
-              "name": "Buyer_Age"
-            },
-            {
-              "columnSetting": [
-                {
-                  "status": False,
-                  "actionName": "unique_identifier",
-                  "displayName": "Unique Identifier"
-                },
-                {
-                  "status": False,
-                  "actionName": "delete",
-                  "displayName": "Delete Column"
-                },
-                {
-                  "status": False,
-                  "actionName": "rename",
-                  "displayName": "Rename Column",
-                  "newName": None
-                },
-                {
-                  "status": False,
-                  "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
-                  "replaceTypeList": [
-                    {
-                      "displayName": "Contains",
-                      "name": "contains"
-                    },
-                    {
-                      "displayName": "Equal To",
-                      "name": "equals"
-                    },
-                    {
-                      "displayName": "Starts With",
-                      "name": "startsWith"
-                    },
-                    {
-                      "displayName": "Ends With",
-                      "name": "endsWith"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "ignore_suggestion",
-                  "displayName": "Ignore for Analysis",
-                  "previous_status": False
-                }
-              ],
-              "slug": "a02f0a973077437d84a4b2d46002f6ef",
-              "name": "Buyer_Gender"
-            },
-            {
-              "columnSetting": [
-                {
-                  "status": False,
-                  "actionName": "unique_identifier",
-                  "displayName": "Unique Identifier"
-                },
-                {
-                  "status": False,
-                  "actionName": "delete",
-                  "displayName": "Delete Column"
-                },
-                {
-                  "status": False,
-                  "actionName": "rename",
-                  "displayName": "Rename Column",
-                  "newName": None
-                },
-                {
-                  "status": False,
-                  "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
-                  "replaceTypeList": [
-                    {
-                      "displayName": "Contains",
-                      "name": "contains"
-                    },
-                    {
-                      "displayName": "Equal To",
-                      "name": "equals"
-                    },
-                    {
-                      "displayName": "Starts With",
-                      "name": "startsWith"
-                    },
-                    {
-                      "displayName": "Ends With",
-                      "name": "endsWith"
-                    }
-                  ]
                 },
                 {
                   "status": True,
-                  "actionName": "data_type",
-                  "displayName": "Change Datatype",
-                  "listOfActions": [
-                    {
-                      "status": False,
-                      "displayName": "Numeric",
-                      "name": "numeric"
-                    },
-                    {
-                      "status": True,
-                      "displayName": "Text",
-                      "name": "text"
-                    }
-                  ]
+                  "actionName": "delete",
+                  "displayName": "UnDelete Column",
+                  "modified": True
                 },
                 {
                   "status": False,
-                  "actionName": "set_variable",
-                  "displayName": "Set Variable as",
-                  "listOfActions": [
-                    {
-                      "status": True,
-                      "displayName": "General Numeric",
-                      "name": "general_numeric"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Percentage",
-                      "name": "percentage"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Index",
-                      "name": "index"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Average",
-                      "name": "average"
-                    }
-                  ]
+                  "actionName": "rename",
+                  "displayName": "Rename Column",
+                  "newName": None
                 },
                 {
                   "status": False,
-                  "actionName": "set_polarity",
-                  "displayName": "Set Polarity as",
-                  "listOfActions": [
+                  "actionName": "replace",
+                  "replaceTypeList": [
                     {
-                      "status": True,
-                      "displayName": "Positive",
-                      "name": "positive"
+                      "displayName": "Contains",
+                      "name": "contains"
                     },
                     {
-                      "status": False,
-                      "displayName": "Negative",
-                      "name": "negative"
+                      "displayName": "Equal To",
+                      "name": "equals"
+                    },
+                    {
+                      "displayName": "Starts With",
+                      "name": "startsWith"
+                    },
+                    {
+                      "displayName": "Ends With",
+                      "name": "endsWith"
                     }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -566,11 +238,67 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "660fed948e294e2c8fb474f0585b876d",
-              "name": "Tenure_in_Days"
+              ]
             },
             {
+              "slug": "478c24a1f5804c6e90f519acc8d66a9f",
+              "name": "Source",
+              "columnSetting": [
+                {
+                  "status": False,
+                  "actionName": "unique_identifier",
+                  "displayName": "Unique Identifier"
+                },
+                {
+                  "status": False,
+                  "actionName": "delete",
+                  "displayName": "Delete Column"
+                },
+                {
+                  "status": True,
+                  "actionName": "rename",
+                  "prevName": "Source",
+                  "displayName": "Rename Column",
+                  "newName": "Source--ssd",
+                  "modified": True
+                },
+                {
+                  "status": False,
+                  "actionName": "replace",
+                  "replaceTypeList": [
+                    {
+                      "displayName": "Contains",
+                      "name": "contains"
+                    },
+                    {
+                      "displayName": "Equal To",
+                      "name": "equals"
+                    },
+                    {
+                      "displayName": "Starts With",
+                      "name": "startsWith"
+                    },
+                    {
+                      "displayName": "Ends With",
+                      "name": "endsWith"
+                    }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "ignore_suggestion",
+                  "displayName": "Ignore for Analysis",
+                  "previous_status": False
+                }
+              ]
+            },
+            {
+              "slug": "709d6190aafd492eb604fa527f206ab6",
+              "name": "Platform",
               "columnSetting": [
                 {
                   "status": False,
@@ -591,10 +319,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -612,67 +336,10 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "data_type",
-                  "displayName": "Change Datatype",
-                  "listOfActions": [
-                    {
-                      "status": True,
-                      "displayName": "Numeric",
-                      "name": "numeric"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Text",
-                      "name": "text"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "set_variable",
-                  "displayName": "Set Variable as",
-                  "listOfActions": [
-                    {
-                      "status": True,
-                      "displayName": "General Numeric",
-                      "name": "general_numeric"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Percentage",
-                      "name": "percentage"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Index",
-                      "name": "index"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Average",
-                      "name": "average"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "set_polarity",
-                  "displayName": "Set Polarity as",
-                  "listOfActions": [
-                    {
-                      "status": True,
-                      "displayName": "Positive",
-                      "name": "positive"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Negative",
-                      "name": "negative"
-                    }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -681,11 +348,11 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "d672239d8d6d4fc5b325e1fc794c8140",
-              "name": "Sales"
+              ]
             },
             {
+              "slug": "5d15dde176674e8faf48c3e50075e531",
+              "name": "Buyer_Age",
               "columnSetting": [
                 {
                   "status": False,
@@ -706,10 +373,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -727,67 +390,10 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "data_type",
-                  "displayName": "Change Datatype",
-                  "listOfActions": [
-                    {
-                      "status": True,
-                      "displayName": "Numeric",
-                      "name": "numeric"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Text",
-                      "name": "text"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "set_variable",
-                  "displayName": "Set Variable as",
-                  "listOfActions": [
-                    {
-                      "status": True,
-                      "displayName": "General Numeric",
-                      "name": "general_numeric"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Percentage",
-                      "name": "percentage"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Index",
-                      "name": "index"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Average",
-                      "name": "average"
-                    }
-                  ]
-                },
-                {
-                  "status": False,
-                  "actionName": "set_polarity",
-                  "displayName": "Set Polarity as",
-                  "listOfActions": [
-                    {
-                      "status": True,
-                      "displayName": "Positive",
-                      "name": "positive"
-                    },
-                    {
-                      "status": False,
-                      "displayName": "Negative",
-                      "name": "negative"
-                    }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -796,11 +402,11 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "0210c1186c1c44e1bd00a1dc9c682fd4",
-              "name": "Marketing_Cost"
+              ]
             },
             {
+              "slug": "0e5e67cf60ef4b23aaba9f266fe9381b",
+              "name": "Buyer_Gender",
               "columnSetting": [
                 {
                   "status": False,
@@ -821,10 +427,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -842,6 +444,64 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "ignore_suggestion",
+                  "displayName": "Ignore for Analysis",
+                  "previous_status": False
+                }
+              ]
+            },
+            {
+              "slug": "9b0122df3dc7436ea7760b99eca928b6",
+              "name": "Tenure_in_Days",
+              "columnSetting": [
+                {
+                  "status": False,
+                  "actionName": "unique_identifier",
+                  "displayName": "Unique Identifier"
+                },
+                {
+                  "status": False,
+                  "actionName": "delete",
+                  "displayName": "Delete Column"
+                },
+                {
+                  "status": False,
+                  "actionName": "rename",
+                  "displayName": "Rename Column",
+                  "newName": None
+                },
+                {
+                  "status": False,
+                  "actionName": "replace",
+                  "replaceTypeList": [
+                    {
+                      "displayName": "Contains",
+                      "name": "contains"
+                    },
+                    {
+                      "displayName": "Equal To",
+                      "name": "equals"
+                    },
+                    {
+                      "displayName": "Starts With",
+                      "name": "startsWith"
+                    },
+                    {
+                      "displayName": "Ends With",
+                      "name": "endsWith"
+                    }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -911,11 +571,11 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "4406af5bf3b94ab6b95ecb1406ac73ee",
-              "name": "Shipping_Cost"
+              ]
             },
             {
+              "slug": "01fde3e8a3484394813838187ca5428e",
+              "name": "Sales",
               "columnSetting": [
                 {
                   "status": False,
@@ -936,10 +596,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -957,6 +613,10 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
                   ]
                 },
                 {
@@ -1026,39 +686,11 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "6938b51355fb49c388a913ef3ef0e5bb",
-              "name": "Last_Transaction"
+              ]
             },
             {
-              "columnSetting": [
-                {
-                  "status": False,
-                  "actionName": "unique_identifier",
-                  "displayName": "Unique Identifier"
-                },
-                {
-                  "status": False,
-                  "actionName": "delete",
-                  "displayName": "Delete Column"
-                },
-                {
-                  "status": False,
-                  "actionName": "rename",
-                  "displayName": "Rename Column",
-                  "newName": None
-                },
-                {
-                  "status": False,
-                  "actionName": "ignore_suggestion",
-                  "displayName": "Ignore for Analysis",
-                  "previous_status": False
-                }
-              ],
-              "slug": "2789cdcad08144f2a24c4400c217dc5c",
-              "name": "new_date"
-            },
-            {
+              "slug": "dcf2b5a6f9ba43229277c5b6ec1f4046",
+              "name": "Marketing_Cost",
               "columnSetting": [
                 {
                   "status": False,
@@ -1079,10 +711,6 @@ def get_subsetting_config():
                 {
                   "status": False,
                   "actionName": "replace",
-                  "replacementValues": [
-                    
-                  ],
-                  "displayName": "Replace Values",
                   "replaceTypeList": [
                     {
                       "displayName": "Contains",
@@ -1100,6 +728,71 @@ def get_subsetting_config():
                       "displayName": "Ends With",
                       "name": "endsWith"
                     }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "data_type",
+                  "displayName": "Change Datatype",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "Numeric",
+                      "name": "numeric"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Text",
+                      "name": "text"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "set_variable",
+                  "displayName": "Set Variable as",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "General Numeric",
+                      "name": "general_numeric"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Percentage",
+                      "name": "percentage"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Index",
+                      "name": "index"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Average",
+                      "name": "average"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "set_polarity",
+                  "displayName": "Set Polarity as",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "Positive",
+                      "name": "positive"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Negative",
+                      "name": "negative"
+                    }
                   ]
                 },
                 {
@@ -1108,45 +801,355 @@ def get_subsetting_config():
                   "displayName": "Ignore for Analysis",
                   "previous_status": False
                 }
-              ],
-              "slug": "c3c95c5898774aec9738ae58a702c563",
-              "name": "Order Date"
+              ]
+            },
+            {
+              "slug": "518af3f3b4d04a1ba2a2fb9a141570eb",
+              "name": "Shipping_Cost",
+              "columnSetting": [
+                {
+                  "status": False,
+                  "actionName": "unique_identifier",
+                  "displayName": "Unique Identifier"
+                },
+                {
+                  "status": False,
+                  "actionName": "delete",
+                  "displayName": "Delete Column"
+                },
+                {
+                  "status": False,
+                  "actionName": "rename",
+                  "displayName": "Rename Column",
+                  "newName": None
+                },
+                {
+                  "status": False,
+                  "actionName": "replace",
+                  "replaceTypeList": [
+                    {
+                      "displayName": "Contains",
+                      "name": "contains"
+                    },
+                    {
+                      "displayName": "Equal To",
+                      "name": "equals"
+                    },
+                    {
+                      "displayName": "Starts With",
+                      "name": "startsWith"
+                    },
+                    {
+                      "displayName": "Ends With",
+                      "name": "endsWith"
+                    }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "data_type",
+                  "displayName": "Change Datatype",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "Numeric",
+                      "name": "numeric"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Text",
+                      "name": "text"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "set_variable",
+                  "displayName": "Set Variable as",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "General Numeric",
+                      "name": "general_numeric"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Percentage",
+                      "name": "percentage"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Index",
+                      "name": "index"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Average",
+                      "name": "average"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "set_polarity",
+                  "displayName": "Set Polarity as",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "Positive",
+                      "name": "positive"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Negative",
+                      "name": "negative"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "ignore_suggestion",
+                  "displayName": "Ignore for Analysis",
+                  "previous_status": False
+                }
+              ]
+            },
+            {
+              "slug": "872b7fa6a95748cca4479cf0010acf89",
+              "name": "Last_Transaction",
+              "columnSetting": [
+                {
+                  "status": False,
+                  "actionName": "unique_identifier",
+                  "displayName": "Unique Identifier"
+                },
+                {
+                  "status": False,
+                  "actionName": "delete",
+                  "displayName": "Delete Column"
+                },
+                {
+                  "status": False,
+                  "actionName": "rename",
+                  "displayName": "Rename Column",
+                  "newName": None
+                },
+                {
+                  "status": False,
+                  "actionName": "replace",
+                  "replaceTypeList": [
+                    {
+                      "displayName": "Contains",
+                      "name": "contains"
+                    },
+                    {
+                      "displayName": "Equal To",
+                      "name": "equals"
+                    },
+                    {
+                      "displayName": "Starts With",
+                      "name": "startsWith"
+                    },
+                    {
+                      "displayName": "Ends With",
+                      "name": "endsWith"
+                    }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "data_type",
+                  "displayName": "Change Datatype",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "Numeric",
+                      "name": "numeric"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Text",
+                      "name": "text"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "set_variable",
+                  "displayName": "Set Variable as",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "General Numeric",
+                      "name": "general_numeric"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Percentage",
+                      "name": "percentage"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Index",
+                      "name": "index"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Average",
+                      "name": "average"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "set_polarity",
+                  "displayName": "Set Polarity as",
+                  "listOfActions": [
+                    {
+                      "status": True,
+                      "displayName": "Positive",
+                      "name": "positive"
+                    },
+                    {
+                      "status": False,
+                      "displayName": "Negative",
+                      "name": "negative"
+                    }
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "ignore_suggestion",
+                  "displayName": "Ignore for Analysis",
+                  "previous_status": False
+                }
+              ]
+            },
+            {
+              "slug": "14b79f01e5a0492fb00d18bbe29585c8",
+              "name": "new_date",
+              "columnSetting": [
+                {
+                  "status": False,
+                  "actionName": "unique_identifier",
+                  "displayName": "Unique Identifier"
+                },
+                {
+                  "status": False,
+                  "actionName": "delete",
+                  "displayName": "Delete Column"
+                },
+                {
+                  "status": False,
+                  "actionName": "rename",
+                  "displayName": "Rename Column",
+                  "newName": None
+                },
+                {
+                  "status": False,
+                  "actionName": "ignore_suggestion",
+                  "displayName": "Ignore for Analysis",
+                  "previous_status": False
+                }
+              ]
+            },
+            {
+              "slug": "eaace674d7114dd4b31273f83a594d51",
+              "name": "Order Date",
+              "columnSetting": [
+                {
+                  "status": False,
+                  "actionName": "unique_identifier",
+                  "displayName": "Unique Identifier"
+                },
+                {
+                  "status": False,
+                  "actionName": "delete",
+                  "displayName": "Delete Column"
+                },
+                {
+                  "status": False,
+                  "actionName": "rename",
+                  "displayName": "Rename Column",
+                  "newName": None
+                },
+                {
+                  "status": False,
+                  "actionName": "replace",
+                  "replaceTypeList": [
+                    {
+                      "displayName": "Contains",
+                      "name": "contains"
+                    },
+                    {
+                      "displayName": "Equal To",
+                      "name": "equals"
+                    },
+                    {
+                      "displayName": "Starts With",
+                      "name": "startsWith"
+                    },
+                    {
+                      "displayName": "Ends With",
+                      "name": "endsWith"
+                    }
+                  ],
+                  "displayName": "Replace Values",
+                  "replacementValues": [
+
+                  ]
+                },
+                {
+                  "status": False,
+                  "actionName": "ignore_suggestion",
+                  "displayName": "Ignore for Analysis",
+                  "previous_status": False
+                }
+              ]
             }
           ]
         },
         "FILE_SETTINGS": {
           "outputfile": [
-            "/home/marlabs/Downloads/Spark_OP/"
+            "gAAAAABaebs4PrqhmmqHohKcxHViThNL_rzRYbu_C7c83kG_JNwCqZDKlv7Mtl2eimwO3dx6E90MXzQdnsZeHUWZZuT9iGtcyu6p4THXQ8bqa3DgXMUnyB9ymRjDI3Ps9BhLM6001JWfwYhE5FYPgGfs81FoxR2l1uTX6SDPDQWSEEnWqZZNVcyC5E7scDqghEugzyXcVMVm"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "trend_gulshancsv-19w5noe3sl"
+              "ecommercecsv-ldkbiz9ql7"
             ]
           },
           "inputfile": [
-            "/home/marlabs/Downloads/trend_gulshan.csv"
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
           ]
         },
         "DATE_SETTINGS": {
-          
+
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_subsetting-binned_iv-t3hfkcck85-srzbaydmlk_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_subsetting-kkk-r6i5w4hc1p-nzm78tbpj9_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/subsetting-binned_iv-t3hfkcck85-srzbaydmlk/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/subsetting-kkk-r6i5w4hc1p-nzm78tbpj9/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/subsetting-binned_iv-t3hfkcck85-srzbaydmlk/",
+        "job_url": "http://34.196.204.54:9012/api/job/subsetting-kkk-r6i5w4hc1p-nzm78tbpj9/",
         "job_type": "subSetting",
-        "job_name": "Binned_IV",
-        "xml_url": "http://34.196.204.54:9012/api/xml/subsetting-binned_iv-t3hfkcck85-srzbaydmlk/",
+        "job_name": "kkk",
+        "xml_url": "http://34.196.204.54:9012/api/xml/subsetting-kkk-r6i5w4hc1p-nzm78tbpj9/",
         "app_id": None
       }
     }

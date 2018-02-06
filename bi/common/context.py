@@ -107,8 +107,14 @@ class ContextSetter:
                 self.OUTPUT_FILEPATH =self.FILE_SETTINGS['outputfile'][0]
                 self.OUTPUT_FILEPATH = self.OUTPUT_FILEPATH.encode()
                 cipher_suite = Fernet(GLOBALSETTINGS.HDFS_SECRET_KEY)
-                if "hdfs" not in str(self.OUTPUT_FILEPATH):
+                localFilepath = str(self.OUTPUT_FILEPATH).startswith("/")
+                hdfsFilePath = "hdfs" in str(self.OUTPUT_FILEPATH)
+                print "hdfs" not in str(self.OUTPUT_FILEPATH)
+                if "hdfs" not in str(self.OUTPUT_FILEPATH) and localFilepath != True:
                     self.OUTPUT_FILEPATH = cipher_suite.decrypt(self.OUTPUT_FILEPATH)
+                else:
+                    self.OUTPUT_FILEPATH = str(self.OUTPUT_FILEPATH)
+                print self.OUTPUT_FILEPATH
             if "narratives_file" in fileSettingKeys:
                 self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
             if "result_file" in fileSettingKeys:
