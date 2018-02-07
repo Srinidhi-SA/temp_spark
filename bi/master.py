@@ -57,7 +57,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "subSetting"
+            jobType = "training"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -256,8 +256,6 @@ def main(configJson):
                 transformed_df = transform_class.get_transformed_data_frame()
             if transformed_df.count() > 0:
                 output_filepath = dataframe_context.get_output_filepath()
-                print output_filepath
-                print transformed_df.show()
                 transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
                 print "starting Metadata for the Filtered Dataframe"
                 meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)

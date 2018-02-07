@@ -190,41 +190,42 @@ def get_training_config():
           "datasource_details": ""
         },
         "FILE_SETTINGS": {
+          "targetLevel": None,
+          "modelpath": [
+            "modeltest1-rpplgu62vh"
+          ],
+          "train_test_split": [
+            0.73
+          ],
           "analysis_type": [
             "training"
           ],
-          "modelpath": [
-            "model-1-8utf3z5bo3"
-          ],
-          "train_test_split": [
-            0.7
+          "inputfile": [
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/demography.csv"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
               "demographycsv-0t82v0amim"
             ]
-          },
-          "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/sampleDatasets/demography.csv"
-          ]
+          }
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-model-1-8utf3z5bo3-lw97yj8yb9_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-modeltest1-rpplgu62vh-89q2o4nnwx_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-model-1-8utf3z5bo3-lw97yj8yb9/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-modeltest1-rpplgu62vh-89q2o4nnwx/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/model-model-1-8utf3z5bo3-lw97yj8yb9/",
+        "job_url": "http://34.196.204.54:9012/api/job/model-modeltest1-rpplgu62vh-89q2o4nnwx/",
         "job_type": "training",
-        "job_name": "model-1",
-        "xml_url": "http://34.196.204.54:9012/api/xml/model-model-1-8utf3z5bo3-lw97yj8yb9/",
+        "job_name": "modelTest1",
+        "xml_url": "http://34.196.204.54:9012/api/xml/model-modeltest1-rpplgu62vh-89q2o4nnwx/",
         "app_id": 2
       }
     }

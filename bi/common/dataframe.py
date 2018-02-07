@@ -102,6 +102,10 @@ class DataFrameHelper:
         self.num_columns = len(self.columns)
         self.num_rows = self._metaParser.get_num_rows()
         self.column_data_types = {field.name: field.dataType for field in dfSchemaFields}
+        self.numeric_columns = []
+        self.string_columns = []
+        self.boolean_columns = []
+        self.timestamp_columns = []
         for field in dfSchemaFields:
             if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
                 self.numeric_columns.append(field.name)
@@ -197,6 +201,7 @@ class DataFrameHelper:
         return column_name in self.get_numeric_columns()
 
     def get_string_columns(self):
+        print "len String Cols",len(self.string_columns)
         return self.string_columns
 
     def get_all_levels(self,column_name):

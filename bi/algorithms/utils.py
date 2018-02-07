@@ -184,7 +184,7 @@ def reformat_confusion_matrix(confusion_matrix):
         confusion_matrix_data.append(inner_list)
     return [list(x) for x in np.array(confusion_matrix_data).T]
 
-def calculate_overall_precision_recall(actual,predicted):
+def calculate_overall_precision_recall(actual,predicted,targetLevel = None):
     # get positive or negative class from the user
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
     classes = df["actual"].unique()
@@ -200,7 +200,10 @@ def calculate_overall_precision_recall(actual,predicted):
     val_counts_tuple = tuple(val_counts.items())
     # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
     # positive_class = __builtin__.max(val_counts,key=val_counts.get)
-    positive_class = __builtin__.min(val_counts,key=val_counts.get)
+    if targetLevel == None:
+        positive_class = __builtin__.min(val_counts,key=val_counts.get)
+    else:
+        positive_class = targetLevel
     print "val_counts_predicted",val_counts_predicted
     print "val_counts actual",val_counts
     print "positive_class",positive_class

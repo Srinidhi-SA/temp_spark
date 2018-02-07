@@ -45,6 +45,7 @@ class RandomForestScript:
         self._score_summary = {}
         self._model_slug_map = MLUtils.model_slug_mapping()
         self._slug = self._model_slug_map["randomforest"]
+        self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -127,7 +128,7 @@ class RandomForestScript:
         except:
             pass
         cat_cols = list(set(categorical_columns) - {result_column})
-        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
+        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Random Forest")
         self._model_summary.set_algorithm_display_name("Random Forest")

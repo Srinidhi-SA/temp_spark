@@ -70,6 +70,7 @@ class ContextSetter:
         self.dateFormatDetails = {}
         self.dateTimeSuggestions = []
         self.selected_date_columns = []
+        self.targetLevelForModel = None
 
 
 
@@ -154,6 +155,8 @@ class ContextSetter:
                 self.algorithmslug = self.FILE_SETTINGS['algorithmslug']
             if 'labelMappingDict' in fileSettingKeys:
                 self.labelMappingDict = self.FILE_SETTINGS['labelMappingDict']
+            if "targetLevel" in fileSettingKeys:
+                self.targetLevelForModel = self.FILE_SETTINGS['targetLevel']
 
         if len(columnSettingKeys) > 0:
             varSelectionArr = []
@@ -562,6 +565,9 @@ class ContextSetter:
 
     def get_message_ignore(self):
         return self.ignoremessages
+
+    def get_target_level_for_model(self):
+        return self.targetLevelForModel
 
     def get_script_weights(self):
         jobType = self.jobType

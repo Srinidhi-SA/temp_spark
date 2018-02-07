@@ -41,10 +41,6 @@ def round_sig(x, sig=3):
         pass
     return x
 
-def get_secret_key():
-    secretKey = "GETMETADATAOBJECT"
-    return secretKey
-
 def generate_signature(json_obj,secretKey=None):
     """
     json_obj = json obj with {"key1":"DSDDD","key2":"DASDAA","signature":None}
@@ -60,7 +56,6 @@ def get_existing_metadata(dataframe_context,):
     baseUrl = dataframe_context.get_metadata_url()
     slugs = dataframe_context.get_metadata_slugs()
     jsonToken = {"key1":uuid.uuid4().hex,"key2":uuid.uuid4().hex,"signature":None,"generated_at":time.time()}
-    # secretKey = get_secret_key()
     secretKey = GLOBALSETTINGS.HDFS_SECRET_KEY
     sigString = generate_signature(jsonToken,secretKey)
     jsonToken["signature"] = sigString
