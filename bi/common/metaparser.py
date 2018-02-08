@@ -39,20 +39,25 @@ class MetaParser:
         self.uidCols = [k for k,v in self.ignoreColDict.items() if v.startswith("Index Column")]
         self.column_dict = dict([(obj.get_name(),obj) for obj in self.columnData])
 
-#     def update_column_dict(self,colname,columnStats):
-#         self.column_dict.update({colname:columnStats})
+    def update_column_dict(self,colname,columnStats):
+        colDataObj = ColumnData()
+        colDataObj.set_name(colname)
+        colDataObj.set_abstract_datatype("dimension")
+        colDataObj.update_level_count(columnStats["LevelCount"])
+        colDataObj.update_unique_values(columnStats["numberOfUniqueValues"])
+        self.column_dict.update({colname:colDataObj})
 
     def update_level_counts(self,columnList,levelCountDict):
         if isinstance(columnList,list) or isinstance(columnList,tuple):
             for val in columnList:
                 colDataObj = self.column_dict[val]
-                colDataObj.update_level_count(val,levelCountDict[val])
-                colDataObj.update_unique_values(val,len(levelCountDict[val]))
+                colDataObj.update_level_count(levelCountDict[val])
+                colDataObj.update_unique_values(len(levelCountDict[val]))
                 self.column_dict[val] = colDataObj
         elif isinstance(columnList,str):
             colDataObj = self.column_dict[columnList]
-            colDataObj.update_level_count(columnList,levelCountDict)
-            colDataObj.update_unique_values(columnList,len(levelCountDict))
+            colDataObj.update_level_count(levelCountDict)
+            colDataObj.update_unique_values(len(levelCountDict))
             self.column_dict[columnList] = colDataObj
 
     def get_num_unique_values(self, column_name):

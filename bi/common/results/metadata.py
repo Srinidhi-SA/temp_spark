@@ -178,20 +178,27 @@ class ColumnData:
     def get_unique_value_count(self,colName):
         return [x["value"] for x in self.columnStats if x["name"] == "numberOfUniqueValues"][0]
 
-    def update_level_count(self,colName,levelCountDict):
+    def update_level_count(self,levelCountDict):
         names = [x["name"]  for x in self.columnStats]
         if "LevelCount" in names:
             idx = names.index("LevelCount")
             newObj = self.columnStats[idx]
             newObj.update({"value":levelCountDict})
             self.columnStats[idx] = newObj
+        else:
+            newObj = {'display': True, 'displayName': 'LevelCount', 'name': 'LevelCount', 'value': levelCountDict}
+            self.columnStats.append(newObj)
 
-    def update_unique_values(self,colName,uniqueVal):
+    def update_unique_values(self,uniqueVal):
         names = [x["name"]  for x in self.columnStats]
-        idx = names.index("numberOfUniqueValues")
-        newObj = self.columnStats[idx]
-        newObj.update({"value":uniqueVal})
-        self.columnStats[idx] = newObj
+        if "numberOfUniqueValues" in names:
+            idx = names.index("numberOfUniqueValues")
+            newObj = self.columnStats[idx]
+            newObj.update({"value":uniqueVal})
+            self.columnStats[idx] = newObj
+        else:
+            newObj = {'display': False, 'displayName': 'Unique Values', 'name': 'numberOfUniqueValues', 'value': uniqueVal}
+            self.columnStats.append(newObj)
 
 
 class ColumnHeader:

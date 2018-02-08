@@ -343,8 +343,8 @@ class LogisticRegressionScript:
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
         resultColLevelCount = dict(df[result_column].value_counts())
-        self._metaParser.update_level_counts(result_column,resultColLevelCount)
-        # self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
+        # self._metaParser.update_level_counts(result_column,resultColLevelCount)
+        self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
         self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
