@@ -6,6 +6,7 @@ from xgboost_classification import XgboostClassifier
 from logistic_regression import LogisticRegression
 from decision_tree_regression import DecisionTreeRegression
 from time_series_forecasting import TimeSeriesAnalysis
+from svm import SupportVectorMachine
 
 __all__ = [
     "KmeansClustering"
@@ -16,4 +17,5 @@ __all__ = [
     "LogisticRegression",
     "DecisionTreeRegression",
     "TimeSeriesAnalysis",
+    'SupportVectorMachine'
 ]

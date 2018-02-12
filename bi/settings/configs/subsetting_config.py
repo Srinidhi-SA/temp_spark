@@ -1117,7 +1117,8 @@ def get_subsetting_config():
         },
         "FILE_SETTINGS": {
           "outputfile": [
-            "gAAAAABaedHWW4qI3gaEnyMY1QEENopP4gsVBx7fGxo6mmi6GqjzsBso34qRbUfM7Ip8r-BonJtZ2nDhLhNgID70JfPyakAxZG695-izvl4pS5nxgco8iM2CCGz8K8YBa9OtxnUb7BtcEZQxkRFBGzZJ526zeS2Wo9s69-NiAAWRtFDVZ2WEdWBoD594LpqsHeX5pbT8OuTa"
+            # "gAAAAABaedHWW4qI3gaEnyMY1QEENopP4gsVBx7fGxo6mmi6GqjzsBso34qRbUfM7Ip8r-BonJtZ2nDhLhNgID70JfPyakAxZG695-izvl4pS5nxgco8iM2CCGz8K8YBa9OtxnUb7BtcEZQxkRFBGzZJ526zeS2Wo9s69-NiAAWRtFDVZ2WEdWBoD594LpqsHeX5pbT8OuTa"
+            "file:///home/gulshan/marlabs/csvout"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",

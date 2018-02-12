@@ -22,8 +22,10 @@ class ResultSetter:
         self.randomForestModelSummary = None
         self.xgboostModelSummary = None
         self.logisticRegressionModelSummary = None
+        self.svmModelSummary = None
         self.rfcards = []
         self.lrcards = []
+        self.svmcards = []
         self.xgbcards = []
         self.scorefreqcard = []
         self.scorechicards = []
@@ -37,8 +39,6 @@ class ResultSetter:
     def get_pmml_object(self):
         return self.pmmlObjects
     def get_score_cards(self):
-        # if self.scorefreqcard != None:
-        #     out = [self.scorefreqcard]+self.scorechicards[:3]+self.scoredtreecards
         return self.scoredtreecards
     def set_score_dtree_cards(self,data):
         self.scoredtreecards = data
@@ -58,6 +58,8 @@ class ResultSetter:
         self.rfcards = data
     def set_xgb_cards(self,data):
         self.xgbcards = data
+    def set_svm_cards(self,data):
+        self.svmcards = data
     def get_all_algos_cards(self):
         return self.rfcards + self.lrcards + self.xgbcards
 
@@ -67,12 +69,16 @@ class ResultSetter:
         self.xgboostModelSummary = data
     def set_logistic_regression_model_summary(self,data):
         self.logisticRegressionModelSummary = data
+    def set_svm_model_summary(self,data):
+        self.svmModelSummary = data
     def get_random_forest_model_summary(self):
         return self.randomForestModelSummary
     def get_xgboost_model_summary(self):
         return self.xgboostModelSummary
     def get_logistic_regression_model_summary(self):
         return self.logisticRegressionModelSummary
+    def get_svm_model_summary(self):
+        return self.svmModelSummary
 
     def set_head_node(self,node):
         self.headNode = json.loads(CommonUtils.convert_python_object_to_json(node))

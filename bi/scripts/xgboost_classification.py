@@ -25,7 +25,7 @@ from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
-
+from bi.settings import setting as GLOBALSETTINGS
 
 class XgboostScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
@@ -38,7 +38,7 @@ class XgboostScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
-        self._model_slug_map = MLUtils.model_slug_mapping()
+        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
         self._slug = self._model_slug_map["xgboost"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 

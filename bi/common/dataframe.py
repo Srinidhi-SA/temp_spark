@@ -73,7 +73,10 @@ class DataFrameHelper:
         self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
         self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
         print "self.resultcolumn",self.resultcolumn
-        colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        if self.resultcolumn != "":
+            colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        else:
+            colsToKeep = list(set(self.consider_columns))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         print "colsToKeep:-",colsToKeep
         print "colsToBin:-",colsToBin

@@ -71,6 +71,14 @@ class ContextSetter:
         self.dateTimeSuggestions = []
         self.selected_date_columns = []
         self.targetLevelForModel = None
+        self.debugMode = None
+        self.jobUrl = None
+        self.jobName = None
+        self.xmlUrl = None
+        self.appName = None
+        self.errorUrl = None
+        self.logger = None
+
 
 
 
@@ -108,7 +116,7 @@ class ContextSetter:
                 self.OUTPUT_FILEPATH =self.FILE_SETTINGS['outputfile'][0]
                 self.OUTPUT_FILEPATH = self.OUTPUT_FILEPATH.encode()
                 cipher_suite = Fernet(GLOBALSETTINGS.HDFS_SECRET_KEY)
-                localFilepath = str(self.OUTPUT_FILEPATH).startswith("/")
+                localFilepath = str(self.OUTPUT_FILEPATH).startswith("/") or str(self.OUTPUT_FILEPATH).startswith("file")
                 hdfsFilePath = "hdfs" in str(self.OUTPUT_FILEPATH)
                 if "hdfs" not in str(self.OUTPUT_FILEPATH) and localFilepath != True:
                     self.OUTPUT_FILEPATH = cipher_suite.decrypt(self.OUTPUT_FILEPATH)
@@ -319,6 +327,47 @@ class ContextSetter:
     def set_measure_suggestions(self,measureSugCols):
         self.measure_suggestions = measureSugCols
 
+    def set_job_name(self,data):
+        self.jobName = data
+
+    def get_job_name(self):
+        return self.jobName
+
+    def set_debug_mode(self,data):
+        self.debugMode = data
+
+    def get_debug_mode(self):
+        return self.debugMode
+
+    def set_job_url(self,data):
+        self.jobUrl = data
+
+    def get_job_url(self):
+        return self.jobUrl
+
+    def set_xml_url(self,data):
+        self.xmlUrl = data
+
+    def get_xml_url(self):
+        return self.xmlUrl
+
+    def set_error_url(self,data):
+        self.errorUrl = data
+
+    def get_error_url(self):
+        return self.errorUrl
+
+    def set_app_name(self,data):
+        self.appName = data
+
+    def get_app_name(self):
+        return self.appName
+
+    def set_logger(self,data):
+        self.logger = data
+
+    def get_logger(self):
+        return self.logger
     # need to check its usage
     def set_date_format_details(self,data):
         self.dateFormatDetails = data
@@ -535,6 +584,9 @@ class ContextSetter:
 
     def get_app_id(self):
         return self.appid
+
+    def set_app_id(self,data):
+        self.appid = str(data)
 
     def get_datetime_suggestions(self):
         return self.dateTimeSuggestions

@@ -25,6 +25,7 @@ from bi.common import C3ChartData,TableData, NormalCard
 from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.settings import setting as GLOBALSETTINGS
 
 
 class LogisticRegressionScript:
@@ -39,7 +40,7 @@ class LogisticRegressionScript:
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
         self._column_separator = "|~|"
-        self._model_slug_map = MLUtils.model_slug_mapping()
+        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
         self._slug = self._model_slug_map["logisticregression"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 

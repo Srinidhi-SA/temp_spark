@@ -21,6 +21,7 @@ from pyspark.sql.types import StringType
 from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
 
 
 def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
@@ -478,7 +479,7 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
-    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression"}
+    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -562,23 +563,6 @@ def create_scored_data_folder(score_slug,basefoldername):
     os.mkdir(filepath+"/"+score_slug)
     return filepath+"/"+score_slug+"/"
 
-def model_slug_mapping():
-    random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
-    object = {
-                "randomforest":random_slug+"rf",
-                "logisticregression":random_slug+"lr",
-                "xgboost":random_slug+"xgb"
-                }
-    return object
-def slug_model_mapping():
-    random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
-    object = {
-                random_slug+"rf":"randomforest",
-                random_slug+"lr":"logisticregression",
-                random_slug+"xgb":"xgboost"
-                }
-    return object
-
 def reformat_confusion_matrix(confusion_matrix):
     levels = confusion_matrix.keys()
     confusion_matrix_data = [[""]+levels]
@@ -623,7 +607,7 @@ def create_model_summary_cards(modelSummaryClass):
     return [modelSummaryCard1,modelSummaryCard2]
 
 
-def collated_model_summary_card(result_setter,prediction_narrative):
+def collated_model_summary_card(result_setter,prediction_narrative,appid=None):
     collated_summary = result_setter.get_model_summary()
     card1 = NormalCard()
     card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
@@ -639,7 +623,10 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
     card3 = NormalCard()
-    card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
+    if appid == None:
+        card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
+    else:
+        card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_HEADING_MAP[appid]))]
     card3Data.append(get_feature_importance(collated_summary))
     card3.set_card_data(card3Data)
     # prediction_narrative.insert_card_at_given_index(card3,2)
@@ -662,6 +649,7 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     rfModelSummary = result_setter.get_random_forest_model_summary()
     lrModelSummary = result_setter.get_logistic_regression_model_summary()
     xgbModelSummary = result_setter.get_xgboost_model_summary()
+    svmModelSummary = result_setter.get_svm_model_summary()
 
     model_dropdowns = []
     model_features = {}
@@ -669,7 +657,7 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     labelMappingDict = {}
     targetVariableLevelcount = {}
     target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
-    for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
+    for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
         if obj != {}:
             model_dropdowns.append(obj["dropdown"])
             model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]

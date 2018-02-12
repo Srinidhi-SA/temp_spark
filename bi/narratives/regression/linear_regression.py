@@ -348,18 +348,20 @@ class LinearRegressionNarrative:
     #### functions to calculate data dicts for different cards
 
     def get_freq_dict(self,df,columns):
+        # print columns
         column_tuple = zip(columns,[{}]*len(columns))
         output = []
         for val in column_tuple:
             freq_df = df.groupby(val[0]).count().toPandas()
             freq_dict = dict(zip(freq_df[val[0]],freq_df["count"]))
+            print freq_dict
             if freq_dict != {}:
                 max_level = max(freq_dict,key=freq_dict.get)
                 max_val = freq_dict[max_level]
                 output.append((val[0],freq_dict,max_level,max_val))
             else:
                 print freq_dict
-                print df.select(val[0]).toPandas()
+                # print df.select(val[0]).toPandas()
         sorted_output = sorted(output,key=lambda x:x[3],reverse=True)
         return sorted_output
 

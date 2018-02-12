@@ -309,6 +309,13 @@ def save_result_json(url,jsonData):
     return res
 
 def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
+    print {
+        "stageName": jsonData["stageName"],
+        "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
+        "stageCompletionPercentage": jsonData["stageCompletionPercentage"],
+        "shortExplanation": jsonData["shortExplanation"],
+        "analysisName": jsonData["analysisName"]
+        }
     if emptyBin == True:
         url += "?emptyBin=True"
     if ignore == False:

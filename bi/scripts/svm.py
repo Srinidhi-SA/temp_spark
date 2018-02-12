@@ -17,7 +17,7 @@ from sklearn import metrics
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
-from bi.algorithms import RandomForest
+from bi.algorithms import SupportVectorMachine
 from bi.algorithms import utils as MLUtils
 from bi.common import MLModelSummary
 from bi.common import DataFrameHelper
@@ -32,7 +32,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class RandomForestScript:
+class SupportVectorMachineScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -45,26 +45,26 @@ class RandomForestScript:
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
         self._score_summary = {}
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["randomforest"]
+        self._slug = self._model_slug_map["svm"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
-        self._analysisName = "randomForest"
+        self._analysisName = "svm"
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Scripts",
+                "summary":"Initialized the SVM Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Random Forest Model Training Started",
+                "summary":"SVM Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Random Forest Model Training Finished",
+                "summary":"SVM Model Training Finished",
                 "weight":4
                 },
             }
@@ -88,15 +88,15 @@ class RandomForestScript:
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns) - {uid_col})
-        print categorical_columns
+        # print categorical_columns
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
         if model_path.startswith("file"):
             model_path = model_path[7:]
-        random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
+        # print self._data_frame.head()
+        svm_obj = SupportVectorMachine(self._data_frame, self._dataframe_helper, self._spark)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "training",\
@@ -107,8 +107,9 @@ class RandomForestScript:
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
-        clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
-        objs = random_forest_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
+        clf_svm = svm_obj.initiate_svm_classifier(10,4)
+        objs = svm_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_svm,False,True,[])
+
         runtime = round((time.time() - st),2)
         model_filepath = str(model_path)+"/"+str(self._slug)+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
@@ -131,8 +132,8 @@ class RandomForestScript:
         cat_cols = list(set(categorical_columns) - {result_column})
         overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
         self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Random Forest")
-        self._model_summary.set_algorithm_display_name("Random Forest")
+        self._model_summary.set_algorithm_name("Svm")
+        self._model_summary.set_algorithm_display_name("Support Vector Machine")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -163,13 +164,13 @@ class RandomForestScript:
             "levelMapping":self._model_summary.get_level_map_dict()
         }
 
-        rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        for card in rfCards:
+        svmCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in svmCards:
             self._prediction_narrative.add_a_card(card)
 
-        self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_random_forest_model_summary(modelSummaryJson)
-        self._result_setter.set_rf_cards(rfCards)
+        self._result_setter.set_model_summary({"svm":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_svm_model_summary(modelSummaryJson)
+        self._result_setter.set_rf_cards(svmCards)
 
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -231,7 +232,7 @@ class RandomForestScript:
                         dataSanity = False
                 else:
                     dataSanity = False
-        random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
+        svm_obj = SupportVectorMachine(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -257,7 +258,7 @@ class RandomForestScript:
         pandas_df = pandas_df[model_feature_list]
         if uid_col:
             pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
-        score = random_forest_obj.predict(pandas_df,trained_model,[result_column])
+        score = svm_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()
         df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")
