@@ -104,6 +104,7 @@ def set_dataframe_helper(df,dataframe_context,metaParserInstance):
 def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     LOGGER = dataframe_context.get_logger()
     jobUrl = dataframe_context.get_job_url()
+    errorURL = dataframe_context.get_error_url()
     xmlUrl = dataframe_context.get_xml_url()
     ignoreMsg = dataframe_context.get_message_ignore()
     messageURL = dataframe_context.get_message_url()
