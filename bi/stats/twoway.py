@@ -264,10 +264,18 @@ class TwoWayAnova:
             filtered_df = df.filter(col(dimension)==row[dimension])
             group_sse = filtered_df.select(sum(pow(col(measure)-row["average"],2))).collect()[0][0]
             ss_within = ss_within+group_sse
-
-        ms_between = ss_between/df_between
-        ms_within = ss_within/df_within
-        f_stat = ms_between/ms_within
+        try:
+            ms_between = ss_between/df_between
+        except:
+            ms_between = 0
+        try:
+            ms_within = ss_within/df_within
+        except:
+            ms_within = 0
+        try:
+            f_stat = ms_between/ms_within
+        except:
+            f_stat = 0
         f_critical = f.ppf(q=1-0.05, dfn=df_between, dfd=df_within)
         p_value = f.cdf(f_stat, df_between, df_within)
         eta_squared = ss_between/ss_total
