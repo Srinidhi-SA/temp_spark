@@ -26,6 +26,7 @@ class LinearRegression:
         self._metaParser = meta_parser
         self._spark = spark
 
+        self._ignoreRegressionElasticityMessages = self._dataframe_context.get_ignore_msg_regression_elasticity()
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
         self._analysisDict = self._dataframe_context.get_analysis_dict()
@@ -47,8 +48,9 @@ class LinearRegression:
                                     self._scriptStages["regressionTrainingStart"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        if self._ignoreRegressionElasticityMessages != True:
+            CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore = self._ignoreRegressionElasticityMessages)
+            self._dataframe_context.update_completion_status(self._completionStatus)
 
         datasource_type = self._dataframe_context.get_datasource_type()
         if datasource_type == "Hana":
@@ -140,7 +142,8 @@ class LinearRegression:
                                     self._scriptStages["regressionTrainingEnd"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        if self._ignoreRegressionElasticityMessages != True:
+            CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore = self._ignoreRegressionElasticityMessages)
+            self._dataframe_context.update_completion_status(self._completionStatus)
 
         return regression_result

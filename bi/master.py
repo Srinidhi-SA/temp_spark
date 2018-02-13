@@ -43,7 +43,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "training"
+            jobType = "story"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -122,7 +122,7 @@ def main(configJson):
     df = None
     data_loading_st = time.time()
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
-    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
     dataframe_context.update_completion_status(completionStatus)
     ########################## Load the dataframe ##############################
     df = MasterHelper.load_dataset(spark,dataframe_context)
@@ -147,11 +147,6 @@ def main(configJson):
 
     ################################ Story Creation ############################
     if jobType == "story":
-        messageURL = dataframe_context.get_message_url()
-        result_setter = ResultSetter(dataframe_context)
-        story_narrative = NarrativesTree()
-        targetVal = dataframe_context.get_result_column()
-        story_narrative.set_name("{} Performance Report".format(targetVal))
         if analysistype == "dimension":
             MasterHelper.run_dimension_analysis(spark,df,dataframe_context,df_helper,metaParserInstance)
         elif analysistype == "measure":

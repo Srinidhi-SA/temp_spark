@@ -29,6 +29,7 @@ class LinearRegressionNarrative:
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._result_column = self._dataframe_helper.resultcolumn
         self._column_correlations = column_correlations
+        self._dataframe_context.set_ignore_msg_regression_elasticity(True)
 
         self._sample_size = min(int(df_helper.get_num_rows()*0.8),2000)
         self.heading = '%s Performance Analysis'%(self._result_column)

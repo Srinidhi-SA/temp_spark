@@ -79,6 +79,8 @@ class ContextSetter:
         self.errorUrl = None
         self.logger = None
 
+        self.ignoreRegressionElasticityMessages = False
+
 
 
 
@@ -620,6 +622,12 @@ class ContextSetter:
 
     def get_target_level_for_model(self):
         return self.targetLevelForModel
+
+    def set_ignore_msg_regression_elasticity(self,data):
+        self.ignoreRegressionElasticityMessages = data
+
+    def get_ignore_msg_regression_elasticity(self):
+        return self.ignoreRegressionElasticityMessages
 
     def get_script_weights(self):
         jobType = self.jobType
