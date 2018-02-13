@@ -631,12 +631,11 @@ def collated_model_summary_card(result_setter,prediction_narrative,appid=None):
     card3.set_card_data(card3Data)
     # prediction_narrative.insert_card_at_given_index(card3,2)
     card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
-
     modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
     modelResult = json.loads(modelResult)
     existing_cards = modelResult["listOfCards"]
     existing_cards = result_setter.get_all_algos_cards()
-
+    print "existing_cards",existing_cards
     # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
     all_cards = [card1,card2,card3] + existing_cards
 
@@ -658,7 +657,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appid=None):
     targetVariableLevelcount = {}
     target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
     for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
-        if obj != {}:
+        if obj != None:
             model_dropdowns.append(obj["dropdown"])
             model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
             labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]
