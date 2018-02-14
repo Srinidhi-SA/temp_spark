@@ -15,25 +15,26 @@ def get_metadata_config():
     },
     "FILE_SETTINGS": {
       "inputfile": [
-        "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce.csv"
+        "/home/marlabs/Documents/mAdvisor/Datasets/Equipment.csv"
       ]
     }
   },
   "job_config": {
-    "message_url": "http://34.196.204.54:9012/api/messages/Job_metadata-retailsalesdatacsv-qxn2cavi2u-twxp7sm89h_123/",
+    "message_url": "http://34.196.204.54:9012/api/messages/Job_metadata-equipmentcsv-5o8la4ts54-x93xh2f4f7_123/",
     "get_config": {
       "action": "get_config",
       "method": "GET"
     },
-    "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/metadata-retailsalesdatacsv-qxn2cavi2u-twxp7sm89h/",
+    "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/metadata-equipmentcsv-5o8la4ts54-x93xh2f4f7/",
     "set_result": {
       "action": "result",
       "method": "PUT"
     },
-    "job_url": "http://34.196.204.54:9012/api/job/metadata-retailsalesdatacsv-qxn2cavi2u-twxp7sm89h/",
+    "job_url": "http://34.196.204.54:9012/api/job/metadata-equipmentcsv-5o8la4ts54-x93xh2f4f7/",
     "job_type": "metaData",
-    "job_name": "RetailSalesData.csv",
-    "xml_url": "http://34.196.204.54:9012/api/xml/metadata-retailsalesdatacsv-qxn2cavi2u-twxp7sm89h/"
+    "job_name": "Equipment.csv",
+    "xml_url": "http://34.196.204.54:9012/api/xml/metadata-equipmentcsv-5o8la4ts54-x93xh2f4f7/",
+    "app_id": None
   }
 }
     return metaDataConfig
