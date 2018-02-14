@@ -358,7 +358,7 @@ class MetaDataHelper():
             if (colStat["numberOfUniqueValues"]==1):
                 ignore = True
                 reason = "Only one Unique Value"
-            if (colStat["numberOfNulls"] == 0):
+            if (colStat["numberOfNulls"] > 0):
                 if (colStat["numberOfUniqueValues"]==1):
                     ignore = True
                     reason = "Only one Unique Value"
