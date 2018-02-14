@@ -6,205 +6,181 @@ def get_prediction_config():
             {
               "polarity": None,
               "setVarAs": None,
-              "columnType": "dimension",
-              "name": "uid",
+              "columnType": "measure",
+              "name": "age",
               "selected": True,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "46ec8e7d3b3f43a4907cb7ba10e87215",
-              "uidCol": True
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Month",
-              "selected": False,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
-              "slug": "b501227d44a04f8ba03b56770b4acd5d",
+              "slug": "556652df46d14a68ac6b2fafa8363afb",
               "uidCol": False
             },
             {
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Deal_Type",
+              "name": "workclass",
               "selected": True,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "81bf54cc137942cabf56c2aa0dbba528",
+              "slug": "db3f94d81b37429c9a2783306e5da9f2",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "fnlwgt",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "c10dc58069ea441d94e48e36d04d0bf2",
               "uidCol": False
             },
             {
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Price_Range",
+              "name": "education",
               "selected": True,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "74c836af52014f9d83e3d4326657add1",
+              "slug": "edab205bf35e4d929022201ec6f30e31",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "education-num",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "0e95bba63c274898889e43e642d8d503",
               "uidCol": False
             },
             {
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Discount_Range",
+              "name": "marital-status",
               "selected": True,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "984322638b154e7abdcbabf2c8871186",
+              "slug": "9c4a6d087f424689bbc8bcf3bd98974d",
               "uidCol": False
             },
             {
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Source",
+              "name": "occupation",
               "selected": True,
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "2cc19c3b13e44206841d75deab962178",
+              "slug": "8639e3277cad4d1a95ffd8c75e32e2ca",
               "uidCol": False
             },
             {
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Platform",
+              "name": "relationship",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "473b745f23fa44c894d4a59abe4bed4c",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "race",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "50636b13c97d47acb279604f14739950",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "sex",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "a066f47a3d8c4997b0790120feecda5a",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Capital-gain",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "b3784bf061ff4e088c90a5f7decb38a4",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Capital-loss",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "fa1ac039d3bc48d5b9b87d507db8ac8b",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "hours-per-week",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "bbedc95901a34b71bbc2158278d6514e",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "native-country",
+              "selected": True,
+              "targetColumn": False,
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "slug": "2da496d30203414fb00201c5a644c56e",
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "class_label",
               "selected": True,
               "targetColumn": True,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "66f4f08701864877a1041393c78964e2",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Buyer_Age",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "4cfea1a4dbc74f9daaf3ca34eac9043e",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Buyer_Gender",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "59e9473ae53d4f0bb9daf25bcf27c2cc",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Tenure_in_Days",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "4e1f9abaebb94022bf95ff49a26bf06a",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Sales",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "be262c1a685c4e64b123f0c2fb04fe4a",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Marketing_Cost",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "6b594d8804634495ac9799696a46c107",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Shipping_Cost",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "b2b5e4231f164078be5a3170bae80bf3",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Last_Transaction",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "74d5c13420464b03a67c5638f28d015b",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "datetime",
-              "name": "new_date",
-              "selected": True,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "slug": "c2556ed2222341deb12012ed6e24b551",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Order Date",
-              "selected": False,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
-              "slug": "3ef2616ac7df4730b3a9001f4583a944",
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "newCol",
-              "selected": False,
-              "targetColumn": False,
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
-              "slug": "584d980dd1b94ffa9dd7590bef9a44a6",
+              "slug": "a7724c2c0fa647e7b3a31c0d289fc5b0",
               "uidCol": False
             }
           ],
@@ -212,22 +188,10 @@ def get_prediction_config():
             {
               "polarity": None,
               "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Month",
-              "selected": False,
-              "slug": "b497b95c73ee40a0836977a0ac6d29f8",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Deal_Type",
+              "columnType": "measure",
+              "name": "age",
               "selected": True,
-              "slug": "278f42a7cd3c4dcca1ebce43a637958b",
+              "slug": "c0fba0759f9e41c8bc814fbbd902c77b",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -237,57 +201,9 @@ def get_prediction_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Price_Range",
+              "name": "workclass",
               "selected": True,
-              "slug": "dde04a3ecd96411d834263ba67c26f31",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Discount_Range",
-              "selected": True,
-              "slug": "6e3d5bb5c2ff4dd4bfbf9b73bd300b5b",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Source",
-              "selected": True,
-              "slug": "c4e9b9ffb1a648f1bd61d14131c06611",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Buyer_Age",
-              "selected": True,
-              "slug": "8563351b69f4418494290025f2bf9935",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Buyer_Gender",
-              "selected": True,
-              "slug": "2e4b16cad4f1495e979299cb1becc9f5",
+              "slug": "af17d1562f2f44e1b56202aaab22e47d",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -297,69 +213,9 @@ def get_prediction_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "measure",
-              "name": "Tenure_in_Days",
+              "name": "fnlwgt",
               "selected": True,
-              "slug": "dd29d71e5d52488da529b251d0231c06",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Sales",
-              "selected": True,
-              "slug": "0853630d946a49d0b108bba4fb0692ee",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Marketing_Cost",
-              "selected": True,
-              "slug": "b492f5c6a4d84f23994838f81d1ee363",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Shipping_Cost",
-              "selected": True,
-              "slug": "8fdd85c49bb14133a24c2defd71354f9",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Last_Transaction",
-              "selected": True,
-              "slug": "8586f0bf78fb4de0bf93568535f79fdb",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "datetime",
-              "name": "new_date",
-              "selected": True,
-              "slug": "85a716b0b3d74abba1e4655af0f168ae",
+              "slug": "4532cccad5534ccca2f81185cf81f40f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -369,11 +225,23 @@ def get_prediction_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Order Date",
-              "selected": False,
-              "slug": "6b89efde0b3d405e85ff98c6523b60d3",
+              "name": "education",
+              "selected": True,
+              "slug": "c882999e8c1d48ebb77ba6e1fa47f099",
               "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "education-num",
+              "selected": True,
+              "slug": "6950cf3cd7fb47c4aa35c77e42f8f1be",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
               "targetColumn": False,
               "uidCol": False
             },
@@ -381,11 +249,107 @@ def get_prediction_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "newCol",
-              "selected": False,
-              "slug": "43c09b87062a457b8d73cb37985d0fd9",
+              "name": "marital-status",
+              "selected": True,
+              "slug": "22ce9369fe53489fafc7d9e63b2c69dc",
               "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "occupation",
+              "selected": True,
+              "slug": "7d0e45eb87f248359b6ede9f1cc66c6f",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "relationship",
+              "selected": True,
+              "slug": "37a8ee4f3bfa4a499f420f66bd84806b",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "race",
+              "selected": True,
+              "slug": "4495a5f1f4cf408286c5f56022b28ccd",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "sex",
+              "selected": True,
+              "slug": "6a1985a3b9f74dcc821a043a3e9c5693",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Capital-gain",
+              "selected": True,
+              "slug": "178b1afac9e6454897477fa65a13ad40",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Capital-loss",
+              "selected": True,
+              "slug": "3c7bd62f8f4d4b2894283a1303e2e082",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "hours-per-week",
+              "selected": True,
+              "slug": "1276df0f704849168792d46ef291fac9",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "native-country",
+              "selected": True,
+              "slug": "cd7f261d6c584694965c98e28ba4940a",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
               "targetColumn": False,
               "uidCol": False
             }
@@ -399,68 +363,70 @@ def get_prediction_config():
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "ecommerce_uid_test_platformcsv-6zgty107dx"
+              "demography_testcsv-gr7oowqmze"
             ]
           },
           "labelMappingDict": [
             {
-              "0": "Desktop",
-              "1": "Mobile"
+              "1": " >50K",
+              "0": " <=50K"
             }
           ],
           "scorepath": [
-            "score-lllll-9zeji7pcwg"
+            "score-dsa-dbfdhvx6y2"
           ],
           "modelpath": [
-            "llllll-ui5h22aaz6"
+            "jack-3-ozdbua2eic"
           ],
           "analysis_type": [
             "score"
           ],
           "modelfeatures": [
-            "Buyer_Gender",
-            "uid",
-            "Source",
-            "Buyer_Age",
-            "Tenure_in_Days",
-            "Sales",
-            "Discount_Range",
-            "Shipping_Cost",
-            "Deal_Type",
-            "Last_Transaction",
-            "Price_Range",
-            "Marketing_Cost"
+            "workclass",
+            "relationship",
+            "age",
+            "Capital-gain",
+            "sex",
+            "hours-per-week",
+            "race",
+            "native-country",
+            "education-num",
+            "Capital-loss",
+            "education",
+            "fnlwgt",
+            "marital-status",
+            "occupation"
           ],
           "algorithmslug": [
             "f77631ce2ab24cf78c55bb6a5fce4db8rf"
           ],
           "levelcounts": [
             {
-              "Mobile": 162,
-              "Desktop": 495
+              " >50K": 595,
+              " <=50K": 1774
             }
           ],
           "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce_UID_test_Platform.csv"
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/demography_test.csv"
           ]
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_score-score-lllll-9zeji7pcwg-5pr3f23jlc_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_score-score-dsa-dbfdhvx6y2-3v0yx6j3ys_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/score-score-lllll-9zeji7pcwg-5pr3f23jlc/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/score-score-dsa-dbfdhvx6y2-3v0yx6j3ys/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/score-score-lllll-9zeji7pcwg-5pr3f23jlc/",
+        "job_url": "http://34.196.204.54:9012/api/job/score-score-dsa-dbfdhvx6y2-3v0yx6j3ys/",
         "job_type": "prediction",
-        "job_name": "score-lllll",
-        "xml_url": "http://34.196.204.54:9012/api/xml/score-score-lllll-9zeji7pcwg-5pr3f23jlc/",
-        "app_id": 1
+        "job_name": "score-dsa",
+        "xml_url": "http://34.196.204.54:9012/api/xml/score-score-dsa-dbfdhvx6y2-3v0yx6j3ys/",
+        "app_id": 2
       }
     }
     return predictionConfig

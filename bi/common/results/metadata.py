@@ -175,6 +175,13 @@ class ColumnData:
         else:
             return None
 
+    def get_colstat_values(self,colName,key=None):
+        if self.columnType == "measure":
+            if key != None:
+                return [x["value"] for x in self.columnStats if x["name"] == key][0]
+        else:
+            return None
+
     def get_unique_value_count(self,colName):
         return [x["value"] for x in self.columnStats if x["name"] == "numberOfUniqueValues"][0]
 

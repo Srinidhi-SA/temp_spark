@@ -275,6 +275,8 @@ class RandomForestScript:
                 uidCol = uidCols[0]
         uidTableData = []
         predictedClasses = list(df[result_column].unique())
+        print "uidCol",uidCol
+        print "="*500
         if uidCol:
             if uidCol in df.columns:
                 for level in predictedClasses:
@@ -327,6 +329,7 @@ class RandomForestScript:
         df.drop(columns_to_drop, axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
+        print "resultColLevelCount",resultColLevelCount
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
         self._dataframe_context.set_story_on_scored_data(True)

@@ -224,8 +224,12 @@ class DecisionTreeRegression:
 
     def transform_data_frames(self):
         self._data_frame, self._mapping_dict = MLUtils.add_string_index(self._data_frame, self._dimension_columns)
-        self._data_frame, clusters = MLUtils.cluster_by_column(self._data_frame, self._target_dimension)
-        self._data_frame1, self._aggr_data = MLUtils.cluster_by_column(self._data_frame1, self._target_dimension, get_aggregation=True)
+        # self._data_frame, clusters = MLUtils.cluster_by_column(self._data_frame, self._target_dimension)
+        # self._data_frame1, self._aggr_data = MLUtils.cluster_by_column(self._data_frame1, self._target_dimension, get_aggregation=True)
+        self._data_frame, clusters = MLUtils.bin_column(self._data_frame, self._target_dimension)
+        self._data_frame1, self._aggr_data = MLUtils.bin_column(self._data_frame1, self._target_dimension, get_aggregation=True)
+        print self._aggr_data
+
         self._cluster_order = [x[1] for x in sorted(zip(clusters,[0,1,2]))]
         self._mapping_dict[self._target_dimension] = dict(zip(self._cluster_order,GLOBALSETTINGS.DECISIONTREERKMEANSTARGETNAME))
         self._reverse_map = {}

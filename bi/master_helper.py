@@ -185,6 +185,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     errorURL = dataframe_context.get_error_url()
     jobUrl = dataframe_context.get_job_url()
     ignoreMsg = dataframe_context.get_message_ignore()
+    targetLevel = dataframe_context.get_target_level_for_model()
     print "Prediction Started"
     st = time.time()
     story_narrative = NarrativesTree()

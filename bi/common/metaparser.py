@@ -82,6 +82,17 @@ class MetaParser:
         else:
             return None
 
+    # def get_minimum_value(self,column_name):
+    #     if self.column_dict[column_name].get_column_type()=="measure":
+    #         return self.column_dict[column_name].get_colstat_values(column_name,"min")
+    #     else:
+    #         return None
+    # def get_maximum_value(self,column_name):
+    #     if self.column_dict[column_name].get_column_type()=="measure":
+    #         return self.column_dict[column_name].get_colstat_values(column_name,"max")
+    #     else:
+    #         return None
+
     def get_percentage_columns(self):
         return self.percentage_columns
 

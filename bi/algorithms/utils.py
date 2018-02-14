@@ -303,6 +303,29 @@ def transform_feature_importance(feature_importance_dict):
     output = [feature_importance_new[0][:6],feature_importance_new[1][:6]]
     return output
 
+def bin_column(df, measure_column,get_aggregation = False):
+    allCols = df.columns
+    df = df.select([col(c).cast('double').alias(c) if c == measure_column else col(c) for c in allCols])
+    min_,max_,mean_,stddev_,total = df.agg(FN.min(measure_column), FN.max(measure_column), FN.mean(measure_column), FN.stddev(measure_column), FN.sum(measure_column)).collect()[0]
+    df_without_outlier = df.filter(col(measure_column)>=mean_-3*stddev_).filter(col(measure_column)<=mean_+3*stddev_)
+    diff = (max_ - min_)*1.0
+    splits_new = [min_,min_+diff*0.4,min_+diff*0.7,max_]
+    bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+    bucketizer.setSplits(splits_new)
+    df = bucketizer.transform(df)
+    if (get_aggregation):
+        agg_df = df.groupby("bucket").agg(FN.sum(measure_column).alias('sum'), FN.count(measure_column).alias('count'))
+        aggr = {}
+        for row in agg_df.collect():
+            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': row[1]*100.0/total, 'count_percent': row[2]*100.0/df.count()}
+
+    df = df.select([c for c in df.columns if c!=measure_column])
+    df = df.withColumnRenamed("bucket",measure_column)
+
+    if (get_aggregation):
+        return df, aggr
+    return df, splits_new[1:]
+
 def cluster_by_column(df, col_to_cluster, get_aggregation = False):
     my_df = df.select(df.columns)
     assembler = VectorAssembler(inputCols = [col_to_cluster], outputCol = "feature_vector")

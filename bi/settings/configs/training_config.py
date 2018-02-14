@@ -13,7 +13,7 @@ def get_training_config():
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
-              "uidCol": False
+              "uidCol": True
             },
             {
               "polarity": None,
@@ -25,7 +25,7 @@ def get_training_config():
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
-              "uidCol": True
+              "uidCol": False
             },
             {
               "polarity": None,
@@ -190,12 +190,12 @@ def get_training_config():
           "datasource_details": ""
         },
         "FILE_SETTINGS": {
-          "targetLevel": "",
+          "targetLevel": " >50K",
           "modelpath": [
-            "uid-model-rwzfnb4a0m"
+            "jack-3-ozdbua2eic"
           ],
           "train_test_split": [
-            0.66
+            0.7
           ],
           "analysis_type": [
             "training"
@@ -212,20 +212,20 @@ def get_training_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-uid-model-rwzfnb4a0m-epl4dxivts_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-jack-3-ozdbua2eic-3140dvcplg_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-uid-model-rwzfnb4a0m-epl4dxivts/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-jack-3-ozdbua2eic-3140dvcplg/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/model-uid-model-rwzfnb4a0m-epl4dxivts/",
+        "job_url": "http://34.196.204.54:9012/api/job/model-jack-3-ozdbua2eic-3140dvcplg/",
         "job_type": "training",
-        "job_name": "uid-model",
-        "xml_url": "http://34.196.204.54:9012/api/xml/model-uid-model-rwzfnb4a0m-epl4dxivts/",
+        "job_name": "jack 3",
+        "xml_url": "http://34.196.204.54:9012/api/xml/model-jack-3-ozdbua2eic-3140dvcplg/",
         "app_id": 2
       }
     }
