@@ -15,6 +15,7 @@ class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
 
     def __init__(self, column_name, df_helper, df_context, freq_dimension_stats,result_setter,story_narrative,scriptWeight=None, analysisName=None):
+        print "WTF"*200
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._column_name = column_name.lower()
@@ -122,12 +123,14 @@ class DimensionColumnNarrative:
                 self._generate_summary()
                 self._generate_analysis()
         else:
+            print "WAAHHHHHHHHHHHHHHHHHHHHHHHHHH"
             self._generate_title()
             self._generate_summary()
             self._generate_analysis()
 
     def _generate_title(self):
         self.header = '%s Performance Report' % (self._capitalized_column_name,)
+        print self.header
         # self._dimensionSummaryNode.set_name(self.header)
 
     def _generate_summary(self):
@@ -149,6 +152,8 @@ class DimensionColumnNarrative:
                     # "n_t" : self._dataframe_helper.get_num_columns()+len(ignored_columns),
                     "blockSplitter" : self._blockSplitter
         }
+        print data_dict
+        print "#"*200
         output = NarrativesUtils.get_template_output(self._base_dir,\
                                         'dimension_report_summary.html',data_dict)
         summary = NarrativesUtils.block_splitter(output,self._blockSplitter)

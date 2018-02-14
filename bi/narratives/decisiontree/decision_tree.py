@@ -246,6 +246,7 @@ class DecisionTreeNarrative:
                 for grps,grpRange in probabilityRangeForChart.items():
                     if val > grpRange[0] and val <= grpRange[1]:
                         chartDict[grps] = chartDict[grps]+1
+            chartDict = {k:v for k,v in chartDict.items() if v != 0}
             print chartDict
         if len(chartDict) > donutChartMaxLevel:
             chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)

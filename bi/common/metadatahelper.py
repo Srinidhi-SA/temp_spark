@@ -359,6 +359,10 @@ class MetaDataHelper():
                 ignore = True
                 reason = "Only one Unique Value"
             if (colStat["numberOfNulls"] == 0):
+                if (colStat["numberOfUniqueValues"]==1):
+                    ignore = True
+                    reason = "Only one Unique Value"
+            if (colStat["numberOfNulls"] == 0):
                 if (colStat["numberOfUniqueValues"] == total_rows):
                     ignore = True
                     reason = "Index column (all values are distinct)"
@@ -378,7 +382,7 @@ class MetaDataHelper():
             if (colStat["numberOfNulls"] == 0):
                 if (colStat["numberOfUniqueValues"] == total_rows):
                     ignore = True
-                    reason = "All values are distinct"
+                    reason = "Index Column (all values are distinct)"
             else:
                 if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]):
                     ignore = True

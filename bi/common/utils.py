@@ -367,7 +367,7 @@ def save_error_messages(url,errorKey,error,ignore=False):
         else:
             errordict = error
         if ignore == False:
-            res = requests.post(url=url,data=json.dumps(errordict))
+            res = requests.put(url=url,data=json.dumps(errordict))
             return res
         else:
             return True
