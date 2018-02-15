@@ -488,6 +488,7 @@ def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,val
     # print "max_time",max_time
     out = {}
     for column_name in columns:
+        print "-"*100
         print "calculate_level_contribution for ",column_name
         data_dict = {
                     "overall_avg":None,
@@ -503,12 +504,12 @@ def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,val
         except:
             column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
-        st = time.time()
+        # st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
         # print "time for pivot",time.time()-st
         # pivotdf = pivotdf.na.fill(0)
         # pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
-        st=time.time()
+        # st=time.time()
         # print "converting to pandas"
         k = pivotdf.toPandas()
         # print "time taken for pandas conversion of pivotdf",time.time()-st
@@ -585,7 +586,8 @@ def get_level_cont_dict(level_cont):
             t_dict.update({"level":min_level})
         output.append(t_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
-    out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
+    # out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
+    out_data["lowest_contributing_variable"] = min(dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None ),key=lambda x:out_dict[x]["diff"])
     print "lowest_contributing_variable",out_data["lowest_contributing_variable"]
     out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
     out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
