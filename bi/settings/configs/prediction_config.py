@@ -432,7 +432,7 @@ def get_prediction_config():
             "Marketing_Cost"
           ],
           "algorithmslug": [
-            "f77631ce2ab24cf78c55bb6a5fce4db8rf"
+            "f77631ce2ab24cf78c55bb6a5fce4db8xgb"
           ],
           "levelcounts": [
             {
