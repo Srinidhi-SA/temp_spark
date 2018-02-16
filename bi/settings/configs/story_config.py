@@ -299,7 +299,12 @@ def get_story_config():
               "defaultValue": 5,
               "value": 5
             }
-          ]
+          ],
+          "analysisSubTypes": [
+
+          ],
+          "displayName": "Influencer",
+          "name": "influencer"
         },
         {
           "status": False,
