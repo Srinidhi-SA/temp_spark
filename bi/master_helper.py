@@ -121,7 +121,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
         categorical_columns = list(set(categorical_columns) - {uid_col})
     result_column = dataframe_context.get_result_column()
-    allDateCols = dataframe_context.get_date_columns()
+    allDateCols = self._dataframe_context.get_date_columns()
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
     df = df.toPandas()
     df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])

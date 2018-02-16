@@ -7,237 +7,21 @@ def get_training_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "File",
+              "name": "uid",
               "selected": True,
-              "slug": "747a4ffb8a374ff88c506448345cf203",
+              "slug": "cdbafd3c7d2f4bdf9c8e17706872556f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Age",
-              "selected": True,
-              "slug": "61fcd129901240519b8110730a806de4",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
+              "uidCol": True
             },
             {
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Asset Category",
-              "selected": True,
-              "slug": "175c256129b340869972c5be6df0fe97",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Channel",
-              "selected": True,
-              "slug": "86bd990ac589473d93a91e503369e564",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Escalated",
-              "selected": True,
-              "slug": "d2553bd5ec254369981d2329e407b999",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Issue",
-              "selected": True,
-              "slug": "47e1fa99c530481bb5699e4fdcf8ecd0",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Make",
-              "selected": True,
-              "slug": "582d81e50c8e48538a8c49b7f52cec04",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Model",
-              "selected": True,
-              "slug": "ef668aadf7ef48588d95511c786c8d90",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Node Manager",
-              "selected": True,
-              "slug": "1e2b2f8fc3f6477b9c4142bbb123ccaa",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Out Of Warranty",
-              "selected": True,
-              "slug": "b87c3198617f4cc48e52da756f9ecfda",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Print Head Replacement - Out of Warranty",
-              "selected": True,
-              "slug": "f7a850a4ef224d8aa691ce9896386cdf",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Region",
-              "selected": True,
-              "slug": "2d657ee96ce64da1860ac56686f7f8e4",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Review Required - Node",
-              "selected": True,
-              "slug": "8b0dcf823cff49c68a68035c3f6b82fb",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Review Required - Vendor",
-              "selected": True,
-              "slug": "097b4281a7c946b5a9912e8c9b3c2291",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Service Vendor",
-              "selected": True,
-              "slug": "7a6ce1a2ac71483c863ba574ac1596d5",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Service - Current User Can Edit?",
-              "selected": True,
-              "slug": "3fbcb34f810d4a10a357bfc41c989045",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "measure",
-              "name": "Service - Current User has Permission?",
-              "selected": True,
-              "slug": "48965258ea2f4171b57630fdd3f7e741",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Severity",
-              "selected": True,
-              "slug": "d599df1988cc4c90bf3e0235e6305e1e",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": False,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Ticket Created Date",
-              "selected": True,
-              "slug": "eb0bb277bea24bd38191a2856d0fb509",
-              "targetColSetVarAs": None,
-              "dateSuggestionFlag": True,
-              "targetColumn": False,
-              "uidCol": False
-            },
-            {
-              "polarity": None,
-              "setVarAs": None,
-              "columnType": "dimension",
-              "name": "Ticket Closed Date",
+              "name": "Month",
               "selected": False,
-              "slug": "20df3a5686ce477ea77b744759f63fde",
+              "slug": "0214c2480dc2402896e0451713bcacf3",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -247,9 +31,57 @@ def get_training_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Ticket Status",
+              "name": "Deal_Type",
               "selected": True,
-              "slug": "08840dc40c654e858bc004bc0352751a",
+              "slug": "777461ba6ded4295bed14b0b07b6a711",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Price_Range",
+              "selected": True,
+              "slug": "55d77fe25cdc4a60a13415977964f7ca",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Discount_Range",
+              "selected": True,
+              "slug": "5474e6e0dc4448d8b8d7c8fd260e52a1",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Source",
+              "selected": True,
+              "slug": "185024f7e15f4a76b9a50b71ef72dd4f",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Platform",
+              "selected": True,
+              "slug": "682ac5ef7b1c4d31a0b8f4de9500a73f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": True,
@@ -259,11 +91,119 @@ def get_training_config():
               "polarity": None,
               "setVarAs": None,
               "columnType": "dimension",
-              "name": "Vendor Status",
+              "name": "Buyer_Age",
               "selected": True,
-              "slug": "c8b55eb61b5f48c4a5f3e7b9f03ce9f8",
+              "slug": "679f8ec6f28c495c87501da52d0c2d03",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Buyer_Gender",
+              "selected": True,
+              "slug": "1d80f69f5b7745cc8ad02cbb1ecadfbe",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Tenure_in_Days",
+              "selected": True,
+              "slug": "fce6a68f2db44d9a958ec78f2bf6a5f6",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Sales",
+              "selected": True,
+              "slug": "3c441db624c640c6a2504898dbdc4958",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Marketing_Cost",
+              "selected": True,
+              "slug": "553234ff91eb4347be6b88f9c1ecbc4c",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Shipping_Cost",
+              "selected": True,
+              "slug": "bd9a8f8ae33e41d097aeeecc3dd5e386",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "measure",
+              "name": "Last_Transaction",
+              "selected": True,
+              "slug": "e0e177c6e84f4c5fbafc87b8d08cd3b6",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "datetime",
+              "name": "new_date",
+              "selected": True,
+              "slug": "0baf8ee9e3cb49c5b5aab816114ebbc0",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": False,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "Order Date",
+              "selected": False,
+              "slug": "781f7c30962b494f9e5fde92c6395b60",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": True,
+              "targetColumn": False,
+              "uidCol": False
+            },
+            {
+              "polarity": None,
+              "setVarAs": None,
+              "columnType": "dimension",
+              "name": "newCol",
+              "selected": False,
+              "slug": "bfae39a5d0b4499693ee58a5b46f68f1",
+              "targetColSetVarAs": None,
+              "dateSuggestionFlag": True,
               "targetColumn": False,
               "uidCol": False
             }
@@ -274,42 +214,42 @@ def get_training_config():
           "datasource_details": ""
         },
         "FILE_SETTINGS": {
-          "targetLevel": "Open",
+          "targetLevel": "Mobile",
           "modelpath": [
-            "gg-fedx-8ye7jva9v5"
+            "uid-mod-mox3850kmw"
           ],
           "train_test_split": [
-            0.61
+            0.65
           ],
           "analysis_type": [
             "training"
           ],
           "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/FedexModelling.csv"
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce_UID.csv"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "fedexmodellingcsv-pchx0g4zs6"
+              "ecommerce_uidcsv-44qhdl1yaa"
             ]
           }
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-gg-fedx-8ye7jva9v5-ftx76aiww3_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-uid-mod-mox3850kmw-r5gtdb90ja_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-gg-fedx-8ye7jva9v5-ftx76aiww3/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-uid-mod-mox3850kmw-r5gtdb90ja/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/model-gg-fedx-8ye7jva9v5-ftx76aiww3/",
+        "job_url": "http://34.196.204.54:9012/api/job/model-uid-mod-mox3850kmw-r5gtdb90ja/",
         "job_type": "training",
-        "job_name": "gg-fedx",
-        "xml_url": "http://34.196.204.54:9012/api/xml/model-gg-fedx-8ye7jva9v5-ftx76aiww3/",
+        "job_name": "uid-mod",
+        "xml_url": "http://34.196.204.54:9012/api/xml/model-uid-mod-mox3850kmw-r5gtdb90ja/",
         "app_id": 2
       }
     }
