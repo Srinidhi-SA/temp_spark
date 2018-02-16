@@ -66,7 +66,6 @@ class ContextSetter:
         self.requestedDateFormat = None
         self.dateFormatDict = {}
         self.allDateColumns = []
-        self.string_to_date_columns = {}
         self.dateFormatDetails = {}
         self.dateTimeSuggestions = []
         self.selected_date_columns = []
@@ -557,9 +556,6 @@ class ContextSetter:
     def get_time_dimension_filters(self):
         return self.time_dimension_filter
 
-    def get_date_settings(self):
-        return self.string_to_date_columns
-
     def get_column_subset(self):
         return self.considercolumns
 
@@ -588,9 +584,15 @@ class ContextSetter:
         return self.appid
 
     def set_app_id(self,data):
-        self.appid = str(data)
+        if data != None:
+            self.appid = str(data)
+        else:
+            self.appid = data
 
     def get_datetime_suggestions(self):
+        """
+        returns list of column which are suggested to be datetime
+        """
         return self.dateTimeSuggestions
 
     def get_output_filepath(self):

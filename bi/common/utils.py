@@ -311,15 +311,15 @@ def save_result_json(url,jsonData):
     return res
 
 def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
-    print "="*100
-    print {
-        "stageName": jsonData["stageName"],
-        "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
-        "shortExplanation": jsonData["shortExplanation"],
-        "analysisName": jsonData["analysisName"],
-        "gmtDateTime":jsonData["gmtDateTime"]
-        }
-    print "="*100
+    # print "="*100
+    # print {
+    #     "stageName": jsonData["stageName"],
+    #     "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
+    #     "shortExplanation": jsonData["shortExplanation"],
+    #     "analysisName": jsonData["analysisName"],
+    #     "gmtDateTime":jsonData["gmtDateTime"]
+    #     }
+    # print "="*100
 
     # if jsonData["globalCompletionPercentage"] > 100:
         # print "#"*2000
