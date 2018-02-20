@@ -34,17 +34,18 @@
   <p class="txt-justify">
   {{measure}} category hit a peak of <b>{{peakValue}}%</b> in <b>{{peakTime}}</b>,
   when the total number of {{measure}} observations was {{max_count}}.
-
-  The most significant factor that fuelled this strong run is the <b>{{highest_contributing_variable}}</b>
-  {% if category_flag == True %}
-    category
-  {% endif%}
-  ,{{highest_contributing_level}}.
-  {% if peakIndex != 0 %}
-    The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
-    <b>{{highest_contributing_level_increase|round_number}}</b> percentage points ({{highest_contributing_level_range}})
-    compared to rest of the observation period.
-    </p>
+  {% if highest_contributing_variable != None %}
+    The most significant factor that fuelled this strong run is the <b>{{highest_contributing_variable}}</b>
+    {% if category_flag == True %}
+      category
+    {% endif%}
+    ,{{highest_contributing_level}}.
+    {% if peakIndex != 0 %}
+      The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
+      <b>{{highest_contributing_level_increase|round_number}}</b> percentage points ({{highest_contributing_level_range}})
+      compared to rest of the observation period.
+      </p>
+    {% endif %}
   {% endif %}
 {% elif level_index == 1%}
 
@@ -81,16 +82,17 @@
   <p class="txt-justify">
   The percentage of {{measure}} hit a peak of {{peakValue}}% in {{peakTime}},
   when the total number of {{measure}} observations was {{max_count}}.
-
-  The most significant factor that fuelled this strong run is the <b>{{highest_contributing_variable}}</b>
-    {% if category_flag == True %}
-      category
-    {% endif%}
-   ,{{highest_contributing_level}}.
-  {% if peakIndex != 0 %}
-    The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
-    <b>{{highest_contributing_level_increase|round_number}}</b> percentage points ({{highest_contributing_level_range}})
-    compared to rest of the observation period.
-    </p>
+  {% if highest_contributing_variable != None %}
+    The most significant factor that fuelled this strong run is the <b>{{highest_contributing_variable}}</b>
+      {% if category_flag == True %}
+        category
+      {% endif%}
+     ,{{highest_contributing_level}}.
+    {% if peakIndex != 0 %}
+      The {{measure}} rate for <b>{{highest_contributing_level}}</b> in {{peakTime}}, increased by over
+      <b>{{highest_contributing_level_increase|round_number}}</b> percentage points ({{highest_contributing_level_range}})
+      compared to rest of the observation period.
+      </p>
+    {% endif %}
   {% endif %}
 {% endif %}

@@ -565,13 +565,18 @@ def get_level_cont_dict(level_cont):
         output.append(contribution_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
     out_data = {"category_flag":True}
-    out_data["highest_contributing_variable"] = max(out_dict,key=lambda x:out_dict[x]["diff"])
-    print "highest_contributing_variable",out_data["highest_contributing_variable"]
-    if "category" in out_data["highest_contributing_variable"].lower():
-        out_data["category_flag"] = False
-    out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
-    out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
-    out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
+    out_dict_without_none = dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None )
+    if len(out_dict_without_none) >0:
+        out_data["highest_contributing_variable"] = max(out_dict_without_none,key=lambda x:out_dict[x]["diff"])
+        print "highest_contributing_variable",out_data["highest_contributing_variable"]
+        if "category" in out_data["highest_contributing_variable"].lower():
+            out_data["category_flag"] = False
+        out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
+        out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
+        out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
+    else:
+        out_data["highest_contributing_variable"] = None
+
     output = []
     for k,valdict in levelContributionSummary.items():
         v = {k1:v1 for (k1,v1) in valdict.items() if v1["contribution"] >= 5}
@@ -587,11 +592,15 @@ def get_level_cont_dict(level_cont):
         output.append(t_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
     # out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
-    out_data["lowest_contributing_variable"] = min(dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None ),key=lambda x:out_dict[x]["diff"])
-    print "lowest_contributing_variable",out_data["lowest_contributing_variable"]
-    out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
-    out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
-    out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
+    out_dict_without_none = dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None )
+    if len(out_dict_without_none) >0:
+        out_data["lowest_contributing_variable"] = min(out_dict_without_none,key=lambda x:out_dict[x]["diff"])
+        print "lowest_contributing_variable",out_data["lowest_contributing_variable"]
+        out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
+        out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
+        out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
+    else:
+        out_data["lowest_contributing_variable"] = None
     return out_data
 
 def calculate_bucket_data(grouped_data,dataLevel):

@@ -122,8 +122,9 @@ def main(configJson):
     df = None
     data_loading_st = time.time()
     progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
-    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-    dataframe_context.update_completion_status(completionStatus)
+    if jobType != "story" and jobType != "metaData":
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+        dataframe_context.update_completion_status(completionStatus)
     ########################## Load the dataframe ##############################
     df = MasterHelper.load_dataset(spark,dataframe_context)
     if jobType != "metaData":
