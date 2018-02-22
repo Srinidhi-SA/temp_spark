@@ -3,7 +3,6 @@
 import time
 
 from bi.common import utils as CommonUtils
-# from bi.narratives.descr import DescriptiveStatsNarrative
 from bi.narratives.descr.measure import MeasureColumnNarrative
 from bi.stats.descr import DescriptiveStats
 

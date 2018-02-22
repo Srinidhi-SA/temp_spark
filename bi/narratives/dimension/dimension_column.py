@@ -107,16 +107,10 @@ class DimensionColumnNarrative:
     def _generate_narratives(self):
         if self.appid != None:
             if self.appid == "1":
-                # self._generate_title()
-                # self._generate_summary()
-                # self.analysis = self._generate_analysis()
                 self._generate_title()
                 self._generate_summary()
                 self._generate_analysis()
             elif self.appid == "2":
-                # self._generate_title()
-                # self._generate_summary()
-                # self.analysis = self._generate_analysis2()
                 self._generate_title()
                 self._generate_summary()
                 self._generate_analysis()

@@ -14,7 +14,7 @@ class FreqDimensionsScript:
 
     def Run(self):
         df_freq_dimension_obj = FreqDimensions(self._data_frame, self._dataframe_helper, self._dataframe_context).test_all(dimension_columns=(self._dataframe_context.get_result_column(),))
-        df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
+        # df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
         # print 'RESULT: %s' % (json.dumps(df_freq_dimension_result, indent=2))
         # DataWriter.write_dict_as_json(self._spark, df_freq_dimension_result, self._dataframe_context.get_result_file()+'FreqDimension/')
 

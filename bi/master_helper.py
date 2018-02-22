@@ -360,19 +360,19 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
         completionStatus = dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Choosing statistical and Machine Learning techniques for analysis",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        # try:
-        fs = time.time()
-        freq_obj = FreqDimensionsScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter)
-        freq_obj.Run()
-        print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-        # except Exception as e:
-        #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
-        #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-        #     completionStatus = dataframe_context.get_completion_status()
-        #     completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
-        #     dataframe_context.update_completion_status(completionStatus)
-        #     progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
-        #     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        try:
+            fs = time.time()
+            freq_obj = FreqDimensionsScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter)
+            freq_obj.Run()
+            print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            completionStatus = dataframe_context.get_completion_status()
+            completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
+            dataframe_context.update_completion_status(completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     if (len(dimension_columns)>=2 and 'Dimension vs. Dimension' in scripts_to_run):
         dataframe_context.set_analysis_name("Dimension vs. Dimension")
