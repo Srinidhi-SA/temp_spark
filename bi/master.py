@@ -14,7 +14,7 @@ sys.setdefaultencoding('utf-8')
 from bi.settings import *
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
-from bi.common import NarrativesTree
+from bi.common import NarrativesTree,ConfigValidator
 from parser import configparser
 from bi.scripts.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
@@ -43,7 +43,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/config.py
-            jobType = "story"
+            jobType = "training"
             configJson = get_test_configs(jobType)
 
     ######################## Craeting Spark Session ###########################
@@ -95,94 +95,102 @@ def main(configJson):
     result_setter = ResultSetter(dataframe_context)
     # scripts_to_run = dataframe_context.get_scripts_to_run()
     appid = dataframe_context.get_app_id()
+    completionStatus = 0
+    ########################## Validate the Config ###############################
+    configValidator = ConfigValidator(dataframe_context)
+    configValid = configValidator.get_sanity_check()
     print "#"*100
     print "analysistype",analysistype
     print "jobType",jobType
+    print "configValid",configValid
     print "#"*100
-
-    completionStatus = 0
-
-    ########################## Initializing messages ##############################
-    if jobType == "story":
-        if analysistype == "measure":
-            progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
-        else:
-            progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-        dataframe_context.update_completion_status(completionStatus)
-    elif jobType == "metaData":
-        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
+    if not configValid:
+        progressMessage = CommonUtils.create_progress_message_object("mAdvisor Job","custom","info","Please Provide a Valid Configuration",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        dataframe_context.update_completion_status(completionStatus)
+        response = CommonUtils.save_result_json(dataframe_context.get_job_url(),json.dumps({}))
+        CommonUtils.save_error_messages(errorURL,APP_NAME,"Invalid Config Provided",ignore=ignoreMsg)
+    else:
+        ########################## Initializing messages ##############################
+        if jobType == "story":
+            if analysistype == "measure":
+                progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
+            else:
+                progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing Target Variable",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+            dataframe_context.update_completion_status(completionStatus)
+        elif jobType == "metaData":
+            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+            dataframe_context.update_completion_status(completionStatus)
 
-    df = None
-    data_loading_st = time.time()
-    progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
-    if jobType != "story" and jobType != "metaData":
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-        dataframe_context.update_completion_status(completionStatus)
-    ########################## Load the dataframe ##############################
-    df = MasterHelper.load_dataset(spark,dataframe_context)
-    if jobType != "metaData":
-        metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
-        df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
-        # updating metaData for binned Cols
-        colsToBin = df_helper.get_cols_to_bin()
-        levelCountDict = df_helper.get_level_counts(colsToBin)
-        metaParserInstance.update_level_counts(colsToBin,levelCountDict)
+        df = None
+        data_loading_st = time.time()
+        progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
+        if jobType != "story" and jobType != "metaData":
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+            dataframe_context.update_completion_status(completionStatus)
+        ########################## Load the dataframe ##############################
+        df = MasterHelper.load_dataset(spark,dataframe_context)
+        if jobType != "metaData":
+            metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
+            df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
+            # updating metaData for binned Cols
+            colsToBin = df_helper.get_cols_to_bin()
+            levelCountDict = df_helper.get_level_counts(colsToBin)
+            metaParserInstance.update_level_counts(colsToBin,levelCountDict)
 
-    ############################ MetaData Calculation ##########################
+        ############################ MetaData Calculation ##########################
 
-    if jobType == "metaData":
-        MasterHelper.run_metadata(spark,df,dataframe_context)
-    ############################################################################
+        if jobType == "metaData":
+            MasterHelper.run_metadata(spark,df,dataframe_context)
+        ############################################################################
 
-    ################################ Data Sub Setting ##########################
-    if jobType == "subSetting":
-        MasterHelper.run_subsetting(spark,df,dataframe_context,df_helper)
-    ############################################################################
+        ################################ Data Sub Setting ##########################
+        if jobType == "subSetting":
+            MasterHelper.run_subsetting(spark,df,dataframe_context,df_helper)
+        ############################################################################
 
-    ################################ Story Creation ############################
-    if jobType == "story":
-        if analysistype == "dimension":
-            MasterHelper.run_dimension_analysis(spark,df,dataframe_context,df_helper,metaParserInstance)
-        elif analysistype == "measure":
-            MasterHelper.run_measure_analysis(spark,df,dataframe_context,df_helper,metaParserInstance)
+        ################################ Story Creation ############################
+        if jobType == "story":
+            if analysistype == "dimension":
+                MasterHelper.run_dimension_analysis(spark,df,dataframe_context,df_helper,metaParserInstance)
+            elif analysistype == "measure":
+                MasterHelper.run_measure_analysis(spark,df,dataframe_context,df_helper,metaParserInstance)
 
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
-        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-    ############################################################################
+            progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        ############################################################################
 
-    ################################ Model Training ############################
-    elif jobType == 'training':
-        MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance)
-    ############################################################################
+        ################################ Model Training ############################
+        elif jobType == 'training':
+            MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance)
+        ############################################################################
 
-    ############################## Model Prediction ############################
-    elif jobType == 'prediction':
-        MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
+        ############################## Model Prediction ############################
+        elif jobType == 'prediction':
+            MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
 
-    ############################################################################
+        ############################################################################
 
-    ################################### Stock ADVISOR ##########################
-    if jobType == 'stockAdvisor':
-        file_names = dataframe_context.get_stock_symbol_list()
-        stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
-        stockAdvisorData = stockObj.Run()
-        stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
-        response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
+        ################################### Stock ADVISOR ##########################
+        if jobType == 'stockAdvisor':
+            file_names = dataframe_context.get_stock_symbol_list()
+            stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
+            stockAdvisorData = stockObj.Run()
+            stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
+            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
 
-    ############################################################################
-    scriptEndTime = time.time()
-    runtimeDict = {"startTime":scriptStartTime,"endTime":scriptEndTime}
-    print runtimeDict
-    CommonUtils.save_error_messages(errorURL,"jobRuntime",runtimeDict,ignore=ignoreMsg)
-    print "Scripts Time : ", scriptEndTime - scriptStartTime, " seconds."
-    #spark.stop()
+        ############################################################################
+        scriptEndTime = time.time()
+        runtimeDict = {"startTime":scriptStartTime,"endTime":scriptEndTime}
+        print runtimeDict
+        CommonUtils.save_error_messages(errorURL,"jobRuntime",runtimeDict,ignore=ignoreMsg)
+        print "Scripts Time : ", scriptEndTime - scriptStartTime, " seconds."
+        #spark.stop()
 
 def submit_job_through_yarn():
     print sys.argv
