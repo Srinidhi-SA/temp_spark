@@ -52,7 +52,7 @@ class DataFrameTransformer:
                         if obj["actionName"] == "replace":
                             self.update_column_data(transformObj["name"],obj["replacementValues"])
                         if obj["actionName"] == "rename":
-                            self.update_column_name(transformObj["name"],obj["newName"])
+                            self.update_column_name(obj["prevName"],obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
                             print castDataType
@@ -138,8 +138,11 @@ class DataFrameTransformer:
         #TODO update data type as measure or dimension
 
     def update_column_name(self,old_column_name,new_column_name):
+        print "old_column_name",old_column_name
+        print "new_column_name",new_column_name
         if new_column_name:
             self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
+            print self._data_frame.columns
 
     def get_transformed_data_frame(self):
         return self._data_frame
