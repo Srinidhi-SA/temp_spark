@@ -10,4 +10,8 @@ class ConfigValidator:
             return False
 
     def get_sanity_check(self):
-        return self.check_for_target_column()
+        jobType = self._dataframe_context.get_job_type()
+        if jobType != "subSetting":
+            return self.check_for_target_column()
+        else:
+            return True
