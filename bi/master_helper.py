@@ -313,6 +313,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper):
             transformed_df = transform_class.get_transformed_data_frame()
         if transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
+            print "output_filepath",output_filepath
             transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
             print "starting Metadata for the Filtered Dataframe"
             meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
