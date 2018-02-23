@@ -135,7 +135,7 @@ class DataFrameTransformer:
         print "hi udating column data type"
         self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
         print self._data_frame.printSchema()
-        #TODO update data type as measure or dimension
+        # TODO update data type as measure or dimension
 
     def update_column_name(self,old_column_name,new_column_name):
         print "old_column_name",old_column_name
