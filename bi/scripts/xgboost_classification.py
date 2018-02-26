@@ -80,6 +80,8 @@ class XgboostScript:
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns) - {uid_col})
+        allDateCols = self._dataframe_context.get_date_columns()
+        categorical_columns = list(set(categorical_columns)-set(allDateCols))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
