@@ -204,7 +204,6 @@ class DataFrameHelper:
         return column_name in self.get_numeric_columns()
 
     def get_string_columns(self):
-        print "len String Cols",len(self.string_columns)
         return self.string_columns
 
     def get_all_levels(self,column_name):
@@ -250,7 +249,7 @@ class DataFrameHelper:
 
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
-          raise BIException('No such column exists: %s' %(column_name,))
+            raise BIException('No such column exists: %s' %(column_name,))
 
         column = FN.col(column_name)
         rows = self._data_frame.select(column).groupBy(FN.isnull(column)).agg({'*': 'count'}).collect()
@@ -259,15 +258,12 @@ class DataFrameHelper:
                 return row[1]
         return 0
 
-
-
     def filter_dataframe(self, colname, values):
         if type(values) == str:
             values = values[1:-1]
             values = values.split(',')
         df = self._data_frame.where(col(colname).isin(values))
         return df
-
 
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)

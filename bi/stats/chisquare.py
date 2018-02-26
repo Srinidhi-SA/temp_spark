@@ -63,30 +63,15 @@ class ChiSquare:
                 "weight":7
                 },
             }
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["initialization"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "initialization",\
-                                    "info",\
-                                    self._scriptStages["initialization"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info",display=False)
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
     def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=40):
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["chisquareStats"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "chisquareStats",\
-                                    "info",\
-                                    self._scriptStages["chisquareStats"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
-        dimension = dimension_columns[0]
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"chisquareStats","info",display=False)
+        targetDimension = dimension_columns[0]
         all_dimensions = self._dimension_columns
-        all_dimensions = [x for x in all_dimensions if x != dimension]
+        all_dimensions = [x for x in all_dimensions if x != targetDimension]
         # if self._analysisDict != {}:
         #     nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
         # else:
@@ -97,36 +82,28 @@ class ChiSquare:
         df_chisquare_result = DFChiSquareResult()
         for d in all_dimensions:
             try:
-                chisquare_result = self.test(dimension, d)
-                df_chisquare_result.add_chisquare_result(dimension, d, chisquare_result)
+                chisquare_result = self.test_dimension(targetDimension, d)
+                df_chisquare_result.add_chisquare_result(targetDimension, d, chisquare_result)
             except Exception, e:
                 print repr(e), d
                 continue
         for m in all_measures:
             try:
-                chisquare_result = self.test_measures(dimension, m)
-                df_chisquare_result.add_chisquare_result(dimension, m, chisquare_result)
+                chisquare_result = self.test_measures(targetDimension, m)
+                df_chisquare_result.add_chisquare_result(targetDimension, m, chisquare_result)
             except Exception, e:
                 print str(e), m
                 continue
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["completion"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "completion",\
-                                    "info",\
-                                    self._scriptStages["completion"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False)
         return df_chisquare_result
 
     @accepts(object, basestring, basestring)
-    def test(self, dimension_name, dimension_column_name):
-        if not dimension_name in self._dataframe_helper.get_string_columns():
-            raise BIException.non_string_column(dimension_column_name)
+    def test_dimension(self, targetDimension, testDimension):
+        if not targetDimension in self._dataframe_helper.get_string_columns():
+            raise BIException.non_string_column(testDimension)
         chisquare_result = ChiSquareResult()
-        pivot_table = self._data_frame.stat.crosstab("{}".format(dimension_name), dimension_column_name)
+        pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testDimension)
         # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns) - 1, rdd)
@@ -141,26 +118,25 @@ class ChiSquare:
         t = min(len(freq_table.column_one_values), len(freq_table.column_two_values))
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
         chisquare_result.set_v_value(v_value)
-        freq_table.set_tables()
-        self._dataframe_helper.add_chisquare_significant_dimension(dimension_column_name,v_value)
+        self._dataframe_helper.add_chisquare_significant_dimension(testDimension,v_value)
         return chisquare_result
 
     @accepts(object, basestring, basestring)
-    def test_measures(self, dimension_name, measure_column_name):
+    def test_measures(self, targetDimension, testMeasure):
         chisquare_result = ChiSquareResult()
-        df = self._data_frame.withColumn(measure_column_name, self._data_frame[measure_column_name].cast(DoubleType()))
-        measureSummaryDict = dict(df.describe([measure_column_name]).toPandas().values)
+        df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
+        measureSummaryDict = dict(df.describe([testMeasure]).toPandas().values)
         if float(measureSummaryDict["count"]) > 10:
             maxval = float(measureSummaryDict["max"])
             minval = float(measureSummaryDict["min"])
             step = (maxval - minval) / 5.0
             splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3), minval + (step * 4), math.ceil(maxval)]
-            bucketizer = Bucketizer(splits=splits, inputCol=measure_column_name, outputCol="bucketedColumn")
+            bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
             # bucketedData = bucketizer.transform(df)
-            bucketedData = bucketizer.transform(df.na.drop(subset=measure_column_name))
-            pivot_table = bucketedData.stat.crosstab("{}".format(dimension_name), 'bucketedColumn')
+            bucketedData = bucketizer.transform(df.na.drop(subset=testMeasure))
+            pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
         else:
-            pivot_table = df.stat.crosstab("{}".format(dimension_name), measure_column_name)
+            pivot_table = df.stat.crosstab("{}".format(targetDimension), testMeasure)
 
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)

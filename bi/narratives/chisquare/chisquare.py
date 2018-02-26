@@ -8,6 +8,7 @@ from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableDa
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
+from bi.settings import setting as GLOBALSETTINGS
 
 
 class ChiSquareAnalysis:
@@ -25,6 +26,7 @@ class ChiSquareAnalysis:
         self._significant_variables =  significant_variables
         self._target_chisquare_result = target_chisquare_result
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
+        self._chiSquareLevelLimit = GLOBALSETTINGS.CHISQUARELEVELLIMIT
 
         self._num_analysed_variables = num_analysed_variables
         self._chiSquareTable = chisquare_result.get_contingency_table()
@@ -44,8 +46,7 @@ class ChiSquareAnalysis:
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
         self._appid = appid
         self._card1 = NormalCard()
-        self._card2 = NormalCard()
-        self._card4 = NormalCard()
+        self._targetCards = []
         self._base_dir = base_dir
 
         self._binTargetCol = False
@@ -68,7 +69,7 @@ class ChiSquareAnalysis:
         print self._binAnalyzedCol
         if self._appid == None:
             self._generate_narratives()
-            self._dimensionNode.add_cards([self._card1,self._card2,self._card4])
+            self._dimensionNode.add_cards([self._card1]+self._targetCards)
             self._dimensionNode.set_name("{}".format(analysed_dimension))
         elif self._appid == "2":
             self._generate_narratives()
@@ -101,6 +102,7 @@ class ChiSquareAnalysis:
           levels_percentages = [i*100.0/levels_count_sum for i in level_counts]
           sorted_levels = sorted(zip(level_counts,levels),reverse=True)
           level_differences = [0.0]+[sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
+
           top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
           top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
           bottom_dim = sorted_levels[-1][1]
@@ -192,6 +194,19 @@ class ChiSquareAnalysis:
           worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
           overall_second_percentage = sum_second_target*100.0/total
 
+
+          targetCardDataDict = {}
+          targetCardDataDict['target'] = target_dimension
+          targetCardDataDict['colname'] = analysed_dimension
+          targetCardDataDict['num_significant'] = len(significant_variables)
+          targetCardDataDict['plural_colname'] = NarrativesUtils.pluralize(analysed_dimension)
+
+          targetCardDataDict["blockSplitter"] = self._blockSplitter
+          targetCardDataDict["binTargetCol"] = self._binTargetCol
+          targetCardDataDict["binAnalyzedCol"] = self._binAnalyzedCol
+          targetCardDataDict['highlightFlag'] = self._highlightFlag
+          targetCardDataDict['levels'] = levels
+
           data_dict = {}
           data_dict['best_second_difference'] = best_second_difference_indices ##these changed
           data_dict['worst_second_difference'] = worst_second_difference_indices
@@ -252,8 +267,8 @@ class ChiSquareAnalysis:
           data_dict['highlightFlag'] = self._highlightFlag
 
 
-          print "-----------data_dict - card1------------"
-          print data_dict
+          # print "-----------data_dict - card1------------"
+          # print data_dict
 
           if (self._binTargetCol == True & self._binAnalyzedCol == False):
               print "Only Target Column is Binned"
@@ -273,18 +288,18 @@ class ChiSquareAnalysis:
           targetDimCard1Table1 = TableData()
           targetDimCard1Table1.set_table_type("heatMap")
           targetDimCard1Table1.set_table_data(targetDimTable1Data)
-          print "Table1"
-          print targetDimTable1Data
+          # print "Table1"
+          # print targetDimTable1Data
           toggledata.set_toggleon_data({"data":{"tableData":targetDimTable1Data,"tableType":"heatMap"},"dataType":"table"})
 
 
           targetDimTable2Data = self.generate_card1_table2()
-          print "Table 2"
+          # print "Table 2"
           targetDimCard1Table2 = TableData()
           targetDimCard1Table2.set_table_type("normal")
           table2Data = targetDimTable2Data["data1"]
           table2Data = [innerList[1:] for innerList in table2Data if innerList[0].strip() != ""]
-          print table2Data
+          # print table2Data
           targetDimCard1Table2.set_table_data(table2Data)
 
           toggledata.set_toggleoff_data({"data":{"tableData":table2Data,"tableType":"heatMap"},"dataType":"table"})
@@ -409,7 +424,7 @@ class ChiSquareAnalysis:
               print "------------------------key_factors1------------------"
               print key_factors1
               print "self._second_level_dimensions...."
-              print self._second_level_dimensions
+              # print self._second_level_dimensions
               print num_key_factors1
 
               if len(self._second_level_dimensions1)==5:
@@ -440,90 +455,185 @@ class ChiSquareAnalysis:
               print data_dict['key_factors1']
               print data_dict['key_factors']
               print "------------------------------"
+              targetCardDataDict['num_key_factors'] = num_key_factors
+              targetCardDataDict['random_card2'] = random.randint(1,100)
+
+              for tupleObj in sorted_target_levels[:self._chiSquareLevelLimit]:
+                  targetLevel = tupleObj[1]
+
+                  second_target_contributions = [table.get_value(targetLevel,i) for i in levels]
+                  sum_second_target = sum(second_target_contributions)
+
+                  sorted_levels = sorted(zip(second_target_contributions,levels), reverse=True)
+                  level_differences = [0.0] + [sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
+                  second_target_top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
+                  second_target_top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
+                  second_target_bottom_dim = sorted_levels[-1][1]
+                  second_target_bottom_dim_contribution = sorted_levels[-1][0]
+
+                  second_target_percentages = [i*100.0/sum_second_target for i in second_target_contributions]
+                  best_second_target_index = second_target_contributions.index(max(second_target_contributions))
+                  worst_second_target_index = second_target_contributions.index(min(second_target_contributions))
+                  second_target_differences = [x-y for x,y in zip(levels_percentages,second_target_percentages)]
+                  if len(second_target_differences)>6:
+                      tops = 2
+                      bottoms = -2
+                  elif len(second_target_differences)>4:
+                      tops = 2
+                      bottoms = -1
+                  else:
+                      tops = 1
+                      bottoms = -1
+                  sorted_ = sorted(enumerate(second_target_differences), key = lambda x: x[1], reverse=True)
+                  best_second_difference_indices = [x for x,y in sorted_[:tops]]
+                  worst_second_difference_indices = [x for x,y in sorted_[bottoms:]]
+
+                  second_target_shares = [x*100.0/y for x,y in zip(second_target_contributions,level_counts)]
+                  max_second_target_shares = max(second_target_shares)
+                  best_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==max_second_target_shares]
+                  level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
+                  min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
+                  # worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
+                  worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
+                  overall_second_percentage = sum_second_target*100.0/total
+
+                  targetCardDataDict['second_target']=targetLevel
+                  targetCardDataDict['second_target_top_dims'] = second_target_top_dims
+                  targetCardDataDict['second_target_top_dims_contribution'] = second_target_top_dims_contribution*100.0/sum(second_target_contributions)
+                  targetCardDataDict['second_target_bottom_dim']=second_target_bottom_dim
+                  targetCardDataDict['second_target_bottom_dim_contribution']=second_target_bottom_dim_contribution
+                  targetCardDataDict['best_second_target'] = levels[best_second_target_index]
+                  targetCardDataDict['best_second_target_count'] = second_target_contributions[best_second_target_index]
+                  targetCardDataDict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/sum(second_target_contributions),2)
+                  targetCardDataDict['worst_second_target'] = levels[worst_second_target_index]
+                  targetCardDataDict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/sum(second_target_contributions),2)
+
+                  card2Data = []
+                  targetLevelContributions = [table.get_value(targetLevel,i) for i in levels]
+                  card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + targetLevel + ') across ' + self._analysed_dimension+"</h3>"
+                  chart,bubble = self.generate_distribution_card_chart(targetLevel, targetLevelContributions, levels, level_counts, total)
+                  card2ChartData = NormalChartData(data=chart["data"])
+                  card2ChartJson = ChartJson()
+                  card2ChartJson.set_data(card2ChartData.get_data())
+                  card2ChartJson.set_chart_type("combination")
+                  card2ChartJson.set_types({"total":"bar","percentage":"line"})
+                  card2ChartJson.set_legend({"total":"# of "+targetLevel,"percentage":"% of "+targetLevel})
+                  card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
+                  card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
+
+                  if (self._binTargetCol == True & self._binAnalyzedCol == False):
+                     print "Only Target Column is Binned"
+                     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',targetCardDataDict),self._blockSplitter)
+                  elif (self._binTargetCol == True & self._binAnalyzedCol == True):
+                     print "Target Column and IV is Binned"
+                     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',targetCardDataDict),self._blockSplitter)
+                  else:
+                     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',targetCardDataDict),self._blockSplitter)
+
+                  card2Data.append(HtmlData(data=card2Heading))
+                  # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
+                  statistical_info_array=[
+                     ("Test Type","Chi-Square"),
+                     ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
+                     ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
+                     ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
+                     ]
+                  statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+
+                  card2Data.append(C3ChartData(data=card2ChartJson,info=statistical_info_array))
+                  card2Data += output2
+                  card2BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+                  card2Data.append(HtmlData(data=card2BubbleData))
+                  targetCard = NormalCard()
+                  targetCard.set_card_data(card2Data)
+                  targetCard.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,targetLevel))
+                  self._targetCards.append(targetCard)
 
 
-
-              card2Data = []
-              card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
-              chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
-              card2ChartData = NormalChartData(data=chart["data"])
-              card2ChartJson = ChartJson()
-              card2ChartJson.set_data(card2ChartData.get_data())
-              card2ChartJson.set_chart_type("combination")
-              card2ChartJson.set_types({"total":"bar","percentage":"line"})
-              card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
-              card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-              card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
-
-              if (self._binTargetCol == True & self._binAnalyzedCol == False):
-                  print "Only Target Column is Binned"
-                  output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',data_dict),self._blockSplitter)
-              elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-                  print "Target Column and IV is Binned"
-                  output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',data_dict),self._blockSplitter)
-              else:
-                  output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
-
-              card2Data.append(HtmlData(data=card2Heading))
-              # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
-              statistical_info_array=[
-                  ("Test Type","Chi-Square"),
-                  ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
-                  ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
-                  ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
-                  ]
-              statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
-
-              card2Data.append(C3ChartData(data=card2ChartJson,info=statistical_info_array))
-              card2Data += output2
-              card2BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
-              card2Data.append(HtmlData(data=card2BubbleData))
-
-              self._card2.set_card_data(card2Data)
-              self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,second_target))
-
-              card4Data = []
-              card4Heading ='<h3>Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension+"</h3>"
-              chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
-              card4ChartData = NormalChartData(data=chart["data"])
-              card4ChartJson = ChartJson()
-              card4ChartJson.set_data(card4ChartData.get_data())
-              card4ChartJson.set_chart_type("combination")
-              card4ChartJson.set_types({"total":"bar","percentage":"line"})
-              card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
-              card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-
-              if (self._binTargetCol == True & self._binAnalyzedCol == False):
-                  print "Only Target Column is Binned"
-                  output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target.html',data_dict),self._blockSplitter)
-              elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-                  print "Target Column and IV is Binned"
-                  output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target_and_IV.html',data_dict),self._blockSplitter)
-              else:
-                  output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)
-
-              card4Data.append(HtmlData(data=card4Heading))
-
-              # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V : "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic: '+str(round(self._chisquare_result.get_stat(),3))]
-              statistical_info_array=[
-                  ("Test Type","Chi-Square"),
-                  ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
-                  ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
-                  ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
-                  ]
-              statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
-
-              card4Data.append(C3ChartData(data=card4ChartJson,info=statistical_info_array))
-              card4Data += output4
-              card4BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
-              card4Data.append(HtmlData(data=card4BubbleData))
-
-              self._card4.set_card_data(card4Data)
-              self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
+              # card2Data = []
+              # card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
+              # chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
+              # card2ChartData = NormalChartData(data=chart["data"])
+              # card2ChartJson = ChartJson()
+              # card2ChartJson.set_data(card2ChartData.get_data())
+              # card2ChartJson.set_chart_type("combination")
+              # card2ChartJson.set_types({"total":"bar","percentage":"line"})
+              # card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
+              # card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
+              # card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
+              #
+              # if (self._binTargetCol == True & self._binAnalyzedCol == False):
+              #     print "Only Target Column is Binned"
+              #     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',data_dict),self._blockSplitter)
+              # elif (self._binTargetCol == True & self._binAnalyzedCol == True):
+              #     print "Target Column and IV is Binned"
+              #     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',data_dict),self._blockSplitter)
+              # else:
+              #     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
+              #
+              # card2Data.append(HtmlData(data=card2Heading))
+              # # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
+              # statistical_info_array=[
+              #     ("Test Type","Chi-Square"),
+              #     ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
+              #     ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
+              #     ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
+              #     ]
+              # statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+              #
+              # card2Data.append(C3ChartData(data=card2ChartJson,info=statistical_info_array))
+              # card2Data += output2
+              # card2BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+              # card2Data.append(HtmlData(data=card2BubbleData))
+              #
+              # self._card2.set_card_data(card2Data)
+              # self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,second_target))
+              #
+              # card4Data = []
+              # card4Heading ='<h3>Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension+"</h3>"
+              # chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
+              # card4ChartData = NormalChartData(data=chart["data"])
+              # card4ChartJson = ChartJson()
+              # card4ChartJson.set_data(card4ChartData.get_data())
+              # card4ChartJson.set_chart_type("combination")
+              # card4ChartJson.set_types({"total":"bar","percentage":"line"})
+              # card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
+              # card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
+              #
+              # if (self._binTargetCol == True & self._binAnalyzedCol == False):
+              #     print "Only Target Column is Binned"
+              #     output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target.html',data_dict),self._blockSplitter)
+              # elif (self._binTargetCol == True & self._binAnalyzedCol == True):
+              #     print "Target Column and IV is Binned"
+              #     output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target_and_IV.html',data_dict),self._blockSplitter)
+              # else:
+              #     output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)
+              #
+              # card4Data.append(HtmlData(data=card4Heading))
+              #
+              # # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V : "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic: '+str(round(self._chisquare_result.get_stat(),3))]
+              # statistical_info_array=[
+              #     ("Test Type","Chi-Square"),
+              #     ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
+              #     ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
+              #     ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
+              #     ]
+              # statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+              #
+              # card4Data.append(C3ChartData(data=card4ChartJson,info=statistical_info_array))
+              # card4Data += output4
+              # card4BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
+              # card4Data.append(HtmlData(data=card4BubbleData))
+              #
+              # self._card4.set_card_data(card4Data)
+              # self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
 
               # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.html',data_dict))
               # self.card0['paragraphs'] = output0
               # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
+
+    # def generate_card2_narratives(self):
+
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):
         chart = {}

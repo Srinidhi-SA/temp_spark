@@ -285,6 +285,7 @@ def byteify(input):
     else:
         return input
 
+
 def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=False):
     """
     messageType = ["info","failure"]
@@ -331,6 +332,30 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
         return res
     else:
         return True
+
+def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None):
+    completionStatus = dataframeContext.get_completion_status()
+    print "incoming completionStatus",completionStatus
+    messageURL = dataframeContext.get_message_url()
+    if customMsg == None:
+        completionStatus += scriptWeightDict[analysisName]["script"]*scriptStages[stageName]["weight"]/10
+        progressMessage = create_progress_message_object(analysisName,\
+                                    stageName,\
+                                    messageType,\
+                                    scriptStages[stageName]["summary"],\
+                                    completionStatus,\
+                                    completionStatus,\
+                                    display=display)
+    else:
+        progressMessage = create_progress_message_object(analysisName,stageName,messageType,customMsg,completionStatus,completionStatus,display=display)
+    runningEnv = dataframeContext.get_environement()
+    if runningEnv == "debugMode":
+        save_progress_message(messageURL,progressMessage,ignore=True,emptyBin=emptyBin)
+    else:
+        save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
+    dataframeContext.update_completion_status(completionStatus)
+    print "outgoing completionStatus",completionStatus
+
 
 def save_pmml_models(url,jsonData,ignore=False):
     if ignore == False:

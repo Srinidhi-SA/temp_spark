@@ -32,21 +32,20 @@ def main(configJson):
         ignoreMsg = False
     elif isinstance(configJson,basestring):
         if configJson.endswith(".cfg"):
-            ######################## Running in cfgMode ########################
+            print "######################## Running in cfgMode ########################"
             cfgMode = True
             debugMode = False
             ignoreMsg = False
         else:
-            ######################## Running in debugMode ######################
-            print "Running in debugMode"
+            print "######################## Running in debugMode ######################"
             cfgMode = False
             debugMode = True
             ignoreMsg = True
-            # Test Configs are defined in bi/settings/config.py
-            jobType = "metaData"
+            # Test Configs are defined in bi/settings/configs/localConfigs
+            jobType = "story"
             configJson = get_test_configs(jobType)
 
-    ######################## Craeting Spark Session ###########################
+    print "######################## Creating Spark Session ###########################"
     if debugMode:
         APP_NAME = "mAdvisor_running_in_debug_mode"
     else:
@@ -57,7 +56,7 @@ def main(configJson):
 
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
-    ######################### Creating the configs #############################
+    print "######################### Parsing the configs #############################"
 
     config = configJson["config"]
     job_config = configJson["job_config"]
@@ -96,7 +95,7 @@ def main(configJson):
     # scripts_to_run = dataframe_context.get_scripts_to_run()
     appid = dataframe_context.get_app_id()
     completionStatus = 0
-    ########################## Validate the Config ###############################
+    print "########################## Validate the Config ###############################"
     configValidator = ConfigValidator(dataframe_context)
     configValid = configValidator.get_sanity_check()
     print "#"*100
