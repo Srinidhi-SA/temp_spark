@@ -51,22 +51,17 @@ class ChiSquareAnalysis:
 
         self._binTargetCol = False
         self._binAnalyzedCol = False
-        print "Custom Analysis Staus-------------------;;;;;;;;;;;;;"
-        print self._dataframe_context.get_custom_analysis_details()
-
+        # print "self._dataframe_context.get_custom_analysis_details() : ", self._dataframe_context.get_custom_analysis_details()
+        print "--------Chi-Square Narratives for ", analysed_dimension, "---------"
         if self._dataframe_context.get_custom_analysis_details() != None:
             binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
-            print binnedColObj
-            print "analysed_dimension----------------------------------"
-            print self._analysed_dimension
+            print "analysed_dimension : ", self._analysed_dimension
             if binnedColObj != None and self._target_dimension in binnedColObj:
                 self._binTargetCol = True
             if binnedColObj != None and (self._analysed_dimension in binnedColObj or self._analysed_dimension in self._measure_columns):
                 self._binAnalyzedCol = True
-        print "binTargetCol-------------"
-        print self._binTargetCol
-        print "BinAnalyzedCol..........."
-        print self._binAnalyzedCol
+        print "binTargetCol : ",  self._binTargetCol
+        print "BinAnalyzedCol : ", self._binAnalyzedCol
         if self._appid == None:
             self._generate_narratives()
             self._dimensionNode.add_cards([self._card1]+self._targetCards)
@@ -112,12 +107,12 @@ class ChiSquareAnalysis:
           target_levels = self._chiSquareTable.get_column_one_levels()
           target_counts = self._chiSquareTable.get_row_total()
           sorted_target_levels = sorted(zip(target_counts,target_levels),reverse=True)
-          print sorted_target_levels
-          print "="*500
+        #   print "sorted_target_levels : ", sorted_target_levels
 
           top_target_count, top_target = sorted_target_levels[0]
           second_target_count, second_target = sorted_target_levels[1]
-          print "--------Target------------"
+
+          print "target_dimension : ", target_dimension
           print "top_target",top_target
           print "second_target",second_target
 
@@ -269,12 +264,12 @@ class ChiSquareAnalysis:
 
           # print "-----------data_dict - card1------------"
           # print data_dict
-
-          if (self._binTargetCol == True & self._binAnalyzedCol == False):
-              print "Only Target Column is Binned"
+          print "self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol
+          if (self._binTargetCol == True and self._binAnalyzedCol == False):
+              print "Only Target Column is Binned, : ", self._binTargetCol
               output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
-          elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-              print "Target Column and IV is Binned"
+          elif (self._binTargetCol == True and self._binAnalyzedCol == True):
+              print "Target Column and IV is Binned : ", self._binTargetCol, self._binAnalyzedCol
               output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
           else:
               output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
@@ -288,18 +283,14 @@ class ChiSquareAnalysis:
           targetDimCard1Table1 = TableData()
           targetDimCard1Table1.set_table_type("heatMap")
           targetDimCard1Table1.set_table_data(targetDimTable1Data)
-          # print "Table1"
-          # print targetDimTable1Data
           toggledata.set_toggleon_data({"data":{"tableData":targetDimTable1Data,"tableType":"heatMap"},"dataType":"table"})
 
 
           targetDimTable2Data = self.generate_card1_table2()
-          # print "Table 2"
           targetDimCard1Table2 = TableData()
           targetDimCard1Table2.set_table_type("normal")
           table2Data = targetDimTable2Data["data1"]
           table2Data = [innerList[1:] for innerList in table2Data if innerList[0].strip() != ""]
-          # print table2Data
           targetDimCard1Table2.set_table_data(table2Data)
 
           toggledata.set_toggleoff_data({"data":{"tableData":table2Data,"tableType":"heatMap"},"dataType":"table"})
@@ -322,9 +313,6 @@ class ChiSquareAnalysis:
               #     sorted_contributions = sorted(zip(col_2_names,contributions_percent),key = lambda x: x[1],reverse=True)
               #     self._key_factors_contributions[key_dim] = sorted_contributions[:2]
               #
-              # print '*'*1200
-              # print 'KEY FACTOR CONTRIBUTION OF '+second_target
-              # print self._key_factors_contributions
 
               if self._chisquare_result.get_splits():
                   splits = self._chisquare_result.get_splits()
@@ -421,11 +409,9 @@ class ChiSquareAnalysis:
 
               key_factors1 = ''
               num_key_factors1 = len(self._second_level_dimensions1)
-              print "------------------------key_factors1------------------"
-              print key_factors1
-              print "self._second_level_dimensions...."
-              # print self._second_level_dimensions
-              print num_key_factors1
+            #   print "key_factors1 : ", key_factors1
+            #   print "self._second_level_dimensions : ", self._second_level_dimensions
+            #   print "num_key_factors1 : ", num_key_factors1
 
               if len(self._second_level_dimensions1)==5:
                   key_factors1 = ', '.join(self._second_level_dimensions1[:4]) + ' and ' + self._second_level_dimensions1[4]
@@ -438,9 +424,8 @@ class ChiSquareAnalysis:
               elif len(self._second_level_dimensions1)==1:
                   key_factors1 = self._second_level_dimensions1[0]
 
-              print key_factors1
-              print "Data Dictionary--Keys------------"
-              print data_dict.keys()
+            #   print "key_factors1 : ", key_factors1
+            #   print "data_dict.keys() : ", data_dict.keys()
 
               data_dict['num_key_factors1'] = num_key_factors1
               data_dict['key_factors1'] = key_factors1
@@ -449,12 +434,8 @@ class ChiSquareAnalysis:
               data_dict['distribution_second'] = distribution_second
               data_dict['random_card2'] = random.randint(1,100)
               data_dict['random_card4'] = random.randint(1,100)
-              # print data_dict['distribution_second']
-              # print data_dict['random_card2']
-              print "------------------------------"
-              print data_dict['key_factors1']
-              print data_dict['key_factors']
-              print "------------------------------"
+            #   print "data_dict['key_factors1'] : ", data_dict['key_factors1']
+            #   print "data_dict['key_factors'] : ", data_dict['key_factors']
               targetCardDataDict['num_key_factors'] = num_key_factors
               targetCardDataDict['random_card2'] = random.randint(1,100)
 
@@ -520,15 +501,15 @@ class ChiSquareAnalysis:
                   card2ChartJson.set_legend({"total":"# of "+targetLevel,"percentage":"% of "+targetLevel})
                   card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
                   card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
-
-                  if (self._binTargetCol == True & self._binAnalyzedCol == False):
-                     print "Only Target Column is Binned"
-                     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',targetCardDataDict),self._blockSplitter)
-                  elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-                     print "Target Column and IV is Binned"
-                     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',targetCardDataDict),self._blockSplitter)
+                  print "self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol
+                  if (self._binTargetCol == True and self._binAnalyzedCol == False):
+                      print "Only Target Column is Binned"
+                      output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',targetCardDataDict),self._blockSplitter)
+                  elif (self._binTargetCol == True and self._binAnalyzedCol == True):
+                      print "Target Column and IV is Binned"
+                      output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',targetCardDataDict),self._blockSplitter)
                   else:
-                     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',targetCardDataDict),self._blockSplitter)
+                      output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',targetCardDataDict),self._blockSplitter)
 
                   card2Data.append(HtmlData(data=card2Heading))
                   # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
@@ -548,7 +529,6 @@ class ChiSquareAnalysis:
                   targetCard.set_card_data(card2Data)
                   targetCard.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,targetLevel))
                   self._targetCards.append(targetCard)
-
 
               # card2Data = []
               # card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
@@ -677,17 +657,11 @@ class ChiSquareAnalysis:
 
     def generate_card1_table2(self):
         table = self._chiSquareTable.table
-        # print table
         table_percent = self._chiSquareTable.table_percent
-        # print table_percent
         table_percent_by_row = self._chiSquareTable.table_percent_by_row
-        # print table_percent_by_row
         table_percent_by_column = self._chiSquareTable.table_percent_by_column
-        # print table_percent_by_column
         target_levels = self._chiSquareTable.get_column_one_levels()
-        # print target_levels
         dim_levels = self._chiSquareTable.get_column_two_levels()
-        # print dim_levels
 
         header1 = [self._analysed_dimension] + target_levels + ['Total']
         header = ['State','Active','Churn','Total'] #TODO remove
