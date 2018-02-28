@@ -322,13 +322,16 @@ def bin_column(df, measure_column,get_aggregation = False):
     df = df.select([c for c in df.columns if c!=measure_column])
     df = df.withColumnRenamed("bucket",measure_column)
     if splits_new[0] > 1:
-        roundTo = 0
+        splitRanges = ["("+str(round(splits_new[0]))+" to "+str(round(splits_new[1]))+")",
+                    "("+str(round(splits_new[1]))+" to "+str(round(splits_new[2]))+")",
+                    "("+str(round(splits_new[2]))+" to "+str(round(splits_new[3]))+")"
+                    ]
     else:
-        roundTo = 2
-    splitRanges = ["("+str(round(splits_new[0],2))+" to "+str(round(splits_new[1],2))+")",
-                "("+str(round(splits_new[1],2))+" to "+str(round(splits_new[2],2))+")",
-                "("+str(round(splits_new[2],2))+" to "+str(round(splits_new[3],2))+")"
-                ]
+        splitRanges = ["("+str(round(splits_new[0],2))+" to "+str(round(splits_new[1],2))+")",
+                    "("+str(round(splits_new[1],2))+" to "+str(round(splits_new[2],2))+")",
+                    "("+str(round(splits_new[2],2))+" to "+str(round(splits_new[3],2))+")"
+                    ]
+
     if (get_aggregation):
         return df, aggr
     return df, splits_new[1:],splitRanges

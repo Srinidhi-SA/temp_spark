@@ -174,11 +174,13 @@ class DecisionTreeRegNarrative:
         self._completionStatus = self._dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Generating Prediction rules",self._completionStatus,self._completionStatus,display=True)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
+
         for idx,target in enumerate(rules_dict.keys()):
+            targetToDisplayInTable = target.split(":")[0].strip()
             if idx == 0:
-                dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
+                dropdownData.append({"displayName":target,"name":targetToDisplayInTable,"searchTerm":targetToDisplayInTable,"selected":True,"id":idx+1})
             else:
-                dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
+                dropdownData.append({"displayName":target,"name":targetToDisplayInTable,"searchTerm":targetToDisplayInTable,"selected":False,"id":idx+1})
             rulesArray = rules_dict[target]
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
             groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
@@ -186,7 +188,7 @@ class DecisionTreeRegNarrative:
                 grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
                 obj["count"] += grpCount
                 probabilityGroups[idx2] = obj
-            predictionArray = [target]*len(rulesArray)
+            predictionArray = [targetToDisplayInTable]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
             success = self.succesful_predictions[target]

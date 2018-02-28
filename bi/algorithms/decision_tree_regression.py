@@ -231,8 +231,8 @@ class DecisionTreeRegression:
 
         self._data_frame1, self._aggr_data = MLUtils.bin_column(self._data_frame1, self._target_dimension, get_aggregation=True)
         self._cluster_order = [x[1] for x in sorted(zip(clusters,[0,1,2]))]
-        displayArray = zip(splitRanges,GLOBALSETTINGS.DECISIONTREERKMEANSTARGETNAME)
-        displayArray = [x[0]+" : "+x[1]]
+        displayArray = zip(GLOBALSETTINGS.DECISIONTREERKMEANSTARGETNAME,splitRanges)
+        displayArray = [x[0]+" : "+x[1] for x in displayArray]
         self._mapping_dict[self._target_dimension] = dict(zip(self._cluster_order,displayArray))
         self._reverse_map = {}
         for k,v in self._mapping_dict[self._target_dimension].iteritems():
