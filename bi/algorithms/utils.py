@@ -321,10 +321,17 @@ def bin_column(df, measure_column,get_aggregation = False):
 
     df = df.select([c for c in df.columns if c!=measure_column])
     df = df.withColumnRenamed("bucket",measure_column)
-
+    if splits_new[0] > 1:
+        roundTo = 0
+    else:
+        roundTo = 2
+    splitRanges = ["("+str(round(splits_new[0],2))+" to "+str(round(splits_new[1],2))+")",
+                "("+str(round(splits_new[1],2))+" to "+str(round(splits_new[2],2))+")",
+                "("+str(round(splits_new[2],2))+" to "+str(round(splits_new[3],2))+")"
+                ]
     if (get_aggregation):
         return df, aggr
-    return df, splits_new[1:]
+    return df, splits_new[1:],splitRanges
 
 def cluster_by_column(df, col_to_cluster, get_aggregation = False):
     my_df = df.select(df.columns)
@@ -649,7 +656,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appid=None):
     if appid == None:
         card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
     else:
-        card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_HEADING_MAP[appid]))]
+        try:
+            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_HEADING_MAP[appid]))]
+        except:
+            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
     card3Data.append(get_feature_importance(collated_summary))
     card3.set_card_data(card3Data)
     # prediction_narrative.insert_card_at_given_index(card3,2)

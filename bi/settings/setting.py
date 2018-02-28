@@ -1,4 +1,11 @@
 CHISQUARELEVELLIMIT = 10
+CHISQUARESIGNIFICANTDIMENSIONTOSHOW = 2
+
+DECISIONTREERKMEANSTARGETNAME = ['Low','Medium','High']
+HDFS_SECRET_KEY = "xfBmEcr_hFHGqVrTo2gMFpER3ks9x841UcvJbEQJesI="
+ALGORITHMRANDOMSLUG = "f77631ce2ab24cf78c55bb6a5fce4db8"
+ANOVAMAXLEVEL = 200
+BLOCKSPLITTER = "|~NEWBLOCK~|"
 BASEFOLDERNAME_MODELS = "mAdvisorModels"
 BASEFOLDERNAME_SCORES = "mAdvisorScores"
 PROBABILITY_RANGE_FOR_DONUT_CHART = {"50-60%":(50,60),"60-70%":(60,70),"70-80%":(70,80),"80-90%":(80,90),"90-100%":(90,100)}
@@ -25,10 +32,7 @@ APPS_ID_HEADING_MAP = {
     "8":"Factors influencing Asset health",
     "9":"Factors influencing Attrition"
 }
-DECISIONTREERKMEANSTARGETNAME = ['Low','Medium','High']
-HDFS_SECRET_KEY = "xfBmEcr_hFHGqVrTo2gMFpER3ks9x841UcvJbEQJesI="
 
-ALGORITHMRANDOMSLUG = "f77631ce2ab24cf78c55bb6a5fce4db8"
 SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"randomforest",
             ALGORITHMRANDOMSLUG+"lr":"logisticregression",
@@ -42,8 +46,6 @@ MODEL_SLUG_MAPPING = {
             "svm":ALGORITHMRANDOMSLUG+"svm"
             }
 
-ANOVAMAXLEVEL = 200
-BLOCKSPLITTER = "|~NEWBLOCK~|"
 scriptsMapping = {
     "overview" : "Descriptive analysis",
     "performance" : "Measure vs. Dimension",

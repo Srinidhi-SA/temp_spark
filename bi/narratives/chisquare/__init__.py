@@ -24,6 +24,7 @@ class ChiSquareNarratives:
         self._chiSquareNode = NarrativesTree()
         self._chiSquareNode.set_name("Association")
         self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
+        self._noOfSigDimsToShow = GLOBALSETTINGS.CHISQUARESIGNIFICANTDIMENSIONTOSHOW
         self._base_dir = "/chisquare/"
         if self._appid != None:
             if self._appid == "1":
@@ -167,7 +168,7 @@ class ChiSquareNarratives:
                     significant_variables = significant_variables[:self._nColsToUse]
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"custom","info",display=True,customMsg="Analyzing key drivers")
-            for analysed_dimension in significant_variables[:2]:
+            for analysed_dimension in significant_variables[:self._noOfSigDimsToShow]:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
                     print "APPID 2 is used"
