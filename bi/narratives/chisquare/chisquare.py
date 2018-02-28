@@ -60,6 +60,7 @@ class ChiSquareAnalysis:
                 self._binTargetCol = True
             if binnedColObj != None and (self._analysed_dimension in binnedColObj or self._analysed_dimension in self._measure_columns):
                 self._binAnalyzedCol = True
+                
         print "binTargetCol : ",  self._binTargetCol
         print "BinAnalyzedCol : ", self._binAnalyzedCol
         if self._appid == None:
