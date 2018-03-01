@@ -60,7 +60,7 @@ class ChiSquareAnalysis:
                 self._binTargetCol = True
             if binnedColObj != None and (self._analysed_dimension in binnedColObj or self._analysed_dimension in self._measure_columns):
                 self._binAnalyzedCol = True
-                
+
         print "binTargetCol : ",  self._binTargetCol
         print "BinAnalyzedCol : ", self._binAnalyzedCol
         if self._appid == None:
@@ -262,14 +262,15 @@ class ChiSquareAnalysis:
           data_dict["binAnalyzedCol"] = self._binAnalyzedCol
           data_dict['highlightFlag'] = self._highlightFlag
 
+          ###############
+          #     CARD1   #
+          ###############
 
-          # print "-----------data_dict - card1------------"
-          # print data_dict
           print "self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol
-          if (self._binTargetCol == True and self._binAnalyzedCol == False):
+          if (self._binTargetCol == True & self._binAnalyzedCol == False):
               print "Only Target Column is Binned, : ", self._binTargetCol
               output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
-          elif (self._binTargetCol == True and self._binAnalyzedCol == True):
+          elif (self._binTargetCol == True & self._binAnalyzedCol == True):
               print "Target Column and IV is Binned : ", self._binTargetCol, self._binAnalyzedCol
               output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
           else:
@@ -405,8 +406,8 @@ class ChiSquareAnalysis:
               elif len(self._second_level_dimensions)==1:
                   key_factors = self._second_level_dimensions[0]
 
-              data_dict['num_key_factors'] = num_key_factors
-              data_dict['key_factors'] = key_factors
+              targetCardDataDict['num_key_factors'] = num_key_factors
+              targetCardDataDict['key_factors'] = key_factors
 
               key_factors1 = ''
               num_key_factors1 = len(self._second_level_dimensions1)
@@ -428,13 +429,17 @@ class ChiSquareAnalysis:
             #   print "key_factors1 : ", key_factors1
             #   print "data_dict.keys() : ", data_dict.keys()
 
-              data_dict['num_key_factors1'] = num_key_factors1
-              data_dict['key_factors1'] = key_factors1
+              targetCardDataDict['num_key_factors1'] = num_key_factors1
+              targetCardDataDict['key_factors1'] = key_factors1
 
-              data_dict['distribution_top'] = distribution_top
-              data_dict['distribution_second'] = distribution_second
-              data_dict['random_card2'] = random.randint(1,100)
-              data_dict['random_card4'] = random.randint(1,100)
+              targetCardDataDict['distribution_top'] = distribution_top
+              targetCardDataDict['distribution_second'] = distribution_second
+              targetCardDataDict['random_card2'] = random.randint(1,100)
+              targetCardDataDict['random_card4'] = random.randint(1,100)
+
+              ###############
+              #     CARD2   #
+              ###############
             #   print "data_dict['key_factors1'] : ", data_dict['key_factors1']
             #   print "data_dict['key_factors'] : ", data_dict['key_factors']
               targetCardDataDict['num_key_factors'] = num_key_factors
@@ -503,13 +508,16 @@ class ChiSquareAnalysis:
                   card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
                   card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
                   print "self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol
-                  if (self._binTargetCol == True and self._binAnalyzedCol == False):
+                  if (self._binTargetCol == True & self._binAnalyzedCol == False):
                       print "Only Target Column is Binned"
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',targetCardDataDict),self._blockSplitter)
-                  elif (self._binTargetCol == True and self._binAnalyzedCol == True):
+                  elif (self._binTargetCol == True & self._binAnalyzedCol == True):
                       print "Target Column and IV is Binned"
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',targetCardDataDict),self._blockSplitter)
                   else:
+                      print "In Else, self._binTargetCol should be False : ", self._binTargetCol
+                      print targetCardDataDict['second_target']
+                      print targetCardDataDict
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',targetCardDataDict),self._blockSplitter)
 
                   card2Data.append(HtmlData(data=card2Heading))
