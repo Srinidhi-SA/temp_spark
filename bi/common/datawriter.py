@@ -75,10 +75,11 @@ class DataWriter:
                 if key not in prototype:
                     raise ValueError("got unexpected field %s" % key)
                 rowified_dict[key] = DataWriter._rowify(val, prototype[key])
-                for key in prototype:
+                for _ptype in prototype:
                     if key not in x:
                         raise ValueError(
-                            "expected %s field but didn't find it" % key)
+                            "expected %s field but didn't find it" % _ptype)
+
             return Row(**rowified_dict)
         elif isinstance(prototype, list):
             if type(x) != list:

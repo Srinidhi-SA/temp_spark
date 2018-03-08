@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for FreqDimension test"""
 
-import random
-
-from bi.common.decorators import accepts
 
 class FreqDimensionResult:
     """

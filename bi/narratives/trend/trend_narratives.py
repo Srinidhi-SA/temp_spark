@@ -1,6 +1,4 @@
-import os
 import time
-import numpy as np
 from datetime import datetime
 
 from bi.algorithms import TimeSeriesAnalysis
@@ -149,16 +147,21 @@ class TrendNarrative:
         # dataDict["table_data"] = table_data
         return dataDict
 
-    def get_xtra_calculations(self,sparkdf,grouped_data,significant_columns,index_col,value_col,datetime_pattern,reference_time,dataLevel):
-        datetime_pattern = "%b-%y"
+    def get_xtra_calculations(self,sparkdf,grouped_data,significant_columns,index_col,value_col,dateColDateFormat,reference_time,dataLevel):
+        print "dateColDateFormat",dateColDateFormat
         if type(grouped_data["key"][0]) == "str":
             grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         grouped_data = grouped_data.sort_values(by = "key",ascending=True)
         grouped_data.reset_index(drop=True,inplace=True)
         print "level contribution started"
         st = time.time()
-        print significant_columns
-        level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,datetime_pattern,value_col,reference_time, self._metaParser)
+        print "significant_columns",significant_columns
+        if dataLevel == "day":
+            index_col = "suggestedDate"
+        else:
+            index_col = "year_month"
+            dateColDateFormat = "%b-%y"
+        level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,dateColDateFormat,value_col,reference_time, self._metaParser)
         print "level_cont finished in ",time.time()-st
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)
@@ -270,7 +273,7 @@ class TrendNarrative:
         if type(agg_data["key"][0]) == "str":
             agg_data["key"] = agg_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         agg_data = agg_data.sort_values(by = "key",ascending=True)
-        relevant_columns = list(set(agg_data.columns)-set(["key","year_month"]))
+        relevant_columns = list(set(agg_data.columns) - {"key", "year_month"})
         chart_data = dict(zip(relevant_columns,[[]]*len(relevant_columns)))
         label = {"y":"","y2":""}
         label["y"] = relevant_columns[0]

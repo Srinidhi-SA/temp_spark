@@ -1,19 +1,10 @@
-import os
-import random
 import humanize
-import numpy as np
 
-from bi.common.dataframe import DataFrameHelper
-from bi.common.results import DecisionTreeResult
-from bi.common.utils import accepts
-from bi.common import ResultSetter
-from bi.narratives import utils as NarrativesUtils
+from bi.common import NormalCard, NarrativesTree, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
-from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
 
 
 class DecisionTreeRegNarrative:
@@ -83,6 +74,7 @@ class DecisionTreeRegNarrative:
         self._story_narrative.add_a_node(self._decisionTreeNode)
         self._result_setter.set_decision_tree_node(self._decisionTreeNode)
 
+        self._completionStatus = self._dataframe_context.get_completion_status()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dtreeNarrativeEnd",\
@@ -179,21 +171,24 @@ class DecisionTreeRegNarrative:
               ]]
         dropdownData = []
         chartDict = {}
+        self._completionStatus = self._dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Generating Prediction rules",self._completionStatus,self._completionStatus,display=True)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
+
         for idx,target in enumerate(rules_dict.keys()):
+            targetToDisplayInTable = target.split(":")[0].strip()
             if idx == 0:
-                dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
+                dropdownData.append({"displayName":target,"name":targetToDisplayInTable,"searchTerm":targetToDisplayInTable,"selected":True,"id":idx+1})
             else:
-                dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
+                dropdownData.append({"displayName":target,"name":targetToDisplayInTable,"searchTerm":targetToDisplayInTable,"selected":False,"id":idx+1})
             rulesArray = rules_dict[target]
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
             groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
-            for idx,obj in enumerate(probabilityGroups):
+            for idx2,obj in enumerate(probabilityGroups):
                 grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
                 obj["count"] += grpCount
-                probabilityGroups[idx] = obj
-            predictionArray = [target]*len(rulesArray)
+                probabilityGroups[idx2] = obj
+            predictionArray = [targetToDisplayInTable]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
             success = self.succesful_predictions[target]
@@ -207,8 +202,8 @@ class DecisionTreeRegNarrative:
                 binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
                 if binnedColObj != None and targetCol in binnedColObj:
                     binFlag = True
-            for idx,crudeRule in enumerate(rulesArray):
-                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx], success[idx], success_percent[idx],analysisType,binFlag=binFlag)
+            for idx2,crudeRule in enumerate(rulesArray):
+                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx2], success[idx2], success_percent[idx2],analysisType,binFlag=binFlag)
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)

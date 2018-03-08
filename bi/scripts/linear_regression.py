@@ -1,12 +1,8 @@
 import time
-import json
 
 from bi.algorithms import LinearRegression
-from bi.algorithms import KmeansClustering
-from bi.narratives.regression import RegressionNarrative
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
-from bi.narratives.regression import LinearRegressionNarrative
+from bi.narratives.regression import RegressionNarrative
 
 
 # from bi.stats import Correlation
@@ -24,7 +20,7 @@ class LinearRegressionScript:
 
     def Run(self):
         fs = time.time()
-        regression_result_obj = LinearRegression(self._data_frame, self._dataframe_helper, self._dataframe_context,self._spark).fit(self._dataframe_context.get_result_column())
+        regression_result_obj = LinearRegression(self._data_frame, self._dataframe_helper, self._dataframe_context,self._metaParser,self._spark).fit(self._dataframe_context.get_result_column())
         regression_result = CommonUtils.as_dict(regression_result_obj)
         print "time taken for regression ",time.time()-fs,"seconds"
 

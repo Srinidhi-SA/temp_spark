@@ -16,3 +16,4 @@ pyhocon==0.3.36
 sklearn
 sklearn2pmml==0.27.0
 matplotlib==2.1.1
+cryptography==1.8.1

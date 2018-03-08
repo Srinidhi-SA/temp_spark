@@ -1,10 +1,8 @@
 import xgboost as xgb
-import operator
 from sklearn import preprocessing
 
 from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
-
 
 
 class XgboostClassifier:

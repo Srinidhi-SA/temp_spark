@@ -1,22 +1,16 @@
 import time
-import random
-import math
 from datetime import datetime
-import pandas as pd
 
+import pandas as pd
 from pyspark.ml.feature import Bucketizer
-from pyspark.sql.types import DoubleType
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import udf, col
-from pyspark.sql.types import DateType, FloatType
-from pyspark.sql.types import StringType
+from pyspark.sql.functions import col
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.functions import regexp_extract
-
+from pyspark.sql.types import DoubleType
 
 from bi.common import utils as CommonUtils
-from bi.common.charts import ChartJson,NormalChartData
 from bi.common.cardStructure import C3ChartData
+from bi.common.charts import ChartJson, NormalChartData
 from bi.common.decorators import accepts
 
 
@@ -136,7 +130,11 @@ class MetaDataHelper():
                             "MinLevel":"Min Level",
                             "LevelCount":"LevelCount"
                             }
-        displayOrderDict = {"MinLevel":0,"MaxLevel":1,"numberOfUniqueValues":2,"numberOfNulls":3,"numberOfUniqueValues":4,"numberOfNotNulls":5,"count":6,"min":7,"max":8,"stddev":9,"mean":10,"LevelCount":11}
+
+        #TODO: FIX copy paste error numberOfUniqueValues
+        displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
+                            "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7, "max": 8,
+                            "stddev": 9, "mean": 10, "LevelCount": 11}
         for column in dimension_columns:
             col_stat = {}
             if level_count_flag:
@@ -219,7 +217,10 @@ class MetaDataHelper():
                             "firstDate":"Start Date",
                             "lastDate":"Last Date",
                             }
-        displayOrderDict = {"firstDate":0,"lastDate":1,"MinLevel":12,"MaxLevel":13,"numberOfUniqueValues":2,"numberOfNulls":3,"numberOfUniqueValues":4,"numberOfNotNulls":5,"count":6,"min":7,"max":8,"stddev":9,"mean":10,"LevelCount":11}
+        # TODO: FIX copy paste error numberOfUniqueValues
+        displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 12, "MaxLevel": 13, "numberOfUniqueValues": 2,
+                            "numberOfNulls": 3, "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7,
+                            "max": 8, "stddev": 9, "mean": 10, "LevelCount": 11}
         for column in td_columns:
             col_stat = {}
             notNullDf = df.select(column).distinct().na.drop()
@@ -357,6 +358,10 @@ class MetaDataHelper():
             if (colStat["numberOfUniqueValues"]==1):
                 ignore = True
                 reason = "Only one Unique Value"
+            if (colStat["numberOfNulls"] > 0):
+                if (colStat["numberOfUniqueValues"]==2):
+                    ignore = True
+                    reason = "Only one Unique Value"
             if (colStat["numberOfNulls"] == 0):
                 if (colStat["numberOfUniqueValues"] == total_rows):
                     ignore = True
@@ -377,7 +382,7 @@ class MetaDataHelper():
             if (colStat["numberOfNulls"] == 0):
                 if (colStat["numberOfUniqueValues"] == total_rows):
                     ignore = True
-                    reason = "All values are distinct"
+                    reason = "Index Column (all values are distinct)"
             else:
                 if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]):
                     ignore = True

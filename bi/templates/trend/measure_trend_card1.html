@@ -38,3 +38,11 @@
   However, the {{measure}} figures are <b> likely to follow a seasonal pattern </b> during this period.
 {% endif %}
 </p>
+
+
+{{blockSplitter}}
+{{highlightFlag}}
+
+{% if ratio_string != "" %}
+  The total {{measures}} contribution from the streak of {{bucket_length}} {{dataLevel}}s ({{bucket_duration}}) amounts to a total of {{bucket_contribution}}, which is almost {{ratio_string}} of the overall {{measure}} for the {{durationString}} period.
+{% endif %}

@@ -1,98 +1,97 @@
 from bi.common.decorators import accepts
+from bi.common.results import DfMetaData, MetaData, ColumnData, ColumnHeader
+
 class MetaParser:
-
     def __init__(self):
-        self.meta_data = {}
-        self.column_dict = {}
-        self.ignoreColDict = {}
+        self.columnData = []
+        self.headers = []
+        self.sampleData = []
+        self.metaData = []
 
-    def set_params(self, meta_data):
-        print "Setting Meta Data Parser"
-        self.utf8ColumnSuggestion = []
-        self.ignoreColumnSuggestions = []
-        self.dateTimeSuggestions = {}
-        self.meta_data = meta_data
+    def set_params(self,metaDataDict):
+        columnDataArray = metaDataDict["columnData"]
+        headerArray = metaDataDict["headers"]
+        if "sampleData" in metaDataDict:
+            self.sampleData = metaDataDict["sampleData"]
+        metaDataArray = metaDataDict["metaData"]
+        for headerObj in headerArray:
+            colHeaderClass = ColumnHeader()
+            colHeaderClass.set_params(headerObj)
+            self.headers.append(colHeaderClass)
+        for metadataObj in metaDataArray:
+            metaDataClass = MetaData()
+            metaDataClass.set_params(metadataObj)
+            self.metaData.append(metaDataClass)
+        for colDataObj in columnDataArray:
+            colDataClass = ColumnData()
+            colDataClass.set_params(colDataObj)
+            self.columnData.append(colDataClass)
 
-        # dict_out = self.extract(self.meta_data['metaData'], self.meta_data['metaData'])
-        # self.column_dict = self.get_column_stats(dict_out['columnData'])
-        self.column_dict = self.get_column_stats(self.meta_data['columnData'])
-        ignorecolobject = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnSuggestions"]
-        ignorereasonobj = [x for x in self.meta_data['metaData'] if x["name"] == "ignoreColumnReason"]
-        if len(ignorecolobject) > 0:
-            if ignorecolobject[0] != {} and len(ignorecolobject[0]["value"]) >0:
-                self.ignoreColumnSuggestions = ignorecolobject[0]["value"]
-                self.ignoreColDict = dict(zip(ignorecolobject[0]["value"],ignorereasonobj[0]["value"]))
-        utf8Colobj = [x for x in self.meta_data["metaData"] if x["name"]=="utf8ColumnSuggestion"]
-        if len(utf8Colobj) > 0:
-            if utf8Colobj[0] != {} and len(utf8Colobj[0]["value"]) >0:
-                self.utf8ColumnSuggestion = utf8Colobj[0]["value"]
-        dateSugColObj = [x for x in self.meta_data["metaData"] if x["name"]=="dateTimeSuggestions"]
-        if len(dateSugColObj) > 0:
-            if dateSugColObj[0] != {}:
-                self.dateTimeSuggestions = dateSugColObj[0]["value"]
-
-        try:
-            self.percentage_columns = [x["value"] for x in self.meta_data['metaData'] if x["name"] == "percentageColumns"][0]
-        except:
-            self.percentage_columns=[]
-
-        try:
-            self.dollar_columns = [x["value"] for x in self.meta_data['metaData'] if x["name"] == "dollarColumns"][0]
-        except:
-            self.dollar_columns = []
-
-    def extract(self,dict_in, dict_out):
-        for key, value in dict_in.iteritems():
-            if isinstance(value, dict): # If value itself is dictionary
-                self.extract(value, dict_out)
-            elif isinstance(value, unicode):
-                # Write to dict_out
-                dict_out[key] = value
-        return dict_out
-
-    def update_level_counts(self,columnList,levelCountDict):
-        for val in columnList:
-            self.column_dict[val]["LevelCount"] = levelCountDict[val]
-            self.column_dict[val]['numberOfUniqueValues'] = len(levelCountDict[val])
-
-    def get_column_stats(self, columnData):
-        for each in columnData:
-            self.column_dict[each['name']] = self.parse_stats(each['columnStats'])
-            self.column_dict[each['name']]['columnType'] = each['columnType']
-        return self.column_dict
-
-    def parse_stats(self, columnStats):
-        return_dict = {}
-        for each in columnStats:
-            return_dict[each['name']] = each['value']
-        return return_dict
+        self.noOfRows = [obj.get_value() for obj in self.metaData if obj.get_name() == "noOfRows"][0]
+        self.noOfColumns = [obj.get_value() for obj in self.metaData if obj.get_name() == "noOfColumns"][0]
+        self.percentage_columns = [obj.get_value() for obj in self.metaData if obj.get_name() == "percentageColumns"][0]
+        self.dollar_columns = [obj.get_value() for obj in self.metaData if obj.get_name() == "dollarColumns"][0]
+        self.ignoreColumnSuggestions = [obj.get_value() for obj in self.metaData if obj.get_name() == "ignoreColumnSuggestions"][0]
+        self.ignoreReason = [obj.get_value() for obj in self.metaData if obj.get_name() == "ignoreColumnReason"][0]
+        self.ignoreColDict = dict(zip(self.ignoreColumnSuggestions,self.ignoreReason))
+        self.utf8ColumnSuggestion = [obj.get_value() for obj in self.metaData if obj.get_name()=="utf8ColumnSuggestion"][0]
+        self.dateTimeSuggestions = [obj.get_value() for obj in self.metaData if obj.get_name()=="dateTimeSuggestions"][0]
+        self.uidCols = [k for k,v in self.ignoreColDict.items() if v.startswith("Index Column")]
+        self.column_dict = dict([(obj.get_name(),obj) for obj in self.columnData])
 
     def update_column_dict(self,colname,columnStats):
-        self.column_dict.update({colname:columnStats})
-    # ---------------------- All the getters ---------------------------------
+        colDataObj = ColumnData()
+        colDataObj.set_name(colname)
+        colDataObj.set_abstract_datatype("dimension")
+        colDataObj.update_level_count(columnStats["LevelCount"])
+        colDataObj.update_unique_values(columnStats["numberOfUniqueValues"])
+        self.column_dict.update({colname:colDataObj})
+
+    def update_level_counts(self,columnList,levelCountDict):
+        if isinstance(columnList,list) or isinstance(columnList,tuple):
+            for val in columnList:
+                colDataObj = self.column_dict[val]
+                colDataObj.update_level_count(levelCountDict[val])
+                colDataObj.update_unique_values(len(levelCountDict[val]))
+                self.column_dict[val] = colDataObj
+        elif isinstance(columnList,str):
+            colDataObj = self.column_dict[columnList]
+            colDataObj.update_level_count(levelCountDict)
+            colDataObj.update_unique_values(len(levelCountDict))
+            self.column_dict[columnList] = colDataObj
 
     def get_num_unique_values(self, column_name):
-        return self.column_dict[column_name]['numberOfUniqueValues']
+        return self.column_dict[column_name].get_unique_value_count(column_name)
 
     @accepts(object,column_name=(list,tuple,str))
     def get_unique_level_dict(self,column_name):
         if isinstance(column_name,str):
-            return self.column_dict[column_name]["LevelCount"]
+            return self.column_dict[column_name].get_level_count_dict(column_name)
         elif isinstance(column_name,list) or isinstance(column_name,tuple):
             out = {}
             for col in column_name:
-                out[col] = self.column_dict[col]["LevelCount"]
+                out[col] = self.column_dict[col].get_level_count_dict(col)
             return out
 
     def get_suggested_uid_columns(self):
-        uidCol = []
-        for k,v in self.ignoreColDict.items():
-            if v.startswith("Index Column"):
-                uidCol.append(k)
-        return uidCol
+        return self.uidCols
 
     def get_unique_level_names(self,column_name):
-        return self.column_dict[column_name]["LevelCount"].keys()
+        if self.column_dict[column_name].get_column_type()=="dimension":
+            return self.column_dict[column_name].get_level_count_dict(column_name).keys()
+        else:
+            return None
+
+    # def get_minimum_value(self,column_name):
+    #     if self.column_dict[column_name].get_column_type()=="measure":
+    #         return self.column_dict[column_name].get_colstat_values(column_name,"min")
+    #     else:
+    #         return None
+    # def get_maximum_value(self,column_name):
+    #     if self.column_dict[column_name].get_column_type()=="measure":
+    #         return self.column_dict[column_name].get_colstat_values(column_name,"max")
+    #     else:
+    #         return None
 
     def get_percentage_columns(self):
         return self.percentage_columns
@@ -117,3 +116,9 @@ class MetaParser:
 
     def get_utf8_columns(self):
         return self.utf8ColumnSuggestion
+
+    def get_num_rows(self):
+        return self.noOfRows
+
+    def get_num_columns(self):
+        return self.noOfColumns

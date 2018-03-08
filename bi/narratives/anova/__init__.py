@@ -1,13 +1,10 @@
-import os
-
 from anova_drilldown import AnovaDrilldownNarratives
+from bi.common import NormalCard, NarrativesTree, C3ChartData,HtmlData
+from bi.common import NormalChartData, ChartJson
+from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.narratives.anova.anova import OneWayAnovaNarratives
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
-
 
 
 class AnovaNarratives:
@@ -74,9 +71,6 @@ class AnovaNarratives:
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
-        print "self._completionStatus",self._completionStatus
-
-
 
         if self._anovaNodes.get_card_count() > 0:
             self._story_narrative.add_a_node(self._anovaNodes)
@@ -163,8 +157,14 @@ class AnovaNarratives:
                 progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing key drivers",self._completionStatus,self._completionStatus,display=True)
                 CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
                 self._generate_dimension_narratives(significant_dimensions, measure_anova_result, measure_column)
+            else:
+                mainCard = NormalCard(name = "Overview of Key Factors")
+                cardText=HtmlData("There are no dimensions in the dataset that have significant influence on {}".format(measure_column))
+                mainCard.set_card_data([cardText])
+                self._anovaNodes.add_a_card(mainCard)
 
-    def _generate_dimension_narratives(self, significant_dimensions, measure_anova_result, measure):
+
+    def _generate_dimension_narratives(self,significant_dimensions, measure_anova_result, measure):
         self.narratives['cards'] = []
         anova_trend_result = measure_anova_result.get_trend_data()
         if len(significant_dimensions) == 0:
@@ -172,6 +172,6 @@ class AnovaNarratives:
         self.narratives['variables'] = significant_dimensions
         for dimension in significant_dimensions:
             dimensionNode = NarrativesTree(name = dimension)
-            narratives = OneWayAnovaNarratives(measure, dimension, measure_anova_result, anova_trend_result,self._result_setter,dimensionNode,self._base_dir)
+            narratives = OneWayAnovaNarratives(self._dataframe_context,measure, dimension, measure_anova_result, anova_trend_result,self._result_setter,dimensionNode,self._base_dir)
             self._anovaNodes.add_a_node(dimensionNode)
             self.narratives['cards'].append(narratives)

@@ -1,11 +1,9 @@
 import time
-from pyspark.ml.feature import Bucketizer
-from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.functions import col, expr, when, udf
-from pyspark.sql.types import DoubleType,StringType,StructType
-from bi.common.utils import accepts
-from bi.common import DataFilterHelper
-from bi.common import utils as CommonUtils
+
+from pyspark.sql.functions import col, udf
+from pyspark.sql.types import StringType
+
+
 #import bi.common.dataframe
 
 class DataFrameTransformer:
@@ -47,7 +45,6 @@ class DataFrameTransformer:
         if len(existingColTransforms) > 0:
             for transformObj in existingColTransforms:
                 transformActionList = [obj["actionName"]  for obj in transformObj["columnSetting"]]
-                print transformActionList
                 if "delete" in transformActionList:
                     self.delete_column(transformObj["name"])
                 else:
@@ -55,17 +52,19 @@ class DataFrameTransformer:
                         if obj["actionName"] == "replace":
                             self.update_column_data(transformObj["name"],obj["replacementValues"])
                         if obj["actionName"] == "rename":
-                            self.update_column_name(transformObj["name"],obj["newName"])
+                            self.update_column_name(obj["prevName"],obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
+                            print castDataType
                             if castDataType == "numeric":
                                 newDataType = 'int'
-                            elif castDataType == "string":
+                            elif castDataType == "text":
                                 newDataType = "string"
                             elif castDataType == "datetime":
                                 newDataType = "timestamp"
                             self.update_column_datatype(transformObj["name"],newDataType)
                             print self._data_frame.printSchema()
+                    print self._data_frame.printSchema()
 
 
 
@@ -136,11 +135,14 @@ class DataFrameTransformer:
         print "hi udating column data type"
         self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
         print self._data_frame.printSchema()
-        #TODO update data type as measure or dimension
+        # TODO update data type as measure or dimension
 
     def update_column_name(self,old_column_name,new_column_name):
+        print "old_column_name",old_column_name
+        print "new_column_name",new_column_name
         if new_column_name:
             self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
+            print self._data_frame.columns
 
     def get_transformed_data_frame(self):
         return self._data_frame

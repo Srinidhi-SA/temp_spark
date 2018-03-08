@@ -1,16 +1,15 @@
 import json
 import operator
-import os
-import time
 import re
+
 import pattern
 
-from bi.narratives import utils as NarrativesUtils
+from bi.common import NormalCard, SummaryCard, NarrativesTree, HtmlData, C3ChartData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
-
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
+
 
 class DimensionColumnNarrative:
     MAX_FRACTION_DIGITS = 2
@@ -68,57 +67,26 @@ class DimensionColumnNarrative:
                 },
             }
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["initialization"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "initialization",\
-                                    "info",\
-                                    self._scriptStages["initialization"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
-
-
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info")
         self._generate_narratives()
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["summarygeneration"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "summarygeneration",\
-                                    "info",\
-                                    self._scriptStages["summarygeneration"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"summarygeneration","info")
+
 
         self._story_narrative.add_a_node(self._dimensionSummaryNode)
 
         self._result_setter.set_head_node(self._headNode)
         self._result_setter.set_distribution_node(self._dimensionSummaryNode)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"summarygeneration","info")
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["completion"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "completion",\
-                                    "info",\
-                                    self._scriptStages["completion"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
 
 
     def _generate_narratives(self):
         if self.appid != None:
             if self.appid == "1":
-                # self._generate_title()
-                # self._generate_summary()
-                # self.analysis = self._generate_analysis()
                 self._generate_title()
                 self._generate_summary()
                 self._generate_analysis()
             elif self.appid == "2":
-                # self._generate_title()
-                # self._generate_summary()
-                # self.analysis = self._generate_analysis2()
                 self._generate_title()
                 self._generate_summary()
                 self._generate_analysis()
@@ -185,7 +153,6 @@ class DimensionColumnNarrative:
             for k,v in freq_dict[colname][colname].items():
                 freq_data.append({"key":v,"Count":freq_dict[colname]["count"][k]})
             freq_data = sorted(freq_data,key=lambda x:x["Count"],reverse=True)
-        print "freq_data : ", freq_data
         data_dict = {"colname":self._colname}
         data_dict["plural_colname"] = pattern.en.pluralize(data_dict["colname"])
         count = freq_dict[colname]['count']

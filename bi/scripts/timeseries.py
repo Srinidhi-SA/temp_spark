@@ -1,8 +1,4 @@
-import json
-
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
-from bi.narratives import utils as NarrativesUtils
 from bi.narratives.trend import TimeSeriesNarrative
 
 

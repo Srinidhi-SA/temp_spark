@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for ChiSquare test"""
 
-import random
-import json
 import re
-from humanize import intcomma
 
+from humanize import intcomma
 from pyspark.mllib.stat.test import ChiSqTestResult
 
-from bi.common.exception import BIException
 from bi.common.decorators import accepts
+from bi.common.exception import BIException
 
 
 class ContingencyTable:
-    '''
+    """
     Represents a two dimensional contingency table of M x N dimension.
         M rows      - one for each unique value of column one
         N columns   - one for each unique value of column two
-    '''
+    """
     @accepts(object, (list, tuple), (list, tuple))
     def __init__(self, column_one_values, column_two_values):
         self.column_one_values = column_one_values
@@ -215,8 +213,6 @@ class ChiSquareResult:
     # def set_buckeddata(self.bucketedData):
     #     self._bucketedData = bucketedData
 
-
-
 class DFChiSquareResult:
     """
     Result object for all ChiSquare tests in a dataframe
@@ -227,12 +223,12 @@ class DFChiSquareResult:
         self.results = {}
 
     @accepts(object, (str, basestring), (str, basestring), ChiSquareResult)
-    def add_chisquare_result(self, dimension_column_input, dimension_column, chisquare_result):
-        if dimension_column_input not in self.dimensions:
-            self.dimensions.append(dimension_column)
-        if not self.results.has_key(dimension_column_input):
-            self.results[dimension_column_input] = {}
-        self.results.get(dimension_column_input)[dimension_column] = chisquare_result
+    def add_chisquare_result(self, targetDimension, testDimension, chisquare_result):
+        if targetDimension not in self.dimensions:
+            self.dimensions.append(testDimension)
+        if not self.results.has_key(targetDimension):
+            self.results[targetDimension] = {}
+        self.results.get(targetDimension)[testDimension] = chisquare_result
 
     def get_result(self):
         return self.results

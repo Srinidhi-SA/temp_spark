@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for Anova test"""
 
-import random
-
 from bi.common.decorators import accepts
-
-from bi.common.results.descr import MeasureDescriptiveStats
 from bi.common.results.descr import DimensionDescriptiveStats
+from bi.common.results.descr import MeasureDescriptiveStats
 from bi.common.results.descr import TimeDimensionDescriptiveStats
 
 

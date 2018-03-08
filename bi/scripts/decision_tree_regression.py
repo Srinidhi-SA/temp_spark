@@ -1,6 +1,6 @@
 import json
+
 from bi.algorithms import DecisionTreeRegression
-from bi.common import DataWriter
 from bi.common import utils as CommonUtils
 from bi.narratives.decisiontreeregression.decision_tree import DecisionTreeRegNarrative
 
@@ -19,7 +19,7 @@ class DecisionTreeRegressionScript:
         df_decision_tree_obj = DecisionTreeRegression(self._data_frame, self._dataframe_context, self._dataframe_helper, self._spark, self._metaParser).test_all(measure_columns=(self._dataframe_context.get_result_column(),))
         df_decision_tree_result = CommonUtils.as_dict(df_decision_tree_obj)
 
-        #print 'RESULT: %s' % (json.dumps(df_decision_tree_result, indent=2))
+        # print 'RESULT: %s' % (json.dumps(df_decision_tree_result, indent=2))
         df_decision_tree_result['tree']["children"] = json.dumps(df_decision_tree_result['tree']["children"])
         # DataWriter.write_dict_as_json(self._spark, df_decision_tree_result, self._dataframe_context.get_result_file()+'DecisionTreeReg/')
 

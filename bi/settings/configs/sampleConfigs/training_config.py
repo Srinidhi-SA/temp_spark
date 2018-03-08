@@ -9,7 +9,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "uid",
               "selected": True,
-              "slug": "46ec8e7d3b3f43a4907cb7ba10e87215",
+              "slug": "cdbafd3c7d2f4bdf9c8e17706872556f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -21,7 +21,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Month",
               "selected": False,
-              "slug": "b501227d44a04f8ba03b56770b4acd5d",
+              "slug": "0214c2480dc2402896e0451713bcacf3",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -33,7 +33,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Deal_Type",
               "selected": True,
-              "slug": "81bf54cc137942cabf56c2aa0dbba528",
+              "slug": "777461ba6ded4295bed14b0b07b6a711",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -45,7 +45,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Price_Range",
               "selected": True,
-              "slug": "74c836af52014f9d83e3d4326657add1",
+              "slug": "55d77fe25cdc4a60a13415977964f7ca",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -57,7 +57,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Discount_Range",
               "selected": True,
-              "slug": "984322638b154e7abdcbabf2c8871186",
+              "slug": "5474e6e0dc4448d8b8d7c8fd260e52a1",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -69,7 +69,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Source",
               "selected": True,
-              "slug": "2cc19c3b13e44206841d75deab962178",
+              "slug": "185024f7e15f4a76b9a50b71ef72dd4f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -81,7 +81,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Platform",
               "selected": True,
-              "slug": "66f4f08701864877a1041393c78964e2",
+              "slug": "682ac5ef7b1c4d31a0b8f4de9500a73f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": True,
@@ -93,7 +93,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Buyer_Age",
               "selected": True,
-              "slug": "4cfea1a4dbc74f9daaf3ca34eac9043e",
+              "slug": "679f8ec6f28c495c87501da52d0c2d03",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -105,7 +105,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Buyer_Gender",
               "selected": True,
-              "slug": "59e9473ae53d4f0bb9daf25bcf27c2cc",
+              "slug": "1d80f69f5b7745cc8ad02cbb1ecadfbe",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -117,7 +117,7 @@ def get_training_config():
               "columnType": "measure",
               "name": "Tenure_in_Days",
               "selected": True,
-              "slug": "4e1f9abaebb94022bf95ff49a26bf06a",
+              "slug": "fce6a68f2db44d9a958ec78f2bf6a5f6",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -129,7 +129,7 @@ def get_training_config():
               "columnType": "measure",
               "name": "Sales",
               "selected": True,
-              "slug": "be262c1a685c4e64b123f0c2fb04fe4a",
+              "slug": "3c441db624c640c6a2504898dbdc4958",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -141,7 +141,7 @@ def get_training_config():
               "columnType": "measure",
               "name": "Marketing_Cost",
               "selected": True,
-              "slug": "6b594d8804634495ac9799696a46c107",
+              "slug": "553234ff91eb4347be6b88f9c1ecbc4c",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -153,7 +153,7 @@ def get_training_config():
               "columnType": "measure",
               "name": "Shipping_Cost",
               "selected": True,
-              "slug": "b2b5e4231f164078be5a3170bae80bf3",
+              "slug": "bd9a8f8ae33e41d097aeeecc3dd5e386",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -165,7 +165,7 @@ def get_training_config():
               "columnType": "measure",
               "name": "Last_Transaction",
               "selected": True,
-              "slug": "74d5c13420464b03a67c5638f28d015b",
+              "slug": "e0e177c6e84f4c5fbafc87b8d08cd3b6",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -177,7 +177,7 @@ def get_training_config():
               "columnType": "datetime",
               "name": "new_date",
               "selected": True,
-              "slug": "c2556ed2222341deb12012ed6e24b551",
+              "slug": "0baf8ee9e3cb49c5b5aab816114ebbc0",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -189,7 +189,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "Order Date",
               "selected": False,
-              "slug": "3ef2616ac7df4730b3a9001f4583a944",
+              "slug": "781f7c30962b494f9e5fde92c6395b60",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -201,7 +201,7 @@ def get_training_config():
               "columnType": "dimension",
               "name": "newCol",
               "selected": False,
-              "slug": "584d980dd1b94ffa9dd7590bef9a44a6",
+              "slug": "bfae39a5d0b4499693ee58a5b46f68f1",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -214,41 +214,42 @@ def get_training_config():
           "datasource_details": ""
         },
         "FILE_SETTINGS": {
+          "targetLevel": "Mobile",
+          "modelpath": [
+            "uid-mod-mox3850kmw"
+          ],
+          "train_test_split": [
+            0.65
+          ],
           "analysis_type": [
             "training"
           ],
-          "modelpath": [
-            "llllll-ui5h22aaz6"
-          ],
-          "train_test_split": [
-            0.68
+          "inputfile": [
+            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce_UID.csv"
           ],
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "ecommerce_uidcsv-afzlqzqiym"
+              "ecommerce_uidcsv-44qhdl1yaa"
             ]
-          },
-          "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/sampleDatasets/ecommerce_UID.csv"
-          ]
+          }
         }
       },
-     "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-llllll-ui5h22aaz6-med3jt1vtl_123/",
+      "job_config": {
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_model-uid-mod-mox3850kmw-r5gtdb90ja_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-llllll-ui5h22aaz6-med3jt1vtl/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/model-uid-mod-mox3850kmw-r5gtdb90ja/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/model-llllll-ui5h22aaz6-med3jt1vtl/",
+        "job_url": "http://34.196.204.54:9012/api/job/model-uid-mod-mox3850kmw-r5gtdb90ja/",
         "job_type": "training",
-        "job_name": "llllll",
-        "xml_url": "http://34.196.204.54:9012/api/xml/model-llllll-ui5h22aaz6-med3jt1vtl/",
+        "job_name": "uid-mod",
+        "xml_url": "http://34.196.204.54:9012/api/xml/model-uid-mod-mox3850kmw-r5gtdb90ja/",
         "app_id": 2
       }
     }

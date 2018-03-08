@@ -1,5 +1,6 @@
-from configs import *
+
 def get_test_configs(jobType):
+    from configs.localConfigs import *
     testConfigs = {
         "story"        : get_story_config(),
         "metaData"     : get_metadata_config(),

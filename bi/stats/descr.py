@@ -1,14 +1,14 @@
 from pyspark.sql import functions as FN
+
 from bi.common import BIException
 from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
 from bi.common.results import DataFrameDescriptiveStats
 from bi.common.results import DimensionDescriptiveStats
 from bi.common.results import MeasureDescriptiveStats
-from bi.transformations import Binner,DensityBinner
+from bi.transformations import Binner
 from bi.transformations import Quantizer
 from util import Stats
-import time
 
 
 class DescriptiveStats:
@@ -21,12 +21,10 @@ class DescriptiveStats:
         self._dataframe_context = df_context
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-
-        print "self._completionStatus",self._completionStatus
         self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
-        print self._scriptWeightDict
+        # print self._scriptWeightDict
         self._scriptStages = {
             "statCalculationStart":{
                 "summary":"Initialized the Descriptive Stats Scripts",

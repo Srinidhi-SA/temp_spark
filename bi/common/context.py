@@ -1,6 +1,8 @@
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
-import ast
+from cryptography.fernet import Fernet
+
+
 class ContextSetter:
 
     MEASUREC_COLUMNS = "measure_columns"
@@ -64,10 +66,20 @@ class ContextSetter:
         self.requestedDateFormat = None
         self.dateFormatDict = {}
         self.allDateColumns = []
-        self.string_to_date_columns = {}
         self.dateFormatDetails = {}
         self.dateTimeSuggestions = []
         self.selected_date_columns = []
+        self.targetLevelForModel = None
+        self.debugMode = None
+        self.jobUrl = None
+        self.jobName = None
+        self.xmlUrl = None
+        self.appName = None
+        self.errorUrl = None
+        self.logger = None
+
+        self.ignoreRegressionElasticityMessages = False
+
 
 
 
@@ -103,6 +115,15 @@ class ContextSetter:
                     self.CSV_FILE =self.FILE_SETTINGS['inputfile'][0]
             if "outputfile" in fileSettingKeys:
                 self.OUTPUT_FILEPATH =self.FILE_SETTINGS['outputfile'][0]
+                self.OUTPUT_FILEPATH = self.OUTPUT_FILEPATH.encode()
+                cipher_suite = Fernet(GLOBALSETTINGS.HDFS_SECRET_KEY)
+                localFilepath = str(self.OUTPUT_FILEPATH).startswith("/") or str(self.OUTPUT_FILEPATH).startswith("file")
+                hdfsFilePath = "hdfs" in str(self.OUTPUT_FILEPATH)
+                if "hdfs" not in str(self.OUTPUT_FILEPATH) and localFilepath != True:
+                    self.OUTPUT_FILEPATH = cipher_suite.decrypt(self.OUTPUT_FILEPATH)
+                else:
+                    self.OUTPUT_FILEPATH = str(self.OUTPUT_FILEPATH)
+                print self.OUTPUT_FILEPATH
             if "narratives_file" in fileSettingKeys:
                 self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
             if "result_file" in fileSettingKeys:
@@ -143,6 +164,8 @@ class ContextSetter:
                 self.algorithmslug = self.FILE_SETTINGS['algorithmslug']
             if 'labelMappingDict' in fileSettingKeys:
                 self.labelMappingDict = self.FILE_SETTINGS['labelMappingDict']
+            if "targetLevel" in fileSettingKeys:
+                self.targetLevelForModel = self.FILE_SETTINGS['targetLevel']
 
         if len(columnSettingKeys) > 0:
             varSelectionArr = []
@@ -266,7 +289,7 @@ class ContextSetter:
                             valid = True
                             validColumnSetting.append(action)
                     actionOrder = {"delete":0,"rename":2,"replace":1,"data_type":3}
-                    validColumnSetting = [x for x in validColumnSetting if x in actionOrder.keys()]
+                    validColumnSetting = [x for x in validColumnSetting if x["actionName"] in actionOrder]
                     validColumnSetting = sorted(validColumnSetting,key=lambda x:actionOrder[x["actionName"]])
                     if valid:
                         validObj = transformObj
@@ -283,12 +306,13 @@ class ContextSetter:
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    @accepts(object,(list))
     def update_consider_columns(self,considerCols):
         self.considercolumns = considerCols
-
+    @accepts(object,(list))
     def set_ignore_column_suggestions(self,ignoreSuggestions):
         self.ignorecolumns = ignoreSuggestions
-
+    @accepts(object,(list))
     def set_utf8_columns(self,utf8Cols):
         self.utf8columns = utf8Cols
 
@@ -304,6 +328,47 @@ class ContextSetter:
     def set_measure_suggestions(self,measureSugCols):
         self.measure_suggestions = measureSugCols
 
+    def set_job_name(self,data):
+        self.jobName = data
+
+    def get_job_name(self):
+        return self.jobName
+
+    def set_debug_mode(self,data):
+        self.debugMode = data
+
+    def get_debug_mode(self):
+        return self.debugMode
+
+    def set_job_url(self,data):
+        self.jobUrl = data
+
+    def get_job_url(self):
+        return self.jobUrl
+
+    def set_xml_url(self,data):
+        self.xmlUrl = data
+
+    def get_xml_url(self):
+        return self.xmlUrl
+
+    def set_error_url(self,data):
+        self.errorUrl = data
+
+    def get_error_url(self):
+        return self.errorUrl
+
+    def set_app_name(self,data):
+        self.appName = data
+
+    def get_app_name(self):
+        return self.appName
+
+    def set_logger(self,data):
+        self.logger = data
+
+    def get_logger(self):
+        return self.logger
     # need to check its usage
     def set_date_format_details(self,data):
         self.dateFormatDetails = data
@@ -381,10 +446,7 @@ class ContextSetter:
 
 
     def get_custom_analysis_details(self):
-        if self.customAnalysisDetails:
-            return self.customAnalysisDetails
-        else:
-            return None
+        return self.customAnalysisDetails
 
     def get_metadata_url(self):
         return self.METADATA_URL
@@ -494,9 +556,6 @@ class ContextSetter:
     def get_time_dimension_filters(self):
         return self.time_dimension_filter
 
-    def get_date_settings(self):
-        return self.string_to_date_columns
-
     def get_column_subset(self):
         return self.considercolumns
 
@@ -524,7 +583,16 @@ class ContextSetter:
     def get_app_id(self):
         return self.appid
 
+    def set_app_id(self,data):
+        if data != None:
+            self.appid = str(data)
+        else:
+            self.appid = data
+
     def get_datetime_suggestions(self):
+        """
+        returns list of column which are suggested to be datetime
+        """
         return self.dateTimeSuggestions
 
     def get_output_filepath(self):
@@ -553,6 +621,15 @@ class ContextSetter:
 
     def get_message_ignore(self):
         return self.ignoremessages
+
+    def get_target_level_for_model(self):
+        return self.targetLevelForModel
+
+    def set_ignore_msg_regression_elasticity(self,data):
+        self.ignoreRegressionElasticityMessages = data
+
+    def get_ignore_msg_regression_elasticity(self):
+        return self.ignoreRegressionElasticityMessages
 
     def get_script_weights(self):
         jobType = self.jobType

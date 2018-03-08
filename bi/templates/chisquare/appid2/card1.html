@@ -41,15 +41,15 @@
 <h4>Key segments of {{second_target}}</h4>
 {{blockSplitter}}
 <p class = "txt-justify">
-The <b>percentage contribution of {{second_target}}</b> is the <b>
+The <b>percentage contribution of {{second_target}}</b> is the
 {% if worst_second_share | length == 1 %}
-  lowest for the segment {{levels[worst_second_share[0]]}}</b> ({{second_target_shares[worst_second_share[0]] | round(1)}}%).
+  <b>lowest for the segment {{levels[worst_second_share[0]]}}</b> ({{second_target_shares[worst_second_share[0]] | round(1)}}%).
 {% elif worst_second_share | length == 2 %}
   lowest({{second_target_shares[worst_second_share[0]] | round(1)}}%)
-  for the segments {{levels[worst_second_share[0]]}}</b>  and {{levels[worst_second_share[1]]}}</b>.
+  <b>for the segments {{levels[worst_second_share[0]]}}</b>  and {{levels[worst_second_share[1]]}}</b>.
 {% elif worst_second_share | length > 2 %}
   lowest({{second_target_shares[worst_second_share[0]] | round(1)}}%) for {{worst_second_share | length}} segments including
-  {{levels[worst_second_share[0]]}} and {{levels[worst_second_share[1]]}}</b>.
+  <b>{{levels[worst_second_share[0]]}} and {{levels[worst_second_share[1]]}}</b>.
 {% endif %}
 {% if best_second_share | length ==1 %}
   The segment <b> {{levels[best_second_share[0]]}}</b> has the
@@ -122,15 +122,15 @@ higher than the overall.
 <h4>Key segments of {{top_target}}</h4>
 {{blockSplitter}}
 <p class = "txt-justify">
-When it comes to <b>{{top_target}},
+  When it comes to <b>{{top_target}},</b>
 {% if worst_top_share | length == 1 %}
-  segment {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant segment</b> since {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  <b>segment {{levels[worst_top_share[0]]}}</b> seems to be the <b>least dominant segment</b> since {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of its total observations are into {{top_target}} category.
 {% elif worst_top_share | length == 2 %}
-  both segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> seems to be the least dominant segment with {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  <b>both segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> seems to be the least dominant segment with {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of their total observations from each of the categories.
 {% elif worst_top_share | length > 2 %}
-  there are {{worst_top_share|length}} {{plural_colname}} including segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> which are the least dominant segment with {{top_target_shares[worst_top_share[0]] | round(1)}}%
+  <b>there are {{worst_top_share|length}} {{plural_colname}} including segment {{levels[worst_top_share[0]]}} and segment {{levels[worst_top_share[1]]}}</b> which are the least dominant segment with {{top_target_shares[worst_top_share[0]] | round(1)}}%
   of their total observations from each of the categories.
 {% endif %}
 {% if best_top_share | length ==1 %}

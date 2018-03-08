@@ -1,12 +1,11 @@
 
 
 from pyspark.sql import functions as FN
-
-from scipy.stats import t as TDistribution
 from scipy.stats import f as FDistribution
 from scipy.stats import norm as NormalDistribution
-
+from scipy.stats import t as TDistribution
 from statsmodels.stats.libqsturng import qsturng
+
 
 class Stats:
     """
@@ -14,13 +13,13 @@ class Stats:
     """
     @staticmethod
     def t_distribution_critical_value(t_value, df=150, two_sided=True):
-        '''
+        """
         Gets critical value of t-Distribution
         :param t_value:
         :param df:  degrees of freedom, default value of 150 referes to INF
         :param two_sided: is it a two sided test, False indicates a one sided test
         :return: p-value - its numpy.float64 type, convert it to python float type
-        '''
+        """
         if two_sided:
             return float(TDistribution.pdf(t_value, df=df))
 

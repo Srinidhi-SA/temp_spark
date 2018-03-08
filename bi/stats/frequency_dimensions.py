@@ -1,8 +1,8 @@
 import json
-import time
+
+from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
 from bi.common.results import FreqDimensionResult
-from bi.common import utils as CommonUtils
 
 """
 Count Frequency in a Dimension
@@ -42,15 +42,8 @@ class FreqDimensions:
                 },
             }
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["freqinitialization"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "freqinitialization",\
-                                    "info",\
-                                    self._scriptStages["freqinitialization"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"freqinitialization","info")
+
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
     def test_all(self, measure_columns=None, dimension_columns=None):
@@ -58,25 +51,11 @@ class FreqDimensions:
         dimension = dimension_columns[0]
         frequency_dict = {}
         grouped_dataframe = self._data_frame.groupby(dimension).count().toPandas()
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["groupby"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "groupby",\
-                                    "info",\
-                                    self._scriptStages["groupby"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"groupby","info")
+
         frequency_dict[dimension] = grouped_dataframe.to_dict()
         grouped_dataframe = grouped_dataframe.dropna()
         frequency_dict = json.dumps(frequency_dict)
         freq_dimension_result.set_params(frequency_dict)
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["completion"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "completion",\
-                                    "info",\
-                                    self._scriptStages["completion"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info")
         return freq_dimension_result

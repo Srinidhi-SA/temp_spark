@@ -108,7 +108,7 @@ myenv/
 metastore_db/*
 
 # Local Config File
-# bi/settings/configs/*.py
+bi/settings/configs/localConfigs/
 
 .idea/
 

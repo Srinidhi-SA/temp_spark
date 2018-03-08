@@ -1,5 +1,3 @@
-import os
-
 from bi.common.results.decision_tree import DecisionTreeResult
 from bi.common.utils import accepts
 from decision_tree import DecisionTreeNarrative

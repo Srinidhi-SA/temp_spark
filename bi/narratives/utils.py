@@ -3,24 +3,23 @@
 Utility functions to be used by various narrative objects
 """
 import math
+import random
 import re
 import time
-import random
-import humanize
+from datetime import datetime
+
 import enchant
+import humanize
 import jinja2
 import numpy as np
-import pandas as pd
 import pattern
-from datetime import datetime
+import pyspark.sql.functions as PysparkFN
+from pyspark.sql import DataFrame
+from pyspark.sql.types import *
+
 from bi.common import HtmlData
 from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
-from pyspark.sql import DataFrame
-import pyspark.sql.functions as PysparkFN
-from pyspark.sql.types import *
-from pyspark.sql import DataFrame
-from bi.common import MetaParser
 
 
 # def round_number(num, digits=2, as_string=True):
@@ -469,7 +468,7 @@ def calculate_dimension_contribution(levelContObject):
     output["negGrowthArray"] = [x for x in increasingDataArray if x[1]["growth"] != None and float(x[1]["growth"]) < 0][:2]
     return output
 
-def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,value_col,max_time, meta_parser):
+def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,value_col,max_time, meta_parser):
     """
     calculates level contribution dictionary for each level each column
     sample Dict = {
@@ -483,8 +482,13 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
                 }
 
     """
+    # print "index_col",index_col
+    # print "dateColDateFormat",dateColDateFormat
+    # print "value_col",value_col
+    # print "max_time",max_time
     out = {}
     for column_name in columns:
+        print "-"*100
         print "calculate_level_contribution for ",column_name
         data_dict = {
                     "overall_avg":None,
@@ -499,48 +503,45 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
             column_levels = meta_parser.get_unique_level_names(column_name)
         except:
             column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
-        print "column_levels",len(column_levels)
-        print "column_levels : ", column_levels
-        print "----here----"*10
         out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
-        st = time.time()
+        # st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
-        print "time for pivot",time.time()-st
+        # print "time for pivot",time.time()-st
         # pivotdf = pivotdf.na.fill(0)
         # pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
-        st=time.time()
-        print "converting to pandas"
+        # st=time.time()
+        # print "converting to pandas"
         k = pivotdf.toPandas()
-        print "time taken for pandas conversion of pivotdf",time.time()-st
+        # print "time taken for pandas conversion of pivotdf",time.time()-st
         k["total"] = k.sum(axis=1)
-        k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,datetime_pattern))
+        k[index_col] = k[index_col].apply(str)
+        k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,dateColDateFormat) if x != 'None' else None)
         k = k.sort_values(by="rank", ascending=True)
         occurance_index = np.where(k[index_col] == max_time)
-        print "occurance_index",occurance_index
-        print "max_time",max_time
+        # print "occurance_index",occurance_index
+        # print "max_time",max_time
         if len(occurance_index[0]) > 0:
             max_index = occurance_index[0][0]
         else:
             max_index = None
-        print k
         for level in column_levels:
             try:
-                print "calculations for level",level
+                # print "calculations for level",level
                 if level != None:
                     data_dict = {"overall_avg":None,"excluding_avg":None,"minval":None,"maxval":None,"diff":None,"contribution":None,"growth":None}
                     data_dict["contribution"] = float(np.nansum(k[level]))*100/np.nansum(k["total"])
                     data = list(k[level])
                     growth_data = [x for x in data if np.isnan(x) != True and x != 0]
                     data_dict["growth"] = (growth_data[-1]-growth_data[0])*100/growth_data[0]
-                    k[level] = (k[level]/k["total"])*100
-                    data = list(k[level])
+                    k["percentLevel"] = (k[level]/k["total"])*100
+                    data = list(k["percentLevel"])
                     data_dict["overall_avg"] = np.nanmean(data)
                     data_dict["maxval"] = np.nanmax(data)
                     data_dict["minval"] = np.nanmin(data)
                     if max_index:
                         del(data[max_index])
                     data_dict["excluding_avg"] = np.nanmean(data)
-                    data_dict["diff"] = data_dict["maxval"] - data_dict["excluding_avg"]
+                    data_dict["diff"] = (data_dict["maxval"] - data_dict["excluding_avg"])*100/float(data_dict["excluding_avg"])
                     out[column_name][level] = data_dict
             except:
                 pass
@@ -549,23 +550,40 @@ def calculate_level_contribution(sparkdf,columns,index_col,datetime_pattern,valu
 def get_level_cont_dict(level_cont):
     levelContributionSummary = level_cont
     output = []
-    for k,v in levelContributionSummary.items():
+    # k is the dimension name
+    for k,valdict in levelContributionSummary.items():
+        v = {k1:v1 for (k1,v1) in valdict.items() if v1["contribution"] >= 5}
+        if len(v) == 0:
+            print "#"*200
+            print "all levels have contribution less than 5"
+            v = valdict
         max_level = max(v,key=lambda x: v[x]["diff"])
         contribution_dict = {}
-        for k1,v1 in levelContributionSummary[k][max_level].items():
-            contribution_dict[k1] = v1
+        for level,value in levelContributionSummary[k][max_level].items():
+            contribution_dict[level] = value
             contribution_dict.update({"level":max_level})
         output.append(contribution_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
     out_data = {"category_flag":True}
-    out_data["highest_contributing_variable"] = max(out_dict,key=lambda x:out_dict[x]["diff"])
-    if "category" in out_data["highest_contributing_variable"].lower():
-        out_data["category_flag"] = False
-    out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
-    out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
-    out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
+    out_dict_without_none = dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None )
+    if len(out_dict_without_none) >0:
+        out_data["highest_contributing_variable"] = max(out_dict_without_none,key=lambda x:out_dict[x]["diff"])
+        print "highest_contributing_variable",out_data["highest_contributing_variable"]
+        if "category" in out_data["highest_contributing_variable"].lower():
+            out_data["category_flag"] = False
+        out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
+        out_data["highest_contributing_level_increase"] = out_dict[out_data["highest_contributing_variable"]]["diff"]
+        out_data["highest_contributing_level_range"] = str(round(out_dict[out_data["highest_contributing_variable"]]["maxval"],2))+" vis-a-vis "+str(round(out_dict[out_data["highest_contributing_variable"]]["excluding_avg"],2))
+    else:
+        out_data["highest_contributing_variable"] = None
+
     output = []
-    for k,v in levelContributionSummary.items():
+    for k,valdict in levelContributionSummary.items():
+        v = {k1:v1 for (k1,v1) in valdict.items() if v1["contribution"] >= 5}
+        if len(v) == 0:
+            print "#"*200
+            print "all levels have contribution less than 5"
+            v = valdict
         min_level = min(v,key=lambda x: v[x]["diff"] if v[x]["diff"] != None else 9999999999999999999)
         t_dict = {}
         for k1,v1 in levelContributionSummary[k][min_level].items():
@@ -573,10 +591,16 @@ def get_level_cont_dict(level_cont):
             t_dict.update({"level":min_level})
         output.append(t_dict)
     out_dict = dict(zip(levelContributionSummary.keys(),output))
-    out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
-    out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
-    out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
-    out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
+    # out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
+    out_dict_without_none = dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None )
+    if len(out_dict_without_none) >0:
+        out_data["lowest_contributing_variable"] = min(out_dict_without_none,key=lambda x:out_dict[x]["diff"])
+        print "lowest_contributing_variable",out_data["lowest_contributing_variable"]
+        out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
+        out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
+        out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
+    else:
+        out_data["lowest_contributing_variable"] = None
     return out_data
 
 def calculate_bucket_data(grouped_data,dataLevel):
@@ -755,11 +779,11 @@ def get_level_pivot(df,dataLevel,value_col,pivot_col,index_col=None):
         pivotdf = pivotdf.withColumnRenamed(pivotdf.columns[0],"key")
         pivotdf = pivotdf.toPandas()
     elif dataLevel == "month":
-        pivotdf = pivotdf.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+        pivotdf = pivotdf.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y") if x != None else None)("year_month"))
         pivotdf = pivotdf.orderBy("suggestedDate",ascending=True)
         pivotdf = pivotdf.withColumnRenamed("suggestedDate","key")
         pivotdf = pivotdf.toPandas()
-        pivotdf["key"] = pivotdf["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+        pivotdf["key"] = pivotdf["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date() if x!= None else None)
     return pivotdf
 
 @accepts(df=DataFrame,dataLevel=basestring,resultCol=basestring,analysistype=basestring)
@@ -770,7 +794,7 @@ def get_grouped_data_for_trend(df,dataLevel,resultCol,analysistype):
         elif analysistype == "dimension":
             grouped_data = df.groupBy("suggestedDate").agg({ resultCol : 'count'})
         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-        grouped_data = grouped_data.withColumn("year_month",PysparkFN.udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+        grouped_data = grouped_data.withColumn("year_month",PysparkFN.udf(lambda x:x.strftime("%b-%y") if x != None else None)("suggestedDate"))
         grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
         grouped_data = grouped_data.toPandas()
@@ -780,11 +804,11 @@ def get_grouped_data_for_trend(df,dataLevel,resultCol,analysistype):
         elif analysistype == "dimension":
             grouped_data = df.groupBy("year_month").agg({ resultCol : 'count'})
         grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],"value")
-        grouped_data = grouped_data.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+        grouped_data = grouped_data.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y") if x != None else None)("year_month"))
         grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
         grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
         grouped_data = grouped_data.select(["key","value","year_month"]).toPandas()
-        grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+        grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date() if x != None else None)
     return grouped_data
 
 @accepts(df=DataFrame,dataLevel=basestring,resultCol=basestring)
@@ -798,11 +822,11 @@ def get_grouped_count_data_for_dimension_trend(df,dataLevel,resultCol):
     elif dataLevel == "month":
         overall_count = df.groupBy("year_month").agg({ resultCol : 'count'})
         overall_count = overall_count.withColumnRenamed(overall_count.columns[-1],"totalCount")
-        overall_count = overall_count.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+        overall_count = overall_count.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y") if x != None else None)("year_month"))
         overall_count = overall_count.orderBy("suggestedDate",ascending=True)
         overall_count = overall_count.withColumnRenamed("suggestedDate","key")
         overall_count = overall_count.select(["key","totalCount","year_month"]).toPandas()
-        overall_count["key"] = overall_count["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+        overall_count["key"] = overall_count["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date() if x != None else None)
         overall_count = overall_count.loc[:,[c for c in overall_count.columns if c != "year_month"]]
     return overall_count
 
@@ -810,6 +834,9 @@ def get_grouped_count_data_for_dimension_trend(df,dataLevel,resultCol):
 def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFormatDict,dateFormatConversionDict,requestedDateFormat):
     dateFormatDetected = False
     trendOnTdCol = False
+    existingDateFormat = None
+    requestedDateFormat = None
+    suggested_date_column = None
     if selectedDateColumns != None and len(selectedDateColumns) > 0:
         suggested_date_column = selectedDateColumns[0]
         existingDateFormat = None
@@ -840,6 +867,8 @@ def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFo
                     requestedDateFormat = dateFormatConversionDict[requestedDateFormat]
                 else:
                     requestedDateFormat = existingDateFormat
+
+
     output = {
         "dateFormatDetected":dateFormatDetected,
         "requestedDateFormat":requestedDateFormat,
@@ -850,37 +879,45 @@ def check_date_column_formats(selectedDateColumns,timeDimensionCols,dateColumnFo
 
     return output
 
-@accepts(df=DataFrame,existingDateFormat=(basestring,None),selectedateColumn=(basestring,None),dateColsuggested=basestring,trendOnTdCol=bool)
-def calculate_data_range_stats(df,existingDateFormat,selectedateColumn,dateColsuggested,trendOnTdCol):
-    if selectedateColumn != None and trendOnTdCol == False:
+@accepts(df=DataFrame,existingDateFormat=(basestring,None),dateColToBeUsedForAnalysis=basestring,trendOnTdCol=bool)
+def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,trendOnTdCol):
+    """
+    dateColToBeUsedForAnalysis: date column selected for analysis
+    """
+
+    if trendOnTdCol == False:
         date_format = existingDateFormat
-        string_to_date = PysparkFN.udf(lambda x: datetime.strptime(x,date_format), DateType())
-        date_to_month_year = PysparkFN.udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y"), StringType())
-        df = df.withColumn("suggestedDate", string_to_date(dateColsuggested))
-        df = df.withColumn("year_month", date_to_month_year(dateColsuggested))
+        print "date_format : ", date_format
+        string_to_date = PysparkFN.udf(lambda x: datetime.strptime(x,date_format) if x != None else None, DateType())
+        date_to_month_year = PysparkFN.udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y") if x != None else None, StringType())
+        df = df.withColumn("suggestedDate", string_to_date(dateColToBeUsedForAnalysis))
+        df = df.withColumn("year_month", date_to_month_year(dateColToBeUsedForAnalysis))
         df = df.orderBy(["suggestedDate"],ascending=[True])
         df = df.withColumn("_id_", PysparkFN.monotonically_increasing_id())
     else:
-        df = df.withColumn("suggestedDate", PysparkFN.udf(lambda x:x.date(),DateType())(dateColsuggested))
-        df = df.withColumn("year_month", PysparkFN.udf(lambda x:x.date().strftime("%b-%y"),StringType())(dateColsuggested))
+        df = df.withColumn("suggestedDate", PysparkFN.udf(lambda x:x.date() if x != None else None,DateType())(dateColToBeUsedForAnalysis))
+        df = df.withColumn("year_month", PysparkFN.udf(lambda x:x.date().strftime("%b-%y") if x != None else None,StringType())(dateColToBeUsedForAnalysis))
         df = df.orderBy(["suggestedDate"],ascending=[True])
         df = df.withColumn("_id_", PysparkFN.monotonically_increasing_id())
-    first_date = df.select("suggestedDate").first()[0]
+
+    dfForRange = df.select(["_id_","suggestedDate"]).na.drop(subset=["suggestedDate"])
+    first_date = dfForRange.select("suggestedDate").first()[0]
     #####  This is a Temporary fix
     try:
         print "TRY BLOCK STARTED"
-        id_max = df.select(PysparkFN.max("_id_")).first()[0]
-        last_date = df.where(PysparkFN.col("_id_") == id_max).select("suggestedDate").first()[0]
+        id_max = dfForRange.select(PysparkFN.max("_id_")).first()[0]
+        last_date = dfForRange.where(PysparkFN.col("_id_") == id_max).select("suggestedDate").first()[0]
     except:
         print "ENTERING EXCEPT BLOCK"
-        pandas_df = df.select(["suggestedDate"]).distinct().toPandas()
+        pandas_df = dfForRange.select(["suggestedDate"]).distinct().toPandas()
         pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
         last_date = pandas_df["suggestedDate"].iloc[-1]
     if last_date == None:
         print "IF Last date none:-"
-        pandas_df = df.select(["suggestedDate"]).distinct().toPandas()
+        pandas_df = dfForRange.select(["suggestedDate"]).distinct().toPandas()
         pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
         last_date = pandas_df["suggestedDate"].iloc[-1]
+    print "first_date : ", first_date
     dataRange = (last_date-first_date).days
     if dataRange <= 180:
         duration = dataRange
@@ -894,8 +931,14 @@ def calculate_data_range_stats(df,existingDateFormat,selectedateColumn,dateColsu
         duration = df.select("year_month").distinct().count()
         dataLevel = "month"
         durationString = CommonUtils.get_duration_string(dataRange)
-
-    return (df,{"duration":duration,"durationString":durationString,"dataLevel":dataLevel,"firstDate":first_date,"lastDate":last_date})
+    outDict = {
+        "duration":duration,
+        "durationString":durationString,
+        "dataLevel":dataLevel,
+        "firstDate":first_date,
+        "lastDate":last_date
+        }
+    return (df,outDict)
 
 
 def restructure_donut_chart_data(dataDict,nLevels=None):
@@ -979,33 +1022,33 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
         r = random.randint(0,99)%5
         if binFlag != True:
             if r == 0:
-                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>probability that the ' + colname +' is '+ target+'.'
             elif r == 1:
-                narrative = 'If ' +temp_narrative+ ' it is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' it is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>likely that the ' + colname +' is '+ target+'.'
             elif r == 2:
-                narrative = 'When ' +temp_narrative+ ' the probability of '+target+ ' is  <b>' + round_number(success_percent)+ ' % <b>.'
+                narrative = 'When ' +temp_narrative+ ' the probability of '+target+ ' is  <b>' + str(round_number(success_percent)) + ' % <b>.'
             elif r == 3:
-                narrative = 'If ' + temp_narrative +' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' + temp_narrative +' then there is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>probability that the ' + colname + ' would be ' + target +'.'
             else:
-                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>chance that '+ colname + ' would be ' + target +'.'
         else:
             if r == 0:
-                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>probability that the ' + colname +' range will be '+ target+'.'
             elif r == 1:
-                narrative = 'If ' +temp_narrative+ ' it is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' it is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>likely that the ' + colname +' range will be '+ target+'.'
             elif r == 2:
-                narrative = 'When ' +temp_narrative+ ' the probability of <b>'+colname+" range being "+target+ '</b> is <b>' + round_number(success_percent)+ ' % <b>.'
+                narrative = 'When ' +temp_narrative+ ' the probability of <b>'+colname+" range being "+target+ '</b> is <b>' + str(round_number(success_percent)) + ' % <b>.'
             elif r == 3:
-                narrative = 'If ' + temp_narrative +' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' + temp_narrative +' then there is  <b>' + str(round_number(success_percent)) + '% ' + \
                             ' <b>probability that the ' + colname + ' range would be ' + target +'.'
             else:
-                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + str(round_number(success_percent)) + '% ' + \
                             ' <b>chance that '+ colname + 'range would be ' + target +'.'
         return narrative,crude_narrative
 

@@ -1,11 +1,11 @@
-import os
 import humanize
 
-from bi.narratives import utils as NarrativesUtils
+from bi.common import NormalCard, SummaryCard, NarrativesTree, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
+
 
 class MeasureColumnNarrative:
 
@@ -64,6 +64,7 @@ class MeasureColumnNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
         self._measureSummaryNode = NarrativesTree()
         self._headNode = NarrativesTree()
@@ -81,13 +82,15 @@ class MeasureColumnNarrative:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        self._dataframe_context.update_completion_status(self._completionStatus)
 
     def _get_c3_histogram(self):
         data = self._measure_descr_stats.get_histogram()
         data_c3 = []
         for bin in data:
-            data_c3.append({'bin_name':'< '+ humanize.intcomma(bin['end_value']),
+            data_c3.append({'bin_name':'< '+ humanize.intcomma(round(bin['end_value'],2)),
                             'Count':bin['num_records']})
+
         data_c3 = NormalChartData(data_c3)
         chartObj = ChartJson(data=data_c3.get_data(), axes={'x':'bin_name','y':'Count'},label_text={'x':'','y':'No. of Observations'},chart_type='bar')
         chartObj.set_yaxis_number_format(".2s")

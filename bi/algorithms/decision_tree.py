@@ -4,13 +4,11 @@ import re
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.tree import DecisionTree
 
+from bi.algorithms import utils as MLUtils
+from bi.common import utils as CommonUtils
 from bi.common.datafilterer import DataFrameFilterer
 from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
-
-from bi.algorithms import utils as MLUtils
-from bi.common import utils as CommonUtils
-
 
 """
 Decision Tree
@@ -32,7 +30,7 @@ class DecisionTrees:
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
-            self._dimension_columns = list(set(self._dimension_columns)-set([self._uid_col]))
+            self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns)
@@ -173,7 +171,9 @@ class DecisionTrees:
 
 
 
-    def generate_new_tree(self,rules, rule_list = []):
+    def generate_new_tree(self, rules, rule_list=None):
+        if rule_list is None:
+            rule_list = []
         rules_list=rule_list
         new_rules = {'name':rules['name']}
         if rules.has_key('children'):
@@ -271,6 +271,8 @@ class DecisionTrees:
         self._new_tree = self.wrap_tree(self._new_tree)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
+        print self._new_rules.keys()
+        print "==="*40
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["treegeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\

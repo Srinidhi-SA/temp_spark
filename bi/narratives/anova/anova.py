@@ -1,15 +1,13 @@
-import os
-import json
-import jinja2
 import math
+import math
+
 import numpy as np
 import pandas as pd
-from bi.common.utils import accepts
-from bi.common.results.two_way_anova import OneWayAnovaResult
+
+from bi.common import NormalCard, C3ChartData, HtmlData
+from bi.common import NormalChartData, ChartJson
 # from bi.stats import TuckeyHSD
 from bi.narratives import utils as NarrativesUtils
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
 
 
 class Card:
@@ -53,7 +51,8 @@ class OneWayAnovaNarratives:
     ALPHA = 0.05
 
     #@accepts(object, (str, basestring), (str, basestring), OneWayAnovaResult)
-    def __init__(self, measure_column, dimension_column, measure_anova_result, trend_result, result_setter, dimensionNode,base_dir):
+    def __init__(self, df_context, measure_column, dimension_column, measure_anova_result, trend_result, result_setter, dimensionNode,base_dir):
+        self._dataframe_context = df_context
         self._dimensionNode = dimensionNode
         self._result_setter = result_setter
         self._measure_column = measure_column
@@ -71,11 +70,20 @@ class OneWayAnovaNarratives:
             self._dataLevel = None
         self._dimension_trend_data = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column).get_trend_data()
         self._blockSplitter = "|~NEWBLOCK~|"
+        self._highlightFlag = "|~HIGHLIGHT~|"
         # self.effect_size = anova_result.get_effect_size()
         self.card1 = ''
         self.card2 = ''
         self.card3 = ''
         self._base_dir = base_dir
+        self._binAnalyzedCol = False
+        customAnalysis = self._dataframe_context.get_custom_analysis_details()
+        if customAnalysis != None:
+            binnedColObj = [x["colName"] for x in customAnalysis]
+            if binnedColObj != None and (self._dimension_column in binnedColObj):
+                self._binAnalyzedCol = True
+        print "BinAnalyzedCol..........."
+        print self._binAnalyzedCol
         self._generate_narratives()
 
     def _generate_narratives(self):
@@ -251,7 +259,11 @@ class OneWayAnovaNarratives:
                 'num_groups' : num_groups
                 }
         output = {'header' : 'Overview', 'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.html',data_dict))
+        if self._binAnalyzedCol == True:
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3_binned_IV.html',data_dict))
+        else:
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.html',data_dict))
+
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
         self._anovaCard1.set_card_data(lines)
@@ -292,15 +304,25 @@ class OneWayAnovaNarratives:
                     # 'num_top3_contributors' : len(top3_contributors),
                     'target' : self._measure_column,
                     'dimension' : self._dimension_column,
-                    'top_level' : top_level
+                    'top_level' : top_level,
+                    'highlightFlag':self._highlightFlag,
+                    'blockSplitter':self._blockSplitter
+
         }
+
         output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,
                   'content': []}
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
+        if self._binAnalyzedCol == True:
+            output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+ self._dimension_column+' - '+ top_level,'content': []}
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4_binned_IV.html',data_dict))
+        else:
+            output = {'header' : 'Key Factors influencing '+self._measure_column+' from '+top_level,'content': []}
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_4.html',data_dict))
+
         lines = []
         lines += NarrativesUtils.block_splitter('<h4>'+output['header']+'</h4>',self._blockSplitter)
         for cnt in output['content']:
-            lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
+            lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter,highlightFlag=self._highlightFlag)
         self._anovaCard1.add_card_data(lines)
         self.card1.add_paragraph(dict(output))
 
@@ -322,7 +344,7 @@ class OneWayAnovaNarratives:
     def compute_level_contributions(self,df):
         df = df.sort_values(by=['total'], ascending = False)
         df.reset_index(drop=True,inplace=True)
-        df['percent'] = df['total']/float(df["total"].sum())
+        df['percent'] = (df['total']*100/float(df["total"].sum())).round()
         # calculating the point where maximum difference is occuring
         max_diff_index = df.total.diff(1).argmax()
         df = df.iloc[:max_diff_index+1]
@@ -368,8 +390,7 @@ class OneWayAnovaNarratives:
         chart1.add_data_c3(data_c3)
         # self.card2.add_chart('trend_chart',chart1)
         self.card1.add_chart('trend_chart',chart1)
-        lines = []
-        lines += [C3ChartData(self._get_c3chart_trend(data,'Time Period',total_measure,subset_measure))]
+
         overall_increase_percent = (overall_df[total_measure].iloc[-1]*100/overall_df[total_measure].iloc[0]) - 100
         subset_increase_percent = (subset_df[subset_measure].iloc[-1]*100/subset_df[subset_measure].iloc[0]) - 100
 
@@ -450,12 +471,29 @@ class OneWayAnovaNarratives:
                     'top_dimension' : top_level_name,
                     'dimension' : self._dimension_column,
         }
+
+        print "data_dict - For anova_template_6 -------------------"
+        print data_dict
+
+
+
         # print json.dumps(data_dict,indent=2)
-        output = {}
-        output['header'] = ''
-        output['content'] = []
-        output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.html',data_dict))
+
+        if self._binAnalyzedCol == True:
+            print "Binned IV"
+            output = {}
+            output['header'] = "<h4>"+ self._dimension_column + " - " +  top_level_name+"'s "+self._measure_column+" Performance over time"+"</h4>"
+            output['content'] = []
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6_binned_IV.html',data_dict))
+        else:
+            output = {}
+            output['header'] = "<h4>"+ top_level_name+"'s "+self._measure_column+" Performance over time"+"</h4>"
+            output['content'] = []
+            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_6.html',data_dict))
         # self.card2.add_paragraph(output)
+        lines = []
+        lines += [HtmlData(data=output['header'])]
+        lines += [C3ChartData(self._get_c3chart_trend(data,'Time Period',total_measure,subset_measure))]
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
         self._anovaCard1.add_card_data(lines)
@@ -492,7 +530,7 @@ class OneWayAnovaNarratives:
                     'dimension' : self._dimension_column,
                     'overall_growth_rate' : NarrativesUtils.round_number(overall_growth_rate),
         }
-        output = {'header' : '',
+        output = {'header' : "",
                   'content': []}
         output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_7.html',data_dict))
         # self.card2.add_paragraph(output)
@@ -531,7 +569,7 @@ class OneWayAnovaNarratives:
 
         self._contribution_limit = grouped_data_frame['contribution'].mean()
         self._increase_limit = max(0.0, grouped_data_frame['increase'].mean())
-        dimensionLevel = list(set(pivot_df.columns)-set(["year_month","key"]))
+        dimensionLevel = list(set(pivot_df.columns) - {"year_month", "key"})
         print dimensionLevel
         share = []
         growth = []

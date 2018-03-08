@@ -1,31 +1,17 @@
-from pyspark.sql import DataFrame
-from pyspark.sql import functions as FN
-from pyspark.sql import SQLContext
-from pyspark.sql.types import *
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer
-from pyspark.ml.feature import MinMaxScaler,StandardScaler
+from pyspark.ml.feature import StandardScaler
+from pyspark.ml.feature import StandardScaler
 from pyspark.ml.feature import VectorAssembler
-from pyspark.ml.linalg import Vectors
 from pyspark.ml.clustering import KMeans
-
-from bi.common import DataFrameHelper
-from bi.common import utils as CommonUtils
-from bi.algorithms import utils as MLUtils
-
-import time
-import math
-import random
-import itertools
-from datetime import datetime
-from datetime import timedelta
-from collections import Counter
+from pyspark.sql.types import StringType
+import pyspark.sql.functions as sparkFN
 
 
 
 class KmeansClustering:
-    def __init__(self, data_frame, df_helper, df_context, spark):
+    def __init__(self, data_frame, df_helper, df_context, meta_parser, spark):
         # self._spark = spark
         self._data_frame = data_frame
+        self._metaParser = meta_parser
         print "KMEANS INITIALIZATION DONE"
         self._kmeans_result = {}
         self._max_cluster = 5
@@ -71,6 +57,8 @@ class KmeansClustering:
         self._kmeans_result["centers"] = centers
         self._kmeans_result["cluster_count"] = cluster_count
         self._kmeans_result["inputCols"] = inputCols
+        # cluster_prediction = cluster_prediction.withColumn("prediction", cluster_prediction["prediction"].cast(StringType()))
+        # print cluster_prediction.printSchema()
         self._predictedData = cluster_prediction
 
     def get_kmeans_result(self):
@@ -78,3 +66,15 @@ class KmeansClustering:
 
     def get_prediction_data(self):
         return self._predictedData
+
+    def get_aggregated_summary(self,inputCol):
+        print " get_aggregated_summary inputCol",inputCol
+        numRows = self._metaParser.get_num_rows()
+        agg_df = self._predictedData.groupby('prediction').agg(sparkFN.sum(inputCol).alias('sum'), sparkFN.count(inputCol).alias('count'))
+        aggDfArr = agg_df.collect()
+        total = sum([row[1] for row in aggDfArr])
+        aggregateDict = {}
+        for row in agg_df.collect():
+            calculations = {'sum': row[1], 'count': row[2], 'sum_percent': float(row[1])*100.0/total, 'count_percent': float(row[2])*100.0/numRows}
+            aggregateDict[str(row[0])] = calculations
+        return aggregateDict

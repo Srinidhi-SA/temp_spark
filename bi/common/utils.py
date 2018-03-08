@@ -1,23 +1,20 @@
-import os
-import math
 import json
+import md5
 import time
-import requests
-from math import *
-from re import sub
 import traceback
 import uuid
-import md5
+import math
+from re import sub
 
-import pandas as pd
-import numpy as np
 import matplotlib
+import numpy as np
+import pandas as pd
+import requests
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from numpy import size, zeros, where, transpose
-from numpy.random import normal
+from numpy import size, zeros, where
 from scipy import linspace
-import array
 # from matplotlib.pyplot import hist
 
 from pyspark.conf import SparkConf
@@ -27,6 +24,8 @@ from pyspark.sql.functions import regexp_extract, col
 
 from decorators import accepts
 from math import log10, floor
+
+from bi.settings import setting as GLOBALSETTINGS
 
 
 # def possible_analysis():
@@ -41,10 +40,6 @@ def round_sig(x, sig=3):
     except:
         pass
     return x
-
-def get_secret_key():
-    secretKey = "GETMETADATAOBJECT"
-    return secretKey
 
 def generate_signature(json_obj,secretKey=None):
     """
@@ -61,7 +56,7 @@ def get_existing_metadata(dataframe_context):
     baseUrl = dataframe_context.get_metadata_url()
     slugs = dataframe_context.get_metadata_slugs()
     jsonToken = {"key1":uuid.uuid4().hex,"key2":uuid.uuid4().hex,"signature":None,"generated_at":time.time()}
-    secretKey = get_secret_key()
+    secretKey = GLOBALSETTINGS.HDFS_SECRET_KEY
     sigString = generate_signature(jsonToken,secretKey)
     jsonToken["signature"] = sigString
     url = "http://{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
@@ -205,40 +200,41 @@ def recursiveRemoveNoneNodes(tree):
             return tree
 
 def dateTimeFormatsSupported():
-    data = {}
-    data["formats"] = ('%m/%d/%Y %H:%M','%d/%m/%Y %H:%M','%m/%d/%y %H:%M','%d/%m/%y %H:%M',
-            '%m-%d-%Y %H:%M','%d-%m-%Y %H:%M','%m-%d-%y %H:%M','%d-%m-%y %H:%M',
-            '%b/%d/%Y %H:%M','%d/%b/%Y %H:%M','%b/%d/%y %H:%M','%d/%b/%y %H:%M',
-            '%b-%d-%Y %H:%M','%d-%b-%Y %H:%M','%b-%d-%y %H:%M','%d-%b-%y %H:%M',
-            '%B/%d/%Y %H:%M','%d/%B/%Y %H:%M','%B/%d/%y %H:%M','%d/%B/%y %H:%M',
-            '%B-%d-%Y %H:%M','%d-%B-%Y %H:%M','%B-%d-%y %H:%M','%d-%B-%y %H:%M',
-            '%Y-%m-%d %H:%M','%Y/%m/%d %H:%M','%Y-%b-%d %H:%M','%Y-%B-%d %H:%M',
-            '%m-%d-%Y %r','%d-%m-%Y %r','%m-%d-%Y %R',
-            '%d-%m-%Y %R', '%m-%d-%y %r','%d-%m-%y %r','%m-%d-%y %R',
-            '%d-%m-%y %R', '%b-%d-%Y %r','%d-%b-%Y %r', '%Y-%b-%d %r','%b-%d-%Y %R',
-            '%d-%b-%Y %R', '%b-%d-%y %r','%d-%b-%y %r','%b-%d-%y %R','%d-%b-%y %R',
-            '%B-%d-%Y %r','%d-%B-%Y %r','%B-%d-%Y %R','%d-%B-%y %R',
-            '%d-%B-%Y %R', '%B-%d-%y %r','%d-%B-%y %r','%B-%d-%y %R',
-            '%y-%m-%d %R','%y-%m-%d %r','%Y-%m-%d %r','%Y-%B-%d %r',
-            '%d %B %Y', '%d %B %y', '%d %b %y', '%d %b %Y',
-            '%m/%d/%Y','%d/%m/%Y','%m/%d/%y','%d/%m/%y',
-            '%m-%d-%Y','%d-%m-%Y','%m-%d-%y','%d-%m-%y',
-            '%b/%d/%Y','%d/%b/%Y','%b/%d/%y','%d/%b/%y',
-            '%b-%d-%Y','%d-%b-%Y','%b-%d-%y','%d-%b-%y',
-            '%B/%d/%Y','%d/%B/%Y','%B/%d/%y','%d/%B/%y',
-            '%B-%d-%Y','%d-%B-%Y','%B-%d-%y','%d-%B-%y',
-            '%Y-%m-%d','%Y/%m/%d','%Y-%b-%d','%Y-%B-%d',
-            '%b %d, %Y','%B %d, %Y','%B %d %Y','%m/%d/%Y',
-            '%d %B, %Y', '%d %B, %y','%d %b, %Y', '%d %b, %y',
-            '%m/%d/%y', '%b %Y','%B %y','%m/%y','%m/%Y',
-            '%B%Y','%b %d,%Y','%m.%d.%Y','%m.%d.%y','%b/%y',
-            '%m - %d - %Y','%m - %d - %y','%B %d, %y','%b %d, %y',
-            '%d-%B','%d-%b', '%b,%y','%B,%y','%b,%Y','%B,%Y',
-            '%b %Y', '%b %y','%B %Y','%B %y','%b-%y','%b/%Y','%b-%Y')
+    data = {"formats": ('%m/%d/%Y %H:%M', '%d/%m/%Y %H:%M', '%m/%d/%y %H:%M', '%d/%m/%y %H:%M',
+                        '%m-%d-%Y %H:%M', '%d-%m-%Y %H:%M', '%m-%d-%y %H:%M', '%d-%m-%y %H:%M',
+                        '%b/%d/%Y %H:%M', '%d/%b/%Y %H:%M', '%b/%d/%y %H:%M', '%d/%b/%y %H:%M',
+                        '%b-%d-%Y %H:%M', '%d-%b-%Y %H:%M', '%b-%d-%y %H:%M', '%d-%b-%y %H:%M',
+                        '%B/%d/%Y %H:%M', '%d/%B/%Y %H:%M', '%B/%d/%y %H:%M', '%d/%B/%y %H:%M',
+                        '%B-%d-%Y %H:%M', '%d-%B-%Y %H:%M', '%B-%d-%y %H:%M', '%d-%B-%y %H:%M',
+                        '%Y-%m-%d %H:%M', '%Y/%m/%d %H:%M', '%Y-%b-%d %H:%M', '%Y-%B-%d %H:%M',
+                        '%m-%d-%Y %r', '%d-%m-%Y %r', '%m-%d-%Y %R',
+                        '%d-%m-%Y %R', '%m-%d-%y %r', '%d-%m-%y %r', '%m-%d-%y %R',
+                        '%d-%m-%y %R', '%b-%d-%Y %r', '%d-%b-%Y %r', '%Y-%b-%d %r', '%b-%d-%Y %R',
+                        '%d-%b-%Y %R', '%b-%d-%y %r', '%d-%b-%y %r', '%b-%d-%y %R', '%d-%b-%y %R',
+                        '%B-%d-%Y %r', '%d-%B-%Y %r', '%B-%d-%Y %R', '%d-%B-%y %R',
+                        '%d-%B-%Y %R', '%B-%d-%y %r', '%d-%B-%y %r', '%B-%d-%y %R',
+                        '%y-%m-%d %R', '%y-%m-%d %r', '%Y-%m-%d %r', '%Y-%B-%d %r',
+                        '%d %B %Y', '%d %B %y', '%d %b %y', '%d %b %Y',
+                        '%m/%d/%Y', '%d/%m/%Y', '%m/%d/%y', '%d/%m/%y',
+                        '%m-%d-%Y', '%d-%m-%Y', '%m-%d-%y', '%d-%m-%y',
+                        '%b/%d/%Y', '%d/%b/%Y', '%b/%d/%y', '%d/%b/%y',
+                        '%b-%d-%Y', '%d-%b-%Y', '%b-%d-%y', '%d-%b-%y',
+                        '%B/%d/%Y', '%d/%B/%Y', '%B/%d/%y', '%d/%B/%y',
+                        '%B-%d-%Y', '%d-%B-%Y', '%B-%d-%y', '%d-%B-%y',
+                        '%Y-%m-%d', '%Y/%m/%d', '%Y-%b-%d', '%Y-%B-%d',
+                        '%b %d, %Y', '%B %d, %Y', '%B %d %Y', '%m/%d/%Y',
+                        '%d %B, %Y', '%d %B, %y', '%d %b, %Y', '%d %b, %y',
+                        '%m/%d/%y', '%b %Y', '%B %y', '%m/%y', '%m/%Y',
+                        '%B%Y', '%b %d,%Y', '%m.%d.%Y', '%m.%d.%y', '%b/%y',
+                        '%m - %d - %Y', '%m - %d - %y', '%B %d, %y', '%b %d, %y',
+                        '%d-%B', '%d-%b', '%b,%y', '%B,%y', '%b,%Y', '%B,%Y',
+                        '%b %Y', '%b %y', '%B %Y', '%B %y', '%b-%y', '%b/%Y', '%b-%Y'), "dual_checks": (
+    '%m/%d/%Y %H:%M', '%m/%d/%y %H:%M', '%m-%d-%Y %H:%M', '%m-%d-%y %H:%M', '%m-%d-%Y %r', '%m-%d-%Y %R', '%m-%d-%y %r',
+    '%m-%d-%y %R',
+    '%m/%d/%Y %r', '%m/%d/%Y %R', '%m/%d/%y %r', '%m/%d/%y %R', '%m/%d/%Y', '%m/%d/%y', '%m-%d-%Y', '%m-%d-%y',
+    '%m.%d.%Y', '%m.%d.%y', '%m - %d - %Y',
+    '%m - %d - %y')}
 
-    data["dual_checks"] = ('%m/%d/%Y %H:%M','%m/%d/%y %H:%M','%m-%d-%Y %H:%M','%m-%d-%y %H:%M','%m-%d-%Y %r','%m-%d-%Y %R', '%m-%d-%y %r','%m-%d-%y %R',
-                            '%m/%d/%Y %r','%m/%d/%Y %R', '%m/%d/%y %r','%m/%d/%y %R','%m/%d/%Y','%m/%d/%y','%m-%d-%Y','%m-%d-%y','%m.%d.%Y','%m.%d.%y','%m - %d - %Y',
-                            '%m - %d - %y')
     return data
 
 def write_to_file(filepath,obj):
@@ -265,11 +261,7 @@ def get_level_count_dict(df,categorical_columns,separator,output_type="string",d
 
 def send_message_API(monitor_api, task, message, complete, progress):
     url = monitor_api
-    message_dict = {}
-    message_dict['task'] = task
-    message_dict['message'] = message
-    message_dict['complete'] = complete
-    message_dict['progress'] = progress
+    message_dict = {'task': task, 'message': message, 'complete': complete, 'progress': progress}
     #r = requests.post(url, data=json.dumps(message_dict))
     #print json.loads(r.content)['message'] + " for ", task +'\n'
 
@@ -293,16 +285,19 @@ def byteify(input):
     else:
         return input
 
+
 def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=False):
     """
     messageType = ["info","failure"]
     """
+    timestamp = time.time()
     progressMessage = {
         "analysisName" : analysisName,
         "stageName" : stageName,
         "messageType" : messageType,
         "shortExplanation" : shortExplanation,
-        "stageCompletionTimestamp" : time.time(),
+        "stageCompletionTimestamp" : timestamp,
+        "gmtDateTime":time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(timestamp)),
         "globalCompletionPercentage" : globalCompletionPercentage,
         "stageCompletionPercentage" : stageCompletionPercentage,
         "display":display
@@ -312,18 +307,55 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
 
 def save_result_json(url,jsonData):
     url += "set_result"
-    print "url",url
+    print "result url",url
     res = requests.put(url=url,data=jsonData)
     return res
 
 def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
+    # print "="*100
+    # print {
+    #     "stageName": jsonData["stageName"],
+    #     "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
+    #     "shortExplanation": jsonData["shortExplanation"],
+    #     "analysisName": jsonData["analysisName"],
+    #     "gmtDateTime":jsonData["gmtDateTime"]
+    #     }
+    # print "="*100
+
+    # if jsonData["globalCompletionPercentage"] > 100:
+        # print "#"*2000
     if emptyBin == True:
         url += "?emptyBin=True"
+    print "message url",url
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
         return res
     else:
         return True
+
+def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None):
+    completionStatus = dataframeContext.get_completion_status()
+    print "incoming completionStatus",completionStatus
+    messageURL = dataframeContext.get_message_url()
+    if customMsg == None:
+        completionStatus += scriptWeightDict[analysisName]["script"]*scriptStages[stageName]["weight"]/10
+        progressMessage = create_progress_message_object(analysisName,\
+                                    stageName,\
+                                    messageType,\
+                                    scriptStages[stageName]["summary"],\
+                                    completionStatus,\
+                                    completionStatus,\
+                                    display=display)
+    else:
+        progressMessage = create_progress_message_object(analysisName,stageName,messageType,customMsg,completionStatus,completionStatus,display=display)
+    runningEnv = dataframeContext.get_environement()
+    if runningEnv == "debugMode":
+        save_progress_message(messageURL,progressMessage,ignore=True,emptyBin=emptyBin)
+    else:
+        save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
+    dataframeContext.update_completion_status(completionStatus)
+    print "outgoing completionStatus",completionStatus
+
 
 def save_pmml_models(url,jsonData,ignore=False):
     if ignore == False:
@@ -350,10 +382,17 @@ def print_errors_and_store_traceback(loggerDict,scriptName,error):
     print "{} Script Failed".format(scriptName)
     print loggerDict[scriptName]
 
-def save_error_messages(url,error,ignore=False):
+def save_error_messages(url,errorKey,error,ignore=False):
+    if errorKey != None:
+        url = url+errorKey+"/"
     if url != None:
+        if errorKey != "jobRuntime":
+            tracebackData = str(traceback.format_exc())
+            errordict = {"error":str(error).split("\n"),"traceback":tracebackData.split("\n")}
+        else:
+            errordict = error
         if ignore == False:
-            res = requests.post(url=url,data=json.dumps({"error":str(error),"traceback":traceback.format_exc()}))
+            res = requests.put(url=url,data=json.dumps(errordict))
             return res
         else:
             return True

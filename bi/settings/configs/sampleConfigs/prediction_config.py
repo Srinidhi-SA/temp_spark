@@ -12,7 +12,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "46ec8e7d3b3f43a4907cb7ba10e87215",
+              "slug": "cdbafd3c7d2f4bdf9c8e17706872556f",
               "uidCol": True
             },
             {
@@ -24,7 +24,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
-              "slug": "b501227d44a04f8ba03b56770b4acd5d",
+              "slug": "0214c2480dc2402896e0451713bcacf3",
               "uidCol": False
             },
             {
@@ -36,7 +36,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "81bf54cc137942cabf56c2aa0dbba528",
+              "slug": "777461ba6ded4295bed14b0b07b6a711",
               "uidCol": False
             },
             {
@@ -48,7 +48,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "74c836af52014f9d83e3d4326657add1",
+              "slug": "55d77fe25cdc4a60a13415977964f7ca",
               "uidCol": False
             },
             {
@@ -60,7 +60,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "984322638b154e7abdcbabf2c8871186",
+              "slug": "5474e6e0dc4448d8b8d7c8fd260e52a1",
               "uidCol": False
             },
             {
@@ -72,7 +72,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "2cc19c3b13e44206841d75deab962178",
+              "slug": "185024f7e15f4a76b9a50b71ef72dd4f",
               "uidCol": False
             },
             {
@@ -84,7 +84,7 @@ def get_prediction_config():
               "targetColumn": True,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "66f4f08701864877a1041393c78964e2",
+              "slug": "682ac5ef7b1c4d31a0b8f4de9500a73f",
               "uidCol": False
             },
             {
@@ -96,7 +96,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "4cfea1a4dbc74f9daaf3ca34eac9043e",
+              "slug": "679f8ec6f28c495c87501da52d0c2d03",
               "uidCol": False
             },
             {
@@ -108,7 +108,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "59e9473ae53d4f0bb9daf25bcf27c2cc",
+              "slug": "1d80f69f5b7745cc8ad02cbb1ecadfbe",
               "uidCol": False
             },
             {
@@ -120,7 +120,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "4e1f9abaebb94022bf95ff49a26bf06a",
+              "slug": "fce6a68f2db44d9a958ec78f2bf6a5f6",
               "uidCol": False
             },
             {
@@ -132,7 +132,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "be262c1a685c4e64b123f0c2fb04fe4a",
+              "slug": "3c441db624c640c6a2504898dbdc4958",
               "uidCol": False
             },
             {
@@ -144,7 +144,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "6b594d8804634495ac9799696a46c107",
+              "slug": "553234ff91eb4347be6b88f9c1ecbc4c",
               "uidCol": False
             },
             {
@@ -156,7 +156,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "b2b5e4231f164078be5a3170bae80bf3",
+              "slug": "bd9a8f8ae33e41d097aeeecc3dd5e386",
               "uidCol": False
             },
             {
@@ -168,7 +168,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "74d5c13420464b03a67c5638f28d015b",
+              "slug": "e0e177c6e84f4c5fbafc87b8d08cd3b6",
               "uidCol": False
             },
             {
@@ -180,7 +180,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
-              "slug": "c2556ed2222341deb12012ed6e24b551",
+              "slug": "0baf8ee9e3cb49c5b5aab816114ebbc0",
               "uidCol": False
             },
             {
@@ -192,7 +192,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
-              "slug": "3ef2616ac7df4730b3a9001f4583a944",
+              "slug": "781f7c30962b494f9e5fde92c6395b60",
               "uidCol": False
             },
             {
@@ -204,7 +204,7 @@ def get_prediction_config():
               "targetColumn": False,
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
-              "slug": "584d980dd1b94ffa9dd7590bef9a44a6",
+              "slug": "bfae39a5d0b4499693ee58a5b46f68f1",
               "uidCol": False
             }
           ],
@@ -215,7 +215,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Month",
               "selected": False,
-              "slug": "b497b95c73ee40a0836977a0ac6d29f8",
+              "slug": "da88e7efd11c4dac9390ea9f351f98ec",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -227,7 +227,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Deal_Type",
               "selected": True,
-              "slug": "278f42a7cd3c4dcca1ebce43a637958b",
+              "slug": "63ecdd92bc834e3aa716b373cb002541",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -239,7 +239,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Price_Range",
               "selected": True,
-              "slug": "dde04a3ecd96411d834263ba67c26f31",
+              "slug": "2723cc83597e43cf9317fb5090ac5c6e",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -251,7 +251,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Discount_Range",
               "selected": True,
-              "slug": "6e3d5bb5c2ff4dd4bfbf9b73bd300b5b",
+              "slug": "8daf5693847c4b0ea5192ad24499a88e",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -263,7 +263,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Source",
               "selected": True,
-              "slug": "c4e9b9ffb1a648f1bd61d14131c06611",
+              "slug": "c9b1eb40315c4f2887ef2fd77876c578",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -275,7 +275,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Buyer_Age",
               "selected": True,
-              "slug": "8563351b69f4418494290025f2bf9935",
+              "slug": "9e395dbc6b8649afa946febcac22edf3",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -287,7 +287,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Buyer_Gender",
               "selected": True,
-              "slug": "2e4b16cad4f1495e979299cb1becc9f5",
+              "slug": "9c9593e4cfe645dda928d7146275bef1",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -299,7 +299,7 @@ def get_prediction_config():
               "columnType": "measure",
               "name": "Tenure_in_Days",
               "selected": True,
-              "slug": "dd29d71e5d52488da529b251d0231c06",
+              "slug": "20595b7747ed4eb0b534f9965c185b37",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -311,7 +311,7 @@ def get_prediction_config():
               "columnType": "measure",
               "name": "Sales",
               "selected": True,
-              "slug": "0853630d946a49d0b108bba4fb0692ee",
+              "slug": "5e5d4b12832c468f89d09bf901778bfa",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -323,7 +323,7 @@ def get_prediction_config():
               "columnType": "measure",
               "name": "Marketing_Cost",
               "selected": True,
-              "slug": "b492f5c6a4d84f23994838f81d1ee363",
+              "slug": "8ac55f575fdf40c998fbc4469a20e283",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -335,7 +335,7 @@ def get_prediction_config():
               "columnType": "measure",
               "name": "Shipping_Cost",
               "selected": True,
-              "slug": "8fdd85c49bb14133a24c2defd71354f9",
+              "slug": "d32476f4050b4358b6a1ddbb2c73619f",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -347,7 +347,7 @@ def get_prediction_config():
               "columnType": "measure",
               "name": "Last_Transaction",
               "selected": True,
-              "slug": "8586f0bf78fb4de0bf93568535f79fdb",
+              "slug": "7762ab23dc34473983c45ad1160dfd03",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -359,7 +359,7 @@ def get_prediction_config():
               "columnType": "datetime",
               "name": "new_date",
               "selected": True,
-              "slug": "85a716b0b3d74abba1e4655af0f168ae",
+              "slug": "5ea1293e81e24fb6810214f22b40dcf2",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": False,
               "targetColumn": False,
@@ -371,7 +371,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "Order Date",
               "selected": False,
-              "slug": "6b89efde0b3d405e85ff98c6523b60d3",
+              "slug": "f08d0301b0444820bfdddab12dd7e729",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -383,7 +383,7 @@ def get_prediction_config():
               "columnType": "dimension",
               "name": "newCol",
               "selected": False,
-              "slug": "43c09b87062a457b8d73cb37985d0fd9",
+              "slug": "6304ec1507c3447a960d62c3396bd7be",
               "targetColSetVarAs": None,
               "dateSuggestionFlag": True,
               "targetColumn": False,
@@ -399,27 +399,27 @@ def get_prediction_config():
           "metadata": {
             "url": "34.196.204.54:9012/api/get_metadata_for_mlscripts/",
             "slug_list": [
-              "ecommerce_uid_test_platformcsv-6zgty107dx"
+              "ecommerce_uid_test_platformcsv-tqbnprvsf7"
             ]
           },
           "labelMappingDict": [
             {
-              "0": "Desktop",
-              "1": "Mobile"
+              "1": "Mobile",
+              "0": "Desktop"
             }
           ],
           "scorepath": [
-            "score-lllll-9zeji7pcwg"
+            "uid-score-opwnb2bc57"
           ],
           "modelpath": [
-            "llllll-ui5h22aaz6"
+            "uid-mod-mox3850kmw"
           ],
+          "targetLevel": "Mobile",
           "analysis_type": [
             "score"
           ],
           "modelfeatures": [
             "Buyer_Gender",
-            "uid",
             "Source",
             "Buyer_Age",
             "Tenure_in_Days",
@@ -432,7 +432,7 @@ def get_prediction_config():
             "Marketing_Cost"
           ],
           "algorithmslug": [
-            "f77631ce2ab24cf78c55bb6a5fce4db8rf"
+            "f77631ce2ab24cf78c55bb6a5fce4db8xgb"
           ],
           "levelcounts": [
             {
@@ -446,21 +446,21 @@ def get_prediction_config():
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_score-score-lllll-9zeji7pcwg-5pr3f23jlc_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_score-uid-score-opwnb2bc57-rg60yedneu_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/score-score-lllll-9zeji7pcwg-5pr3f23jlc/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/score-uid-score-opwnb2bc57-rg60yedneu/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/score-score-lllll-9zeji7pcwg-5pr3f23jlc/",
+        "job_url": "http://34.196.204.54:9012/api/job/score-uid-score-opwnb2bc57-rg60yedneu/",
         "job_type": "prediction",
-        "job_name": "score-lllll",
-        "xml_url": "http://34.196.204.54:9012/api/xml/score-score-lllll-9zeji7pcwg-5pr3f23jlc/",
-        "app_id": 1
+        "job_name": "uid-score",
+        "xml_url": "http://34.196.204.54:9012/api/xml/score-uid-score-opwnb2bc57-rg60yedneu/",
+        "app_id": 2
       }
     }
     return predictionConfig

@@ -7,10 +7,12 @@
   {% else %}
     The {{measure}} figures hit a peak of {{peakValue|round_number}} in {{peakTime}}.
   {% endif %}
-  The most significant factor that fuelled this strong run is the {{highest_contributing_variable}}, {{highest_contributing_level}}.
-  {{measure}} contribution from {{highest_contributing_level}} in {{peakTime}}, increased by over
-  {{highest_contributing_level_increase|round_number}} percentage points ({{highest_contributing_level_range}})
-  compared to rest of the observation period.
+  {% if highest_contributing_variable != None %}
+    The most significant factor that fuelled this strong run is the {{highest_contributing_variable}}, {{highest_contributing_level}}.
+    {{measure}} contribution from {{highest_contributing_level}} in {{peakTime}}, increased by over
+    {{highest_contributing_level_increase|round_number}} percentage points ({{highest_contributing_level_range}})
+    compared to rest of the observation period.
+  {% endif %}
 </p>
 {{blockSplitter}}
 <p class="txt-justify">
@@ -21,10 +23,11 @@
   {% else %}
     The most notable among them was {{lowestTime}} and values for {{measure}} dropped to {{lowestValue|round_number}}.
   {% endif %}
-
-   This was primarily due to <b>sharp decline in {{measure}} from {{lowest_contributing_level}}
-   {{lowest_contributing_variable}}</b>, which observed a decline of over
-    {{lowest_contributing_level_decrease}} percentage points ({{lowest_contributing_level_range}}).
+  {% if lowest_contributing_variable != None %}
+     This was primarily due to <b>sharp decline in {{measure}} from {{lowest_contributing_level}}
+     {{lowest_contributing_variable}}</b>, which observed a decline of over
+      {{lowest_contributing_level_decrease|round_number}} percentage points ({{lowest_contributing_level_range}}).
+  {% endif %}
 </p>
 
 {{blockSplitter}}
@@ -117,16 +120,16 @@
               {% if negGrowthArray[0][0][0] == negGrowthArray[1][0][0]%}
                 {{negGrowthArray[0][0][0]}} has been an area of concern,
                 as {{negGrowthArray[0][0][1]}} and {{negGrowthArray[1][0][1]}}
-                shrunk over {{negGrowthArray[0][1]["growth"]|round_number}}% and {{negGrowthArray[1][1]["growth"]|round_number}}% respectively.
+                shrunk over {{negGrowthArray[0][1]["growth"]|abs|round_number}}% and {{negGrowthArray[1][1]["growth"]|abs|round_number}}% respectively.
               {% else %}
                 {# when top 2 are from different dimension#}
                 {{negGrowthArray[0][0][0]}} and {{negGrowthArray[1][0][0]}} have been an area of concern,
                 as their respective levels {{negGrowthArray[0][0][1]}} and {{negGrowthArray[1][0][1]}}
-                shrunk by {{negGrowthArray[0][1]["growth"]|round_number}}% and {{negGrowthArray[1][1]["growth"]|round_number}}% respectively.
+                shrunk by {{negGrowthArray[0][1]["growth"]|abs|round_number}}% and {{negGrowthArray[1][1]["growth"]|abs|round_number}}% respectively.
               {% endif %}
             {% else %}
               {{negGrowthArray[0][0][0]}} has been an area of concern
-              as {{negGrowthArray[0][0][1]}} shrunk by {{negGrowthArray[0][1]["growth"]|round_number}}% .
+              as {{negGrowthArray[0][0][1]}} shrunk by {{negGrowthArray[0][1]["growth"]|abs|round_number}}% .
             {% endif %}
           </li>
         </ul>

@@ -1,36 +1,33 @@
-import random
-import os
-import shutil
+import __builtin__
 import json
+import os
+import random
+import shutil
 
 import numpy as np
 import pandas as pd
-import operator
-import __builtin__
-
-from pyspark.sql import functions as FN
-from pyspark.sql.functions import mean, stddev, col, sum, count, min, max
-from pyspark.sql.types import StringType
-from pyspark.sql.types import DoubleType
-from pyspark.ml.clustering import KMeans
-
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler, SQLTransformer, IndexToString
-
-import numpy as np
-import functools
-from pyspark.ml.feature import OneHotEncoder
-from pyspark.ml.pipeline import PipelineModel
+from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
+from pyspark.ml.clustering import KMeans
 from pyspark.ml.feature import Bucketizer
-from pyspark.ml.feature import QuantileDiscretizer
+from pyspark.ml.feature import OneHotEncoder
+from pyspark.ml.feature import StringIndexer, VectorAssembler
+from pyspark.ml.pipeline import PipelineModel
+from pyspark.sql import functions as FN
+from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
-from pyspark.ml.classification import RandomForestClassificationModel,OneVsRestModel,LogisticRegressionModel
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData,ModelSummary
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-from bi.common import utils as CommonUtils
+from pyspark.sql.types import StringType
 
-def bucket_all_measures(df, measure_columns, dimension_columns,target_measure=[]):
-    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in measure_columns+dimension_columns+target_measure])
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary
+from bi.common import NormalChartData, ChartJson
+from bi.common import utils as CommonUtils
+from bi.settings import setting as GLOBALSETTINGS
+
+
+def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
+    if target_measure is None:
+        target_measure = []
+    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
     for measure_column in measure_columns:
         # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
         #                                                outputCol='quantile',
@@ -188,7 +185,7 @@ def reformat_confusion_matrix(confusion_matrix):
         confusion_matrix_data.append(inner_list)
     return [list(x) for x in np.array(confusion_matrix_data).T]
 
-def calculate_overall_precision_recall(actual,predicted):
+def calculate_overall_precision_recall(actual,predicted,targetLevel = None):
     # get positive or negative class from the user
     df = pd.DataFrame({"actual":actual,"predicted":predicted})
     classes = df["actual"].unique()
@@ -204,8 +201,12 @@ def calculate_overall_precision_recall(actual,predicted):
     val_counts_tuple = tuple(val_counts.items())
     # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
     # positive_class = __builtin__.max(val_counts,key=val_counts.get)
-    positive_class = __builtin__.min(val_counts,key=val_counts.get)
-    print val_counts
+    if targetLevel == None:
+        positive_class = __builtin__.min(val_counts,key=val_counts.get)
+    else:
+        positive_class = targetLevel
+    print "val_counts_predicted",val_counts_predicted
+    print "val_counts actual",val_counts
     print "positive_class",positive_class
 
     output = {"precision":0,"recall":0,"classwise_stats":None,"prediction_split":prediction_split,"positive_class":positive_class}
@@ -225,6 +226,7 @@ def calculate_overall_precision_recall(actual,predicted):
         count_dict["fp"] = df[(df["actual"]!=positive_class) & (df["predicted"]==positive_class)].shape[0]
         count_dict["tn"] = df[(df["actual"]!=positive_class) & (df["predicted"]!=positive_class)].shape[0]
         count_dict["fn"] = df[(df["actual"]==positive_class) & (df["predicted"]!=positive_class)].shape[0]
+        print {"tp":count_dict["tp"],"fp":count_dict["fp"],"tn":count_dict["tn"],"fn":count_dict["fn"]}
         if count_dict["tp"]+count_dict["fp"] > 0:
             output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         else:
@@ -301,6 +303,39 @@ def transform_feature_importance(feature_importance_dict):
     output = [feature_importance_new[0][:6],feature_importance_new[1][:6]]
     return output
 
+def bin_column(df, measure_column,get_aggregation = False):
+    allCols = df.columns
+    df = df.select([col(c).cast('double').alias(c) if c == measure_column else col(c) for c in allCols])
+    min_,max_,mean_,stddev_,total = df.agg(FN.min(measure_column), FN.max(measure_column), FN.mean(measure_column), FN.stddev(measure_column), FN.sum(measure_column)).collect()[0]
+    df_without_outlier = df.filter(col(measure_column)>=mean_-3*stddev_).filter(col(measure_column)<=mean_+3*stddev_)
+    diff = (max_ - min_)*1.0
+    splits_new = [min_,min_+diff*0.4,min_+diff*0.7,max_]
+    bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+    bucketizer.setSplits(splits_new)
+    df = bucketizer.transform(df)
+    if (get_aggregation):
+        agg_df = df.groupby("bucket").agg(FN.sum(measure_column).alias('sum'), FN.count(measure_column).alias('count'))
+        aggr = {}
+        for row in agg_df.collect():
+            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': row[1]*100.0/total, 'count_percent': row[2]*100.0/df.count()}
+
+    df = df.select([c for c in df.columns if c!=measure_column])
+    df = df.withColumnRenamed("bucket",measure_column)
+    if splits_new[0] > 1:
+        splitRanges = ["("+str(round(splits_new[0]))+" to "+str(round(splits_new[1]))+")",
+                    "("+str(round(splits_new[1]))+" to "+str(round(splits_new[2]))+")",
+                    "("+str(round(splits_new[2]))+" to "+str(round(splits_new[3]))+")"
+                    ]
+    else:
+        splitRanges = ["("+str(round(splits_new[0],2))+" to "+str(round(splits_new[1],2))+")",
+                    "("+str(round(splits_new[1],2))+" to "+str(round(splits_new[2],2))+")",
+                    "("+str(round(splits_new[2],2))+" to "+str(round(splits_new[3],2))+")"
+                    ]
+
+    if (get_aggregation):
+        return df, aggr
+    return df, splits_new[1:],splitRanges
+
 def cluster_by_column(df, col_to_cluster, get_aggregation = False):
     my_df = df.select(df.columns)
     assembler = VectorAssembler(inputCols = [col_to_cluster], outputCol = "feature_vector")
@@ -316,6 +351,7 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
     kmeans = KMeans(predictionCol=col_to_cluster, featuresCol='feature_vector').setK(3).setSeed(1)
     model = kmeans.fit(assembled_without_outlier)
     final_df = model.transform(assembled)
+    # print final_df.show(3)
     if (get_aggregation):
         agg_df = final_df.groupby(col_to_cluster).agg(sum('target_col').alias('sum'), count('target_col').alias('count'))
         aggr = {}
@@ -323,16 +359,16 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
             aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': row[1]*100.0/total, 'count_percent': row[2]*100.0/final_df.count()}
     final_df = final_df.select([c for c in final_df.columns if c!='feature_vector'])
     final_df = final_df.select([col(c) if c!=col_to_cluster else col(c).alias(col_to_cluster) for c in final_df.columns])
+    # print final_df.show(3)
     if (get_aggregation):
         return final_df, aggr
     return final_df, model.clusterCenters()
 
-def add_string_index(df, string_columns=None):
+def add_string_index(df,string_columns):
+    string_columns = list(set(string_columns))
     my_df = df.select(df.columns)
     column_name_maps = {}
     mapping_dict = {}
-    if string_columns==None:
-        string_columns = [c.name for c in df.schema.fields if type(c.dataType) == StringType]
     for c in string_columns:
         my_df = StringIndexer(inputCol=c, outputCol=c+'_index').fit(my_df).transform(my_df)
         column_name_maps[c+'_index'] = c
@@ -476,7 +512,7 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
-    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression"}
+    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -536,7 +572,9 @@ def get_total_models(collated_summary):
         has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
-def create_model_folders(model_slug,basefoldername,subfolders=[]):
+def create_model_folders(model_slug, basefoldername, subfolders=None):
+    if subfolders is None:
+        subfolders = []
     home_dir = os.path.expanduser("~")
     filepath = home_dir+"/"+basefoldername
     if not os.path.isdir(filepath):
@@ -557,23 +595,6 @@ def create_scored_data_folder(score_slug,basefoldername):
         shutil.rmtree(filepath+"/"+score_slug)
     os.mkdir(filepath+"/"+score_slug)
     return filepath+"/"+score_slug+"/"
-
-def model_slug_mapping():
-    random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
-    object = {
-                "randomforest":random_slug+"rf",
-                "logisticregression":random_slug+"lr",
-                "xgboost":random_slug+"xgb"
-                }
-    return object
-def slug_model_mapping():
-    random_slug = "f77631ce2ab24cf78c55bb6a5fce4db8"
-    object = {
-                random_slug+"rf":"randomforest",
-                random_slug+"lr":"logisticregression",
-                random_slug+"xgb":"xgboost"
-                }
-    return object
 
 def reformat_confusion_matrix(confusion_matrix):
     levels = confusion_matrix.keys()
@@ -619,7 +640,7 @@ def create_model_summary_cards(modelSummaryClass):
     return [modelSummaryCard1,modelSummaryCard2]
 
 
-def collated_model_summary_card(result_setter,prediction_narrative):
+def collated_model_summary_card(result_setter,prediction_narrative,appid=None):
     collated_summary = result_setter.get_model_summary()
     card1 = NormalCard()
     card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
@@ -635,17 +656,22 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
     card3 = NormalCard()
-    card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
+    if appid == None:
+        card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
+    else:
+        try:
+            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_HEADING_MAP[appid]))]
+        except:
+            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
     card3Data.append(get_feature_importance(collated_summary))
     card3.set_card_data(card3Data)
     # prediction_narrative.insert_card_at_given_index(card3,2)
     card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
-
     modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
     modelResult = json.loads(modelResult)
     existing_cards = modelResult["listOfCards"]
     existing_cards = result_setter.get_all_algos_cards()
-
+    print "existing_cards",existing_cards
     # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
     all_cards = [card1,card2,card3] + existing_cards
 
@@ -658,6 +684,7 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     rfModelSummary = result_setter.get_random_forest_model_summary()
     lrModelSummary = result_setter.get_logistic_regression_model_summary()
     xgbModelSummary = result_setter.get_xgboost_model_summary()
+    svmModelSummary = result_setter.get_svm_model_summary()
 
     model_dropdowns = []
     model_features = {}
@@ -665,8 +692,8 @@ def collated_model_summary_card(result_setter,prediction_narrative):
     labelMappingDict = {}
     targetVariableLevelcount = {}
     target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
-    for obj in [rfModelSummary,lrModelSummary,xgbModelSummary]:
-        if obj != {}:
+    for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
+        if obj != None:
             model_dropdowns.append(obj["dropdown"])
             model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
             labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]

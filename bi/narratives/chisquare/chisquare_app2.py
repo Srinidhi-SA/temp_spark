@@ -1,5 +1,4 @@
 import operator
-import os
 
 from bi.narratives import utils as NarrativesUtils
 

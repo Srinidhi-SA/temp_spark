@@ -1,21 +1,14 @@
-import os
-import random
-import numpy as np
 import json
-import itertools
+import json
+
 import humanize
-from collections import defaultdict
-from bi.common.dataframe import DataFrameHelper
-from bi.common.context import ContextSetter
-from bi.common.results import DecisionTreeResult
-from bi.common.utils import accepts
-from bi.narratives import utils as NarrativesUtils
+
+from bi.common import NormalCard, NarrativesTree, C3ChartData, TableData
+from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
-from bi.common import NarrativesTree
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
-from bi.common import ResultSetter
+from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
+
 
 class DecisionTreeNarrative:
     MAX_FRACTION_DIGITS = 2
@@ -99,6 +92,7 @@ class DecisionTreeNarrative:
         self._result_setter.set_decision_tree_node(self._decisionTreeNode)
         self._result_setter.set_score_dtree_cards(json.loads(CommonUtils.convert_python_object_to_json(self._decisionTreeNode.get_all_cards())))
 
+        self._completionStatus = self._dataframe_context.get_completion_status()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dtreeNarrativeEnd",\
@@ -192,9 +186,15 @@ class DecisionTreeNarrative:
               ]]
         dropdownData = []
         chartDict = {}
+        targetLevel = self._dataframe_context.get_target_level_for_model()
+        probabilityArrayAll = []
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Generating Prediction rules",self._completionStatus,self._completionStatus,display=True)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
-        for idx,target in enumerate(rules_dict.keys()):
+        self._dataframe_context.update_completion_status(self._completionStatus)
+        targetValues = [x for x in rules_dict.keys() if x==targetLevel]+[x for x in rules_dict.keys() if x!=targetLevel]
+        for idx,target in enumerate(targetValues):
             if idx == 0:
                 if self._dataframe_context.get_story_on_scored_data() != True:
                     dropdownData.append({"displayName":target,"name":target,"selected":True,"id":idx+1})
@@ -205,14 +205,14 @@ class DecisionTreeNarrative:
                     dropdownData.append({"displayName":target,"name":target,"selected":False,"id":idx+1})
                 else:
                     dropdownData.append({"displayName":"{} : {}".format(self._colname,target),"name":target,"selected":False,"id":idx+1})
-
             rulesArray = rules_dict[target]
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
+            probabilityArrayAll += probabilityArray
             groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
-            for idx,obj in enumerate(probabilityGroups):
+            for idx2,obj in enumerate(probabilityGroups):
                 grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
                 obj["count"] += grpCount
-                probabilityGroups[idx] = obj
+                probabilityGroups[idx2] = obj
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
@@ -227,8 +227,8 @@ class DecisionTreeNarrative:
                 binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
                 if binnedColObj != None and targetCol in binnedColObj:
                     binFlag = True
-            for idx,crudeRule in enumerate(rulesArray):
-                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx], success[idx], success_percent[idx],analysisType,binFlag=binFlag)
+            for idx2,crudeRule in enumerate(rulesArray):
+                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx2], success[idx2], success_percent[idx2],analysisType,binFlag=binFlag)
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
@@ -238,6 +238,16 @@ class DecisionTreeNarrative:
             tableArray += targetArray
 
         donutChartMaxLevel = 10
+        if self._dataframe_context.get_story_on_scored_data() == True:
+            chartDict = {}
+            probabilityRangeForChart = GLOBALSETTINGS.PROBABILITY_RANGE_FOR_DONUT_CHART
+            chartDict = dict(zip(probabilityRangeForChart.keys(),[0]*len(probabilityRangeForChart)))
+            for val in probabilityArrayAll:
+                for grps,grpRange in probabilityRangeForChart.items():
+                    if val > grpRange[0] and val <= grpRange[1]:
+                        chartDict[grps] = chartDict[grps]+1
+            chartDict = {k:v for k,v in chartDict.items() if v != 0}
+            print chartDict
         if len(chartDict) > donutChartMaxLevel:
             chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)
         chartData = NormalChartData([chartDict]).get_data()
@@ -247,7 +257,6 @@ class DecisionTreeNarrative:
         mainCardChart = C3ChartData(data=chartJson)
         mainCardChart.set_width_percent(45)
         # mainCardChart = {"dataType": "c3Chart","widthPercent":33 ,"data": {"data": [chartDict],"title":self._colname,"axes":{},"label_text":{},"legend":{},"yAxisNumberFormat": ".2s","types":None,"axisRotation":False, "chart_type": "donut"}}
-
 
         dropdownDict = {
           "dataType": "dropdown",
@@ -269,14 +278,17 @@ class DecisionTreeNarrative:
             levelCountDict = {}
             for k,v in predictedLevelCountDict.items():
                 levelCountDict[k] = sum(v)
-
             # levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%" if v*100/total >=10 else str(int(v*100/total))+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
-            data_dict["nlevel"] = len(levelCountDict.keys())
-            data_dict["topLevel"] = levelCountTuple[0]
-            data_dict["secondLevel"] = levelCountTuple[1]
+            data_dict["nlevel"] = len(levelCountDict)
+            if targetLevel in levelCountDict:
+                data_dict["topLevel"] = [x for x in levelCountTuple if x["name"]==targetLevel][0]
+                data_dict["secondLevel"] = max([x for x in levelCountTuple if x["name"]!=targetLevel],key=lambda x:x["count"])
+            else:
+                data_dict["topLevel"] = levelCountTuple[0]
+                data_dict["secondLevel"] = levelCountTuple[1]
             maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
                                                         'decisiontreescore.html',data_dict)
         main_card = NormalCard()

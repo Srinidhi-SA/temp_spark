@@ -1,26 +1,26 @@
-from functools import reduce
-import json
-import time
 import datetime as dt
 # import dateparser
-import pandas as pd
+import datetime as dt
 from datetime import datetime
+from itertools import chain
+
+# import dateparser
+import pandas as pd
+from pyspark.ml.feature import Bucketizer
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as FN
-from pyspark.sql.functions import udf, col
+from pyspark.sql.functions import col, create_map, lit
+from pyspark.sql.functions import udf
 from pyspark.sql.types import *
 from pyspark.sql.types import StringType
 from sklearn.model_selection import train_test_split
 
-from bi.common import utils as CommonUtils
 from bi.common import ContextSetter
+from bi.common import utils as CommonUtils
+from bi.common import MetaParser
 from column import ColumnType
 from decorators import accepts
 from exception import BIException
-
-from pyspark.ml.feature import QuantileDiscretizer,Bucketizer
-from pyspark.sql.functions import col, create_map, lit
-from itertools import chain
 
 
 class DataFrameHelper:
@@ -35,13 +35,13 @@ class DataFrameHelper:
     NULL_VALUES = 'num_nulls'
     NON_NULL_VALUES = 'num_non_nulls'
 
-    @accepts(object,data_frame=DataFrame,df_context=ContextSetter)
-    def __init__(self, data_frame, df_context):
+    @accepts(object,data_frame=DataFrame,df_context=ContextSetter,meta_parser=MetaParser)
+    def __init__(self, data_frame, df_context, meta_parser):
         # stripping spaces from column names
         self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
         self.columns = self._data_frame.columns
         self._dataframe_context = df_context
-
+        self._metaParser = meta_parser
         self.column_data_types = {}
         self.numeric_columns = []
         self.string_columns = []
@@ -49,13 +49,6 @@ class DataFrameHelper:
         self.boolean_columns = []
         self.num_rows = 0
         self.num_columns = 0
-        self.column_details = {
-            DataFrameHelper.MEASURE_COLUMNS: {},
-            DataFrameHelper.DIMENSION_COLUMNS: {},
-            DataFrameHelper.TIME_DIMENSION_COLUMNS: {},
-            DataFrameHelper.BOOLEAN_COLUMNS: {}
-        }
-
         self.measure_suggestions = []
         self.train_test_data = {"x_train":None,"x_test":None,"y_train":None,"y_test":None}
         self._date_formats = {}
@@ -66,7 +59,6 @@ class DataFrameHelper:
         self.utf8columns = self._dataframe_context.get_utf8_columns()
         self.resultcolumn = self._dataframe_context.get_result_column()
         self.consider_columns = self._dataframe_context.get_consider_columns()
-        # self.considercolumnstype = self._dataframe_context.get_consider_columns_type()
         self.percentage_columns = self._dataframe_context.get_percentage_columns()
         self.dollar_columns = self._dataframe_context.get_dollar_columns()
         self.colsToBin = []
@@ -75,30 +67,16 @@ class DataFrameHelper:
         print "Setting the dataframe"
         self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
         self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame, self.dollar_columns)
-
-        customDetails = self._dataframe_context.get_custom_analysis_details()
-        if customDetails != None:
-            colsToBin = [x["colName"] for x in customDetails]
-        else:
-            colsToBin = []
-        print "initial colsToBin:-",colsToBin
-        if self.ignorecolumns == None:
-            self.ignorecolumns = []
-        if self.utf8columns == None:
-            self.utf8columns = []
-        if self.consider_columns == None:
-            self.consider_columns = []
+        colsToBin = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
         print "ignorecolumns:-",self.ignorecolumns
         # removing any columns which comes in customDetails from ignore columns
         self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
-        # if self.considercolumnstype[0] == "including":
-        #     self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-        #     colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
-        # elif self.considercolumnstype[0] == "excluding":
-        #     setColsToKeep = set(self.columns)-set(self.consider_columns)-set(self.utf8columns)-set(self.ignorecolumns)
-        #     colsToKeep = list(setColsToKeep.union(set([self.resultcolumn])))
         self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-        colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        print "self.resultcolumn",self.resultcolumn
+        if self.resultcolumn != "":
+            colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+        else:
+            colsToKeep = list(set(self.consider_columns))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         print "colsToKeep:-",colsToKeep
         print "colsToBin:-",colsToBin
@@ -109,61 +87,42 @@ class DataFrameHelper:
             else:
                 if self._dataframe_context.get_story_on_scored_data() == False:
                     result_column = self._dataframe_context.get_result_column()
-                    updatedColsToKeep = list(set(colsToKeep)-set([result_column]))
+                    updatedColsToKeep = list(set(colsToKeep) - {result_column})
                     self._data_frame = self._data_frame.select(updatedColsToKeep)
                 elif self._dataframe_context.get_story_on_scored_data() == True:
                     self._data_frame = self._data_frame.select(colsToKeep)
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
-        # self.boolean_to_string(list(set(colsToKeep)-set(self.boolean_columns)))
-        self.populate_column_data()
+        print "boolean_columns",self.boolean_columns
+        self.boolean_to_string(list(set(colsToKeep) & set(self.boolean_columns)))
+        self.update_column_data()
+
 
     def update_column_data(self):
-        self.columns = [field.name for field in self._data_frame.schema.fields]
-        self.column_data_types = {field.name: field.dataType for field in self._data_frame.schema.fields}
-        self.numeric_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
-        self.string_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
-        self.boolean_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
-        self.timestamp_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
-        self.num_rows = self._data_frame.count()
-        self.num_columns = len(self._data_frame.columns)
+        dfSchemaFields = self._data_frame.schema.fields
+        self.columns = [field.name for field in dfSchemaFields]
+        self.num_columns = len(self.columns)
+        self.num_rows = self._metaParser.get_num_rows()
+        self.column_data_types = {field.name: field.dataType for field in dfSchemaFields}
+        self.numeric_columns = []
+        self.string_columns = []
+        self.boolean_columns = []
+        self.timestamp_columns = []
+        for field in dfSchemaFields:
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
+                self.numeric_columns.append(field.name)
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION:
+                self.string_columns.append(field.name)
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN:
+                self.boolean_columns.append(field.name)
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION:
+                self.timestamp_columns.append(field.name)
 
-    def populate_column_data(self):
-        for measure_column in self.numeric_columns:
-            null_values = self.get_num_null_values(measure_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.MEASURE_COLUMNS][measure_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-        for dimension_column in self.string_columns:
-            null_values = self.get_num_null_values(dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.DIMENSION_COLUMNS][dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-
-        for time_dimension_column in self.timestamp_columns:
-            null_values = self.get_num_null_values(time_dimension_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.TIME_DIMENSION_COLUMNS][time_dimension_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
-        for bool_column in self.boolean_columns:
-            null_values = self.get_num_null_values(bool_column)
-            non_null_values = self.num_rows - null_values
-            self.column_details[DataFrameHelper.BOOLEAN_COLUMNS][bool_column] = {
-                DataFrameHelper.NULL_VALUES: null_values,
-                DataFrameHelper.NON_NULL_VALUES: non_null_values
-            }
+    def boolean_to_string(self,colsToConvert):
+        if len(colsToConvert) > 0:
+            for column in colsToConvert:
+                self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType()))
 
     def set_train_test_data(self,df):
         result_column = self._dataframe_context.get_result_column()
@@ -223,9 +182,6 @@ class DataFrameHelper:
             self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
             self._data_frame = self._data_frame.select(self.columns)
 
-    def boolean_to_string(self,colsToConvert):
-        for column in colsToConvert:
-            self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType))
 
     def get_cols_to_bin(self):
         return self.colsToBin
@@ -293,7 +249,7 @@ class DataFrameHelper:
 
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
-          raise BIException('No such column exists: %s' %(column_name,))
+            raise BIException('No such column exists: %s' %(column_name,))
 
         column = FN.col(column_name)
         rows = self._data_frame.select(column).groupBy(FN.isnull(column)).agg({'*': 'count'}).collect()
@@ -302,15 +258,12 @@ class DataFrameHelper:
                 return row[1]
         return 0
 
-
-
     def filter_dataframe(self, colname, values):
         if type(values) == str:
             values = values[1:-1]
             values = values.split(',')
         df = self._data_frame.where(col(colname).isin(values))
         return df
-
 
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
@@ -468,9 +421,9 @@ class DataFrameColumnMetadata:
         return self._actual_data_type
 
     def as_dict(self):
-        ''' Utility function return object as a dict for persisting as a JSON object
+        """ Utility function return object as a dict for persisting as a JSON object
         :return:
-        '''
+        """
         return {
             self._column_name: self._column_type,
             'actual_data_type': self._actual_data_type,

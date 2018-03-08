@@ -341,7 +341,7 @@ if __name__ == '__main__':
             if "P"*i in streak or "N"*i in streak:
                 longest_seq_len = i
             else:
-                break;
+                break
         pos_streak_months = []
         neg_streak_months = []
         if "P"*longest_seq_len in streak:

@@ -1,10 +1,9 @@
 import json
 import time
-import collections
-import pandas as pd
-import numpy as np
-import humanize
 
+import humanize
+import numpy as np
+import pandas as pd
 
 try:
     import cPickle as pickle
@@ -22,15 +21,11 @@ from bi.common import MLModelSummary
 from bi.algorithms import XgboostClassifier
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.stats.frequency_dimensions import FreqDimensions
-from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
-from bi.stats.chisquare import ChiSquare
-from bi.narratives.chisquare import ChiSquareNarratives
-from bi.common import NormalCard,SummaryCard,NarrativesTree,HtmlData,C3ChartData,TableData,TreeData
-from bi.common import ScatterChartData,NormalChartData,ChartJson
+from bi.common import NormalCard, C3ChartData,TableData
+from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
-
+from bi.settings import setting as GLOBALSETTINGS
 
 class XgboostScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
@@ -43,8 +38,9 @@ class XgboostScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
-        self._model_slug_map = MLUtils.model_slug_mapping()
+        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
         self._slug = self._model_slug_map["xgboost"]
+        self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -83,7 +79,9 @@ class XgboostScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
+        allDateCols = self._dataframe_context.get_date_columns()
+        categorical_columns = list(set(categorical_columns)-set(allDateCols))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         model_path = self._dataframe_context.get_model_path()
@@ -91,7 +89,6 @@ class XgboostScript:
             model_path = model_path[7:]
         xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "training",\
@@ -123,8 +120,8 @@ class XgboostScript:
         except:
             pass
 
-        cat_cols = list(set(categorical_columns)-set([result_column]))
-        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
+        cat_cols = list(set(categorical_columns) - {result_column})
+        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
         self._model_summary = MLModelSummary()
         self._model_summary.set_algorithm_name("Xgboost")
         self._model_summary.set_algorithm_display_name("XGBoost")
@@ -231,7 +228,9 @@ class XgboostScript:
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
-            categorical_columns = list(set(categorical_columns)-set([uid_col]))
+            categorical_columns = list(set(categorical_columns) - {uid_col})
+        allDateCols = self._dataframe_context.get_date_columns()
+        categorical_columns = list(set(categorical_columns)-set(allDateCols))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
@@ -327,13 +326,14 @@ class XgboostScript:
         # df.drop('predicted_probability', axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
+        # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
         self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
         self._dataframe_context.update_consider_columns(columns_to_keep)
-        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context)
+        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         spark_scored_df = df_helper.get_data_frame()
         # try:
@@ -381,15 +381,13 @@ class XgboostScript:
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print narratives_obj
             except:
                 print "DecisionTree Analysis Failed "
         else:
-            data_dict = {}
-            data_dict["npred"] = len(predictedClasses)
-            data_dict["nactual"] = len(labelMappingDict.values())
+            data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
             if data_dict["nactual"] > 2:
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])

@@ -1,11 +1,11 @@
 
 
 def accepts(*types, **kwdtypes):
-    ''' Function decorator to enforce parameter data types
+    """ Function decorator to enforce parameter data types
     :param types:   positional parameter types
     :param kwdtypes: keyword parameter types
     :return:
-    '''
+    """
     def check_accepts(f):
         num_pos_args = len(types)
         num_kwd_args =  len(kwdtypes.keys())
