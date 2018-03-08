@@ -1022,33 +1022,33 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
         r = random.randint(0,99)%5
         if binFlag != True:
             if r == 0:
-                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>probability that the ' + colname +' is '+ target+'.'
             elif r == 1:
-                narrative = 'If ' +temp_narrative+ ' it is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' it is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>likely that the ' + colname +' is '+ target+'.'
             elif r == 2:
-                narrative = 'When ' +temp_narrative+ ' the probability of '+target+ ' is  <b>' + round_number(success_percent)+ ' % <b>.'
+                narrative = 'When ' +temp_narrative+ ' the probability of '+target+ ' is  <b>' + str(round_number(success_percent)) + ' % <b>.'
             elif r == 3:
-                narrative = 'If ' + temp_narrative +' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' + temp_narrative +' then there is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>probability that the ' + colname + ' would be ' + target +'.'
             else:
-                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>chance that '+ colname + ' would be ' + target +'.'
         else:
             if r == 0:
-                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' then there is a  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>probability that the ' + colname +' range will be '+ target+'.'
             elif r == 1:
-                narrative = 'If ' +temp_narrative+ ' it is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' +temp_narrative+ ' it is  <b>' + str(round_number(success_percent))+ '% ' + \
                             ' <b>likely that the ' + colname +' range will be '+ target+'.'
             elif r == 2:
-                narrative = 'When ' +temp_narrative+ ' the probability of <b>'+colname+" range being "+target+ '</b> is <b>' + round_number(success_percent)+ ' % <b>.'
+                narrative = 'When ' +temp_narrative+ ' the probability of <b>'+colname+" range being "+target+ '</b> is <b>' + str(round_number(success_percent)) + ' % <b>.'
             elif r == 3:
-                narrative = 'If ' + temp_narrative +' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'If ' + temp_narrative +' then there is  <b>' + str(round_number(success_percent)) + '% ' + \
                             ' <b>probability that the ' + colname + ' range would be ' + target +'.'
             else:
-                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + round_number(success_percent)+ '% ' + \
+                narrative = 'When ' +temp_narrative+ ' then there is  <b>' + str(round_number(success_percent)) + '% ' + \
                             ' <b>chance that '+ colname + 'range would be ' + target +'.'
         return narrative,crude_narrative
 
