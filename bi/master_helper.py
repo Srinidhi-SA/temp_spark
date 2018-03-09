@@ -388,7 +388,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
-    if (len(dimension_columns)>=2 and 'Dimension vs. Dimension' in scripts_to_run):
+    if ((len(dimension_columns)>=2 or len(measure_columns)>=1) and 'Dimension vs. Dimension' in scripts_to_run):
         dataframe_context.set_analysis_name("Dimension vs. Dimension")
         completionStatus = dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Evaluating variables for Statistical Association",completionStatus,completionStatus,display=True)
