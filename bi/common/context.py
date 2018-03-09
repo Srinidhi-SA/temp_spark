@@ -79,6 +79,8 @@ class ContextSetter:
         self.logger = None
 
         self.ignoreRegressionElasticityMessages = False
+        self.validationTechniqueObj = {}
+        self.train_test_split = 0.6
 
 
 
@@ -91,6 +93,7 @@ class ContextSetter:
         self.TRANSFORMATION_SETTINGS = self._config_obj.get_transformation_settings()
         self.STOCK_SETTINGS = self._config_obj.get_stock_settings()
         self.DATABASE_SETTINGS = self._config_obj.get_database_settings()
+        self.ALGORITHM_SETTINGS = self._config_obj.get_algorithm_settings()
 
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
@@ -99,6 +102,7 @@ class ContextSetter:
         transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
         stockSettingKeys = self.STOCK_SETTINGS.keys()
         dbSettingKeys = self.DATABASE_SETTINGS.keys()
+        # algoSettingKeys = self.ALGORITHM_SETTINGS.keys()
 
         if len(dbSettingKeys) > 0:
             if "datasource_details" in dbSettingKeys:
@@ -166,6 +170,8 @@ class ContextSetter:
                 self.labelMappingDict = self.FILE_SETTINGS['labelMappingDict']
             if "targetLevel" in fileSettingKeys:
                 self.targetLevelForModel = self.FILE_SETTINGS['targetLevel']
+            if "validationTechnique" in fileSettingKeys:
+                self.validationTechniqueObj = self.FILE_SETTINGS['validationTechnique']
 
         if len(columnSettingKeys) > 0:
             varSelectionArr = []

@@ -2,11 +2,7 @@ import sys
 import sys
 import time
 import json
-
 import pyhocon
-
-# from asn1crypto._ffi import None
-# from pyhocon.tool import HOCONConverter
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -19,7 +15,6 @@ from parser import configparser
 from bi.scripts.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
 import master_helper as MasterHelper
-#if __name__ == '__main__':
 def main(configJson):
     LOGGER = {}
     deployEnv = False  # running the scripts from job-server env
@@ -42,7 +37,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "story"
+            jobType = "training"
             configJson = get_test_configs(jobType)
 
     print "######################## Creating Spark Session ###########################"

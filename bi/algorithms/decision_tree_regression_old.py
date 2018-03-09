@@ -19,13 +19,13 @@ Decision Tree
 class DecisionTreeRegression:
 
     #@accepts(object, DataFrame)
-    def __init__(self, data_frame, df_context, data_frame_helper, spark):
+    def __init__(self, data_frame, df_context, dataframe_helper, spark):
         self._spark = spark
         self._data_frame = data_frame
         self._data_frame1 = data_frame
         #self._data_frame_filterer = DataFrameFilterer(data_frame)
-        self._measure_columns = data_frame_helper.get_numeric_columns()
-        self._dimension_columns = data_frame_helper.get_string_columns()
+        self._measure_columns = dataframe_helper.get_numeric_columns()
+        self._dimension_columns = dataframe_helper.get_string_columns()
         self.date_columns = df_context.get_date_columns()
         if self.date_columns != None:
             self._dimension_columns = list(set(self._dimension_columns)-set(self.date_columns))

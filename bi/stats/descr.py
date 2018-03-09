@@ -110,7 +110,7 @@ class DescriptiveStats:
 
     @accepts(object, basestring)
     def stats_for_dimension_column(self, dimension_column):
-        if not self._data_frame_helper.is_string_column(dimension_column):
+        if not self._dataframe_helper.is_string_column(dimension_column):
             raise BIException.non_string_column(dimension_column)
 
         col_non_nulls = FN.count(dimension_column).alias('non_nulls')

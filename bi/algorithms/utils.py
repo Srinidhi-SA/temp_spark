@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
+from pyspark.ml.regression import LinearRegressionModel
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.feature import Bucketizer
 from pyspark.ml.feature import OneHotEncoder
@@ -380,17 +381,17 @@ def add_string_index(df,string_columns):
 
 ##################################Spark ML Pipelines ###########################
 
-def create_ml_pipeline(numerical_columns,categorical_columns,target_column,algoName=None):
+def create_ml_pipeline(numerical_columns,categorical_columns,target_column,algoName=None,algoType="classification"):
     indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed') for x in categorical_columns ] #String Indexer
     encoders = [OneHotEncoder(dropLast=False, inputCol=x+"_indexed", outputCol=x+"_encoded") for x in categorical_columns] # one hot encoder
     assembler_features = VectorAssembler(inputCols=[x+"_encoded" for x in sorted(categorical_columns)]+sorted(numerical_columns), outputCol='features')
-    if algoName != "lr":
+    if algoName != "lr" and algoType == "classification":
         labelIndexer = StringIndexer(inputCol=target_column, outputCol="label")
     ml_stages = [[i,j] for i,j in zip(indexers, encoders)]
     pipeline_stages = []
     for ml_stage in ml_stages:
         pipeline_stages += ml_stage
-    if algoName != "lr":
+    if algoName != "lr" and algoType == "classification":
         pipeline_stages += [assembler_features, labelIndexer]
     else:
         pipeline_stages += [assembler_features]
@@ -402,12 +403,15 @@ def save_pipeline_or_model(pipeline,dir_path):
     Need to check if any folder exist with the given name
     if yes then 1st delete that then proceed
     """
+    print "dir_path",dir_path
     if dir_path.startswith("file"):
         new_path = dir_path[7:]
     else:
         new_path = dir_path
+    print "new_path",new_path
     if os.path.isdir(new_path):
         shutil.rmtree(new_path)
+    # os.mkdir(new_path)
     pipeline.save(dir_path)
 
 def load_pipeline(filepath):
@@ -415,6 +419,10 @@ def load_pipeline(filepath):
     return model
 
 def load_rf_model(filepath):
+    model = RandomForestClassificationModel.load(filepath)
+    return model
+
+def load_linear_regresssion_pyspark_model(filepath):
     model = RandomForestClassificationModel.load(filepath)
     return model
 
@@ -433,9 +441,12 @@ def stratified_sampling(df,target_column,split):
     sampled_df = df.sampleBy(target_column, fractions = sampling_dict, seed=0)
     return sampled_df
 
-def get_training_and_validation_data(df,target_column,split):
+def get_training_and_validation_data(df,target_column,split,appType="classification"):
     df = df.withColumn("monotonically_increasing_id", monotonically_increasing_id())
-    trainingData = stratified_sampling(df,target_column,split)
+    if appType == "classification":
+        trainingData = stratified_sampling(df,target_column,split)
+    else:
+        trainingData = df.sample(False, split, 42)
     validationIds = df.select("monotonically_increasing_id").subtract(trainingData.select("monotonically_increasing_id"))
     indexed = df.alias("indexed")
     validation = validationIds.alias("validation")
@@ -660,7 +671,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appid=None):
         card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
     else:
         try:
-            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_HEADING_MAP[appid]))]
+            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_MAP[appid]["heading"]))]
         except:
             card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
     card3Data.append(get_feature_importance(collated_summary))

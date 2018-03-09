@@ -124,8 +124,8 @@ class LinearRegression:
             p_values = [float(val) if val != None else None for val in lr_model.summary.pValues]
         except:
             p_values = [None]*len(coefficients)
-        print p_values
-        print coefficients
+        # print p_values
+        # print coefficients
         regression_result = RegressionResult(output_column, list(set(input_columns)))
         regression_result.set_params(intercept=float(lr_model.intercept),\
                                      coefficients=coefficients,\

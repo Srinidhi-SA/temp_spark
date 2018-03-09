@@ -7,6 +7,7 @@ from logistic_regression import LogisticRegression
 from decision_tree_regression import DecisionTreeRegression
 from time_series_forecasting import TimeSeriesAnalysis
 from svm import SupportVectorMachine
+from linear_regression_model import LinearRegressionModel
 
 __all__ = [
     "KmeansClustering"
@@ -17,5 +18,6 @@ __all__ = [
     "LogisticRegression",
     "DecisionTreeRegression",
     "TimeSeriesAnalysis",
-    'SupportVectorMachine'
+    'SupportVectorMachine',
+    "LinearRegressionModel"
 ]

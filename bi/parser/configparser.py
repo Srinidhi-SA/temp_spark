@@ -13,6 +13,10 @@ class ParserConfig():
         self.TransformationSettings = {}
         self.StockSettings = {}
         self.DatabaseSettings = {}
+        self.AlgorithmSettings = {}
+
+    def get_algorithm_settings(self):
+        return self.AlgorithmSettings
 
     def get_database_settings(self):
         return self.DatabaseSettings
@@ -90,3 +94,5 @@ class ParserConfig():
             self.StockSettings = self.config.get('STOCK_SETTINGS')
         if 'DATA_SOURCE' in self.config:
             self.DatabaseSettings = self.config.get('DATA_SOURCE')
+        if 'ALGORITHM_SETTING' in self.config:
+            self.AlgorithmSettings = self.config.get('ALGORITHM_SETTING')

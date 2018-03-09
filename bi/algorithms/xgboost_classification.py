@@ -6,11 +6,11 @@ from bi.common import utils as CommonUtils
 
 
 class XgboostClassifier:
-    def __init__(self, data_frame, data_frame_helper, spark):
+    def __init__(self, data_frame, dataframe_helper, spark):
         # self._spark = spark
         # self.data_frame = data_frame.toPandas()
-        # self._measure_columns = data_frame_helper.get_numeric_columns()
-        # self._dimension_columns = data_frame_helper.get_string_columns()
+        # self._measure_columns = dataframe_helper.get_numeric_columns()
+        # self._dimension_columns = dataframe_helper.get_string_columns()
         # self.classifier = initiate_forest_classifier(10,5)
         print "XGBOOST INITIALIZATION DONE"
 

@@ -1,12 +1,12 @@
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
 from sklearn import preprocessing
 
 from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
 
 
-class RandomForest:
+class LinearRegressionModel:
     def __init__(self, data_frame, dataframe_helper, spark):
         # self._spark = spark
         # self.data_frame = data_frame.toPandas()

@@ -17,11 +17,11 @@ class DensityBinner:
     """
     Utility class for binning numeric columns of a data frame
     """
-    def __init__(self, data_frame, data_frame_helper):
+    def __init__(self, data_frame, dataframe_helper):
         self._data_frame = data_frame
-        self._numeric_columns = data_frame_helper.get_numeric_columns()
-        self._column_data_types = data_frame_helper.get_column_data_types()
-        self._num_rows = data_frame_helper.get_num_rows()
+        self._numeric_columns = dataframe_helper.get_numeric_columns()
+        self._column_data_types = dataframe_helper.get_column_data_types()
+        self._num_rows = dataframe_helper.get_num_rows()
 
     @accepts(object, num_bins=int)
     def get_bins_for_all_measure_columns(self, num_bins=10):

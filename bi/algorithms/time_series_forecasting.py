@@ -2,8 +2,8 @@ class TimeSeriesAnalysis:
     def __init__(self):
         # self._spark = spark
         # self.data_frame = data_frame.toPandas()
-        # self._measure_columns = data_frame_helper.get_numeric_columns()
-        # self._dimension_columns = data_frame_helper.get_string_columns()
+        # self._measure_columns = dataframe_helper.get_numeric_columns()
+        # self._dimension_columns = dataframe_helper.get_string_columns()
         # self.classifier = initiate_forest_classifier(10,5)
         # https://grisha.org/blog/2016/02/17/triple-exponential-smoothing-forecasting-part-iii/
         print "TIME SERIES INITIALIZATION DONE"

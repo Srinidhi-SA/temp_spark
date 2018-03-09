@@ -21,23 +21,23 @@ class IndependentSampleTTest:
         :param independent_var_levels:  if independent_var has exactly two levels this parameter can be omitted,
                     otherwise two levels in independent_var need to be supplied as a tuple
         """
-        data_frame_helper = DataFrameHelper(data_frame)
+        dataframe_helper = DataFrameHelper(data_frame)
         # ensure data_frame is valid
-        if not data_frame_helper.is_valid_data_frame():
+        if not dataframe_helper.is_valid_data_frame():
             raise BIException.dataframe_invalid()
 
         # ensure data_frame contains a column by name independent_var
-        if not data_frame_helper.has_column(independent_var):
+        if not dataframe_helper.has_column(independent_var):
             raise BIException.column_does_not_exist(independent_var)
         # ensure column, independent_var, is of type string
-        if not data_frame_helper.is_string_column(independent_var):
+        if not dataframe_helper.is_string_column(independent_var):
             raise BIException.non_string_column(independent_var)
 
         # ensure data_frame contains a column by name dependent_var
-        if not data_frame_helper.has_column(dependent_var):
+        if not dataframe_helper.has_column(dependent_var):
             raise BIException.column_does_not_exist(dependent_var)
         # ensure column, dependent_var, is of numeric type
-        if not data_frame_helper.is_numeric_column(dependent_var):
+        if not dataframe_helper.is_numeric_column(dependent_var):
             raise BIException.non_numeric_column(dependent_var)
 
         self._data_frame = data_frame
@@ -161,19 +161,19 @@ class DependentSampleTTest:
     """
 
     def __init__(self, data_frame, column1, column2):
-        data_frame_helper = DataFrameHelper(data_frame)
+        dataframe_helper = DataFrameHelper(data_frame)
 
-        if not data_frame_helper.is_valid_data_frame():
+        if not dataframe_helper.is_valid_data_frame():
             raise BIException.dataframe_invalid()
 
-        if not data_frame_helper.has_column(column1):
+        if not dataframe_helper.has_column(column1):
             raise BIException.column_does_not_exist(column1)
-        if not data_frame_helper.is_numeric_column(column1):
+        if not dataframe_helper.is_numeric_column(column1):
             raise BIException.non_numeric_column(column1)
 
-        if not data_frame_helper.has_column(column2):
+        if not dataframe_helper.has_column(column2):
             raise BIException.column_does_not_exist(column2)
-        if not data_frame_helper.is_numeric_column(column2):
+        if not dataframe_helper.is_numeric_column(column2):
             raise BIException.non_numeric_column(column2)
 
         self._data_frame = data_frame
