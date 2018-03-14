@@ -98,7 +98,7 @@ class LinearRegressionModelPysparkScript:
             print "cvModel training takes",trainingTime
             bestModel = cvModel.bestModel
         elif validationDict["name"] == "trainAndtest":
-            trainingData,validationData = indexed.randomSplit([validationDict["value"],1-validationDict["value"]], seed=12345)
+            trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
             st = time.time()
             fit = linr.fit(trainingData)
             trainingTime = time.time()-st
