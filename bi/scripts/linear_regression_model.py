@@ -74,7 +74,7 @@ class LinearRegressionModelPysparkScript:
         featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
 
         # print indexed.select([result_column,"features"]).show(5)
-        MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
+        # MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
         linr = LinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10, regParam=0.3, elasticNetParam=0.8)
         if validationDict["name"] == "kFold":
@@ -126,7 +126,7 @@ class LinearRegressionModelPysparkScript:
         #     pass
 
         coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
-        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
+        # MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         transformed = bestModel.transform(validationData)
         transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
         transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
