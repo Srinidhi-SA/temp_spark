@@ -70,13 +70,54 @@ class MLModelSummary:
         self.nRules = None
         self.slug = None
         self.levelMap = None
+        self.modelParams = None
+        self.modelEvaluationMetrics = None
+        self.modelType = None #can be "regression", or "classification"
+        self.quantileSummary = None
+        self.mapeStats = None
+        self.sampleData = None
+        self.coefficinetsArray = []
+
+    def set_coefficinets_array(self,data):
+        self.coefficinetsArray = data
+    def get_coefficinets_array(self):
+        return self.coefficinetsArray
+    def set_sample_data(self,data):
+        self.sampleData = data
+    def get_sample_data(self):
+        return self.sampleData
+    def set_mape_stats(self,data):
+        self.mapeStats = data
+    def get_mape_stats(self):
+        return self.mapeStats
+    def set_quantile_summary(self,data):
+        self.quantileSummary = data
+    def get_quantile_summary(self):
+        return self.quantileSummary
+    def set_model_type(self,data):
+        self.modelType = data
+
+    def get_model_type(self):
+        return self.modelType
+
+    def set_model_evaluation_metrics(self,data):
+        self.modelEvaluationMetrics = data
+
+    def get_model_evaluation_metrics(self):
+        return self.modelEvaluationMetrics
+
+    def set_model_params(self,data):
+        self.modelParams = data
+
+    def get_model_params(self):
+        return self.modelParams
 
     def set_level_map_dict(self,data):
         self.levelMap = data
 
     def get_level_map_dict(self):
         return self.levelMap
-        
+
     def set_confusion_matrix(self,data):
         self.confusionMatrix = data
 

@@ -79,8 +79,9 @@ class ContextSetter:
         self.logger = None
 
         self.ignoreRegressionElasticityMessages = False
-        self.validationTechniqueObj = {}
+        self.validationTechniqueObj = None
         self.train_test_split = 0.6
+        self.algorithmsToRun = []
 
 
 
@@ -102,7 +103,36 @@ class ContextSetter:
         transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
         stockSettingKeys = self.STOCK_SETTINGS.keys()
         dbSettingKeys = self.DATABASE_SETTINGS.keys()
-        # algoSettingKeys = self.ALGORITHM_SETTINGS.keys()
+        
+        if len(self.ALGORITHM_SETTINGS) > 0:
+            for obj in self.ALGORITHM_SETTINGS:
+                if obj["selected"] == True:
+                    trimmedObj = {"algorithmName":obj["algorithmName"],"algorithmSlug":obj["algorithmSlug"]}
+                    trimmedParams = {}
+                    for paramObj in obj["parameters"]:
+                        if paramObj["paramType"] == "number":
+                            if paramObj["name"] != "tol":
+                                if paramObj["acceptedValue"]  != None:
+                                    trimmedParams[paramObj["name"]] = paramObj["acceptedValue"]
+                                else:
+                                    trimmedParams[paramObj["name"]] = paramObj["defaultValue"]
+                            else:
+                                if paramObj["acceptedValue"]  != None:
+                                    trimmedParams[paramObj["name"]] = float(1)/10**paramObj["acceptedValue"]
+                                else:
+                                    trimmedParams[paramObj["name"]] = float(1)/10**paramObj["defaultValue"]
+                        elif paramObj["paramType"] == "boolean":
+                            if paramObj["acceptedValue"]  != None:
+                                trimmedParams[paramObj["name"]] = paramObj["acceptedValue"]
+                            else:
+                                trimmedParams[paramObj["name"]] = paramObj["defaultValue"]
+                        elif paramObj["paramType"] == "list":
+                            selectedValue = filter(lambda x:x["selected"] == True,paramObj["defaultValue"])
+                            trimmedParams[paramObj["name"]] = selectedValue[0]["name"]
+                    trimmedObj["algorithmParams"] = trimmedParams
+                    self.algorithmsToRun.append(trimmedObj)
+
+
 
         if len(dbSettingKeys) > 0:
             if "datasource_details" in dbSettingKeys:
@@ -312,6 +342,14 @@ class ContextSetter:
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def get_algorithms_to_run(self):
+        return self.algorithmsToRun
+
+    def get_validation_dict(self):
+        if self.validationTechniqueObj == None:
+            return GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT
+        else:
+            return self.validationTechniqueObj[0]
     @accepts(object,(list))
     def update_consider_columns(self,considerCols):
         self.considercolumns = considerCols

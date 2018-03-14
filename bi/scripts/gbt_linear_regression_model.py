@@ -61,16 +61,13 @@ class LinearRegressionModelPysparkScript:
         print "model_path",model_path
         pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
-        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/modelPmml"
+        summary_filepath = str(model_path)+"/"+str(self._slug)+"/ModelSummary/summary.json"
 
         df = self._data_frame
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
 
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
-        from itertools import chain
-        featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
-
         # print indexed.select([result_column,"features"]).show(5)
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
@@ -109,21 +106,6 @@ class LinearRegressionModelPysparkScript:
         print 'Best Param (MaxIter): ', bestModel._java_obj.getMaxIter()
         print 'Best Param (elasticNetParam): ', bestModel._java_obj.getElasticNetParam()
 
-        # modelPmmlPipeline = PMMLPipeline([
-        #   ("pretrained-estimator", objs["trained_model"])
-        # ])
-        # try:
-        #     modelPmmlPipeline.target_field = result_column
-        #     modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
-        #     sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
-        #     pmmlfile = open(pmml_filepath,"r")
-        #     pmmlText = pmmlfile.read()
-        #     pmmlfile.close()
-        #     self._result_setter.update_pmml_object({self._slug:pmmlText})
-        # except:
-        #     pass
-
-        coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         transformed = bestModel.transform(validationData)
         transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
@@ -145,7 +127,7 @@ class LinearRegressionModelPysparkScript:
         metrics["mse"] = evaluator.evaluate(transformed,{evaluator.metricName: "mse"})
         metrics["mae"] = evaluator.evaluate(transformed,{evaluator.metricName: "mae"})
         runtime = round((time.time() - st_global),2)
-        print transformed.count()
+        # print transformed.count()
         mapeDf = transformed.select("mape")
         print mapeDf.show()
         mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
@@ -170,13 +152,17 @@ class LinearRegressionModelPysparkScript:
         self._model_summary.set_model_params(algoSetting["algorithmParams"])
         self._model_summary.set_quantile_summary(quantileSummaryArr)
         self._model_summary.set_mape_stats(mapeStatsArr)
-        self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
-        self._model_summary.set_coefficinets_array(coefficientsArray)
-        # print CommonUtils.convert_python_object_to_json(self._model_summary)
+        self._model_summary.set_sample_data(sampleData)
+        # self._model_summary.set_feature_importance(objs["feature_importance"])
+        # self._model_summary.set_feature_list(objs["featureList"])
+        # self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
+
+        # print json.dumps(self._model_summary,indent=2)
+
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
-                        "accuracy":self._model_summary.get_model_evaluation_metrics()["r2"],
+                        "accuracy":self._model_summary.get_model_accuracy(),
                         "slug":self._model_summary.get_slug()
                         },
             "levelcount":self._model_summary.get_level_counts(),
@@ -185,12 +171,13 @@ class LinearRegressionModelPysparkScript:
         }
 
         linrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-
         for card in linrCards:
             self._prediction_narrative.add_a_card(card)
+
         self._result_setter.set_model_summary({"linearregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
         self._result_setter.set_linr_cards(linrCards)
+
 
     def Predict(self):
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)

@@ -10,28 +10,105 @@ BASEFOLDERNAME_MODELS = "mAdvisorModels"
 BASEFOLDERNAME_SCORES = "mAdvisorScores"
 PROBABILITY_RANGE_FOR_DONUT_CHART = {"50-60%":(50,60),"60-70%":(60,70),"70-80%":(70,80),"80-90%":(80,90),"90-100%":(90,100)}
 
-APPS_ID_NAME_MAP = {
-    "1":"Automated Prediction",
-    "2":"Opportunity Scoring",
-    "3":"Churn Prediction",
-    "4":"Re-admission Prediction",
-    "5":"Physician Attrition",
-    "6":"Credit Card Fraud",
-    "7":"Claims Prediction",
-    "8":"Asset health Prediction",
-    "9":"Employee Attrition"
-}
-APPS_ID_HEADING_MAP = {
-    "1":"Feature Importance",
-    "2":"Factors influencing Opportunity Score",
-    "3":"Factors influencing Churn",
-    "4":"Factors influencing Re-admission",
-    "5":"Factors influencing Attrition",
-    "6":"Factors influencing Fraud",
-    "7":"Factors influencing Claims",
-    "8":"Factors influencing Asset health",
-    "9":"Factors influencing Attrition"
-}
+PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
+                {
+                    "name":"maxIter",
+                    "displayName":"Maximum Iteration",
+                    "defaultValue":100,
+                    "acceptedValue":None,
+                    "valueRange":[1,200],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"regParam",
+                    "displayName":"Regularization parameter",
+                    "defaultValue":0.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"elasticNetParam",
+                    "displayName":"Elastic Net Param",
+                    "defaultValue":0.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"tol",
+                    "displayName":"Convergence tolerance of iterations(e^-n)",
+                    "defaultValue":6,
+                    "acceptedValue":None,
+                    "valueRange":[3,10],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                     "name":"fitIntercept",
+                     "displayName":"Fit Intercept",
+                     "defaultValue":True,
+                     "acceptedValue":None,
+                     "paramType":"boolean",
+                     "uiElemType":"checkbox"
+                 },
+                 {
+                      "name":"standardization",
+                      "displayName":"Standardization",
+                      "defaultValue":True,
+                      "acceptedValue":None,
+                      "paramType":"boolean",
+                      "uiElemType":"checkbox"
+                  },
+                  {
+                       "name":"standardization",
+                       "displayName":"Standardization",
+                       "defaultValue":True,
+                       "acceptedValue":None,
+                       "paramType":"boolean",
+                       "uiElemType":"checkbox"
+                   },
+                   {
+                       "name":"solver",
+                       "displayName":"Solver",
+                       "defaultValue":[
+                        {
+                            "name":"l-bfgs",
+                            "selected":False,
+                            "displayName":"Limited-memory BFGS"
+                        },
+                        {
+                            "name":"auto",
+                            "selected":True,
+                            "displayName":"Automatic Selection"
+                        },
+                        {
+                            "name":"normal",
+                            "selected":False,
+                            "displayName":"Normal"
+                        }
+                       ],
+                       "paramType":"list",
+                       "uiElemType":"checkbox"
+                   },
+                {
+                    "name":"aggregationDepth",
+                    "displayName":"Aggregation Depth",
+                    "defaultValue":2,
+                    "acceptedValue":None,
+                    "valueRange":[2,5],
+                    "paramType":"number",
+                    "uiElemType":"checkbox"
+                },
+                ]
+DEFAULT_VALIDATION_OBJECT = {
+         "name":"trainAndtest",
+         "displayName":"Train and Test",
+         "value":0.7
+       }
 
 APPS_ID_MAP = {
   '11': {

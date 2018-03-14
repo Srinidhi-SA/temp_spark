@@ -39,6 +39,11 @@ def load_dataset(spark,dataframe_context):
     if df != None:
         # Dropping blank rows
         df = df.dropna(how='all', thresh=None, subset=None)
+    if df != None:
+        print "Dataset Loaded"
+        print df.printSchema()
+    else:
+        print "DATASET NOT LOADED"
     return df
 
 def get_metadata(df,spark,dataframe_context):
@@ -134,6 +139,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=subfolders)
     dataframe_context.set_model_path(model_file_path)
     app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+    algosToRun = dataframe_context.get_algorithms_to_run()
     if app_type == "CLASSIFICATION":
         try:
             st = time.time()
@@ -173,18 +179,22 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
         #     CommonUtils.print_errors_and_store_traceback(LOGGER,"svm",e)
         #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
     elif app_type == "REGRESSION":
-        try:
-            st = time.time()
-            lin_obj = LinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark)
-            lin_obj.Train()
-            print "Linear Regression Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+        for obj in algosToRun:
+            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
+                try:
+                    st = time.time()
+                    lin_obj = LinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    lin_obj.Train()
+                    print "Linear Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
+    print "="*50
 
     appid = dataframe_context.get_app_id()
-    modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,appid=appid)
+    modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
+    print "="*50
     print modelJsonOutput
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
     pmmlModels = result_setter.get_pmml_object()

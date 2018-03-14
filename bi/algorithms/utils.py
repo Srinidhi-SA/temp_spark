@@ -1,6 +1,7 @@
 import __builtin__
 import json
 import os
+import time
 import random
 import shutil
 
@@ -19,7 +20,7 @@ from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.types import StringType
 
-from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
@@ -442,11 +443,12 @@ def stratified_sampling(df,target_column,split):
     return sampled_df
 
 def get_training_and_validation_data(df,target_column,split,appType="classification"):
+    seed = 4232321145
     df = df.withColumn("monotonically_increasing_id", monotonically_increasing_id())
     if appType == "classification":
         trainingData = stratified_sampling(df,target_column,split)
     else:
-        trainingData = df.sample(False, split, 42)
+        trainingData = df.sample(False, split, seed)
     validationIds = df.select("monotonically_increasing_id").subtract(trainingData.select("monotonically_increasing_id"))
     indexed = df.alias("indexed")
     validation = validationIds.alias("validation")
@@ -560,9 +562,9 @@ def get_feature_importance(collated_summary):
     feature_importance_list = [[k,v] for k,v in feature_importance.items()]
     sorted_feature_importance_list = sorted(feature_importance_list,key = lambda x:x[1],reverse=True)
     feature_importance_data = [{"name":x[0],"value":x[1]} for x in sorted_feature_importance_list]
-    chart_data = NormalChartData(data=feature_importance_data)
+    mapeChartData = NormalChartData(data=feature_importance_data)
     chart_json = ChartJson()
-    chart_json.set_data(chart_data.get_data())
+    chart_json.set_data(mapeChartData.get_data())
     chart_json.set_chart_type("bar")
     chart_json.set_axes({"x":"name","y":"value"})
     chart_json.set_subchart(False)
@@ -570,7 +572,7 @@ def get_feature_importance(collated_summary):
     card3Chart = C3ChartData(data=chart_json)
     return card3Chart
 
-def get_total_models(collated_summary):
+def get_total_models_classification(collated_summary):
     algos = collated_summary.keys()
     n_model = 0
     algorithm_name = []
@@ -580,6 +582,18 @@ def get_total_models(collated_summary):
         if trees:
             n_model += trees
     output = "<p>mAdvisor has built {} models using {} algorithms ({}) to predict {} and \
+        has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    return output
+
+def get_total_models_regression(collated_summary):
+    algos = collated_summary.keys()
+    n_model = 0
+    algorithm_name = []
+    for val in algos:
+        trees = collated_summary[val].get("nTrees")
+        algorithm_name.append(collated_summary[val].get("algorithmName"))
+    n_model = len(algorithm_name)
+    output = "<p>mAdvisor has built {} regression models using {} algorithms ({}) to predict {} and \
         has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
@@ -619,103 +633,321 @@ def reformat_confusion_matrix(confusion_matrix):
 
 
 def create_model_summary_cards(modelSummaryClass):
-    modelSummaryCard1 = NormalCard()
-    modelSummaryCard1Data = []
-    modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
-    modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-    modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
-    modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
-    modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
-    prediction_split_array = sorted([(k,v) for k,v in modelSummaryClass.get_prediction_split().items()],key=lambda x:x[1],reverse=True)
-    for val in prediction_split_array:
-        modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
-    modelSummaryCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(modelSummaryClass.get_algorithm_name())))
-    if modelSummaryClass.get_num_trees():
-        modelSummaryCard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(modelSummaryClass.get_num_trees())))
-    if modelSummaryClass.get_num_rules():
-        modelSummaryCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(modelSummaryClass.get_num_rules())))
-    modelSummaryCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(modelSummaryClass.get_validation_method())))
-    modelSummaryCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(modelSummaryClass.get_model_accuracy())))
-    modelSummaryCard1.set_card_data(modelSummaryCard1Data)
+    if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
+        modelSummaryCard1 = NormalCard()
+        modelSummaryCard1Data = []
+        modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
+        modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
+        modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
+        prediction_split_array = sorted([(k,v) for k,v in modelSummaryClass.get_prediction_split().items()],key=lambda x:x[1],reverse=True)
+        for val in prediction_split_array:
+            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(val[0],val[1])))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Algorithm - {}</p>".format(modelSummaryClass.get_algorithm_name())))
+        if modelSummaryClass.get_num_trees():
+            modelSummaryCard1Data.append(HtmlData(data="<p>Total Trees - {}</p>".format(modelSummaryClass.get_num_trees())))
+        if modelSummaryClass.get_num_rules():
+            modelSummaryCard1Data.append(HtmlData(data="<p>Total Rules - {}</p>".format(modelSummaryClass.get_num_rules())))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(modelSummaryClass.get_validation_method())))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(modelSummaryClass.get_model_accuracy())))
+        modelSummaryCard1.set_card_data(modelSummaryCard1Data)
 
-    modelSummaryCard2 = NormalCard()
-    modelSummaryCard2Data = []
-    modelSummaryCard2Data.append(HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>"))
-    modelSummaryCard2Table = TableData()
-    modelSummaryCard2Table.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
-    modelSummaryCard2Table.set_table_type("confusionMatrix")
-    modelSummaryCard2Table.set_table_top_header("Actual")
-    modelSummaryCard2Table.set_table_left_header("Predicted")
-    modelSummaryCard2Data.append(modelSummaryCard2Table)
-    modelSummaryCard2.set_card_data(modelSummaryCard2Data)
-    return [modelSummaryCard1,modelSummaryCard2]
+        modelSummaryCard2 = NormalCard()
+        modelSummaryCard2Data = []
+        modelSummaryCard2Data.append(HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>"))
+        modelSummaryCard2Table = TableData()
+        modelSummaryCard2Table.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
+        modelSummaryCard2Table.set_table_type("confusionMatrix")
+        modelSummaryCard2Table.set_table_top_header("Actual")
+        modelSummaryCard2Table.set_table_left_header("Predicted")
+        modelSummaryCard2Data.append(modelSummaryCard2Table)
+        modelSummaryCard2.set_card_data(modelSummaryCard2Data)
+        return [modelSummaryCard1,modelSummaryCard2]
+    elif modelSummaryClass.get_model_type() == "regression":
+        modelSummaryCard1 = NormalCard()
+        modelSummaryCard1.set_card_width(50)
+        modelSummaryCard1Data = []
+        modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
+        modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
+        # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
+        modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
+        quantileSummaryArr = modelSummaryClass.get_quantile_summary()
+        targetVariable = modelSummaryClass.get_target_variable()
+        for val in quantileSummaryArr:
+            if val[0] == "0":
+                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q1(less than {}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
+            elif val[0]=="3":
+                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q3(>{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["mean"],2))))
+            elif val[0]=="2":
+                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q2-Q3(between {}-{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
+            else:
+                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q2(between {}-{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
+
+        modelSummaryCard1Data.append(HtmlData(data="<h5>Algorithm Parameters:</h5>"))
+        modelParams = modelSummaryClass.get_model_params()
+        for k,v in modelParams.items():
+            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(k,v)))
+        modelSummaryCard1.set_card_data(modelSummaryCard1Data)
+
+        ######################MAPE CHART#######################################
+
+        mapeChartData = []
+        mapeStatsArr = modelSummaryClass.get_mape_stats()
+        for val in mapeStatsArr:
+            if val[1]["splitRange"][0] == 0:
+                mapeChartData.append({"key":"<{}%".format(val[1]["splitRange"][1]),"value":val[1]["count"]})
+            elif val[1]["splitRange"][1] == 100:
+                mapeChartData.append({"key":">{}%".format(val[1]["splitRange"][0]),"value":val[1]["count"]})
+            else:
+                mapeChartData.append({"key":"{}-{}%".format(val[1]["splitRange"][0],val[1]["splitRange"][1]),"value":val[1]["count"]})
+        mapeChartJson = ChartJson()
+        mapeChartJson.set_data(mapeChartData)
+        mapeChartJson.set_chart_type("bar")
+        mapeChartJson.set_label_text({'x':' ','y':'No of Observations'})
+        mapeChartJson.set_axes({"x":"key","y":"value"})
+        mapeChartJson.set_title('Error Distribution Chart (MAPE)')
+        # mapeChartJson.set_yaxis_number_format(".4f")
+        # mapeChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
+
+        modelSummaryMapeChart = C3ChartData(data=mapeChartJson)
+        modelSummaryMapeChart.set_width_percent(50)
+
+        ######################Actual Vs Predicted CHART#########################
+
+        sampleData = modelSummaryClass.get_sample_data()
+        sampleData = pd.DataFrame(sampleData)
+        sampleData.reset_index(inplace=True)
+        actualVsPredictedData = sampleData[[targetVariable,"prediction"]].T.to_dict()
+        actualVsPredictedChartJson = ChartJson()
+        actualVsPredictedChartJson.set_chart_type("scatter")
+        actualVsPredictedChartJson.set_data({"data":actualVsPredictedData})
+        actualVsPredictedChartJson.set_axes({"x":targetVariable,"y":"predicted"})
+        actualVsPredictedChartJson.set_label_text({'x':'Actual Values','y':'Predicted Values'})
+
+        actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
+        actualVsPredictedChart.set_width_percent(50)
+
+        ##################### Residual Chart #####################################
+        residualData = sampleData[["index","difference"]].T.to_dict()
+        residualChartJson = ChartJson()
+        residualChartJson.set_chart_type("scatter")
+        residualChartJson.set_data({"data":residualData})
+        residualChartJson.set_axes({"x":"index","y":"difference"})
+        residualChartJson.set_label_text({'x':' ','y':'Residuals'})
+        residualChart = C3ChartData(data=residualChartJson)
+        residualButton = PopupData()
+        residualButton.set_data(residualChart)
+        residualButton.set_name("View Residuals")
+
+        return [modelSummaryCard1,[modelSummaryMapeChart,actualVsPredictedChart,residualButton]]
 
 
-def collated_model_summary_card(result_setter,prediction_narrative,appid=None):
-    collated_summary = result_setter.get_model_summary()
-    card1 = NormalCard()
-    card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
-    card1Data.append(HtmlData(data = get_total_models(collated_summary)))
-    card1.set_card_data(card1Data)
-    card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
+def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
+    if appType == "CLASSIFICATION":
+        collated_summary = result_setter.get_model_summary()
+        card1 = NormalCard()
+        card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
+        card1Data.append(HtmlData(data = get_total_models_classification(collated_summary)))
+        card1.set_card_data(card1Data)
+        card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
 
-    card2 = NormalCard()
-    card2_elements = get_model_comparison(collated_summary)
-    card2Data = [card2_elements[0],card2_elements[1]]
-    card2.set_card_data(card2Data)
-    # prediction_narrative.insert_card_at_given_index(card2,1)
-    card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
+        card2 = NormalCard()
+        card2_elements = get_model_comparison(collated_summary)
+        card2Data = [card2_elements[0],card2_elements[1]]
+        card2.set_card_data(card2Data)
+        # prediction_narrative.insert_card_at_given_index(card2,1)
+        card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
-    card3 = NormalCard()
-    if appid == None:
-        card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
-    else:
-        try:
-            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_MAP[appid]["heading"]))]
-        except:
+        card3 = NormalCard()
+        if appid == None:
             card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
-    card3Data.append(get_feature_importance(collated_summary))
-    card3.set_card_data(card3Data)
-    # prediction_narrative.insert_card_at_given_index(card3,2)
-    card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
-    modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
-    modelResult = json.loads(modelResult)
-    existing_cards = modelResult["listOfCards"]
-    existing_cards = result_setter.get_all_algos_cards()
-    print "existing_cards",existing_cards
-    # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
-    all_cards = [card1,card2,card3] + existing_cards
+        else:
+            try:
+                card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_MAP[appid]["heading"]))]
+            except:
+                card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
+        card3Data.append(get_feature_importance(collated_summary))
+        card3.set_card_data(card3Data)
+        # prediction_narrative.insert_card_at_given_index(card3,2)
+        card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+        modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
+        modelResult = json.loads(modelResult)
+        existing_cards = modelResult["listOfCards"]
+        existing_cards = result_setter.get_all_classification_cards()
+        print "existing_cards",existing_cards
+        # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
+        all_cards = [card1,card2,card3] + existing_cards
 
-    modelResult = NarrativesTree()
-    modelResult.add_cards(all_cards)
-    modelResult = CommonUtils.convert_python_object_to_json(modelResult)
-    modelJsonOutput = ModelSummary()
-    modelJsonOutput.set_model_summary(json.loads(modelResult))
-    ####
-    rfModelSummary = result_setter.get_random_forest_model_summary()
-    lrModelSummary = result_setter.get_logistic_regression_model_summary()
-    xgbModelSummary = result_setter.get_xgboost_model_summary()
-    svmModelSummary = result_setter.get_svm_model_summary()
+        modelResult = NarrativesTree()
+        modelResult.add_cards(all_cards)
+        modelResult = CommonUtils.convert_python_object_to_json(modelResult)
+        modelJsonOutput = ModelSummary()
+        modelJsonOutput.set_model_summary(json.loads(modelResult))
+        ####
+        rfModelSummary = result_setter.get_random_forest_model_summary()
+        lrModelSummary = result_setter.get_logistic_regression_model_summary()
+        xgbModelSummary = result_setter.get_xgboost_model_summary()
+        svmModelSummary = result_setter.get_svm_model_summary()
 
-    model_dropdowns = []
-    model_features = {}
-    model_configs = {}
-    labelMappingDict = {}
-    targetVariableLevelcount = {}
-    target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
-    for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
-        if obj != None:
-            model_dropdowns.append(obj["dropdown"])
-            model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
-            labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]
-            if targetVariableLevelcount == {}:
-                targetVariableLevelcount = obj["levelcount"][target_variable]
-    model_configs = {"target_variable":[target_variable]}
-    model_configs["modelFeatures"] = model_features
-    model_configs["labelMappingDict"] = labelMappingDict
-    model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
+        model_dropdowns = []
+        model_features = {}
+        model_configs = {}
+        labelMappingDict = {}
+        targetVariableLevelcount = {}
+        target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
+            if obj != None:
+                model_dropdowns.append(obj["dropdown"])
+                model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
+                labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]
+                if targetVariableLevelcount == {}:
+                    targetVariableLevelcount = obj["levelcount"][target_variable]
+        model_configs = {"target_variable":[target_variable]}
+        model_configs["modelFeatures"] = model_features
+        model_configs["labelMappingDict"] = labelMappingDict
+        model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
 
-    modelJsonOutput.set_model_dropdown(model_dropdowns)
-    modelJsonOutput.set_model_config(model_configs)
-    modelJsonOutput = modelJsonOutput.get_json_data()
-    return modelJsonOutput
+        modelJsonOutput.set_model_dropdown(model_dropdowns)
+        modelJsonOutput.set_model_config(model_configs)
+        modelJsonOutput = modelJsonOutput.get_json_data()
+        return modelJsonOutput
+    else:
+        collated_summary = result_setter.get_model_summary()
+        card1 = NormalCard()
+        card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
+        card1Data.append(HtmlData(data = get_total_models_regression(collated_summary)))
+        card1.set_card_data(card1Data)
+        card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
+
+        card2 = None
+        if "linearregression" in collated_summary:
+            card2 = NormalCard()
+            coefficientsArray = sorted(collated_summary["linearregression"]["coefficinetsArray"],key=lambda x:abs(x[1]),reverse=True)
+            coefficientsArray = [{"key":tup[0],"value":tup[1]} for tup in coefficientsArray]
+            chartDataValues = [x["value"] for x in coefficientsArray]
+            coefficientsChartJson = ChartJson()
+            coefficientsChartJson.set_data(coefficientsArray)
+            coefficientsChartJson.set_chart_type("bar")
+            coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
+            coefficientsChartJson.set_axes({"x":"key","y":"value"})
+            coefficientsChartJson.set_title('Coefficients (LR)')
+            coefficientsChartJson.set_yaxis_number_format(".4f")
+            # coefficientsChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
+            coefficientsChart = C3ChartData(data=coefficientsChartJson)
+            card2Data = [HtmlData(data="<h4>Model Summary</h4>"),coefficientsChart]
+            card2.set_card_data(card2Data)
+            card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
+        else:
+            card2=None
+
+        card3 = NormalCard()
+        allMetricsData = []
+        metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
+        metricTableTopRow = [""]+metricNames
+        allMetricsData.append(metricTableTopRow)
+        for algoName,dataObj in collated_summary.items():
+            algoRow = []
+            algoRow.append(algoName)
+            for val in metricNames:
+                algoRow.append(dataObj["modelEvaluationMetrics"][val])
+            allMetricsData.append(algoRow)
+
+        evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
+        card3Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
+        card3.set_card_data(card3Data)
+        card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+
+        existing_cards = result_setter.get_all_regression_cards()
+        # print "existing_cards",existing_cards
+        # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
+        all_cards = [card1,card2,card3] + existing_cards
+        all_cards = [x for x in all_cards if x != None]
+
+        modelResult = NarrativesTree()
+        modelResult.add_cards(all_cards)
+        modelResult = CommonUtils.convert_python_object_to_json(modelResult)
+        modelJsonOutput = ModelSummary()
+        modelJsonOutput.set_model_summary(json.loads(modelResult))
+        ####
+        linrModelSummary = result_setter.get_linear_regression_model_summary()
+
+        model_dropdowns = []
+        model_features = {}
+        model_configs = {}
+        target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
+        allRegressionModelSummary = [linrModelSummary]
+        for obj in allRegressionModelSummary:
+            if obj != None:
+                model_dropdowns.append(obj["dropdown"])
+                model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
+
+        model_configs = {"target_variable":[target_variable]}
+        model_configs["modelFeatures"] = model_features
+        model_configs["labelMappingDict"] = {}
+        model_configs["targetVariableLevelcount"] = []
+
+        modelJsonOutput.set_model_dropdown(model_dropdowns)
+        modelJsonOutput.set_model_config(model_configs)
+        modelJsonOutput = modelJsonOutput.get_json_data()
+        return modelJsonOutput
+
+
+
+
+def get_mape_stats(df,colname):
+    df = df.na.drop(subset=colname)
+    splits = [0,5,15,25,100]
+    splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
+    print splitRanges
+    st = time.time()
+    bucketizer = Bucketizer(inputCol=colname,outputCol="mapeGULSHAN")
+    bucketizer.setSplits(splits)
+    df = bucketizer.transform(df)
+    print df.show()
+    print "mape bucketizer in",time.time()-st
+    quantileGrpDf = df.groupby("mapeGULSHAN").agg(FN.count(colname).alias('count'))
+    splitDict = {}
+    for val in quantileGrpDf.collect():
+        splitDict[str(int(val[0]))] = {"count":val[1]}
+    for idx,val in enumerate(splitRanges):
+        if str(idx) in splitDict:
+            splitDict[str(idx)].update({"splitRange":val})
+    return splitDict
+
+def get_quantile_summary(df,colname):
+    print "1"
+    df = df.na.drop(subset=colname)
+    st = time.time()
+    df = df.orderBy(colname)
+    print "Ordering takes",time.time()-st
+    print "2"
+    print df.show()
+    dfDesc = df.describe().toPandas()
+    print "3"
+    descrDict = dict(zip(dfDesc["summary"],dfDesc[colname]))
+    print "4"
+    quantiles = df.stat.approxQuantile(colname,[0.25,0.5,0.75],0.0)
+    print "5"
+    biasVal = 9999
+    splits = [float(descrDict["min"])-biasVal]+quantiles+[float(descrDict["max"])+biasVal]
+    splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
+    splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
+    splitRanges[-1] = (splitRanges[-1][0]+biasVal,splitRanges[-1][1]-biasVal)
+    print splitRanges
+    bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
+    print "6"
+    bucketizer.setSplits(splits)
+    print "7"
+    df = bucketizer.transform(df)
+    print "8"
+    print df.show()
+    quantileGrpDf = df.groupby("buckGULSHAN").agg(FN.sum(colname).alias('sum'),FN.mean(colname).alias('mean'),FN.count(colname).alias('count'))
+    splitDict = {}
+    for val in quantileGrpDf.collect():
+        splitDict[str(int(val[0]))] = {"sum":val[1],"mean":val[2],"count":val[3]}
+    for idx,val in enumerate(splitRanges):
+        if str(idx) in splitDict:
+            splitDict[str(idx)].update({"splitRange":val})
+    return splitDict

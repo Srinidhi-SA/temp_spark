@@ -332,3 +332,26 @@ class ToggleData:
 
     def get_data_type(self):
         return self.dataType
+
+class PopupData:
+    def __init__(self,data=None):
+        self.dataType = "button"
+        self.widthPercent = 100
+        self.data = None
+        self.name = ""
+
+    # @accepts(object,data=TableData)
+    def set_data(self,data):
+        self.data = data
+
+    def set_name(self,data):
+        self.name = data
+
+    def set_width_percent(self,data):
+        self.widthPercent = data
+
+    def get_data(self):
+        return self.data
+
+    def get_data_type(self):
+        return self.dataType
