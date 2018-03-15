@@ -724,7 +724,8 @@ def create_model_summary_cards(modelSummaryClass):
         sampleData = modelSummaryClass.get_sample_data()
         sampleData = pd.DataFrame(sampleData)
         sampleData.reset_index(inplace=True)
-        actualVsPredictedData = sampleData[[targetVariable,"prediction"]].T.to_dict()
+        actualVsPredictedData = sampleData[[targetVariable,"prediction"]].T.to_dict().values()
+        actualVsPredictedData = sorted(actualVsPredictedData,key=lambda x:x[targetVariable])
         actualVsPredictedChartJson = ChartJson()
         actualVsPredictedChartJson.set_chart_type("scatter")
         actualVsPredictedChartJson.set_data({"data":actualVsPredictedData})
@@ -735,7 +736,8 @@ def create_model_summary_cards(modelSummaryClass):
         actualVsPredictedChart.set_width_percent(50)
 
         ##################### Residual Chart #####################################
-        residualData = sampleData[["index","difference"]].T.to_dict()
+        residualData = sampleData[["index","difference"]].T.to_dict().values()
+        residualData = sorted(residualData,key=lambda x:x["index"])
         residualChartJson = ChartJson()
         residualChartJson.set_chart_type("scatter")
         residualChartJson.set_data({"data":residualData})
