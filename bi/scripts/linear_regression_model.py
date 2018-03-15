@@ -127,8 +127,8 @@ class LinearRegressionModelPysparkScript:
         #     pass
 
         coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
-        print " saving The world "*100
-        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
+        # print " saving The world "*100
+        # MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         transformed = bestModel.transform(validationData)
         transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
         transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
