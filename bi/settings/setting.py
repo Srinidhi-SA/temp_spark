@@ -104,6 +104,120 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "uiElemType":"checkbox"
                 },
                 ]
+PYSPARK_ML_GBT_REGRESSION_PARAMS = [
+                {
+                    "name":"maxIter",
+                    "displayName":"Maximum Iteration",
+                    "defaultValue":20,
+                    "acceptedValue":None,
+                    "valueRange":[1,100],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"maxDepth",
+                    "displayName":"Depth Of Trees",
+                    "defaultValue":5,
+                    "acceptedValue":None,
+                    "valueRange":[2,20],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"maxBins",
+                    "displayName":"Maximum Number Of Bins",
+                    "defaultValue":32,
+                    "acceptedValue":None,
+                    "valueRange":[16,128],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "powerOf2":True
+                },
+                {
+                    "name":"checkpointInterval",
+                    "displayName":"Check Point Interval",
+                    "defaultValue":10,
+                    "acceptedValue":None,
+                    "valueRange":[10,20],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"minInstancesPerNode",
+                    "displayName":"Minimum Instances Per Node",
+                    "defaultValue":1,
+                    "acceptedValue":None,
+                    "valueRange":[1,10],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"subsamplingRate",
+                    "displayName":"Sub Sampling Rate",
+                    "defaultValue":1.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"minInfoGain",
+                    "displayName":"Minimum Info Gain",
+                    "defaultValue":0.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                    "name":"maxMemoryInMB",
+                    "displayName":"Maximum Memory Available",
+                    "defaultValue":256,
+                    "acceptedValue":None,
+                    "valueRange":[128,10240],
+                    "paramType":"number",
+                    "uiElemType":"slider"
+                },
+                {
+                     "name":"cacheNodeIds",
+                     "displayName":"Cache Node Ids",
+                     "defaultValue":False,
+                     "acceptedValue":None,
+                     "paramType":"boolean",
+                     "uiElemType":"checkbox"
+                 },
+               {
+                   "name":"lossType",
+                   "displayName":"Loss Type",
+                   "defaultValue":[
+                    {
+                        "name":"squared",
+                        "selected":True,
+                        "displayName":"Squared Loss"
+                    },
+                    {
+                        "name":"absolute",
+                        "selected":False,
+                        "displayName":"Huber Loss"
+                    }
+                   ],
+                   "paramType":"list",
+                   "uiElemType":"checkbox"
+               },
+               {
+                   "name":"impuriy",
+                   "displayName":"Impurity Index",
+                   "defaultValue":[
+                    {
+                        "name":"variance",
+                        "selected":True,
+                        "displayName":"Variance"
+                    }
+                   ],
+                   "paramType":"list",
+                   "uiElemType":"checkbox"
+               },
+                ]
 DEFAULT_VALIDATION_OBJECT = {
          "name":"trainAndtest",
          "displayName":"Train and Test",
@@ -197,14 +311,16 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"lr":"logisticregression",
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
-            ALGORITHMRANDOMSLUG+"linr":"linearregression"
+            ALGORITHMRANDOMSLUG+"linr":"linearregression",
+            ALGORITHMRANDOMSLUG+"gbtr":"gbtregression"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
             "logisticregression":ALGORITHMRANDOMSLUG+"lr",
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
             "svm":ALGORITHMRANDOMSLUG+"svm",
-            "linearregression":ALGORITHMRANDOMSLUG+"linr"
+            "linearregression":ALGORITHMRANDOMSLUG+"linr",
+            "gbtregression":ALGORITHMRANDOMSLUG+"gbtr"
             }
 
 scriptsMapping = {

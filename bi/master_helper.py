@@ -14,6 +14,7 @@ from bi.scripts.xgboost_classification import XgboostScript
 from bi.scripts.logistic_regression import LogisticRegressionScript
 from bi.scripts.svm import SupportVectorMachineScript
 from bi.scripts.linear_regression_model import LinearRegressionModelPysparkScript
+from bi.scripts.gbt_linear_regression_model import GBTRegressionModelPysparkScript
 
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
@@ -188,6 +189,15 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     print "Linear Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
+                try:
+                    st = time.time()
+                    lin_obj = GBTRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    lin_obj.Train()
+                    print "GBT Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
     print "="*50

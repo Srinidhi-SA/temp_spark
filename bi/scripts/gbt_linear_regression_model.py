@@ -6,6 +6,8 @@ try:
 except:
     import pickle
 
+from itertools import chain
+
 from pyspark.sql import SQLContext
 from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
@@ -21,7 +23,7 @@ from bi.narratives.chisquare import ChiSquareNarratives
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
 from pyspark.sql.types import *
-from pyspark.ml.regression import LinearRegression
+from pyspark.ml.regression import GBTRegressor
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
@@ -34,7 +36,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class LinearRegressionModelPysparkScript:
+class GBTRegressionModelPysparkScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -45,12 +47,12 @@ class LinearRegressionModelPysparkScript:
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]
 
     def Train(self):
         st_global = time.time()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"],algosToRun)[0]
+        algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"],algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -59,19 +61,23 @@ class LinearRegressionModelPysparkScript:
         model_path = self._dataframe_context.get_model_path()
         validationDict = self._dataframe_context.get_validation_dict()
         print "model_path",model_path
-        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
-        summary_filepath = str(model_path)+"/"+str(self._slug)+"/ModelSummary/summary.json"
+        # pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        # model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pipeline_filepath = str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = str(model_path)+"/"+str(self._slug)+"/model"
+        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
 
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
+        featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
+
         # print indexed.select([result_column,"features"]).show(5)
-        MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
+        # MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-        linr = LinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10, regParam=0.3, elasticNetParam=0.8)
+        gbtr = GBTRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10)
         if validationDict["name"] == "kFold":
             defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
             numFold = validationDict["value"]
@@ -79,11 +85,11 @@ class LinearRegressionModelPysparkScript:
                 numFold = 3
             trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
             paramGrid = ParamGridBuilder()\
-                .addGrid(linr.regParam, [0.1, 0.01]) \
-                .addGrid(linr.fitIntercept, [False, True])\
-                .addGrid(linr.elasticNetParam, [0.0, 0.5, 1.0])\
+                .addGrid(gbtr.regParam, [0.1, 0.01]) \
+                .addGrid(gbtr.fitIntercept, [False, True])\
+                .addGrid(gbtr.elasticNetParam, [0.0, 0.5, 1.0])\
                 .build()
-            crossval = CrossValidator(estimator=linr,
+            crossval = CrossValidator(estimator=gbtr,
                           estimatorParamMaps=paramGrid,
                           evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
                           numFolds=numFold)
@@ -93,20 +99,23 @@ class LinearRegressionModelPysparkScript:
             print "cvModel training takes",trainingTime
             bestModel = cvModel.bestModel
         elif validationDict["name"] == "trainAndtest":
-            trainingData,validationData = indexed.randomSplit([validationDict["value"],1-validationDict["value"]], seed=12345)
+            trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
             st = time.time()
-            fit = linr.fit(trainingData)
+            fit = gbtr.fit(trainingData)
             trainingTime = time.time()-st
             print "time to train",trainingTime
             bestModel = fit
-        print bestModel.explainParams()
-        print bestModel.extractParamMap()
-        print bestModel.params
-        print 'Best Param (regParam): ', bestModel._java_obj.getRegParam()
-        print 'Best Param (MaxIter): ', bestModel._java_obj.getMaxIter()
-        print 'Best Param (elasticNetParam): ', bestModel._java_obj.getElasticNetParam()
+        # print bestModel.explainParams()
+        # print bestModel.extractParamMap()
+        # print bestModel.params
+        # print 'Best Param (regParam): ', bestModel._java_obj.getRegParam()
+        # print 'Best Param (MaxIter): ', bestModel._java_obj.getMaxIter()
+        # print 'Best Param (elasticNetParam): ', bestModel._java_obj.getElasticNetParam()
 
-        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
+
+        # coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
+        # print coefficientsArray
+        # MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         transformed = bestModel.transform(validationData)
         transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
         transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
@@ -127,7 +136,7 @@ class LinearRegressionModelPysparkScript:
         metrics["mse"] = evaluator.evaluate(transformed,{evaluator.metricName: "mse"})
         metrics["mae"] = evaluator.evaluate(transformed,{evaluator.metricName: "mae"})
         runtime = round((time.time() - st_global),2)
-        # print transformed.count()
+        print transformed.count()
         mapeDf = transformed.select("mape")
         print mapeDf.show()
         mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
@@ -152,17 +161,13 @@ class LinearRegressionModelPysparkScript:
         self._model_summary.set_model_params(algoSetting["algorithmParams"])
         self._model_summary.set_quantile_summary(quantileSummaryArr)
         self._model_summary.set_mape_stats(mapeStatsArr)
-        self._model_summary.set_sample_data(sampleData)
-        # self._model_summary.set_feature_importance(objs["feature_importance"])
-        # self._model_summary.set_feature_list(objs["featureList"])
-        # self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
-
-        # print json.dumps(self._model_summary,indent=2)
-
+        self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
+        # self._model_summary.set_coefficinets_array(coefficientsArray)
+        # print CommonUtils.convert_python_object_to_json(self._model_summary)
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
-                        "accuracy":self._model_summary.get_model_accuracy(),
+                        "accuracy":self._model_summary.get_model_evaluation_metrics()["r2"],
                         "slug":self._model_summary.get_slug()
                         },
             "levelcount":self._model_summary.get_level_counts(),
@@ -170,14 +175,14 @@ class LinearRegressionModelPysparkScript:
             "levelMapping":self._model_summary.get_level_map_dict()
         }
 
-        linrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        for card in linrCards:
+        gbtrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+
+        for card in gbtrCards:
             self._prediction_narrative.add_a_card(card)
-
-        self._result_setter.set_model_summary({"linearregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_model_summary({"gbtregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
-        self._result_setter.set_linr_cards(linrCards)
-
+        self._result_setter.set_gbtr_cards(gbtrCards)
+        print "YO-YO"*200
 
     def Predict(self):
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)

@@ -741,7 +741,12 @@ def create_model_summary_cards(modelSummaryClass):
         residualButton.set_data(residualChart)
         residualButton.set_name("View Residuals")
 
-        return [modelSummaryCard1,[modelSummaryMapeChart,actualVsPredictedChart,residualButton]]
+        modelSummaryCard2 = NormalCard()
+        modelSummaryCard2.set_card_width(50)
+        modelSummaryCard2.set_card_data([modelSummaryMapeChart,actualVsPredictedChart,residualButton])
+
+
+        return [modelSummaryCard1,modelSummaryCard2]
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
@@ -930,7 +935,7 @@ def get_quantile_summary(df,colname):
     print "4"
     quantiles = df.stat.approxQuantile(colname,[0.25,0.5,0.75],0.0)
     print "5"
-    biasVal = 9999
+    biasVal = 1
     splits = [float(descrDict["min"])-biasVal]+quantiles+[float(descrDict["max"])+biasVal]
     splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
     splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
