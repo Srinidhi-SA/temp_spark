@@ -62,9 +62,9 @@ class LinearRegressionModelPysparkScript:
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
         print "model_path",model_path
-        pipeline_filepath = str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        model_filepath = str(model_path)+"/"+str(self._slug)+"/model"
-        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/modelPmml"
+        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
