@@ -57,10 +57,11 @@ class LinearRegressionModelPysparkScript:
         categorical_columns = [x for x in categorical_columns if x != result_column]
 
         model_path = self._dataframe_context.get_model_path()
+        model_path = self._dataframe_context.get_model_path()
+        if model_path.startswith("file"):
+            model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
         print "model_path",model_path
-        # pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        # model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
         pipeline_filepath = str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = str(model_path)+"/"+str(self._slug)+"/modelPmml"

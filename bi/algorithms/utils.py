@@ -413,7 +413,12 @@ def save_pipeline_or_model(pipeline,dir_path):
     if os.path.isdir(new_path):
         shutil.rmtree(new_path)
     # os.mkdir(new_path)
-    pipeline.save(dir_path)
+    try:
+        print "saving in path",dir_path
+        pipeline.save(dir_path)
+    except:
+        print "saving in path",new_path
+        pipeline.save(new_path)
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
