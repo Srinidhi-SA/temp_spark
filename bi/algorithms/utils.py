@@ -717,7 +717,6 @@ def create_model_summary_cards(modelSummaryClass):
         # mapeChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
 
         modelSummaryMapeChart = C3ChartData(data=mapeChartJson)
-        modelSummaryMapeChart.set_width_percent(50)
 
         ######################Actual Vs Predicted CHART#########################
 
@@ -733,7 +732,6 @@ def create_model_summary_cards(modelSummaryClass):
         actualVsPredictedChartJson.set_label_text({'x':'Actual Values','y':'Predicted Values'})
 
         actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
-        actualVsPredictedChart.set_width_percent(50)
 
         ##################### Residual Chart #####################################
         residualData = sampleData[["index","difference"]].T.to_dict().values()
