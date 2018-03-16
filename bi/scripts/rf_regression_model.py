@@ -77,7 +77,7 @@ class RFRegressionModelPysparkScript:
         # print indexed.select([result_column,"features"]).show(5)
         # MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-        rfr = rfRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10)
+        rfr = rfRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
         if validationDict["name"] == "kFold":
             defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
             numFold = validationDict["value"]
