@@ -5,8 +5,8 @@ try:
     import cPickle as pickle
 except:
     import pickle
-from itertools import chain
 
+from itertools import chain
 
 from pyspark.sql import SQLContext
 from pyspark.sql.types import DoubleType
@@ -23,7 +23,7 @@ from bi.narratives.chisquare import ChiSquareNarratives
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
 from pyspark.sql.types import *
-from pyspark.ml.regression import LinearRegression
+from pyspark.ml.regression import RandomForestRegressor
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
@@ -36,7 +36,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class LinearRegressionModelPysparkScript:
+class RFRegressionModelPysparkScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -47,12 +47,12 @@ class LinearRegressionModelPysparkScript:
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]
 
     def Train(self):
         st_global = time.time()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"],algosToRun)[0]
+        algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"],algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -77,7 +77,7 @@ class LinearRegressionModelPysparkScript:
         # print indexed.select([result_column,"features"]).show(5)
         # MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-        linr = LinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10, regParam=0.3, elasticNetParam=0.8)
+        rfr = rfRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10)
         if validationDict["name"] == "kFold":
             defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
             numFold = validationDict["value"]
@@ -85,11 +85,11 @@ class LinearRegressionModelPysparkScript:
                 numFold = 3
             trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
             paramGrid = ParamGridBuilder()\
-                .addGrid(linr.regParam, [0.1, 0.01]) \
-                .addGrid(linr.fitIntercept, [False, True])\
-                .addGrid(linr.elasticNetParam, [0.0, 0.5, 1.0])\
+                .addGrid(rfr.regParam, [0.1, 0.01]) \
+                .addGrid(rfr.fitIntercept, [False, True])\
+                .addGrid(rfr.elasticNetParam, [0.0, 0.5, 1.0])\
                 .build()
-            crossval = CrossValidator(estimator=linr,
+            crossval = CrossValidator(estimator=rfr,
                           estimatorParamMaps=paramGrid,
                           evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
                           numFolds=numFold)
@@ -101,32 +101,17 @@ class LinearRegressionModelPysparkScript:
         elif validationDict["name"] == "trainAndtest":
             trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
             st = time.time()
-            fit = linr.fit(trainingData)
+            fit = rfr.fit(trainingData)
             trainingTime = time.time()-st
             print "time to train",trainingTime
             bestModel = fit
-        print bestModel.explainParams()
-        print bestModel.extractParamMap()
-        print bestModel.params
-        print 'Best Param (regParam): ', bestModel._java_obj.getRegParam()
-        print 'Best Param (MaxIter): ', bestModel._java_obj.getMaxIter()
-        print 'Best Param (elasticNetParam): ', bestModel._java_obj.getElasticNetParam()
 
-        # modelPmmlPipeline = PMMLPipeline([
-        #   ("pretrained-estimator", objs["trained_model"])
-        # ])
-        # try:
-        #     modelPmmlPipeline.target_field = result_column
-        #     modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
-        #     sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
-        #     pmmlfile = open(pmml_filepath,"r")
-        #     pmmlText = pmmlfile.read()
-        #     pmmlfile.close()
-        #     self._result_setter.update_pmml_object({self._slug:pmmlText})
-        # except:
-        #     pass
-
-        coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
+        featureImportance = bestModel.featureImportances
+        print featureImportance,type(featureImportance)
+        # print featureImportance[0],len(featureImportance[1],len(featureImportance[2]))
+        print len(featureMapping)
+        featuresArray = [(name, featureImportance[idx]) for idx, name in featureMapping]
+        print featuresArray
         # MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         transformed = bestModel.transform(validationData)
         transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
@@ -162,8 +147,8 @@ class LinearRegressionModelPysparkScript:
         quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
         # print quantileSummaryArr
         self._model_summary.set_model_type("regression")
-        self._model_summary.set_algorithm_name("Linear Regression")
-        self._model_summary.set_algorithm_display_name("Linear Regression")
+        self._model_summary.set_algorithm_name("rf Regression")
+        self._model_summary.set_algorithm_display_name("rf Regression")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_training_time(trainingTime)
@@ -174,7 +159,7 @@ class LinearRegressionModelPysparkScript:
         self._model_summary.set_quantile_summary(quantileSummaryArr)
         self._model_summary.set_mape_stats(mapeStatsArr)
         self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
-        self._model_summary.set_coefficinets_array(coefficientsArray)
+        self._model_summary.set_feature_importance(featureImportance)
         # print CommonUtils.convert_python_object_to_json(self._model_summary)
         modelSummaryJson = {
             "dropdown":{
@@ -187,13 +172,13 @@ class LinearRegressionModelPysparkScript:
             "levelMapping":self._model_summary.get_level_map_dict()
         }
 
-        linrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        rfrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
-        for card in linrCards:
+        for card in rfrCards:
             self._prediction_narrative.add_a_card(card)
-        self._result_setter.set_model_summary({"linearregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
-        self._result_setter.set_linr_cards(linrCards)
+        self._result_setter.set_model_summary({"rfregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_rf_regression_model_summart(modelSummaryJson)
+        self._result_setter.set_rfr_cards(rfrCards)
 
     def Predict(self):
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)

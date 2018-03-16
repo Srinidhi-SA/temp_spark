@@ -18,7 +18,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "acceptedValue":None,
                     "valueRange":[1,200],
                     "paramType":"number",
-                    "uiElemType":"slider"
+                    "uiElemType":"slider",
+                    "display":True
                 },
                 {
                     "name":"regParam",
@@ -27,7 +28,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "acceptedValue":None,
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
-                    "uiElemType":"slider"
+                    "uiElemType":"slider",
+                    "display":True
                 },
                 {
                     "name":"elasticNetParam",
@@ -36,7 +38,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "acceptedValue":None,
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
-                    "uiElemType":"slider"
+                    "uiElemType":"slider",
+                    "display":True
                 },
                 {
                     "name":"tol",
@@ -45,7 +48,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "acceptedValue":None,
                     "valueRange":[3,10],
                     "paramType":"number",
-                    "uiElemType":"slider"
+                    "uiElemType":"slider",
+                    "display":True
                 },
                 {
                      "name":"fitIntercept",
@@ -53,7 +57,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                      "defaultValue":True,
                      "acceptedValue":None,
                      "paramType":"boolean",
-                     "uiElemType":"checkbox"
+                     "uiElemType":"checkbox",
+                     "display":True
                  },
                  {
                       "name":"standardization",
@@ -61,16 +66,9 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                       "defaultValue":True,
                       "acceptedValue":None,
                       "paramType":"boolean",
-                      "uiElemType":"checkbox"
+                      "uiElemType":"checkbox",
+                      "display":True
                   },
-                  {
-                       "name":"standardization",
-                       "displayName":"Standardization",
-                       "defaultValue":True,
-                       "acceptedValue":None,
-                       "paramType":"boolean",
-                       "uiElemType":"checkbox"
-                   },
                    {
                        "name":"solver",
                        "displayName":"Solver",
@@ -92,7 +90,37 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                         }
                        ],
                        "paramType":"list",
-                       "uiElemType":"checkbox"
+                       "uiElemType":"checkbox",
+                       "display":True
+                   },
+                   {
+                       "name":"loss",
+                       "displayName":"Loss Function",
+                       "defaultValue":[
+                        {
+                            "name":"huber",
+                            "selected":False,
+                            "displayName":"Huber"
+                        },
+                        {
+                            "name":"squaredError",
+                            "selected":True,
+                            "displayName":"Squared Error"
+                        }
+                       ],
+                       "paramType":"list",
+                       "uiElemType":"checkbox",
+                       "display":True
+                   },
+                   {
+                       "name":"epsilon",
+                       "displayName":"Learning Rate",
+                       "defaultValue":1.35,
+                       "acceptedValue":None,
+                       "valueRange":[1.0,5.0],
+                       "paramType":"number",
+                       "uiElemType":"slider",
+                       "display":True
                    },
                 {
                     "name":"aggregationDepth",
@@ -101,10 +129,122 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "acceptedValue":None,
                     "valueRange":[2,5],
                     "paramType":"number",
-                    "uiElemType":"checkbox"
+                    "uiElemType":"checkbox",
+                    "display":True
                 },
+                {
+
+                    "name":"weightCol",
+                    "displayName":"Weight Column",
+                    "defaultValue":None,
+                    "acceptedValue":None,
+                    "paramType":"string",
+                    "uiElemType":"dropDown",
+                    "display":False
+                }
                 ]
-PYSPARK_ML_GBT_REGRESSION_PARAMS = [
+PYSPARK_ML_SUPPORTED_IMPURITIES = [{"name":"variance","selected":True,"displayName":"Variance"}]
+PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
+                {
+                    "name":"maxDepth",
+                    "displayName":"Depth Of Trees",
+                    "defaultValue":5,
+                    "acceptedValue":None,
+                    "valueRange":[2,20],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"maxBins",
+                    "displayName":"Maximum Number Of Bins",
+                    "defaultValue":32,
+                    "acceptedValue":None,
+                    "valueRange":[16,128],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "powerOf2":True,
+                    "display":True
+                },
+                {
+                    "name":"checkpointInterval",
+                    "displayName":"Check Point Interval",
+                    "defaultValue":10,
+                    "acceptedValue":None,
+                    "valueRange":[10,20],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"minInstancesPerNode",
+                    "displayName":"Minimum Instances Per Node",
+                    "defaultValue":1,
+                    "acceptedValue":None,
+                    "valueRange":[1,10],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"subsamplingRate",
+                    "displayName":"Sub Sampling Rate",
+                    "defaultValue":1.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"minInfoGain",
+                    "displayName":"Minimum Info Gain",
+                    "defaultValue":0.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"maxMemoryInMB",
+                    "displayName":"Maximum Memory Available",
+                    "defaultValue":256,
+                    "acceptedValue":None,
+                    "valueRange":[128,10240],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                     "name":"cacheNodeIds",
+                     "displayName":"Cache Node Ids",
+                     "defaultValue":False,
+                     "acceptedValue":None,
+                     "paramType":"boolean",
+                     "uiElemType":"checkbox",
+                     "display":True
+                 },
+                 {
+                     "name":"impuriy",
+                     "displayName":"Impurity Index",
+                     "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in PYSPARK_ML_SUPPORTED_IMPURITIES]
+                     "paramType":"list",
+                     "uiElemType":"checkbox",
+                     "display":True
+                 },
+                 {
+                 "name":"seed",
+                 "displayName":"Random Seed",
+                 "defaultValue":None,
+                 "acceptedValue":None,
+                 "valueRange":[],
+                 "paramType":"number",
+                 "uiElemType":"textBox",
+                 "display":True
+                 }
+]
+PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS + [
                 {
                     "name":"maxIter",
                     "displayName":"Maximum Iteration",
@@ -115,77 +255,14 @@ PYSPARK_ML_GBT_REGRESSION_PARAMS = [
                     "uiElemType":"slider"
                 },
                 {
-                    "name":"maxDepth",
-                    "displayName":"Depth Of Trees",
-                    "defaultValue":5,
+                    "name":"stepSize",
+                    "displayName":"Step Size",
+                    "defaultValue":0.1,
                     "acceptedValue":None,
-                    "valueRange":[2,20],
+                    "valueRange":[0.1,1.0],
                     "paramType":"number",
                     "uiElemType":"slider"
                 },
-                {
-                    "name":"maxBins",
-                    "displayName":"Maximum Number Of Bins",
-                    "defaultValue":32,
-                    "acceptedValue":None,
-                    "valueRange":[16,128],
-                    "paramType":"number",
-                    "uiElemType":"slider",
-                    "powerOf2":True
-                },
-                {
-                    "name":"checkpointInterval",
-                    "displayName":"Check Point Interval",
-                    "defaultValue":10,
-                    "acceptedValue":None,
-                    "valueRange":[10,20],
-                    "paramType":"number",
-                    "uiElemType":"slider"
-                },
-                {
-                    "name":"minInstancesPerNode",
-                    "displayName":"Minimum Instances Per Node",
-                    "defaultValue":1,
-                    "acceptedValue":None,
-                    "valueRange":[1,10],
-                    "paramType":"number",
-                    "uiElemType":"slider"
-                },
-                {
-                    "name":"subsamplingRate",
-                    "displayName":"Sub Sampling Rate",
-                    "defaultValue":1.0,
-                    "acceptedValue":None,
-                    "valueRange":[0.0,1.0],
-                    "paramType":"number",
-                    "uiElemType":"slider"
-                },
-                {
-                    "name":"minInfoGain",
-                    "displayName":"Minimum Info Gain",
-                    "defaultValue":0.0,
-                    "acceptedValue":None,
-                    "valueRange":[0.0,1.0],
-                    "paramType":"number",
-                    "uiElemType":"slider"
-                },
-                {
-                    "name":"maxMemoryInMB",
-                    "displayName":"Maximum Memory Available",
-                    "defaultValue":256,
-                    "acceptedValue":None,
-                    "valueRange":[128,10240],
-                    "paramType":"number",
-                    "uiElemType":"slider"
-                },
-                {
-                     "name":"cacheNodeIds",
-                     "displayName":"Cache Node Ids",
-                     "defaultValue":False,
-                     "acceptedValue":None,
-                     "paramType":"boolean",
-                     "uiElemType":"checkbox"
-                 },
                {
                    "name":"lossType",
                    "displayName":"Loss Type",
@@ -204,20 +281,73 @@ PYSPARK_ML_GBT_REGRESSION_PARAMS = [
                    "paramType":"list",
                    "uiElemType":"checkbox"
                },
-               {
-                   "name":"impuriy",
-                   "displayName":"Impurity Index",
-                   "defaultValue":[
-                    {
-                        "name":"variance",
-                        "selected":True,
-                        "displayName":"Variance"
-                    }
-                   ],
-                   "paramType":"list",
-                   "uiElemType":"checkbox"
-               },
-                ]
+            ]
+PYSPARK_ML_DTREE_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +
+    [
+        {
+            "name":"varianceCol",
+            "displayName":"Variance Column Name",
+            "defaultValue":None,
+            "acceptedValue":None,
+            "paramType":"string",
+            "uiElemType":"dropDown",
+            "display":False
+        },
+
+    ]
+PYSPARK_ML_RF_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +
+    [
+        {
+            "name":"numTrees",
+            "displayName":"Number of Trees",
+            "defaultValue":20,
+            "acceptedValue":None,
+            "valueRange":[1,1000],
+            "paramType":"number",
+            "uiElemType":"slider",
+            "display":True
+        },
+        {
+            "name":"featureSubsetStrategy",
+            "displayName":"Feature Subset Strategy",
+            "defaultValue":[
+             {
+                 "name":"auto",
+                 "selected":True,
+                 "displayName":"Automatic"
+             },
+             {
+                 "name":"all",
+                 "selected":False,
+                 "displayName":"All"
+             },
+             {
+                 "name":"all",
+                 "selected":False,
+                 "displayName":"All"
+             },
+             {
+                 "name":"onethird",
+                 "selected":False,
+                 "displayName":"One-Third"
+             },
+             {
+                 "name":"sqrt",
+                 "selected":False,
+                 "displayName":"Squared Root"
+             },
+             {
+                 "name":"log2",
+                 "selected":False,
+                 "displayName":"Log2"
+             },
+            ],
+            "paramType":"list",
+            "uiElemType":"checkbox",
+            "display":True
+        },
+    ]
+
 DEFAULT_VALIDATION_OBJECT = {
          "name":"trainAndtest",
          "displayName":"Train and Test",
@@ -312,7 +442,9 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
             ALGORITHMRANDOMSLUG+"linr":"linearregression",
-            ALGORITHMRANDOMSLUG+"gbtr":"gbtregression"
+            ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
+            ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
+            ALGORITHMRANDOMSLUG+"rfr":"rfregression"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
@@ -320,7 +452,9 @@ MODEL_SLUG_MAPPING = {
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
             "svm":ALGORITHMRANDOMSLUG+"svm",
             "linearregression":ALGORITHMRANDOMSLUG+"linr",
-            "gbtregression":ALGORITHMRANDOMSLUG+"gbtr"
+            "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
+            "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
+            "rfregression":ALGORITHMRANDOMSLUG+"rfr"
             }
 
 scriptsMapping = {

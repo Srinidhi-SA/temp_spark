@@ -24,11 +24,17 @@ class ResultSetter:
         self.logisticRegressionModelSummary = None
         self.svmModelSummary = None
         self.linearRegressionModelSummary = None
+        self.gbtRegressionModelSummary = None
+        self.dtreeRegressionModelSummary = None
+        self.rfRegressionModelSummary = None
         self.rfcards = []
         self.lrcards = []
         self.svmcards = []
         self.xgbcards = []
         self.linrcards = []
+        self.gbtrcards = []
+        self.rfrcards = []
+        self.dtreercards = []
         self.scorefreqcard = []
         self.scorechicards = []
         self.scoredtreecards = []
@@ -60,15 +66,21 @@ class ResultSetter:
         self.rfcards = data
     def set_linr_cards(self,data):
         self.linrcards = data
+    def set_gbtr_cards(self,data):
+        self.gbtrcards = data
+    def set_rfr_cards(self,data):
+        self.rfrcards = data
+    def set_dtreer_cards(self,data):
+        self.dtreercards = data
     def set_xgb_cards(self,data):
         self.xgbcards = data
     def set_svm_cards(self,data):
         self.svmcards = data
     def get_all_classification_cards(self):
-        return self.rfcards + self.lrcards + self.xgbcards
+        return self.rfcards + self.lrcards + self.xgbcards + self.rfrcards
 
     def get_all_regression_cards(self):
-        return self.linrcards
+        return self.linrcards+self.gbtrcards+self.dtreercards
 
     def set_random_forest_model_summary(self,data):
         self.randomForestModelSummary = data
@@ -80,6 +92,12 @@ class ResultSetter:
         self.svmModelSummary = data
     def set_linear_regression_model_summary(self,data):
         self.linearRegressionModelSummary = data
+    def set_gbt_regression_model_summart(self,data):
+        self.gbtRegressionModelSummary = data
+    def set_dtree_regression_model_summart(self,data):
+        self.dtreeRegressionModelSummary = data
+    def set_rf_regression_model_summart(self,data):
+        self.rfRegressionModelSummary = data
     def get_random_forest_model_summary(self):
         return self.randomForestModelSummary
     def get_xgboost_model_summary(self):
@@ -90,6 +108,8 @@ class ResultSetter:
         return self.svmModelSummary
     def get_linear_regression_model_summary(self):
         return self.linearRegressionModelSummary
+    def get_gbt_regression_model_summart(self):
+        return self.gbtRegressionModelSummary
 
     def set_head_node(self,node):
         self.headNode = json.loads(CommonUtils.convert_python_object_to_json(node))

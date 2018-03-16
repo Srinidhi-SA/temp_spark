@@ -59,13 +59,13 @@ class GBTRegressionModelPysparkScript:
         categorical_columns = [x for x in categorical_columns if x != result_column]
 
         model_path = self._dataframe_context.get_model_path()
+        if model_path.startswith("file"):
+            model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
         print "model_path",model_path
-        # pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        # model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
-        pipeline_filepath = str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        model_filepath = str(model_path)+"/"+str(self._slug)+"/model"
-        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/modelPmml"
+        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
         pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
@@ -105,16 +105,13 @@ class GBTRegressionModelPysparkScript:
             trainingTime = time.time()-st
             print "time to train",trainingTime
             bestModel = fit
-        # print bestModel.explainParams()
-        # print bestModel.extractParamMap()
-        # print bestModel.params
-        # print 'Best Param (regParam): ', bestModel._java_obj.getRegParam()
-        # print 'Best Param (MaxIter): ', bestModel._java_obj.getMaxIter()
-        # print 'Best Param (elasticNetParam): ', bestModel._java_obj.getElasticNetParam()
 
-
-        # coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
-        # print coefficientsArray
+        featureImportance = bestModel.featureImportances
+        print featureImportance,type(featureImportance)
+        # print featureImportance[0],len(featureImportance[1],len(featureImportance[2]))
+        print len(featureMapping)
+        featuresArray = [(name, featureImportance[idx]) for idx, name in featureMapping]
+        print featuresArray
         # MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         transformed = bestModel.transform(validationData)
         transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
@@ -136,22 +133,22 @@ class GBTRegressionModelPysparkScript:
         metrics["mse"] = evaluator.evaluate(transformed,{evaluator.metricName: "mse"})
         metrics["mae"] = evaluator.evaluate(transformed,{evaluator.metricName: "mae"})
         runtime = round((time.time() - st_global),2)
-        print transformed.count()
+        # print transformed.count()
         mapeDf = transformed.select("mape")
-        print mapeDf.show()
+        # print mapeDf.show()
         mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
         mapeStatsArr = mapeStats.items()
         mapeStatsArr = sorted(mapeStatsArr,key=lambda x:int(x[0]))
-        print mapeStatsArr
+        # print mapeStatsArr
         quantileDf = transformed.select("prediction")
-        print quantileDf.show()
+        # print quantileDf.show()
         quantileSummaryDict = MLUtils.get_quantile_summary(quantileDf,"prediction")
         quantileSummaryArr = quantileSummaryDict.items()
         quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
-        print quantileSummaryArr
+        # print quantileSummaryArr
         self._model_summary.set_model_type("regression")
-        self._model_summary.set_algorithm_name("Linear Regression")
-        self._model_summary.set_algorithm_display_name("Linear Regression")
+        self._model_summary.set_algorithm_name("GBT Regression")
+        self._model_summary.set_algorithm_display_name("GBT Regression")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_training_time(trainingTime)
@@ -162,7 +159,7 @@ class GBTRegressionModelPysparkScript:
         self._model_summary.set_quantile_summary(quantileSummaryArr)
         self._model_summary.set_mape_stats(mapeStatsArr)
         self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
-        # self._model_summary.set_coefficinets_array(coefficientsArray)
+        self._model_summary.set_feature_importance(featureImportance)
         # print CommonUtils.convert_python_object_to_json(self._model_summary)
         modelSummaryJson = {
             "dropdown":{
@@ -180,9 +177,8 @@ class GBTRegressionModelPysparkScript:
         for card in gbtrCards:
             self._prediction_narrative.add_a_card(card)
         self._result_setter.set_model_summary({"gbtregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
+        self._result_setter.set_gbt_regression_model_summart(modelSummaryJson)
         self._result_setter.set_gbtr_cards(gbtrCards)
-        print "YO-YO"*200
 
     def Predict(self):
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
