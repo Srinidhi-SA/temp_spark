@@ -228,7 +228,7 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                  {
                      "name":"impuriy",
                      "displayName":"Impurity Index",
-                     "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in PYSPARK_ML_SUPPORTED_IMPURITIES]
+                     "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in PYSPARK_ML_SUPPORTED_IMPURITIES],
                      "paramType":"list",
                      "uiElemType":"checkbox",
                      "display":True
@@ -244,7 +244,7 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                  "display":True
                  }
 ]
-PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS + [
+PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +[
                 {
                     "name":"maxIter",
                     "displayName":"Maximum Iteration",
@@ -282,8 +282,7 @@ PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAM
                    "uiElemType":"checkbox"
                },
             ]
-PYSPARK_ML_DTREE_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +
-    [
+PYSPARK_ML_DTREE_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +[
         {
             "name":"varianceCol",
             "displayName":"Variance Column Name",
@@ -295,8 +294,7 @@ PYSPARK_ML_DTREE_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PAR
         },
 
     ]
-PYSPARK_ML_RF_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +
-    [
+PYSPARK_ML_RF_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +[
         {
             "name":"numTrees",
             "displayName":"Number of Trees",
