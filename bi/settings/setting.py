@@ -10,27 +10,57 @@ BASEFOLDERNAME_MODELS = "mAdvisorModels"
 BASEFOLDERNAME_SCORES = "mAdvisorScores"
 PROBABILITY_RANGE_FOR_DONUT_CHART = {"50-60%":(50,60),"60-70%":(60,70),"70-80%":(70,80),"80-90%":(80,90),"90-100%":(90,100)}
 
-PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
-                {
-                    "name":"maxIter",
-                    "displayName":"Maximum Iteration",
-                    "defaultValue":100,
-                    "acceptedValue":None,
-                    "valueRange":[1,200],
-                    "paramType":"number",
-                    "uiElemType":"slider",
-                    "display":True
-                },
-                {
-                    "name":"regParam",
-                    "displayName":"Regularization parameter",
-                    "defaultValue":0.0,
-                    "acceptedValue":None,
-                    "valueRange":[0.0,1.0],
-                    "paramType":"number",
-                    "uiElemType":"slider",
-                    "display":True
-                },
+PYSPARK_ML_REGRESSION_PARAMS = [
+            {
+                "name":"maxIter",
+                "displayName":"Maximum Iteration",
+                "defaultValue":100,
+                "acceptedValue":None,
+                "valueRange":[1,200],
+                "paramType":"number",
+                "uiElemType":"slider",
+                "display":True
+            },
+            {
+                "name":"regParam",
+                "displayName":"Regularization parameter",
+                "defaultValue":0.0,
+                "acceptedValue":None,
+                "valueRange":[0.0,1.0],
+                "paramType":"number",
+                "uiElemType":"slider",
+                "display":True
+            },
+            {
+                "name":"tol",
+                "displayName":"Convergence tolerance of iterations(e^-n)",
+                "defaultValue":6,
+                "acceptedValue":None,
+                "valueRange":[3,10],
+                "paramType":"number",
+                "uiElemType":"slider",
+                "display":True
+            },
+            {
+                 "name":"fitIntercept",
+                 "displayName":"Fit Intercept",
+                 "defaultValue":True,
+                 "acceptedValue":None,
+                 "paramType":"boolean",
+                 "uiElemType":"checkbox",
+                 "display":True
+             },
+             {
+                 "name":"weightCol",
+                 "displayName":"Weight Column",
+                 "defaultValue":None,
+                 "acceptedValue":None,
+                 "paramType":"string",
+                 "uiElemType":"dropDown",
+                 "display":False
+             }
+]
+PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
                 {
                     "name":"elasticNetParam",
                     "displayName":"Elastic Net Param",
@@ -41,25 +71,6 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "uiElemType":"slider",
                     "display":True
                 },
-                {
-                    "name":"tol",
-                    "displayName":"Convergence tolerance of iterations(e^-n)",
-                    "defaultValue":6,
-                    "acceptedValue":None,
-                    "valueRange":[3,10],
-                    "paramType":"number",
-                    "uiElemType":"slider",
-                    "display":True
-                },
-                {
-                     "name":"fitIntercept",
-                     "displayName":"Fit Intercept",
-                     "defaultValue":True,
-                     "acceptedValue":None,
-                     "paramType":"boolean",
-                     "uiElemType":"checkbox",
-                     "display":True
-                 },
                  {
                       "name":"standardization",
                       "displayName":"Standardization",
@@ -129,20 +140,161 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = [
                     "acceptedValue":None,
                     "valueRange":[2,5],
                     "paramType":"number",
-                    "uiElemType":"checkbox",
+                    "uiElemType":"slider",
                     "display":True
-                },
-                {
-
-                    "name":"weightCol",
-                    "displayName":"Weight Column",
-                    "defaultValue":None,
-                    "acceptedValue":None,
-                    "paramType":"string",
-                    "uiElemType":"dropDown",
-                    "display":False
                 }
-                ]
+]
+GLM_FAMILY_LINK_MAPPING = {
+    "gaussian":["identity", "log", "inverse"],
+    "poisson":["logit", "probit", "cloglog"],
+    "gamma":["inverse", "identity", "log"],
+    "binomial":["logit", "probit", "cloglog"],
+}
+TWEEDIE_LINK_VARIANCE_POWER = {
+    "name":"variancePower",
+    "displayName":"Tweedie Distribution Variance Power",
+    "defaultValue":0.0,
+    "acceptedValue":None,
+    "valueRange":[0.0,1000.0],
+    "paramType":"number",
+    "uiElemType":"slider",
+    "display":True
+},
+TWEEDIE_LINK_POWER = {
+    "name":"linkPower",
+    "displayName":"Tweedie Distribution Link Power",
+    "defaultValue":0.0,
+    "acceptedValue":None,
+    "valueRange":[0.0,1000.0],
+    "paramType":"number",
+    "uiElemType":"slider",
+    "display":False
+},
+PYSPARK_ML_GENERALIZED_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
+    {
+        "name":"solver",
+        "displayName":"Solver",
+        "defaultValue":[
+         {
+             "name":"irls",
+             "selected":True,
+             "displayName":"Iteratively Reweighted Least Square"
+         },
+        ],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":False
+    },
+    {
+        "name":"family",
+        "displayName":"Error Distribution",
+        "defaultValue":[
+         {
+             "name":"gaussian",
+             "selected":True,
+             "displayName":"Gaussian",
+             "display":True
+         },
+         {
+             "name":"binomial",
+             "selected":False,
+             "displayName":"Binomial",
+             "display":True
+         },
+         {
+             "name":"poisson",
+             "selected":False,
+             "displayName":"Poisson",
+             "display":True
+         },
+         {
+             "name":"gamma",
+             "selected":False,
+             "displayName":"Gamma",
+             "display":True
+         },
+         {
+             "name":"tweedie",
+             "selected":False,
+             "displayName":"Tweedie",
+             "display":False
+         }
+        ],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":True
+    },
+    {
+        "name":"link",
+        "displayName":"Link Function",
+        "defaultValue":[
+         {
+             "name":"identity",
+             "selected":False,
+             "displayName":"Identity",
+             "display":False
+         },
+         {
+             "name":"log",
+             "selected":False,
+             "displayName":"Log",
+             "display":False
+         },
+         {
+             "name":"inverse",
+             "selected":False,
+             "displayName":"Inverse",
+             "display":False
+         },
+         {
+             "name":"logit",
+             "selected":False,
+             "displayName":"Logit",
+             "display":False
+         },
+         {
+             "name":"probit",
+             "selected":False,
+             "displayName":"Probit",
+             "display":False
+         },
+         {
+             "name":"cloglog",
+             "selected":False,
+             "displayName":"Cloglog",
+             "display":False
+         },
+         {
+             "name":"sqrt",
+             "selected":False,
+             "displayName":"Sqrt",
+             "display":False
+         }
+        ],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":False
+    },
+    {
+        "name":"linkPredictionCol",
+        "displayName":"Link Prediction Column",
+        "defaultValue":None,
+        "acceptedValue":None,
+        "paramType":"string",
+        "uiElemType":"dropDown",
+        "display":False
+    },
+    {
+        "name":"offsetCol",
+        "displayName":"Offset Column",
+        "defaultValue":None,
+        "acceptedValue":None,
+        "paramType":"string",
+        "uiElemType":"dropDown",
+        "display":False
+    }
+
+]
 PYSPARK_ML_SUPPORTED_IMPURITIES = [{"name":"variance","selected":True,"displayName":"Variance"}]
 PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                 {
@@ -440,6 +592,7 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
             ALGORITHMRANDOMSLUG+"linr":"linearregression",
+            ALGORITHMRANDOMSLUG+"glinr":"generalizedlinearregression",
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
             ALGORITHMRANDOMSLUG+"rfr":"rfregression"
@@ -450,6 +603,7 @@ MODEL_SLUG_MAPPING = {
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
             "svm":ALGORITHMRANDOMSLUG+"svm",
             "linearregression":ALGORITHMRANDOMSLUG+"linr",
+            "generalizedlinearregression":ALGORITHMRANDOMSLUG+"glinr",
             "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
             "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
             "rfregression":ALGORITHMRANDOMSLUG+"rfr"

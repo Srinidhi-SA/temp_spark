@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
-from pyspark.ml.regression import LinearRegressionModel
+from pyspark.ml.regression import LinearRegressionModel,GeneralizedLinearRegressionModel,GBTRegressionModel,DecisionTreeRegressionModel,RandomForestRegressionModel
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.feature import Bucketizer
 from pyspark.ml.feature import OneHotEncoder
@@ -429,7 +429,19 @@ def load_rf_model(filepath):
     return model
 
 def load_linear_regresssion_pyspark_model(filepath):
-    model = RandomForestClassificationModel.load(filepath)
+    model = LinearRegressionModel.load(filepath)
+    return model
+def load_generalized_linear_regresssion_pyspark_model(filepath):
+    model = GeneralizedLinearRegressionModel.load(filepath)
+    return model
+def load_gbt_regresssion_pyspark_model(filepath):
+    model = GBTRegressionModel.load(filepath)
+    return model
+def load_dtree_regresssion_pyspark_model(filepath):
+    model = DecisionTreeRegressionModel.load(filepath)
+    return model
+def load_rf_regresssion_pyspark_model(filepath):
+    model = RandomForestRegressionModel.load(filepath)
     return model
 
 def load_one_vs_rest_model(filepath):

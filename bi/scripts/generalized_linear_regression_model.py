@@ -23,7 +23,7 @@ from bi.narratives.chisquare import ChiSquareNarratives
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
 from pyspark.sql.types import *
-from pyspark.ml.regression import LinearRegression
+from pyspark.ml.regression import GeneralizedLinearRegression
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
@@ -36,7 +36,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class LinearRegressionModelPysparkScript:
+class GeneralizedLinearRegressionModelPysparkScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -47,12 +47,12 @@ class LinearRegressionModelPysparkScript:
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]
 
     def Train(self):
         st_global = time.time()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"],algosToRun)[0]
+        algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"],algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
@@ -76,7 +76,7 @@ class LinearRegressionModelPysparkScript:
 
         # print indexed.select([result_column,"features"]).show(5)
         # MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
-        linr = LinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10, regParam=0.3, elasticNetParam=0.8)
+        glinr = GeneralizedLinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction")
         if validationDict["name"] == "kFold":
             defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
             numFold = validationDict["value"]
@@ -84,11 +84,10 @@ class LinearRegressionModelPysparkScript:
                 numFold = 3
             trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
             paramGrid = ParamGridBuilder()\
-                .addGrid(linr.regParam, [0.1, 0.01]) \
-                .addGrid(linr.fitIntercept, [False, True])\
-                .addGrid(linr.elasticNetParam, [0.0, 0.5, 1.0])\
+                .addGrid(glinr.regParam, [0.1, 0.01]) \
+                .addGrid(glinr.fitIntercept, [False, True])\
                 .build()
-            crossval = CrossValidator(estimator=linr,
+            crossval = CrossValidator(estimator=glinr,
                           estimatorParamMaps=paramGrid,
                           evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
                           numFolds=numFold)
@@ -100,7 +99,7 @@ class LinearRegressionModelPysparkScript:
         elif validationDict["name"] == "trainAndtest":
             trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
             st = time.time()
-            fit = linr.fit(trainingData)
+            fit = glinr.fit(trainingData)
             trainingTime = time.time()-st
             print "time to train",trainingTime
             bestModel = fit
@@ -109,7 +108,6 @@ class LinearRegressionModelPysparkScript:
         print bestModel.params
         print 'Best Param (regParam): ', bestModel._java_obj.getRegParam()
         print 'Best Param (MaxIter): ', bestModel._java_obj.getMaxIter()
-        print 'Best Param (elasticNetParam): ', bestModel._java_obj.getElasticNetParam()
 
         # modelPmmlPipeline = PMMLPipeline([
         #   ("pretrained-estimator", objs["trained_model"])
@@ -161,8 +159,8 @@ class LinearRegressionModelPysparkScript:
         quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
         # print quantileSummaryArr
         self._model_summary.set_model_type("regression")
-        self._model_summary.set_algorithm_name("Linear Regression")
-        self._model_summary.set_algorithm_display_name("Linear Regression")
+        self._model_summary.set_algorithm_name("Generalized Linear Regression")
+        self._model_summary.set_algorithm_display_name("Generalized Linear Regression")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_training_time(trainingTime)
@@ -186,13 +184,13 @@ class LinearRegressionModelPysparkScript:
             "levelMapping":self._model_summary.get_level_map_dict()
         }
 
-        linrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        glinrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
-        for card in linrCards:
+        for card in glinrCards:
             self._prediction_narrative.add_a_card(card)
-        self._result_setter.set_model_summary({"linearregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
-        self._result_setter.set_linr_cards(linrCards)
+        self._result_setter.set_model_summary({"generalizedlinearregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_generalized_linear_regression_model_summary(modelSummaryJson)
+        self._result_setter.set_glinr_cards(glinrCards)
 
     def Predict(self):
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)

@@ -24,6 +24,7 @@ class ResultSetter:
         self.logisticRegressionModelSummary = None
         self.svmModelSummary = None
         self.linearRegressionModelSummary = None
+        self.generalizedLinearRegressionModelSummary = None
         self.gbtRegressionModelSummary = None
         self.dtreeRegressionModelSummary = None
         self.rfRegressionModelSummary = None
@@ -32,6 +33,7 @@ class ResultSetter:
         self.svmcards = []
         self.xgbcards = []
         self.linrcards = []
+        self.glinrcards = []
         self.gbtrcards = []
         self.rfrcards = []
         self.dtreercards = []
@@ -66,6 +68,8 @@ class ResultSetter:
         self.rfcards = data
     def set_linr_cards(self,data):
         self.linrcards = data
+    def set_glinr_cards(self,data):
+        self.glinrcards = data
     def set_gbtr_cards(self,data):
         self.gbtrcards = data
     def set_rfr_cards(self,data):
@@ -77,10 +81,10 @@ class ResultSetter:
     def set_svm_cards(self,data):
         self.svmcards = data
     def get_all_classification_cards(self):
-        return self.rfcards + self.lrcards + self.xgbcards + self.rfrcards
+        return self.rfcards + self.lrcards + self.xgbcards
 
     def get_all_regression_cards(self):
-        return self.linrcards+self.gbtrcards+self.dtreercards
+        return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
 
     def set_random_forest_model_summary(self,data):
         self.randomForestModelSummary = data
@@ -92,6 +96,8 @@ class ResultSetter:
         self.svmModelSummary = data
     def set_linear_regression_model_summary(self,data):
         self.linearRegressionModelSummary = data
+    def set_generalized_linear_regression_model_summary(self,data):
+        self.generalizedLinearRegressionModelSummary = data
     def set_gbt_regression_model_summart(self,data):
         self.gbtRegressionModelSummary = data
     def set_dtree_regression_model_summart(self,data):
