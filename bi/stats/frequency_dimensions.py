@@ -41,7 +41,6 @@ class FreqDimensions:
                 "weight":0
                 },
             }
-
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"freqinitialization","info")
 
 

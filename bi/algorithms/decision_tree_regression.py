@@ -76,15 +76,17 @@ class DecisionTreeRegression:
                 "weight":10
                 },
             }
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "dtreeTrainingStart",\
-                                    "info",\
-                                    self._scriptStages["dtreeTrainingStart"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "dtreeTrainingStart",\
+        #                             "info",\
+        #                             self._scriptStages["dtreeTrainingStart"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingStart","info")
+
 
 
     def parse(self, lines, df):
@@ -306,14 +308,16 @@ class DecisionTreeRegression:
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         decision_tree_result.set_target_map(self._mapping_dict[self._target_dimension], self._aggr_data, self._important_vars)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "dtreeTrainingEnd",\
-                                    "info",\
-                                    self._scriptStages["dtreeTrainingEnd"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "dtreeTrainingEnd",\
+        #                             "info",\
+        #                             self._scriptStages["dtreeTrainingEnd"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingEnd","info")
+
         # print decision_tree_result
         return decision_tree_result

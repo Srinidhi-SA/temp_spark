@@ -36,6 +36,7 @@ class DimensionColumnNarrative:
                 self._base_dir += "appid2/"
         self._dataframe_context = df_context
         self._dataframe_helper = df_helper
+        self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._dimensionSummaryNode = NarrativesTree()
         self._dimensionSummaryNode.set_name("Overview")
@@ -90,9 +91,15 @@ class DimensionColumnNarrative:
                 self._generate_title()
                 self._generate_summary()
                 self._generate_analysis()
+            else:
+                self._generate_title()
+                if self._storyOnScoredData != True:
+                    self._generate_summary()
+                self._generate_analysis()
         else:
             self._generate_title()
-            self._generate_summary()
+            if self._storyOnScoredData != True:
+                self._generate_summary()
             self._generate_analysis()
 
     def _generate_title(self):
@@ -135,10 +142,12 @@ class DimensionColumnNarrative:
     def _generate_analysis(self):
         lines = []
         freq_dict = self._dimension_col_freq_dict
+        print "freq_dict",freq_dict
         json_freq_dict = json.dumps(freq_dict)
         freq_dict = json.loads(freq_dict)
         colname = self._colname
         freq_data = []
+        print "self._dataframe_helper.get_cols_to_bin()",self._dataframe_helper.get_cols_to_bin()
         if colname in self._dataframe_helper.get_cols_to_bin():
             keys_to_sort = freq_dict[colname][colname].values()
             convert = lambda text: int(text) if text.isdigit() else text

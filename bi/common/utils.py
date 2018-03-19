@@ -335,25 +335,25 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
 
 def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None):
     completionStatus = dataframeContext.get_completion_status()
-    print "incoming completionStatus",completionStatus
-    messageURL = dataframeContext.get_message_url()
-    if customMsg == None:
-        completionStatus += scriptWeightDict[analysisName]["script"]*scriptStages[stageName]["weight"]/10
-        progressMessage = create_progress_message_object(analysisName,\
-                                    stageName,\
-                                    messageType,\
-                                    scriptStages[stageName]["summary"],\
-                                    completionStatus,\
-                                    completionStatus,\
-                                    display=display)
-    else:
-        progressMessage = create_progress_message_object(analysisName,stageName,messageType,customMsg,completionStatus,completionStatus,display=display)
-    runningEnv = dataframeContext.get_environement()
-    if runningEnv == "debugMode":
-        save_progress_message(messageURL,progressMessage,ignore=True,emptyBin=emptyBin)
-    else:
-        save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
-    dataframeContext.update_completion_status(completionStatus)
+    # print "incoming completionStatus",completionStatus
+    # messageURL = dataframeContext.get_message_url()
+    # if customMsg == None:
+    #     completionStatus += scriptWeightDict[analysisName]["script"]*scriptStages[stageName]["weight"]/10
+    #     progressMessage = create_progress_message_object(analysisName,\
+    #                                 stageName,\
+    #                                 messageType,\
+    #                                 scriptStages[stageName]["summary"],\
+    #                                 completionStatus,\
+    #                                 completionStatus,\
+    #                                 display=display)
+    # else:
+    #     progressMessage = create_progress_message_object(analysisName,stageName,messageType,customMsg,completionStatus,completionStatus,display=display)
+    # runningEnv = dataframeContext.get_environement()
+    # if runningEnv == "debugMode":
+    #     save_progress_message(messageURL,progressMessage,ignore=True,emptyBin=emptyBin)
+    # else:
+    #     save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
+    # dataframeContext.update_completion_status(completionStatus)
     print "outgoing completionStatus",completionStatus
 
 
@@ -417,7 +417,7 @@ def get_splits(minVal,maxVal,n_split):
     splits = sorted(splits)
     splits_range = [(splits[idx],splits[idx+1]) for idx in range(len(splits)-1)]
     splits_data = {"splits":splits,"splits_range":splits_range}
-    str_splits_range = [" to ".join([str(x[0]),str(x[1])]) for x in splits_range]
+    str_splits_range = [" to ".join([str(round_sig(x[0],sig=2)),str(round_sig(x[1],sig=2))]) for x in splits_range]
     splits_data["bin_mapping"] = dict(zip(range(len(splits_range)),str_splits_range))
     return splits_data
 

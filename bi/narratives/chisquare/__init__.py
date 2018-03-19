@@ -16,6 +16,7 @@ class ChiSquareNarratives:
         self._data_frame = data_frame
         self._dataframe_context = df_context
         self._dataframe_helper = df_helper
+        self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._measure_columns = df_helper.get_numeric_columns()
         self._df_chisquare = df_chisquare_result
         self._df_chisquare_result = df_chisquare_result.get_result()
@@ -157,8 +158,10 @@ class ChiSquareNarratives:
             main_card_data.append(C3ChartData(data=chart_json,info=statistical_info_array))
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Key Influencers")
-            self._chiSquareNode.add_a_card(main_card)
-            self._result_setter.add_a_score_chi_card(main_card)
+
+            if self._storyOnScoredData != True:
+                self._chiSquareNode.add_a_card(main_card)
+                self._result_setter.add_a_score_chi_card(main_card)
 
             print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:

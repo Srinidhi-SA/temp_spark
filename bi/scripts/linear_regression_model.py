@@ -29,6 +29,12 @@ from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValida
 from pyspark.ml.evaluation import RegressionEvaluator
 
 from bi.settings import setting as GLOBALSETTINGS
+from bi.algorithms import DecisionTrees
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.scripts.descr_stats import DescriptiveStatsScript
+from bi.scripts.two_way_anova import TwoWayAnovaScript
+from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
+
 
 
 
@@ -48,6 +54,8 @@ class LinearRegressionModelPysparkScript:
         self._model_summary = MLModelSummary()
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
+        self._analysisName = "linearRegression"
+        self._dataframe_context.set_analysis_name(self._analysisName)
 
     def Train(self):
         st_global = time.time()
@@ -75,7 +83,7 @@ class LinearRegressionModelPysparkScript:
         featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
 
         # print indexed.select([result_column,"features"]).show(5)
-        # MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
+        MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
         linr = LinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10, regParam=0.3, elasticNetParam=0.8)
         if validationDict["name"] == "kFold":
             defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
@@ -126,7 +134,7 @@ class LinearRegressionModelPysparkScript:
         #     pass
 
         coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
-        # MLUtils.save_pipeline_or_model(bestModel,model_filepath)
+        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         transformed = bestModel.transform(validationData)
         transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
         transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
@@ -195,95 +203,99 @@ class LinearRegressionModelPysparkScript:
         self._result_setter.set_linr_cards(linrCards)
 
     def Predict(self):
+        self._scriptWeightDict = GLOBALSETTINGS.regressionModelPredictionWeight
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Random Forest Scripts",
+                "weight":2
+                },
+            "prediction":{
+                "summary":"Random Forest Model Prediction Finished",
+                "weight":2
+                },
+            "frequency":{
+                "summary":"descriptive analysis finished",
+                "weight":2
+                },
+            "chisquare":{
+                "summary":"chi Square analysis finished",
+                "weight":4
+                },
+            "completion":{
+                "summary":"all analysis finished",
+                "weight":4
+                },
+            }
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         dataSanity = True
         categorical_columns = self._dataframe_helper.get_string_columns()
+        uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns) - {uid_col})
+        allDateCols = self._dataframe_context.get_date_columns()
+        categorical_columns = list(set(categorical_columns)-set(allDateCols))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
-        time_dimension_columns = self._dataframe_helper.get_timestamp_columns()
         result_column = self._dataframe_context.get_result_column()
-        categorical_columns = [x for x in categorical_columns if x != result_column]
-
+        test_data_path = self._dataframe_context.get_input_file()
 
         test_data_path = self._dataframe_context.get_input_file()
-        score_data_path = self._dataframe_context.get_score_path()+"/ScoredData/data.csv"
-        trained_model_path = self._dataframe_context.get_model_path()
-        if trained_model_path.endswith(".pkl"):
-            trained_model_path = "/".join(trained_model_path.split("/")[:-1])+"/model"
+        score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
+        trained_model_path = "file://" + self._dataframe_context.get_model_path()
+        trained_model_path += "/model"
         pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
-
+        print "trained_model_path",trained_model_path
+        print "pipeline_path",pipeline_path
+        print "score_data_path",score_data_path
         pipelineModel = MLUtils.load_pipeline(pipeline_path)
         trained_model = MLUtils.load_linear_regresssion_pyspark_model(trained_model_path)
         df = self._data_frame
         indexed = pipelineModel.transform(df)
         transformed = trained_model.transform(indexed)
-        label_indexer_dict = MLUtils.read_string_indexer_mapping(pipeline_path,SQLctx)
-        prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
-        transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
-        # udf_to_calculate_probability = udf(lambda x:max(x[0]))
-        # transformed = transformed.withColumn("predicted_probability",udf_to_calculate_probability(transformed.probability))
-        # print transformed.select("predicted_probability").show(5)
-        probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
-        probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
-        probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
-        self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
-        self._score_summary["result_column"] = result_column
-        scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
-        # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
+        if result_column in transformed.columns:
+            transformed = transformed.withColumnRenamed(result_column,"originalLabel")
+        transformed = transformed.withColumnRenamed("prediction",result_column)
+        pandas_scored_df = transformed.select(list(set(self._data_frame.columns+[result_column]))).toPandas()
         if score_data_path.startswith("file"):
             score_data_path = score_data_path[7:]
-        scored_dataframe.to_csv(score_data_path,header=True,index=False)
-        # print json.dumps({"scoreSummary":self._score_summary},indent=2)
-        CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
+        pandas_scored_df.to_csv(score_data_path,header=True,index=False)
 
-
-        print "STARTING DIMENSION ANALYSIS ..."
+        print "STARTING Measure ANALYSIS ..."
         columns_to_keep = []
         columns_to_drop = []
-        considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
-        considercolumns = self._dataframe_context.get_score_consider_columns()
-        if considercolumnstype != None:
-            if considercolumns != None:
-                if considercolumnstype == ["excluding"]:
-                    columns_to_drop = considercolumns
-                elif considercolumnstype == ["including"]:
-                    columns_to_keep = considercolumns
+        columns_to_keep = self._dataframe_context.get_score_consider_columns()
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
-        # spark_scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
-        scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
+        else:
+            columns_to_drop += ["predicted_probability"]
+        columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
+        print "columns_to_drop",columns_to_drop
+        spark_scored_df = transformed.select(list(set(columns_to_keep+[result_column])))
 
-        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        spark_scored_df = SQLctx.createDataFrame(scored_df.toPandas())
-        columns_to_drop = [x for x in columns_to_drop if x in spark_scored_df.columns]
-        modified_df = spark_scored_df.select([x for x in spark_scored_df.columns if x not in columns_to_drop])
-        df_helper = DataFrameHelper(modified_df, self._dataframe_context)
+        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         df = df_helper.get_data_frame()
         try:
             fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-            result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-            df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
-            narratives = CommonUtils.as_dict(narratives_obj)
-            CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-            print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+            descr_stats_obj = DescriptiveStatsScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
+            descr_stats_obj.Run()
+            print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
         except:
             print "Frequency Analysis Failed "
 
         try:
             fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-            df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-            CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+            self._dataframe_helper.fill_na_dimension_nulls()
+            df = self._dataframe_helper.get_data_frame()
+            dt_reg = DecisionTreeRegressionScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            dt_reg.Run()
+            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
         except:
-           print "ChiSquare Analysis Failed "
+            print "DTREE FAILED"
+
+        try:
+            fs = time.time()
+            two_way_obj = TwoWayAnovaScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            two_way_obj.Run()
+            print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+        except:
+            print "Anova Analysis Failed"
