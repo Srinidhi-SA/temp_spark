@@ -935,7 +935,7 @@ def get_mape_stats(df,colname):
     bucketizer = Bucketizer(inputCol=colname,outputCol="mapeGULSHAN")
     bucketizer.setSplits(splits)
     df = bucketizer.transform(df)
-    print df.show()
+    # print df.show()
     print "mape bucketizer in",time.time()-st
     quantileGrpDf = df.groupby("mapeGULSHAN").agg(FN.count(colname).alias('count'))
     splitDict = {}
@@ -947,32 +947,30 @@ def get_mape_stats(df,colname):
     return splitDict
 
 def get_quantile_summary(df,colname):
-    print "1"
     df = df.na.drop(subset=colname)
     st = time.time()
-    df = df.orderBy(colname)
-    print "Ordering takes",time.time()-st
-    print "2"
-    print df.show()
+    # df = df.orderBy(colname)
     dfDesc = df.describe().toPandas()
-    print "3"
     descrDict = dict(zip(dfDesc["summary"],dfDesc[colname]))
-    print "4"
     quantiles = df.stat.approxQuantile(colname,[0.25,0.5,0.75],0.0)
-    print "5"
     biasVal = 1
     splits = [float(descrDict["min"])-biasVal]+quantiles+[float(descrDict["max"])+biasVal]
     splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
-    splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
-    splitRanges[-1] = (splitRanges[-1][0]+biasVal,splitRanges[-1][1]-biasVal)
     print splitRanges
-    bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
-    print "6"
-    bucketizer.setSplits(splits)
-    print "7"
-    df = bucketizer.transform(df)
-    print "8"
-    print df.show()
+    try:
+        bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
+        bucketizer.setSplits(splits)
+        df = bucketizer.transform(df)
+        print df.show()
+    except:
+        print "using bias splitRange"
+        splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
+        splitRanges[-1] = (splitRanges[-1][0]+biasVal,splitRanges[-1][1]-biasVal)
+        bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
+        bucketizer.setSplits(splits)
+        df = bucketizer.transform(df)
+        print df.show()
+
     quantileGrpDf = df.groupby("buckGULSHAN").agg(FN.sum(colname).alias('sum'),FN.mean(colname).alias('mean'),FN.count(colname).alias('count'))
     splitDict = {}
     for val in quantileGrpDf.collect():

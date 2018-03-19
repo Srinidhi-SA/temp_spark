@@ -43,6 +43,7 @@ class TwoWayAnova:
         print "==================measure_columns ========================"
         print self._measure_columns
 
+        self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(self._uid_col):
@@ -98,14 +99,16 @@ class TwoWayAnova:
                 "weight":10
                 },
             }
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "anovaStart",\
-                                    "info",\
-                                    self._scriptStages["anovaStart"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "anovaStart",\
+        #                             "info",\
+        #                             self._scriptStages["anovaStart"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaStart","info",display=False,emptyBin=False,customMsg=None)
+
 
 
 
@@ -118,18 +121,21 @@ class TwoWayAnova:
         print "===================dimensions================"
         if dimension_columns is None:
             dimensions = self._dimension_columns
-        nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        try:
+            nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        except:
+            nColsToUse = None
         if nColsToUse != None:
             dimensions = dimensions[:nColsToUse]
         sqrt_nrows = round(self._dataframe_helper.get_num_rows()**0.5)
         acceptable_level_count = GLOBALSETTINGS.ANOVAMAXLEVEL
-        print acceptable_level_count,sqrt_nrows
+        print {"acceptable_level_count":acceptable_level_count,"sqrt_nrows":sqrt_nrows}
         max_levels = __builtin__.min([acceptable_level_count,int(sqrt_nrows)])
         df_anova_result = DFTwoWayAnovaResult()
         dimensions_to_test = [dim for dim in dimensions if self._dataframe_helper.get_num_unique_values(dim) <= max_levels]
         print "======================= dimensions_to_test ==============================="
         print dimensions_to_test
-        self._dimensions_to_test = dimensions_to_test
+        self._dimensions_to_test = [x for x in dimensions_to_test if x in self._data_frame.columns]
         print "dimensions to test ",self._dimensions_to_test
         for measure in measures:
             measureColStat = self._data_frame.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
@@ -222,15 +228,16 @@ class TwoWayAnova:
             print "checking effect size access",self._anova_result.get_OneWayAnovaEffectSize(self._dimensions_to_test[0])
 
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "anovaEnd",\
-                                    "info",\
-                                    self._scriptStages["anovaEnd"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "anovaEnd",\
+        #                             "info",\
+        #                             self._scriptStages["anovaEnd"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaEnd","info",display=False,emptyBin=False,customMsg=None)
         return df_anova_result
 
 

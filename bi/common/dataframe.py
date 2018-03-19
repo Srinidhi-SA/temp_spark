@@ -21,6 +21,8 @@ from bi.common import MetaParser
 from column import ColumnType
 from decorators import accepts
 from exception import BIException
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 class DataFrameHelper:
@@ -81,16 +83,22 @@ class DataFrameHelper:
         print "colsToKeep:-",colsToKeep
         print "colsToBin:-",colsToBin
         self.colsToBin = colsToBin
-        if self._dataframe_context.get_job_type() != "subSetting":
-            if self._dataframe_context.get_job_type() != "prediction":
-                self._data_frame = self._data_frame.select(colsToKeep)
-            else:
-                if self._dataframe_context.get_story_on_scored_data() == False:
-                    result_column = self._dataframe_context.get_result_column()
-                    updatedColsToKeep = list(set(colsToKeep) - {result_column})
-                    self._data_frame = self._data_frame.select(updatedColsToKeep)
-                elif self._dataframe_context.get_story_on_scored_data() == True:
+        appid = str(self._dataframe_context.get_app_id())
+        app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+        if app_type != "REGRESSION":
+            if self._dataframe_context.get_job_type() != "subSetting":
+                if self._dataframe_context.get_job_type() != "prediction":
                     self._data_frame = self._data_frame.select(colsToKeep)
+                else:
+                    if app_type == "CLASSIFICATION":
+                        if self._dataframe_context.get_story_on_scored_data() == False:
+                            result_column = self._dataframe_context.get_result_column()
+                            updatedColsToKeep = list(set(colsToKeep) - {result_column})
+                            self._data_frame = self._data_frame.select(updatedColsToKeep)
+                        elif self._dataframe_context.get_story_on_scored_data() == True:
+                            self._data_frame = self._data_frame.select(colsToKeep)
+                    elif app_type == "REGRESSION":
+                        self._data_frame = self._data_frame.select(colsToKeep)
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()

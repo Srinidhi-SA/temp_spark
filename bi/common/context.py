@@ -103,7 +103,7 @@ class ContextSetter:
         transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
         stockSettingKeys = self.STOCK_SETTINGS.keys()
         dbSettingKeys = self.DATABASE_SETTINGS.keys()
-        
+
         if len(self.ALGORITHM_SETTINGS) > 0:
             for obj in self.ALGORITHM_SETTINGS:
                 if obj["selected"] == True:
@@ -491,6 +491,9 @@ class ContextSetter:
 
     def get_custom_analysis_details(self):
         return self.customAnalysisDetails
+
+    def set_cols_to_bin(self,colArray):
+        self.customAnalysisDetails = colArray
 
     def get_metadata_url(self):
         return self.METADATA_URL

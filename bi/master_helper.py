@@ -249,6 +249,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     APP_NAME = dataframe_context.get_app_name()
     errorURL = dataframe_context.get_error_url()
     jobUrl = dataframe_context.get_job_url()
+    jobName = dataframe_context.get_job_name()
     ignoreMsg = dataframe_context.get_message_ignore()
     targetLevel = dataframe_context.get_target_level_for_model()
     print "Prediction Started"
@@ -268,61 +269,98 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     print "score_slug",score_slug
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_SCORES
     score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
-    algorithm_name_list = ["randomforest","xgboost","logisticregression"]
+    appid = str(dataframe_context.get_app_id())
+    app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
     algorithm_name = dataframe_context.get_algorithm_slug()[0]
     print "algorithm_name",algorithm_name
     print "score_file_path",score_file_path
     print "model_slug",model_slug
-    model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
-    dataframe_context.set_model_path(model_path)
-    dataframe_context.set_score_path(score_file_path)
-    selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
-    print "selected_model_for_prediction", selected_model_for_prediction
-    if "randomforest" in selected_model_for_prediction:
-        df = df.toPandas()
-        trainedModel = RandomForestScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
-        # trainedModel = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark)
-        try:
-            trainedModel.Predict()
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-        print "Scoring Done in ", time.time() - st,  " seconds."
-    elif "xgboost" in selected_model_for_prediction:
-        df = df.toPandas()
-        trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
-        try:
-            trainedModel.Predict()
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-        print "Scoring Done in ", time.time() - st,  " seconds."
-    elif "logisticregression" in selected_model_for_prediction:
-        df = df.toPandas()
-        trainedModel = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
-        # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
-        try:
-            trainedModel.Predict()
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-        print "Scoring Done in ", time.time() - st,  " seconds."
-    else:
-        print "Could Not Load the Model for Scoring"
+    if app_type == "CLASSIFICATION":
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        dataframe_context.set_model_path(model_path)
+        dataframe_context.set_score_path(score_file_path)
+        selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
+        print "selected_model_for_prediction", selected_model_for_prediction
+        if "randomforest" in selected_model_for_prediction:
+            df = df.toPandas()
+            trainedModel = RandomForestScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "xgboost" in selected_model_for_prediction:
+            df = df.toPandas()
+            trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "logisticregression" in selected_model_for_prediction:
+            df = df.toPandas()
+            trainedModel = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        else:
+            print "Could Not Load the Model for Scoring"
 
 
-    # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
-    storycards = result_setter.get_score_cards()
-    storyNode = NarrativesTree()
-    storyNode.add_cards(storycards)
-    # storyNode = {"listOfCards":[storycards],"listOfNodes":[],"name":None,"slug":None}
-    scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
-    print scoreSummary
-    jobUrl = dataframe_context.get_job_url()
-    response = CommonUtils.save_result_json(jobUrl,scoreSummary)
-    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
-    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-    print "Model Scoring Completed in ", time.time() - st, " seconds."
+        # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
+        storycards = result_setter.get_score_cards()
+        storyNode = NarrativesTree()
+        storyNode.add_cards(storycards)
+        # storyNode = {"listOfCards":[storycards],"listOfNodes":[],"name":None,"slug":None}
+        scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
+        print scoreSummary
+        jobUrl = dataframe_context.get_job_url()
+        response = CommonUtils.save_result_json(jobUrl,scoreSummary)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        print "Model Scoring Completed in ", time.time() - st, " seconds."
+    elif app_type == "REGRESSION":
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        dataframe_context.set_model_path(model_path)
+        dataframe_context.set_score_path(score_file_path)
+        dataframe_context.set_story_on_scored_data(True)
+        selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
+        print "selected_model_for_prediction", selected_model_for_prediction
+        if "linearregression" in  selected_model_for_prediction:
+            trainedModel = LinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"linearregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+
+        headNode = NarrativesTree()
+        if headNode != None:
+            headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+        headNode["name"] = jobName
+        distributionNode = result_setter.get_distribution_node()
+        if distributionNode != None:
+            headNode["listOfNodes"].append(distributionNode)
+        anovaNode = result_setter.get_anova_node()
+        if anovaNode != None:
+            headNode["listOfNodes"].append(anovaNode)
+        decisionTreeNode = result_setter.get_decision_tree_node()
+        if decisionTreeNode != None:
+            headNode["listOfNodes"].append(decisionTreeNode)
+        print json.dumps(headNode,indent=2)
+        response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
+        # print "Dimension Analysis Completed in", time.time()-st," Seconds"
+        print "Model Scoring Completed in ", time.time() - st, " seconds."
+
 
 def run_metadata(spark,df,dataframe_context):
     fs = time.time()
