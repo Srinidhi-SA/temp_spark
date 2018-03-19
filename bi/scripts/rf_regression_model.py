@@ -148,7 +148,7 @@ class RFRegressionModelPysparkScript:
         # print quantileSummaryArr
         self._model_summary.set_model_type("regression")
         self._model_summary.set_algorithm_name("rf Regression")
-        self._model_summary.set_algorithm_display_name("rf Regression")
+        self._model_summary.set_algorithm_display_name("Random Forest Regression")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_training_time(trainingTime)
