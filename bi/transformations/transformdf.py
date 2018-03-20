@@ -52,6 +52,7 @@ class DataFrameTransformer:
                         if obj["actionName"] == "replace":
                             self.update_column_data(transformObj["name"],obj["replacementValues"])
                         if obj["actionName"] == "rename":
+                            print "RENAME"*20
                             self.update_column_name(obj["prevName"],obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]

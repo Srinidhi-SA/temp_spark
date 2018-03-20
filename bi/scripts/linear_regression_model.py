@@ -57,14 +57,24 @@ class LinearRegressionModelPysparkScript:
         self._analysisName = "linearRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
 
+    # def rerunModelTraining(self,trainingDf):
+    #     algosToRun = self._dataframe_context.get_algorithms_to_run()
+    #     algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"],algosToRun)[0]
+
     def Train(self):
         st_global = time.time()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
         algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"],algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
-        numerical_columns = self._dataframe_helper.get_numeric_columns()
+        uid_col = self._dataframe_context.get_uid_column()
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns) - {uid_col})
+        allDateCols = self._dataframe_context.get_date_columns()
+        categorical_columns = list(set(categorical_columns)-set(allDateCols))
+        print categorical_columns
         result_column = self._dataframe_context.get_result_column()
-        categorical_columns = [x for x in categorical_columns if x != result_column]
+        numerical_columns = self._dataframe_helper.get_numeric_columns()
+        numerical_columns = [x for x in numerical_columns if x != result_column]
 
         model_path = self._dataframe_context.get_model_path()
         if model_path.startswith("file"):

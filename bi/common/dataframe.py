@@ -84,7 +84,10 @@ class DataFrameHelper:
         print "colsToBin:-",colsToBin
         self.colsToBin = colsToBin
         appid = str(self._dataframe_context.get_app_id())
-        app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+        if appid != "None":
+            app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+        else:
+            app_type = None
         if app_type != "REGRESSION":
             if self._dataframe_context.get_job_type() != "subSetting":
                 if self._dataframe_context.get_job_type() != "prediction":
