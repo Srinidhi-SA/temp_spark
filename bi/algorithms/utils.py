@@ -607,10 +607,10 @@ def get_total_models_regression(collated_summary):
     algorithm_name = []
     for val in algos:
         trees = collated_summary[val].get("nTrees")
-        algorithm_name.append(collated_summary[val].get("algorithmName"))
+        algorithm_name.append(collated_summary[val].get("algorithmDisplayName"))
     n_model = len(algorithm_name)
     output = "<p>mAdvisor has built {} regression models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+        has come up with the following results:</p>".format(n_model,len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def create_model_folders(model_slug, basefoldername, subfolders=None):
@@ -857,7 +857,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             coefficientsChartJson.set_yaxis_number_format(".4f")
             # coefficientsChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)
-            card2Data = [HtmlData(data="<h4>Model Summary</h4>"),coefficientsChart]
+            card2Data = [HtmlData(data="<h4>Model Coefficients</h4>"),coefficientsChart]
             card2.set_card_data(card2Data)
             card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
         else:
@@ -865,14 +865,22 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         card3 = NormalCard()
         allMetricsData = []
+        metricNamesMapping = {
+                            "mse" : "Mean Square Error",
+                            "mae" : "Mean Absolute Error",
+                            "r2" : "R-Squared",
+                            "rmse" : "Root Mean Square Error"
+                            }
         metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
-        metricTableTopRow = [""]+metricNames
+        full_names = map(lambda x: metricNamesMapping[x],metricNames)
+        metricTableTopRow = [""]+full_names
         allMetricsData.append(metricTableTopRow)
+        print "collated_summary : ", collated_summary
         for algoName,dataObj in collated_summary.items():
             algoRow = []
-            algoRow.append(algoName)
+            algoRow.append(collated_summary[algoName]['algorithmDisplayName'])
             for val in metricNames:
-                algoRow.append(dataObj["modelEvaluationMetrics"][val])
+                algoRow.append(round(dataObj["modelEvaluationMetrics"][val],3))
             allMetricsData.append(algoRow)
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
