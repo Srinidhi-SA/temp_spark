@@ -15,16 +15,21 @@ class DescriptiveStats:
     # collect freq stats for dimension column only if number of levels is less than MAX_NUM_LEVELS
     MAX_NUM_LEVELS = 100
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context,scriptWeight=None, analysisName=None):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
-        # print self._scriptWeightDict
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "statCalculationStart":{
                 "summary":"Initialized the Descriptive Stats Scripts",

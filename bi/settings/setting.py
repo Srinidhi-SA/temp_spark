@@ -650,14 +650,14 @@ mlModelPredictionWeight = {
     "Predictive modeling":{"total":10,"script":5,"narratives":5}
 }
 regressionModelPredictionWeight = {
-    "initialization":{"total":10,"script":10,"narratives":10},
-    "linearRegression":{"total":20,"script":20,"narratives":20},
-    "gbtRegression":{"total":20,"script":20,"narratives":20},
-    "rfRegression":{"total":20,"script":20,"narratives":20},
-    "dtreeRegression":{"total":20,"script":20,"narratives":20},
-    "Descriptive analysis":{"total":10,"script":10,"narratives":10},
-    "Dimension vs. Dimension":{"total":10,"script":5,"narratives":5},
-    "Predictive modeling":{"total":10,"script":5,"narratives":5}
+    "initialization":{"total":10,"script":5,"narratives":5},
+    "linearRegression":{"total":10,"script":5,"narratives":5},
+    "gbtRegression":{"total":10,"script":5,"narratives":5},
+    "rfRegression":{"total":10,"script":5,"narratives":5},
+    "dtreeRegression":{"total":10,"script":5,"narratives":5},
+    "Descriptive analysis":{"total":10,"script":5,"narratives":5},
+    "Measure vs. Dimension":{"total":20,"script":15,"narratives":5},
+    "Predictive modeling":{"total":20,"script":15,"narratives":5}
 }
 metadataScriptWeight = {
     "initialization":{"total":3,"script":2,"narratives":1},

@@ -404,21 +404,20 @@ def save_pipeline_or_model(pipeline,dir_path):
     Need to check if any folder exist with the given name
     if yes then 1st delete that then proceed
     """
+    # dir_path = dir_path.replace("ubuntu","hadoop")
     print "dir_path",dir_path
     if dir_path.startswith("file"):
         new_path = dir_path[7:]
     else:
         new_path = dir_path
     print "new_path",new_path
-    if os.path.isdir(new_path):
-        shutil.rmtree(new_path)
-    # os.mkdir(new_path)
     try:
-        print "saving in path",dir_path
         pipeline.save(dir_path)
+        print "saved in",dir_path
     except:
-        print "saving in path",new_path
+        print "saving in dir_path failed:- Trying new_path"
         pipeline.save(new_path)
+        print "saved in",new_path
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
