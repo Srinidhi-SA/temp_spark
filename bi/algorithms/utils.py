@@ -879,9 +879,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         print "collated_summary : ", collated_summary
         for algoName,dataObj in collated_summary.items():
             algoRow = []
-            algoRow.append(algoName)
+            algoRow.append(collated_summary[algoName]['algorithmDisplayName'])
             for val in metricNames:
-                algoRow.append(dataObj["modelEvaluationMetrics"][val])
+                algoRow.append(round(dataObj["modelEvaluationMetrics"][val],3))
             allMetricsData.append(algoRow)
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})

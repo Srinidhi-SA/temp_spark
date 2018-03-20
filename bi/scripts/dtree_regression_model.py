@@ -148,7 +148,7 @@ class DTREERegressionModelPysparkScript:
         # print quantileSummaryArr
         self._model_summary.set_model_type("regression")
         self._model_summary.set_algorithm_name("dtree Regression")
-        self._model_summary.set_algorithm_display_name("dtree Regression")
+        self._model_summary.set_algorithm_display_name("Decision Tree Regression")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_training_time(trainingTime)
