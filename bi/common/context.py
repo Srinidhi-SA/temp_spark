@@ -82,6 +82,7 @@ class ContextSetter:
         self.validationTechniqueObj = None
         self.train_test_split = 0.6
         self.algorithmsToRun = []
+        self.dontSendAnyMessage = False
 
 
 
@@ -342,6 +343,11 @@ class ContextSetter:
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def set_dont_send_message(self,data):
+        self.dontSendAnyMessage = data
+    def get_dont_send_message(self):
+        return self.dontSendAnyMessage
+        
     def get_algorithms_to_run(self):
         return self.algorithmsToRun
 

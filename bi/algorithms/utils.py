@@ -404,7 +404,7 @@ def save_pipeline_or_model(pipeline,dir_path):
     Need to check if any folder exist with the given name
     if yes then 1st delete that then proceed
     """
-    dir_path = dir_path.replace("ubuntu","hadoop")
+    # dir_path = dir_path.replace("ubuntu","hadoop")
     print "dir_path",dir_path
     if dir_path.startswith("file"):
         new_path = dir_path[7:]
