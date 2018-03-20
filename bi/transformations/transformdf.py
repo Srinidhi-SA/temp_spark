@@ -8,8 +8,9 @@ from pyspark.sql.types import StringType
 
 class DataFrameTransformer:
     # @accepts(object,DataFrame,DataFrameHelper,ContextSetter)
-    def __init__(self, dataframe, df_helper, df_context):
+    def __init__(self, dataframe, df_helper, df_context, meta_parser):
         self._data_frame = dataframe
+        self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._completionStatus = 0
@@ -45,15 +46,15 @@ class DataFrameTransformer:
         if len(existingColTransforms) > 0:
             for transformObj in existingColTransforms:
                 transformActionList = [obj["actionName"]  for obj in transformObj["columnSetting"]]
+                colName = self._metaParser.get_name_from_slug(transformObj["slug"])
                 if "delete" in transformActionList:
-                    self.delete_column(transformObj["name"])
+                    self.delete_column(colName)
                 else:
                     for obj in transformObj["columnSetting"]:
                         if obj["actionName"] == "replace":
-                            self.update_column_data(transformObj["name"],obj["replacementValues"])
+                            self.update_column_data(colName,obj["replacementValues"])
                         if obj["actionName"] == "rename":
-                            print "RENAME"*20
-                            self.update_column_name(obj["prevName"],obj["newName"])
+                            self.update_column_name(colName,obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
                             print castDataType
@@ -63,7 +64,7 @@ class DataFrameTransformer:
                                 newDataType = "string"
                             elif castDataType == "datetime":
                                 newDataType = "timestamp"
-                            self.update_column_datatype(transformObj["name"],newDataType)
+                            self.update_column_datatype(colName,newDataType)
                             print self._data_frame.printSchema()
                     print self._data_frame.printSchema()
 

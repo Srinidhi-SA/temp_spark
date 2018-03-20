@@ -392,7 +392,7 @@ def run_metadata(spark,df,dataframe_context):
         CommonUtils.print_errors_and_store_traceback(LOGGER,"metadata",e)
         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-def run_subsetting(spark,df,dataframe_context,dataframe_helper):
+def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     st = time.time()
     LOGGER = dataframe_context.get_logger()
     ignoreMsg = dataframe_context.get_message_ignore()
@@ -409,7 +409,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper):
         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
     try:
         if filtered_df.count() > 0:
-            transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context)
+            transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context,metaParserInstance)
             transform_class.applyTransformations()
             transformed_df = transform_class.get_transformed_data_frame()
         if transformed_df.count() > 0:

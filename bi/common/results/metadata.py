@@ -225,3 +225,9 @@ class ColumnHeader:
 
     def set_slug(self,data):
         self.slug = data
+
+    def get_slug(self):
+        return self.slug
+
+    def get_name(self):
+        return self.name

@@ -122,3 +122,10 @@ class MetaParser:
 
     def get_num_columns(self):
         return self.noOfColumns
+
+    def get_name_from_slug(self,slug):
+        headerOfInterest = filter(lambda x:x.get_slug()==slug,self.headers)
+        if len(headerOfInterest) == 1:
+            return headerOfInterest[0].get_name()
+        else:
+            return None

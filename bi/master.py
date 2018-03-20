@@ -145,7 +145,7 @@ def main(configJson):
 
         ################################ Data Sub Setting ##########################
         if jobType == "subSetting":
-            MasterHelper.run_subsetting(spark,df,dataframe_context,df_helper)
+            MasterHelper.run_subsetting(spark,df,dataframe_context,df_helper,metaParserInstance)
         ############################################################################
 
         ################################ Story Creation ############################
