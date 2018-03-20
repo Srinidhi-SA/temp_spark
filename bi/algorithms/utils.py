@@ -411,8 +411,11 @@ def save_pipeline_or_model(pipeline,dir_path):
         new_path = dir_path
     print "new_path",new_path
     if os.path.isdir(new_path):
+        print "IS DIR"
         shutil.rmtree(new_path)
-    # os.mkdir(new_path)
+        print os.path.isdir(new_path)
+        print "TDSA"
+    os.mkdir(new_path)
     try:
         print "saving in path",dir_path
         pipeline.save(dir_path)
