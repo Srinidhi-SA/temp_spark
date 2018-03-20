@@ -414,9 +414,9 @@ def save_pipeline_or_model(pipeline,dir_path):
         pipeline.save(dir_path)
         print "saved in",dir_path
     except:
-        print "saving in dir_path failed:- Trying another path"
-        print "saving in path",new_path
+        print "saving in dir_path failed:- Trying new_path"
         pipeline.save(new_path)
+        print "saved in",new_path
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
