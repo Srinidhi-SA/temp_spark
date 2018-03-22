@@ -194,42 +194,42 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
-                try:
-                    st = time.time()
-                    lin_obj = GeneralizedLinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
-                    lin_obj.Train()
-                    print "Generalized Linear Regression Model Done in ", time.time() - st,  " seconds."
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedLinearRegression",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
-                try:
-                    st = time.time()
-                    gbt_obj = GBTRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
-                    gbt_obj.Train()
-                    print "GBT Regression Model Done in ", time.time() - st,  " seconds."
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
-                try:
-                    st = time.time()
-                    dtree_obj = DTREERegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
-                    dtree_obj.Train()
-                    print "DTREE Regression Model Done in ", time.time() - st,  " seconds."
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
-                try:
-                    st = time.time()
-                    rf_obj = RFRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
-                    rf_obj.Train()
-                    print "RF Regression Model Done in ", time.time() - st,  " seconds."
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            # if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
+            #     try:
+            #         st = time.time()
+            #         lin_obj = GeneralizedLinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+            #         lin_obj.Train()
+            #         print "Generalized Linear Regression Model Done in ", time.time() - st,  " seconds."
+            #     except Exception as e:
+            #         CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedLinearRegression",e)
+            #         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            # if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
+            #     try:
+            #         st = time.time()
+            #         gbt_obj = GBTRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+            #         gbt_obj.Train()
+            #         print "GBT Regression Model Done in ", time.time() - st,  " seconds."
+            #     except Exception as e:
+            #         CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
+            #         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            # if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
+            #     try:
+            #         st = time.time()
+            #         dtree_obj = DTREERegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+            #         dtree_obj.Train()
+            #         print "DTREE Regression Model Done in ", time.time() - st,  " seconds."
+            #     except Exception as e:
+            #         CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
+            #         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            # if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
+            #     try:
+            #         st = time.time()
+            #         rf_obj = RFRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+            #         rf_obj.Train()
+            #         print "RF Regression Model Done in ", time.time() - st,  " seconds."
+            #     except Exception as e:
+            #         CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
+            #         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
     print "="*50
     appid = dataframe_context.get_app_id()

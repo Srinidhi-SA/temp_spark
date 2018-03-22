@@ -382,7 +382,7 @@ def add_string_index(df,string_columns):
 
 ##################################Spark ML Pipelines ###########################
 
-def create_ml_pipeline(numerical_columns,categorical_columns,target_column,algoName=None,algoType="classification"):
+def create_pyspark_ml_pipeline(numerical_columns,categorical_columns,target_column,algoName=None,algoType="classification"):
     indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed') for x in categorical_columns ] #String Indexer
     encoders = [OneHotEncoder(dropLast=False, inputCol=x+"_indexed", outputCol=x+"_encoded") for x in categorical_columns] # one hot encoder
     assembler_features = VectorAssembler(inputCols=[x+"_encoded" for x in sorted(categorical_columns)]+sorted(numerical_columns), outputCol='features')
@@ -422,6 +422,9 @@ def save_pipeline_or_model(pipeline,dir_path):
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
     return model
+
+##########################SKLEARN Model Pipelines ##############################
+# def create_
 
 def load_rf_model(filepath):
     model = RandomForestClassificationModel.load(filepath)

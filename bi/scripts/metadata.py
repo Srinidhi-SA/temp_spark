@@ -90,10 +90,9 @@ class MetaDataScript:
         sampleData = metaHelperInstance.get_sample_data()
         sampleData = sampleData.toPandas()
         sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
-
         time_taken_sampling = time.time()-self._start_time
         self._completionStatus += self._scriptStages["sampling"]["weight"]
-        # print "sampling takes",time_taken_sampling
+        print "sampling takes",time_taken_sampling
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "sampling",\
                                     "info",\
@@ -142,11 +141,11 @@ class MetaDataScript:
         headers = []
 
         self._start_time = time.time()
-        # print "Count of Numeric columns",len(self._numeric_columns)
+        print "Count of Numeric columns",len(self._numeric_columns)
         measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
-        # print "measure stats takes",time_taken_measurestats
+        print "measure stats takes",time_taken_measurestats
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "measurestats",\
                                     "info",\

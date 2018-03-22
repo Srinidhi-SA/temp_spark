@@ -74,7 +74,7 @@ class DTREERegressionModelPysparkScript:
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
-        pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
+        pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
 
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)

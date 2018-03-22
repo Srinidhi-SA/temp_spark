@@ -17,3 +17,4 @@ sklearn
 sklearn2pmml==0.27.0
 matplotlib==2.1.1
 cryptography==1.8.1
+pyArrow==0.8.0

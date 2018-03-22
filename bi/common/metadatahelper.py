@@ -35,7 +35,6 @@ class MetaDataHelper():
         bucketizer.setSplits(splits)
         binned_df = bucketizer.transform(double_df)
         histogram_df = binned_df.groupBy("BINNED_INDEX").count().toPandas()
-
         str_splits_range = [" to ".join([str(x[0]),str(x[1])]) for x in splits_range]
         bin_name_dict = dict(zip(range(len(splits_range)),str_splits_range))
         bin_name_dict[n_split] = "null"
@@ -85,7 +84,9 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             if binned_stat_flag:
+                st = time.time()
                 measure_chart_data = self.get_binned_stat(df,column,col_stat)
+                print "Binned Stat",time.time()-st
                 measure_chart_data = sorted(measure_chart_data,key=lambda x:x["value"],reverse=True)
                 measure_chart_obj = ChartJson(NormalChartData(measure_chart_data).get_data(),chart_type="bar")
                 measure_chart_obj.set_axes({"x":"name","y":"value"})
@@ -136,12 +137,13 @@ class MetaDataHelper():
                             "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7, "max": 8,
                             "stddev": 9, "mean": 10, "LevelCount": 11}
         for column in dimension_columns:
+            st = time.time()
             col_stat = {}
             if level_count_flag:
                 fs1 = time.time()
                 levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
                 levelCount = {str(k):v for k,v in levelCount.items()}
-                # print "time for levelCount ",time.time()-fs1,"Seconds"
+                print "time for levelCount "+column,time.time()-fs1,"Seconds"
                 col_stat["LevelCount"] = levelCount
                 if None in levelCount.keys():
                     col_stat["numberOfNulls"] = levelCount[None]
@@ -186,6 +188,7 @@ class MetaDataHelper():
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
             modified_col_stat = sorted(modified_col_stat,key=lambda x:displayOrderDict[x["name"]])
             output[column] = modified_col_stat
+            print "dimension stats for column "+column,time.time()-st
         return output,chart_data
 
 

@@ -103,7 +103,7 @@ class LinearRegression:
                 featuresCol=LinearRegression.FEATURES_COLUMN_NAME)
 
         st = time.time()
-        pipeline = MLUtils.create_ml_pipeline(input_columns,[],output_column)
+        pipeline = MLUtils.create_pyspark_ml_pipeline(input_columns,[],output_column)
         pipelineModel = pipeline.fit(measureDf)
         training_df = pipelineModel.transform(measureDf)
         training_df = training_df.withColumn("label",training_df[output_column])
