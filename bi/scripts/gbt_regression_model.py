@@ -32,12 +32,15 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
+from sklearn.model_selection import train_test_split
+from sklearn.externals import joblib
+
 
 
 
 
 class GBTRegressionModelPysparkScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,MLEnvironment="sklearn"):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -48,7 +51,7 @@ class GBTRegressionModelPysparkScript:
         self._model_summary = MLModelSummary()
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]
-        self._mlEnv = MLEnvironment
+        self._mlEnv = mLEnvironment
 
     def Train(self):
         st_global = time.time()
@@ -145,13 +148,13 @@ class GBTRegressionModelPysparkScript:
             mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
             mapeStatsArr = mapeStats.items()
             mapeStatsArr = sorted(mapeStatsArr,key=lambda x:int(x[0]))
-            # print mapeStatsArr
+            print mapeStatsArr
             quantileDf = transformed.select("prediction")
             # print quantileDf.show()
             quantileSummaryDict = MLUtils.get_quantile_summary(quantileDf,"prediction")
             quantileSummaryArr = quantileSummaryDict.items()
             quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
-            # print quantileSummaryArr
+            print quantileSummaryArr
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("GBT Regression")
             self._model_summary.set_algorithm_display_name("Gradient Boosted Tree Regression")
@@ -167,6 +170,108 @@ class GBTRegressionModelPysparkScript:
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
             self._model_summary.set_feature_importance(featureImportance)
             # print CommonUtils.convert_python_object_to_json(self._model_summary)
+        elif self._mlEnv == "sklearn":
+            model_filepath = model_path+"/"+self._slug+"/model.pkl"
+            x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
+            x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
+            x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
+            existing_columns = x_test.columns
+            model_columns = x_train.columns
+            new_columns = list(set(existing_columns)-set(model_columns))
+            missing_columns = list(set(model_columns)-set(existing_columns))
+            df_shape = x_test.shape
+            for col in missing_columns:
+                x_test[col] = [0]*df_shape[0]
+            x_test = x_test[[x for x in model_columns if x != result_column]]
+            from sklearn.ensemble import GradientBoostingRegressor
+            st = time.time()
+            est = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1,max_depth=1, random_state=0, loss='ls')
+            est.fit(x_train, y_train)
+            trainingTime = time.time()-st
+            y_score = est.predict(x_test)
+            try:
+                y_prob = est.predict_proba(x_test)
+            except:
+                y_prob = [0]*len(y_score)
+            featureImportance={}
+
+            objs = {"trained_model":est,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
+
+
+            from sklearn.metrics import mean_absolute_error
+            from sklearn.metrics import mean_squared_error
+            from sklearn.metrics import r2_score
+            from math import sqrt
+            import pandas as pd
+            import numpy as np
+            from sklearn.externals import joblib
+            from sklearn2pmml import sklearn2pmml
+            from sklearn2pmml import PMMLPipeline
+            joblib.dump(objs["trained_model"],model_filepath)
+            metrics = {}
+            metrics["r2"] = r2_score(y_test, y_score)
+            metrics["mse"] = mean_squared_error(y_test, y_score)
+            metrics["mae"] = mean_absolute_error(y_test, y_score)
+            metrics["rmse"] = sqrt(metrics["mse"])
+            transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
+            transformed["difference"] = transformed[result_column] - transformed["prediction"]
+            transformed["mape"] = np.abs(transformed["difference"])*100/transformed[result_column]
+
+            sampleData = None
+            nrows = transformed.shape[0]
+            if nrows > 100:
+                sampleData = transformed.sample(n=100,random_state=420)
+            else:
+                sampleData = transformed
+            print sampleData.head()
+
+            mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
+            mapeStatsArr = [(str(idx),dictObj) for idx,dictObj in enumerate(sorted([{"count":x[1],"splitRange":(x[0].left,x[0].right)} for x in mapeCountArr],key = lambda x:x["splitRange"][0]))]
+
+            predictionColSummary = transformed["prediction"].describe().to_dict()
+            quantileBins = [predictionColSummary["min"],predictionColSummary["25%"],predictionColSummary["50%"],predictionColSummary["75%"],predictionColSummary["max"]]
+            transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins)
+            quantileDf = transformed.groupby("quantileBinId").agg({"prediction":[np.sum,np.mean,np.size]}).reset_index()
+            quantileDf.columns = ["prediction","sum","mean","count"]
+            quantileArr = quantileDf.T.to_dict().items()
+            quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
+            print quantileSummaryArr
+            runtime = round((time.time() - st_global),2)
+
+            self._model_summary.set_model_type("regression")
+            self._model_summary.set_algorithm_name("GBT Regression")
+            self._model_summary.set_algorithm_display_name("Gradient Boosted Tree Regression")
+            self._model_summary.set_slug(self._slug)
+            self._model_summary.set_training_time(runtime)
+            self._model_summary.set_training_time(trainingTime)
+            self._model_summary.set_target_variable(result_column)
+            self._model_summary.set_validation_method(validationDict["displayName"])
+            self._model_summary.set_model_evaluation_metrics(metrics)
+            self._model_summary.set_model_params(algoSetting["algorithmParams"])
+            self._model_summary.set_quantile_summary(quantileSummaryArr)
+            self._model_summary.set_mape_stats(mapeStatsArr)
+            self._model_summary.set_sample_data(sampleData.to_dict())
+            self._model_summary.set_feature_importance(featureImportance)
+
+            try:
+                pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
+                modelPmmlPipeline = PMMLPipeline([
+                  ("pretrained-estimator", objs["trained_model"])
+                ])
+                modelPmmlPipeline.target_field = result_column
+                modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
+                sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
+                pmmlfile = open(pmml_filepath,"r")
+                pmmlText = pmmlfile.read()
+                pmmlfile.close()
+                self._result_setter.update_pmml_object({self._slug:pmmlText})
+            except:
+                pass
+
+
+
+
+
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),

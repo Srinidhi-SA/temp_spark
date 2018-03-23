@@ -48,19 +48,23 @@ class DecisionTreeRegression:
         self._important_vars = {}
         self._numCluster = None
 
-        datasource_type = self._dataframe_context.get_datasource_type()
-        if datasource_type == "Hana":
-            dbConnectionParams = self._dataframe_context.get_dbconnection_params()
-            self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
-            self._data_frame1 = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
-        elif datasource_type == "fileUpload":
-            self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-            self._data_frame1 = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-        self._dataframe_helper = DataFrameHelper(self._data_frame,self._dataframe_context,self._metaParser)
-        self._dataframe_helper.set_params()
-        self.temp_df = self._dataframe_helper.get_data_frame()
-        self._data_frame = self._dataframe_helper.fill_missing_values(self.temp_df)
-        self._data_frame1 = self._dataframe_helper.fill_missing_values(self.temp_df)
+        if not self._dataframe_context.get_story_on_scored_data():
+            datasource_type = self._dataframe_context.get_datasource_type()
+            if datasource_type == "Hana":
+                dbConnectionParams = self._dataframe_context.get_dbconnection_params()
+                self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
+                self._data_frame1 = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
+            elif datasource_type == "fileUpload":
+                self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
+                self._data_frame1 = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
+            self._dataframe_helper = DataFrameHelper(self._data_frame,self._dataframe_context,self._metaParser)
+            self._dataframe_helper.set_params()
+            self.temp_df = self._dataframe_helper.get_data_frame()
+            self._data_frame = self._dataframe_helper.fill_missing_values(self.temp_df)
+            self._data_frame1 = self._dataframe_helper.fill_missing_values(self.temp_df)
+        else:
+            self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
+            self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()

@@ -930,7 +930,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
 def get_mape_stats(df,colname):
     df = df.na.drop(subset=colname)
-    splits = [0,5,15,25,100]
+    splits = GLOBALSETTINGS.MAPEBINS
     splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
     print splitRanges
     st = time.time()

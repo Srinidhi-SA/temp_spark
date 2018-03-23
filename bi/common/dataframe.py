@@ -129,6 +129,7 @@ class DataFrameHelper:
                 self.boolean_columns.append(field.name)
             if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION:
                 self.timestamp_columns.append(field.name)
+        # print self.string_columns
 
     def boolean_to_string(self,colsToConvert):
         if len(colsToConvert) > 0:
@@ -147,7 +148,12 @@ class DataFrameHelper:
         print "These Columns are Ignored:- ",  columns_to_ignore
         if train_test_ratio == None:
             train_test_ratio = 0.7
-        x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+        appid = self._dataframe_context.get_app_id()
+        app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+        if app_type == "CLASSIFICATION":
+            x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+        elif app_type == "REGRESSION":
+            x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42)
         # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
 

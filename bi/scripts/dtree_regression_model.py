@@ -37,7 +37,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 class DTREERegressionModelPysparkScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -48,6 +48,7 @@ class DTREERegressionModelPysparkScript:
         self._model_summary = MLModelSummary()
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]
+        self._mlEnv = mlEnvironment
 
     def Train(self):
         st_global = time.time()
@@ -74,99 +75,197 @@ class DTREERegressionModelPysparkScript:
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
-        pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
+        if self._mlEnv == "spark":
+            pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
 
-        pipelineModel = pipeline.fit(df)
-        indexed = pipelineModel.transform(df)
-        featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
+            pipelineModel = pipeline.fit(df)
+            indexed = pipelineModel.transform(df)
+            featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
 
-        # print indexed.select([result_column,"features"]).show(5)
-        MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
-        # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-        dtreer = DecisionTreeRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
-        if validationDict["name"] == "kFold":
-            defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-            numFold = validationDict["value"]
-            if numFold == 0:
-                numFold = 3
-            trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
-            paramGrid = ParamGridBuilder()\
-                .addGrid(dtreer.regParam, [0.1, 0.01]) \
-                .addGrid(dtreer.fitIntercept, [False, True])\
-                .addGrid(dtreer.elasticNetParam, [0.0, 0.5, 1.0])\
-                .build()
-            crossval = CrossValidator(estimator=dtreer,
-                          estimatorParamMaps=paramGrid,
-                          evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
-                          numFolds=numFold)
+            # print indexed.select([result_column,"features"]).show(5)
+            MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
+            # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
+            dtreer = DecisionTreeRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
+            if validationDict["name"] == "kFold":
+                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                numFold = validationDict["value"]
+                if numFold == 0:
+                    numFold = 3
+                trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
+                paramGrid = ParamGridBuilder()\
+                    .addGrid(dtreer.regParam, [0.1, 0.01]) \
+                    .addGrid(dtreer.fitIntercept, [False, True])\
+                    .addGrid(dtreer.elasticNetParam, [0.0, 0.5, 1.0])\
+                    .build()
+                crossval = CrossValidator(estimator=dtreer,
+                              estimatorParamMaps=paramGrid,
+                              evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
+                              numFolds=numFold)
+                st = time.time()
+                cvModel = crossval.fit(indexed)
+                trainingTime = time.time()-st
+                print "cvModel training takes",trainingTime
+                bestModel = cvModel.bestModel
+            elif validationDict["name"] == "trainAndtest":
+                trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
+                st = time.time()
+                fit = dtreer.fit(trainingData)
+                trainingTime = time.time()-st
+                print "time to train",trainingTime
+                bestModel = fit
+
+            featureImportance = bestModel.featureImportances
+            print featureImportance,type(featureImportance)
+            # print featureImportance[0],len(featureImportance[1],len(featureImportance[2]))
+            print len(featureMapping)
+            featuresArray = [(name, featureImportance[idx]) for idx, name in featureMapping]
+            print featuresArray
+            MLUtils.save_pipeline_or_model(bestModel,model_filepath)
+            transformed = bestModel.transform(validationData)
+            transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
+            transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
+            transformed = transformed.withColumnRenamed(transformed.columns[-1],"difference")
+            transformed = transformed.select([result_column,"prediction","difference",FN.abs(transformed["difference"])*100/transformed[result_column]])
+            transformed = transformed.withColumnRenamed(transformed.columns[-1],"mape")
+            sampleData = None
+            nrows = transformed.count()
+            if nrows > 100:
+                sampleData = transformed.sample(False, float(100)/nrows, seed=420)
+            else:
+                sampleData = transformed
+            print sampleData.show()
+            evaluator = RegressionEvaluator(predictionCol="prediction",labelCol=result_column)
+            metrics = {}
+            metrics["r2"] = evaluator.evaluate(transformed,{evaluator.metricName: "r2"})
+            metrics["rmse"] = evaluator.evaluate(transformed,{evaluator.metricName: "rmse"})
+            metrics["mse"] = evaluator.evaluate(transformed,{evaluator.metricName: "mse"})
+            metrics["mae"] = evaluator.evaluate(transformed,{evaluator.metricName: "mae"})
+            runtime = round((time.time() - st_global),2)
+            # print transformed.count()
+            mapeDf = transformed.select("mape")
+            # print mapeDf.show()
+            mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
+            mapeStatsArr = mapeStats.items()
+            mapeStatsArr = sorted(mapeStatsArr,key=lambda x:int(x[0]))
+            # print mapeStatsArr
+            quantileDf = transformed.select("prediction")
+            # print quantileDf.show()
+            quantileSummaryDict = MLUtils.get_quantile_summary(quantileDf,"prediction")
+            quantileSummaryArr = quantileSummaryDict.items()
+            quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
+            # print quantileSummaryArr
+            self._model_summary.set_model_type("regression")
+            self._model_summary.set_algorithm_name("dtree Regression")
+            self._model_summary.set_algorithm_display_name("Decision Tree Regression")
+            self._model_summary.set_slug(self._slug)
+            self._model_summary.set_training_time(runtime)
+            self._model_summary.set_training_time(trainingTime)
+            self._model_summary.set_target_variable(result_column)
+            self._model_summary.set_validation_method(validationDict["displayName"])
+            self._model_summary.set_model_evaluation_metrics(metrics)
+            self._model_summary.set_model_params(algoSetting["algorithmParams"])
+            self._model_summary.set_quantile_summary(quantileSummaryArr)
+            self._model_summary.set_mape_stats(mapeStatsArr)
+            self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
+            self._model_summary.set_feature_importance(featureImportance)
+            # print CommonUtils.convert_python_object_to_json(self._model_summary)
+        elif self._mlEnv == "sklearn":
+            model_filepath = model_path+"/"+self._slug+"/model.pkl"
+            x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
+            x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
+            x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
+            existing_columns = x_test.columns
+            model_columns = x_train.columns
+            new_columns = list(set(existing_columns)-set(model_columns))
+            missing_columns = list(set(model_columns)-set(existing_columns))
+            df_shape = x_test.shape
+            for col in missing_columns:
+                x_test[col] = [0]*df_shape[0]
+            x_test = x_test[[x for x in model_columns if x != result_column]]
+            from sklearn.tree import DecisionTreeRegressor
             st = time.time()
-            cvModel = crossval.fit(indexed)
+            est = DecisionTreeRegressor()
+            est.fit(x_train, y_train)
             trainingTime = time.time()-st
-            print "cvModel training takes",trainingTime
-            bestModel = cvModel.bestModel
-        elif validationDict["name"] == "trainAndtest":
-            trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
-            st = time.time()
-            fit = dtreer.fit(trainingData)
-            trainingTime = time.time()-st
-            print "time to train",trainingTime
-            bestModel = fit
+            y_score = est.predict(x_test)
+            try:
+                y_prob = est.predict_proba(x_test)
+            except:
+                y_prob = [0]*len(y_score)
+            featureImportance={}
 
-        featureImportance = bestModel.featureImportances
-        print featureImportance,type(featureImportance)
-        # print featureImportance[0],len(featureImportance[1],len(featureImportance[2]))
-        print len(featureMapping)
-        featuresArray = [(name, featureImportance[idx]) for idx, name in featureMapping]
-        print featuresArray
-        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
-        transformed = bestModel.transform(validationData)
-        transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
-        transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
-        transformed = transformed.withColumnRenamed(transformed.columns[-1],"difference")
-        transformed = transformed.select([result_column,"prediction","difference",FN.abs(transformed["difference"])*100/transformed[result_column]])
-        transformed = transformed.withColumnRenamed(transformed.columns[-1],"mape")
-        sampleData = None
-        nrows = transformed.count()
-        if nrows > 100:
-            sampleData = transformed.sample(False, float(100)/nrows, seed=420)
-        else:
-            sampleData = transformed
-        print sampleData.show()
-        evaluator = RegressionEvaluator(predictionCol="prediction",labelCol=result_column)
-        metrics = {}
-        metrics["r2"] = evaluator.evaluate(transformed,{evaluator.metricName: "r2"})
-        metrics["rmse"] = evaluator.evaluate(transformed,{evaluator.metricName: "rmse"})
-        metrics["mse"] = evaluator.evaluate(transformed,{evaluator.metricName: "mse"})
-        metrics["mae"] = evaluator.evaluate(transformed,{evaluator.metricName: "mae"})
-        runtime = round((time.time() - st_global),2)
-        # print transformed.count()
-        mapeDf = transformed.select("mape")
-        # print mapeDf.show()
-        mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
-        mapeStatsArr = mapeStats.items()
-        mapeStatsArr = sorted(mapeStatsArr,key=lambda x:int(x[0]))
-        # print mapeStatsArr
-        quantileDf = transformed.select("prediction")
-        # print quantileDf.show()
-        quantileSummaryDict = MLUtils.get_quantile_summary(quantileDf,"prediction")
-        quantileSummaryArr = quantileSummaryDict.items()
-        quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
-        # print quantileSummaryArr
-        self._model_summary.set_model_type("regression")
-        self._model_summary.set_algorithm_name("dtree Regression")
-        self._model_summary.set_algorithm_display_name("Decision Tree Regression")
-        self._model_summary.set_slug(self._slug)
-        self._model_summary.set_training_time(runtime)
-        self._model_summary.set_training_time(trainingTime)
-        self._model_summary.set_target_variable(result_column)
-        self._model_summary.set_validation_method(validationDict["displayName"])
-        self._model_summary.set_model_evaluation_metrics(metrics)
-        self._model_summary.set_model_params(algoSetting["algorithmParams"])
-        self._model_summary.set_quantile_summary(quantileSummaryArr)
-        self._model_summary.set_mape_stats(mapeStatsArr)
-        self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
-        self._model_summary.set_feature_importance(featureImportance)
-        # print CommonUtils.convert_python_object_to_json(self._model_summary)
+            objs = {"trained_model":est,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
+
+
+            from sklearn.metrics import mean_absolute_error
+            from sklearn.metrics import mean_squared_error
+            from sklearn.metrics import r2_score
+            from math import sqrt
+            import pandas as pd
+            import numpy as np
+            from sklearn.externals import joblib
+            from sklearn2pmml import sklearn2pmml
+            from sklearn2pmml import PMMLPipeline
+            joblib.dump(objs["trained_model"],model_filepath)
+            metrics = {}
+            metrics["r2"] = r2_score(y_test, y_score)
+            metrics["mse"] = mean_squared_error(y_test, y_score)
+            metrics["mae"] = mean_absolute_error(y_test, y_score)
+            metrics["rmse"] = sqrt(metrics["mse"])
+            transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
+            transformed["difference"] = transformed[result_column] - transformed["prediction"]
+            transformed["mape"] = np.abs(transformed["difference"])*100/transformed[result_column]
+
+            sampleData = None
+            nrows = transformed.shape[0]
+            if nrows > 100:
+                sampleData = transformed.sample(n=100,random_state=420)
+            else:
+                sampleData = transformed
+            print sampleData.head()
+
+            mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
+            mapeStatsArr = [(str(idx),dictObj) for idx,dictObj in enumerate(sorted([{"count":x[1],"splitRange":(x[0].left,x[0].right)} for x in mapeCountArr],key = lambda x:x["splitRange"][0]))]
+
+            predictionColSummary = transformed["prediction"].describe().to_dict()
+            quantileBins = [predictionColSummary["min"],predictionColSummary["25%"],predictionColSummary["50%"],predictionColSummary["75%"],predictionColSummary["max"]]
+            transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins)
+            quantileDf = transformed.groupby("quantileBinId").agg({"prediction":[np.sum,np.mean,np.size]}).reset_index()
+            quantileDf.columns = ["prediction","sum","mean","count"]
+            quantileArr = quantileDf.T.to_dict().items()
+            quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
+            print quantileSummaryArr
+            runtime = round((time.time() - st_global),2)
+
+            self._model_summary.set_model_type("regression")
+            self._model_summary.set_algorithm_name("DTREE Regression")
+            self._model_summary.set_algorithm_display_name("Decision Tree Regression")
+            self._model_summary.set_slug(self._slug)
+            self._model_summary.set_training_time(runtime)
+            self._model_summary.set_training_time(trainingTime)
+            self._model_summary.set_target_variable(result_column)
+            self._model_summary.set_validation_method(validationDict["displayName"])
+            self._model_summary.set_model_evaluation_metrics(metrics)
+            self._model_summary.set_model_params(algoSetting["algorithmParams"])
+            self._model_summary.set_quantile_summary(quantileSummaryArr)
+            self._model_summary.set_mape_stats(mapeStatsArr)
+            self._model_summary.set_sample_data(sampleData.to_dict())
+            self._model_summary.set_feature_importance(featureImportance)
+
+            try:
+                pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
+                modelPmmlPipeline = PMMLPipeline([
+                  ("pretrained-estimator", objs["trained_model"])
+                ])
+                modelPmmlPipeline.target_field = result_column
+                modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
+                sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
+                pmmlfile = open(pmml_filepath,"r")
+                pmmlText = pmmlfile.read()
+                pmmlfile.close()
+                self._result_setter.update_pmml_object({self._slug:pmmlText})
+            except:
+                pass
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),

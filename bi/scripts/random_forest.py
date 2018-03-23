@@ -98,7 +98,7 @@ class RandomForestScript:
             model_path = model_path[7:]
         random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-
+        print type(x_train),type(x_test),type(y_train),type(y_test)
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "training",\
