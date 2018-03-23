@@ -327,45 +327,93 @@ class GBTRegressionModelPysparkScript:
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
 
-        test_data_path = self._dataframe_context.get_input_file()
-        score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
-        trained_model_path = "file://" + self._dataframe_context.get_model_path()
-        trained_model_path += "/model"
-        pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
-        print "trained_model_path",trained_model_path
-        print "pipeline_path",pipeline_path
-        print "score_data_path",score_data_path
-        pipelineModel = MLUtils.load_pipeline(pipeline_path)
-        trained_model = MLUtils.load_gbt_regresssion_pyspark_model(trained_model_path)
-        df = self._data_frame
-        indexed = pipelineModel.transform(df)
-        transformed = trained_model.transform(indexed)
-        if result_column in transformed.columns:
-            transformed = transformed.withColumnRenamed(result_column,"originalLabel")
-        transformed = transformed.withColumnRenamed("prediction",result_column)
-        pandas_scored_df = transformed.select(list(set(self._data_frame.columns+[result_column]))).toPandas()
-        if score_data_path.startswith("file"):
-            score_data_path = score_data_path[7:]
-        pandas_scored_df.to_csv(score_data_path,header=True,index=False)
+        if self._mlEnv == "spark":
+            score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
+            trained_model_path = "file://" + self._dataframe_context.get_model_path()
+            trained_model_path += "/model"
+            pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
+            print "trained_model_path",trained_model_path
+            print "pipeline_path",pipeline_path
+            print "score_data_path",score_data_path
+            pipelineModel = MLUtils.load_pipeline(pipeline_path)
+            trained_model = MLUtils.load_gbt_regresssion_pyspark_model(trained_model_path)
+            df = self._data_frame
+            indexed = pipelineModel.transform(df)
+            transformed = trained_model.transform(indexed)
+            if result_column in transformed.columns:
+                transformed = transformed.withColumnRenamed(result_column,"originalLabel")
+            transformed = transformed.withColumnRenamed("prediction",result_column)
+            pandas_scored_df = transformed.select(list(set(self._data_frame.columns+[result_column]))).toPandas()
+            if score_data_path.startswith("file"):
+                score_data_path = score_data_path[7:]
+            pandas_scored_df.to_csv(score_data_path,header=True,index=False)
 
-        print "STARTING Measure ANALYSIS ..."
-        columns_to_keep = []
-        columns_to_drop = []
-        columns_to_keep = self._dataframe_context.get_score_consider_columns()
-        if len(columns_to_keep) > 0:
-            columns_to_drop = list(set(df.columns)-set(columns_to_keep))
-        else:
-            columns_to_drop += ["predicted_probability"]
-        columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
-        print "columns_to_drop",columns_to_drop
-        spark_scored_df = transformed.select(list(set(columns_to_keep+[result_column])))
+            print "STARTING Measure ANALYSIS ..."
+            columns_to_keep = []
+            columns_to_drop = []
+            columns_to_keep = self._dataframe_context.get_score_consider_columns()
+            if len(columns_to_keep) > 0:
+                columns_to_drop = list(set(df.columns)-set(columns_to_keep))
+            else:
+                columns_to_drop += ["predicted_probability"]
+            columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
+            print "columns_to_drop",columns_to_drop
+            spark_scored_df = transformed.select(list(set(columns_to_keep+[result_column])))
+
+        elif self._mlEnv == "sklearn":
+            score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
+            trained_model_path = "file://" + self._dataframe_context.get_model_path()
+            trained_model_path += "/model.pkl"
+            print "trained_model_path",trained_model_path
+            print "score_data_path",score_data_path
+            if trained_model_path.startswith("file"):
+                trained_model_path = trained_model_path[7:]
+            trained_model = joblib.load(trained_model_path)
+            model_columns = self._dataframe_context.get_model_features()
+            print "model_columns",model_columns
+
+            df = self._data_frame.toPandas()
+            pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+            pandas_df = MLUtils.create_dummy_columns(pandas_df,[x for x in categorical_columns if x != result_column])
+            existing_columns = pandas_df.columns
+            new_columns = list(set(existing_columns)-set(model_columns))
+            missing_columns = list(set(model_columns)-set(existing_columns)-set(result_column))
+            df_shape = pandas_df.shape
+            for col in missing_columns:
+                pandas_df[col] = [0]*df_shape[0]
+            pandas_df = pandas_df[[x for x in model_columns if x != result_column]]
+            pandas_df = pandas_df[model_columns]
+            if uid_col:
+                pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+            y_score = trained_model.predict(pandas_df)
+            pandas_df[result_column] = y_score
+            df[result_column] = y_score
+
+            print "STARTING Measure ANALYSIS ..."
+            columns_to_keep = []
+            columns_to_drop = []
+            columns_to_keep = self._dataframe_context.get_score_consider_columns()
+            if len(columns_to_keep) > 0:
+                columns_to_drop = list(set(df.columns)-set(columns_to_keep))
+            else:
+                columns_to_drop += ["predicted_probability"]
+
+            columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
+            print "columns_to_drop",columns_to_drop
+            pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
+            spark_scored_df = SQLctx.createDataFrame(pandas_scored_df)
+            # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
+            # TODO update metadata for the newly created dataframe
+            self._dataframe_context.update_consider_columns(columns_to_keep)
+            print spark_scored_df.printSchema()
 
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         df = df_helper.get_data_frame()
+        self._dataframe_context.set_dont_send_message(True)
         try:
             fs = time.time()
-            descr_stats_obj = DescriptiveStatsScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
+            descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
             descr_stats_obj.Run()
             print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
         except:
@@ -373,9 +421,9 @@ class GBTRegressionModelPysparkScript:
 
         try:
             fs = time.time()
-            self._dataframe_helper.fill_na_dimension_nulls()
-            df = self._dataframe_helper.get_data_frame()
-            dt_reg = DecisionTreeRegressionScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            df_helper.fill_na_dimension_nulls()
+            df = df_helper.get_data_frame()
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
         except:
@@ -383,7 +431,7 @@ class GBTRegressionModelPysparkScript:
 
         try:
             fs = time.time()
-            two_way_obj = TwoWayAnovaScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
             two_way_obj.Run()
             print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
         except:

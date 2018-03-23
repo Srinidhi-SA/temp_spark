@@ -388,7 +388,7 @@ class LinearRegressionModelPysparkScript:
                 trained_model_path = trained_model_path[7:]
             trained_model = joblib.load(trained_model_path)
             model_columns = self._dataframe_context.get_model_features()
-            print model_columns
+            print "model_columns",model_columns
 
             df = self._data_frame.toPandas()
             pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -404,10 +404,6 @@ class LinearRegressionModelPysparkScript:
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             y_score = trained_model.predict(pandas_df)
-            # y_prob = trained_model.predict_proba(pandas_df)
-            # y_prob = MLUtils.calculate_predicted_probability(y_prob)
-            # x_test['responded'] = y_score
-            # df["predicted_probability"] = score["predicted_probability"]
             pandas_df[result_column] = y_score
             df[result_column] = y_score
 
@@ -423,13 +419,12 @@ class LinearRegressionModelPysparkScript:
             columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
             print "columns_to_drop",columns_to_drop
             pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
-            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
             spark_scored_df = SQLctx.createDataFrame(pandas_scored_df)
             # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
             # TODO update metadata for the newly created dataframe
             self._dataframe_context.update_consider_columns(columns_to_keep)
             print spark_scored_df.printSchema()
-            
+
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         df = df_helper.get_data_frame()
@@ -446,7 +441,6 @@ class LinearRegressionModelPysparkScript:
             fs = time.time()
             df_helper.fill_na_dimension_nulls()
             df = df_helper.get_data_frame()
-            print df.show(3)
             dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
