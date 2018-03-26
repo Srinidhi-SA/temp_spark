@@ -257,6 +257,8 @@ class RFRegressionModelPysparkScript:
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.to_dict())
             self._model_summary.set_feature_importance(featureImportance)
+            self._model_summary.set_feature_list(list(model_columns))
+            
 
             try:
                 pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"

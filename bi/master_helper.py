@@ -237,13 +237,11 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     appid = dataframe_context.get_app_id()
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     print "="*50
-    print modelJsonOutput
-    print "="*50
+    # print modelJsonOutput
+    # print "="*50
 
-    try:
-        response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
-    except:
-        response = CommonUtils.save_result_json(jobUrl,modelJsonOutput)
+    response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
+
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
     progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
