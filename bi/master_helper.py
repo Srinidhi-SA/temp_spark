@@ -302,7 +302,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "logisticregression" in selected_model_for_prediction:
@@ -312,7 +312,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         else:

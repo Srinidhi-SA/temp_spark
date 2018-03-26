@@ -29,12 +29,23 @@ from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValida
 from pyspark.ml.evaluation import RegressionEvaluator
 
 from bi.settings import setting as GLOBALSETTINGS
+from bi.algorithms import DecisionTrees
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.scripts.descr_stats import DescriptiveStatsScript
+from bi.scripts.two_way_anova import TwoWayAnovaScript
+from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
 
-
-
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+from math import sqrt
+import pandas as pd
+import numpy as np
 from sklearn.externals import joblib
+from sklearn2pmml import sklearn2pmml
+from sklearn2pmml import PMMLPipeline
 
+from sklearn.ensemble import GradientBoostingRegressor
 
 
 
@@ -183,7 +194,6 @@ class GBTRegressionModelPysparkScript:
             for col in missing_columns:
                 x_test[col] = [0]*df_shape[0]
             x_test = x_test[[x for x in model_columns if x != result_column]]
-            from sklearn.ensemble import GradientBoostingRegressor
             st = time.time()
             est = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1,max_depth=1, random_state=0, loss='ls')
             est.fit(x_train, y_train)
@@ -197,16 +207,6 @@ class GBTRegressionModelPysparkScript:
 
             objs = {"trained_model":est,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
 
-
-            from sklearn.metrics import mean_absolute_error
-            from sklearn.metrics import mean_squared_error
-            from sklearn.metrics import r2_score
-            from math import sqrt
-            import pandas as pd
-            import numpy as np
-            from sklearn.externals import joblib
-            from sklearn2pmml import sklearn2pmml
-            from sklearn2pmml import PMMLPipeline
             joblib.dump(objs["trained_model"],model_filepath)
             metrics = {}
             metrics["r2"] = r2_score(y_test, y_score)
