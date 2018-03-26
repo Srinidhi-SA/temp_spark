@@ -116,7 +116,18 @@ class ResultSetter:
         return self.linearRegressionModelSummary
     def get_gbt_regression_model_summart(self):
         return self.gbtRegressionModelSummary
+    def get_dtree_regression_model_summart(self):
+        return self.dtreeRegressionModelSummary
+    def get_rf_regression_model_summart(self):
+        return self.rfRegressionModelSummary
+    def get_generalized_linear_regression_model_summary(self):
+        return self.generalizedLinearRegressionModelSummary
 
+    def get_all_regression_model_summary(self):
+        allRegressionModelSummary = [self.linearRegressionModelSummary,self.gbtRegressionModelSummary,self.dtreeRegressionModelSummary,self.rfRegressionModelSummary,self.generalizedLinearRegressionModelSummary]
+        allRegressionModelSummary = [x for x in allRegressionModelSummary if x != None]
+        return allRegressionModelSummary
+        
     def set_head_node(self,node):
         self.headNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_trend_node(self,node):

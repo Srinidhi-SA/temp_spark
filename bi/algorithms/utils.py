@@ -800,7 +800,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         modelResult = json.loads(modelResult)
         existing_cards = modelResult["listOfCards"]
         existing_cards = result_setter.get_all_classification_cards()
-        print "existing_cards",existing_cards
+        # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
         all_cards = [card1,card2,card3] + existing_cards
 
@@ -903,13 +903,12 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         modelJsonOutput = ModelSummary()
         modelJsonOutput.set_model_summary(json.loads(modelResult))
         ####
-        linrModelSummary = result_setter.get_linear_regression_model_summary()
-
+        
         model_dropdowns = []
         model_features = {}
         model_configs = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
-        allRegressionModelSummary = [linrModelSummary]
+        allRegressionModelSummary = result_setter.get_all_regression_model_summary()
         for obj in allRegressionModelSummary:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
