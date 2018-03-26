@@ -428,28 +428,28 @@ class LinearRegressionModelPysparkScript:
         df_helper.set_params()
         df = df_helper.get_data_frame()
         self._dataframe_context.set_dont_send_message(True)
-        # try:
-        fs = time.time()
-        descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
-        descr_stats_obj.Run()
-        print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
-        # except:
-        #     print "Frequency Analysis Failed "
+        try:
+            fs = time.time()
+            descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
+            descr_stats_obj.Run()
+            print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+        except:
+            print "Frequency Analysis Failed "
 
-        # try:
-        fs = time.time()
-        df_helper.fill_na_dimension_nulls()
-        df = df_helper.get_data_frame()
-        dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
-        dt_reg.Run()
-        print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-        # except:
-        #     print "DTREE FAILED"
+        try:
+            fs = time.time()
+            df_helper.fill_na_dimension_nulls()
+            df = df_helper.get_data_frame()
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            dt_reg.Run()
+            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+        except:
+            print "DTREE FAILED"
 
-        # # try:
-        # fs = time.time()
-        # two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
-        # two_way_obj.Run()
-        # print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-        # except:
-        #     print "Anova Analysis Failed"
+        try:
+            fs = time.time()
+            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            two_way_obj.Run()
+            print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+        except:
+            print "Anova Analysis Failed"

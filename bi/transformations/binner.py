@@ -73,10 +73,10 @@ class Binner:
             # splits = CommonUtils.frange(min_value, max_value, num_bins)
             splits = CommonUtils.return_optimum_bins(self._data_frame.select(column_name).toPandas()[column_name])
             if splits[0]>min_value:
-                splits = [min_value]+list(splits)
+                splits = [min_value-1]+list(splits)
                 print "Min Point Added"
             if splits[-1]<max_value:
-                splits = list(splits)+[max_value]
+                splits = list(splits)+[max_value+1]
                 print "Max Point Added"
         else:
             splits = split_points

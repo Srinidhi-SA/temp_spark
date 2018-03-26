@@ -42,7 +42,7 @@ def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=N
         # print measure_column, min_, max_,splits
         # splits_new = [min_,splits[1],splits[3],max_]
         diff = (max_ - min_)*1.0
-        splits_new = [min_,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_]
+        splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
         bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
         bucketizer.setSplits(splits_new)
         df = bucketizer.transform(df)
@@ -311,7 +311,7 @@ def bin_column(df, measure_column,get_aggregation = False):
     min_,max_,mean_,stddev_,total = df.agg(FN.min(measure_column), FN.max(measure_column), FN.mean(measure_column), FN.stddev(measure_column), FN.sum(measure_column)).collect()[0]
     df_without_outlier = df.filter(col(measure_column)>=mean_-3*stddev_).filter(col(measure_column)<=mean_+3*stddev_)
     diff = (max_ - min_)*1.0
-    splits_new = [min_,min_+diff*0.4,min_+diff*0.7,max_]
+    splits_new = [min_-1,min_+diff*0.4,min_+diff*0.7,max_+1]
     bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
     bucketizer.setSplits(splits_new)
     df = bucketizer.transform(df)
@@ -903,7 +903,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         modelJsonOutput = ModelSummary()
         modelJsonOutput.set_model_summary(json.loads(modelResult))
         ####
-        
+
         model_dropdowns = []
         model_features = {}
         model_configs = {}
