@@ -258,7 +258,7 @@ class DTREERegressionModelPysparkScript:
             self._model_summary.set_sample_data(sampleData.to_dict())
             self._model_summary.set_feature_importance(featureImportance)
             self._model_summary.set_feature_list(list(model_columns))
-            
+
 
             try:
                 pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
@@ -390,6 +390,8 @@ class DTREERegressionModelPysparkScript:
             y_score = trained_model.predict(pandas_df)
             pandas_df[result_column] = y_score
             df[result_column] = y_score
+            df.to_csv(score_data_path,header=True,index=False)
+            
 
             print "STARTING Measure ANALYSIS ..."
             columns_to_keep = []

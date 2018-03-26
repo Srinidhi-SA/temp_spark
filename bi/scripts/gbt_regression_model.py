@@ -390,6 +390,8 @@ class GBTRegressionModelPysparkScript:
             y_score = trained_model.predict(pandas_df)
             pandas_df[result_column] = y_score
             df[result_column] = y_score
+            df.to_csv(score_data_path,header=True,index=False)
+            
 
             print "STARTING Measure ANALYSIS ..."
             columns_to_keep = []
