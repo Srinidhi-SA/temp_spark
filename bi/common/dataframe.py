@@ -149,7 +149,11 @@ class DataFrameHelper:
         if train_test_ratio == None:
             train_test_ratio = 0.7
         appid = self._dataframe_context.get_app_id()
+        print "appid",appid
+        print "="*30
         app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+        print "app_type",app_type
+        print "="*30
         if app_type == "CLASSIFICATION":
             x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
         elif app_type == "REGRESSION":
