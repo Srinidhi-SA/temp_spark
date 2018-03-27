@@ -37,6 +37,8 @@ class DataLoader:
         # change jdbc_url
 
         jdbc_url = "jdbc:mysql://{}:{}/{}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
+        print jdbc_url
+        
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
         password = dbConnectionParams.get("password")
