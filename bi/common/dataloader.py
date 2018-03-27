@@ -47,6 +47,7 @@ class DataLoader:
                 "user", username).option("password", password).load()
         except Exception as e:
             print("couldn't connect to database")
+            print e
         return df
 
     @staticmethod
