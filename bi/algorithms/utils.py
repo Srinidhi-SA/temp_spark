@@ -707,7 +707,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data.append(HtmlData(data="<h5>Algorithm Parameters:</h5>"))
         modelParams = modelSummaryClass.get_model_params()
         for k,v in modelParams.items():
-            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}%</p>".format(k,v)))
+            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(k,v)))
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
 
         ######################MAPE CHART#######################################
@@ -905,7 +905,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
         card4Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
-        card4.set_card_data(card3Data)
+        card4.set_card_data(card4Data)
         card4 = json.loads(CommonUtils.convert_python_object_to_json(card4))
 
         existing_cards = result_setter.get_all_regression_cards()
