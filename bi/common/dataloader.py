@@ -17,6 +17,7 @@ class DataLoader:
     @staticmethod
     @accepts(SparkSession, basestring, dict)
     def create_dataframe_from_jdbc_connector(spark_session, datasource_type, dbConnectionParams):
+        datasource_type = datasource_type.lower()
         print "$"*100
         print datasource_type
         print dbConnectionParams
@@ -38,7 +39,7 @@ class DataLoader:
 
         jdbc_url = "jdbc:mysql://{}:{}/{}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
         print jdbc_url
-        
+
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
         password = dbConnectionParams.get("password")
