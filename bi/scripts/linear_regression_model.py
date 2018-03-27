@@ -405,9 +405,6 @@ class LinearRegressionModelPysparkScript:
             y_score = trained_model.predict(pandas_df)
             pandas_df[result_column] = y_score
             df[result_column] = y_score
-            print df.head(5)
-            print "="*200
-            print score_data_path
             df.to_csv(score_data_path,header=True,index=False)
 
 

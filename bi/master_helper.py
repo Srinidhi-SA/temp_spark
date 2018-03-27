@@ -452,7 +452,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
             transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context,metaParserInstance)
             transform_class.applyTransformations()
             transformed_df = transform_class.get_transformed_data_frame()
-        if transformed_df.count() > 0:
+        if filtered_df.count() > 0 and transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print "output_filepath",output_filepath
             transformed_df.write.csv(output_filepath,mode="overwrite",header=True)

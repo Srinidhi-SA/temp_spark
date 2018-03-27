@@ -11,6 +11,167 @@ BASEFOLDERNAME_MODELS = "mAdvisorModels"
 BASEFOLDERNAME_SCORES = "mAdvisorScores"
 PROBABILITY_RANGE_FOR_DONUT_CHART = {"50-60%":(50,60),"60-70%":(60,70),"70-80%":(70,80),"80-90%":(80,90),"90-100%":(90,100)}
 
+SKLEARN_ML_REGRESSION_PARAMS = [
+            {
+                "name":"n_jobs",
+                "displayName":"No Of Jobs",
+                "defaultValue":1,
+                "acceptedValue":None,
+                "valueRange":[-1,4],
+                "paramType":"number",
+                "uiElemType":"slider",
+                "display":True
+            },
+            {
+                 "name":"fit_intercept",
+                 "displayName":"Fit Intercept",
+                 "defaultValue":True,
+                 "acceptedValue":None,
+                 "paramType":"boolean",
+                 "uiElemType":"checkbox",
+                 "display":True
+             },
+             {
+                 "name":"normalize",
+                 "displayName":"Normalize",
+                 "defaultValue":False,
+                 "acceptedValue":None,
+                 "paramType":"boolean",
+                 "uiElemType":"checkbox",
+                 "display":True
+             },
+             {
+                 "name":"copy_X",
+                 "displayName":"Copy X",
+                 "defaultValue":True,
+                 "acceptedValue":None,
+                 "paramType":"boolean",
+                 "uiElemType":"checkbox",
+                 "display":True
+             }
+]
+
+SKLEARN_ML_SUPPORTED_LOSS = [
+    {"name":"ls","selected":True,"displayName":"Least Squares Regression"},
+    {"name":"lad","selected":False,"displayName":"Least Absolute Deviation"},
+    {"name":"huber","selected":False,"displayName":"Huber"},
+    {"name":"quantile","selected":False,"displayName":"Quantile Regression"},
+]
+SKLEARN_ML_SUPPORTED_SPLIT_CRITERION = [
+    {"name":"friedman_mse","selected":True,"displayName":"Friedman Mse"},
+    {"name":"mse","selected":False,"displayName":"Mean Squared Error"},
+    {"name":"mae","selected":False,"displayName":"Mean Absolute Error"},
+]
+
+SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
+                {
+                    "name":"max_depth",
+                    "displayName":"Depth Of Trees",
+                    "defaultValue":3,
+                    "acceptedValue":None,
+                    "valueRange":[2,20],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"learning_rate",
+                    "displayName":"Learning Rate",
+                    "defaultValue":0.1,
+                    "acceptedValue":None,
+                    "valueRange":[0.1,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"criterion",
+                    "displayName":"Measure For quality of a split",
+                    "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_SPLIT_CRITERION],
+                    "paramType":"list",
+                    "uiElemType":"checkbox",
+                    "display":True
+                },
+                {
+                    "name":"min_samples_leaf",
+                    "displayName":"Minimum Instances For Leaf Node",
+                    "defaultValue":1,
+                    "acceptedValue":None,
+                    "valueRange":[1,1000],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+
+                {
+                    "name":"min_samples_split",
+                    "displayName":"Minimum Instances For Split",
+                    "defaultValue":2,
+                    "acceptedValue":None,
+                    "valueRange":[1,100],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"subsample",
+                    "displayName":"Sub Sampling Rate",
+                    "defaultValue":1.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"max_features",
+                    "displayName":"Maximum Features for Split",
+                    "defaultValue":0.0,
+                    "acceptedValue":None,
+                    "valueRange":[0.0,1.0],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                    "name":"maxMemoryInMB",
+                    "displayName":"Maximum Memory Available",
+                    "defaultValue":256,
+                    "acceptedValue":None,
+                    "valueRange":[128,10240],
+                    "paramType":"number",
+                    "uiElemType":"slider",
+                    "display":True
+                },
+                {
+                     "name":"cacheNodeIds",
+                     "displayName":"Cache Node Ids",
+                     "defaultValue":False,
+                     "acceptedValue":None,
+                     "paramType":"boolean",
+                     "uiElemType":"checkbox",
+                     "display":True
+                 },
+                 {
+                     "name":"loss",
+                     "displayName":"Loss Function",
+                     "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_LOSS],
+                     "paramType":"list",
+                     "uiElemType":"checkbox",
+                     "display":True
+                 },
+                 {
+                 "name":"seed",
+                 "displayName":"Random Seed",
+                 "defaultValue":None,
+                 "acceptedValue":None,
+                 "valueRange":[],
+                 "paramType":"number",
+                 "uiElemType":"textBox",
+                 "display":True
+                 }
+]
+
 PYSPARK_ML_REGRESSION_PARAMS = [
             {
                 "name":"maxIter",
