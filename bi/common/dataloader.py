@@ -17,6 +17,7 @@ class DataLoader:
     @staticmethod
     @accepts(SparkSession, basestring, dict)
     def create_dataframe_from_jdbc_connector(spark_session, datasource_type, dbConnectionParams):
+        datasource_type = datasource_type.lower()
         print "$"*100
         print datasource_type
         print dbConnectionParams
@@ -36,17 +37,21 @@ class DataLoader:
         df = None
         # change jdbc_url
 
-        jdbc_url = "jdbc:mysql//{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
+        jdbc_url = "jdbc:mysql://{}:{}/{}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
+        print jdbc_url
+
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
         password = dbConnectionParams.get("password")
         try:
             df = spark_session.read.format("jdbc").option(
-                "url", "{}/{}".format(jdbc_url, DataLoader.get_db_name(dbConnectionParams))).option(
+                "url", jdbc_url).option(
                 "dbtable", "{}".format(table_name)).option(
                 "user", username).option("password", password).load()
+            return df
         except Exception as e:
             print("couldn't connect to database")
+            print e
         return df
 
     @staticmethod
