@@ -795,13 +795,13 @@ APPS_ID_MAP = {
     'name': 'opportunity_scoring',
     'heading': 'Factors influencing Opportunity Score'
   },
-  '3': {
+  '2': {
     'displayName': 'Robo Advisor',
     'type': 'ROBO',
     'name': 'robo_advisor_insights',
     'heading': None
   },
-  '2': {
+  '3': {
     'displayName': 'Automated Prediction',
     'type': 'CLASSIFICATION',
     'name': 'automated_prediction',
