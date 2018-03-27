@@ -867,7 +867,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card3 = None
         if "rfregression" in collated_summary:
             card3 = NormalCard()
-            featureImportanceArray = sorted(collated_summary["rfregression"]["featureImportance"],key=lambda x:x[1]),reverse=True)
+            featureImportanceArray = sorted(collated_summary["rfregression"]["featureImportance"],key=lambda x:x[1],reverse=True)
             featureImportanceArray = [{"key":tup[0],"value":tup[1]} for tup in featureImportanceArray]
             chartDataValues = [x["value"] for x in featureImportanceArray]
             featureChartJson = ChartJson()
