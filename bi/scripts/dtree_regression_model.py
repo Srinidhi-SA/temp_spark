@@ -70,7 +70,7 @@ class DTREERegressionModelPysparkScript:
     def Train(self):
         st_global = time.time()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"],algosToRun)[0]
+        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -201,6 +201,7 @@ class DTREERegressionModelPysparkScript:
             x_test = x_test[[x for x in model_columns if x != result_column]]
             st = time.time()
             est = DecisionTreeRegressor()
+            est.set_params(**algoSetting["algorithmParams"])
             est.fit(x_train, y_train)
             trainingTime = time.time()-st
             y_score = est.predict(x_test)
