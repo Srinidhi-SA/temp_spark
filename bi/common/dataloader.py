@@ -45,6 +45,7 @@ class DataLoader:
                 "url", jdbc_url).option(
                 "dbtable", "{}".format(table_name)).option(
                 "user", username).option("password", password).load()
+            return df
         except Exception as e:
             print("couldn't connect to database")
             print e
