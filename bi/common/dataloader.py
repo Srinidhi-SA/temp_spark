@@ -36,13 +36,13 @@ class DataLoader:
         df = None
         # change jdbc_url
 
-        jdbc_url = "jdbc:mysql//{}:{}/?currentschema={}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
+        jdbc_url = "jdbc:mysql://{}:{}/{}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
         password = dbConnectionParams.get("password")
         try:
             df = spark_session.read.format("jdbc").option(
-                "url", "{}/{}".format(jdbc_url, DataLoader.get_db_name(dbConnectionParams))).option(
+                "url", jdbc_url).option(
                 "dbtable", "{}".format(table_name)).option(
                 "user", username).option("password", password).load()
         except Exception as e:
