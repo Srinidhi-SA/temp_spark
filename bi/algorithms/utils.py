@@ -863,10 +863,27 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             card2Data = [HtmlData(data="<h4>Model Coefficients</h4>"),coefficientsChart]
             card2.set_card_data(card2Data)
             card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
-        else:
-            card2=None
 
-        card3 = NormalCard()
+        card3 = None
+        if "rfregression" in collated_summary:
+            card3 = NormalCard()
+            featureImportanceArray = sorted(collated_summary["rfregression"]["featureImportance"],key=lambda x:x[1]),reverse=True)
+            featureImportanceArray = [{"key":tup[0],"value":tup[1]} for tup in featureImportanceArray]
+            chartDataValues = [x["value"] for x in featureImportanceArray]
+            featureChartJson = ChartJson()
+            featureChartJson.set_data(featureImportanceArray)
+            featureChartJson.set_chart_type("bar")
+            featureChartJson.set_label_text({'x':' ','y':'Feature Importance'})
+            featureChartJson.set_axes({"x":"key","y":"value"})
+            featureChartJson.set_title('Feature Importance (RF)')
+            featureChartJson.set_yaxis_number_format(".4f")
+            # coefficientsChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
+            featureChart = C3ChartData(data=featureChartJson)
+            card3Data = [HtmlData(data="<h4>Feature Importance</h4>"),featureChart]
+            card3.set_card_data(card3Data)
+            card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+
+        card4 = NormalCard()
         allMetricsData = []
         metricNamesMapping = {
                             "mse" : "Mean Square Error",
@@ -887,14 +904,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             allMetricsData.append(algoRow)
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
-        card3Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
-        card3.set_card_data(card3Data)
-        card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+        card4Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
+        card4.set_card_data(card3Data)
+        card4 = json.loads(CommonUtils.convert_python_object_to_json(card4))
 
         existing_cards = result_setter.get_all_regression_cards()
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
-        all_cards = [card1,card2,card3] + existing_cards
+        all_cards = [card1,card2,card3,card4] + existing_cards
         all_cards = [x for x in all_cards if x != None]
 
         modelResult = NarrativesTree()

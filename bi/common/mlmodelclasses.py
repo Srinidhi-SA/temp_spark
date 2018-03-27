@@ -77,7 +77,12 @@ class MLModelSummary:
         self.mapeStats = None
         self.sampleData = None
         self.coefficinetsArray = []
+        self.interceptValue = None
 
+    def set_intercept(self,data):
+        self.interceptValue = data
+    def get_intercept(self):
+        return self.interceptValue
     def set_coefficinets_array(self,data):
         self.coefficinetsArray = data
     def get_coefficinets_array(self):

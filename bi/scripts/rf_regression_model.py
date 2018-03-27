@@ -184,7 +184,7 @@ class RFRegressionModelPysparkScript:
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
-            self._model_summary.set_feature_importance(featureImportance)
+            self._model_summary.set_feature_importance(featuresArray)
             # print CommonUtils.convert_python_object_to_json(self._model_summary)
         elif self._mlEnv == "sklearn":
             model_filepath = model_path+"/"+self._slug+"/model.pkl"
@@ -211,6 +211,8 @@ class RFRegressionModelPysparkScript:
             featureImportance={}
 
             objs = {"trained_model":est,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
+            featureImportance = objs["trained_model"].feature_importances_
+            featuresArray = [(col_name, featureImportance[idx]) for idx, col_name in enumerate(x_train.columns)]
 
             joblib.dump(objs["trained_model"],model_filepath)
             metrics = {}
@@ -256,7 +258,7 @@ class RFRegressionModelPysparkScript:
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.to_dict())
-            self._model_summary.set_feature_importance(featureImportance)
+            self._model_summary.set_feature_importance(featuresArray)
             self._model_summary.set_feature_list(list(model_columns))
 
 
@@ -391,7 +393,7 @@ class RFRegressionModelPysparkScript:
             pandas_df[result_column] = y_score
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)
-            
+
             print "STARTING Measure ANALYSIS ..."
             columns_to_keep = []
             columns_to_drop = []

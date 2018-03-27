@@ -226,8 +226,10 @@ class LinearRegressionModelPysparkScript:
             featureImportance={}
 
             objs = {"trained_model":est,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
-
-
+            coefficients = objs["trained_model"].coef_
+            coefficientsArray = [(col_name, coefficients[idx]) for idx, col_name in enumerate(x_train.columns)]
+            interceptValue = None
+            interceptValue = objs["trained_model"].intercept_
 
             joblib.dump(objs["trained_model"],model_filepath)
             metrics = {}
@@ -275,6 +277,8 @@ class LinearRegressionModelPysparkScript:
             self._model_summary.set_sample_data(sampleData.to_dict())
             self._model_summary.set_feature_importance(featureImportance)
             self._model_summary.set_feature_list(list(model_columns))
+            self._model_summary.set_coefficinets_array(coefficientsArray)
+            self._model_summary.set_intercept(interceptValue)
 
             try:
                 pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
