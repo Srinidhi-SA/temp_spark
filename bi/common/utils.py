@@ -479,5 +479,16 @@ def convert_dollar_columns(df, dollar_columns):
         df = df.withColumn(column, col(column).cast('double'))
     return df
 
+def select_y_axis_format(dataArray):
+    if len(dataArray)>0:
+        minval = min(dataArray)
+        if minval >= 0.01:
+            return ".2f"
+        elif minval < 0.01:
+            return ".4f"
+    else:
+        return ".2f"
+
+
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

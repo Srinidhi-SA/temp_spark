@@ -707,14 +707,16 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data.append(HtmlData(data="<h5>Algorithm Parameters:</h5>"))
         modelParams = modelSummaryClass.get_model_params()
         for k,v in modelParams.items():
-            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(k,v)))
+            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
 
         ######################MAPE CHART#######################################
 
         mapeChartData = []
+        chartDataValues = []
         mapeStatsArr = modelSummaryClass.get_mape_stats()
         for val in mapeStatsArr:
+            chartDataValues.append(val[1]["count"])
             if val[1]["splitRange"][0] == 0:
                 mapeChartData.append({"key":"<{}%".format(val[1]["splitRange"][1]),"value":val[1]["count"]})
             elif val[1]["splitRange"][1] == 100:
@@ -728,7 +730,7 @@ def create_model_summary_cards(modelSummaryClass):
         mapeChartJson.set_axes({"x":"key","y":"value"})
         mapeChartJson.set_title('Error Distribution Chart (MAPE)')
         # mapeChartJson.set_yaxis_number_format(".4f")
-        # mapeChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
+        # mapeChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
 
         modelSummaryMapeChart = C3ChartData(data=mapeChartJson)
 
@@ -857,8 +859,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
             coefficientsChartJson.set_axes({"x":"key","y":"value"})
             coefficientsChartJson.set_title('Coefficients (LR)')
-            coefficientsChartJson.set_yaxis_number_format(".4f")
-            # coefficientsChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
+            # coefficientsChartJson.set_yaxis_number_format(".4f")
+            coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)
             card2Data = [HtmlData(data="<h4>Model Coefficients</h4>"),coefficientsChart]
             card2.set_card_data(card2Data)
@@ -876,8 +878,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             featureChartJson.set_label_text({'x':' ','y':'Feature Importance'})
             featureChartJson.set_axes({"x":"key","y":"value"})
             featureChartJson.set_title('Feature Importance (RF)')
-            featureChartJson.set_yaxis_number_format(".4f")
-            # coefficientsChartJson.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
+            # featureChartJson.set_yaxis_number_format(".4f")
+            coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             featureChart = C3ChartData(data=featureChartJson)
             card3Data = [HtmlData(data="<h4>Feature Importance</h4>"),featureChart]
             card3.set_card_data(card3Data)
@@ -900,7 +902,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             algoRow = []
             algoRow.append(collated_summary[algoName]['algorithmDisplayName'])
             for val in metricNames:
-                algoRow.append(round(dataObj["modelEvaluationMetrics"][val],3))
+                algoRow.append(CommonUtils.round_sig(dataObj["modelEvaluationMetrics"][val],2))
             allMetricsData.append(algoRow)
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})

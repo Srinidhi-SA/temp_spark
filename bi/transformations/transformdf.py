@@ -72,7 +72,7 @@ class DataFrameTransformer:
 
 
     def add_new_columns(self,df,new_col_name,old_col_list,operator):
-        print "hi adding new column"
+        print "adding new column"
         col_dtype_list=[] #will take dtype of all the merger column to see unique value
         ncol_dtype=False
         col_dtype_map={}
@@ -134,7 +134,7 @@ class DataFrameTransformer:
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
 
     def update_column_datatype(self,column_name,data_type):
-        print "hi udating column data type"
+        print "Udating column data type"
         self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
         print self._data_frame.printSchema()
         # TODO update data type as measure or dimension
@@ -144,7 +144,7 @@ class DataFrameTransformer:
         print "new_column_name",new_column_name
         if new_column_name:
             self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
-            print self._data_frame.columns
+            # print self._data_frame.columns
 
     def get_transformed_data_frame(self):
         return self._data_frame

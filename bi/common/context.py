@@ -114,22 +114,22 @@ class ContextSetter:
                         if paramObj["paramType"] == "number":
                             if paramObj["name"] != "tol":
                                 if paramObj["acceptedValue"]  != None:
-                                    trimmedParams[paramObj["name"]] = paramObj["acceptedValue"]
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
                                 else:
-                                    trimmedParams[paramObj["name"]] = paramObj["defaultValue"]
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
                             else:
                                 if paramObj["acceptedValue"]  != None:
-                                    trimmedParams[paramObj["name"]] = float(1)/10**paramObj["acceptedValue"]
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["acceptedValue"]}
                                 else:
-                                    trimmedParams[paramObj["name"]] = float(1)/10**paramObj["defaultValue"]
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["defaultValue"]}
                         elif paramObj["paramType"] == "boolean":
                             if paramObj["acceptedValue"]  != None:
-                                trimmedParams[paramObj["name"]] = paramObj["acceptedValue"]
+                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
                             else:
-                                trimmedParams[paramObj["name"]] = paramObj["defaultValue"]
+                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
                         elif paramObj["paramType"] == "list":
                             selectedValue = filter(lambda x:x["selected"] == True,paramObj["defaultValue"])
-                            trimmedParams[paramObj["name"]] = selectedValue[0]["name"]
+                            trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":selectedValue[0]["name"]}
                     trimmedObj["algorithmParams"] = trimmedParams
                     self.algorithmsToRun.append(trimmedObj)
 
@@ -347,7 +347,7 @@ class ContextSetter:
         self.dontSendAnyMessage = data
     def get_dont_send_message(self):
         return self.dontSendAnyMessage
-        
+
     def get_algorithms_to_run(self):
         return self.algorithmsToRun
 

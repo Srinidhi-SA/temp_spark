@@ -216,7 +216,9 @@ class LinearRegressionModelPysparkScript:
             x_test = x_test[[x for x in model_columns if x != result_column]]
             st = time.time()
             est = LinearRegression()
-            est.set_params(**algoSetting["algorithmParams"])
+            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+            est.set_params(**algoParams)
+
             est.fit(x_train, y_train)
             trainingTime = time.time()-st
             y_score = est.predict(x_test)
