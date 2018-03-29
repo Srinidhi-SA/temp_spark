@@ -133,9 +133,9 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "displayName":"Maximum Features for Split",
                     "defaultValue":None,
                     "acceptedValue":None,
-                    "valueRange":[],
+                    "valueRange":[0.0,1.0],
                     "paramType":"number",
-                    "uiElemType":"textBox",
+                    "uiElemType":"slider",
                     "display":True
                 },
                 {
@@ -775,6 +775,60 @@ DEFAULT_VALIDATION_OBJECT = {
        }
 
 APPS_ID_MAP = {
+'2': {
+  'displayName': 'Opportunity Scoring',
+  'type': 'CLASSIFICATION',
+  'name': 'opportunity_scoring',
+  'heading': 'Factors influencing Opportunity Score'
+},
+'14': {
+  'displayName': 'Robo Advisor',
+  'type': 'ROBO',
+  'name': 'robo_advisor_insights',
+  'heading': None
+},
+'3': {
+  'displayName': 'Automated Prediction',
+  'type': 'CLASSIFICATION',
+  'name': 'automated_prediction',
+  'heading': 'Feature Importance'
+},
+'5': {
+  'displayName': 'Stock Sense',
+  'type': 'STOCK_SENSE',
+  'name': 'stock_sense',
+  'heading': None
+},
+'4': {
+  'displayName': 'Speech Analytics',
+  'type': 'SPEECH',
+  'name': 'speech_analytics',
+  'heading': None
+},
+'7': {
+  'displayName': 'Re-admission Prediction',
+  'type': 'CLASSIFICATION',
+  'name': 're_admission_prediction',
+  'heading': 'Factors influencing Re-admission'
+},
+'6': {
+  'displayName': 'Churn Prediction',
+  'type': 'CLASSIFICATION',
+  'name': 'churn_prediction',
+  'heading': 'Factors influencing Churn'
+},
+'9': {
+  'displayName': 'Credit Card Fraud',
+  'type': 'CLASSIFICATION',
+  'name': 'credit_card_fraud',
+  'heading': 'Factors influencing Fraud'
+},
+'8': {
+  'displayName': 'Physician Attrition',
+  'type': 'CLASSIFICATION',
+  'name': 'physician_attrition',
+  'heading': 'Factors influencing Attrition'
+}
   '11': {
     'displayName': 'Asset Health Prediction',
     'type': 'CLASSIFICATION',
@@ -799,60 +853,7 @@ APPS_ID_MAP = {
     'name': 'employee_attrition',
     'heading': 'Factors influencing Attrition'
   },
-  '1': {
-    'displayName': 'Opportunity Scoring',
-    'type': 'CLASSIFICATION',
-    'name': 'opportunity_scoring',
-    'heading': 'Factors influencing Opportunity Score'
-  },
-  '2': {
-    'displayName': 'Robo Advisor',
-    'type': 'ROBO',
-    'name': 'robo_advisor_insights',
-    'heading': None
-  },
-  '3': {
-    'displayName': 'Automated Prediction',
-    'type': 'CLASSIFICATION',
-    'name': 'automated_prediction',
-    'heading': 'Feature Importance'
-  },
-  '5': {
-    'displayName': 'Stock Sense',
-    'type': 'STOCK_SENSE',
-    'name': 'stock_sense',
-    'heading': None
-  },
-  '4': {
-    'displayName': 'Speech Analytics',
-    'type': 'SPEECH',
-    'name': 'speech_analytics',
-    'heading': None
-  },
-  '7': {
-    'displayName': 'Re-admission Prediction',
-    'type': 'CLASSIFICATION',
-    'name': 're_admission_prediction',
-    'heading': 'Factors influencing Re-admission'
-  },
-  '6': {
-    'displayName': 'Churn Prediction',
-    'type': 'CLASSIFICATION',
-    'name': 'churn_prediction',
-    'heading': 'Factors influencing Churn'
-  },
-  '9': {
-    'displayName': 'Credit Card Fraud',
-    'type': 'CLASSIFICATION',
-    'name': 'credit_card_fraud',
-    'heading': 'Factors influencing Fraud'
-  },
-  '8': {
-    'displayName': 'Physician Attrition',
-    'type': 'CLASSIFICATION',
-    'name': 'physician_attrition',
-    'heading': 'Factors influencing Attrition'
-  }
+
 }
 
 
