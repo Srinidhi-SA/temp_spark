@@ -131,11 +131,11 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                 {
                     "name":"max_features",
                     "displayName":"Maximum Features for Split",
-                    "defaultValue":0.0,
+                    "defaultValue":None,
                     "acceptedValue":None,
-                    "valueRange":[0.0,1.0],
+                    "valueRange":[],
                     "paramType":"number",
-                    "uiElemType":"slider",
+                    "uiElemType":"textBox",
                     "display":True
                 },
                 {
@@ -158,15 +158,7 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "uiElemType":"slider",
                     "display":True
                 },
-                {
-                    "name":"warm_start",
-                    "displayName":"Warm Start",
-                    "defaultValue":False,
-                    "acceptedValue":None,
-                    "paramType":"boolean",
-                    "uiElemType":"checkbox",
-                    "display":True
-                },
+
                  {
                  "name":"random_state",
                  "displayName":"Random Seed",
@@ -209,6 +201,15 @@ SKLEARN_ML_GBT_REGRESSION_PARAMS = [
             "uiElemType":"slider",
             "display":True
         },
+        {
+            "name":"warm_start",
+            "displayName":"Warm Start",
+            "defaultValue":False,
+            "acceptedValue":None,
+            "paramType":"boolean",
+            "uiElemType":"checkbox",
+            "display":True
+        },
 
 ]
 
@@ -239,6 +240,15 @@ SKLEARN_ML_RF_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
         "valueRange":[-1,4],
         "paramType":"number",
         "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"warm_start",
+        "displayName":"Warm Start",
+        "defaultValue":False,
+        "acceptedValue":None,
+        "paramType":"boolean",
+        "uiElemType":"checkbox",
         "display":True
     },
 ]

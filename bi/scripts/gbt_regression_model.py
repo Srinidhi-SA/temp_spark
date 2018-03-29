@@ -197,6 +197,7 @@ class GBTRegressionModelPysparkScript:
             st = time.time()
             est = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1,max_depth=1, random_state=0, loss='ls')
             algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+            algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
             est.set_params(**algoParams)
             est.fit(x_train, y_train)
             trainingTime = time.time()-st
@@ -233,6 +234,7 @@ class GBTRegressionModelPysparkScript:
 
             predictionColSummary = transformed["prediction"].describe().to_dict()
             quantileBins = [predictionColSummary["min"],predictionColSummary["25%"],predictionColSummary["50%"],predictionColSummary["75%"],predictionColSummary["max"]]
+            quantileBins = sorted(list(set(quantileBins)))
             transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins)
             quantileDf = transformed.groupby("quantileBinId").agg({"prediction":[np.sum,np.mean,np.size]}).reset_index()
             quantileDf.columns = ["prediction","sum","mean","count"]

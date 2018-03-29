@@ -202,6 +202,7 @@ class DTREERegressionModelPysparkScript:
             st = time.time()
             est = DecisionTreeRegressor()
             algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+            algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
             est.set_params(**algoParams)
             est.fit(x_train, y_train)
             trainingTime = time.time()-st
@@ -239,6 +240,7 @@ class DTREERegressionModelPysparkScript:
 
             predictionColSummary = transformed["prediction"].describe().to_dict()
             quantileBins = [predictionColSummary["min"],predictionColSummary["25%"],predictionColSummary["50%"],predictionColSummary["75%"],predictionColSummary["max"]]
+            quantileBins = sorted(list(set(quantileBins)))
             transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins)
             quantileDf = transformed.groupby("quantileBinId").agg({"prediction":[np.sum,np.mean,np.size]}).reset_index()
             quantileDf.columns = ["prediction","sum","mean","count"]
