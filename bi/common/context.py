@@ -80,7 +80,7 @@ class ContextSetter:
 
         self.ignoreRegressionElasticityMessages = False
         self.validationTechniqueObj = None
-        self.train_test_split = 0.6
+        self.train_test_split = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
         self.algorithmsToRun = []
         self.dontSendAnyMessage = False
 

@@ -85,7 +85,7 @@ class GeneralizedLinearRegressionModelPysparkScript:
         glinr = GeneralizedLinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction")
         if validationDict["name"] == "kFold":
             defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-            numFold = validationDict["value"]
+            numFold = int(validationDict["value"])
             if numFold == 0:
                 numFold = 3
             trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)

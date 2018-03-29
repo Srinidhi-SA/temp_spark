@@ -283,14 +283,22 @@ class DecisionTreeNarrative:
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%" if v*100/total >=10 else str(int(v*100/total))+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["nlevel"] = len(levelCountDict)
+            print "levelCountTuple",levelCountTuple
+            print "levelCountDict",levelCountDict
             if targetLevel in levelCountDict:
                 data_dict["topLevel"] = [x for x in levelCountTuple if x["name"]==targetLevel][0]
-                data_dict["secondLevel"] = max([x for x in levelCountTuple if x["name"]!=targetLevel],key=lambda x:x["count"])
+                if len(levelCountTuple) > 1:
+                    data_dict["secondLevel"] = max([x for x in levelCountTuple if x["name"]!=targetLevel],key=lambda x:x["count"])
+                else:
+                    data_dict["secondLevel"] = None
             else:
                 data_dict["topLevel"] = levelCountTuple[0]
-                data_dict["secondLevel"] = levelCountTuple[1]
-            maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'decisiontreescore.html',data_dict)
+                if len(levelCountTuple) > 1:
+                    data_dict["secondLevel"] = levelCountTuple[1]
+                else:
+                    data_dict["secondLevel"] = None
+            print data_dict
+            maincardSummary = NarrativesUtils.get_template_output(self._base_dir,'decisiontreescore.html',data_dict)
         main_card = NormalCard()
         main_card_data = []
         main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,self._blockSplitter)

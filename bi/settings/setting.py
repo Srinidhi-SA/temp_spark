@@ -771,10 +771,16 @@ PYSPARK_ML_RF_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
 DEFAULT_VALIDATION_OBJECT = {
          "name":"trainAndtest",
          "displayName":"Train and Test",
-         "value":0.7
+         "value":0.8
        }
 
 APPS_ID_MAP = {
+    '1': {
+      'displayName': 'Opportunity Scoring',
+      'type': 'CLASSIFICATION',
+      'name': 'opportunity_scoring',
+      'heading': 'Factors influencing Opportunity Score'
+    },
     '2': {
       'displayName': 'Opportunity Scoring',
       'type': 'CLASSIFICATION',

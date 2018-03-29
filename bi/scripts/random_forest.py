@@ -404,7 +404,6 @@ class RandomForestScript:
                 levelCountDict = resultColLevelCount
                 otherClass = list(set(labelMappingDict.values())-set(predictedClasses))[0]
                 levelCountDict[otherClass] = 0
-
                 print levelCountDict
 
             total = float(sum([x for x in levelCountDict.values() if x != None]))

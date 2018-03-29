@@ -46,6 +46,7 @@ from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import KFold
 
 
 
@@ -100,7 +101,7 @@ class GBTRegressionModelPysparkScript:
             gbtr = GBTRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                numFold = validationDict["value"]
+                numFold = int(validationDict["value"])
                 if numFold == 0:
                     numFold = 3
                 trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
@@ -196,19 +197,43 @@ class GBTRegressionModelPysparkScript:
             x_test = x_test[[x for x in model_columns if x != result_column]]
             st = time.time()
             est = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1,max_depth=1, random_state=0, loss='ls')
+
             algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
             algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
             est.set_params(**algoParams)
-            est.fit(x_train, y_train)
+            if validationDict["name"] == "kFold":
+                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                numFold = int(validationDict["value"])
+                if numFold == 0:
+                    numFold = 3
+                kf = KFold(n_splits=numFold)
+                foldId = 1
+                kFoldOutput = []
+                for train_index, test_index in kf.split(x_train):
+                    x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
+                    y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+                    est.fit(x_train_fold, y_train_fold)
+                    y_score_fold = est.predict(x_test_fold)
+                    metricsFold = {}
+                    metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
+                    metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
+                    metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
+                    metricsFold["rmse"] = sqrt(metricsFold["mse"])
+                    kFoldOutput.append((est,metricsFold))
+                kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
+                bestEstimator = kFoldOutput[-1][0]
+            elif validationDict["name"] == "trainAndtest":
+                est.fit(x_train, y_train)
+                bestEstimator = est
             trainingTime = time.time()-st
-            y_score = est.predict(x_test)
+            y_score = bestEstimator.predict(x_test)
             try:
-                y_prob = est.predict_proba(x_test)
+                y_prob = bestEstimator.predict_proba(x_test)
             except:
                 y_prob = [0]*len(y_score)
             featureImportance={}
 
-            objs = {"trained_model":est,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
+            objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
             featureImportance = objs["trained_model"].feature_importances_
             featuresArray = [(col_name, featureImportance[idx]) for idx, col_name in enumerate(x_train.columns)]
             joblib.dump(objs["trained_model"],model_filepath)
