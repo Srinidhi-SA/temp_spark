@@ -249,7 +249,7 @@ class XgboostScript:
         trained_model = joblib.load(trained_model_path)
         # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
-        pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         model_feature_list = self._dataframe_context.get_model_features()
         print model_feature_list
         pandas_df = pandas_df[model_feature_list]

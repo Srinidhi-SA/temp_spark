@@ -44,11 +44,13 @@ class DataFrameHelper:
         self.columns = self._data_frame.columns
         self._dataframe_context = df_context
         self._metaParser = meta_parser
+
         self.column_data_types = {}
         self.numeric_columns = []
         self.string_columns = []
         self.timestamp_columns = []
         self.boolean_columns = []
+
         self.num_rows = 0
         self.num_columns = 0
         self.measure_suggestions = []
@@ -113,7 +115,7 @@ class DataFrameHelper:
     def update_column_data(self):
         dfSchemaFields = self._data_frame.schema.fields
         self.columns = [field.name for field in dfSchemaFields]
-        self.num_columns = len(self.columns)
+        self.num_columns = len(self._data_frame.columns)
         self.num_rows = self._metaParser.get_num_rows()
         self.column_data_types = {field.name: field.dataType for field in dfSchemaFields}
         self.numeric_columns = []
@@ -142,10 +144,12 @@ class DataFrameHelper:
         date_columns = self._dataframe_context.get_date_columns()
         uidCol = self._dataframe_context.get_uid_column()
         print "All DATE Columns",date_columns
+        considerColumns = self._dataframe_context.get_consider_columns()
         columns_to_ignore = [result_column]+date_columns
         if uidCol:
             columns_to_ignore += [uidCol]
         print "These Columns are Ignored:- ",  columns_to_ignore
+        columns_to_keep = list(set(considerColumns)-set(columns_to_ignore))
         if train_test_ratio == None:
             train_test_ratio = 0.7
         appid = self._dataframe_context.get_app_id()
@@ -155,9 +159,9 @@ class DataFrameHelper:
         print "app_type",app_type
         print "="*30
         if app_type == "CLASSIFICATION":
-            x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+            x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
         elif app_type == "REGRESSION":
-            x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42)
+            x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42)
         # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
 
@@ -180,10 +184,9 @@ class DataFrameHelper:
 
     def remove_null_rows(self, column_name):
         """
-        remove rowls where the given column has null values
+        remove rows where the given column has null values
         """
-        # self._data_frame = self._data_frame.na.drop(subset=col)
-        self._data_frame = self._data_frame.filter(col(column_name).isNotNull())
+        self._data_frame = self._data_frame.na.drop(subset=[column_name])
         self.num_rows = self._data_frame.count()
 
 

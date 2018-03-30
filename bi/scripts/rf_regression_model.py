@@ -406,7 +406,7 @@ class RFRegressionModelPysparkScript:
             print "model_columns",model_columns
 
             df = self._data_frame.toPandas()
-            pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+            # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.create_dummy_columns(pandas_df,[x for x in categorical_columns if x != result_column])
             existing_columns = pandas_df.columns
             new_columns = list(set(existing_columns)-set(model_columns))

@@ -111,6 +111,7 @@ def set_dataframe_helper(df,dataframe_context,metaParserInstance):
     return df,dataframe_helper
 
 def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
+    st = time.time()
     LOGGER = dataframe_context.get_logger()
     jobUrl = dataframe_context.get_job_url()
     errorURL = dataframe_context.get_error_url()
@@ -119,14 +120,16 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     messageURL = dataframe_context.get_message_url()
     APP_NAME = dataframe_context.get_app_name()
     appid = dataframe_context.get_app_id()
+    mlEnv = dataframe_context.get_ml_environment()
     print "appid",appid
 
-    st = time.time()
     prediction_narrative = NarrativesTree()
     prediction_narrative.set_name("models")
     result_setter = ResultSetter(dataframe_context)
+
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
     df = dataframe_helper.fill_missing_values(df)
+
     categorical_columns = dataframe_helper.get_string_columns()
     uid_col = dataframe_context.get_uid_column()
     if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
@@ -134,11 +137,11 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_column = dataframe_context.get_result_column()
     allDateCols = dataframe_context.get_date_columns()
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
-    mlEnv = "sklearn"
     if mlEnv == "sklearn":
         df = df.toPandas()
-        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         dataframe_helper.set_train_test_data(df)
+
     model_slug = dataframe_context.get_model_path()
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_MODELS
     subfolders = GLOBALSETTINGS.SLUG_MODEL_MAPPING.keys()

@@ -285,8 +285,9 @@ def calculate_scored_probability_stats(scored_dataframe):
 def create_dummy_columns(df,colnames):
     df1 = df[[col for col in df.columns if col not in colnames]]
     for col in colnames:
-        dummies = pd.get_dummies(df[col],prefix = col)
-        df1 = pd.concat([df1,dummies], axis = 1)
+        if col in df.columns:
+            dummies = pd.get_dummies(df[col],prefix = col)
+            df1 = pd.concat([df1,dummies], axis = 1)
     return df1
 
 def transform_feature_importance(feature_importance_dict):
@@ -879,7 +880,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             featureChartJson.set_axes({"x":"key","y":"value"})
             featureChartJson.set_title('Feature Importance (RF)')
             # featureChartJson.set_yaxis_number_format(".4f")
-            coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
+            featureChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             featureChart = C3ChartData(data=featureChartJson)
             card3Data = [HtmlData(data="<h4>Feature Importance</h4>"),featureChart]
             card3.set_card_data(card3Data)

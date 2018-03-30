@@ -83,6 +83,7 @@ class ContextSetter:
         self.train_test_split = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
         self.algorithmsToRun = []
         self.dontSendAnyMessage = False
+        self.mlEnv = None #can be sklearn or spark
 
 
 
@@ -343,6 +344,10 @@ class ContextSetter:
         if self.analysistype in ["measure","dimension"]:
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def set_ml_environment(self,data):
+        self.mlEnv = data
+    def get_ml_environment(self):
+        return self.mlEnv
     def set_dont_send_message(self,data):
         self.dontSendAnyMessage = data
     def get_dont_send_message(self):

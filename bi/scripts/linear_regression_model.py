@@ -53,7 +53,7 @@ from sklearn.model_selection import KFold
 
 
 class LinearRegressionModelPysparkScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -66,7 +66,7 @@ class LinearRegressionModelPysparkScript:
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
         self._analysisName = "linearRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
-        self._mlEnv = mLEnvironment
+        self._mlEnv = self._dataframe_context.get_ml_environment()
 
 
     def Train(self):
@@ -79,10 +79,10 @@ class LinearRegressionModelPysparkScript:
             categorical_columns = list(set(categorical_columns) - {uid_col})
         allDateCols = self._dataframe_context.get_date_columns()
         categorical_columns = list(set(categorical_columns)-set(allDateCols))
-        print categorical_columns
         result_column = self._dataframe_context.get_result_column()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         numerical_columns = [x for x in numerical_columns if x != result_column]
+        print "categorical_columns",categorical_columns
 
         model_path = self._dataframe_context.get_model_path()
         if model_path.startswith("file"):
@@ -211,9 +211,9 @@ class LinearRegressionModelPysparkScript:
             model_columns = x_train.columns
             new_columns = list(set(existing_columns)-set(model_columns))
             missing_columns = list(set(model_columns)-set(existing_columns))
-            df_shape = x_test.shape
+            test_df_shape = x_test.shape
             for col in missing_columns:
-                x_test[col] = [0]*df_shape[0]
+                x_test[col] = [0]*test_df_shape[0]
             x_test = x_test[[x for x in model_columns if x != result_column]]
             st = time.time()
             est = LinearRegression()
@@ -246,6 +246,7 @@ class LinearRegressionModelPysparkScript:
             elif validationDict["name"] == "trainAndtest":
                 est.fit(x_train, y_train)
                 bestEstimator = est
+            print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
@@ -424,18 +425,21 @@ class LinearRegressionModelPysparkScript:
             print "model_columns",model_columns
 
             df = self._data_frame.toPandas()
-            pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+            # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.create_dummy_columns(pandas_df,[x for x in categorical_columns if x != result_column])
             existing_columns = pandas_df.columns
             new_columns = list(set(existing_columns)-set(model_columns))
             missing_columns = list(set(model_columns)-set(existing_columns)-set(result_column))
             df_shape = pandas_df.shape
+            print "missing_columns_lenght",len(missing_columns)
+            print missing_columns
             for col in missing_columns:
                 pandas_df[col] = [0]*df_shape[0]
             pandas_df = pandas_df[[x for x in model_columns if x != result_column]]
             pandas_df = pandas_df[model_columns]
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+            print len(model_columns),len(pandas_df.columns)
             y_score = trained_model.predict(pandas_df)
             pandas_df[result_column] = y_score
             df[result_column] = y_score
