@@ -267,7 +267,7 @@ class LogisticRegressionScript:
         trained_model = joblib.load(trained_model_path)
         df = self._data_frame
         # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        pandas_df = MLUtils.create_dummy_columns(pandas_df,[x for x in categorical_columns if x != result_column])
+        pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
         existing_columns = pandas_df.columns
         new_columns = list(set(existing_columns)-set(model_columns))
         missing_columns = list(set(model_columns)-set(existing_columns)-set(result_column))
