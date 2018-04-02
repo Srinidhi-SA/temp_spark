@@ -290,6 +290,17 @@ def create_dummy_columns(df,colnames):
             df1 = pd.concat([df1,dummies], axis = 1)
     return df1
 
+def fill_missing_columns(df,model_columns,result_column):
+    existing_columns = df.columns
+    new_columns = list(set(existing_columns)-set(model_columns))
+    missing_columns = list(set(model_columns)-set(existing_columns)-set(result_column))
+    df_shape = df.shape
+    for col in missing_columns:
+        df[col] = [0]*df_shape[0]
+    df = df[[x for x in model_columns if x != result_column]]
+    df = df[model_columns]
+    return df
+
 def transform_feature_importance(feature_importance_dict):
     feature_importance_new = [["Name"],["Value"]]
     for k,v in feature_importance_dict.items():

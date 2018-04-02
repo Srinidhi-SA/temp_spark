@@ -178,7 +178,7 @@ class GeneralizedLinearRegressionModelPysparkScript:
         self._model_summary.set_mape_stats(mapeStatsArr)
         self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
         self._model_summary.set_coefficinets_array(coefficientsArray)
-        self._model_summary.set_feature_list(list(model_columns))
+        self._model_summary.set_feature_list(list(x_train.columns))
 
         # print CommonUtils.convert_python_object_to_json(self._model_summary)
         modelSummaryJson = {
