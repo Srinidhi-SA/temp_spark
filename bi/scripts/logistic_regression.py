@@ -97,6 +97,14 @@ class LogisticRegressionScript:
         x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
         x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
         x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
+        existing_columns = x_test.columns
+        model_columns = x_train.columns
+        new_columns = list(set(existing_columns)-set(model_columns))
+        missing_columns = list(set(model_columns)-set(existing_columns))
+        df_shape = x_test.shape
+        for col in missing_columns:
+            x_test[col] = [0]*df_shape[0]
+        x_test = x_test[[x for x in model_columns if x != result_column]]
 
         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\

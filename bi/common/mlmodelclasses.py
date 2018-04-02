@@ -232,21 +232,19 @@ class MLModelSummary:
         return self.slug
 
 
-
-
-
-
-
-
 class MLModelMetaData:
     """
     This module contains Meta Data for a corresponding ML Model
     """
-
-    # TODO FIX first parameter should be self
     def __init__(self):
         self.algorithmName = None
         self.modelType = None                   #ensemble or single model
         self.trainingTime = None
         self.packageUsed = None
         self.packageVersion = None
+
+
+class ParamsGrid:
+    """
+
+    """
