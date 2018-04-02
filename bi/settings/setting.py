@@ -1,5 +1,5 @@
 from pySparkMlParams import *
-from sklernAlgoParams import *
+from sklernMlParams import *
 
 CHISQUARELEVELLIMIT = 10
 CHISQUARESIGNIFICANTDIMENSIONTOSHOW = 8
