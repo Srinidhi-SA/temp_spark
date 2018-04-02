@@ -942,6 +942,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         allRegressionModelSummary = result_setter.get_all_regression_model_summary()
         for obj in allRegressionModelSummary:
             if obj != None:
+                print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
 

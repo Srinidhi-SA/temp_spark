@@ -184,7 +184,7 @@ class GeneralizedLinearRegressionModelPysparkScript:
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
-                        "accuracy":self._model_summary.get_model_evaluation_metrics()["r2"],
+                        "accuracy":CommonUtils.round_sig(self._model_summary.get_model_evaluation_metrics()["r2"]),
                         "slug":self._model_summary.get_slug()
                         },
             "levelcount":self._model_summary.get_level_counts(),
