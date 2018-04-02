@@ -73,17 +73,7 @@ class RandomForestScript:
 
     def Train(self):
         st = time.time()
-
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "initialization",\
-                                    "info",\
-                                    self._scriptStages["initialization"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
-        self._dataframe_context.update_completion_status(self._completionStatus)
-
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -102,16 +92,8 @@ class RandomForestScript:
         x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
         x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
 
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "training",\
-                                    "info",\
-                                    self._scriptStages["training"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
-        self._dataframe_context.update_completion_status(self._completionStatus)
 
         clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
         objs = random_forest_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
@@ -177,15 +159,8 @@ class RandomForestScript:
         self._result_setter.set_random_forest_model_summary(modelSummaryJson)
         self._result_setter.set_rf_cards(rfCards)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "completion",\
-                                    "info",\
-                                    self._scriptStages["completion"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
 
         # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
         # print self._model_summary

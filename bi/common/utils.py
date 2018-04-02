@@ -333,13 +333,13 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
     else:
         return True
 
-def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None):
+def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None,weightKey="script"):
     if dataframeContext.get_dont_send_message() == False:
         completionStatus = dataframeContext.get_completion_status()
         print "incoming completionStatus",completionStatus
         messageURL = dataframeContext.get_message_url()
         if customMsg == None:
-            completionStatus += scriptWeightDict[analysisName]["script"]*scriptStages[stageName]["weight"]/10
+            completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
             progressMessage = create_progress_message_object(analysisName,\
                                         stageName,\
                                         messageType,\

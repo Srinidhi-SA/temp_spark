@@ -63,10 +63,38 @@ class GBTRegressionModelPysparkScript:
         self._model_summary = MLModelSummary()
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]
+        self._analysisName = "gbtRegression"
+        self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = mLEnvironment
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        print self._completionStatus,"initial completion status"
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
+        self._ignoreMsg = self._dataframe_context.get_message_ignore()
+
+
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Gradient Boosted Tree Regression Scripts",
+                "weight":4
+                },
+            "training":{
+                "summary":"Gradient Boosted Tree Regression Model Training Started",
+                "weight":2
+                },
+            "completion":{
+                "summary":"Gradient Boosted Tree Regression Model Training Finished",
+                "weight":4
+                },
+            }
 
     def Train(self):
         st_global = time.time()
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+
         algosToRun = self._dataframe_context.get_algorithms_to_run()
         algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -195,6 +223,9 @@ class GBTRegressionModelPysparkScript:
             algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
             algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
             est.set_params(**algoParams)
+
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
@@ -316,6 +347,10 @@ class GBTRegressionModelPysparkScript:
         self._result_setter.set_model_summary({"gbtregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_gbt_regression_model_summart(modelSummaryJson)
         self._result_setter.set_gbtr_cards(gbtrCards)
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+
 
     def Predict(self):
         self._scriptWeightDict = GLOBALSETTINGS.regressionModelPredictionWeight

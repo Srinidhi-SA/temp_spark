@@ -122,6 +122,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     appid = dataframe_context.get_app_id()
     mlEnv = dataframe_context.get_ml_environment()
     print "appid",appid
+    dataframe_context.initialize_ml_model_training_weight()
 
     prediction_narrative = NarrativesTree()
     prediction_narrative.set_name("models")
@@ -149,6 +150,15 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     dataframe_context.set_model_path(model_file_path)
     app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
     algosToRun = dataframe_context.get_algorithms_to_run()
+    scriptWeightDict = dataframe_context.get_ml_model_training_weight()
+    scriptStages = {
+        "preprocessing":{
+            "summary":"Dataset Loading Completed",
+            "weight":10
+            }
+        }
+    CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
     if app_type == "CLASSIFICATION":
         try:
             st = time.time()
@@ -278,7 +288,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_SCORES
     score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
     appid = str(dataframe_context.get_app_id())
-    app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+    app_type = dataframe_context.get_app_type()
     algorithm_name = dataframe_context.get_algorithm_slug()[0]
     print "algorithm_name",algorithm_name
     print "score_file_path",score_file_path

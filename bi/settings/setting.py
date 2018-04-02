@@ -115,7 +115,7 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
             ALGORITHMRANDOMSLUG+"linr":"linearregression",
-            ALGORITHMRANDOMSLUG+"glinr":"generalizedlinearregression",
+            ALGORITHMRANDOMSLUG+"linr":"generalizedlinearregression",
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
             ALGORITHMRANDOMSLUG+"rfr":"rfregression"
@@ -126,7 +126,7 @@ MODEL_SLUG_MAPPING = {
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
             "svm":ALGORITHMRANDOMSLUG+"svm",
             "linearregression":ALGORITHMRANDOMSLUG+"linr",
-            "generalizedlinearregression":ALGORITHMRANDOMSLUG+"glinr",
+            "generalizedlinearregression":ALGORITHMRANDOMSLUG+"linr",
             "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
             "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
             "rfregression":ALGORITHMRANDOMSLUG+"rfr"
@@ -155,13 +155,28 @@ dimensionAnalysisRelativeWeight = {
     "Trend":2.5,
     "Predictive modeling":2.5
 }
-mlModelTrainingWeight = {
-    "initialization":{"total":10,"script":10,"narratives":10},
-    "randomForest":{"total":30,"script":30,"narratives":30},
-    "logisticRegression":{"total":30,"script":30,"narratives":30},
-    "xgboost":{"total":30,"script":30,"narratives":30},
-    "svm":{"total":30,"script":30,"narratives":30}
+
+
+
+classificationInitialScriptWeight = {"initialization":{"total":10}}
+regressionInitialScriptWeight = {"initialization":{"total":10}}
+
+regressionAlgoRelativeWeight = {
+    ALGORITHMRANDOMSLUG+"linr"  : 1,
+    ALGORITHMRANDOMSLUG+"gbtr" : 1,
+    ALGORITHMRANDOMSLUG+"rfr"  : 1,
+    ALGORITHMRANDOMSLUG+"dtreer" : 1
 }
+
+classificationAlgoRelativeWeight = {
+    ALGORITHMRANDOMSLUG+"rf"  : 1,
+    ALGORITHMRANDOMSLUG+"xgb" : 1,
+    ALGORITHMRANDOMSLUG+"lr"  : 1,
+    ALGORITHMRANDOMSLUG+"svm" : 2
+}
+classificationAlgorithmsToRunTemp = [ALGORITHMRANDOMSLUG+"rf",ALGORITHMRANDOMSLUG+"xgb",ALGORITHMRANDOMSLUG+"lr"]
+
+
 mlModelPredictionWeight = {
     "initialization":{"total":10,"script":10,"narratives":10},
     "randomForest":{"total":20,"script":20,"narratives":20},

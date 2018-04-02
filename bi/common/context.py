@@ -84,6 +84,7 @@ class ContextSetter:
         self.algorithmsToRun = []
         self.dontSendAnyMessage = False
         self.mlEnv = None #can be sklearn or spark
+        self.mlModelTrainingWeight = {}
 
 
 
@@ -530,8 +531,34 @@ class ContextSetter:
     def get_dimension_analysis_weight(self):
         return self.dimensionAnalysisWeight
 
+    def initialize_ml_model_training_weight(self):
+        appType = self.get_app_type()
+        if appType == "REGRESSION":
+            algoSlugs = [x["algorithmSlug"] for x in self.algorithmsToRun]
+            algoRelWeight = GLOBALSETTINGS.regressionAlgoRelativeWeight
+            intitialScriptWeight = GLOBALSETTINGS.regressionInitialScriptWeight
+        elif appType == "CLASSIFICATION":
+            algoSlugs = GLOBALSETTINGS.classificationAlgorithmsToRunTemp
+            algoRelWeight = GLOBALSETTINGS.classificationAlgoRelativeWeight
+            intitialScriptWeight = GLOBALSETTINGS.classificationInitialScriptWeight
+
+        relativeWeightArray = [algoRelWeight[x] for x in algoSlugs]
+        totalWeight = sum(relativeWeightArray)
+        initWeight = intitialScriptWeight["initialization"]["total"]
+        percentWeight = [int(round(x*(100-initWeight)/float(totalWeight))) for x in relativeWeightArray]
+        diff = sum(percentWeight) - 100 + initWeight
+        percentWeight = percentWeight[:-1] + [percentWeight[-1]+-(diff)]
+        weightDict = dict(zip(algoSlugs,percentWeight))
+        outputdict = {}
+        for k,v in weightDict.items():
+            outputdict[k] = {"total":v}
+        outputdict.update(intitialScriptWeight)
+        print outputdict
+        self.mlModelTrainingWeight = outputdict
+
     def get_ml_model_training_weight(self):
-        return GLOBALSETTINGS.mlModelTrainingWeight
+        return self.mlModelTrainingWeight
+
 
     def get_ml_model_prediction_weight(self):
         return GLOBALSETTINGS.mlModelPredictionWeight
@@ -646,6 +673,11 @@ class ContextSetter:
             self.appid = str(data)
         else:
             self.appid = data
+    def get_app_type(self):
+        if self.appid == None:
+            return None
+        else:
+            return GLOBALSETTINGS.APPS_ID_MAP[self.appid]["type"]
 
     def get_datetime_suggestions(self):
         """
