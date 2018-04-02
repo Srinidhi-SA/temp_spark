@@ -302,7 +302,7 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
         "stageCompletionPercentage" : stageCompletionPercentage,
         "display":display
     }
-    print "completionStatus for the Job:- ",globalCompletionPercentage,"timestamp:- ",progressMessage["stageCompletionTimestamp"]
+    # print "completionStatus for the Job:- ",globalCompletionPercentage,"timestamp:- ",progressMessage["stageCompletionTimestamp"]
     return progressMessage
 
 def save_result_json(url,jsonData):
@@ -312,18 +312,18 @@ def save_result_json(url,jsonData):
     return res
 
 def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
-    # print "="*100
-    # print {
-    #     "stageName": jsonData["stageName"],
-    #     "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
-    #     "shortExplanation": jsonData["shortExplanation"],
-    #     "analysisName": jsonData["analysisName"],
-    #     "gmtDateTime":jsonData["gmtDateTime"]
-    #     }
-    # print "="*100
+    print "="*100
+    print {
+        "stageName": jsonData["stageName"],
+        "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
+        "shortExplanation": jsonData["shortExplanation"],
+        "analysisName": jsonData["analysisName"],
+        "gmtDateTime":jsonData["gmtDateTime"]
+        }
+    print "="*100
 
-    # if jsonData["globalCompletionPercentage"] > 100:
-        # print "#"*2000
+    if jsonData["globalCompletionPercentage"] > 100:
+        print "#"*2000
     if emptyBin == True:
         url += "?emptyBin=True"
     print "message url",url
