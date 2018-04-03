@@ -323,7 +323,7 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
     print "="*100
 
     if jsonData["globalCompletionPercentage"] > 100:
-        print "#"*2000
+        print "Red Alert ( percentage more than 100)"*50
     if emptyBin == True:
         url += "?emptyBin=True"
     print "message url",url
