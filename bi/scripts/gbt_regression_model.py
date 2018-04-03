@@ -353,29 +353,23 @@ class GBTRegressionModelPysparkScript:
 
 
     def Predict(self):
-        self._scriptWeightDict = GLOBALSETTINGS.regressionModelPredictionWeight
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Scripts",
+                "summary":"Initialized the Gradient Boosted Tree Regression Scripts",
                 "weight":2
                 },
-            "prediction":{
-                "summary":"Random Forest Model Prediction Finished",
+            "predictionStart":{
+                "summary":"Gradient Boosted Tree Regression Model Prediction Started",
                 "weight":2
                 },
-            "frequency":{
-                "summary":"descriptive analysis finished",
-                "weight":2
-                },
-            "chisquare":{
-                "summary":"chi Square analysis finished",
-                "weight":4
-                },
-            "completion":{
-                "summary":"all analysis finished",
-                "weight":4
-                },
+            "predictionFinished":{
+                "summary":"Gradient Boosted Tree Regression Model Prediction Finished",
+                "weight":6
+                }
             }
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         dataSanity = True
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -422,6 +416,7 @@ class GBTRegressionModelPysparkScript:
             spark_scored_df = transformed.select(list(set(columns_to_keep+[result_column])))
 
         elif self._mlEnv == "sklearn":
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionStart","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
             trained_model_path += "/model.pkl"
@@ -443,6 +438,7 @@ class GBTRegressionModelPysparkScript:
             pandas_df[result_column] = y_score
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
             print "STARTING Measure ANALYSIS ..."
@@ -466,10 +462,10 @@ class GBTRegressionModelPysparkScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        self._dataframe_context.set_dont_send_message(True)
+        # self._dataframe_context.set_dont_send_message(True)
         try:
             fs = time.time()
-            descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
+            descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName="Descriptive analysis")
             descr_stats_obj.Run()
             print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
         except:
@@ -479,7 +475,7 @@ class GBTRegressionModelPysparkScript:
             fs = time.time()
             df_helper.fill_na_dimension_nulls()
             df = df_helper.get_data_frame()
-            dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Predictive modeling")
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
         except:
@@ -487,7 +483,7 @@ class GBTRegressionModelPysparkScript:
 
         try:
             fs = time.time()
-            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
             two_way_obj.Run()
             print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
         except:

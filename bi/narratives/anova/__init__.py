@@ -24,7 +24,7 @@ class AnovaNarratives:
     KEY_BUBBLE = 'bubble_data'
 
     # @accepts(object, DFAnovaResult, DataFrameHelper)
-    def __init__(self, df_anova_result, df_helper, df_context, result_setter,story_narrative):
+    def __init__(self, df_anova_result, df_helper, df_context, result_setter,story_narrative,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._dataframe_context = df_context
@@ -36,9 +36,15 @@ class AnovaNarratives:
         self._base_dir = "/anova/"
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "anovaNarrativeStart":{
                 "summary":"Started the Anova Narratives",
@@ -58,7 +64,7 @@ class AnovaNarratives:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaNarrativeStart","info",display=False,emptyBin=False,customMsg=None)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaNarrativeStart","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
 
 
 
@@ -73,7 +79,7 @@ class AnovaNarratives:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaNarrativeEnd","info",display=False,emptyBin=False,customMsg=None)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaNarrativeEnd","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
 
 
         if self._anovaNodes.get_card_count() > 0:

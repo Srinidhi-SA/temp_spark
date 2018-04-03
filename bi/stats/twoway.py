@@ -29,7 +29,7 @@ class TwoWayAnova:
 
     """
 
-    def __init__(self, data_frame, df_helper, df_context, meta_parser):
+    def __init__(self, data_frame, df_helper, df_context, meta_parser,scriptWeight=None, analysisName=None):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -37,6 +37,15 @@ class TwoWayAnova:
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._timestamp_columns = self._dataframe_helper.get_timestamp_columns()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
+
 
         print "=================dimension columns======================"
         print self._dimension_columns
@@ -89,6 +98,14 @@ class TwoWayAnova:
         self._analysisDict = self._dataframe_context.get_analysis_dict()
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "anovaStart":{
                 "summary":"Initialized the Anova Scripts",
@@ -107,7 +124,7 @@ class TwoWayAnova:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaStart","info",display=False,emptyBin=False,customMsg=None)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaStart","info",display=False,emptyBin=False,customMsg=None,weightKey="script")
 
 
 
@@ -237,7 +254,7 @@ class TwoWayAnova:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaEnd","info",display=False,emptyBin=False,customMsg=None)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaEnd","info",display=False,emptyBin=False,customMsg=None,weightKey="script")
         return df_anova_result
 
 

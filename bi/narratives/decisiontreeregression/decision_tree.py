@@ -20,7 +20,7 @@ class DecisionTreeRegNarrative:
             self.card1Table.append(keyTable)
 
     # @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ResultSetter)
-    def __init__(self, column_name, decision_tree_rules,df_helper,df_context,result_setter,story_narrative):
+    def __init__(self, column_name, decision_tree_rules,df_helper,df_context,result_setter,story_narrative,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._dataframe_context = df_context
@@ -46,9 +46,15 @@ class DecisionTreeRegNarrative:
         # self._decisionTreeNode.set_name("Decision Tree Regression")
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "dtreeNarrativeStart":{
                 "summary":"Started the Decision Tree Regression Narratives",
@@ -68,7 +74,7 @@ class DecisionTreeRegNarrative:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeNarrativeStart","info")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeNarrativeStart","info",weightKey="narratives")
 
 
 
@@ -86,7 +92,7 @@ class DecisionTreeRegNarrative:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeNarrativeEnd","info")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeNarrativeEnd","info",weightKey="narratives")
 
 
 

@@ -201,29 +201,23 @@ class GeneralizedLinearRegressionModelPysparkScript:
         self._result_setter.set_glinr_cards(glinrCards)
 
     def Predict(self):
-        self._scriptWeightDict = GLOBALSETTINGS.regressionModelPredictionWeight
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Scripts",
+                "summary":"Initialized the Generalized Linear Regression Scripts",
                 "weight":2
                 },
-            "prediction":{
-                "summary":"Random Forest Model Prediction Finished",
+            "predictionStart":{
+                "summary":"Generalized Linear Regression Model Prediction Started",
                 "weight":2
                 },
-            "frequency":{
-                "summary":"descriptive analysis finished",
-                "weight":2
-                },
-            "chisquare":{
-                "summary":"chi Square analysis finished",
-                "weight":4
-                },
-            "completion":{
-                "summary":"all analysis finished",
-                "weight":4
-                },
+            "predictionFinished":{
+                "summary":"Generalized Linear Regression Model Prediction Finished",
+                "weight":6
+                }
             }
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         dataSanity = True
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -235,6 +229,7 @@ class GeneralizedLinearRegressionModelPysparkScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionStart","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         test_data_path = self._dataframe_context.get_input_file()
         score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
@@ -256,6 +251,8 @@ class GeneralizedLinearRegressionModelPysparkScript:
         if score_data_path.startswith("file"):
             score_data_path = score_data_path[7:]
         pandas_scored_df.to_csv(score_data_path,header=True,index=False)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
 
         print "STARTING Measure ANALYSIS ..."
         columns_to_keep = []
@@ -272,9 +269,10 @@ class GeneralizedLinearRegressionModelPysparkScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         df = df_helper.get_data_frame()
+        # self._dataframe_context.set_dont_send_message(True)
         try:
             fs = time.time()
-            descr_stats_obj = DescriptiveStatsScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
+            descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName="Descriptive analysis")
             descr_stats_obj.Run()
             print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
         except:
@@ -282,9 +280,9 @@ class GeneralizedLinearRegressionModelPysparkScript:
 
         try:
             fs = time.time()
-            self._dataframe_helper.fill_na_dimension_nulls()
-            df = self._dataframe_helper.get_data_frame()
-            dt_reg = DecisionTreeRegressionScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            df_helper.fill_na_dimension_nulls()
+            df = df_helper.get_data_frame()
+            dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Predictive modeling")
             dt_reg.Run()
             print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
         except:
@@ -292,7 +290,7 @@ class GeneralizedLinearRegressionModelPysparkScript:
 
         try:
             fs = time.time()
-            two_way_obj = TwoWayAnovaScript(df, self._dataframe_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser)
+            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
             two_way_obj.Run()
             print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
         except:

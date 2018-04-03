@@ -73,7 +73,7 @@ class MeasureColumnNarrative:
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeStart","info",display=False,emptyBin=False,customMsg=None)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeStart","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
 
 
         self._measureSummaryNode = NarrativesTree()
@@ -93,7 +93,7 @@ class MeasureColumnNarrative:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeEnd","info",display=False,emptyBin=False,customMsg=None)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeEnd","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
 
 
     def _get_c3_histogram(self):

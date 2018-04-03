@@ -24,7 +24,7 @@ Decision Tree
 class DecisionTreeRegression:
 
     #@accepts(object, DataFrame)
-    def __init__(self, data_frame, df_context, df_helper, spark, meta_parser):
+    def __init__(self, data_frame, df_context, df_helper, spark, meta_parser,scriptWeight=None, analysisName=None):
         self._spark = spark
         self._metaParser = meta_parser
         self._data_frame = data_frame
@@ -48,6 +48,7 @@ class DecisionTreeRegression:
         self._important_vars = {}
         self._numCluster = None
 
+
         if not self._dataframe_context.get_story_on_scored_data():
             datasource_type = self._dataframe_context.get_datasource_type()
             if datasource_type == "Hana":
@@ -67,9 +68,15 @@ class DecisionTreeRegression:
             self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "dtreeTrainingStart":{
                 "summary":"Started the Decision Tree Regression Script",
@@ -89,7 +96,7 @@ class DecisionTreeRegression:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingStart","info")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingStart","info",weightKey="script")
 
 
 
@@ -321,7 +328,7 @@ class DecisionTreeRegression:
         #                             self._completionStatus)
         # CommonUtils.save_progress_message(self._messageURL,progressMessage)
         # self._dataframe_context.update_completion_status(self._completionStatus)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingEnd","info")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingEnd","info",weightKey="script")
 
         # print decision_tree_result
         return decision_tree_result
