@@ -246,13 +246,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-    print "="*50
-    appid = dataframe_context.get_app_id()
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
-    print "="*50
-    # print modelJsonOutput
-    # print "="*50
-
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
 
     pmmlModels = result_setter.get_pmml_object()
@@ -271,6 +265,8 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     ignoreMsg = dataframe_context.get_message_ignore()
     targetLevel = dataframe_context.get_target_level_for_model()
     print "Prediction Started"
+    dataframe_context.initialize_ml_model_prediction_weight()
+
     st = time.time()
     story_narrative = NarrativesTree()
     story_narrative.set_name("scores")
@@ -293,6 +289,17 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     print "algorithm_name",algorithm_name
     print "score_file_path",score_file_path
     print "model_slug",model_slug
+
+    scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
+    scriptStages = {
+        "preprocessing":{
+            "summary":"Dataset Loading Completed",
+            "weight":10
+            }
+        }
+    print scriptWeightDict
+    CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
     if app_type == "CLASSIFICATION":
         model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
@@ -349,6 +356,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
         dataframe_context.set_story_on_scored_data(True)
+        
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
         print "selected_model_for_prediction", selected_model_for_prediction
         if "linearregression" in  selected_model_for_prediction:

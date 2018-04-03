@@ -85,6 +85,7 @@ class ContextSetter:
         self.dontSendAnyMessage = False
         self.mlEnv = None #can be sklearn or spark
         self.mlModelTrainingWeight = {}
+        self.mlModelPredictionWeight = {}
 
 
 
@@ -216,6 +217,7 @@ class ContextSetter:
                     self.scoreVarSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
                 if "modelvariableSelection" in columnSettingKeys:
                     self.modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
+
                 varSelectionArr = self.modelVarSelectionArr
 
             if len(varSelectionArr) >0:
@@ -536,11 +538,11 @@ class ContextSetter:
         if appType == "REGRESSION":
             algoSlugs = [x["algorithmSlug"] for x in self.algorithmsToRun]
             algoRelWeight = GLOBALSETTINGS.regressionAlgoRelativeWeight
-            intitialScriptWeight = GLOBALSETTINGS.regressionInitialScriptWeight
+            intitialScriptWeight = GLOBALSETTINGS.regressionTrainingInitialScriptWeight
         elif appType == "CLASSIFICATION":
             algoSlugs = GLOBALSETTINGS.classificationAlgorithmsToRunTemp
             algoRelWeight = GLOBALSETTINGS.classificationAlgoRelativeWeight
-            intitialScriptWeight = GLOBALSETTINGS.classificationInitialScriptWeight
+            intitialScriptWeight = GLOBALSETTINGS.classificationTrainingInitialScriptWeight
 
         relativeWeightArray = [algoRelWeight[x] for x in algoSlugs]
         totalWeight = sum(relativeWeightArray)
@@ -559,9 +561,17 @@ class ContextSetter:
     def get_ml_model_training_weight(self):
         return self.mlModelTrainingWeight
 
+    def initialize_ml_model_prediction_weight(self):
+        appType = self.get_app_type()
+        algoSlug = self.get_algorithm_slug()[0]
+        intitialScriptWeight = GLOBALSETTINGS.mlModelPredictionWeight
+        algoWeight = intitialScriptWeight["algoSlug"]
+        intitialScriptWeight.update({algoSlug:algoWeight})
+        intitialScriptWeight.pop("algoSlug")
+        self.mlModelPredictionWeight = intitialScriptWeight
 
     def get_ml_model_prediction_weight(self):
-        return GLOBALSETTINGS.mlModelPredictionWeight
+        return self.mlModelPredictionWeight
 
     def update_completion_status(self,data):
         self.globalCompletionStatus = data

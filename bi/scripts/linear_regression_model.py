@@ -371,29 +371,23 @@ class LinearRegressionModelPysparkScript:
 
 
     def Predict(self):
-        self._scriptWeightDict = GLOBALSETTINGS.regressionModelPredictionWeight
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Scripts",
+                "summary":"Initialized the Linear Regression Scripts",
                 "weight":2
                 },
-            "prediction":{
-                "summary":"Random Forest Model Prediction Finished",
+            "predictionStart":{
+                "summary":"Linear Regression Model Prediction Started",
                 "weight":2
                 },
-            "frequency":{
-                "summary":"descriptive analysis finished",
-                "weight":2
-                },
-            "chisquare":{
-                "summary":"chi Square analysis finished",
-                "weight":4
-                },
-            "completion":{
-                "summary":"all analysis finished",
-                "weight":4
-                },
+            "predictionFinished":{
+                "summary":"Linear Regression Model Prediction Finished",
+                "weight":6
+                }
             }
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         dataSanity = True
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -439,6 +433,8 @@ class LinearRegressionModelPysparkScript:
             print "columns_to_drop",columns_to_drop
             spark_scored_df = transformed.select(list(set(columns_to_keep+[result_column])))
         elif self._mlEnv == "sklearn":
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionStart","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
             trained_model_path += "/model.pkl"
@@ -461,6 +457,8 @@ class LinearRegressionModelPysparkScript:
             pandas_df[result_column] = y_score
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
 
 
             print "STARTING Measure ANALYSIS ..."
@@ -490,6 +488,8 @@ class LinearRegressionModelPysparkScript:
             descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative)
             descr_stats_obj.Run()
             print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
         except:
             print "Frequency Analysis Failed "
 

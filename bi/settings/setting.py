@@ -115,7 +115,6 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
             ALGORITHMRANDOMSLUG+"linr":"linearregression",
-            ALGORITHMRANDOMSLUG+"linr":"generalizedlinearregression",
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
             ALGORITHMRANDOMSLUG+"rfr":"rfregression"
@@ -158,8 +157,18 @@ dimensionAnalysisRelativeWeight = {
 
 
 
-classificationInitialScriptWeight = {"initialization":{"total":10}}
-regressionInitialScriptWeight = {"initialization":{"total":10}}
+classificationTrainingInitialScriptWeight = {"initialization":{"total":10}}
+
+regressionTrainingInitialScriptWeight = {"initialization":{"total":10}}
+
+mlModelPredictionWeight = {
+    "initialization":{"total":10,"script":5,"narratives":5},
+    "Descriptive analysis":{"total":20,"script":10,"narratives":10},
+    "Measure vs. Dimension":{"total":30,"script":20,"narratives":10},
+    "Predictive modeling":{"total":20,"script":10,"narratives":10},
+    "algoSlug":{"total":20,"script":10,"narratives":10}
+}
+
 
 regressionAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"linr"  : 1,
@@ -176,27 +185,6 @@ classificationAlgoRelativeWeight = {
 }
 classificationAlgorithmsToRunTemp = [ALGORITHMRANDOMSLUG+"rf",ALGORITHMRANDOMSLUG+"xgb",ALGORITHMRANDOMSLUG+"lr"]
 
-
-mlModelPredictionWeight = {
-    "initialization":{"total":10,"script":10,"narratives":10},
-    "randomForest":{"total":20,"script":20,"narratives":20},
-    "logisticRegression":{"total":20,"script":20,"narratives":20},
-    "xgboost":{"total":20,"script":20,"narratives":20},
-    "svm":{"total":20,"script":20,"narratives":20},
-    "Descriptive analysis":{"total":10,"script":10,"narratives":10},
-    "Dimension vs. Dimension":{"total":10,"script":5,"narratives":5},
-    "Predictive modeling":{"total":10,"script":5,"narratives":5}
-}
-regressionModelPredictionWeight = {
-    "initialization":{"total":10,"script":5,"narratives":5},
-    "linearRegression":{"total":10,"script":5,"narratives":5},
-    "gbtRegression":{"total":10,"script":5,"narratives":5},
-    "rfRegression":{"total":10,"script":5,"narratives":5},
-    "dtreeRegression":{"total":10,"script":5,"narratives":5},
-    "Descriptive analysis":{"total":10,"script":5,"narratives":5},
-    "Measure vs. Dimension":{"total":20,"script":15,"narratives":5},
-    "Predictive modeling":{"total":20,"script":15,"narratives":5}
-}
 metadataScriptWeight = {
     "initialization":{"total":3,"script":2,"narratives":1},
 }

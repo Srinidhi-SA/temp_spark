@@ -39,7 +39,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "prediction"
             configJson = get_test_configs(jobType)
 
 
@@ -80,8 +80,8 @@ def main(configJson):
     configJsonObj.set_json_params()
 
     dataframe_context = ContextSetter(configJsonObj)
+    dataframe_context.set_job_type(jobType)                                     #jobType should be set before set_params call of dataframe_context
     dataframe_context.set_params()
-    dataframe_context.set_job_type(jobType)
     dataframe_context.set_message_url(messageURL)
     dataframe_context.set_app_id(appid)
     dataframe_context.set_debug_mode(debugMode)
