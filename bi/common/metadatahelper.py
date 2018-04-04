@@ -12,6 +12,7 @@ from bi.common import utils as CommonUtils
 from bi.common.cardStructure import C3ChartData
 from bi.common.charts import ChartJson, NormalChartData
 from bi.common.decorators import accepts
+from bi.settings import setting as GLOBALSETTINGS
 
 
 class MetaDataHelper():
@@ -299,31 +300,31 @@ class MetaDataHelper():
         return output,chart_data
 
 
-    def get_datetime_suggestions(self,df,col_name):
-        output = {}
-        date_time_suggestions = {}
-        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
-        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
-        row_vals = df.select(col_name).distinct().na.drop().collect()
-        # row_vals = df.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
-        if len(row_vals) > 0:
-            x = row_vals[0][col_name]
-            for format1 in formats:
-                try:
-                    t = datetime.strptime(x,format1)
-                    # if (format1 in dual_checks):
-                    #     for x1 in row_vals:
-                    #         x = x1[dims]
-                    #         try:
-                    #             t = dt.datetime.strptime(x,format1)
-                    #         except ValueError as err:
-                    #             format1 = '%d'+format1[2]+'%m'+format1[5:]
-                    #             break
-                    output[col_name] = format1
-                    break
-                except ValueError as err:
-                    pass
-        return output
+    # def get_datetime_suggestions(self,df,col_name):
+    #     output = {}
+    #     date_time_suggestions = {}
+    #     formats = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+    #     dual_checks = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["dual_checks"]
+    #     row_vals = df.select(col_name).distinct().na.drop().collect()
+    #     # row_vals = df.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+    #     if len(row_vals) > 0:
+    #         x = row_vals[0][col_name]
+    #         for format1 in formats:
+    #             try:
+    #                 t = datetime.strptime(x,format1)
+    #                 # if (format1 in dual_checks):
+    #                 #     for x1 in row_vals:
+    #                 #         x = x1[dims]
+    #                 #         try:
+    #                 #             t = dt.datetime.strptime(x,format1)
+    #                 #         except ValueError as err:
+    #                 #             format1 = '%d'+format1[2]+'%m'+format1[5:]
+    #                 #             break
+    #                 output[col_name] = format1
+    #                 break
+    #             except ValueError as err:
+    #                 pass
+    #     return output
 
     def get_datetime_format(self,columnVector):
         """
@@ -337,12 +338,30 @@ class MetaDataHelper():
         detectedFormat -- datetime format
         """
         detectedFormat = None
-        availableDateTimeFormat = CommonUtils.dateTimeFormatsSupported()["formats"]
-        sample1 = str(columnVector[0])
-        for dt_format in availableDateTimeFormat:
+        # availableDateTimeFormat = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+        # sample1 = str(columnVector[0])
+        # for dt_format in availableDateTimeFormat:
+        #     try:
+        #         t = datetime.strptime(sample1,dt_format)
+        #         detectedFormat = dt_format
+        #         break
+        #     except ValueError as err:
+        #         pass
+        formats = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+        dual_checks = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["dual_checks"]
+        x = columnVector[0][0]
+        for format1 in formats:
             try:
-                t = datetime.strptime(sample1,dt_format)
-                detectedFormat = dt_format
+                t = datetime.strptime(x,format1)
+                if (format1 in dual_checks):
+                    for x1 in columnVector:
+                        x = x1[0]
+                        try:
+                            t = datetime.strptime(x,format1)
+                        except ValueError as err:
+                            format1 = '%d'+format1[2]+'%m'+format1[5:]
+                            break
+                detectedFormat = format1
                 break
             except ValueError as err:
                 pass

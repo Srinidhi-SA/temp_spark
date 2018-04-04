@@ -225,10 +225,10 @@ class MetaDataScript:
                     utf8Suggestion = metaHelperInstance.get_utf8_suggestions(dimensionColumnStat[column])
                 else:
                     utf8Suggestion = False
-                # dateColumn = metaHelperInstance.get_datetime_suggestions(self._data_frame,column)
                 uniqueVals = self._data_frame.select(column).distinct().na.drop().collect()
+                # print uniqueVals[:5]
                 if len(uniqueVals) > 0:
-                    dateColumnFormat = metaHelperInstance.get_datetime_format([uniqueVals[0][column]])
+                    dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
                 else:
                     dateColumnFormat = None
                 if dateColumnFormat:
