@@ -142,13 +142,13 @@ class DecisionTrees:
                 var,limit = re.split(' > ',rule)
                 DFF.values_above(var,limit)
             elif ' not in ' in rule:
-                var,levels = re.split(' not in ',rule)
-                levels=levels[1:-1].split(",")
+                var,levels = rule.split(' not in (')
+                levels=levels[0:-1].split(",")
                 levels = [self._alias_dict[x] for x in levels]
                 DFF.values_not_in(var,levels)
             elif ' in ' in rule:
-                var,levels = re.split(' in ',rule)
-                levels=levels[1:-1].split(",")
+                var,levels = rule.split(' in (')
+                levels=levels[0:-1].split(",")
                 levels = [self._alias_dict[x] for x in levels]
                 DFF.values_in(var,levels)
             important_vars.append(var)
