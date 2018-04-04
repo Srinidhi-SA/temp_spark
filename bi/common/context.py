@@ -228,7 +228,7 @@ class ContextSetter:
                     if colSetting["targetColumn"] == True:
                         self.resultcolumn = str(colSetting["name"])
                         if colSetting["columnType"] == "measure":
-                            if colSetting["targetColSetVarAs"] != None:
+                            if colSetting["targetColSetVarAs"] != None or colSetting["setVarAs"] in ["percentage","index","average"]:
                                 self.analysistype = "dimension"
                             else:
                                 self.analysistype = "measure"
@@ -345,6 +345,8 @@ class ContextSetter:
                 self.dataAPI = self.STOCK_SETTINGS.get("dataAPI")
 
         if self.analysistype in ["measure","dimension"]:
+            print "self.analysisList",self.analysisList
+            print "self.analysistype",self.analysistype
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
     def set_ml_environment(self,data):

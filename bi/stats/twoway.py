@@ -74,6 +74,7 @@ class TwoWayAnova:
         dateColCheck = None
         scriptsToRun = self._dataframe_context.get_analysis_name_list()
 
+        print self._dateColumnFormatDict
         self._selected_date_columns = self._dataframe_context.get_selected_date_columns()
         if self._selected_date_columns != None:
             dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
@@ -91,6 +92,8 @@ class TwoWayAnova:
                 self._existingDateFormat = dateColCheck["existingDateFormat"]
                 self._date_columns_suggested = dateColCheck["suggestedDateColumn"]
         if self._dateFormatDetected:
+            print "self._existingDateFormat",self._existingDateFormat
+            print "self._existingDateFormat",self._existingDateFormat
             self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_columns_suggested,self._trend_on_td_column)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
