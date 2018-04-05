@@ -299,6 +299,7 @@ def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,sc
     if dataframeContext.get_dont_send_message() == False:
         completionStatus = dataframeContext.get_completion_status()
         print "incoming completionStatus",completionStatus
+        completionStatus = min(completionStatus,100)
         messageURL = dataframeContext.get_message_url()
         if customMsg == None:
             completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
