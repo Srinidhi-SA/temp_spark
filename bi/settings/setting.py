@@ -28,27 +28,15 @@ APPS_ID_MAP = {
       'heading': 'Factors influencing Opportunity Score'
     },
     '2': {
-      'displayName': 'Opportunity Scoring',
-      'type': 'CLASSIFICATION',
-      'name': 'opportunity_scoring',
-      'heading': 'Factors influencing Opportunity Score'
-    },
-    '14': {
-      'displayName': 'Robo Advisor',
-      'type': 'ROBO',
-      'name': 'robo_advisor_insights',
-      'heading': None
-    },
-    '3': {
       'displayName': 'Automated Prediction',
       'type': 'CLASSIFICATION',
       'name': 'automated_prediction',
       'heading': 'Feature Importance'
     },
-    '5': {
-      'displayName': 'Stock Sense',
-      'type': 'STOCK_SENSE',
-      'name': 'stock_sense',
+    '3': {
+      'displayName': 'Robo Advisor',
+      'type': 'ROBO',
+      'name': 'robo_advisor_insights',
       'heading': None
     },
     '4': {
@@ -57,11 +45,11 @@ APPS_ID_MAP = {
       'name': 'speech_analytics',
       'heading': None
     },
-    '7': {
-      'displayName': 'Re-admission Prediction',
-      'type': 'CLASSIFICATION',
-      'name': 're_admission_prediction',
-      'heading': 'Factors influencing Re-admission'
+    '5': {
+      'displayName': 'Stock Sense',
+      'type': 'STOCK_SENSE',
+      'name': 'stock_sense',
+      'heading': None
     },
     '6': {
       'displayName': 'Churn Prediction',
@@ -69,11 +57,11 @@ APPS_ID_MAP = {
       'name': 'churn_prediction',
       'heading': 'Factors influencing Churn'
     },
-    '9': {
-      'displayName': 'Credit Card Fraud',
+    '7': {
+      'displayName': 'Re-admission Prediction',
       'type': 'CLASSIFICATION',
-      'name': 'credit_card_fraud',
-      'heading': 'Factors influencing Fraud'
+      'name': 're_admission_prediction',
+      'heading': 'Factors influencing Re-admission'
     },
     '8': {
       'displayName': 'Physician Attrition',
@@ -81,23 +69,23 @@ APPS_ID_MAP = {
       'name': 'physician_attrition',
       'heading': 'Factors influencing Attrition'
     },
+    '9': {
+      'displayName': 'Credit Card Fraud',
+      'type': 'CLASSIFICATION',
+      'name': 'credit_card_fraud',
+      'heading': 'Factors influencing Fraud'
+    },
+    '10': {
+      'displayName': 'Claims Prediction',
+      'type': 'CLASSIFICATION',
+      'name': 'claims_prediction',
+      'heading': 'Factors influencing Claims'
+    },
   '11': {
     'displayName': 'Asset Health Prediction',
     'type': 'CLASSIFICATION',
     'name': 'asset_health_prediction',
     'heading': 'Factors influencing Asset Health'
-  },
-  '10': {
-    'displayName': 'Claims Prediction',
-    'type': 'CLASSIFICATION',
-    'name': 'claims_prediction',
-    'heading': 'Factors influencing Claims'
-  },
-  '13': {
-    'displayName': 'Automated Prediction',
-    'type': 'REGRESSION',
-    'name': 'regression_app',
-    'heading': 'Feature Importance'
   },
   '12': {
     'displayName': 'Employee Attrition',
@@ -105,7 +93,12 @@ APPS_ID_MAP = {
     'name': 'employee_attrition',
     'heading': 'Factors influencing Attrition'
   },
-
+  '13': {
+    'displayName': 'Automated Prediction',
+    'type': 'REGRESSION',
+    'name': 'regression_app',
+    'heading': 'Feature Importance'
+  }
 }
 
 
