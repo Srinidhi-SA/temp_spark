@@ -9,28 +9,28 @@ from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 
-from bi.scripts.random_forest import RandomForestScript
-from bi.scripts.xgboost_classification import XgboostScript
-from bi.scripts.logistic_regression import LogisticRegressionScript
-from bi.scripts.svm import SupportVectorMachineScript
-from bi.scripts.linear_regression_model import LinearRegressionModelPysparkScript
-from bi.scripts.generalized_linear_regression_model import GeneralizedLinearRegressionModelPysparkScript
-from bi.scripts.gbt_regression_model import GBTRegressionModelPysparkScript
-from bi.scripts.rf_regression_model import RFRegressionModelPysparkScript
-from bi.scripts.dtree_regression_model import DTREERegressionModelPysparkScript
+from bi.scripts.classification.random_forest import RandomForestScript
+from bi.scripts.classification.xgboost_classification import XgboostScript
+from bi.scripts.classification.logistic_regression import LogisticRegressionScript
+from bi.scripts.classification.svm import SupportVectorMachineScript
+from bi.scripts.regression.linear_regression_model import LinearRegressionModelPysparkScript
+from bi.scripts.regression.generalized_linear_regression_model import GeneralizedLinearRegressionModelPysparkScript
+from bi.scripts.regression.gbt_regression_model import GBTRegressionModelPysparkScript
+from bi.scripts.regression.rf_regression_model import RFRegressionModelPysparkScript
+from bi.scripts.regression.dtree_regression_model import DTREERegressionModelPysparkScript
 
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
 
-from bi.scripts.frequency_dimensions import FreqDimensionsScript
-from bi.scripts.chisquare import ChiSquareScript
-from bi.scripts.decision_tree import DecisionTreeScript
-from bi.scripts.correlation import CorrelationScript
-from bi.scripts.descr_stats import DescriptiveStatsScript
-from bi.scripts.two_way_anova import TwoWayAnovaScript
-from bi.scripts.linear_regression import LinearRegressionScript
+from bi.scripts.dimensionAnalysis.frequency_dimensions import FreqDimensionsScript
+from bi.scripts.dimensionAnalysis.chisquare import ChiSquareScript
+from bi.scripts.dimensionAnalysis.decision_tree import DecisionTreeScript
+from bi.scripts.measureAnalysis.correlation import CorrelationScript
+from bi.scripts.measureAnalysis.descr_stats import DescriptiveStatsScript
+from bi.scripts.measureAnalysis.two_way_anova import TwoWayAnovaScript
+from bi.scripts.measureAnalysis.linear_regression import LinearRegressionScript
 from bi.scripts.timeseries import TrendScript
-from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
+from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
 
 
 def load_dataset(spark,dataframe_context):
@@ -356,7 +356,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
         dataframe_context.set_story_on_scored_data(True)
-        
+
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
         print "selected_model_for_prediction", selected_model_for_prediction
         if "linearregression" in  selected_model_for_prediction:

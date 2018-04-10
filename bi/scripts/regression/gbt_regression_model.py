@@ -5,8 +5,8 @@ try:
     import cPickle as pickle
 except:
     import pickle
-from itertools import chain
 
+from itertools import chain
 
 from pyspark.sql import SQLContext
 from pyspark.sql.types import DoubleType
@@ -23,7 +23,7 @@ from bi.narratives.chisquare import ChiSquareNarratives
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
 from pyspark.sql.types import *
-from pyspark.ml.regression import LinearRegression
+from pyspark.ml.regression import GBTRegressor
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
@@ -31,9 +31,9 @@ from pyspark.ml.evaluation import RegressionEvaluator
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
-from bi.scripts.descr_stats import DescriptiveStatsScript
-from bi.scripts.two_way_anova import TwoWayAnovaScript
-from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
+from bi.scripts.measureAnalysis.descr_stats import DescriptiveStatsScript
+from bi.scripts.measureAnalysis.two_way_anova import TwoWayAnovaScript
+from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
@@ -45,15 +45,14 @@ from sklearn.externals import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import KFold
 
 
 
 
-
-class LinearRegressionModelPysparkScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+class GBTRegressionModelPysparkScript:
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -63,10 +62,10 @@ class LinearRegressionModelPysparkScript:
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
-        self._analysisName = "linearRegression"
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]
+        self._analysisName = "gbtRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
-        self._mlEnv = self._dataframe_context.get_ml_environment()
+        self._mlEnv = mLEnvironment
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -77,22 +76,22 @@ class LinearRegressionModelPysparkScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Linear Regression Scripts",
+                "summary":"Initialized the Gradient Boosted Tree Regression Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Linear Regression Model Training Started",
+                "summary":"Gradient Boosted Tree Regression Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Linear Regression Model Training Finished",
+                "summary":"Gradient Boosted Tree Regression Model Training Finished",
                 "weight":4
                 },
             }
 
-
     def Train(self):
         st_global = time.time()
+
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
@@ -104,31 +103,30 @@ class LinearRegressionModelPysparkScript:
             categorical_columns = list(set(categorical_columns) - {uid_col})
         allDateCols = self._dataframe_context.get_date_columns()
         categorical_columns = list(set(categorical_columns)-set(allDateCols))
+        print categorical_columns
         result_column = self._dataframe_context.get_result_column()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         numerical_columns = [x for x in numerical_columns if x != result_column]
-        print "categorical_columns",categorical_columns
 
         model_path = self._dataframe_context.get_model_path()
+        print "model_path",model_path
         if model_path.startswith("file"):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
-        print "model_path",model_path
-        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
-        pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
-
         df = self._data_frame
-        if self._mlEnv == "spark":
-            pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
 
+        if self._mlEnv == "spark":
+            pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
+            model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+            pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
+
+            pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
             pipelineModel = pipeline.fit(df)
             indexed = pipelineModel.transform(df)
             featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
 
-            # print indexed.select([result_column,"features"]).show(5)
             MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
-            linr = LinearRegression(labelCol=result_column, featuresCol='features',predictionCol="prediction",maxIter=10, regParam=0.3, elasticNetParam=0.8)
+            gbtr = GBTRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
@@ -136,11 +134,11 @@ class LinearRegressionModelPysparkScript:
                     numFold = 3
                 trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
                 paramGrid = ParamGridBuilder()\
-                    .addGrid(linr.regParam, [0.1, 0.01]) \
-                    .addGrid(linr.fitIntercept, [False, True])\
-                    .addGrid(linr.elasticNetParam, [0.0, 0.5, 1.0])\
+                    .addGrid(gbtr.regParam, [0.1, 0.01]) \
+                    .addGrid(gbtr.fitIntercept, [False, True])\
+                    .addGrid(gbtr.elasticNetParam, [0.0, 0.5, 1.0])\
                     .build()
-                crossval = CrossValidator(estimator=linr,
+                crossval = CrossValidator(estimator=gbtr,
                               estimatorParamMaps=paramGrid,
                               evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
@@ -152,32 +150,17 @@ class LinearRegressionModelPysparkScript:
             elif validationDict["name"] == "trainAndtest":
                 trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
                 st = time.time()
-                fit = linr.fit(trainingData)
+                fit = gbtr.fit(trainingData)
                 trainingTime = time.time()-st
                 print "time to train",trainingTime
                 bestModel = fit
-            print bestModel.explainParams()
-            print bestModel.extractParamMap()
-            print bestModel.params
-            print 'Best Param (regParam): ', bestModel._java_obj.getRegParam()
-            print 'Best Param (MaxIter): ', bestModel._java_obj.getMaxIter()
-            print 'Best Param (elasticNetParam): ', bestModel._java_obj.getElasticNetParam()
 
-            # modelPmmlPipeline = PMMLPipeline([
-            #   ("pretrained-estimator", objs["trained_model"])
-            # ])
-            # try:
-            #     modelPmmlPipeline.target_field = result_column
-            #     modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
-            #     sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
-            #     pmmlfile = open(pmml_filepath,"r")
-            #     pmmlText = pmmlfile.read()
-            #     pmmlfile.close()
-            #     self._result_setter.update_pmml_object({self._slug:pmmlText})
-            # except:
-            #     pass
-
-            coefficientsArray = [(name, bestModel.coefficients[idx]) for idx, name in featureMapping]
+            featureImportance = bestModel.featureImportances
+            print featureImportance,type(featureImportance)
+            # print featureImportance[0],len(featureImportance[1],len(featureImportance[2]))
+            print len(featureMapping)
+            featuresArray = [(name, featureImportance[idx]) for idx, name in featureMapping]
+            print featuresArray
             MLUtils.save_pipeline_or_model(bestModel,model_filepath)
             transformed = bestModel.transform(validationData)
             transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
@@ -205,16 +188,16 @@ class LinearRegressionModelPysparkScript:
             mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
             mapeStatsArr = mapeStats.items()
             mapeStatsArr = sorted(mapeStatsArr,key=lambda x:int(x[0]))
-            # print mapeStatsArr
+            print mapeStatsArr
             quantileDf = transformed.select("prediction")
             # print quantileDf.show()
             quantileSummaryDict = MLUtils.get_quantile_summary(quantileDf,"prediction")
             quantileSummaryArr = quantileSummaryDict.items()
             quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
-            # print quantileSummaryArr
+            print quantileSummaryArr
             self._model_summary.set_model_type("regression")
-            self._model_summary.set_algorithm_name("Linear Regression")
-            self._model_summary.set_algorithm_display_name("Linear Regression")
+            self._model_summary.set_algorithm_name("GBT Regression")
+            self._model_summary.set_algorithm_display_name("Gradient Boosted Tree Regression")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_training_time(trainingTime)
@@ -225,7 +208,7 @@ class LinearRegressionModelPysparkScript:
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
-            self._model_summary.set_coefficinets_array(coefficientsArray)
+            self._model_summary.set_feature_importance(featureImportance)
             # print CommonUtils.convert_python_object_to_json(self._model_summary)
         elif self._mlEnv == "sklearn":
             model_filepath = model_path+"/"+self._slug+"/model.pkl"
@@ -235,7 +218,7 @@ class LinearRegressionModelPysparkScript:
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
 
             st = time.time()
-            est = LinearRegression()
+            est = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1,max_depth=1, random_state=0, loss='ls')
 
             algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
             algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
@@ -243,7 +226,6 @@ class LinearRegressionModelPysparkScript:
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-            self._dataframe_context.update_completion_status(self._completionStatus)
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
@@ -264,12 +246,10 @@ class LinearRegressionModelPysparkScript:
                     metricsFold["rmse"] = sqrt(metricsFold["mse"])
                     kFoldOutput.append((est,metricsFold))
                 kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
-                # print kFoldOutput
                 bestEstimator = kFoldOutput[-1][0]
             elif validationDict["name"] == "trainAndtest":
                 est.fit(x_train, y_train)
                 bestEstimator = est
-            print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
@@ -279,11 +259,8 @@ class LinearRegressionModelPysparkScript:
             featureImportance={}
 
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
-            coefficients = objs["trained_model"].coef_
-            coefficientsArray = [(col_name, coefficients[idx]) for idx, col_name in enumerate(x_train.columns)]
-            interceptValue = None
-            interceptValue = objs["trained_model"].intercept_
-
+            featureImportance = objs["trained_model"].feature_importances_
+            featuresArray = [(col_name, featureImportance[idx]) for idx, col_name in enumerate(x_train.columns)]
             joblib.dump(objs["trained_model"],model_filepath)
             metrics = {}
             metrics["r2"] = r2_score(y_test, y_score)
@@ -317,8 +294,8 @@ class LinearRegressionModelPysparkScript:
             runtime = round((time.time() - st_global),2)
 
             self._model_summary.set_model_type("regression")
-            self._model_summary.set_algorithm_name("Linear Regression")
-            self._model_summary.set_algorithm_display_name("Linear Regression")
+            self._model_summary.set_algorithm_name("GBT Regression")
+            self._model_summary.set_algorithm_display_name("Gradient Boosted Tree Regression")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_training_time(trainingTime)
@@ -329,10 +306,9 @@ class LinearRegressionModelPysparkScript:
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.to_dict())
-            self._model_summary.set_feature_importance(featureImportance)
+            self._model_summary.set_feature_importance(featuresArray)
             self._model_summary.set_feature_list(list(x_train.columns))
-            self._model_summary.set_coefficinets_array(coefficientsArray)
-            self._model_summary.set_intercept(interceptValue)
+
 
             try:
                 pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
@@ -348,6 +324,11 @@ class LinearRegressionModelPysparkScript:
                 self._result_setter.update_pmml_object({self._slug:pmmlText})
             except:
                 pass
+
+
+
+
+
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
@@ -359,30 +340,31 @@ class LinearRegressionModelPysparkScript:
             "levelMapping":self._model_summary.get_level_map_dict()
         }
 
-        linrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        gbtrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
-        for card in linrCards:
+        for card in gbtrCards:
             self._prediction_narrative.add_a_card(card)
-        self._result_setter.set_model_summary({"linearregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
-        self._result_setter.set_linr_cards(linrCards)
+        self._result_setter.set_model_summary({"gbtregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_gbt_regression_model_summart(modelSummaryJson)
+        self._result_setter.set_gbtr_cards(gbtrCards)
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
 
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Linear Regression Scripts",
+                "summary":"Initialized the Gradient Boosted Tree Regression Scripts",
                 "weight":2
                 },
             "predictionStart":{
-                "summary":"Linear Regression Model Prediction Started",
+                "summary":"Gradient Boosted Tree Regression Model Prediction Started",
                 "weight":2
                 },
             "predictionFinished":{
-                "summary":"Linear Regression Model Prediction Finished",
+                "summary":"Gradient Boosted Tree Regression Model Prediction Finished",
                 "weight":6
                 }
             }
@@ -409,7 +391,7 @@ class LinearRegressionModelPysparkScript:
             print "pipeline_path",pipeline_path
             print "score_data_path",score_data_path
             pipelineModel = MLUtils.load_pipeline(pipeline_path)
-            trained_model = MLUtils.load_linear_regresssion_pyspark_model(trained_model_path)
+            trained_model = MLUtils.load_gbt_regresssion_pyspark_model(trained_model_path)
             df = self._data_frame
             indexed = pipelineModel.transform(df)
             transformed = trained_model.transform(indexed)
@@ -432,9 +414,9 @@ class LinearRegressionModelPysparkScript:
             columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
             print "columns_to_drop",columns_to_drop
             spark_scored_df = transformed.select(list(set(columns_to_keep+[result_column])))
+
         elif self._mlEnv == "sklearn":
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionStart","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
-
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
             trained_model_path += "/model.pkl"
@@ -452,13 +434,11 @@ class LinearRegressionModelPysparkScript:
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
-            print len(model_columns),len(pandas_df.columns)
             y_score = trained_model.predict(pandas_df)
             pandas_df[result_column] = y_score
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
-
 
 
             print "STARTING Measure ANALYSIS ..."

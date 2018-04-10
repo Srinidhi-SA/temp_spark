@@ -23,7 +23,7 @@ from bi.narratives.chisquare import ChiSquareNarratives
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
 from pyspark.sql.types import *
-from pyspark.ml.regression import RandomForestRegressor
+from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
@@ -31,9 +31,9 @@ from pyspark.ml.evaluation import RegressionEvaluator
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
-from bi.scripts.descr_stats import DescriptiveStatsScript
-from bi.scripts.two_way_anova import TwoWayAnovaScript
-from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
+from bi.scripts.measureAnalysis.descr_stats import DescriptiveStatsScript
+from bi.scripts.measureAnalysis.two_way_anova import TwoWayAnovaScript
+from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
@@ -45,7 +45,7 @@ from sklearn.externals import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import KFold
 
 
@@ -54,7 +54,7 @@ from sklearn.model_selection import KFold
 
 
 
-class RFRegressionModelPysparkScript:
+class DTREERegressionModelPysparkScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -65,8 +65,8 @@ class RFRegressionModelPysparkScript:
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]
-        self._analysisName = "rfRegression"
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]
+        self._analysisName = "dtreeRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = mlEnvironment
 
@@ -79,15 +79,15 @@ class RFRegressionModelPysparkScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Regression Scripts",
+                "summary":"Initialized the Decision Tree Regression Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Random Forest Regression Model Training Started",
+                "summary":"Decision Tree Regression Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Random Forest Regression Model Training Finished",
+                "summary":"Decision Tree Regression Model Training Finished",
                 "weight":4
                 },
             }
@@ -97,7 +97,7 @@ class RFRegressionModelPysparkScript:
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-        self._dataframe_context.update_completion_status(self._completionStatus)
+
         algosToRun = self._dataframe_context.get_algorithms_to_run()
         algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -121,7 +121,7 @@ class RFRegressionModelPysparkScript:
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
-        if  self._mlEnv == "spark":
+        if self._mlEnv == "spark":
             pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
 
             pipelineModel = pipeline.fit(df)
@@ -131,7 +131,7 @@ class RFRegressionModelPysparkScript:
             # print indexed.select([result_column,"features"]).show(5)
             MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
             # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-            rfr = RandomForestRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
+            dtreer = DecisionTreeRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
@@ -139,11 +139,11 @@ class RFRegressionModelPysparkScript:
                     numFold = 3
                 trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
                 paramGrid = ParamGridBuilder()\
-                    .addGrid(rfr.regParam, [0.1, 0.01]) \
-                    .addGrid(rfr.fitIntercept, [False, True])\
-                    .addGrid(rfr.elasticNetParam, [0.0, 0.5, 1.0])\
+                    .addGrid(dtreer.regParam, [0.1, 0.01]) \
+                    .addGrid(dtreer.fitIntercept, [False, True])\
+                    .addGrid(dtreer.elasticNetParam, [0.0, 0.5, 1.0])\
                     .build()
-                crossval = CrossValidator(estimator=rfr,
+                crossval = CrossValidator(estimator=dtreer,
                               estimatorParamMaps=paramGrid,
                               evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
@@ -155,7 +155,7 @@ class RFRegressionModelPysparkScript:
             elif validationDict["name"] == "trainAndtest":
                 trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
                 st = time.time()
-                fit = rfr.fit(trainingData)
+                fit = dtreer.fit(trainingData)
                 trainingTime = time.time()-st
                 print "time to train",trainingTime
                 bestModel = fit
@@ -201,8 +201,8 @@ class RFRegressionModelPysparkScript:
             quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
             # print quantileSummaryArr
             self._model_summary.set_model_type("regression")
-            self._model_summary.set_algorithm_name("rf Regression")
-            self._model_summary.set_algorithm_display_name("Random Forest Regression")
+            self._model_summary.set_algorithm_name("dtree Regression")
+            self._model_summary.set_algorithm_display_name("Decision Tree Regression")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_training_time(trainingTime)
@@ -213,7 +213,7 @@ class RFRegressionModelPysparkScript:
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
-            self._model_summary.set_feature_importance(featuresArray)
+            self._model_summary.set_feature_importance(featureImportance)
             # print CommonUtils.convert_python_object_to_json(self._model_summary)
         elif self._mlEnv == "sklearn":
             model_filepath = model_path+"/"+self._slug+"/model.pkl"
@@ -223,7 +223,7 @@ class RFRegressionModelPysparkScript:
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
 
             st = time.time()
-            est = RandomForestRegressor()
+            est = DecisionTreeRegressor()
 
             algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
             algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
@@ -300,8 +300,8 @@ class RFRegressionModelPysparkScript:
             runtime = round((time.time() - st_global),2)
 
             self._model_summary.set_model_type("regression")
-            self._model_summary.set_algorithm_name("RF Regression")
-            self._model_summary.set_algorithm_display_name("Random Forest Regression")
+            self._model_summary.set_algorithm_name("DTREE Regression")
+            self._model_summary.set_algorithm_display_name("Decision Tree Regression")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_training_time(trainingTime)
@@ -341,13 +341,13 @@ class RFRegressionModelPysparkScript:
             "levelMapping":self._model_summary.get_level_map_dict()
         }
 
-        rfrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        dtreerCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
-        for card in rfrCards:
+        for card in dtreerCards:
             self._prediction_narrative.add_a_card(card)
-        self._result_setter.set_model_summary({"rfregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_rf_regression_model_summart(modelSummaryJson)
-        self._result_setter.set_rfr_cards(rfrCards)
+        self._result_setter.set_model_summary({"dtreeregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_dtree_regression_model_summart(modelSummaryJson)
+        self._result_setter.set_dtreer_cards(dtreerCards)
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -357,15 +357,15 @@ class RFRegressionModelPysparkScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Regression Scripts",
+                "summary":"Initialized the Decision Tree Regression Scripts",
                 "weight":2
                 },
             "predictionStart":{
-                "summary":"Random Forest Regression Model Prediction Started",
+                "summary":"Decision Tree Regression Model Prediction Started",
                 "weight":2
                 },
             "predictionFinished":{
-                "summary":"Random Forest Regression Model Prediction Finished",
+                "summary":"Decision Tree Regression Model Prediction Finished",
                 "weight":6
                 }
             }
@@ -392,7 +392,7 @@ class RFRegressionModelPysparkScript:
             print "pipeline_path",pipeline_path
             print "score_data_path",score_data_path
             pipelineModel = MLUtils.load_pipeline(pipeline_path)
-            trained_model = MLUtils.load_rf_regresssion_pyspark_model(trained_model_path)
+            trained_model = MLUtils.load_dtree_regresssion_pyspark_model(trained_model_path)
             df = self._data_frame
             indexed = pipelineModel.transform(df)
             transformed = trained_model.transform(indexed)
@@ -441,6 +441,7 @@ class RFRegressionModelPysparkScript:
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
 
             print "STARTING Measure ANALYSIS ..."
             columns_to_keep = []

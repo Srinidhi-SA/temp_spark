@@ -63,11 +63,13 @@ class MetaDataScript:
         self._real_columns = [field.name for field in self._data_frame.schema.fields if
                 ColumnType(type(field.dataType)).get_actual_data_type() == ColumnType.REAL]
         self._column_type_dict = {}
+        self._dataSize = {"nRows":self._total_rows,"nCols":self._total_columns,"nBooleans":None,"nMeasures":None,"nDimensions":None,"nTimeDimensions":None,"dimensionLevelCountDict":{},"totalLevels":None}
         self.update_column_type_dict()
 
         time_taken_schema = time.time()-self._start_time
+        print "schema trendering takes",time_taken_schema
+
         self._completionStatus += self._scriptStages["schema"]["weight"]
-        # print "schema trendering takes",time_taken_schema
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "schema",\
                                     "info",\
@@ -76,6 +78,7 @@ class MetaDataScript:
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
         self._dataframe_context.update_completion_status(self._completionStatus)
+
     def update_column_type_dict(self):
         self._column_type_dict = dict(\
                                         zip(self._numeric_columns,[{"actual":"measure","abstract":"measure"}]*len(self._numeric_columns))+\
@@ -83,6 +86,11 @@ class MetaDataScript:
                                         zip(self._timestamp_columns,[{"actual":"datetime","abstract":"datetime"}]*len(self._timestamp_columns))+\
                                         zip(self._boolean_columns,[{"actual":"boolean","abstract":"dimension"}]*len(self._boolean_columns))\
                                      )
+        self._dataSize["nMeasures"] = len(self._numeric_columns)
+        self._dataSize["nDimensions"] = len(self._string_columns)
+        self._dataSize["nTimeDimensions"] = len(self._timestamp_columns)
+        self._dataSize["nBooleans"] = len(self._boolean_columns)
+
 
     def run(self):
         self._start_time = time.time()
@@ -156,6 +164,10 @@ class MetaDataScript:
 
         self._start_time = time.time()
         dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
+        # print dimensionColumnStat
+        self._dataSize["dimensionLevelCountDict"] = {k:filter(lambda x:x["name"]=="numberOfUniqueValues",v)[0]["value"] for k,v in dimensionColumnStat.items()}
+        self._dataSize["totalLevels"] = sum(self._dataSize["dimensionLevelCountDict"].values())
+
         time_taken_dimensionstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["dimensionstats"]["weight"]
         # print "dimension stats takes",time_taken_dimensionstats
@@ -265,6 +277,7 @@ class MetaDataScript:
         metaData.append(MetaData(name="ignoreColumnReason",value = ignoreColumnReason,display=False))
         metaData.append(MetaData(name="utf8ColumnSuggestion",value = utf8ColumnSuggestion,display=False))
         metaData.append(MetaData(name="dateTimeSuggestions",value = dateTimeSuggestions,display=False))
+        metaData.append(MetaData(name="dataSizeSummary",value = self._dataSize,display=False))
         dfMetaData = DfMetaData()
         dfMetaData.set_column_data(columnData)
         dfMetaData.set_header(headers)

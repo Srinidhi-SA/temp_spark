@@ -11,7 +11,7 @@ from bi.settings import *
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.common import NarrativesTree,ConfigValidator
-from bi.scripts.stock_advisor import StockAdvisor
+from bi.scripts.stockAdvisor.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
 
 import master_helper as MasterHelper
@@ -39,7 +39,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "metaData"
+            jobType = "story"
             configJson = get_test_configs(jobType)
 
 
