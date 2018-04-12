@@ -41,7 +41,7 @@ class DecisionTreeNarrative:
         # self._decision_tree_raw['tree']["children"] = self._decision_tree_json['tree']["children"]
         self._table = decision_tree_rules.get_table()
         self._new_table={}
-        self.succesful_predictions=decision_tree_rules.get_success()
+        self.successful_predictions=decision_tree_rules.get_success()
         self.total_predictions=decision_tree_rules.get_total()
         self.success_percent= decision_tree_rules.get_success_percent()
         self._important_vars = decision_tree_rules.get_significant_vars()
@@ -118,7 +118,7 @@ class DecisionTreeNarrative:
     #     for target in rules_dict.keys():
     #         self.condensedTable[target]=[]
     #         total = self.total_predictions[target]
-    #         success = self.succesful_predictions[target]
+    #         success = self.successful_predictions[target]
     #         success_percent = self.success_percent[target]
     #         for idx,rule in enumerate(rules_dict[target]):
     #             rules1 = NarrativeUtils.generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
@@ -216,7 +216,7 @@ class DecisionTreeNarrative:
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
-            success = self.succesful_predictions[target]
+            success = self.successful_predictions[target]
             success_percent = self.success_percent[target]
             richRulesArray = []
             crudeRuleArray = []
@@ -283,14 +283,22 @@ class DecisionTreeNarrative:
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%" if v*100/total >=10 else str(int(v*100/total))+"%"}) for k,v in levelCountDict.items() if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["nlevel"] = len(levelCountDict)
+            print "levelCountTuple",levelCountTuple
+            print "levelCountDict",levelCountDict
             if targetLevel in levelCountDict:
                 data_dict["topLevel"] = [x for x in levelCountTuple if x["name"]==targetLevel][0]
-                data_dict["secondLevel"] = max([x for x in levelCountTuple if x["name"]!=targetLevel],key=lambda x:x["count"])
+                if len(levelCountTuple) > 1:
+                    data_dict["secondLevel"] = max([x for x in levelCountTuple if x["name"]!=targetLevel],key=lambda x:x["count"])
+                else:
+                    data_dict["secondLevel"] = None
             else:
                 data_dict["topLevel"] = levelCountTuple[0]
-                data_dict["secondLevel"] = levelCountTuple[1]
-            maincardSummary = NarrativesUtils.get_template_output(self._base_dir,\
-                                                        'decisiontreescore.html',data_dict)
+                if len(levelCountTuple) > 1:
+                    data_dict["secondLevel"] = levelCountTuple[1]
+                else:
+                    data_dict["secondLevel"] = None
+            print data_dict
+            maincardSummary = NarrativesUtils.get_template_output(self._base_dir,'decisiontreescore.html',data_dict)
         main_card = NormalCard()
         main_card_data = []
         main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,self._blockSplitter)

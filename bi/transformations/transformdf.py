@@ -8,8 +8,9 @@ from pyspark.sql.types import StringType
 
 class DataFrameTransformer:
     # @accepts(object,DataFrame,DataFrameHelper,ContextSetter)
-    def __init__(self, dataframe, df_helper, df_context):
+    def __init__(self, dataframe, df_helper, df_context, meta_parser):
         self._data_frame = dataframe
+        self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._completionStatus = 0
@@ -45,14 +46,15 @@ class DataFrameTransformer:
         if len(existingColTransforms) > 0:
             for transformObj in existingColTransforms:
                 transformActionList = [obj["actionName"]  for obj in transformObj["columnSetting"]]
+                colName = self._metaParser.get_name_from_slug(transformObj["slug"])
                 if "delete" in transformActionList:
-                    self.delete_column(transformObj["name"])
+                    self.delete_column(colName)
                 else:
                     for obj in transformObj["columnSetting"]:
                         if obj["actionName"] == "replace":
-                            self.update_column_data(transformObj["name"],obj["replacementValues"])
+                            self.update_column_data(colName,obj["replacementValues"])
                         if obj["actionName"] == "rename":
-                            self.update_column_name(obj["prevName"],obj["newName"])
+                            self.update_column_name(colName,obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
                             print castDataType
@@ -62,7 +64,7 @@ class DataFrameTransformer:
                                 newDataType = "string"
                             elif castDataType == "datetime":
                                 newDataType = "timestamp"
-                            self.update_column_datatype(transformObj["name"],newDataType)
+                            self.update_column_datatype(colName,newDataType)
                             print self._data_frame.printSchema()
                     print self._data_frame.printSchema()
 
@@ -70,7 +72,7 @@ class DataFrameTransformer:
 
 
     def add_new_columns(self,df,new_col_name,old_col_list,operator):
-        print "hi adding new column"
+        print "adding new column"
         col_dtype_list=[] #will take dtype of all the merger column to see unique value
         ncol_dtype=False
         col_dtype_map={}
@@ -132,7 +134,7 @@ class DataFrameTransformer:
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
 
     def update_column_datatype(self,column_name,data_type):
-        print "hi udating column data type"
+        print "Udating column data type"
         self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
         print self._data_frame.printSchema()
         # TODO update data type as measure or dimension
@@ -142,7 +144,7 @@ class DataFrameTransformer:
         print "new_column_name",new_column_name
         if new_column_name:
             self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
-            print self._data_frame.columns
+            # print self._data_frame.columns
 
     def get_transformed_data_frame(self):
         return self._data_frame

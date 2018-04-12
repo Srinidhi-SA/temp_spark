@@ -187,6 +187,11 @@ class LinearRegressionNarrative:
         fs = time.time()
         data_dict = {}
         significant_dimensions = self._dataframe_helper.get_significant_dimension()
+        print
+        print "-"*100
+        print "Target Column : ", col1
+        print "Measure Column : ", col2
+        print "significant_dimensions : ", significant_dimensions
         if significant_dimensions != {}:
             sig_dims = [(x,significant_dimensions[x]) for x in significant_dimensions.keys()]
             sig_dims = sorted(sig_dims,key=lambda x:x[1],reverse=True)
@@ -287,6 +292,7 @@ class LinearRegressionNarrative:
         col1_data = [col1]
         col2_data = [col2]
         color_data = ["Colors"]
+        plotColors = []
         if low1low2Count > 0:
             sample_rows = min(100.0, float(low1low2Count))
             low1low2 = low1low2.sample(False, sample_rows/low1low2Count, seed = 50)
@@ -296,6 +302,7 @@ class LinearRegressionNarrative:
             col1_data += low1low2_col1
             col2_data += low1low2_col2
             color_data += low1low2_color
+            plotColors.append("#DD2E1F")
         if low1high2Count > 0:
             sample_rows = min(100.0, float(low1high2Count))
             low1high2 = low1high2.sample(False, sample_rows/low1high2Count, seed = 50)
@@ -305,6 +312,7 @@ class LinearRegressionNarrative:
             col1_data += low1high2_col1
             col2_data += low1high2_col2
             color_data += low1high2_color
+            plotColors.append("#7C5BBB")
         if high1high2Count > 0:
             sample_rows = min(100.0, float(high1high2Count))
             high1high2 = high1high2.sample(False, sample_rows/high1high2Count, seed = 50)
@@ -314,6 +322,7 @@ class LinearRegressionNarrative:
             col1_data += high1high2_col1
             col2_data += high1high2_col2
             color_data += high1high2_color
+            plotColors.append("#00AEB3")
         if high1low2Count > 0:
             sample_rows = min(100.0, float(high1low2Count))
             high1low2 = high1low2.sample(False, sample_rows/high1low2Count, seed = 50)
@@ -323,9 +332,10 @@ class LinearRegressionNarrative:
             col1_data += high1low2_col1
             col2_data += high1low2_col2
             color_data += high1low2_color
+            plotColors.append("#EC640C")
 
 
-        plot_labels = dict(zip(['#DD2E1F','#7C5BBB','#00AEB3','#EC640C'][:len(labels)],labels))
+        plot_labels = dict(zip(plotColors,labels))
         all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]),key=lambda x:x[1])
 
         scatterData = ScatterChartData()

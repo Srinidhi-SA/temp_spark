@@ -199,44 +199,6 @@ def recursiveRemoveNoneNodes(tree):
             tree.pop("children")
             return tree
 
-def dateTimeFormatsSupported():
-    data = {"formats": ('%m/%d/%Y %H:%M', '%d/%m/%Y %H:%M', '%m/%d/%y %H:%M', '%d/%m/%y %H:%M',
-                        '%m-%d-%Y %H:%M', '%d-%m-%Y %H:%M', '%m-%d-%y %H:%M', '%d-%m-%y %H:%M',
-                        '%b/%d/%Y %H:%M', '%d/%b/%Y %H:%M', '%b/%d/%y %H:%M', '%d/%b/%y %H:%M',
-                        '%b-%d-%Y %H:%M', '%d-%b-%Y %H:%M', '%b-%d-%y %H:%M', '%d-%b-%y %H:%M',
-                        '%B/%d/%Y %H:%M', '%d/%B/%Y %H:%M', '%B/%d/%y %H:%M', '%d/%B/%y %H:%M',
-                        '%B-%d-%Y %H:%M', '%d-%B-%Y %H:%M', '%B-%d-%y %H:%M', '%d-%B-%y %H:%M',
-                        '%Y-%m-%d %H:%M', '%Y/%m/%d %H:%M', '%Y-%b-%d %H:%M', '%Y-%B-%d %H:%M',
-                        '%m-%d-%Y %r', '%d-%m-%Y %r', '%m-%d-%Y %R',
-                        '%d-%m-%Y %R', '%m-%d-%y %r', '%d-%m-%y %r', '%m-%d-%y %R',
-                        '%d-%m-%y %R', '%b-%d-%Y %r', '%d-%b-%Y %r', '%Y-%b-%d %r', '%b-%d-%Y %R',
-                        '%d-%b-%Y %R', '%b-%d-%y %r', '%d-%b-%y %r', '%b-%d-%y %R', '%d-%b-%y %R',
-                        '%B-%d-%Y %r', '%d-%B-%Y %r', '%B-%d-%Y %R', '%d-%B-%y %R',
-                        '%d-%B-%Y %R', '%B-%d-%y %r', '%d-%B-%y %r', '%B-%d-%y %R',
-                        '%y-%m-%d %R', '%y-%m-%d %r', '%Y-%m-%d %r', '%Y-%B-%d %r',
-                        '%d %B %Y', '%d %B %y', '%d %b %y', '%d %b %Y',
-                        '%m/%d/%Y', '%d/%m/%Y', '%m/%d/%y', '%d/%m/%y',
-                        '%m-%d-%Y', '%d-%m-%Y', '%m-%d-%y', '%d-%m-%y',
-                        '%b/%d/%Y', '%d/%b/%Y', '%b/%d/%y', '%d/%b/%y',
-                        '%b-%d-%Y', '%d-%b-%Y', '%b-%d-%y', '%d-%b-%y',
-                        '%B/%d/%Y', '%d/%B/%Y', '%B/%d/%y', '%d/%B/%y',
-                        '%B-%d-%Y', '%d-%B-%Y', '%B-%d-%y', '%d-%B-%y',
-                        '%Y-%m-%d', '%Y/%m/%d', '%Y-%b-%d', '%Y-%B-%d',
-                        '%b %d, %Y', '%B %d, %Y', '%B %d %Y', '%m/%d/%Y',
-                        '%d %B, %Y', '%d %B, %y', '%d %b, %Y', '%d %b, %y',
-                        '%m/%d/%y', '%b %Y', '%B %y', '%m/%y', '%m/%Y',
-                        '%B%Y', '%b %d,%Y', '%m.%d.%Y', '%m.%d.%y', '%b/%y',
-                        '%m - %d - %Y', '%m - %d - %y', '%B %d, %y', '%b %d, %y',
-                        '%d-%B', '%d-%b', '%b,%y', '%B,%y', '%b,%Y', '%B,%Y',
-                        '%b %Y', '%b %y', '%B %Y', '%B %y', '%b-%y', '%b/%Y', '%b-%Y'), "dual_checks": (
-    '%m/%d/%Y %H:%M', '%m/%d/%y %H:%M', '%m-%d-%Y %H:%M', '%m-%d-%y %H:%M', '%m-%d-%Y %r', '%m-%d-%Y %R', '%m-%d-%y %r',
-    '%m-%d-%y %R',
-    '%m/%d/%Y %r', '%m/%d/%Y %R', '%m/%d/%y %r', '%m/%d/%y %R', '%m/%d/%Y', '%m/%d/%y', '%m-%d-%Y', '%m-%d-%y',
-    '%m.%d.%Y', '%m.%d.%y', '%m - %d - %Y',
-    '%m - %d - %y')}
-
-    return data
-
 def write_to_file(filepath,obj):
     if filepath.startswith("file"):
         filepath = filepath[7:]
@@ -302,7 +264,7 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
         "stageCompletionPercentage" : stageCompletionPercentage,
         "display":display
     }
-    print "completionStatus for the Job:- ",globalCompletionPercentage,"timestamp:- ",progressMessage["stageCompletionTimestamp"]
+    # print "completionStatus for the Job:- ",globalCompletionPercentage,"timestamp:- ",progressMessage["stageCompletionTimestamp"]
     return progressMessage
 
 def save_result_json(url,jsonData):
@@ -312,18 +274,18 @@ def save_result_json(url,jsonData):
     return res
 
 def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
-    # print "="*100
-    # print {
-    #     "stageName": jsonData["stageName"],
-    #     "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
-    #     "shortExplanation": jsonData["shortExplanation"],
-    #     "analysisName": jsonData["analysisName"],
-    #     "gmtDateTime":jsonData["gmtDateTime"]
-    #     }
-    # print "="*100
+    print "="*100
+    print {
+        "stageName": jsonData["stageName"],
+        "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
+        "shortExplanation": jsonData["shortExplanation"],
+        "analysisName": jsonData["analysisName"],
+        "gmtDateTime":jsonData["gmtDateTime"]
+        }
+    print "="*100
 
-    # if jsonData["globalCompletionPercentage"] > 100:
-        # print "#"*2000
+    if jsonData["globalCompletionPercentage"] > 100:
+        print "Red Alert ( percentage more than 100)"*50
     if emptyBin == True:
         url += "?emptyBin=True"
     print "message url",url
@@ -333,28 +295,30 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
     else:
         return True
 
-def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None):
-    completionStatus = dataframeContext.get_completion_status()
-    print "incoming completionStatus",completionStatus
-    messageURL = dataframeContext.get_message_url()
-    if customMsg == None:
-        completionStatus += scriptWeightDict[analysisName]["script"]*scriptStages[stageName]["weight"]/10
-        progressMessage = create_progress_message_object(analysisName,\
-                                    stageName,\
-                                    messageType,\
-                                    scriptStages[stageName]["summary"],\
-                                    completionStatus,\
-                                    completionStatus,\
-                                    display=display)
-    else:
-        progressMessage = create_progress_message_object(analysisName,stageName,messageType,customMsg,completionStatus,completionStatus,display=display)
-    runningEnv = dataframeContext.get_environement()
-    if runningEnv == "debugMode":
-        save_progress_message(messageURL,progressMessage,ignore=True,emptyBin=emptyBin)
-    else:
-        save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
-    dataframeContext.update_completion_status(completionStatus)
-    print "outgoing completionStatus",completionStatus
+def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None,weightKey="script"):
+    if dataframeContext.get_dont_send_message() == False:
+        completionStatus = dataframeContext.get_completion_status()
+        print "incoming completionStatus",completionStatus
+        completionStatus = min(completionStatus,100)
+        messageURL = dataframeContext.get_message_url()
+        if customMsg == None:
+            completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
+            progressMessage = create_progress_message_object(analysisName,\
+                                        stageName,\
+                                        messageType,\
+                                        scriptStages[stageName]["summary"],\
+                                        completionStatus,\
+                                        completionStatus,\
+                                        display=display)
+        else:
+            progressMessage = create_progress_message_object(analysisName,stageName,messageType,customMsg,completionStatus,completionStatus,display=display)
+        runningEnv = dataframeContext.get_environement()
+        if runningEnv == "debugMode":
+            save_progress_message(messageURL,progressMessage,ignore=True,emptyBin=emptyBin)
+        else:
+            save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
+        dataframeContext.update_completion_status(completionStatus)
+        print "outgoing completionStatus",completionStatus
 
 
 def save_pmml_models(url,jsonData,ignore=False):
@@ -417,7 +381,7 @@ def get_splits(minVal,maxVal,n_split):
     splits = sorted(splits)
     splits_range = [(splits[idx],splits[idx+1]) for idx in range(len(splits)-1)]
     splits_data = {"splits":splits,"splits_range":splits_range}
-    str_splits_range = [" to ".join([str(x[0]),str(x[1])]) for x in splits_range]
+    str_splits_range = [" to ".join([str(round_sig(x[0],sig=2)),str(round_sig(x[1],sig=2))]) for x in splits_range]
     splits_data["bin_mapping"] = dict(zip(range(len(splits_range)),str_splits_range))
     return splits_data
 
@@ -477,6 +441,17 @@ def convert_dollar_columns(df, dollar_columns):
         df = df.withColumn(column, regexp_extract(df[column], '^([$]((\s)*?[+-]?([0-9]+(\.[0-9][0-9]?)?)(\s)*)*)',2))
         df = df.withColumn(column, col(column).cast('double'))
     return df
+
+def select_y_axis_format(dataArray):
+    if len(dataArray)>0:
+        minval = min(dataArray)
+        if minval >= 0.01:
+            return ".2f"
+        elif minval < 0.01:
+            return ".4f"
+    else:
+        return ".2f"
+
 
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)

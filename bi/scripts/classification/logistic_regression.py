@@ -18,16 +18,17 @@ from sklearn2pmml import PMMLPipeline
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.common import MLModelSummary
-from bi.algorithms import XgboostClassifier
+from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import NormalCard, C3ChartData,TableData
+from bi.common import C3ChartData,TableData, NormalCard
 from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.settings import setting as GLOBALSETTINGS
 
-class XgboostScript:
+
+class LogisticRegressionScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -38,13 +39,14 @@ class XgboostScript:
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
+        self._column_separator = "|~|"
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["xgboost"]
+        self._slug = self._model_slug_map["logisticregression"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
-        self._analysisName = "randomForest"
+        self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
 
@@ -66,15 +68,8 @@ class XgboostScript:
     def Train(self):
         st = time.time()
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "initialization",\
-                                    "info",\
-                                    self._scriptStages["initialization"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
 
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
@@ -87,20 +82,20 @@ class XgboostScript:
         model_path = self._dataframe_context.get_model_path()
         if model_path.startswith("file"):
             model_path = model_path[7:]
-        xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
-        x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["training"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "training",\
-                                    "info",\
-                                    self._scriptStages["training"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
 
-        clf_xgb = xgboost_obj.initiate_xgboost_classifier()
-        objs = xgboost_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_xgb,[])
+        df = self._data_frame
+        levels = df[result_column].unique()
+        logistic_regression_obj = LogisticRegression(df, self._dataframe_helper, self._spark)
+        logistic_regression_obj.set_number_of_levels(levels)
+        x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
+        x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
+        x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
+        x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+        clf_lr = logistic_regression_obj.initiate_logistic_regression_classifier()
+        objs = logistic_regression_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_lr,[])
         runtime = round((time.time() - st),2)
         model_filepath = model_path+"/"+self._slug+"/model.pkl"
         summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
@@ -121,10 +116,10 @@ class XgboostScript:
             pass
 
         cat_cols = list(set(categorical_columns) - {result_column})
-        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
+        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel=self._targetLevel)
         self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Xgboost")
-        self._model_summary.set_algorithm_display_name("XGBoost")
+        self._model_summary.set_algorithm_name("Logistic Regression")
+        self._model_summary.set_algorithm_display_name("Logistic Regression")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -142,8 +137,8 @@ class XgboostScript:
         # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
         self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
         self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
-        self._model_summary.set_num_trees(100)
-        self._model_summary.set_num_rules(300)
+        # self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
+
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
@@ -153,39 +148,30 @@ class XgboostScript:
             "levelcount":self._model_summary.get_level_counts(),
             "modelFeatureList":self._model_summary.get_feature_list(),
             "levelMapping":self._model_summary.get_level_map_dict()
-            }
+        }
 
-        xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        for card in xgbCards:
+        lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in lrCards:
             self._prediction_narrative.add_a_card(card)
 
-        self._result_setter.set_model_summary({"xgboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_xgboost_model_summary(modelSummaryJson)
-        self._result_setter.set_xgb_cards(xgbCards)
+        self._result_setter.set_model_summary({"logistic":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_logistic_regression_model_summary(modelSummaryJson)
+        self._result_setter.set_lr_cards(lrCards)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "completion",\
-                                    "info",\
-                                    self._scriptStages["completion"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
-        # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
-        # print self._model_summary
-        # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+
 
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Xgboost Scripts",
+                "summary":"Initialized the Logistic Regression Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"XGBoost Model Prediction Finished",
+                "summary":"Logistic Regression Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
@@ -215,7 +201,9 @@ class XgboostScript:
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
         cat_cols = self._dataframe_helper.get_string_columns()
+
         level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,cat_cols,self._dataframe_context.get_column_separator(),output_type="dict")
+
         if level_counts_train != {}:
             for key in level_counts_train:
                 if key in level_counts_score:
@@ -224,7 +212,7 @@ class XgboostScript:
                 else:
                     dataSanity = False
 
-        xgboost_obj = XgboostClassifier(self._data_frame, self._dataframe_helper, self._spark)
+        logistic_regression_obj = LogisticRegression(self._data_frame, self._dataframe_helper, self._spark)
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -238,7 +226,6 @@ class XgboostScript:
         if score_data_path.startswith("file"):
             score_data_path = score_data_path[7:]
         trained_model_path = self._dataframe_context.get_model_path()
-        print trained_model_path
         trained_model_path += "/model.pkl"
 
         if trained_model_path.startswith("file"):
@@ -246,16 +233,15 @@ class XgboostScript:
         score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
         if score_summary_path.startswith("file"):
             score_summary_path = score_summary_path[7:]
+        model_columns = self._dataframe_context.get_model_features()
         trained_model = joblib.load(trained_model_path)
-        # pandas_df = self._data_frame.toPandas()
         df = self._data_frame
-        pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-        model_feature_list = self._dataframe_context.get_model_features()
-        print model_feature_list
-        pandas_df = pandas_df[model_feature_list]
+        # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
+        pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
         if uid_col:
             pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
-        score = xgboost_obj.predict(pandas_df,trained_model,[result_column])
+        score = logistic_regression_obj.predict(pandas_df,trained_model,[result_column])
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()
         df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")
@@ -324,7 +310,6 @@ class XgboostScript:
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
-
         resultColLevelCount = dict(df[result_column].value_counts())
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
@@ -388,6 +373,7 @@ class XgboostScript:
                 print "DecisionTree Analysis Failed "
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
+
             if data_dict["nactual"] > 2:
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])
@@ -407,7 +393,7 @@ class XgboostScript:
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
             maincardSummary = NarrativesUtils.get_template_output("/apps/",'scorewithoutdtree.html',data_dict)
-            print data_dict
+
             main_card = NormalCard()
             main_card_data = []
             main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,"|~NEWBLOCK~|")

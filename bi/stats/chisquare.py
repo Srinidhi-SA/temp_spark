@@ -64,11 +64,11 @@ class ChiSquare:
                 },
             }
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info",display=False)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info",display=False,weightKey="script")
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
     def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=40):
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"chisquareStats","info",display=False)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"chisquareStats","info",display=False,weightKey="script")
         targetDimension = dimension_columns[0]
         all_dimensions = self._dimension_columns
         all_dimensions = [x for x in all_dimensions if x != targetDimension]
@@ -95,7 +95,7 @@ class ChiSquare:
                 print str(e), m
                 continue
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False,weightKey="script")
         return df_chisquare_result
 
     @accepts(object, basestring, basestring)

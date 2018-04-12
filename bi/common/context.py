@@ -79,6 +79,13 @@ class ContextSetter:
         self.logger = None
 
         self.ignoreRegressionElasticityMessages = False
+        self.validationTechniqueObj = None
+        self.train_test_split = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+        self.algorithmsToRun = []
+        self.dontSendAnyMessage = False
+        self.mlEnv = None #can be sklearn or spark
+        self.mlModelTrainingWeight = {}
+        self.mlModelPredictionWeight = {}
 
 
 
@@ -91,6 +98,7 @@ class ContextSetter:
         self.TRANSFORMATION_SETTINGS = self._config_obj.get_transformation_settings()
         self.STOCK_SETTINGS = self._config_obj.get_stock_settings()
         self.DATABASE_SETTINGS = self._config_obj.get_database_settings()
+        self.ALGORITHM_SETTINGS = self._config_obj.get_algorithm_settings()
 
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
@@ -99,6 +107,36 @@ class ContextSetter:
         transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
         stockSettingKeys = self.STOCK_SETTINGS.keys()
         dbSettingKeys = self.DATABASE_SETTINGS.keys()
+
+        if len(self.ALGORITHM_SETTINGS) > 0:
+            for obj in self.ALGORITHM_SETTINGS:
+                if obj["selected"] == True:
+                    trimmedObj = {"algorithmName":obj["algorithmName"],"algorithmSlug":obj["algorithmSlug"]}
+                    trimmedParams = {}
+                    for paramObj in obj["parameters"]:
+                        if paramObj["paramType"] == "number":
+                            if paramObj["name"] != "tol":
+                                if paramObj["acceptedValue"]  != None:
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
+                                else:
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
+                            else:
+                                if paramObj["acceptedValue"]  != None:
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["acceptedValue"]}
+                                else:
+                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["defaultValue"]}
+                        elif paramObj["paramType"] == "boolean":
+                            if paramObj["acceptedValue"]  != None:
+                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
+                            else:
+                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
+                        elif paramObj["paramType"] == "list":
+                            selectedValue = filter(lambda x:x["selected"] == True,paramObj["defaultValue"])
+                            trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":selectedValue[0]["name"]}
+                    trimmedObj["algorithmParams"] = trimmedParams
+                    self.algorithmsToRun.append(trimmedObj)
+
+
 
         if len(dbSettingKeys) > 0:
             if "datasource_details" in dbSettingKeys:
@@ -166,6 +204,8 @@ class ContextSetter:
                 self.labelMappingDict = self.FILE_SETTINGS['labelMappingDict']
             if "targetLevel" in fileSettingKeys:
                 self.targetLevelForModel = self.FILE_SETTINGS['targetLevel']
+            if "validationTechnique" in fileSettingKeys:
+                self.validationTechniqueObj = self.FILE_SETTINGS['validationTechnique']
 
         if len(columnSettingKeys) > 0:
             varSelectionArr = []
@@ -177,6 +217,7 @@ class ContextSetter:
                     self.scoreVarSelectionArr = self.COLUMN_SETTINGS["variableSelection"]
                 if "modelvariableSelection" in columnSettingKeys:
                     self.modelVarSelectionArr = self.COLUMN_SETTINGS["modelvariableSelection"]
+
                 varSelectionArr = self.modelVarSelectionArr
 
             if len(varSelectionArr) >0:
@@ -187,7 +228,7 @@ class ContextSetter:
                     if colSetting["targetColumn"] == True:
                         self.resultcolumn = str(colSetting["name"])
                         if colSetting["columnType"] == "measure":
-                            if colSetting["targetColSetVarAs"] != None:
+                            if colSetting["targetColSetVarAs"] != None or colSetting["setVarAs"] in ["percentage","index","average"]:
                                 self.analysistype = "dimension"
                             else:
                                 self.analysistype = "measure"
@@ -304,8 +345,27 @@ class ContextSetter:
                 self.dataAPI = self.STOCK_SETTINGS.get("dataAPI")
 
         if self.analysistype in ["measure","dimension"]:
+            print "self.analysisList",self.analysisList
+            print "self.analysistype",self.analysistype
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def set_ml_environment(self,data):
+        self.mlEnv = data
+    def get_ml_environment(self):
+        return self.mlEnv
+    def set_dont_send_message(self,data):
+        self.dontSendAnyMessage = data
+    def get_dont_send_message(self):
+        return self.dontSendAnyMessage
+
+    def get_algorithms_to_run(self):
+        return self.algorithmsToRun
+
+    def get_validation_dict(self):
+        if self.validationTechniqueObj == None:
+            return GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT
+        else:
+            return self.validationTechniqueObj[0]
     @accepts(object,(list))
     def update_consider_columns(self,considerCols):
         self.considercolumns = considerCols
@@ -448,6 +508,9 @@ class ContextSetter:
     def get_custom_analysis_details(self):
         return self.customAnalysisDetails
 
+    def set_cols_to_bin(self,colArray):
+        self.customAnalysisDetails = colArray
+
     def get_metadata_url(self):
         return self.METADATA_URL
 
@@ -472,11 +535,45 @@ class ContextSetter:
     def get_dimension_analysis_weight(self):
         return self.dimensionAnalysisWeight
 
+    def initialize_ml_model_training_weight(self):
+        appType = self.get_app_type()
+        if appType == "REGRESSION":
+            algoSlugs = [x["algorithmSlug"] for x in self.algorithmsToRun]
+            algoRelWeight = GLOBALSETTINGS.regressionAlgoRelativeWeight
+            intitialScriptWeight = GLOBALSETTINGS.regressionTrainingInitialScriptWeight
+        elif appType == "CLASSIFICATION":
+            algoSlugs = GLOBALSETTINGS.classificationAlgorithmsToRunTemp
+            algoRelWeight = GLOBALSETTINGS.classificationAlgoRelativeWeight
+            intitialScriptWeight = GLOBALSETTINGS.classificationTrainingInitialScriptWeight
+
+        relativeWeightArray = [algoRelWeight[x] for x in algoSlugs]
+        totalWeight = sum(relativeWeightArray)
+        initWeight = intitialScriptWeight["initialization"]["total"]
+        percentWeight = [int(round(x*(100-initWeight)/float(totalWeight))) for x in relativeWeightArray]
+        diff = sum(percentWeight) - 100 + initWeight
+        percentWeight = percentWeight[:-1] + [percentWeight[-1]+-(diff)]
+        weightDict = dict(zip(algoSlugs,percentWeight))
+        outputdict = {}
+        for k,v in weightDict.items():
+            outputdict[k] = {"total":v}
+        outputdict.update(intitialScriptWeight)
+        print outputdict
+        self.mlModelTrainingWeight = outputdict
+
     def get_ml_model_training_weight(self):
-        return GLOBALSETTINGS.mlModelTrainingWeight
+        return self.mlModelTrainingWeight
+
+    def initialize_ml_model_prediction_weight(self):
+        appType = self.get_app_type()
+        algoSlug = self.get_algorithm_slug()[0]
+        intitialScriptWeight = GLOBALSETTINGS.mlModelPredictionWeight
+        algoWeight = intitialScriptWeight["algoSlug"]
+        intitialScriptWeight.update({algoSlug:algoWeight})
+        intitialScriptWeight.pop("algoSlug")
+        self.mlModelPredictionWeight = intitialScriptWeight
 
     def get_ml_model_prediction_weight(self):
-        return GLOBALSETTINGS.mlModelPredictionWeight
+        return self.mlModelPredictionWeight
 
     def update_completion_status(self,data):
         self.globalCompletionStatus = data
@@ -588,6 +685,11 @@ class ContextSetter:
             self.appid = str(data)
         else:
             self.appid = data
+    def get_app_type(self):
+        if self.appid == None:
+            return None
+        else:
+            return GLOBALSETTINGS.APPS_ID_MAP[self.appid]["type"]
 
     def get_datetime_suggestions(self):
         """

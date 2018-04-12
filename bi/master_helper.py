@@ -1,32 +1,36 @@
-from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
+
+import json
+import time
+
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
+from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 
-from bi.scripts.random_forest import RandomForestScript
-from bi.scripts.xgboost_classification import XgboostScript
-from bi.scripts.logistic_regression import LogisticRegressionScript
-from bi.scripts.svm import SupportVectorMachineScript
+from bi.scripts.classification.random_forest import RandomForestScript
+from bi.scripts.classification.xgboost_classification import XgboostScript
+from bi.scripts.classification.logistic_regression import LogisticRegressionScript
+from bi.scripts.classification.svm import SupportVectorMachineScript
+from bi.scripts.regression.linear_regression_model import LinearRegressionModelPysparkScript
+from bi.scripts.regression.generalized_linear_regression_model import GeneralizedLinearRegressionModelPysparkScript
+from bi.scripts.regression.gbt_regression_model import GBTRegressionModelPysparkScript
+from bi.scripts.regression.rf_regression_model import RFRegressionModelPysparkScript
+from bi.scripts.regression.dtree_regression_model import DTREERegressionModelPysparkScript
 
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
 
-from bi.scripts.frequency_dimensions import FreqDimensionsScript
-from bi.scripts.chisquare import ChiSquareScript
-from bi.scripts.decision_tree import DecisionTreeScript
-from bi.scripts.correlation import CorrelationScript
-from bi.scripts.descr_stats import DescriptiveStatsScript
-from bi.scripts.two_way_anova import TwoWayAnovaScript
-from bi.scripts.linear_regression import LinearRegressionScript
+from bi.scripts.dimensionAnalysis.frequency_dimensions import FreqDimensionsScript
+from bi.scripts.dimensionAnalysis.chisquare import ChiSquareScript
+from bi.scripts.dimensionAnalysis.decision_tree import DecisionTreeScript
+from bi.scripts.measureAnalysis.correlation import CorrelationScript
+from bi.scripts.measureAnalysis.descr_stats import DescriptiveStatsScript
+from bi.scripts.measureAnalysis.two_way_anova import TwoWayAnovaScript
+from bi.scripts.measureAnalysis.linear_regression import LinearRegressionScript
 from bi.scripts.timeseries import TrendScript
-from bi.scripts.decision_tree_regression import DecisionTreeRegressionScript
-
-
-
-import json
-import time
+from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
 
 
 def load_dataset(spark,dataframe_context):
@@ -39,6 +43,11 @@ def load_dataset(spark,dataframe_context):
     if df != None:
         # Dropping blank rows
         df = df.dropna(how='all', thresh=None, subset=None)
+    if df != None:
+        print "Dataset Loaded"
+        print df.printSchema()
+    else:
+        print "DATASET NOT LOADED"
     return df
 
 def get_metadata(df,spark,dataframe_context):
@@ -102,6 +111,7 @@ def set_dataframe_helper(df,dataframe_context,metaParserInstance):
     return df,dataframe_helper
 
 def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
+    st = time.time()
     LOGGER = dataframe_context.get_logger()
     jobUrl = dataframe_context.get_job_url()
     errorURL = dataframe_context.get_error_url()
@@ -109,13 +119,18 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     ignoreMsg = dataframe_context.get_message_ignore()
     messageURL = dataframe_context.get_message_url()
     APP_NAME = dataframe_context.get_app_name()
+    appid = dataframe_context.get_app_id()
+    mlEnv = dataframe_context.get_ml_environment()
+    print "appid",appid
+    dataframe_context.initialize_ml_model_training_weight()
 
-    st = time.time()
     prediction_narrative = NarrativesTree()
     prediction_narrative.set_name("models")
     result_setter = ResultSetter(dataframe_context)
+
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
     df = dataframe_helper.fill_missing_values(df)
+
     categorical_columns = dataframe_helper.get_string_columns()
     uid_col = dataframe_context.get_uid_column()
     if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
@@ -123,57 +138,117 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_column = dataframe_context.get_result_column()
     allDateCols = dataframe_context.get_date_columns()
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
-    df = df.toPandas()
-    df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-    dataframe_helper.set_train_test_data(df)
+    if mlEnv == "sklearn":
+        df = df.toPandas()
+        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        dataframe_helper.set_train_test_data(df)
+
     model_slug = dataframe_context.get_model_path()
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_MODELS
     subfolders = GLOBALSETTINGS.SLUG_MODEL_MAPPING.keys()
     model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=subfolders)
     dataframe_context.set_model_path(model_file_path)
+    app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+    algosToRun = dataframe_context.get_algorithms_to_run()
+    scriptWeightDict = dataframe_context.get_ml_model_training_weight()
+    scriptStages = {
+        "preprocessing":{
+            "summary":"Dataset Loading Completed",
+            "weight":10
+            }
+        }
+    CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-    try:
-        st = time.time()
-        rf_obj = RandomForestScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-        # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-        rf_obj.Train()
-        print "Random Forest Model Done in ", time.time() - st,  " seconds."
-    except Exception as e:
-        CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-        CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+    if app_type == "CLASSIFICATION":
+        try:
+            st = time.time()
+            rf_obj = RandomForestScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+            # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+            rf_obj.Train()
+            print "Random Forest Model Done in ", time.time() - st,  " seconds."
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-    try:
-        st = time.time()
-        xgb_obj = XgboostScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-        xgb_obj.Train()
-        print "XGBoost Model Done in ", time.time() - st,  " seconds."
-    except Exception as e:
-        CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
-        CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+        try:
+            st = time.time()
+            xgb_obj = XgboostScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+            xgb_obj.Train()
+            print "XGBoost Model Done in ", time.time() - st,  " seconds."
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-    try:
-        st = time.time()
-        lr_obj = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-        # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-        lr_obj.Train()
-        print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
-    except Exception as e:
-        CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
-        CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+        try:
+            st = time.time()
+            lr_obj = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+            # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+            lr_obj.Train()
+            print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-    # try:
-    #     st = time.time()
-    #     svm_obj = SupportVectorMachineScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-    #     svm_obj.Train()
-    #     print "SVM Model Done in ", time.time() - st,  " seconds."
-    # except Exception as e:
-    #     CommonUtils.print_errors_and_store_traceback(LOGGER,"svm",e)
-    #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+        # try:
+        #     st = time.time()
+        #     svm_obj = SupportVectorMachineScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+        #     svm_obj.Train()
+        #     print "SVM Model Done in ", time.time() - st,  " seconds."
+        # except Exception as e:
+        #     CommonUtils.print_errors_and_store_traceback(LOGGER,"svm",e)
+        #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+    elif app_type == "REGRESSION":
+        for obj in algosToRun:
+            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
+                try:
+                    st = time.time()
+                    lin_obj = LinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    lin_obj.Train()
+                    print "Linear Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-    appid = dataframe_context.get_app_id()
-    modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,appid=appid)
-    print modelJsonOutput
+            # if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
+            #     try:
+            #         st = time.time()
+            #         lin_obj = GeneralizedLinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+            #         lin_obj.Train()
+            #         print "Generalized Linear Regression Model Done in ", time.time() - st,  " seconds."
+            #     except Exception as e:
+            #         CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedLinearRegression",e)
+            #         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
+                try:
+                    st = time.time()
+                    gbt_obj = GBTRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    gbt_obj.Train()
+                    print "GBT Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
+                try:
+                    st = time.time()
+                    dtree_obj = DTREERegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    dtree_obj.Train()
+                    print "DTREE Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
+                try:
+                    st = time.time()
+                    rf_obj = RFRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    rf_obj.Train()
+                    print "RF Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+    modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
+
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
     progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
@@ -186,9 +261,12 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     APP_NAME = dataframe_context.get_app_name()
     errorURL = dataframe_context.get_error_url()
     jobUrl = dataframe_context.get_job_url()
+    jobName = dataframe_context.get_job_name()
     ignoreMsg = dataframe_context.get_message_ignore()
     targetLevel = dataframe_context.get_target_level_for_model()
     print "Prediction Started"
+    dataframe_context.initialize_ml_model_prediction_weight()
+
     st = time.time()
     story_narrative = NarrativesTree()
     story_narrative.set_name("scores")
@@ -205,61 +283,145 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     print "score_slug",score_slug
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_SCORES
     score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
-    algorithm_name_list = ["randomforest","xgboost","logisticregression"]
+    appid = str(dataframe_context.get_app_id())
+    app_type = dataframe_context.get_app_type()
     algorithm_name = dataframe_context.get_algorithm_slug()[0]
     print "algorithm_name",algorithm_name
     print "score_file_path",score_file_path
     print "model_slug",model_slug
-    model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
-    dataframe_context.set_model_path(model_path)
-    dataframe_context.set_score_path(score_file_path)
-    selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
-    print "selected_model_for_prediction", selected_model_for_prediction
-    if "randomforest" in selected_model_for_prediction:
-        df = df.toPandas()
-        trainedModel = RandomForestScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
-        # trainedModel = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark)
-        try:
-            trainedModel.Predict()
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-        print "Scoring Done in ", time.time() - st,  " seconds."
-    elif "xgboost" in selected_model_for_prediction:
-        df = df.toPandas()
-        trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
-        try:
-            trainedModel.Predict()
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-        print "Scoring Done in ", time.time() - st,  " seconds."
-    elif "logisticregression" in selected_model_for_prediction:
-        df = df.toPandas()
-        trainedModel = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
-        # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
-        try:
-            trainedModel.Predict()
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-        print "Scoring Done in ", time.time() - st,  " seconds."
-    else:
-        print "Could Not Load the Model for Scoring"
+
+    scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
+    scriptStages = {
+        "preprocessing":{
+            "summary":"Dataset Loading Completed",
+            "weight":10
+            }
+        }
+    print scriptWeightDict
+    CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+    if app_type == "CLASSIFICATION":
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        dataframe_context.set_model_path(model_path)
+        dataframe_context.set_score_path(score_file_path)
+        selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
+        print "selected_model_for_prediction", selected_model_for_prediction
+        if "randomforest" in selected_model_for_prediction:
+            df = df.toPandas()
+            trainedModel = RandomForestScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "xgboost" in selected_model_for_prediction:
+            df = df.toPandas()
+            trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "logisticregression" in selected_model_for_prediction:
+            df = df.toPandas()
+            trainedModel = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        else:
+            print "Could Not Load the Model for Scoring"
 
 
-    # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
-    storycards = result_setter.get_score_cards()
-    storyNode = NarrativesTree()
-    storyNode.add_cards(storycards)
-    # storyNode = {"listOfCards":[storycards],"listOfNodes":[],"name":None,"slug":None}
-    scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
-    print scoreSummary
-    jobUrl = dataframe_context.get_job_url()
-    response = CommonUtils.save_result_json(jobUrl,scoreSummary)
-    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
-    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-    print "Model Scoring Completed in ", time.time() - st, " seconds."
+        # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
+        storycards = result_setter.get_score_cards()
+        storyNode = NarrativesTree()
+        storyNode.add_cards(storycards)
+        # storyNode = {"listOfCards":[storycards],"listOfNodes":[],"name":None,"slug":None}
+        scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
+        print scoreSummary
+        jobUrl = dataframe_context.get_job_url()
+        response = CommonUtils.save_result_json(jobUrl,scoreSummary)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+        print "Model Scoring Completed in ", time.time() - st, " seconds."
+    elif app_type == "REGRESSION":
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        dataframe_context.set_model_path(model_path)
+        dataframe_context.set_score_path(score_file_path)
+        dataframe_context.set_story_on_scored_data(True)
+
+        selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
+        print "selected_model_for_prediction", selected_model_for_prediction
+        if "linearregression" in  selected_model_for_prediction:
+            trainedModel = LinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"linearregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+
+        if "gbtregression" in  selected_model_for_prediction:
+            trainedModel = GBTRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+
+        if "dtreeregression" in  selected_model_for_prediction:
+            trainedModel = DTREERegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+
+        if "rfregression" in  selected_model_for_prediction:
+            trainedModel = RFRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"rfregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+
+        if "generalizedlinearregression" in  selected_model_for_prediction:
+            trainedModel = GeneralizedLinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedlinearregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+
+        headNode = NarrativesTree()
+        if headNode != None:
+            headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
+        headNode["name"] = jobName
+        distributionNode = result_setter.get_distribution_node()
+        if distributionNode != None:
+            headNode["listOfNodes"].append(distributionNode)
+        anovaNode = result_setter.get_anova_node()
+        if anovaNode != None:
+            headNode["listOfNodes"].append(anovaNode)
+        decisionTreeNode = result_setter.get_decision_tree_node()
+        if decisionTreeNode != None:
+            headNode["listOfNodes"].append(decisionTreeNode)
+        print json.dumps(headNode,indent=2)
+        response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
+        # print "Dimension Analysis Completed in", time.time()-st," Seconds"
+        print "Model Scoring Completed in ", time.time() - st, " seconds."
+
 
 def run_metadata(spark,df,dataframe_context):
     fs = time.time()
@@ -291,7 +453,7 @@ def run_metadata(spark,df,dataframe_context):
         CommonUtils.print_errors_and_store_traceback(LOGGER,"metadata",e)
         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-def run_subsetting(spark,df,dataframe_context,dataframe_helper):
+def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     st = time.time()
     LOGGER = dataframe_context.get_logger()
     ignoreMsg = dataframe_context.get_message_ignore()
@@ -308,10 +470,10 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper):
         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
     try:
         if filtered_df.count() > 0:
-            transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context)
+            transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context,metaParserInstance)
             transform_class.applyTransformations()
             transformed_df = transform_class.get_transformed_data_frame()
-        if transformed_df.count() > 0:
+        if filtered_df.count() > 0 and transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print "output_filepath",output_filepath
             transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
@@ -375,7 +537,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
-    if (len(dimension_columns)>=2 and 'Dimension vs. Dimension' in scripts_to_run):
+    if ((len(dimension_columns)>=2 or len(measure_columns)>=1) and 'Dimension vs. Dimension' in scripts_to_run):
         dataframe_context.set_analysis_name("Dimension vs. Dimension")
         completionStatus = dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Evaluating variables for Statistical Association",completionStatus,completionStatus,display=True)

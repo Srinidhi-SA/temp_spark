@@ -2,11 +2,7 @@ import sys
 import sys
 import time
 import json
-
 import pyhocon
-
-# from asn1crypto._ffi import None
-# from pyhocon.tool import HOCONConverter
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -15,11 +11,12 @@ from bi.settings import *
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.common import NarrativesTree,ConfigValidator
-from parser import configparser
-from bi.scripts.stock_advisor import StockAdvisor
+from bi.scripts.stockAdvisor.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
+
 import master_helper as MasterHelper
-#if __name__ == '__main__':
+from parser import configparser
+
 def main(configJson):
     LOGGER = {}
     deployEnv = False  # running the scripts from job-server env
@@ -42,54 +39,62 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "story"
+            jobType = "prediction"
             configJson = get_test_configs(jobType)
+
 
     print "######################## Creating Spark Session ###########################"
     if debugMode:
         APP_NAME = "mAdvisor_running_in_debug_mode"
     else:
-        if "job_config" in configJson.keys() and "job_name" in configJson["job_config"].keys():
+        if "job_config" in configJson.keys() and "job_name" in configJson["job_config"]:
             APP_NAME = configJson["job_config"]["job_name"]
         else:
             APP_NAME = "--missing--"
 
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
+    if debugMode:
+        spark.conf.set("spark.sql.execution.arrow.enabled", "true")
+    else:
+        spark.conf.set("spark.sql.execution.arrow.enabled", "false")
+
     print "######################### Parsing the configs #############################"
 
     config = configJson["config"]
-    job_config = configJson["job_config"]
-    jobType = job_config["job_type"]
-    messageUrl = configJson["job_config"]["message_url"]
-    jobName = job_config["job_name"]
+    jobConfig = configJson["job_config"]
+    jobType = jobConfig["job_type"]
+    jobName = jobConfig["job_name"]
+    jobURL = jobConfig["job_url"]
+    messageURL = jobConfig["message_url"]
+
     try:
-        errorURL = job_config["error_reporting_url"]
+        errorURL = jobConfig["error_reporting_url"]
     except:
         errorURL = None
-    if "app_id" in job_config:
-        appid = job_config["app_id"]
+    if "app_id" in jobConfig:
+        appid = jobConfig["app_id"]
     else:
         appid = None
     configJsonObj = configparser.ParserConfig(config)
     configJsonObj.set_json_params()
+
     dataframe_context = ContextSetter(configJsonObj)
-    dataframe_context.set_job_type(jobType)
-    dataframe_context.set_message_url(messageUrl)
+    dataframe_context.set_job_type(jobType)                                     #jobType should be set before set_params call of dataframe_context
     dataframe_context.set_params()
+    dataframe_context.set_message_url(messageURL)
     dataframe_context.set_app_id(appid)
     dataframe_context.set_debug_mode(debugMode)
-    dataframe_context.set_job_url(job_config["job_url"])
+    dataframe_context.set_job_url(jobURL)
     dataframe_context.set_app_name(APP_NAME)
     dataframe_context.set_error_url(errorURL)
     dataframe_context.set_logger(LOGGER)
-    dataframe_context.set_xml_url(job_config["xml_url"])
+    dataframe_context.set_xml_url(jobConfig["xml_url"])
     dataframe_context.set_job_name(jobName)
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
 
-    messageURL = dataframe_context.get_message_url()
     analysistype = dataframe_context.get_analysis_type()
     result_setter = ResultSetter(dataframe_context)
     # scripts_to_run = dataframe_context.get_scripts_to_run()
@@ -150,7 +155,7 @@ def main(configJson):
 
         ################################ Data Sub Setting ##########################
         if jobType == "subSetting":
-            MasterHelper.run_subsetting(spark,df,dataframe_context,df_helper)
+            MasterHelper.run_subsetting(spark,df,dataframe_context,df_helper,metaParserInstance)
         ############################################################################
 
         ################################ Story Creation ############################
@@ -166,11 +171,13 @@ def main(configJson):
 
         ################################ Model Training ############################
         elif jobType == 'training':
+            dataframe_context.set_ml_environment("sklearn")
             MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance)
         ############################################################################
 
         ############################## Model Prediction ############################
         elif jobType == 'prediction':
+            dataframe_context.set_ml_environment("sklearn")
             MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
 
         ############################################################################
@@ -181,7 +188,7 @@ def main(configJson):
             stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
             stockAdvisorData = stockObj.Run()
             stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
-            response = CommonUtils.save_result_json(configJson["job_config"]["job_url"],stockAdvisorDataJson)
+            response = CommonUtils.save_result_json(jobURL,stockAdvisorDataJson)
 
         ############################################################################
         scriptEndTime = time.time()

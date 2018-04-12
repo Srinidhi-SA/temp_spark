@@ -15,16 +15,21 @@ class DescriptiveStats:
     # collect freq stats for dimension column only if number of levels is less than MAX_NUM_LEVELS
     MAX_NUM_LEVELS = 100
 
-    def __init__(self, data_frame, df_helper, df_context):
+    def __init__(self, data_frame, df_helper, df_context,scriptWeight=None, analysisName=None):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
-        # print self._scriptWeightDict
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "statCalculationStart":{
                 "summary":"Initialized the Descriptive Stats Scripts",
@@ -97,20 +102,21 @@ class DescriptiveStats:
 
 
         #descr_stats.set_raw_data([float(row[0]) for row in self._data_frame.select(measure_column).collect()])
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "statCalculationEnd",\
-                                    "info",\
-                                    self._scriptStages["statCalculationEnd"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "statCalculationEnd",\
+        #                             "info",\
+        #                             self._scriptStages["statCalculationEnd"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statCalculationEnd","info",display=False,emptyBin=False,customMsg=None,weightKey="script")
+        # self._dataframe_context.update_completion_status(self._completionStatus)
         return descr_stats
 
     @accepts(object, basestring)
     def stats_for_dimension_column(self, dimension_column):
-        if not self._data_frame_helper.is_string_column(dimension_column):
+        if not self._dataframe_helper.is_string_column(dimension_column):
             raise BIException.non_string_column(dimension_column)
 
         col_non_nulls = FN.count(dimension_column).alias('non_nulls')

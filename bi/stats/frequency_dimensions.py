@@ -41,8 +41,7 @@ class FreqDimensions:
                 "weight":0
                 },
             }
-
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"freqinitialization","info")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"freqinitialization","info",weightKey="script")
 
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
@@ -51,11 +50,11 @@ class FreqDimensions:
         dimension = dimension_columns[0]
         frequency_dict = {}
         grouped_dataframe = self._data_frame.groupby(dimension).count().toPandas()
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"groupby","info")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"groupby","info",weightKey="script")
 
         frequency_dict[dimension] = grouped_dataframe.to_dict()
         grouped_dataframe = grouped_dataframe.dropna()
         frequency_dict = json.dumps(frequency_dict)
         freq_dimension_result.set_params(frequency_dict)
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",weightKey="script")
         return freq_dimension_result

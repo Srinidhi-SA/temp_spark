@@ -11,7 +11,7 @@ class MeasureColumnNarrative:
 
     MAX_FRACTION_DIGITS = 2
 
-    def __init__(self, column_name, measure_descr_stats, df_helper, df_context, result_setter, story_narrative):
+    def __init__(self, column_name, measure_descr_stats, df_helper, df_context, result_setter, story_narrative,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._column_name = column_name.lower()
@@ -26,6 +26,7 @@ class MeasureColumnNarrative:
         # self._time_dimensions = context.get_time_dimension()
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self.title = None
         self.heading = self._capitalized_column_name + ' Performance Analysis'
         self.sub_heading = "Distribution of " + self._capitalized_column_name
@@ -43,9 +44,15 @@ class MeasureColumnNarrative:
         self.num_time_dimensions = len(self._dataframe_helper.get_timestamp_columns())
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "statNarrativeStart":{
                 "summary":"Started the Descriptive Stats Narratives",
@@ -56,15 +63,18 @@ class MeasureColumnNarrative:
                 "weight":10
                 },
             }
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeStart"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "statNarrativeStart",\
-                                    "info",\
-                                    self._scriptStages["statNarrativeStart"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeStart"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "statNarrativeStart",\
+        #                             "info",\
+        #                             self._scriptStages["statNarrativeStart"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeStart","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
+
 
         self._measureSummaryNode = NarrativesTree()
         self._headNode = NarrativesTree()
@@ -74,15 +84,17 @@ class MeasureColumnNarrative:
         self._result_setter.set_head_node(self._headNode)
         self._result_setter.set_distribution_node(self._measureSummaryNode)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeEnd"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "statNarrativeEnd",\
-                                    "info",\
-                                    self._scriptStages["statNarrativeEnd"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeEnd"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "statNarrativeEnd",\
+        #                             "info",\
+        #                             self._scriptStages["statNarrativeEnd"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeEnd","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
+
 
     def _get_c3_histogram(self):
         data = self._measure_descr_stats.get_histogram()
@@ -98,7 +110,8 @@ class MeasureColumnNarrative:
     def _generate_narratives(self):
         lines = []
         self._generate_title()
-        self._generate_summary()
+        if self._storyOnScoredData != True:
+            self._generate_summary()
         self._analysis1 = self._generate_analysis_para1()
         self._analysis2 = self._generate_analysis_para2()
         lines += NarrativesUtils.block_splitter(self._analysis1,self._blockSplitter)
@@ -173,6 +186,8 @@ class MeasureColumnNarrative:
     def _generate_analysis_para2(self):
         output = 'Para2 entered'
         histogram_buckets = self._measure_descr_stats.get_histogram()
+        print histogram_buckets
+        print "$"*200
         threshold = self._dataframe_helper.get_num_rows() * 0.75
         s = 0
         start = 0
@@ -193,10 +208,20 @@ class MeasureColumnNarrative:
                 break
         bin_size_75 = (end - start + 1)*100/len(histogram_buckets)
         s = s*100/self._dataframe_helper.get_num_rows()
+        print histogram_buckets
+        print "="*120
         start_value = histogram_buckets[start]['start_value']
+        print start,end
+        if end >= len(histogram_buckets):
+            end = len(histogram_buckets)-1
+        print start,end
         end_value = histogram_buckets[end]['end_value']
-        lowest = min(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'],histogram_buckets[2]['num_records'])
-        highest = max(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'],histogram_buckets[2]['num_records'])
+        if len(histogram_buckets) > 2:
+            lowest = min(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'],histogram_buckets[2]['num_records'])
+            highest = max(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'],histogram_buckets[2]['num_records'])
+        else:
+            lowest = min(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'])
+            highest = max(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'])
 
         quartile_sums = self._five_point_summary_stats.get_sums()
         quartile_means = self._five_point_summary_stats.get_means()
@@ -279,6 +304,8 @@ class MeasureColumnNarrative:
         bin_size_75 = (end - start + 1)*100/len(histogram_buckets)
         s = s*100/self._dataframe_helper.get_num_rows()
         start_value = histogram_buckets[start]['start_value']
+        if end >= len(histogram_buckets):
+            end = len(histogram_buckets)-1
         end_value = histogram_buckets[end]['end_value']
         data_dict = {"num_bins" : len(histogram_buckets),
                     "seventy_five" : bin_size_75,

@@ -21,6 +21,8 @@ from bi.common import MetaParser
 from column import ColumnType
 from decorators import accepts
 from exception import BIException
+from bi.settings import setting as GLOBALSETTINGS
+
 
 
 class DataFrameHelper:
@@ -42,11 +44,13 @@ class DataFrameHelper:
         self.columns = self._data_frame.columns
         self._dataframe_context = df_context
         self._metaParser = meta_parser
+
         self.column_data_types = {}
         self.numeric_columns = []
         self.string_columns = []
         self.timestamp_columns = []
         self.boolean_columns = []
+
         self.num_rows = 0
         self.num_columns = 0
         self.measure_suggestions = []
@@ -81,16 +85,25 @@ class DataFrameHelper:
         print "colsToKeep:-",colsToKeep
         print "colsToBin:-",colsToBin
         self.colsToBin = colsToBin
-        if self._dataframe_context.get_job_type() != "subSetting":
-            if self._dataframe_context.get_job_type() != "prediction":
-                self._data_frame = self._data_frame.select(colsToKeep)
-            else:
-                if self._dataframe_context.get_story_on_scored_data() == False:
-                    result_column = self._dataframe_context.get_result_column()
-                    updatedColsToKeep = list(set(colsToKeep) - {result_column})
-                    self._data_frame = self._data_frame.select(updatedColsToKeep)
-                elif self._dataframe_context.get_story_on_scored_data() == True:
+        appid = str(self._dataframe_context.get_app_id())
+        if appid != "None":
+            app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+        else:
+            app_type = None
+        if app_type != "REGRESSION":
+            if self._dataframe_context.get_job_type() != "subSetting":
+                if self._dataframe_context.get_job_type() != "prediction":
                     self._data_frame = self._data_frame.select(colsToKeep)
+                else:
+                    if app_type == "CLASSIFICATION":
+                        if self._dataframe_context.get_story_on_scored_data() == False:
+                            result_column = self._dataframe_context.get_result_column()
+                            updatedColsToKeep = list(set(colsToKeep) - {result_column})
+                            self._data_frame = self._data_frame.select(updatedColsToKeep)
+                        elif self._dataframe_context.get_story_on_scored_data() == True:
+                            self._data_frame = self._data_frame.select(colsToKeep)
+                    elif app_type == "REGRESSION":
+                        self._data_frame = self._data_frame.select(colsToKeep)
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
@@ -102,7 +115,7 @@ class DataFrameHelper:
     def update_column_data(self):
         dfSchemaFields = self._data_frame.schema.fields
         self.columns = [field.name for field in dfSchemaFields]
-        self.num_columns = len(self.columns)
+        self.num_columns = len(self._data_frame.columns)
         self.num_rows = self._metaParser.get_num_rows()
         self.column_data_types = {field.name: field.dataType for field in dfSchemaFields}
         self.numeric_columns = []
@@ -118,6 +131,7 @@ class DataFrameHelper:
                 self.boolean_columns.append(field.name)
             if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION:
                 self.timestamp_columns.append(field.name)
+        # print self.string_columns
 
     def boolean_to_string(self,colsToConvert):
         if len(colsToConvert) > 0:
@@ -130,13 +144,24 @@ class DataFrameHelper:
         date_columns = self._dataframe_context.get_date_columns()
         uidCol = self._dataframe_context.get_uid_column()
         print "All DATE Columns",date_columns
+        considerColumns = self._dataframe_context.get_consider_columns()
         columns_to_ignore = [result_column]+date_columns
         if uidCol:
             columns_to_ignore += [uidCol]
         print "These Columns are Ignored:- ",  columns_to_ignore
+        columns_to_keep = list(set(considerColumns)-set(columns_to_ignore))
         if train_test_ratio == None:
             train_test_ratio = 0.7
-        x_train,x_test,y_train,y_test = train_test_split(df[[col for col in df.columns if col not in columns_to_ignore]], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+        appid = self._dataframe_context.get_app_id()
+        print "appid",appid
+        print "="*30
+        app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+        print "app_type",app_type
+        print "="*30
+        if app_type == "CLASSIFICATION":
+            x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+        elif app_type == "REGRESSION":
+            x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42)
         # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
         self.train_test_data = {"x_train":x_train,"x_test":x_test,"y_train":y_train,"y_test":y_test}
 
@@ -159,10 +184,9 @@ class DataFrameHelper:
 
     def remove_null_rows(self, column_name):
         """
-        remove rowls where the given column has null values
+        remove rows where the given column has null values
         """
-        # self._data_frame = self._data_frame.na.drop(subset=col)
-        self._data_frame = self._data_frame.filter(col(column_name).isNotNull())
+        self._data_frame = self._data_frame.na.drop(subset=[column_name])
         self.num_rows = self._data_frame.count()
 
 
@@ -328,66 +352,6 @@ class DataFrameHelper:
 
     def fill_na_zero(self):
         self._data_frame = self._data_frame.na.fill(0)
-
-    def get_datetime_suggestions(self):
-        self.date_time_suggestions = {}
-        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
-        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
-
-        for dims in self.string_columns:
-            # row_vals = self._data_frame.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
-            row_vals = self._data_frame.select(dims).na.drop().distinct().collect()
-            x = row_vals[0][dims]
-            for format1 in formats:
-                try:
-                    t = dt.datetime.strptime(x,format1)
-                    if (format1 in dual_checks):
-                        for x1 in row_vals:
-                            x = x1[dims]
-                            try:
-                                t = dt.datetime.strptime(x,format1)
-                            except ValueError as err:
-                                format1 = '%d'+format1[2]+'%m'+format1[5:]
-                                break
-                    self.date_time_suggestions[dims] = format1
-                    break
-                except ValueError as err:
-                    pass
-        print self.date_time_suggestions
-
-    def get_datetime_format(self,colname):
-        date_time_suggestions = {}
-        if self._date_formats.has_key(colname):
-            date_time_suggestions[colname] = self._date_formats[colname]
-        else:
-            date_time_suggestions = {}
-            formats = CommonUtils.dateTimeFormatsSupported()["formats"]
-            dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
-            # row_vals = self._data_frame.select(colname).na.drop().take(int(self._data_frame.count()**0.5 + 1))
-            row_vals = self._data_frame.select(colname).na.drop().distinct().collect()
-            sample1 = row_vals[0][colname]
-            sample2 = row_vals[-1][colname]
-            for format1 in formats:
-                try:
-                    t = datetime.strptime(sample1,format1)
-                    sample1_format = format1
-                    break
-                except ValueError as err:
-                    pass
-            for format1 in formats:
-                try:
-                    t = datetime.strptime(sample2,format1)
-                    sample2_format = format1
-                    break
-                except ValueError as err:
-                    pass
-            if sample1_format == sample2_format:
-                date_time_suggestions[colname] = sample1_format
-                self._date_formats[colname] = sample1_format
-            else:
-                date_time_suggestions[colname] = sample2_format
-                self._date_formats[colname] = sample2_format
-        return date_time_suggestions
 
     def get_train_test_data(self):
         train_test_data = self.train_test_data

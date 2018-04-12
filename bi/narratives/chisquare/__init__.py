@@ -16,6 +16,7 @@ class ChiSquareNarratives:
         self._data_frame = data_frame
         self._dataframe_context = df_context
         self._dataframe_helper = df_helper
+        self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._measure_columns = df_helper.get_numeric_columns()
         self._df_chisquare = df_chisquare_result
         self._df_chisquare_result = df_chisquare_result.get_result()
@@ -62,13 +63,13 @@ class ChiSquareNarratives:
                 "weight":0
                 },
             }
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info",display=False)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info",display=False,weightKey="narratives")
 
         self._generate_narratives()
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"summarygeneration","info",display=False)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"summarygeneration","info",display=False,weightKey="narratives")
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False,weightKey="narratives")
 
     def _generate_narratives(self):
         """
@@ -157,8 +158,10 @@ class ChiSquareNarratives:
             main_card_data.append(C3ChartData(data=chart_json,info=statistical_info_array))
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Key Influencers")
-            self._chiSquareNode.add_a_card(main_card)
-            self._result_setter.add_a_score_chi_card(main_card)
+
+            if self._storyOnScoredData != True:
+                self._chiSquareNode.add_a_card(main_card)
+                self._result_setter.add_a_score_chi_card(main_card)
 
             print "target_dimension",target_dimension
             if self._appid=='2' and num_significant_variables>5:
@@ -167,7 +170,7 @@ class ChiSquareNarratives:
                 if self._nColsToUse != None:
                     significant_variables = significant_variables[:self._nColsToUse]
 
-            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"custom","info",display=True,customMsg="Analyzing key drivers")
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"custom","info",display=True,customMsg="Analyzing key drivers",weightKey="narratives")
             for analysed_dimension in significant_variables[:self._noOfSigDimsToShow]:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':

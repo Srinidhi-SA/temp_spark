@@ -11,6 +11,10 @@
     The {{targetcol}} variable has only {{nlevel}} values, i.e,{{topLevel["name"]}} and {{secondLevel["name"]}}.
     {{topLevel["name"]}} is the largest with {{topLevel["count"]}} whereas {{secondLevel["name"]}} is the smallest with {{secondLevel["count"]}} observations.
   </p>
+{% elif nlevel == 1 %}
+  <p>
+    The {{targetcol}} variable has only {{nlevel}} values, i.e,{{topLevel["name"]}}. {{topLevel["name"]}} has {{topLevel["count"]}} observations.
+  </p>
 {% endif %}
 {{blockSplitter}}
 <div className='col-md-3 pred_disp_block_store cursor'>
@@ -25,13 +29,15 @@
 </div>
 {{blockSplitter}}
 
-<div className='col-md-3 pred_disp_block_store cursor'>
-    <h1 class="text-warning">{{secondLevel["percentage"]}}
-      <small>
-        {{secondLevel["name"]}}
-      </small>
-    </h1>
-  <p>
-    <b>{{secondLevel["count"]}}</b> Observations are predicted to have {{targetcol}} as {{secondLevel["name"]}}
-  </p>
-</div>
+{% if nlevel > 1 %}
+  <div className='col-md-3 pred_disp_block_store cursor'>
+      <h1 class="text-warning">{{secondLevel["percentage"]}}
+        <small>
+          {{secondLevel["name"]}}
+        </small>
+      </h1>
+    <p>
+      <b>{{secondLevel["count"]}}</b> Observations are predicted to have {{targetcol}} as {{secondLevel["name"]}}
+    </p>
+  </div>
+{% endif %}

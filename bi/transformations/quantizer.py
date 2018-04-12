@@ -14,8 +14,8 @@ class Quantizer:
     QUARTILE_PERCENTAGES = [0.25,0.5,0.75]
 
     @staticmethod
-    def quantize(data_frame, measure_column, data_frame_helper):
-        if not data_frame_helper.is_numeric_column(measure_column):
+    def quantize(data_frame, measure_column, dataframe_helper):
+        if not dataframe_helper.is_numeric_column(measure_column):
             raise BIException.non_numeric_column(measure_column)
 
         quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
@@ -78,8 +78,8 @@ class Quantizer:
 
         return FPS
     @staticmethod
-    def approxQuantize(data_frame, measure_column, data_frame_helper):
-        if not data_frame_helper.is_numeric_column(measure_column):
+    def approxQuantize(data_frame, measure_column, dataframe_helper):
+        if not dataframe_helper.is_numeric_column(measure_column):
             raise BIException.non_numeric_column(measure_column)
         st = time.time()
         data_frame = data_frame.select(measure_column)

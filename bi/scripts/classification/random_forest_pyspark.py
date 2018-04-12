@@ -50,7 +50,7 @@ class RandomForestPysparkScript:
         summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
 
         df=self._data_frame
-        pipeline = MLUtils.create_ml_pipeline(numerical_columns,categorical_columns,result_column)
+        pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column)
         pipelineModel = pipeline.fit(df)
         indexed = pipelineModel.transform(df)
         MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)

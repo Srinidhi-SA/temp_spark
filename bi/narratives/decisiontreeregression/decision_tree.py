@@ -20,7 +20,7 @@ class DecisionTreeRegNarrative:
             self.card1Table.append(keyTable)
 
     # @accepts(object, (str, basestring), DecisionTreeResult,DataFrameHelper,ResultSetter)
-    def __init__(self, column_name, decision_tree_rules,df_helper,df_context,result_setter,story_narrative):
+    def __init__(self, column_name, decision_tree_rules,df_helper,df_context,result_setter,story_narrative,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._dataframe_context = df_context
@@ -30,7 +30,7 @@ class DecisionTreeRegNarrative:
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
         self._table = decision_tree_rules.get_table()
         self.new_table={}
-        self.succesful_predictions=decision_tree_rules.get_success()
+        self.successful_predictions=decision_tree_rules.get_success()
         self.total_predictions=decision_tree_rules.get_total()
         self.success_percent= decision_tree_rules.get_success_percent()
         self._important_vars = decision_tree_rules.get_significant_vars()
@@ -46,9 +46,15 @@ class DecisionTreeRegNarrative:
         # self._decisionTreeNode.set_name("Decision Tree Regression")
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "dtreeNarrativeStart":{
                 "summary":"Started the Decision Tree Regression Narratives",
@@ -59,31 +65,35 @@ class DecisionTreeRegNarrative:
                 "weight":10
                 },
             }
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeStart"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "dtreeNarrativeStart",\
-                                    "info",\
-                                    self._scriptStages["dtreeNarrativeStart"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeStart"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "dtreeNarrativeStart",\
+        #                             "info",\
+        #                             self._scriptStages["dtreeNarrativeStart"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeNarrativeStart","info",weightKey="narratives")
+
 
 
         self._generate_narratives()
         self._story_narrative.add_a_node(self._decisionTreeNode)
         self._result_setter.set_decision_tree_node(self._decisionTreeNode)
 
-        self._completionStatus = self._dataframe_context.get_completion_status()
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "dtreeNarrativeEnd",\
-                                    "info",\
-                                    self._scriptStages["dtreeNarrativeEnd"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus = self._dataframe_context.get_completion_status()
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "dtreeNarrativeEnd",\
+        #                             "info",\
+        #                             self._scriptStages["dtreeNarrativeEnd"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeNarrativeEnd","info",weightKey="narratives")
+
 
 
 
@@ -108,7 +118,7 @@ class DecisionTreeRegNarrative:
     #     for target in rules_dict.keys():
     #         self.condensedTable[target]=[]
     #         total = self.total_predictions[target]
-    #         success = self.succesful_predictions[target]
+    #         success = self.successful_predictions[target]
     #         success_percent = self.success_percent[target]
     #         for idx,rule in enumerate(rules_dict[target]):
     #             rules1 = NarrativeUtils.generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
@@ -191,7 +201,7 @@ class DecisionTreeRegNarrative:
             predictionArray = [targetToDisplayInTable]*len(rulesArray)
             freqArray = self.total_predictions[target]
             chartDict[target] = sum(freqArray)
-            success = self.succesful_predictions[target]
+            success = self.successful_predictions[target]
             success_percent = self.success_percent[target]
             richRulesArray = []
             crudeRuleArray = []

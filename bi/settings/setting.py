@@ -1,7 +1,11 @@
+from pySparkMlParams import *
+from sklernMlParams import *
+
 CHISQUARELEVELLIMIT = 10
 CHISQUARESIGNIFICANTDIMENSIONTOSHOW = 8
 
 DECISIONTREERKMEANSTARGETNAME = ['Low','Medium','High']
+MAPEBINS = [0,5,15,25,100]
 HDFS_SECRET_KEY = "xfBmEcr_hFHGqVrTo2gMFpER3ks9x841UcvJbEQJesI="
 ALGORITHMRANDOMSLUG = "f77631ce2ab24cf78c55bb6a5fce4db8"
 ANOVAMAXLEVEL = 200
@@ -10,40 +14,114 @@ BASEFOLDERNAME_MODELS = "mAdvisorModels"
 BASEFOLDERNAME_SCORES = "mAdvisorScores"
 PROBABILITY_RANGE_FOR_DONUT_CHART = {"50-60%":(50,60),"60-70%":(60,70),"70-80%":(70,80),"80-90%":(80,90),"90-100%":(90,100)}
 
-APPS_ID_NAME_MAP = {
-    "1":"Automated Prediction",
-    "2":"Opportunity Scoring",
-    "3":"Churn Prediction",
-    "4":"Re-admission Prediction",
-    "5":"Physician Attrition",
-    "6":"Credit Card Fraud",
-    "7":"Claims Prediction",
-    "8":"Asset health Prediction",
-    "9":"Employee Attrition"
+DEFAULT_VALIDATION_OBJECT = {
+         "name":"trainAndtest",
+         "displayName":"Train and Test",
+         "value":0.8
+       }
+
+APPS_ID_MAP = {
+    '1': {
+      'displayName': 'Opportunity Scoring',
+      'type': 'CLASSIFICATION',
+      'name': 'opportunity_scoring',
+      'heading': 'Factors influencing Opportunity Score'
+    },
+    '2': {
+      'displayName': 'Automated Prediction',
+      'type': 'CLASSIFICATION',
+      'name': 'automated_prediction',
+      'heading': 'Feature Importance'
+    },
+    '3': {
+      'displayName': 'Robo Advisor',
+      'type': 'ROBO',
+      'name': 'robo_advisor_insights',
+      'heading': None
+    },
+    '4': {
+      'displayName': 'Speech Analytics',
+      'type': 'SPEECH',
+      'name': 'speech_analytics',
+      'heading': None
+    },
+    '5': {
+      'displayName': 'Stock Sense',
+      'type': 'STOCK_SENSE',
+      'name': 'stock_sense',
+      'heading': None
+    },
+    '6': {
+      'displayName': 'Churn Prediction',
+      'type': 'CLASSIFICATION',
+      'name': 'churn_prediction',
+      'heading': 'Factors influencing Churn'
+    },
+    '7': {
+      'displayName': 'Re-admission Prediction',
+      'type': 'CLASSIFICATION',
+      'name': 're_admission_prediction',
+      'heading': 'Factors influencing Re-admission'
+    },
+    '8': {
+      'displayName': 'Physician Attrition',
+      'type': 'CLASSIFICATION',
+      'name': 'physician_attrition',
+      'heading': 'Factors influencing Attrition'
+    },
+    '9': {
+      'displayName': 'Credit Card Fraud',
+      'type': 'CLASSIFICATION',
+      'name': 'credit_card_fraud',
+      'heading': 'Factors influencing Fraud'
+    },
+    '10': {
+      'displayName': 'Claims Prediction',
+      'type': 'CLASSIFICATION',
+      'name': 'claims_prediction',
+      'heading': 'Factors influencing Claims'
+    },
+  '11': {
+    'displayName': 'Asset Health Prediction',
+    'type': 'CLASSIFICATION',
+    'name': 'asset_health_prediction',
+    'heading': 'Factors influencing Asset Health'
+  },
+  '12': {
+    'displayName': 'Employee Attrition',
+    'type': 'CLASSIFICATION',
+    'name': 'employee_attrition',
+    'heading': 'Factors influencing Attrition'
+  },
+  '13': {
+    'displayName': 'Automated Prediction',
+    'type': 'REGRESSION',
+    'name': 'regression_app',
+    'heading': 'Feature Importance'
+  }
 }
-APPS_ID_HEADING_MAP = {
-    "1":"Feature Importance",
-    "2":"Factors influencing Opportunity Score",
-    "3":"Factors influencing Churn",
-    "4":"Factors influencing Re-admission",
-    "5":"Factors influencing Attrition",
-    "6":"Factors influencing Fraud",
-    "7":"Factors influencing Claims",
-    "8":"Factors influencing Asset health",
-    "9":"Factors influencing Attrition"
-}
+
 
 SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"randomforest",
             ALGORITHMRANDOMSLUG+"lr":"logisticregression",
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
-            ALGORITHMRANDOMSLUG+"svm":"svm"
+            ALGORITHMRANDOMSLUG+"svm":"svm",
+            ALGORITHMRANDOMSLUG+"linr":"linearregression",
+            ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
+            ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
+            ALGORITHMRANDOMSLUG+"rfr":"rfregression"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
             "logisticregression":ALGORITHMRANDOMSLUG+"lr",
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
-            "svm":ALGORITHMRANDOMSLUG+"svm"
+            "svm":ALGORITHMRANDOMSLUG+"svm",
+            "linearregression":ALGORITHMRANDOMSLUG+"linr",
+            "generalizedlinearregression":ALGORITHMRANDOMSLUG+"linr",
+            "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
+            "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
+            "rfregression":ALGORITHMRANDOMSLUG+"rfr"
             }
 
 scriptsMapping = {
@@ -69,26 +147,80 @@ dimensionAnalysisRelativeWeight = {
     "Trend":2.5,
     "Predictive modeling":2.5
 }
-mlModelTrainingWeight = {
-    "initialization":{"total":10,"script":10,"narratives":10},
-    "randomForest":{"total":30,"script":30,"narratives":30},
-    "logisticRegression":{"total":30,"script":30,"narratives":30},
-    "xgboost":{"total":30,"script":30,"narratives":30},
-    "svm":{"total":30,"script":30,"narratives":30}
-}
+
+
+
+classificationTrainingInitialScriptWeight = {"initialization":{"total":10}}
+
+regressionTrainingInitialScriptWeight = {"initialization":{"total":10}}
+
 mlModelPredictionWeight = {
-    "initialization":{"total":10,"script":10,"narratives":10},
-    "randomForest":{"total":20,"script":20,"narratives":20},
-    "logisticRegression":{"total":20,"script":20,"narratives":20},
-    "xgboost":{"total":20,"script":20,"narratives":20},
-    "svm":{"total":20,"script":20,"narratives":20},
-    "Descriptive analysis":{"total":10,"script":10,"narratives":10},
-    "Dimension vs. Dimension":{"total":10,"script":5,"narratives":5},
-    "Predictive modeling":{"total":10,"script":5,"narratives":5}
+    "initialization":{"total":10,"script":5,"narratives":5},
+    "Descriptive analysis":{"total":20,"script":10,"narratives":10},
+    "Measure vs. Dimension":{"total":30,"script":20,"narratives":10},
+    "Predictive modeling":{"total":20,"script":10,"narratives":10},
+    "algoSlug":{"total":20,"script":10,"narratives":10}
 }
+
+
+regressionAlgoRelativeWeight = {
+    ALGORITHMRANDOMSLUG+"linr"  : 1,
+    ALGORITHMRANDOMSLUG+"gbtr" : 1,
+    ALGORITHMRANDOMSLUG+"rfr"  : 1,
+    ALGORITHMRANDOMSLUG+"dtreer" : 1
+}
+
+classificationAlgoRelativeWeight = {
+    ALGORITHMRANDOMSLUG+"rf"  : 1,
+    ALGORITHMRANDOMSLUG+"xgb" : 1,
+    ALGORITHMRANDOMSLUG+"lr"  : 1,
+    ALGORITHMRANDOMSLUG+"svm" : 2
+}
+classificationAlgorithmsToRunTemp = [ALGORITHMRANDOMSLUG+"rf",ALGORITHMRANDOMSLUG+"xgb",ALGORITHMRANDOMSLUG+"lr"]
+
 metadataScriptWeight = {
     "initialization":{"total":3,"script":2,"narratives":1},
 }
 subsettingScriptWeight = {
     "initialization":{"total":3,"script":2,"narratives":1},
 }
+
+
+SUPPORTED_DATETIME_FORMATS = {
+            "formats": (
+                    '%m/%d/%Y %H:%M', '%d/%m/%Y %H:%M', '%m/%d/%y %H:%M', '%d/%m/%y %H:%M',
+                    '%m-%d-%Y %H:%M', '%d-%m-%Y %H:%M', '%m-%d-%y %H:%M', '%d-%m-%y %H:%M',
+                    '%b/%d/%Y %H:%M', '%d/%b/%Y %H:%M', '%b/%d/%y %H:%M', '%d/%b/%y %H:%M',
+                    '%b-%d-%Y %H:%M', '%d-%b-%Y %H:%M', '%b-%d-%y %H:%M', '%d-%b-%y %H:%M',
+                    '%B/%d/%Y %H:%M', '%d/%B/%Y %H:%M', '%B/%d/%y %H:%M', '%d/%B/%y %H:%M',
+                    '%B-%d-%Y %H:%M', '%d-%B-%Y %H:%M', '%B-%d-%y %H:%M', '%d-%B-%y %H:%M',
+                    '%Y-%m-%d %H:%M', '%Y/%m/%d %H:%M', '%Y-%b-%d %H:%M', '%Y-%B-%d %H:%M',
+                    '%m-%d-%Y %r', '%d-%m-%Y %r', '%m-%d-%Y %R',
+                    '%d-%m-%Y %R', '%m-%d-%y %r', '%d-%m-%y %r', '%m-%d-%y %R',
+                    '%d-%m-%y %R', '%b-%d-%Y %r', '%d-%b-%Y %r', '%Y-%b-%d %r', '%b-%d-%Y %R',
+                    '%d-%b-%Y %R', '%b-%d-%y %r', '%d-%b-%y %r', '%b-%d-%y %R', '%d-%b-%y %R',
+                    '%B-%d-%Y %r', '%d-%B-%Y %r', '%B-%d-%Y %R', '%d-%B-%y %R',
+                    '%d-%B-%Y %R', '%B-%d-%y %r', '%d-%B-%y %r', '%B-%d-%y %R',
+                    '%y-%m-%d %R', '%y-%m-%d %r', '%Y-%m-%d %r', '%Y-%B-%d %r',
+                    '%d %B %Y', '%d %B %y', '%d %b %y', '%d %b %Y',
+                    '%m/%d/%Y', '%d/%m/%Y', '%m/%d/%y', '%d/%m/%y',
+                    '%m-%d-%Y', '%d-%m-%Y', '%m-%d-%y', '%d-%m-%y',
+                    '%b/%d/%Y', '%d/%b/%Y', '%b/%d/%y', '%d/%b/%y',
+                    '%b-%d-%Y', '%d-%b-%Y', '%b-%d-%y', '%d-%b-%y',
+                    '%B/%d/%Y', '%d/%B/%Y', '%B/%d/%y', '%d/%B/%y',
+                    '%B-%d-%Y', '%d-%B-%Y', '%B-%d-%y', '%d-%B-%y',
+                    '%Y-%m-%d', '%Y/%m/%d', '%Y-%b-%d', '%Y-%B-%d',
+                    '%b %d, %Y', '%B %d, %Y', '%B %d %Y', '%m/%d/%Y',
+                    '%d %B, %Y', '%d %B, %y', '%d %b, %Y', '%d %b, %y',
+                    '%m/%d/%y', '%b %Y', '%B %y', '%m/%y', '%m/%Y',
+                    '%B%Y', '%b %d,%Y', '%m.%d.%Y', '%m.%d.%y', '%b/%y',
+                    '%m - %d - %Y', '%m - %d - %y', '%B %d, %y', '%b %d, %y',
+                    '%d-%B', '%d-%b', '%b,%y', '%B,%y', '%b,%Y', '%B,%Y',
+                    '%b %Y', '%b %y', '%B %Y', '%B %y', '%b-%y', '%b/%Y', '%b-%Y'),
+             "dual_checks": (
+                    '%m/%d/%Y %H:%M', '%m/%d/%y %H:%M', '%m-%d-%Y %H:%M', '%m-%d-%y %H:%M',
+                    '%m-%d-%Y %r', '%m-%d-%Y %R', '%m-%d-%y %r','%m-%d-%y %R',
+                    '%m/%d/%Y %r', '%m/%d/%Y %R', '%m/%d/%y %r', '%m/%d/%y %R',
+                    '%m/%d/%Y', '%m/%d/%y', '%m-%d-%Y', '%m-%d-%y',
+                    '%m.%d.%Y', '%m.%d.%y', '%m - %d - %Y','%m - %d - %y')
+                    }

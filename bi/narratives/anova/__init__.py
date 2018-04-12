@@ -24,7 +24,7 @@ class AnovaNarratives:
     KEY_BUBBLE = 'bubble_data'
 
     # @accepts(object, DFAnovaResult, DataFrameHelper)
-    def __init__(self, df_anova_result, df_helper, df_context, result_setter,story_narrative):
+    def __init__(self, df_anova_result, df_helper, df_context, result_setter,story_narrative,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._dataframe_context = df_context
@@ -36,9 +36,15 @@ class AnovaNarratives:
         self._base_dir = "/anova/"
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        self._analysisName = self._dataframe_context.get_analysis_name()
         self._messageURL = self._dataframe_context.get_message_url()
-        self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        if analysisName == None:
+            self._analysisName = self._dataframe_context.get_analysis_name()
+        else:
+            self._analysisName = analysisName
+        if scriptWeight == None:
+            self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
+        else:
+            self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "anovaNarrativeStart":{
                 "summary":"Started the Anova Narratives",
@@ -49,28 +55,32 @@ class AnovaNarratives:
                 "weight":10
                 },
             }
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["anovaNarrativeStart"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "anovaNarrativeStart",\
-                                    "info",\
-                                    self._scriptStages["anovaNarrativeStart"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["anovaNarrativeStart"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "anovaNarrativeStart",\
+        #                             "info",\
+        #                             self._scriptStages["anovaNarrativeStart"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaNarrativeStart","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
+
 
 
         self._generate_narratives()
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["anovaNarrativeEnd"]["weight"]/10
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "anovaNarrativeEnd",\
-                                    "info",\
-                                    self._scriptStages["anovaNarrativeEnd"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["anovaNarrativeEnd"]["weight"]/10
+        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+        #                             "anovaNarrativeEnd",\
+        #                             "info",\
+        #                             self._scriptStages["anovaNarrativeEnd"]["summary"],\
+        #                             self._completionStatus,\
+        #                             self._completionStatus)
+        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"anovaNarrativeEnd","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
+
 
         if self._anovaNodes.get_card_count() > 0:
             self._story_narrative.add_a_node(self._anovaNodes)

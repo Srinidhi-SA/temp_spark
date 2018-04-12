@@ -12,6 +12,7 @@ from bi.common import utils as CommonUtils
 from bi.common.cardStructure import C3ChartData
 from bi.common.charts import ChartJson, NormalChartData
 from bi.common.decorators import accepts
+from bi.settings import setting as GLOBALSETTINGS
 
 
 class MetaDataHelper():
@@ -35,7 +36,6 @@ class MetaDataHelper():
         bucketizer.setSplits(splits)
         binned_df = bucketizer.transform(double_df)
         histogram_df = binned_df.groupBy("BINNED_INDEX").count().toPandas()
-
         str_splits_range = [" to ".join([str(x[0]),str(x[1])]) for x in splits_range]
         bin_name_dict = dict(zip(range(len(splits_range)),str_splits_range))
         bin_name_dict[n_split] = "null"
@@ -85,7 +85,9 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             if binned_stat_flag:
+                st = time.time()
                 measure_chart_data = self.get_binned_stat(df,column,col_stat)
+                print "Binned Stat",time.time()-st
                 measure_chart_data = sorted(measure_chart_data,key=lambda x:x["value"],reverse=True)
                 measure_chart_obj = ChartJson(NormalChartData(measure_chart_data).get_data(),chart_type="bar")
                 measure_chart_obj.set_axes({"x":"name","y":"value"})
@@ -136,12 +138,13 @@ class MetaDataHelper():
                             "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7, "max": 8,
                             "stddev": 9, "mean": 10, "LevelCount": 11}
         for column in dimension_columns:
+            st = time.time()
             col_stat = {}
             if level_count_flag:
                 fs1 = time.time()
                 levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
                 levelCount = {str(k):v for k,v in levelCount.items()}
-                # print "time for levelCount ",time.time()-fs1,"Seconds"
+                print "time for levelCount "+column,time.time()-fs1,"Seconds"
                 col_stat["LevelCount"] = levelCount
                 if None in levelCount.keys():
                     col_stat["numberOfNulls"] = levelCount[None]
@@ -186,6 +189,7 @@ class MetaDataHelper():
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
             modified_col_stat = sorted(modified_col_stat,key=lambda x:displayOrderDict[x["name"]])
             output[column] = modified_col_stat
+            print "dimension stats for column "+column,time.time()-st
         return output,chart_data
 
 
@@ -296,31 +300,31 @@ class MetaDataHelper():
         return output,chart_data
 
 
-    def get_datetime_suggestions(self,df,col_name):
-        output = {}
-        date_time_suggestions = {}
-        formats = CommonUtils.dateTimeFormatsSupported()["formats"]
-        dual_checks = CommonUtils.dateTimeFormatsSupported()["dual_checks"]
-        row_vals = df.select(col_name).distinct().na.drop().collect()
-        # row_vals = df.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
-        if len(row_vals) > 0:
-            x = row_vals[0][col_name]
-            for format1 in formats:
-                try:
-                    t = datetime.strptime(x,format1)
-                    # if (format1 in dual_checks):
-                    #     for x1 in row_vals:
-                    #         x = x1[dims]
-                    #         try:
-                    #             t = dt.datetime.strptime(x,format1)
-                    #         except ValueError as err:
-                    #             format1 = '%d'+format1[2]+'%m'+format1[5:]
-                    #             break
-                    output[col_name] = format1
-                    break
-                except ValueError as err:
-                    pass
-        return output
+    # def get_datetime_suggestions(self,df,col_name):
+    #     output = {}
+    #     date_time_suggestions = {}
+    #     formats = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+    #     dual_checks = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["dual_checks"]
+    #     row_vals = df.select(col_name).distinct().na.drop().collect()
+    #     # row_vals = df.select(dims).na.drop().take(int(self.total_rows**0.5 + 1))
+    #     if len(row_vals) > 0:
+    #         x = row_vals[0][col_name]
+    #         for format1 in formats:
+    #             try:
+    #                 t = datetime.strptime(x,format1)
+    #                 # if (format1 in dual_checks):
+    #                 #     for x1 in row_vals:
+    #                 #         x = x1[dims]
+    #                 #         try:
+    #                 #             t = dt.datetime.strptime(x,format1)
+    #                 #         except ValueError as err:
+    #                 #             format1 = '%d'+format1[2]+'%m'+format1[5:]
+    #                 #             break
+    #                 output[col_name] = format1
+    #                 break
+    #             except ValueError as err:
+    #                 pass
+    #     return output
 
     def get_datetime_format(self,columnVector):
         """
@@ -334,12 +338,30 @@ class MetaDataHelper():
         detectedFormat -- datetime format
         """
         detectedFormat = None
-        availableDateTimeFormat = CommonUtils.dateTimeFormatsSupported()["formats"]
-        sample1 = str(columnVector[0])
-        for dt_format in availableDateTimeFormat:
+        # availableDateTimeFormat = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+        # sample1 = str(columnVector[0])
+        # for dt_format in availableDateTimeFormat:
+        #     try:
+        #         t = datetime.strptime(sample1,dt_format)
+        #         detectedFormat = dt_format
+        #         break
+        #     except ValueError as err:
+        #         pass
+        formats = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+        dual_checks = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["dual_checks"]
+        x = columnVector[0][0]
+        for format1 in formats:
             try:
-                t = datetime.strptime(sample1,dt_format)
-                detectedFormat = dt_format
+                t = datetime.strptime(x,format1)
+                if (format1 in dual_checks):
+                    for x1 in columnVector:
+                        x = x1[0]
+                        try:
+                            t = datetime.strptime(x,format1)
+                        except ValueError as err:
+                            format1 = '%d'+format1[2]+'%m'+format1[5:]
+                            break
+                detectedFormat = format1
                 break
             except ValueError as err:
                 pass
