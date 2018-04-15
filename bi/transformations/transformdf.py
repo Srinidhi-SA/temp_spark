@@ -2,6 +2,12 @@ import time
 
 from pyspark.sql.functions import col, udf
 from pyspark.sql.types import StringType
+from bi.settings import setting as GLOBALSETTINGS
+from pyspark.sql.functions import col, create_map, lit
+from itertools import chain
+from bi.common.decorators import accepts
+
+
 
 
 #import bi.common.dataframe
@@ -145,6 +151,52 @@ class DataFrameTransformer:
         if new_column_name:
             self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
             # print self._data_frame.columns
+
+    @accepts(object,targetCol = (tuple,list),topnLevel=int,defaltName=basestring,newLevelNameDict=dict)
+    def change_dimension_level_name(self,targetCol,defaltName = "Others",topnLevel = None, newLevelNameDict = None):
+        """
+        used to change level names of a particular dimension columns
+        Parameters
+        ----------
+        self : Object
+            An Object of class DataFrameTransformer
+        targetCol : list/tuple of strings
+            column on which to apply this transformation.
+        topnLevel : int or None
+            Top levels to keep(by level count). all other levels will be clubbed as "Others"
+        defaltName : basestring
+            default Name given to all the Other levels
+        newLevelNameDict : dict
+            mapping for changing Level Name {"existingName1":"newName1","existingName2":"newName2"}
+
+        Notes
+        ----------
+        If both topnLevel and newLevelNameDict are provided then topnLevel will take precedence
+
+        """
+        if topnLevel != None:
+            topnLevel = topnLevel
+        else:
+            topnLevel = GLOBALSETTINGS.DTREE_TARGET_DIMENSION_MAX_LEVEL - 1
+        print targetCol
+
+        for colName in targetCol:
+            levelCountDict = self._metaParser.get_unique_level_dict(colName)
+            levelCountArray = sorted(levelCountDict.items(),key=lambda x:x[1],reverse=True)
+            countArr = [x[1] for x in levelCountArray]
+            totalCount = sum(countArr)
+            existinCount = sum(countArr[:topnLevel])
+            newLevelCount = levelCountArray[:topnLevel]
+            newLevelCount.append((defaltName,totalCount-existinCount))
+            mappingDict = dict([(tup[0],tup[0]) if idx <= topnLevel-1 else (tup[0],defaltName) for idx,tup in enumerate(levelCountArray)])
+            mapping_expr = create_map([lit(x) for x in chain(*mappingDict.items())])
+            existingCols = self._data_frame.columns
+            self._data_frame = self._data_frame.withColumnRenamed(colName,str(colName)+"JJJLLLLKJJ")
+            self._data_frame = self._data_frame.withColumn(colName,mapping_expr.getItem(col(str(colName)+"JJJLLLLKJJ")))
+            self._data_frame = self._data_frame.select(existingCols)
+            self._dataframe_helper.set_dataframe(self._data_frame)
+            self._metaParser.update_level_counts(colName,dict(newLevelCount))
+
 
     def get_transformed_data_frame(self):
         return self._data_frame

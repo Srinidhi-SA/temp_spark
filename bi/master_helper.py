@@ -628,7 +628,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     decisionTreeNode = result_setter.get_decision_tree_node()
     if decisionTreeNode != None:
         headNode["listOfNodes"].append(decisionTreeNode)
-    print json.dumps(headNode,indent=2)
+    # print json.dumps(headNode,indent=2)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Dimension Analysis Completed in", time.time()-st," Seconds"
     progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your signal is ready",100,100,display=True)
