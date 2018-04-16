@@ -16,6 +16,8 @@ from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 from sklearn.linear_model import LogisticRegression as Logit
 from sklearn import preprocessing
+from sklearn.model_selection import KFold
+
 
 
 from pyspark.sql import SQLContext

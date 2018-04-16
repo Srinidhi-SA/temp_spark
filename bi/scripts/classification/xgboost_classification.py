@@ -16,6 +16,8 @@ from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 import xgboost as xgb
 from sklearn import preprocessing
+from sklearn.model_selection import KFold
+
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils

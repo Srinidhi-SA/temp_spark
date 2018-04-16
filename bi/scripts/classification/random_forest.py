@@ -16,6 +16,8 @@ from sklearn2pmml import PMMLPipeline
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
+from sklearn.model_selection import KFold
+
 
 
 from pyspark.sql import SQLContext
