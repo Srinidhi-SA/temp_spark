@@ -54,7 +54,7 @@ from sklearn.model_selection import KFold
 
 
 
-class RFRegressionModelPysparkScript:
+class RFRegressionModelScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -66,6 +66,7 @@ class RFRegressionModelPysparkScript:
         self._model_summary = MLModelSummary()
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]
+
         self._analysisName = "rfRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = mlEnvironment
@@ -97,7 +98,7 @@ class RFRegressionModelPysparkScript:
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-        self._dataframe_context.update_completion_status(self._completionStatus)
+        # self._dataframe_context.update_completion_status(self._completionStatus)
         algosToRun = self._dataframe_context.get_algorithms_to_run()
         algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -242,7 +243,7 @@ class RFRegressionModelPysparkScript:
                 for train_index, test_index in kf.split(x_train):
                     x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
                     y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                    est.fit(x_train_fold, y_train_fold)
+                    clf.fit(x_train_fold, y_train_fold)
                     y_score_fold = est.predict(x_test_fold)
                     metricsFold = {}
                     metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)

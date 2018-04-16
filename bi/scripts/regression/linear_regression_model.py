@@ -52,7 +52,7 @@ from sklearn.model_selection import KFold
 
 
 
-class LinearRegressionModelPysparkScript:
+class LinearRegressionModelScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative

@@ -140,7 +140,7 @@ class DataFrameTransformer:
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
 
     def update_column_datatype(self,column_name,data_type):
-        print "Udating column data type"
+        print "Updating column data type"
         self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
         print self._data_frame.printSchema()
         # TODO update data type as measure or dimension

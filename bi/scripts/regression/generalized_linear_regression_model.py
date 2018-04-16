@@ -36,7 +36,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class GeneralizedLinearRegressionModelPysparkScript:
+class GeneralizedLinearRegressionModelScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative

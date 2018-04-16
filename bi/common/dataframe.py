@@ -147,7 +147,7 @@ class DataFrameHelper:
                 self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType()))
 
     def change_data_type(self,dataTypeChange):
-        print "Udating column data type"
+        print "Updating column data type"
         for obj in dataTypeChange:
             try:
                 if obj["columnType"] == "dimension":
