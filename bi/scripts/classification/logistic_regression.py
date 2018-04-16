@@ -75,7 +75,7 @@ class LogisticRegressionScript:
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        # algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -113,10 +113,17 @@ class LogisticRegressionScript:
 
             st = time.time()
             levels = df[result_column].unique()
+            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+            algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
             if len(levels) > 2:
                 clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
+                algoParams = {k:v for k,v in algoParams.items() if k in["multi_class"]}
+                algoParams["multi_class"] = "multinomial"
+                algoParams["solver"] = "newton-cg"
+                clf.set_params(**algoParams)
             else:
                 clf = Logit()
+                clf.set_params(**algoParams)
 
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
@@ -129,9 +136,7 @@ class LogisticRegressionScript:
             posLabel = inverseLabelMapping[self._targetLevel]
             print labelMapping,inverseLabelMapping,posLabel,self._targetLevel
 
-            # algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
-            # algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
-            # clf.set_params(**algoParams)
+
 
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
@@ -158,8 +163,8 @@ class LogisticRegressionScript:
                 clf.fit(x_train, y_train)
                 bestEstimator = clf
 
-            clf.fit(x_train, y_train)
-            bestEstimator = clf
+            # clf.fit(x_train, y_train)
+            # bestEstimator = clf
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:

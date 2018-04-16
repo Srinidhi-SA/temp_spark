@@ -291,6 +291,8 @@ SKLEARN_ML_SUPPORTED_MAX_FEATURES = [
     {"name":"log2","selected":False,"displayName":"log2(n_features)"},
     {"name":None,"selected":False,"displayName":"n_features"}
 ]
+
+
 SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                 {
                     "name":"criterion",
@@ -538,4 +540,140 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
              "uiElemType":"textBox",
              "display":True
          },
+]
+
+SKLEARN_ML_SUPPORTED_XGB_BOOSTER = [
+    {"name":"gbtree","selected":False,"displayName":"gbtree"},
+    {"name":"dart","selected":False,"displayName":"dart"},
+    {"name":"gblinear","selected":False,"displayName":"gblinear"},
+]
+
+SKLEARN_ML_SUPPORTED_XGB_TREE_ALGORITHMS = [
+    {"name":"auto","selected":False,"displayName":"auto"},
+    {"name":"exact","selected":False,"displayName":"exact"},
+    {"name":"approx","selected":False,"displayName":"approx"},
+    {"name":"hist","selected":False,"displayName":"hist"},
+    {"name":"gpu_exact","selected":False,"displayName":"gpu_exact"},
+    {"name":"gpu_hist","selected":False,"displayName":"gpu_hist"},
+
+]
+
+SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
+    {
+        "name":"booster",
+        "displayName":"Booster Function",
+        "defaultValue":[obj if obj["name"] != "gbtree" else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_XGB_BOOSTER],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":True
+    },
+    {
+        "name":"silent",
+        "displayName":"Print Messages on Console",
+        "defaultValue":[{"name":0,"selected":False,"displayName":"True"},{"name":1,"selected":True,"displayName":"False"}],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":True
+    },
+    {
+        "name":"eta",
+        "displayName":"Learning Rate",
+        "defaultValue":0.3,
+        "acceptedValue":None,
+        "valueRange":[0.0,1.0],
+        "paramType":"number",
+        "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"gamma",
+        "displayName":"Minimum Loss Reduction",
+        "defaultValue":0,
+        "acceptedValue":None,
+        "valueRange":[0,100],
+        "paramType":"number",
+        "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"max_depth",
+        "displayName":"Maximum Depth of Tree",
+        "defaultValue":6,
+        "acceptedValue":None,
+        "valueRange":[0,100],
+        "paramType":"number",
+        "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"min_child_weight",
+        "displayName":"Maximum Depth of Tree",
+        "defaultValue":6,
+        "acceptedValue":None,
+        "valueRange":[0,100],
+        "paramType":"number",
+        "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"subsample",
+        "displayName":"Subsampling Ratio",
+        "defaultValue":1,
+        "acceptedValue":None,
+        "valueRange":[0.1,1],
+        "paramType":"number",
+        "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"colsample_bytree",
+        "displayName":"subsample ratio of columns for each tree",
+        "defaultValue":1,
+        "acceptedValue":None,
+        "valueRange":[0.1,1],
+        "paramType":"number",
+        "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"colsample_bylevel",
+        "displayName":"subsample ratio of columns for each split",
+        "defaultValue":1,
+        "acceptedValue":None,
+        "valueRange":[0.1,1],
+        "paramType":"number",
+        "uiElemType":"slider",
+        "display":True
+    },
+    {
+        "name":"tree_method",
+        "displayName":"Tree Construction Algorithm",
+        "defaultValue":[obj if obj["name"] != "auto" else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_XGB_TREE_ALGORITHMS],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":True
+    },
+    {
+        "name":"predictor",
+        "displayName":"Type of Predictor Algorithm",
+        "defaultValue":[{"name":"cpu_predictor","selected":True,"displayName":"Multicore CPU prediction algorithm"},
+                {"name":"gpu_predictor","selected":True,"displayName":"Prediction using GPU"}
+            ],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":True
+    },
+    {
+        "name":"process_type",
+        "displayName":"Boosting process to run",
+        "defaultValue":[{"name":"default","selected":True,"displayName":"Create New Trees"},
+                {"name":"update","selected":True,"displayName":"Update Trees"}
+            ],
+        "paramType":"list",
+        "uiElemType":"checkbox",
+        "display":True
+    },
+
+
+
 ]

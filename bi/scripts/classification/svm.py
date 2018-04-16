@@ -81,7 +81,7 @@ class SupportVectorMachineScript:
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        # algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -129,9 +129,9 @@ class SupportVectorMachineScript:
             posLabel = inverseLabelMapping[self._targetLevel]
             print labelMapping,inverseLabelMapping,posLabel,self._targetLevel
 
-            # algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
-            # algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
-            # clf.set_params(**algoParams)
+            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+            algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
+            clf.set_params(**algoParams)
 
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
@@ -158,8 +158,8 @@ class SupportVectorMachineScript:
                 clf.fit(x_train, y_train)
                 bestEstimator = clf
 
-            clf.fit(x_train, y_train)
-            bestEstimator = clf
+            # clf.fit(x_train, y_train)
+            # bestEstimator = clf
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
