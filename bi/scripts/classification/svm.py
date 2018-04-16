@@ -122,7 +122,7 @@ class SupportVectorMachineScript:
 
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
-            y_train = labelEncoder.transform(y_train)
+            y_train = pd.Series(labelEncoder.transform(y_train))
             y_test = labelEncoder.transform(y_test)
             classes = labelEncoder.classes_
             transformed = labelEncoder.transform(classes)

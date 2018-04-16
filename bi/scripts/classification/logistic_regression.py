@@ -124,14 +124,14 @@ class LogisticRegressionScript:
                 algoParams["solver"] = "newton-cg"
                 clf.set_params(**algoParams)
             else:
+                clf = Logit()
                 algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
-                clf = Logit()
                 clf.set_params(**algoParams)
 
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
-            y_train = labelEncoder.transform(y_train)
+            y_train = pd.Series(labelEncoder.transform(y_train))
             y_test = labelEncoder.transform(y_test)
             classes = labelEncoder.classes_
             transformed = labelEncoder.transform(classes)

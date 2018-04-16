@@ -110,6 +110,7 @@ class RFClassificationModelScript:
             pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
             x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
+            print type(y_train),type(y_test)
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
@@ -121,7 +122,7 @@ class RFClassificationModelScript:
 
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
-            y_train = labelEncoder.transform(y_train)
+            y_train = pd.Series(labelEncoder.transform(y_train))
             y_test = labelEncoder.transform(y_test)
             classes = labelEncoder.classes_
             transformed = labelEncoder.transform(classes)
