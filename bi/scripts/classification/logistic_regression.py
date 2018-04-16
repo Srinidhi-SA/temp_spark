@@ -115,15 +115,17 @@ class LogisticRegressionScript:
 
             st = time.time()
             levels = df[result_column].unique()
-            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
-            algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
             if len(levels) > 2:
                 clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
+                algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+                algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 algoParams = {k:v for k,v in algoParams.items() if k in["multi_class"]}
                 algoParams["multi_class"] = "multinomial"
                 algoParams["solver"] = "newton-cg"
                 clf.set_params(**algoParams)
             else:
+                algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+                algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf = Logit()
                 clf.set_params(**algoParams)
 
