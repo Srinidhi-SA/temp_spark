@@ -248,6 +248,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
 
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
+    print modelJsonOutput
 
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)

@@ -1,5 +1,7 @@
-from pySparkMlParams import *
-from sklernMlParams import *
+from pySparkMLClassificationParams import *
+from pySparkMLRegressionParams import *
+from sklearnMLClassificationParams import *
+from sklearnMLRegressionParams import *
 
 CHISQUARELEVELLIMIT = 10
 CHISQUARESIGNIFICANTDIMENSIONTOSHOW = 8

@@ -243,7 +243,7 @@ class RFRegressionModelScript:
                 for train_index, test_index in kf.split(x_train):
                     x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
                     y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                    clf.fit(x_train_fold, y_train_fold)
+                    est.fit(x_train_fold, y_train_fold)
                     y_score_fold = est.predict(x_test_fold)
                     metricsFold = {}
                     metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
