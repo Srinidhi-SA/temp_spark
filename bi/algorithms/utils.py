@@ -897,7 +897,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             card3Data = [HtmlData(data="<h4>Feature Importance</h4>"),featureChart]
             card3.set_card_data(card3Data)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
-            card3.set_width_percent(50)
+            card3.set_card_width(50)
 
         card4 = NormalCard()
         allMetricsData = []
@@ -924,7 +924,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card4Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
         card4.set_card_data(card4Data)
         card4 = json.loads(CommonUtils.convert_python_object_to_json(card4))
-        card4.set_width_percent(50)
+        card4.set_card_width(50)
 
         existing_cards = result_setter.get_all_regression_cards()
         # print "existing_cards",existing_cards
