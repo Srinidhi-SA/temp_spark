@@ -725,7 +725,8 @@ def create_model_summary_cards(modelSummaryClass):
                 qunatileRow = ["25% to 50% observations",round(quantileSummaryObj[1]["mean"],2)]
             if quantileSummaryObj[0] == 2:
                 qunatileRow = ["50% to 75% observations",round(quantileSummaryObj[1]["mean"],2)]
-            quantileTableData.append(qunatileRow)
+            if len(qunatileRow) > 0:
+                quantileTableData.append(qunatileRow)
 
         quantileTable = TableData({'tableType':'normal','tableData':quantileTableData})
         quantileTable.set_table_top_header("Distribution of predicted values")
