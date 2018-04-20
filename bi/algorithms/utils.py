@@ -792,7 +792,10 @@ def create_model_summary_cards(modelSummaryClass):
         # modelSummaryCard3.set_card_data([modelSummaryMapeChart,actualVsPredictedChart,residualButton])
         modelSummaryCard3.set_card_data([actualVsPredictedChart,residualButton])
 
-        return [modelSummaryCard2,modelSummaryMapeChart,modelSummaryCard1,modelSummaryCard3]
+        modelSummaryCard4 = NormalCard()
+        modelSummaryCard4.set_card_width(50)
+        modelSummaryCard4.set_card_data([modelSummaryMapeChart])
+        return [modelSummaryCard2,modelSummaryCard4,modelSummaryCard1,modelSummaryCard3]
         # return [modelSummaryCard1,modelSummaryCard2]
 
 
