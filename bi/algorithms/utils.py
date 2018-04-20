@@ -702,7 +702,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data = []
         modelSummaryCard1Data.append(HtmlData(data="<h5><b>Algorithm Parameters: </b></h5>"))
         modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(targetVariable)))
-        modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
+        # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
         # modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         modelParams = modelSummaryClass.get_model_params()
         count = 0
@@ -779,7 +779,7 @@ def create_model_summary_cards(modelSummaryClass):
         actualVsPredictedChartJson.set_axes({"x":targetVariable,"y":"predicted"})
         actualVsPredictedChartJson.set_label_text({'x':'Actual Values','y':'Predicted Values'})
         actualVsPredictedChartJson.set_title('Actual Vs Predicted Chart')
-        
+
 
         actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
 
