@@ -720,11 +720,11 @@ def create_model_summary_cards(modelSummaryClass):
         for quantileSummaryObj in quantileSummaryArr:
             qunatileRow = []
             if quantileSummaryObj[0] == 0:
-                qunatileRow.append(["Bottom 25% observations",round(quantileSummaryObj[1]["mean"],2)])
+                qunatileRow = ["Bottom 25% observations",round(quantileSummaryObj[1]["mean"],2)]
             if quantileSummaryObj[0] == 1:
-                qunatileRow.append(["25% to 50% observations",round(quantileSummaryObj[1]["mean"],2)])
+                qunatileRow = ["25% to 50% observations",round(quantileSummaryObj[1]["mean"],2)]
             if quantileSummaryObj[0] == 2:
-                qunatileRow.append(["50% to 75% observations",round(quantileSummaryObj[1]["mean"],2)])
+                qunatileRow = ["50% to 75% observations",round(quantileSummaryObj[1]["mean"],2)]
             quantileTableData.append(qunatileRow)
 
         quantileTable = TableData({'tableType':'normal','tableData':quantileTableData})
