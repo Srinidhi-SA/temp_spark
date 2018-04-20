@@ -853,8 +853,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         return modelJsonOutput
     else:
         collated_summary = result_setter.get_model_summary()
+        targetVariable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         card1 = NormalCard()
-        card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
+        card1Data = [HtmlData(data="<h4>Predicting Number of {}</h4>".format(targetVariable))]
         card1Data.append(HtmlData(data = get_total_models_regression(collated_summary)))
         card1.set_card_data(card1Data)
         card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
@@ -870,7 +871,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             coefficientsChartJson.set_chart_type("bar")
             coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
             coefficientsChartJson.set_axes({"x":"key","y":"value"})
-            coefficientsChartJson.set_title('Coefficients (LR)')
+            coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
             # coefficientsChartJson.set_yaxis_number_format(".4f")
             coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)
@@ -889,13 +890,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             featureChartJson.set_chart_type("bar")
             featureChartJson.set_label_text({'x':' ','y':'Feature Importance'})
             featureChartJson.set_axes({"x":"key","y":"value"})
-            featureChartJson.set_title('Feature Importance (RF)')
+            featureChartJson.set_title('Feature Importance')
             # featureChartJson.set_yaxis_number_format(".4f")
             featureChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             featureChart = C3ChartData(data=featureChartJson)
             card3Data = [HtmlData(data="<h4>Feature Importance</h4>"),featureChart]
             card3.set_card_data(card3Data)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+            card3.set_width_percent(50)
 
         card4 = NormalCard()
         allMetricsData = []
@@ -909,7 +911,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         full_names = map(lambda x: metricNamesMapping[x],metricNames)
         metricTableTopRow = [""]+full_names
         allMetricsData.append(metricTableTopRow)
-        print "collated_summary : ", collated_summary
+        # print "collated_summary : ", collated_summary
         for algoName,dataObj in collated_summary.items():
             algoRow = []
             algoRow.append(collated_summary[algoName]['algorithmDisplayName'])
@@ -918,14 +920,16 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             allMetricsData.append(algoRow)
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
+        evaluationMetricsTable.set_table_top_header("Model Comparison")
         card4Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
         card4.set_card_data(card4Data)
         card4 = json.loads(CommonUtils.convert_python_object_to_json(card4))
+        card4.set_width_percent(50)
 
         existing_cards = result_setter.get_all_regression_cards()
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
-        all_cards = [card1,card2,card3,card4] + existing_cards
+        all_cards = [card1,card4,card3,card2] + existing_cards
         all_cards = [x for x in all_cards if x != None]
 
         modelResult = NarrativesTree()
