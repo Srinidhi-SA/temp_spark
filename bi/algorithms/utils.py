@@ -704,23 +704,35 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
         # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
         modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
-        quantileSummaryArr = modelSummaryClass.get_quantile_summary()
         targetVariable = modelSummaryClass.get_target_variable()
-        for val in quantileSummaryArr:
-            if val[0] == "0":
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q1(less than {}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
-            elif val[0]=="3":
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q3(>{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["mean"],2))))
-            elif val[0]=="2":
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q2-Q3(between {}-{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
-            else:
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q2(between {}-{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
 
         modelSummaryCard1Data.append(HtmlData(data="<h5>Algorithm Parameters:</h5>"))
         modelParams = modelSummaryClass.get_model_params()
         for k,v in modelParams.items():
             modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
+
+        quantileSummaryArr = modelSummaryClass.get_quantile_summary()
+        quantileTableData = []
+        quantileTableTopRow = ["Distribution of Quartiles","Average Value"]
+        quantileTableData.append(quantileTableTopRow)
+
+        for quantileSummaryObj in quantileSummaryArr:
+            qunatileRow = []
+            if quantileSummaryObj[0] == 0:
+                qunatileRow.append(["Bottom 25% observations",round(quantileSummaryObj[1]["mean"],2)])
+            if quantileSummaryObj[0] == 1:
+                qunatileRow.append(["25% to 50% observations",round(quantileSummaryObj[1]["mean"],2)])
+            if quantileSummaryObj[0] == 2:
+                qunatileRow.append(["50% to 75% observations",round(quantileSummaryObj[1]["mean"],2)])
+            quantileTableData.append(qunatileRow)
+
+        quantileTable = TableData({'tableType':'normal','tableData':quantileTableData})
+        quantileTable.set_table_top_header("Distribution of predicted values")
+
+        modelSummaryCard2 = NormalCard()
+        modelSummaryCard2.set_card_width(50)
+        modelSummaryCard2.set_card_data([quantileTable])
 
         ######################MAPE CHART#######################################
 
@@ -774,12 +786,13 @@ def create_model_summary_cards(modelSummaryClass):
         residualButton.set_data(residualChart)
         residualButton.set_name("View Residuals")
 
-        modelSummaryCard2 = NormalCard()
-        modelSummaryCard2.set_card_width(50)
-        modelSummaryCard2.set_card_data([modelSummaryMapeChart,actualVsPredictedChart,residualButton])
+        modelSummaryCard3 = NormalCard()
+        modelSummaryCard3.set_card_width(50)
+        # modelSummaryCard3.set_card_data([modelSummaryMapeChart,actualVsPredictedChart,residualButton])
+        modelSummaryCard3.set_card_data([actualVsPredictedChart,residualButton])
 
-
-        return [modelSummaryCard1,modelSummaryCard2]
+        return [modelSummaryCard2,modelSummaryMapeChart,modelSummaryCard1,modelSummaryCard3]
+        # return [modelSummaryCard1,modelSummaryCard2]
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
