@@ -220,7 +220,7 @@ class SummaryCard:
 
 class HtmlData:
 
-    def __init__(self,data=None):
+    def __init__(self,data=None,classTag=None):
         self.dataType = "html"
         self.data = data
         self.classTag = None

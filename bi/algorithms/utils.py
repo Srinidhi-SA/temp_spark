@@ -696,20 +696,22 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard2.set_card_data(modelSummaryCard2Data)
         return [modelSummaryCard1,modelSummaryCard2]
     elif modelSummaryClass.get_model_type() == "regression":
+        targetVariable = modelSummaryClass.get_target_variable()
         modelSummaryCard1 = NormalCard()
         modelSummaryCard1.set_card_width(50)
         modelSummaryCard1Data = []
-        modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
-        modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
-        # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
-        modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
-        targetVariable = modelSummaryClass.get_target_variable()
-
-        modelSummaryCard1Data.append(HtmlData(data="<h5>Algorithm Parameters:</h5>"))
+        modelSummaryCard1Data.append(HtmlData(data="<h5><b>Algorithm Parameters: </b></h5>"))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(targetVariable)))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
+        # modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         modelParams = modelSummaryClass.get_model_params()
+        count = 0
         for k,v in modelParams.items():
-            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
+            count += 1
+            if count <=4 :
+                modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
+            else:
+                modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"]),classTag="hidden"))
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
 
         quantileSummaryArr = modelSummaryClass.get_quantile_summary()
@@ -733,7 +735,12 @@ def create_model_summary_cards(modelSummaryClass):
 
         modelSummaryCard2 = NormalCard()
         modelSummaryCard2.set_card_width(50)
-        modelSummaryCard2.set_card_data([quantileTable])
+        modelSummaryCard2Data = []
+        modelSummaryCard2Data.append(HtmlData(data="<h4 class = 'sm-mb-20'><b>{}</b></h4>".format(modelSummaryClass.get_algorithm_display_name())))
+        modelSummaryCard2Data.append(HtmlData(data="<h5><b>Summary</b></h5>"))
+        modelSummaryCard2Data.append(HtmlData(data="<p><b><center>Distribution of predicted values</center></b></p>"))
+        modelSummaryCard2Data.append(quantileTable)
+        modelSummaryCard2.set_card_data(modelSummaryCard2Data)
 
         ######################MAPE CHART#######################################
 
@@ -753,7 +760,7 @@ def create_model_summary_cards(modelSummaryClass):
         mapeChartJson.set_chart_type("bar")
         mapeChartJson.set_label_text({'x':' ','y':'No of Observations'})
         mapeChartJson.set_axes({"x":"key","y":"value"})
-        mapeChartJson.set_title('Error Distribution Chart (MAPE)')
+        mapeChartJson.set_title('Distribution Of Errors')
         # mapeChartJson.set_yaxis_number_format(".4f")
         # mapeChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
 
@@ -771,6 +778,8 @@ def create_model_summary_cards(modelSummaryClass):
         actualVsPredictedChartJson.set_data({"data":actualVsPredictedData})
         actualVsPredictedChartJson.set_axes({"x":targetVariable,"y":"predicted"})
         actualVsPredictedChartJson.set_label_text({'x':'Actual Values','y':'Predicted Values'})
+        actualVsPredictedChartJson.set_title('Actual Vs Predicted Chart')
+        
 
         actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
 
@@ -872,7 +881,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         collated_summary = result_setter.get_model_summary()
         targetVariable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         card1 = NormalCard()
-        card1Data = [HtmlData(data="<h4>Predicting Number of {}</h4>".format(targetVariable))]
+        card1Data = [HtmlData(data="<h4><b>Predicting {}</b></h4>".format(targetVariable))]
         card1Data.append(HtmlData(data = get_total_models_regression(collated_summary)))
         card1.set_card_data(card1Data)
         card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
@@ -892,7 +901,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             # coefficientsChartJson.set_yaxis_number_format(".4f")
             coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)
-            card2Data = [HtmlData(data="<h4>Model Coefficients</h4>"),coefficientsChart]
+            card2Data = [HtmlData(data="<h4><b>Influence of Key Features on {}</b></h4>".format(targetVariable)),coefficientsChart]
             card2.set_card_data(card2Data)
             card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
@@ -911,7 +920,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             # featureChartJson.set_yaxis_number_format(".4f")
             featureChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             featureChart = C3ChartData(data=featureChartJson)
-            card3Data = [HtmlData(data="<h4>Feature Importance</h4>"),featureChart]
+            card3Data = [HtmlData(data="<h4><b><center>Feature Importance</center></b></h4>"),featureChart]
             card3.set_card_data(card3Data)
             card3.set_card_width(50)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
@@ -938,7 +947,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
         evaluationMetricsTable.set_table_top_header("Model Comparison")
-        card4Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
+        card4Data = [HtmlData(data="<h4><b><center>Model Comparison</center></b></h4>"),evaluationMetricsTable]
         card4.set_card_data(card4Data)
         card4.set_card_width(50)
 
