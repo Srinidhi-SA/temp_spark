@@ -708,10 +708,12 @@ def create_model_summary_cards(modelSummaryClass):
         count = 0
         for k,v in modelParams.items():
             count += 1
-            if count <=4 :
+            if count <= 4 :
                 modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
             else:
-                modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"]),classTag="hidden"))
+                htmlDataObj = HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"]))
+                htmlDataObj.set_class_tag("hidden")
+                modelSummaryCard1Data.append(htmlDataObj)
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
 
         quantileSummaryArr = modelSummaryClass.get_quantile_summary()
