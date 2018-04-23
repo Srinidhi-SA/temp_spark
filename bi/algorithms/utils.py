@@ -823,21 +823,27 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card2_elements = get_model_comparison(collated_summary)
         card2Data = [card2_elements[0],card2_elements[1]]
         card2.set_card_data(card2Data)
-        # prediction_narrative.insert_card_at_given_index(card2,1)
         card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
-        card3 = NormalCard()
-        if appid == None:
-            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
-        else:
-            try:
-                card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_MAP[appid]["heading"]))]
-            except:
+        try:
+            featureImportanceC3Object = get_feature_importance(collated_summary)
+        except:
+            featureImportanceC3Object = None
+        if featureImportanceC3Object != None:
+            card3 = NormalCard()
+            if appid == None:
                 card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
-        card3Data.append(get_feature_importance(collated_summary))
-        card3.set_card_data(card3Data)
-        # prediction_narrative.insert_card_at_given_index(card3,2)
-        card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+            else:
+                try:
+                    card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_MAP[appid]["heading"]))]
+                except:
+                    card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
+            card3Data.append(featureImportanceC3Object)
+            card3.set_card_data(card3Data)
+            # prediction_narrative.insert_card_at_given_index(card3,2)
+            card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+        else:
+            card3 = None
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         modelResult = json.loads(modelResult)
         existing_cards = modelResult["listOfCards"]
@@ -845,7 +851,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
         all_cards = [card1,card2,card3] + existing_cards
-
+        all_cards = [x for x in all_cards if x != None]
         modelResult = NarrativesTree()
         modelResult.add_cards(all_cards)
         modelResult = CommonUtils.convert_python_object_to_json(modelResult)

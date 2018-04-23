@@ -179,9 +179,13 @@ class LogisticRegressionScript:
             # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
             # print overall_precision_recall
             accuracy = metrics.accuracy_score(y_test,y_score)
-            precision = metrics.precision_score(y_test,y_score,pos_label=posLabel)
-            recall = metrics.recall_score(y_test,y_score,pos_label=posLabel)
             auc = metrics.roc_auc_score(y_test,y_score)
+            if levels <= 2:
+                precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
+                recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
+            elif levels > 2:
+                precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
+                recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
             print accuracy,precision,recall,auc
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
