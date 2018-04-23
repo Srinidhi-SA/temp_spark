@@ -68,7 +68,8 @@ class MetaDataHelper():
                             "max":"Max",
                             "numberOfNulls":"Null Values",
                             "numberOfUniqueValues":"Unique Values",
-                            "numberOfNotNulls":"Not Nulls"
+                            "numberOfNotNulls":"Not Nulls",
+                            "LevelCount":"Unique Values"
                             }
         displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7}
 
@@ -84,6 +85,12 @@ class MetaDataHelper():
             col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
+            if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
+                fs1 = time.time()
+                levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+                levelCount = {str(k):v for k,v in levelCount.items()}
+                print "time for measure levelCount "+column,time.time()-fs1,"Seconds"
+                col_stat["LevelCount"] = levelCount
             if binned_stat_flag:
                 st = time.time()
                 measure_chart_data = self.get_binned_stat(df,column,col_stat)
@@ -99,7 +106,7 @@ class MetaDataHelper():
                 chart_data[column] = {}
             modified_col_stat = []
             for k,v in col_stat.items():
-                if k != "numberOfNotNulls":
+                if k not in ["numberOfNotNulls","LevelCount"]:
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
@@ -133,7 +140,6 @@ class MetaDataHelper():
                             "LevelCount":"LevelCount"
                             }
 
-        #TODO: FIX copy paste error numberOfUniqueValues
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7, "max": 8,
                             "stddev": 9, "mean": 10, "LevelCount": 11}

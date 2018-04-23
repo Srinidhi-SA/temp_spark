@@ -3,6 +3,8 @@ from pySparkMLRegressionParams import *
 from sklearnMLClassificationParams import *
 from sklearnMLRegressionParams import *
 
+UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION = 20
+
 CHISQUARELEVELLIMIT = 10
 CHISQUARESIGNIFICANTDIMENSIONTOSHOW = 8
 

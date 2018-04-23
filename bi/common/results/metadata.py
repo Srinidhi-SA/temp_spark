@@ -173,7 +173,7 @@ class ColumnData:
         if self.columnType == "dimension":
             return [x["value"] for x in self.columnStats if x["name"] == "LevelCount"][0]
         else:
-            return None
+            return [x["value"] for x in self.columnStats if x["name"] == "LevelCount"][0]
 
     def get_colstat_values(self,colName,key=None):
         if self.columnType == "measure":
