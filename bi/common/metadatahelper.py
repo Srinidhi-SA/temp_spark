@@ -71,7 +71,7 @@ class MetaDataHelper():
                             "numberOfNotNulls":"Not Nulls",
                             "LevelCount":"Unique Values"
                             }
-        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7}
+        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7,"LevelCount":8}
 
         for column in measure_columns:
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
