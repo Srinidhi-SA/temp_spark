@@ -156,10 +156,15 @@ class LogisticRegressionScript:
                     clf.fit(x_train_fold, y_train_fold)
                     y_score_fold = clf.predict(x_test_fold)
                     metricsFold = {}
-                    metricsFold["accuracy"] = metrics.accuracy_score(y_test_fold,y_score_fold)
-                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel)
-                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel)
-                    metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                    if len(levels) <= 2:
+                        metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
+                        metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
+                        metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                    elif len(levels) > 2:
+                        metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
+                        metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
+                        # metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold,average="weighted")
+                        metricsFold["auc"] = None
                     kFoldOutput.append((clf,metricsFold))
                 kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["precision"])
                 bestEstimator = kFoldOutput[-1][0]
@@ -179,17 +184,17 @@ class LogisticRegressionScript:
             # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
             # print overall_precision_recall
             accuracy = metrics.accuracy_score(y_test,y_score)
-            auc = metrics.roc_auc_score(y_test,y_score)
-            if levels <= 2:
+            if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
-            elif levels > 2:
+                auc = metrics.roc_auc_score(y_test,y_score)
+            elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
-            print accuracy,precision,recall,auc
+                # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
+                auc = None
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
-            print y_score[:5]
 
             feature_importance = {}
 
