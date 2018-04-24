@@ -9,15 +9,15 @@ from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 
-from bi.scripts.classification.random_forest import RandomForestScript
+from bi.scripts.classification.random_forest import RFClassificationModelScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
-from bi.scripts.regression.linear_regression_model import LinearRegressionModelPysparkScript
-from bi.scripts.regression.generalized_linear_regression_model import GeneralizedLinearRegressionModelPysparkScript
-from bi.scripts.regression.gbt_regression_model import GBTRegressionModelPysparkScript
-from bi.scripts.regression.rf_regression_model import RFRegressionModelPysparkScript
-from bi.scripts.regression.dtree_regression_model import DTREERegressionModelPysparkScript
+from bi.scripts.regression.linear_regression_model import LinearRegressionModelScript
+from bi.scripts.regression.generalized_linear_regression_model import GeneralizedLinearRegressionModelScript
+from bi.scripts.regression.gbt_regression_model import GBTRegressionModelScript
+from bi.scripts.regression.rf_regression_model import RFRegressionModelScript
+from bi.scripts.regression.dtree_regression_model import DTREERegressionModelScript
 
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
@@ -162,7 +162,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     if app_type == "CLASSIFICATION":
         try:
             st = time.time()
-            rf_obj = RandomForestScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+            rf_obj = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
             # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
             rf_obj.Train()
             print "Random Forest Model Done in ", time.time() - st,  " seconds."
@@ -202,7 +202,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
             if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
                 try:
                     st = time.time()
-                    lin_obj = LinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    lin_obj = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     lin_obj.Train()
                     print "Linear Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
@@ -212,7 +212,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
             # if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
             #     try:
             #         st = time.time()
-            #         lin_obj = GeneralizedLinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+            #         lin_obj = GeneralizedLinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
             #         lin_obj.Train()
             #         print "Generalized Linear Regression Model Done in ", time.time() - st,  " seconds."
             #     except Exception as e:
@@ -221,7 +221,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
             if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
                 try:
                     st = time.time()
-                    gbt_obj = GBTRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    gbt_obj = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     gbt_obj.Train()
                     print "GBT Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
@@ -230,7 +230,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
             if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
                 try:
                     st = time.time()
-                    dtree_obj = DTREERegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    dtree_obj = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     dtree_obj.Train()
                     print "DTREE Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
@@ -239,7 +239,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
             if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
                 try:
                     st = time.time()
-                    rf_obj = RFRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    rf_obj = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     rf_obj.Train()
                     print "RF Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
@@ -248,6 +248,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
 
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
+    print modelJsonOutput
 
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
@@ -307,8 +308,8 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
         print "selected_model_for_prediction", selected_model_for_prediction
         if "randomforest" in selected_model_for_prediction:
-            df = df.toPandas()
-            trainedModel = RandomForestScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # df = df.toPandas()
+            trainedModel = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark)
             try:
                 trainedModel.Predict()
@@ -317,7 +318,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "xgboost" in selected_model_for_prediction:
-            df = df.toPandas()
+            # df = df.toPandas()
             trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
@@ -326,7 +327,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "logisticregression" in selected_model_for_prediction:
-            df = df.toPandas()
+            # df = df.toPandas()
             trainedModel = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
             try:
@@ -360,7 +361,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
         print "selected_model_for_prediction", selected_model_for_prediction
         if "linearregression" in  selected_model_for_prediction:
-            trainedModel = LinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -369,7 +370,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             print "Scoring Done in ", time.time() - st,  " seconds."
 
         if "gbtregression" in  selected_model_for_prediction:
-            trainedModel = GBTRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -378,7 +379,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             print "Scoring Done in ", time.time() - st,  " seconds."
 
         if "dtreeregression" in  selected_model_for_prediction:
-            trainedModel = DTREERegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -387,7 +388,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             print "Scoring Done in ", time.time() - st,  " seconds."
 
         if "rfregression" in  selected_model_for_prediction:
-            trainedModel = RFRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -396,7 +397,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             print "Scoring Done in ", time.time() - st,  " seconds."
 
         if "generalizedlinearregression" in  selected_model_for_prediction:
-            trainedModel = GeneralizedLinearRegressionModelPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = GeneralizedLinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -408,16 +409,27 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         if headNode != None:
             headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
         headNode["name"] = jobName
+        # distributionNode = result_setter.get_distribution_node()
+        # if distributionNode != None:
+        #     headNode["listOfNodes"].append(distributionNode)
+        # anovaNode = result_setter.get_anova_node()
+        # if anovaNode != None:
+        #     headNode["listOfNodes"].append(anovaNode)
+        # decisionTreeNode = result_setter.get_decision_tree_node()
+        # if decisionTreeNode != None:
+        #     headNode["listOfNodes"].append(decisionTreeNode)
+
+        kpiCard = result_setter.get_kpi_card_regression_score()
+        kpiCard = json.loads(CommonUtils.convert_python_object_to_json(kpiCard))
+        headNode["listOfCards"].append(kpiCard)
         distributionNode = result_setter.get_distribution_node()
         if distributionNode != None:
-            headNode["listOfNodes"].append(distributionNode)
-        anovaNode = result_setter.get_anova_node()
-        if anovaNode != None:
-            headNode["listOfNodes"].append(anovaNode)
-        decisionTreeNode = result_setter.get_decision_tree_node()
-        if decisionTreeNode != None:
-            headNode["listOfNodes"].append(decisionTreeNode)
-        print json.dumps(headNode,indent=2)
+            headNode["listOfCards"] += distributionNode["listOfCards"]
+        anovaCards = result_setter.get_anova_cards_regression_score()
+        anovaCards = [CommonUtils.convert_python_object_to_json(obj) for obj in anovaCards]
+        print anovaCards
+        headNode["listOfCards"] += anovaCards
+        # print json.dumps(headNode,indent=2)
         response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
         # print "Dimension Analysis Completed in", time.time()-st," Seconds"
         print "Model Scoring Completed in ", time.time() - st, " seconds."
@@ -628,7 +640,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     decisionTreeNode = result_setter.get_decision_tree_node()
     if decisionTreeNode != None:
         headNode["listOfNodes"].append(decisionTreeNode)
-    print json.dumps(headNode,indent=2)
+    # print json.dumps(headNode,indent=2)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Dimension Analysis Completed in", time.time()-st," Seconds"
     progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your signal is ready",100,100,display=True)

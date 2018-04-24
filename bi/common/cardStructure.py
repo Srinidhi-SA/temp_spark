@@ -120,6 +120,10 @@ class NormalCard:
         self.slug = slug
         self.cardData = list(cardData)
         self.cardWidth = 100
+        self.centerAlign = False
+
+    def set_cente_alignment(self,data):
+        self.centerAlign = data
 
     def set_card_data(self,data):
         self.cardData = list(data)
@@ -220,7 +224,7 @@ class SummaryCard:
 
 class HtmlData:
 
-    def __init__(self,data=None):
+    def __init__(self,data=None,classTag=None):
         self.dataType = "html"
         self.data = data
         self.classTag = None
@@ -355,3 +359,21 @@ class PopupData:
 
     def get_data_type(self):
         return self.dataType
+
+class KpiData:
+    def __init__(self,data=None, datatype = 'kpi', widthPercent = 20):
+        self.dataType = datatype
+        self.data = data
+        self.widthPercent = widthPercent
+
+    def set_data(self,data):
+        self.data = data
+
+    def get_data(self):
+        return self.data
+
+    def get_data_type(self):
+        return self.dataType
+
+    def set_width_percent(self,data):
+        self.widthPercent = data

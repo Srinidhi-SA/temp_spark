@@ -54,6 +54,7 @@ class ContextSetter:
         self.trendSettings = None
         self.metaIgnoreMsgFlag = False
         self.customAnalysisDetails = []
+        self.changeDataTypeCols = []
         self.jobType = None
         self.storyOnScoredData = False
         self.uidCol = None
@@ -242,6 +243,8 @@ class ContextSetter:
                             self.selected_date_columns.append(str(colSetting["name"]))
                     if colSetting["dateSuggestionFlag"] == True:
                         self.dateTimeSuggestions.append(str(colSetting["name"]))
+                    if colSetting["actualColumnType"] != colSetting["columnType"] and colSetting["selected"] == True:
+                        self.changeDataTypeCols.append({"colName":str(colSetting["name"]),"actualColumnType":colSetting["actualColumnType"],"columnType":colSetting["columnType"]})
                     if colSetting["setVarAs"] != None and colSetting["selected"] == True:
                         self.customAnalysisDetails.append({"colName":str(colSetting["name"]),"treatAs":colSetting["setVarAs"]})
                     if "targetColSetVarAs" in colSetting and colSetting["targetColumn"] == True:
@@ -507,6 +510,9 @@ class ContextSetter:
 
     def get_custom_analysis_details(self):
         return self.customAnalysisDetails
+
+    def get_change_datatype_details(self):
+        return self.changeDataTypeCols
 
     def set_cols_to_bin(self,colArray):
         self.customAnalysisDetails = colArray

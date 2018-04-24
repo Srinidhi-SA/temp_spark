@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary
+from bi.common import MLModelSummary,NormalCard,KpiData
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -51,7 +51,7 @@ from sklearn.model_selection import KFold
 
 
 
-class GBTRegressionModelPysparkScript:
+class GBTRegressionModelScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -435,6 +435,15 @@ class GBTRegressionModelPysparkScript:
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             y_score = trained_model.predict(pandas_df)
+
+            scoreKpiArray = MLUtils.get_scored_data_summary(y_score)
+            kpiCard = NormalCard()
+            kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
+            kpiCard.set_card_data(kpiCardData)
+            kpiCard.set_cente_alignment(True)
+            print CommonUtils.convert_python_object_to_json(kpiCard)
+            self._result_setter.set_kpi_card_regression_score(kpiCard)
+
             pandas_df[result_column] = y_score
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)

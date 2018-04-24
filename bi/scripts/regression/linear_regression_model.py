@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary
+from bi.common import MLModelSummary,NormalCard,KpiData
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -52,7 +52,7 @@ from sklearn.model_selection import KFold
 
 
 
-class LinearRegressionModelPysparkScript:
+class LinearRegressionModelScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -454,6 +454,15 @@ class LinearRegressionModelPysparkScript:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             print len(model_columns),len(pandas_df.columns)
             y_score = trained_model.predict(pandas_df)
+
+            scoreKpiArray = MLUtils.get_scored_data_summary(y_score)
+            kpiCard = NormalCard()
+            kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
+            kpiCard.set_card_data(kpiCardData)
+            kpiCard.set_cente_alignment(True)
+            print CommonUtils.convert_python_object_to_json(kpiCard)
+            self._result_setter.set_kpi_card_regression_score(kpiCard)
+
             pandas_df[result_column] = y_score
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)
@@ -491,16 +500,16 @@ class LinearRegressionModelPysparkScript:
         except:
             print "Frequency Analysis Failed "
 
-        try:
-            fs = time.time()
-            df_helper.fill_na_dimension_nulls()
-            df = df_helper.get_data_frame()
-            dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Predictive modeling")
-            dt_reg.Run()
-            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-        except:
-            print "DTREE FAILED"
-
+        # try:
+        #     fs = time.time()
+        #     df_helper.fill_na_dimension_nulls()
+        #     df = df_helper.get_data_frame()
+        #     dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Predictive modeling")
+        #     dt_reg.Run()
+        #     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+        # except:
+        #     print "DTREE FAILED"
+        #
         try:
             fs = time.time()
             two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")

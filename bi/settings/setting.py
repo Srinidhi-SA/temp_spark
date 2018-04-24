@@ -1,8 +1,17 @@
-from pySparkMlParams import *
-from sklernMlParams import *
+from pySparkMLClassificationParams import *
+from pySparkMLRegressionParams import *
+from sklearnMLClassificationParams import *
+from sklearnMLRegressionParams import *
+
+UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION = 20
+REG_SCORE_HIGHLIGHT = False
+REG_SCORE_ANOVA_KEY_FACTORS = False
 
 CHISQUARELEVELLIMIT = 10
 CHISQUARESIGNIFICANTDIMENSIONTOSHOW = 8
+
+DTREE_TARGET_DIMENSION_MAX_LEVEL = 10
+DTREE_OTHER_DIMENSION_MAX_LEVEL = 50
 
 DECISIONTREERKMEANSTARGETNAME = ['Low','Medium','High']
 MAPEBINS = [0,5,15,25,100]

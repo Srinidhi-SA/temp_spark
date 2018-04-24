@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary
+from bi.common import MLModelSummary,NormalCard,KpiData
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -36,7 +36,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class GeneralizedLinearRegressionModelPysparkScript:
+class GeneralizedLinearRegressionModelScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative

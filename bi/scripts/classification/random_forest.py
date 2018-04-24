@@ -14,12 +14,17 @@ from sklearn.externals import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 from sklearn import metrics
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import preprocessing
+from sklearn.model_selection import KFold
+
+
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
-from bi.common import MLModelSummary
+from bi.common import MLModelSummary,NormalCard,KpiData
 from bi.common import DataFrameHelper
 from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
@@ -32,8 +37,8 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class RandomForestScript:
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+class RFClassificationModelScript:
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -42,10 +47,9 @@ class RandomForestScript:
         self._dataframe_context = df_context
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._spark = spark
-        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
+        self._model_summary =  MLModelSummary()
         self._score_summary = {}
-        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["randomforest"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["randomforest"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -53,6 +57,7 @@ class RandomForestScript:
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
+        self._mlEnv = mlEnvironment
 
         self._scriptStages = {
             "initialization":{
@@ -72,8 +77,12 @@ class RandomForestScript:
 
 
     def Train(self):
-        st = time.time()
+        st_global = time.time()
+
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+        algosToRun = self._dataframe_context.get_algorithms_to_run()
+        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -83,88 +92,176 @@ class RandomForestScript:
         print categorical_columns
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
+
         model_path = self._dataframe_context.get_model_path()
         if model_path.startswith("file"):
             model_path = model_path[7:]
-        random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
-        x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-        x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
-        x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
-        x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+        validationDict = self._dataframe_context.get_validation_dict()
+        print "model_path",model_path
+        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
-
-
-        clf_rf = random_forest_obj.initiate_forest_classifier(10,4)
-        objs = random_forest_obj.train_and_predict(x_train, x_test, y_train, y_test,clf_rf,False,True,[])
-        runtime = round((time.time() - st),2)
-        model_filepath = str(model_path)+"/"+str(self._slug)+"/model.pkl"
-        summary_filepath = model_path+"/"+self._slug+"/ModelSummary/summary.json"
-        joblib.dump(objs["trained_model"],model_filepath)
-
-        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
-        modelPmmlPipeline = PMMLPipeline([
-          ("pretrained-estimator", objs["trained_model"])
-        ])
-        try:
-            modelPmmlPipeline.target_field = result_column
-            modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
-            sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
-            pmmlfile = open(pmml_filepath,"r")
-            pmmlText = pmmlfile.read()
-            pmmlfile.close()
-            self._result_setter.update_pmml_object({self._slug:pmmlText})
-        except:
+        df = self._data_frame
+        if  self._mlEnv == "spark":
             pass
-        cat_cols = list(set(categorical_columns) - {result_column})
-        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
-        self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Random Forest")
-        self._model_summary.set_algorithm_display_name("Random Forest")
-        self._model_summary.set_slug(self._slug)
-        self._model_summary.set_training_time(runtime)
-        self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
-        self._model_summary.set_feature_importance(objs["feature_importance"])
-        self._model_summary.set_feature_list(objs["featureList"])
-        self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
-        self._model_summary.set_training_time(round((time.time() - st),2))
-        self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
-        self._model_summary.set_model_precision(overall_precision_recall["precision"])
-        self._model_summary.set_model_recall(overall_precision_recall["recall"])
-        self._model_summary.set_target_variable(result_column)
-        self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
-        self._model_summary.set_validation_method("Train and Test")
-        self._model_summary.set_level_map_dict(objs["labelMapping"])
-        # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
-        self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
-        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
-        self._model_summary.set_num_trees(100)
-        self._model_summary.set_num_rules(300)
-        modelSummaryJson = {
-            "dropdown":{
-                        "name":self._model_summary.get_algorithm_name(),
-                        "accuracy":self._model_summary.get_model_accuracy(),
-                        "slug":self._model_summary.get_slug()
-                        },
-            "levelcount":self._model_summary.get_level_counts(),
-            "modelFeatureList":self._model_summary.get_feature_list(),
-            "levelMapping":self._model_summary.get_level_map_dict()
-        }
+        elif self._mlEnv == "sklearn":
+            model_filepath = model_path+"/"+self._slug+"/model.pkl"
+            pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
-        rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        for card in rfCards:
-            self._prediction_narrative.add_a_card(card)
+            x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
+            print type(y_train),type(y_test)
+            x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
+            x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
+            x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
 
-        self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_random_forest_model_summary(modelSummaryJson)
-        self._result_setter.set_rf_cards(rfCards)
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+            st = time.time()
+            levels = df[result_column].unique()
+            clf = RandomForestClassifier()
+
+            labelEncoder = preprocessing.LabelEncoder()
+            labelEncoder.fit(np.concatenate([y_train,y_test]))
+            y_train = pd.Series(labelEncoder.transform(y_train))
+            y_test = labelEncoder.transform(y_test)
+            classes = labelEncoder.classes_
+            transformed = labelEncoder.transform(classes)
+            labelMapping = dict(zip(transformed,classes))
+            inverseLabelMapping = dict(zip(classes,transformed))
+            posLabel = inverseLabelMapping[self._targetLevel]
+            print labelMapping,inverseLabelMapping,posLabel,self._targetLevel
+
+            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+            algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
+            clf.set_params(**algoParams)
+
+            if validationDict["name"] == "kFold":
+                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                numFold = int(validationDict["value"])
+                if numFold == 0:
+                    numFold = 3
+                kf = KFold(n_splits=numFold)
+                foldId = 1
+                kFoldOutput = []
+                for train_index, test_index in kf.split(x_train):
+                    x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
+                    y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+                    clf.fit(x_train_fold, y_train_fold)
+                    y_score_fold = clf.predict(x_test_fold)
+                    metricsFold = {}
+                    if len(levels) <= 2:
+                        metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
+                        metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
+                        metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                    elif len(levels) > 2:
+                        metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
+                        metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
+                        # metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold,average="weighted")
+                        metricsFold["auc"] = None
+                    kFoldOutput.append((clf,metricsFold))
+                kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["precision"])
+                bestEstimator = kFoldOutput[-1][0]
+            elif validationDict["name"] == "trainAndtest":
+                clf.fit(x_train, y_train)
+                bestEstimator = clf
+
+            # clf.fit(x_train, y_train)
+            # bestEstimator = clf
+            trainingTime = time.time()-st
+            y_score = bestEstimator.predict(x_test)
+            try:
+                y_prob = bestEstimator.predict_proba(x_test)
+            except:
+                y_prob = [0]*len(y_score)
+
+            # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
+            # print overall_precision_recall
+            accuracy = metrics.accuracy_score(y_test,y_score)
+            if len(levels) <= 2:
+                precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
+                recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
+                auc = metrics.roc_auc_score(y_test,y_score)
+            elif len(levels) > 2:
+                precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
+                recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
+                # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
+                auc = None
+
+            y_score = labelEncoder.inverse_transform(y_score)
+            y_test = labelEncoder.inverse_transform(y_test)
+
+            featureImportance={}
+            feature_importance = dict(sorted(zip(x_train.columns,clf.feature_importances_),key=lambda x: x[1],reverse=True))
+            for k, v in feature_importance.iteritems():
+                feature_importance[k] = CommonUtils.round_sig(v)
+            objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
+
+            joblib.dump(objs["trained_model"],model_filepath)
+            runtime = round((time.time() - st_global),2)
+
+            try:
+                modelPmmlPipeline = PMMLPipeline([
+                  ("pretrained-estimator", objs["trained_model"])
+                ])
+                modelPmmlPipeline.target_field = result_column
+                modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
+                sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
+                pmmlfile = open(pmml_filepath,"r")
+                pmmlText = pmmlfile.read()
+                pmmlfile.close()
+                self._result_setter.update_pmml_object({self._slug:pmmlText})
+            except:
+                pass
+            cat_cols = list(set(categorical_columns) - {result_column})
+            overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
+            self._model_summary = MLModelSummary()
+            self._model_summary.set_algorithm_name("Random Forest")
+            self._model_summary.set_algorithm_display_name("Random Forest")
+            self._model_summary.set_slug(self._slug)
+            self._model_summary.set_training_time(runtime)
+            self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
+            self._model_summary.set_feature_importance(objs["feature_importance"])
+            self._model_summary.set_feature_list(objs["featureList"])
+            self._model_summary.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))
+            self._model_summary.set_training_time(round((time.time() - st),2))
+            self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
+            self._model_summary.set_model_precision(overall_precision_recall["precision"])
+            self._model_summary.set_model_recall(overall_precision_recall["recall"])
+            self._model_summary.set_target_variable(result_column)
+            self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
+            self._model_summary.set_validation_method("Train and Test")
+            self._model_summary.set_level_map_dict(objs["labelMapping"])
+            # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
+            self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
+            self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
+            self._model_summary.set_num_trees(100)
+            self._model_summary.set_num_rules(300)
+            modelSummaryJson = {
+                "dropdown":{
+                            "name":self._model_summary.get_algorithm_name(),
+                            "accuracy":self._model_summary.get_model_accuracy(),
+                            "slug":self._model_summary.get_slug()
+                            },
+                "levelcount":self._model_summary.get_level_counts(),
+                "modelFeatureList":self._model_summary.get_feature_list(),
+                "levelMapping":self._model_summary.get_level_map_dict()
+            }
+
+            rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            for card in rfCards:
+                self._prediction_narrative.add_a_card(card)
+
+            self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_random_forest_model_summary(modelSummaryJson)
+            self._result_setter.set_rf_cards(rfCards)
+
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
-        # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
-        # print self._model_summary
-        # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
+            # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
+            # print self._model_summary
+            # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
@@ -204,15 +301,14 @@ class RandomForestScript:
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
         cat_cols = self._dataframe_helper.get_string_columns()
-        level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,cat_cols,self._dataframe_context.get_column_separator(),output_type="dict")
-        if level_counts_train != {}:
-            for key in level_counts_train:
-                if key in level_counts_score:
-                    if level_counts_train[key] != level_counts_score[key]:
-                        dataSanity = False
-                else:
-                    dataSanity = False
-        random_forest_obj = RandomForest(self._data_frame, self._dataframe_helper, self._spark)
+        # level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,cat_cols,self._dataframe_context.get_column_separator(),output_type="dict")
+        # if level_counts_train != {}:
+        #     for key in level_counts_train:
+        #         if key in level_counts_score:
+        #             if level_counts_train[key] != level_counts_score[key]:
+        #                 dataSanity = False
+        #         else:
+        #             dataSanity = False
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -222,25 +318,35 @@ class RandomForestScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
-        score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
-        if score_data_path.startswith("file"):
-            score_data_path = score_data_path[7:]
-        trained_model_path = self._dataframe_context.get_model_path()
-        trained_model_path += "/model.pkl"
-        if trained_model_path.startswith("file"):
-            trained_model_path = trained_model_path[7:]
-        score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
-        if score_summary_path.startswith("file"):
-            score_summary_path = score_summary_path[7:]
-        trained_model = joblib.load(trained_model_path)
-        # pandas_df = self._data_frame.toPandas()
-        df = self._data_frame
-        model_columns = self._dataframe_context.get_model_features()
-        pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
-        pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
-        if uid_col:
-            pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
-        score = random_forest_obj.predict(pandas_df,trained_model,[result_column])
+
+        if self._mlEnv == "spark":
+            pass
+        elif self._mlEnv == "sklearn":
+
+            score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
+            if score_data_path.startswith("file"):
+                score_data_path = score_data_path[7:]
+            trained_model_path = self._dataframe_context.get_model_path()
+            trained_model_path += "/model.pkl"
+            if trained_model_path.startswith("file"):
+                trained_model_path = trained_model_path[7:]
+            score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
+            if score_summary_path.startswith("file"):
+                score_summary_path = score_summary_path[7:]
+            trained_model = joblib.load(trained_model_path)
+
+            df = self._data_frame.toPandas()
+            model_columns = self._dataframe_context.get_model_features()
+            pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
+            pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
+            if uid_col:
+                pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+
+            y_score = trained_model.predict(pandas_df)
+            y_prob = trained_model.predict_proba(pandas_df)
+            y_prob = MLUtils.calculate_predicted_probability(y_prob)
+            score = {"predicted_class":y_score,"predicted_probability":y_prob}
+
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()
         df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")

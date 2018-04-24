@@ -142,7 +142,7 @@ class DimensionColumnNarrative:
     def _generate_analysis(self):
         lines = []
         freq_dict = self._dimension_col_freq_dict
-        print "freq_dict",freq_dict
+        # print "freq_dict",freq_dict
         json_freq_dict = json.dumps(freq_dict)
         freq_dict = json.loads(freq_dict)
         colname = self._colname

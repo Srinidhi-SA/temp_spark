@@ -89,15 +89,18 @@ class OneWayAnovaNarratives:
     def _generate_narratives(self):
         self._card3_required = False
         self._generate_card1()
+        print "self._dataframe_context.get_job_type()",self._dataframe_context.get_job_type()
 
-        print "duration is ",self._trendDuration
-        if self._trendDuration > 0:
-            self._generate_card2()
-            if self._card3_required:
-                self._generate_card3()
-        self._dimensionNode.add_a_card(self._anovaCard1)
-        if self._card3_required and self._trendDuration >0 :
-            self._dimensionNode.add_a_card(self._anovaCard3)
+        if self._dataframe_context.get_job_type() != "prediction":
+            print "duration is ",self._trendDuration
+            if self._trendDuration > 0:
+                self._generate_card2()
+                if self._card3_required:
+                    self._generate_card3()
+            self._dimensionNode.add_a_card(self._anovaCard1)
+            if self._card3_required and self._trendDuration >0 :
+                self._dimensionNode.add_a_card(self._anovaCard3)
+
 
     def _generate_title(self):
         self.title = 'Impact of %s on %s' % (self._dimension_column_capitalized, self._measure_column_capitalized)
@@ -268,7 +271,8 @@ class OneWayAnovaNarratives:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)
         self._anovaCard1.set_card_data(lines)
         self.card1.add_paragraph(dict(output))
-        self.generate_top_dimension_narratives()
+        self._result_setter.set_anova_cards_regression_score(self.card1)
+        # self.generate_top_dimension_narratives()
 
     def generate_top_dimension_narratives(self):
         topLevelAnova = self._measure_anova_result.get_topLevelDfAnovaResult(self._dimension_column)
