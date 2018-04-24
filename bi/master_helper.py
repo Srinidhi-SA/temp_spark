@@ -409,16 +409,27 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         if headNode != None:
             headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
         headNode["name"] = jobName
+        # distributionNode = result_setter.get_distribution_node()
+        # if distributionNode != None:
+        #     headNode["listOfNodes"].append(distributionNode)
+        # anovaNode = result_setter.get_anova_node()
+        # if anovaNode != None:
+        #     headNode["listOfNodes"].append(anovaNode)
+        # decisionTreeNode = result_setter.get_decision_tree_node()
+        # if decisionTreeNode != None:
+        #     headNode["listOfNodes"].append(decisionTreeNode)
+
+        kpiCard = result_setter.get_kpi_card_regression_score()
+        kpiCard = json.loads(CommonUtils.convert_python_object_to_json(kpiCard))
+        headNode["listOfCards"].append(kpiCard)
         distributionNode = result_setter.get_distribution_node()
         if distributionNode != None:
-            headNode["listOfNodes"].append(distributionNode)
-        anovaNode = result_setter.get_anova_node()
-        if anovaNode != None:
-            headNode["listOfNodes"].append(anovaNode)
-        decisionTreeNode = result_setter.get_decision_tree_node()
-        if decisionTreeNode != None:
-            headNode["listOfNodes"].append(decisionTreeNode)
-        print json.dumps(headNode,indent=2)
+            headNode["listOfCards"] += distributionNode["listOfCards"]
+        anovaCards = result_setter.get_anova_cards_regression_score()
+        anovaCards = [CommonUtils.convert_python_object_to_json(obj) for obj in anovaCards]
+        print anovaCards
+        headNode["listOfCards"] += anovaCards
+        # print json.dumps(headNode,indent=2)
         response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
         # print "Dimension Analysis Completed in", time.time()-st," Seconds"
         print "Model Scoring Completed in ", time.time() - st, " seconds."

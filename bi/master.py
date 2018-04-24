@@ -39,7 +39,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "prediction"
             configJson = get_test_configs(jobType)
 
 

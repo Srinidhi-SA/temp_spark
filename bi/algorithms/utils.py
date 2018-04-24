@@ -584,7 +584,7 @@ def get_model_comparison(collated_summary):
     summaryData = HtmlData(data = summary_html)
 
     modelTable = TableData()
-    modelTable.set_table_data(out)
+    modelTable.set_table_data(np.transpose(out))
     modelTable.set_table_type("circularChartTable")
     return modelTable,summaryData
 
@@ -1051,3 +1051,23 @@ def get_quantile_summary(df,colname):
         if str(idx) in splitDict:
             splitDict[str(idx)].update({"splitRange":val})
     return splitDict
+
+def get_scored_data_summary(scoredCol,outlierConstant=1.5):
+    maxVal = np.max(scoredCol)
+    sumVal = np.sum(scoredCol)
+    avgVal = np.mean(scoredCol)
+    nObs = len(scoredCol)
+    sd = np.std(scoredCol,axis=0)
+    upper_quartile = np.percentile(scoredCol, 75)
+    lower_quartile = np.percentile(scoredCol, 25)
+    IQR = (upper_quartile - lower_quartile) * outlierConstant
+    quartileSet = (lower_quartile - IQR, upper_quartile + IQR)
+    resultList = [x for x in scoredCol if x < quartileSet[0] or x > quartileSet[1]]
+    nOutliers = len(resultList)
+    out = []
+    out.append({"name":"totalCount","value":nObs,"text":"Number of Observations"})
+    out.append({"name":"totalSum","value":round(sumVal,2),"text":"Sum of Predicted Values"})
+    out.append({"name":"maxValue","value":round(maxVal,2),"text":"Maximum of Predicted Values"})
+    out.append({"name":"meanValue","value":round(avgVal,2),"text":"Average of Predicted Values"})
+    out.append({"name":"outlierCount","value":nOutliers,"text":"Number of Outliers"})
+    return out
