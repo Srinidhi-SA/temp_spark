@@ -33,6 +33,7 @@ class ChiSquareAnalysis:
 
         significant_variables=list(set(significant_variables) - {analysed_dimension})
         significant_variables = list(set(significant_variables)-set(measure_columns))
+
         if len(significant_variables)<=20:
             if len(significant_variables)<=3:
                 self._second_level_dimensions = list(significant_variables)
@@ -44,6 +45,7 @@ class ChiSquareAnalysis:
         elif len(significant_variables)>=20:
             self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
             self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
+
         self._appid = appid
         self._card1 = NormalCard()
         self._targetCards = []
@@ -51,7 +53,6 @@ class ChiSquareAnalysis:
 
         self._binTargetCol = False
         self._binAnalyzedCol = False
-        # print "self._dataframe_context.get_custom_analysis_details() : ", self._dataframe_context.get_custom_analysis_details()
         print "--------Chi-Square Narratives for ", analysed_dimension, "---------"
         if self._dataframe_context.get_custom_analysis_details() != None:
             binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
@@ -61,8 +62,8 @@ class ChiSquareAnalysis:
             if binnedColObj != None and (self._analysed_dimension in binnedColObj or self._analysed_dimension in self._measure_columns):
                 self._binAnalyzedCol = True
 
-        print "binTargetCol : ",  self._binTargetCol
-        print "BinAnalyzedCol : ", self._binAnalyzedCol
+        # print "binTargetCol : ",  self._binTargetCol
+        # print "BinAnalyzedCol : ", self._binAnalyzedCol
         if self._appid == None:
             self._generate_narratives()
             self._dimensionNode.add_cards([self._card1]+self._targetCards)
@@ -77,7 +78,6 @@ class ChiSquareAnalysis:
             self._dimensionNode.set_name("{}".format(analysed_dimension))
 
     def get_dimension_node(self):
-        # return self._dimensionNode
         return json.loads(CommonUtils.convert_python_object_to_json(self._dimensionNode))
 
     def get_dimension_card1(self):
@@ -108,7 +108,7 @@ class ChiSquareAnalysis:
           target_levels = self._chiSquareTable.get_column_one_levels()
           target_counts = self._chiSquareTable.get_row_total()
           sorted_target_levels = sorted(zip(target_counts,target_levels),reverse=True)
-        #   print "sorted_target_levels : ", sorted_target_levels
+          # print "sorted_target_levels : "*3, sorted_target_levels
 
           top_target_count, top_target = sorted_target_levels[0]
           second_target_count, second_target = sorted_target_levels[1]
@@ -145,12 +145,10 @@ class ChiSquareAnalysis:
           worst_top_difference_indices = [x for x,y in sorted_[bottoms:]]
 
           top_target_shares = [x*100.0/y for x,y in zip(top_target_contributions,level_counts)]
-          # best_top_target_share_index = top_target_shares.index(max(top_target_shares))
           max_top_target_shares = max(top_target_shares)
           best_top_target_share_index = [idx for idx,val in enumerate(top_target_shares) if val==max_top_target_shares]
           level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
           min_top_target_shares = min([x for x,y in zip(top_target_shares,level_counts) if y>=level_counts_threshold])
-          # worst_top_target_share_index = top_target_shares.index(min_top_target_shares)
           worst_top_target_share_index = [idx for idx,val in enumerate(top_target_shares) if val==min_top_target_shares]
           overall_top_percentage = sum_top_target*100.0/total
 
@@ -229,10 +227,6 @@ class ChiSquareAnalysis:
           data_dict['top_levels'] = top_dims
           data_dict['top_levels_percent'] = round(top_dims_contribution*100.0/total,1)
           data_dict['bottom_level'] = bottom_dim
-          # if len(bottom_dims)==1:
-          #     bottom_dims = bottom_dims[0] + ' is'
-          # else:
-          #     bottom_dims = ', '.join(bottom_dims[:-1]) + ' and ' + bottom_dims[-1] + ' are'
           data_dict['bottom_levels'] = bottom_dims
           data_dict['bottom_level_percent'] = round(bottom_dim_contribution*100/sum(level_counts),2)
           data_dict['second_target']=second_target
@@ -298,100 +292,18 @@ class ChiSquareAnalysis:
           toggledata.set_toggleoff_data({"data":{"tableData":table2Data,"tableType":"heatMap"},"dataType":"table"})
 
           targetDimCard1Data.append(HtmlData(data=targetDimcard1Heading))
-          # targetDimCard1Data.append(targetDimCard1Table1)
-          # targetDimCard1Data.append(targetDimCard1Table2)
           targetDimCard1Data.append(toggledata)
           targetDimCard1Data += output
 
           self._card1.set_card_data(targetDimCard1Data)
           self._card1.set_card_name("{}: Relationship with {}".format(self._analysed_dimension,self._target_dimension))
+
+          ###############
+          #     CARD2   #
+          ###############
+
           if self._appid == None:
-              self._key_factors_contributions = {}
-              # for key_dim in self._second_level_dimensions:
-              #     key_dim_table = self._target_chisquare_result[key_dim].contingency_table
-              #     col_1_index = key_dim_table.get_column_one_levels().index(second_target)
-              #     col_2_names = key_dim_table.get_column_two_levels()
-              #     contributions_percent = key_dim_table.table_percent_by_column[col_1_index]
-              #     sorted_contributions = sorted(zip(col_2_names,contributions_percent),key = lambda x: x[1],reverse=True)
-              #     self._key_factors_contributions[key_dim] = sorted_contributions[:2]
-              #
-
-              if self._chisquare_result.get_splits():
-                  splits = self._chisquare_result.get_splits()
-                  idx = self._chiSquareTable.get_bin_names(splits).index(second_target_top_dims[0])
-                  idx1 = self._chiSquareTable.get_bin_names(splits).index(top_target_top_dims[0])
-                  splits[len(splits)-1] = splits[len(splits)-1]+1
-                  df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
-                                      filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
-                                      select(self._second_level_dimensions).toPandas()
-                  df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
-                                      filter(col(self._analysed_dimension)>=splits[idx1]).filter(col(self._analysed_dimension)<splits[idx1+1]).\
-                                      select(self._second_level_dimensions1).toPandas()
-                  df_top_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx1]).\
-                              filter(col(self._analysed_dimension)<splits[idx1+1]).\
-                              select(self._second_level_dimensions1).toPandas()
-                  df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
-                                  filter(col(self._analysed_dimension)<splits[idx+1]).\
-                                  select(self._second_level_dimensions).toPandas()
-              else:
-                  df_second_target = self._data_frame.filter(col(self._target_dimension)==second_target).\
-                                      filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
-                                      select(self._second_level_dimensions).toPandas()
-                  df_top_target = self._data_frame.filter(col(self._target_dimension)==top_target).\
-                                      filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
-                                      select(self._second_level_dimensions1).toPandas()
-                  df_top_dim = self._data_frame.filter(col(self._analysed_dimension)==top_target_top_dims[0]).\
-                              select(self._second_level_dimensions1).toPandas()
-                  df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
-                                  select(self._second_level_dimensions).toPandas()
-              distribution_second = []
-              for d in self._second_level_dimensions:
-                  grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
-                  contributions = df_second_dim.groupby(d).agg({d:'count'})
-                  contribution_index = list(contributions.index)
-                  contributions_val = contributions[d].tolist()
-                  contributions_list = dict(zip(contribution_index,contributions_val))
-                  index_list = list(grouped.index)
-                  grouped_list = grouped[d].tolist()
-                  contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
-                  sum_ = grouped[d].sum()
-                  diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
-                  max_diff = diffs.index(max(diffs))
-                  index_txt=''
-                  if max_diff == 1:
-                      index_txt = index_list[0]
-                  elif max_diff == 2:
-                      index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-                  elif max_diff>2:
-                      index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-                  distribution_second.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
-                                          'levels': index_list[:max_diff],'variation':random.randint(1,100),\
-                                          'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
-
-              distribution_top = []
-              for d in self._second_level_dimensions1:
-                  grouped = df_top_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
-                  contributions = df_top_dim.groupby(d).agg({d:'count'})
-                  contribution_index = list(contributions.index)
-                  contributions_val = contributions[d].tolist()
-                  contributions_list = dict(zip(contribution_index,contributions_val))
-                  index_list = list(grouped.index)
-                  grouped_list = grouped[d].tolist()
-                  contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
-                  sum_ = grouped[d].sum()
-                  diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
-                  max_diff = diffs.index(max(diffs))
-                  index_txt=''
-                  if max_diff == 1:
-                      index_txt = index_list[0]
-                  elif max_diff == 2:
-                      index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
-                  elif max_diff>2:
-                      index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,2))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,2))+'%)'
-                  distribution_top.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
-                                          'levels': index_list[:max_diff],'variation':random.randint(1,100),\
-                                          'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
-
+ 
               key_factors = ''
               num_key_factors = len(self._second_level_dimensions)
 
@@ -409,44 +321,11 @@ class ChiSquareAnalysis:
               targetCardDataDict['num_key_factors'] = num_key_factors
               targetCardDataDict['key_factors'] = key_factors
 
-              key_factors1 = ''
-              num_key_factors1 = len(self._second_level_dimensions1)
-            #   print "key_factors1 : ", key_factors1
-            #   print "self._second_level_dimensions : ", self._second_level_dimensions
-            #   print "num_key_factors1 : ", num_key_factors1
-
-              if len(self._second_level_dimensions1)==5:
-                  key_factors1 = ', '.join(self._second_level_dimensions1[:4]) + ' and ' + self._second_level_dimensions1[4]
-              elif len(self._second_level_dimensions)==4:
-                  key_factors1 = ', '.join(self._second_level_dimensions1[:3]) + ' and ' + self._second_level_dimensions1[3]
-              elif len(self._second_level_dimensions)==3:
-                  key_factors1 = ', '.join(self._second_level_dimensions1[:2]) + ' and ' + self._second_level_dimensions1[2]
-              elif len(self._second_level_dimensions1)==2:
-                  key_factors1 = ' and '.join(self._second_level_dimensions1)
-              elif len(self._second_level_dimensions1)==1:
-                  key_factors1 = self._second_level_dimensions1[0]
-
-            #   print "key_factors1 : ", key_factors1
-            #   print "data_dict.keys() : ", data_dict.keys()
-
-              targetCardDataDict['num_key_factors1'] = num_key_factors1
-              targetCardDataDict['key_factors1'] = key_factors1
-
-              targetCardDataDict['distribution_top'] = distribution_top
-              targetCardDataDict['distribution_second'] = distribution_second
-              targetCardDataDict['random_card2'] = random.randint(1,100)
-              targetCardDataDict['random_card4'] = random.randint(1,100)
-
-              ###############
-              #     CARD2   #
-              ###############
-            #   print "data_dict['key_factors1'] : ", data_dict['key_factors1']
-            #   print "data_dict['key_factors'] : ", data_dict['key_factors']
-              targetCardDataDict['num_key_factors'] = num_key_factors
-              targetCardDataDict['random_card2'] = random.randint(1,100)
-
               for tupleObj in sorted_target_levels[:self._chiSquareLevelLimit]:
                   targetLevel = tupleObj[1]
+
+                  targetCardDataDict['random_card2'] = random.randint(1,100)
+                  targetCardDataDict['random_card4'] = random.randint(1,100)
 
                   second_target_contributions = [table.get_value(targetLevel,i) for i in levels]
                   sum_second_target = sum(second_target_contributions)
@@ -480,10 +359,55 @@ class ChiSquareAnalysis:
                   best_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==max_second_target_shares]
                   level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
                   min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
-                  # worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
                   worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
                   overall_second_percentage = sum_second_target*100.0/total
 
+                                    # DataFrame for contribution calculation
+                  if self._chisquare_result.get_splits():
+                      splits = self._chisquare_result.get_splits()
+                      idx = self._chiSquareTable.get_bin_names(splits).index(second_target_top_dims[0])
+                      idx1 = self._chiSquareTable.get_bin_names(splits).index(top_target_top_dims[0])
+                      splits[len(splits)-1] = splits[len(splits)-1]+1
+                      df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
+                                          filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
+                                          select(self._second_level_dimensions).toPandas()
+                      df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
+                                      filter(col(self._analysed_dimension)<splits[idx+1]).\
+                                      select(self._second_level_dimensions).toPandas()
+                  else:
+                      df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
+                                          filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                                          select(self._second_level_dimensions).toPandas()
+                      df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                                      select(self._second_level_dimensions).toPandas()
+
+
+                  distribution_second = []
+                  for d in self._second_level_dimensions:
+                    grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
+                    contributions = df_second_dim.groupby(d).agg({d:'count'})
+                    contribution_index = list(contributions.index)
+                    contributions_val = contributions[d].tolist()
+                    contributions_list = dict(zip(contribution_index,contributions_val))
+                    index_list = list(grouped.index)
+                    grouped_list = grouped[d].tolist()
+                    contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
+                    sum_ = grouped[d].sum()
+                    diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
+                    max_diff = diffs.index(max(diffs))
+
+                    index_txt=''
+                    if max_diff == 1:
+                        index_txt = index_list[0]
+                    elif max_diff == 2:
+                        index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
+                    elif max_diff>2:
+                        index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
+                    distribution_second.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
+                                            'levels': index_list[:max_diff],'variation':random.randint(1,100),\
+                                            'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
+
+                  targetCardDataDict['distribution_second'] = distribution_second
                   targetCardDataDict['second_target']=targetLevel
                   targetCardDataDict['second_target_top_dims'] = second_target_top_dims
                   targetCardDataDict['second_target_top_dims_contribution'] = second_target_top_dims_contribution*100.0/sum(second_target_contributions)
@@ -494,7 +418,7 @@ class ChiSquareAnalysis:
                   targetCardDataDict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/sum(second_target_contributions),2)
                   targetCardDataDict['worst_second_target'] = levels[worst_second_target_index]
                   targetCardDataDict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/sum(second_target_contributions),2)
-
+              
                   card2Data = []
                   targetLevelContributions = [table.get_value(targetLevel,i) for i in levels]
                   card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + targetLevel + ') across ' + self._analysed_dimension+"</h3>"
@@ -516,12 +440,9 @@ class ChiSquareAnalysis:
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',targetCardDataDict),self._blockSplitter)
                   else:
                       print "In Else, self._binTargetCol should be False : ", self._binTargetCol
-                      print targetCardDataDict['second_target']
-                      print targetCardDataDict
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',targetCardDataDict),self._blockSplitter)
 
                   card2Data.append(HtmlData(data=card2Heading))
-                  # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
                   statistical_info_array=[
                      ("Test Type","Chi-Square"),
                      ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
@@ -539,90 +460,8 @@ class ChiSquareAnalysis:
                   targetCard.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,targetLevel))
                   self._targetCards.append(targetCard)
 
-              # card2Data = []
-              # card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + second_target + ') across ' + self._analysed_dimension+"</h3>"
-              # chart,bubble=self.generate_distribution_card_chart(second_target, second_target_contributions, levels, level_counts, total)
-              # card2ChartData = NormalChartData(data=chart["data"])
-              # card2ChartJson = ChartJson()
-              # card2ChartJson.set_data(card2ChartData.get_data())
-              # card2ChartJson.set_chart_type("combination")
-              # card2ChartJson.set_types({"total":"bar","percentage":"line"})
-              # card2ChartJson.set_legend({"total":"# of "+second_target,"percentage":"% of "+second_target})
-              # card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-              # card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
-              #
-              # if (self._binTargetCol == True & self._binAnalyzedCol == False):
-              #     print "Only Target Column is Binned"
-              #     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',data_dict),self._blockSplitter)
-              # elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-              #     print "Target Column and IV is Binned"
-              #     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',data_dict),self._blockSplitter)
-              # else:
-              #     output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',data_dict),self._blockSplitter)
-              #
-              # card2Data.append(HtmlData(data=card2Heading))
-              # # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V: "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic : '+str(round(self._chisquare_result.get_stat(),3))]
-              # statistical_info_array=[
-              #     ("Test Type","Chi-Square"),
-              #     ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
-              #     ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
-              #     ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
-              #     ]
-              # statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
-              #
-              # card2Data.append(C3ChartData(data=card2ChartJson,info=statistical_info_array))
-              # card2Data += output2
-              # card2BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
-              # card2Data.append(HtmlData(data=card2BubbleData))
-              #
-              # self._card2.set_card_data(card2Data)
-              # self._card2.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,second_target))
-              #
-              # card4Data = []
-              # card4Heading ='<h3>Distribution of ' + self._target_dimension + ' (' + top_target + ') across ' + self._analysed_dimension+"</h3>"
-              # chart,bubble=self.generate_distribution_card_chart(top_target, top_target_contributions, levels, level_counts, total)
-              # card4ChartData = NormalChartData(data=chart["data"])
-              # card4ChartJson = ChartJson()
-              # card4ChartJson.set_data(card4ChartData.get_data())
-              # card4ChartJson.set_chart_type("combination")
-              # card4ChartJson.set_types({"total":"bar","percentage":"line"})
-              # card4ChartJson.set_legend({"total":"# of "+top_target,"percentage":"% of "+top_target})
-              # card4ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
-              #
-              # if (self._binTargetCol == True & self._binAnalyzedCol == False):
-              #     print "Only Target Column is Binned"
-              #     output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target.html',data_dict),self._blockSplitter)
-              # elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-              #     print "Target Column and IV is Binned"
-              #     output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4_binned_target_and_IV.html',data_dict),self._blockSplitter)
-              # else:
-              #     output4 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card4.html',data_dict),self._blockSplitter)
-              #
-              # card4Data.append(HtmlData(data=card4Heading))
-              #
-              # # st_info = ["Test : Chi Square",'Variables : '+self._target_dimension+', '+self._analysed_dimension, "p-value : " + str(round(self._chisquare_result.get_pvalue(),3)), "Crammer's V : "+str(round(self._chisquare_result.get_v_value(),3)), 'Chi-Square Statistic: '+str(round(self._chisquare_result.get_stat(),3))]
-              # statistical_info_array=[
-              #     ("Test Type","Chi-Square"),
-              #     ("Chi-Square statistic",str(round(self._chisquare_result.get_stat(),3))),
-              #     ("P-Value",str(round(self._chisquare_result.get_pvalue(),3))),
-              #     ("Inference","Chi-squared analysis shows a significant association between {} (target) and {}.".format(self._target_dimension,self._analysed_dimension) )
-              #     ]
-              # statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
-              #
-              # card4Data.append(C3ChartData(data=card4ChartJson,info=statistical_info_array))
-              # card4Data += output4
-              # card4BubbleData = "<div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div><div class='col-md-6 col-xs-12'><h2 class='text-center'><span>{}</span><br /><small>{}</small></h2></div>".format(bubble[0]["value"],bubble[0]["text"],bubble[1]["value"],bubble[1]["text"])
-              # card4Data.append(HtmlData(data=card4BubbleData))
-              #
-              # self._card4.set_card_data(card4Data)
-              # self._card4.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,top_target))
-
-              # output0 = NarrativesUtils.paragraph_splitter(NarrativesUtils.get_template_output(self._base_dir,'card0.html',data_dict))
-              # self.card0['paragraphs'] = output0
-              # self.card0['heading'] = 'Impact of ' + self._analysed_dimension + ' on '+ self._target_dimension
-
+ 
     # def generate_card2_narratives(self):
-
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):
         chart = {}
