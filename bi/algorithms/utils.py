@@ -2,6 +2,7 @@ import __builtin__
 import json
 import os
 import time
+import math
 import random
 import shutil
 
@@ -568,7 +569,9 @@ def get_model_comparison(collated_summary):
     for key in first_column:
         row = []
         for val in algos:
-            row.append(round(100*(collated_summary[val][map_dict[key]]),2))
+            # row.append(round(100*(collated_summary[val][map_dict[key]]),2))
+            roundedVal = int(round(100*(collated_summary[val][map_dict[key]])))
+            row.append(roundedVal)
         out.append([key]+row)
         max_index = __builtin__.max(xrange(len(row)), key = lambda x: row[x])
         summary.append(["Best "+key,algos_dict[algos[max_index]]])
