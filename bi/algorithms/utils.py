@@ -584,7 +584,7 @@ def get_model_comparison(collated_summary):
     summaryData = HtmlData(data = summary_html)
 
     modelTable = TableData()
-    modelTable.set_table_data(np.transpose(out))
+    modelTable.set_table_data([list(x) for x in np.transpose(out)])
     modelTable.set_table_type("circularChartTable")
     return modelTable,summaryData
 
