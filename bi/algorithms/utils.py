@@ -683,6 +683,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(modelSummaryClass.get_validation_method())))
         modelSummaryCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(modelSummaryClass.get_model_accuracy())))
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
+        modelSummaryCard1.set_card_width(50)
 
         modelSummaryCard2 = NormalCard()
         modelSummaryCard2Data = []
@@ -694,6 +695,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard2Table.set_table_left_header("Predicted")
         modelSummaryCard2Data.append(modelSummaryCard2Table)
         modelSummaryCard2.set_card_data(modelSummaryCard2Data)
+        modelSummaryCard2.set_card_width(50)
         return [modelSummaryCard1,modelSummaryCard2]
     elif modelSummaryClass.get_model_type() == "regression":
         targetVariable = modelSummaryClass.get_target_variable()
@@ -823,8 +825,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card2_elements = get_model_comparison(collated_summary)
         card2Data = [card2_elements[0],card2_elements[1]]
         card2.set_card_data(card2Data)
-        card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
-
         try:
             featureImportanceC3Object = get_feature_importance(collated_summary)
         except:
@@ -840,16 +840,20 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
             card3Data.append(featureImportanceC3Object)
             card3.set_card_data(card3Data)
+            card3.set_card_width(50)
             # prediction_narrative.insert_card_at_given_index(card3,2)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
         else:
+            card2.set_card_width(100)
             card3 = None
+
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         modelResult = json.loads(modelResult)
         existing_cards = modelResult["listOfCards"]
         existing_cards = result_setter.get_all_classification_cards()
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
+        card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
         all_cards = [card1,card2,card3] + existing_cards
         all_cards = [x for x in all_cards if x != None]
         modelResult = NarrativesTree()
