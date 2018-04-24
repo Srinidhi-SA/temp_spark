@@ -821,15 +821,17 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card1.set_card_data(card1Data)
         card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
 
-        card2 = NormalCard()
-        card2_elements = get_model_comparison(collated_summary)
-        card2Data = [card2_elements[0],card2_elements[1]]
-        card2.set_card_data(card2Data)
+
         try:
             featureImportanceC3Object = get_feature_importance(collated_summary)
         except:
             featureImportanceC3Object = None
         if featureImportanceC3Object != None:
+            card2 = NormalCard()
+            card2_elements = get_model_comparison(collated_summary)
+            card2Data = [card2_elements[0],card2_elements[1]]
+            card2.set_card_data(card2Data)
+
             card3 = NormalCard()
             if appid == None:
                 card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
@@ -844,8 +846,16 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             # prediction_narrative.insert_card_at_given_index(card3,2)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
         else:
-            card2.set_card_width(100)
-            card3 = None
+            card2 = NormalCard()
+            card2_elements = get_model_comparison(collated_summary)
+            card2Data = [card2_elements[0]]
+            card2.set_card_data(card2Data)
+            card2.set_card_width(50)
+            card3 = NormalCard()
+            card3Data = [card2_elements[1]]
+            card3.set_card_data(card3Data)
+            card3.set_card_width(50)
+            # card3 = None
 
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         modelResult = json.loads(modelResult)
