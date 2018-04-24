@@ -97,81 +97,81 @@ class AnovaNarratives:
             num_significant_dimensions = len(significant_dimensions)
             num_insignificant_dimensions = len(insignificant_dimensions)
             print "num_significant_dimensions",num_significant_dimensions
-            # if num_significant_dimensions > 0:
-            mainCard = NormalCard(name = "Overview of Key Factors")
-            data_c3 = []
-            for sig_dim in significant_dimensions:
-                data_c3.append({'dimension':sig_dim, 'effect_size':float(significant_dimensions_dict[sig_dim])})
-            self.narratives = {}
-            self.narratives[AnovaNarratives.KEY_HEADING] = "%s Performance Analysis" % (measure_column,)
-            self.narratives['main_card'] = {}
-            self.narratives['cards'] = []
-            self.narratives['main_card'][AnovaNarratives.KEY_SUBHEADING] = "Relationship between %s and other Dimensions" % (measure_column)
-            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH] = []
-            data_dict = { \
-                            'significant_dimensions' : significant_dimensions,
-                            'insignificant_dimensions' : insignificant_dimensions,
-                            'num_significant_dimensions' : num_significant_dimensions,
-                            'num_insignificant_dimensions' : num_insignificant_dimensions,
-                            'num_dimensions' : num_significant_dimensions+num_insignificant_dimensions,
-                            'target' : measure_column \
-                        }
-            output = {'header' : ''}
-            output['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.html',data_dict)
-            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output)
-            output1 = {'header' : ''}
-            output1['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.html',data_dict)
-            lines = []
-            lines += NarrativesUtils.block_splitter(output['content'],self._blockSplitter)
-            data_c3 = NormalChartData(data_c3)
-            chart_data = data_c3.get_data()
-            chartDataValues = []
-            for obj in chart_data:
-                chartDataValues.append(obj["effect_size"])
-            chart_json = ChartJson(data = chart_data,axes={'x':'dimension','y':'effect_size'},
-                                    label_text={'x':'','y':'Effect Size'},chart_type='bar')
-            chart_json.set_axis_rotation(True)
-            # chart_json.set_yaxis_number_format(".4f")
-            chart_json.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
-            # st_info = ["Test : ANOVA", "Threshold for p-value : 0.05", "Effect Size : Tukey's HSD"]
-            statistical_info_array=[
-                ("Test Type","ANOVA"),
-                ("Effect Size","ETA squared"),
-                ("Max Effect Size",chart_data[0]["dimension"]),
-                ("Min Effect Size",chart_data[-1]["dimension"]),
-                ]
-            statistical_inferenc = ""
-            if len(chart_data) == 1:
-                statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
-                 Effect size of {}".format(chart_data[0]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4))
-            elif len(chart_data) == 2:
-                statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
-                 Effect size ranges are {} and {} respectively".format(chart_data[0]["dimension"],chart_data[1]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[1]["effect_size"],4))
+            if num_significant_dimensions > 0:
+                mainCard = NormalCard(name = "Overview of Key Factors")
+                data_c3 = []
+                for sig_dim in significant_dimensions:
+                    data_c3.append({'dimension':sig_dim, 'effect_size':float(significant_dimensions_dict[sig_dim])})
+                self.narratives = {}
+                self.narratives[AnovaNarratives.KEY_HEADING] = "%s Performance Analysis" % (measure_column,)
+                self.narratives['main_card'] = {}
+                self.narratives['cards'] = []
+                self.narratives['main_card'][AnovaNarratives.KEY_SUBHEADING] = "Relationship between %s and other Dimensions" % (measure_column)
+                self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH] = []
+                data_dict = { \
+                                'significant_dimensions' : significant_dimensions,
+                                'insignificant_dimensions' : insignificant_dimensions,
+                                'num_significant_dimensions' : num_significant_dimensions,
+                                'num_insignificant_dimensions' : num_insignificant_dimensions,
+                                'num_dimensions' : num_significant_dimensions+num_insignificant_dimensions,
+                                'target' : measure_column \
+                            }
+                output = {'header' : ''}
+                output['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_1.html',data_dict)
+                self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output)
+                output1 = {'header' : ''}
+                output1['content'] = NarrativesUtils.get_template_output(self._base_dir,'anova_template_2.html',data_dict)
+                lines = []
+                lines += NarrativesUtils.block_splitter(output['content'],self._blockSplitter)
+                data_c3 = NormalChartData(data_c3)
+                chart_data = data_c3.get_data()
+                chartDataValues = []
+                for obj in chart_data:
+                    chartDataValues.append(obj["effect_size"])
+                chart_json = ChartJson(data = chart_data,axes={'x':'dimension','y':'effect_size'},
+                                        label_text={'x':'','y':'Effect Size'},chart_type='bar')
+                chart_json.set_axis_rotation(True)
+                # chart_json.set_yaxis_number_format(".4f")
+                chart_json.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
+                # st_info = ["Test : ANOVA", "Threshold for p-value : 0.05", "Effect Size : Tukey's HSD"]
+                statistical_info_array=[
+                    ("Test Type","ANOVA"),
+                    ("Effect Size","ETA squared"),
+                    ("Max Effect Size",chart_data[0]["dimension"]),
+                    ("Min Effect Size",chart_data[-1]["dimension"]),
+                    ]
+                statistical_inferenc = ""
+                if len(chart_data) == 1:
+                    statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
+                     Effect size of {}".format(chart_data[0]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4))
+                elif len(chart_data) == 2:
+                    statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
+                     Effect size ranges are {} and {} respectively".format(chart_data[0]["dimension"],chart_data[1]["dimension"],self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[1]["effect_size"],4))
+                else:
+                    statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
+                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[-1]["effect_size"],4))
+                if statistical_inference != "":
+                    statistical_info_array.append(("Inference",statistical_inference))
+                statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+                lines += [C3ChartData(data=chart_json,info=statistical_info_array)]
+                lines += NarrativesUtils.block_splitter(output1['content'],self._blockSplitter)
+                mainCard.set_card_data(lines)
+                self._anovaNodes.add_a_card(mainCard)
+                self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output1)
+                self.narratives['main_card'][AnovaNarratives.KEY_CHART] = {}
+                effect_size_chart = { 'heading' : '',
+                                      'labels' : {'Dimension':'Effect Size'},
+                                      'data' : significant_dimensions_dict}
+                print significant_dimensions_dict
+                self.narratives['main_card'][AnovaNarratives.KEY_CHART]['effect_size'] = effect_size_chart
+                progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing key drivers",self._completionStatus,self._completionStatus,display=True)
+                CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
+                self._generate_dimension_narratives(significant_dimensions, measure_anova_result, measure_column)
             else:
-                statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
-                 Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["effect_size"],4),round(chart_data[-1]["effect_size"],4))
-            if statistical_inference != "":
-                statistical_info_array.append(("Inference",statistical_inference))
-            statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
-            lines += [C3ChartData(data=chart_json,info=statistical_info_array)]
-            lines += NarrativesUtils.block_splitter(output1['content'],self._blockSplitter)
-            mainCard.set_card_data(lines)
-            self._anovaNodes.add_a_card(mainCard)
-            self.narratives['main_card'][AnovaNarratives.KEY_PARAGRAPH].append(output1)
-            self.narratives['main_card'][AnovaNarratives.KEY_CHART] = {}
-            effect_size_chart = { 'heading' : '',
-                                  'labels' : {'Dimension':'Effect Size'},
-                                  'data' : significant_dimensions_dict}
-            print significant_dimensions_dict
-            self.narratives['main_card'][AnovaNarratives.KEY_CHART]['effect_size'] = effect_size_chart
-            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing key drivers",self._completionStatus,self._completionStatus,display=True)
-            CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
-            self._generate_dimension_narratives(significant_dimensions, measure_anova_result, measure_column)
-            # else:
-            #     mainCard = NormalCard(name = "Overview of Key Factors")
-            #     cardText=HtmlData("There are no dimensions in the dataset that have significant influence on {}".format(measure_column))
-            #     mainCard.set_card_data([cardText])
-            #     self._anovaNodes.add_a_card(mainCard)
+                mainCard = NormalCard(name = "Overview of Key Factors")
+                cardText=HtmlData("There are no dimensions in the dataset that have significant influence on {}".format(measure_column))
+                mainCard.set_card_data([cardText])
+                self._anovaNodes.add_a_card(mainCard)
 
 
     def _generate_dimension_narratives(self,significant_dimensions, measure_anova_result, measure):
