@@ -21,7 +21,7 @@ from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.types import StringType
 
-from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
@@ -734,6 +734,8 @@ def create_model_summary_cards(modelSummaryClass):
                 qunatileRow = ["25% to 50% observations",round(quantileSummaryObj[1]["mean"],2)]
             if quantileSummaryObj[0] == 2:
                 qunatileRow = ["50% to 75% observations",round(quantileSummaryObj[1]["mean"],2)]
+            if quantileSummaryObj[0] == 3:
+                qunatileRow = ["Top 25% observations",round(quantileSummaryObj[1]["mean"],2)]
             if len(qunatileRow) > 0:
                 quantileTableData.append(qunatileRow)
 
@@ -1050,7 +1052,7 @@ def get_quantile_summary(df,colname):
         bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
         bucketizer.setSplits(splits)
         df = bucketizer.transform(df)
-        print df.show()
+        # print df.show()
     except:
         print "using bias splitRange"
         splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
@@ -1058,7 +1060,7 @@ def get_quantile_summary(df,colname):
         bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
         bucketizer.setSplits(splits)
         df = bucketizer.transform(df)
-        print df.show()
+        # print df.show()
 
     quantileGrpDf = df.groupby("buckGULSHAN").agg(FN.sum(colname).alias('sum'),FN.mean(colname).alias('mean'),FN.count(colname).alias('count'))
     splitDict = {}

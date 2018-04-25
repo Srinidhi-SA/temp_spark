@@ -211,7 +211,6 @@ class LinearRegressionModelScript:
             quantileSummaryDict = MLUtils.get_quantile_summary(quantileDf,"prediction")
             quantileSummaryArr = quantileSummaryDict.items()
             quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
-            # print quantileSummaryArr
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("Linear Regression")
             self._model_summary.set_algorithm_display_name("Linear Regression")
@@ -313,7 +312,6 @@ class LinearRegressionModelScript:
             quantileDf.columns = ["prediction","sum","mean","count"]
             quantileArr = quantileDf.T.to_dict().items()
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
-            print quantileSummaryArr
             runtime = round((time.time() - st_global),2)
 
             self._model_summary.set_model_type("regression")

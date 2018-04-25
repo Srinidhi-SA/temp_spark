@@ -7,7 +7,7 @@ from bi.algorithms import utils as MLUtils
 from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
-from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
+from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter,NormalCard,HtmlData
 
 from bi.scripts.classification.random_forest import RFClassificationModelScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
@@ -421,6 +421,9 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
 
         kpiCard = result_setter.get_kpi_card_regression_score()
         kpiCard = json.loads(CommonUtils.convert_python_object_to_json(kpiCard))
+        overviewCard = NormalCard(cardData=[HtmlData("<b><h4>Overview</h4></b>")])
+        overviewCard = CommonUtils.convert_python_object_to_json(overviewCard)
+        headNode["listOfCards"].append(overviewCard)
         headNode["listOfCards"].append(kpiCard)
         distributionNode = result_setter.get_distribution_node()
         if distributionNode != None:
@@ -429,7 +432,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         anovaCards = [CommonUtils.convert_python_object_to_json(obj) for obj in anovaCards]
         print anovaCards
         headNode["listOfCards"] += anovaCards
-        # print json.dumps(headNode,indent=2)
+        print json.dumps(headNode,indent=2)
         response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
         # print "Dimension Analysis Completed in", time.time()-st," Seconds"
         print "Model Scoring Completed in ", time.time() - st, " seconds."
