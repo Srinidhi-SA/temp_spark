@@ -3,6 +3,7 @@ functions to load data from various sources to create a dataframe
 """
 
 from pyspark.sql import SparkSession, HiveContext
+from pyspark import SparkContext, SparkConf
 
 from decorators import accepts
 
@@ -98,8 +99,8 @@ class DataLoader:
     def create_dataframe_from_hive(spark_session, dbConnectionParams):
         df = None
         try:
-
-            sqlContext = HiveContext(spark_session)
+            sc = SparkSession.builder.appName("Testing").config(conf=SparkConf()).enableHiveSupport().getOrCreate()
+            sqlContext = HiveContext(sc)
             sqlContext.setConf("hive.metastore.uris", "thrift://{}:9083".format(dbConnectionParams.get("host")))
 
             tdf=sqlContext.sql("show databases")
