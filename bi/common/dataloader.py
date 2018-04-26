@@ -2,7 +2,7 @@
 functions to load data from various sources to create a dataframe
 """
 
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, HiveContext
 
 from decorators import accepts
 
@@ -29,7 +29,8 @@ class DataLoader:
             return DataLoader.create_dataframe_from_mssql_db(spark_session, dbConnectionParams)
         elif "oracle" == datasource_type:
             return DataLoader.create_dataframe_from_oracle_db(spark_session, dbConnectionParams)
-
+        elif "hive" == datasource_type:
+            return DataLoader.create_dataframe_from_hive(spark_session, dbConnectionParams)
 
     @staticmethod
     @accepts(SparkSession, dict)
@@ -92,6 +93,21 @@ class DataLoader:
             raise e
         return df
 
+    @staticmethod
+    @accepts(SparkSession, dict)
+    def create_dataframe_from_hive(spark_session, dbConnectionParams):
+        df = None
+        try:
+
+            sqlContext = HiveContext(spark_session)
+            schema = DataLoader.get_db_name(dbConnectionParams)
+            table_name = dbConnectionParams.get("tablename")
+            df = sqlContext.table(".".join([schema,table_name]))
+
+        except Exception as e:
+            print("couldn't connect to hana")
+            raise e
+        return df
 
     @staticmethod
     def get_db_name(dbConnectionParams):
