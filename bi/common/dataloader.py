@@ -100,12 +100,15 @@ class DataLoader:
         try:
 
             sqlContext = HiveContext(spark_session)
+            tdf=sqlContext.sql("show databases")
+            tdf.show()
+
             schema = DataLoader.get_db_name(dbConnectionParams)
             table_name = dbConnectionParams.get("tablename")
             df = sqlContext.table(".".join([schema,table_name]))
 
         except Exception as e:
-            print("couldn't connect to hana")
+            print("couldn't connect to hive")
             raise e
         return df
 
