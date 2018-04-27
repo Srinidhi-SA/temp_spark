@@ -836,6 +836,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             card2_elements = get_model_comparison(collated_summary)
             card2Data = [card2_elements[0],card2_elements[1]]
             card2.set_card_data(card2Data)
+            card2.set_card_width(50)
 
             card3 = NormalCard()
             if appid == None:
