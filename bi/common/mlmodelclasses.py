@@ -1,3 +1,5 @@
+import pandas as pd
+
 class ModelSummary:
     """
     modelJsonOutput = {
@@ -248,3 +250,14 @@ class ParamsGrid:
     """
 
     """
+
+class SklearnGridSearchResult:
+    def __init__(self,resultDict = {}):
+        self.resultDict = resultDict
+        if self.resultDict != {}:
+            self.resultDf = pd.DataFrame(self.resultDict)
+        else:
+            self.resultDf = None
+
+    def get_best_params(self):
+        return self.resultDf["params"]
