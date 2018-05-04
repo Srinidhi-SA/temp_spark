@@ -8,7 +8,8 @@ SKLEARN_ML_LINEAR_REGRESSION_PARAMS = [
                 "valueRange":[-1,4],
                 "paramType":"number",
                 "uiElemType":"slider",
-                "display":True
+                "display":True,
+                "hyperpatameterTuningCandidate":False,
             },
             {
                  "name":"fit_intercept",
@@ -17,7 +18,8 @@ SKLEARN_ML_LINEAR_REGRESSION_PARAMS = [
                  "acceptedValue":None,
                  "paramType":"boolean",
                  "uiElemType":"checkbox",
-                 "display":True
+                 "display":True,
+                 "hyperpatameterTuningCandidate":True,
              },
              {
                  "name":"normalize",
@@ -26,7 +28,8 @@ SKLEARN_ML_LINEAR_REGRESSION_PARAMS = [
                  "acceptedValue":None,
                  "paramType":"boolean",
                  "uiElemType":"checkbox",
-                 "display":True
+                 "display":True,
+                 "hyperpatameterTuningCandidate":False,
              },
              {
                  "name":"copy_X",
@@ -35,7 +38,8 @@ SKLEARN_ML_LINEAR_REGRESSION_PARAMS = [
                  "acceptedValue":None,
                  "paramType":"boolean",
                  "uiElemType":"checkbox",
-                 "display":True
+                 "display":True,
+                 "hyperpatameterTuningCandidate":True,
              }
 ]
 
@@ -64,7 +68,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[1,1000],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"max_depth",
@@ -74,7 +79,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[2,20],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
 
                 {
@@ -83,7 +89,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_SPLIT_CRITERION_REGRESSION],
                     "paramType":"list",
                     "uiElemType":"checkbox",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"min_samples_split",
@@ -93,7 +100,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[1,100],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"min_samples_leaf",
@@ -103,7 +111,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[1,1000],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"subsample",
@@ -113,7 +122,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
                 },
                 {
                     "name":"max_features",
@@ -123,7 +133,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
                 },
                 {
                     "name":"max_leaf_nodes",
@@ -133,7 +144,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[],
                     "paramType":"number",
                     "uiElemType":"textBox",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
                 },
                 {
                     "name":"min_impurity_decrease",
@@ -143,7 +155,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
                 },
 
                  {
@@ -154,7 +167,8 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                  "valueRange":[],
                  "paramType":"number",
                  "uiElemType":"textBox",
-                 "display":True
+                 "display":True,
+                 "hyperpatameterTuningCandidate":False,
                  }
 ]
 
@@ -165,7 +179,8 @@ SKLEARN_ML_GBT_REGRESSION_PARAMS = [
             "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_LOSS],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":True,
         },
         {
             "name":"alpha",
@@ -176,7 +191,8 @@ SKLEARN_ML_GBT_REGRESSION_PARAMS = [
             "paramType":"number",
             "uiElemType":"slider",
             "display":False,
-            "dependentOnDict":{"loss":["huber","quantile"]}
+            "dependentOnDict":{"loss":["huber","quantile"]},
+            "hyperpatameterTuningCandidate":False,
         },
         {
             "name":"learning_rate",
@@ -186,7 +202,8 @@ SKLEARN_ML_GBT_REGRESSION_PARAMS = [
             "valueRange":[0.1,1.0],
             "paramType":"number",
             "uiElemType":"slider",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":True,
         },
         {
             "name":"warm_start",
@@ -195,7 +212,8 @@ SKLEARN_ML_GBT_REGRESSION_PARAMS = [
             "acceptedValue":None,
             "paramType":"boolean",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
 
 ]
@@ -208,7 +226,8 @@ SKLEARN_ML_RF_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
         "acceptedValue":None,
         "paramType":"boolean",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"oob_score",
@@ -217,7 +236,8 @@ SKLEARN_ML_RF_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
         "acceptedValue":None,
         "paramType":"boolean",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":True,
     },
     {
         "name":"n_jobs",
@@ -227,7 +247,8 @@ SKLEARN_ML_RF_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
         "valueRange":[-1,4],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"warm_start",
@@ -236,7 +257,8 @@ SKLEARN_ML_RF_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
         "acceptedValue":None,
         "paramType":"boolean",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
 ]
 
@@ -258,7 +280,8 @@ SKLEARN_ML_DTREE_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PAR
             ],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
 
 ]

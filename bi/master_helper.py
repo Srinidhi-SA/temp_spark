@@ -421,8 +421,11 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
 
         kpiCard = result_setter.get_kpi_card_regression_score()
         kpiCard = json.loads(CommonUtils.convert_python_object_to_json(kpiCard))
+
         overviewCard = NormalCard(cardData=[HtmlData("<b><h4>Overview</h4></b>")])
-        overviewCard = CommonUtils.convert_python_object_to_json(overviewCard)
+        # overviewCard = CommonUtils.convert_python_object_to_json(overviewCard)
+        overviewCard = json.loads(CommonUtils.convert_python_object_to_json(overviewCard))
+
         headNode["listOfCards"].append(overviewCard)
         headNode["listOfCards"].append(kpiCard)
         distributionNode = result_setter.get_distribution_node()

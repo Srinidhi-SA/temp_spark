@@ -672,7 +672,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data = []
         modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
         modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Target Variable - {}</p>".format(modelSummaryClass.get_target_variable())))
         modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
         modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         prediction_split_array = sorted([(k,v) for k,v in modelSummaryClass.get_prediction_split().items()],key=lambda x:x[1],reverse=True)
@@ -706,7 +706,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1.set_card_width(50)
         modelSummaryCard1Data = []
         modelSummaryCard1Data.append(HtmlData(data="<h5><b>Algorithm Parameters: </b></h5>"))
-        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(targetVariable)))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Target Variable - {}</p>".format(targetVariable)))
         # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
         # modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         modelParams = modelSummaryClass.get_model_params()

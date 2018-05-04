@@ -87,7 +87,6 @@ class Binner:
                 FN.col(column_name).cast('double').alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
         else:
             column_df = self._data_frame.select(FN.col(column_name).alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
-
         bucketizer = Bucketizer(inputCol=BinnerConstants.ORIGINAL_COLUMN_NAME,
                                 outputCol=BinnerConstants.BINNED_COLUMN_NAME)
         bucketizer.setSplits(splits)
