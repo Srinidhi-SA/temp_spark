@@ -245,7 +245,8 @@ class LinearRegressionModelScript:
                     gridEst.fit(x_train, y_train)
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(gridEst.cv_results_)
                 elif tuningMethod == "randomsearch":
-                    
+                    print "None"
+
             elif hyperParameterTuning == False:
                 algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
