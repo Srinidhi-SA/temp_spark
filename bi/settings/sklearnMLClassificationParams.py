@@ -36,7 +36,8 @@ SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                     "defaultValue":[obj if obj["name"] != "gini" else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_SPLIT_CRITERION_CLASSIFICATION],
                     "paramType":"list",
                     "uiElemType":"checkbox",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"max_depth",
@@ -46,7 +47,8 @@ SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                     "valueRange":[2,20],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"min_samples_split",
@@ -56,7 +58,9 @@ SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                     "valueRange":[1,100],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
+
                 },
                 {
                     "name":"min_samples_leaf",
@@ -66,7 +70,9 @@ SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                     "valueRange":[1,1000],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
+
                 },
                 {
                     "name":"max_leaf_nodes",
@@ -76,7 +82,9 @@ SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                     "valueRange":[],
                     "paramType":"number",
                     "uiElemType":"textBox",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
+
                 },
                 {
                     "name":"min_impurity_decrease",
@@ -86,7 +94,9 @@ SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
+
                 },
                  {
                  "name":"random_state",
@@ -96,7 +106,9 @@ SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMON_PARAMS = [
                  "valueRange":[],
                  "paramType":"number",
                  "uiElemType":"textBox",
-                 "display":True
+                 "display":True,
+                "hyperpatameterTuningCandidate":False,
+
                  }
 ]
 
@@ -107,7 +119,8 @@ SKLEARN_ML_DTREE_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_CO
             "defaultValue":[obj if obj["name"] != None else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_MAX_FEATURES],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
         {
             "name":"splitter",
@@ -119,14 +132,15 @@ SKLEARN_ML_DTREE_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_CO
                  "displayName":"Best split"
              },
              {
-                 "name":"randome",
+                 "name":"random",
                  "selected":True,
                  "displayName":"Best random split"
              }
             ],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
         {
              "name":"presort",
@@ -135,7 +149,8 @@ SKLEARN_ML_DTREE_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_CO
              "acceptedValue":None,
              "paramType":"boolean",
              "uiElemType":"checkbox",
-             "display":True
+             "display":True,
+             "hyperpatameterTuningCandidate":False,
          },
 
 
@@ -150,7 +165,8 @@ SKLEANR_ML_RF_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMO
             "valueRange":[1,1000],
             "paramType":"number",
             "uiElemType":"slider",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":True,
         },
         {
             "name":"bootstrap",
@@ -159,7 +175,8 @@ SKLEANR_ML_RF_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMO
             "acceptedValue":None,
             "paramType":"boolean",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
         {
             "name":"oob_score",
@@ -168,7 +185,8 @@ SKLEANR_ML_RF_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMO
             "acceptedValue":None,
             "paramType":"boolean",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
         {
             "name":"n_jobs",
@@ -178,7 +196,8 @@ SKLEANR_ML_RF_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMO
             "valueRange":[-1,4],
             "paramType":"number",
             "uiElemType":"slider",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
         {
             "name":"warm_start",
@@ -187,7 +206,8 @@ SKLEANR_ML_RF_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMO
             "acceptedValue":None,
             "paramType":"boolean",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
 ]
 
@@ -199,7 +219,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
              "acceptedValue":None,
              "paramType":"boolean",
              "uiElemType":"checkbox",
-             "display":True
+             "display":True,
+             "hyperpatameterTuningCandidate":False,
          },
         {
             "name":"solver",
@@ -207,7 +228,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
             "defaultValue":[obj if obj["name"] != "liblinear" else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_SOLVER_CLASSIFICATION],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":True,
         },
         {
             "name":"multi_class",
@@ -215,7 +237,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
             "defaultValue":[obj if obj["name"] != "ovr" else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_MULTICLASS_OPTION],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
         {
             "name":"max_iter",
@@ -225,7 +248,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
             "valueRange":[10,400],
             "paramType":"number",
             "uiElemType":"slider",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":True,
         },
         {
             "name":"n_jobs",
@@ -235,7 +259,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
             "valueRange":[-1,4],
             "paramType":"number",
             "uiElemType":"slider",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
         {
             "name":"warm_start",
@@ -244,7 +269,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
             "acceptedValue":None,
             "paramType":"boolean",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":False,
         },
          {
              "name":"random_state",
@@ -254,7 +280,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
              "valueRange":[],
              "paramType":"number",
              "uiElemType":"textBox",
-             "display":True
+             "display":True,
+             "hyperpatameterTuningCandidate":False,
          },
          {
              "name":"tol",
@@ -264,7 +291,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
              "valueRange":[3,10],
              "paramType":"number",
              "uiElemType":"slider",
-             "display":True
+             "display":True,
+             "hyperpatameterTuningCandidate":True,
          },
          {
              "name":"C",
@@ -274,7 +302,8 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
              "valueRange":[0.1,20.0],
              "paramType":"number",
              "uiElemType":"textBox",
-             "display":True
+             "display":True,
+             "hyperpatameterTuningCandidate":True,
          },
 ]
 
@@ -301,7 +330,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "defaultValue":[obj if obj["name"] != "gbtree" else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_XGB_BOOSTER],
         "paramType":"list",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":True,
     },
     {
         "name":"silent",
@@ -309,7 +339,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "defaultValue":[{"name":0,"selected":False,"displayName":"True"},{"name":1,"selected":True,"displayName":"False"}],
         "paramType":"list",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"eta",
@@ -319,7 +350,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "valueRange":[0.0,1.0],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":True,
     },
     {
         "name":"gamma",
@@ -329,7 +361,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "valueRange":[0,100],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False
     },
     {
         "name":"max_depth",
@@ -339,7 +372,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "valueRange":[0,100],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":True
     },
     {
         "name":"min_child_weight",
@@ -349,7 +383,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "valueRange":[0,100],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"subsample",
@@ -359,7 +394,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "valueRange":[0.1,1],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"colsample_bytree",
@@ -369,7 +405,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "valueRange":[0.1,1],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"colsample_bylevel",
@@ -379,7 +416,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "valueRange":[0.1,1],
         "paramType":"number",
         "uiElemType":"slider",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"tree_method",
@@ -387,7 +425,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
         "defaultValue":[obj if obj["name"] != "auto" else {"name":obj["name"],"selected":True,"displayName":obj["displayName"]} for obj in SKLEARN_ML_SUPPORTED_XGB_TREE_ALGORITHMS],
         "paramType":"list",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"predictor",
@@ -397,7 +436,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
             ],
         "paramType":"list",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
     {
         "name":"process_type",
@@ -407,7 +447,8 @@ SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS = [
             ],
         "paramType":"list",
         "uiElemType":"checkbox",
-        "display":True
+        "display":True,
+        "hyperpatameterTuningCandidate":False,
     },
 
 

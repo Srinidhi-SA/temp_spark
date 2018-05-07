@@ -73,7 +73,8 @@ class LinearRegressionModelScript:
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
-
+        print self._scriptWeightDict
+        print "="*400
 
         self._scriptStages = {
             "initialization":{
@@ -468,7 +469,7 @@ class LinearRegressionModelScript:
             kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
             kpiCard.set_card_data(kpiCardData)
             kpiCard.set_cente_alignment(True)
-            print CommonUtils.convert_python_object_to_json(kpiCard)
+            # print CommonUtils.convert_python_object_to_json(kpiCard)
             self._result_setter.set_kpi_card_regression_score(kpiCard)
 
             pandas_df[result_column] = y_score
@@ -506,7 +507,7 @@ class LinearRegressionModelScript:
             descr_stats_obj.Run()
             print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
         except:
-            print "Frequency Analysis Failed "
+            print "DescriptiveStats Analysis Failed "
 
         # try:
         #     fs = time.time()
@@ -525,3 +526,8 @@ class LinearRegressionModelScript:
             print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
         except:
             print "Anova Analysis Failed"
+
+
+
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Score Summary Finished",100,100,display=True)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
