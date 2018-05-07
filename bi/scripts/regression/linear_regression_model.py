@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData
+from bi.common import MLModelSummary,NormalCard,KpiData,SklearnGridSearchResult
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -73,7 +73,8 @@ class LinearRegressionModelScript:
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
-
+        print self._scriptWeightDict
+        print "="*400
 
         self._scriptStages = {
             "initialization":{
@@ -236,38 +237,48 @@ class LinearRegressionModelScript:
             st = time.time()
             est = LinearRegression()
 
-            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
-            algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
-            est.set_params(**algoParams)
+            if hyperParameterTuning == True:
+                tuningMethod = self._dataframe_context.get_hyperparameter_tuning_method()
+                if tuningMethod == "gridsearch":
+                    param_grid = {}
+                    gridEst = GridSearchCV(est, param_grid)
+                    gridEst.fit(x_train, y_train)
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(gridEst.cv_results_)
+                elif tuningMethod == "randomsearch":
+                    
+            elif hyperParameterTuning == False:
+                algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+                algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
+                est.set_params(**algoParams)
 
-            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+                CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-            self._dataframe_context.update_completion_status(self._completionStatus)
-            if validationDict["name"] == "kFold":
-                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                numFold = int(validationDict["value"])
-                if numFold == 0:
-                    numFold = 3
-                kf = KFold(n_splits=numFold)
-                foldId = 1
-                kFoldOutput = []
-                for train_index, test_index in kf.split(x_train):
-                    x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                    y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                    est.fit(x_train_fold, y_train_fold)
-                    y_score_fold = est.predict(x_test_fold)
-                    metricsFold = {}
-                    metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
-                    metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
-                    metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
-                    metricsFold["rmse"] = sqrt(metricsFold["mse"])
-                    kFoldOutput.append((est,metricsFold))
-                kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
-                # print kFoldOutput
-                bestEstimator = kFoldOutput[-1][0]
-            elif validationDict["name"] == "trainAndtest":
-                est.fit(x_train, y_train)
-                bestEstimator = est
+                self._dataframe_context.update_completion_status(self._completionStatus)
+                if validationDict["name"] == "kFold":
+                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                    numFold = int(validationDict["value"])
+                    if numFold == 0:
+                        numFold = 3
+                    kf = KFold(n_splits=numFold)
+                    foldId = 1
+                    kFoldOutput = []
+                    for train_index, test_index in kf.split(x_train):
+                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
+                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+                        est.fit(x_train_fold, y_train_fold)
+                        y_score_fold = est.predict(x_test_fold)
+                        metricsFold = {}
+                        metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
+                        metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
+                        metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
+                        metricsFold["rmse"] = sqrt(metricsFold["mse"])
+                        kFoldOutput.append((est,metricsFold))
+                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
+                    # print kFoldOutput
+                    bestEstimator = kFoldOutput[-1][0]
+                elif validationDict["name"] == "trainAndtest":
+                    est.fit(x_train, y_train)
+                    bestEstimator = est
             print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -458,7 +469,7 @@ class LinearRegressionModelScript:
             kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
             kpiCard.set_card_data(kpiCardData)
             kpiCard.set_cente_alignment(True)
-            print CommonUtils.convert_python_object_to_json(kpiCard)
+            # print CommonUtils.convert_python_object_to_json(kpiCard)
             self._result_setter.set_kpi_card_regression_score(kpiCard)
 
             pandas_df[result_column] = y_score
@@ -496,7 +507,7 @@ class LinearRegressionModelScript:
             descr_stats_obj.Run()
             print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
         except:
-            print "Frequency Analysis Failed "
+            print "DescriptiveStats Analysis Failed "
 
         # try:
         #     fs = time.time()
@@ -515,3 +526,8 @@ class LinearRegressionModelScript:
             print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
         except:
             print "Anova Analysis Failed"
+
+
+
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Score Summary Finished",100,100,display=True)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)

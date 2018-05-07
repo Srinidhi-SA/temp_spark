@@ -48,7 +48,8 @@ def main(configJson):
                 configJson = get_test_configs(jobType)
 
             print configJson
-            print "="*2000
+            print "="*20
+            
 
 
     print "######################## Creating Spark Session ###########################"
