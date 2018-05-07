@@ -113,9 +113,9 @@ class ChiSquareAnalysis:
           top_target_count, top_target = sorted_target_levels[0]
           second_target_count, second_target = sorted_target_levels[1]
 
-          print "target_dimension : ", target_dimension
-          print "top_target",top_target
-          print "second_target",second_target
+          # print "target_dimension : ", target_dimension
+          # print "top_target",top_target
+          # print "second_target",second_target
 
           top_target_contributions = [table.get_value(top_target,i) for i in levels]
           sum_top_target = sum(top_target_contributions)
@@ -188,7 +188,6 @@ class ChiSquareAnalysis:
           worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
           overall_second_percentage = sum_second_target*100.0/total
 
-
           targetCardDataDict = {}
           targetCardDataDict['target'] = target_dimension
           targetCardDataDict['colname'] = analysed_dimension
@@ -218,7 +217,6 @@ class ChiSquareAnalysis:
           data_dict['second_target_shares'] = second_target_shares
           data_dict['overall_second'] = overall_second_percentage
           data_dict['overall_top'] = overall_top_percentage
-
 
           data_dict['num_significant'] = len(significant_variables)
           data_dict['colname'] = analysed_dimension
@@ -256,6 +254,9 @@ class ChiSquareAnalysis:
           data_dict["binAnalyzedCol"] = self._binAnalyzedCol
           data_dict['highlightFlag'] = self._highlightFlag
 
+          # print "data_dict"*100
+          # print data_dict
+
           ###############
           #     CARD1   #
           ###############
@@ -280,7 +281,6 @@ class ChiSquareAnalysis:
           targetDimCard1Table1.set_table_type("heatMap")
           targetDimCard1Table1.set_table_data(targetDimTable1Data)
           toggledata.set_toggleon_data({"data":{"tableData":targetDimTable1Data,"tableType":"heatMap"},"dataType":"table"})
-
 
           targetDimTable2Data = self.generate_card1_table2()
           targetDimCard1Table2 = TableData()
@@ -320,7 +320,7 @@ class ChiSquareAnalysis:
 
               targetCardDataDict['num_key_factors'] = num_key_factors
               targetCardDataDict['key_factors'] = key_factors
-
+              dict_for_test = {}
               for tupleObj in sorted_target_levels[:self._chiSquareLevelLimit]:
                   targetLevel = tupleObj[1]
 
@@ -459,6 +459,12 @@ class ChiSquareAnalysis:
                   targetCard.set_card_data(card2Data)
                   targetCard.set_card_name("{} : Distribution of {}".format(self._analysed_dimension,targetLevel))
                   self._targetCards.append(targetCard)
+                  dict_for_test[targetLevel] = targetCardDataDict
+          out = {'data_dict' : data_dict,
+                'target_dict':dict_for_test}
+          # print "0uT"*100
+          # print out
+          return out
 
  
     # def generate_card2_narratives(self):

@@ -68,7 +68,7 @@ class ChiSquare:
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
     def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=40):
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"chisquareStats","info",display=False,weightKey="script")
+        # CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"chisquareStats","info",display=False,weightKey="script")
         targetDimension = dimension_columns[0]
         all_dimensions = self._dimension_columns
         all_dimensions = [x for x in all_dimensions if x != targetDimension]
@@ -80,9 +80,13 @@ class ChiSquare:
         #     all_dimensions = all_dimensions[:nColsToUse]
         all_measures = self._measure_columns
         df_chisquare_result = DFChiSquareResult()
+        # print "df_chisquare_result"*50
+        # print df_chisquare_result
         for d in all_dimensions:
             try:
                 chisquare_result = self.test_dimension(targetDimension, d)
+                # print "chisquare_result"*180
+                # print chisquare_result
                 df_chisquare_result.add_chisquare_result(targetDimension, d, chisquare_result)
             except Exception, e:
                 print repr(e), d

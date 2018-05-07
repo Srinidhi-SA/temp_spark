@@ -38,6 +38,7 @@ class ChiSquareNarratives:
             self._analysisName = self._dataframe_context.get_analysis_name()
         else:
             self._analysisName = analysisName
+
         self._messageURL = self._dataframe_context.get_message_url()
         if scriptWeight == None:
             self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
@@ -83,7 +84,7 @@ class ChiSquareNarratives:
             analysed_variables = target_chisquare_result.keys()  ## List of all analyzed var.
             # List of significant var out of analyzed var.
             significant_variables = [dim for dim in target_chisquare_result.keys() if target_chisquare_result[dim].get_pvalue()<=0.05]   
-            print significant_variables
+            # print significant_variables
             effect_sizes = [target_chisquare_result[dim].get_effect_size() for dim in significant_variables]
 
             effect_size_dict = dict(zip(significant_variables,effect_sizes))
