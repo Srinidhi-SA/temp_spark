@@ -27,12 +27,10 @@
   {{blockSplitter}}
   <p class = "txt-justify">
   {% if random_card2%3 == 0 %}
-    High concentration of {{second_target}} from segment {{second_target_top_dims[0]}} is characterized by the influence of
-    key dimensions, such as {{key_factors}}. Certain specific segments from those factors are more likely to
+    High concentration of {{second_target}} from segment {{second_target_top_dims[0]}} is characterized by the influence of key dimensions, such as {{key_factors}}. Certain specific segments from those factors are more likely to
     explain segment {{second_target_top_dims[0]}}'s significant rate of {{second_target}}.
   {% elif random_card2%3 == 1 %}
-    There are some key factors({{key_factors}}) that explain why the concentration of {{second_target}} from segment {{second_target_top_dims[0]}}
-    is very high.
+    There are some key factors({{key_factors}}) that explain why the concentration of {{second_target}} from segment {{second_target_top_dims[0]}} is very high.
   {% elif random_card2%3 == 2 %}
     {{key_factors}}
     {% if num_key_factors > 1 %}are some of
