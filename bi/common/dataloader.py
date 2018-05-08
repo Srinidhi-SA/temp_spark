@@ -101,7 +101,7 @@ class DataLoader:
         try:
             sc = SparkSession.builder.appName("Testing").config(conf=SparkConf()).enableHiveSupport().getOrCreate()
             sqlContext = HiveContext(sc)
-            sqlContext.setConf("hive.metastore.uris", "thrift://{}:9083".format(dbConnectionParams.get("host")))
+            # sqlContext.setConf("hive.metastore.uris", "thrift://{}:9083".format(dbConnectionParams.get("host")))
 
             tdf=sqlContext.sql("show databases")
             tdf.show()
