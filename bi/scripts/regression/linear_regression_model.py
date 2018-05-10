@@ -262,6 +262,7 @@ class LinearRegressionModelScript:
                     hyperParamInitParam = algoSetting.get_hyperparameter_params()
                     hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                     params_grid = algoSetting.get_params_dict_hyperparameter()
+                    params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
                     print params_grid
                     if hyperParamAlgoName == "gridsearchcv":
                         clfGrid = GridSearchCV(est,params_grid)
