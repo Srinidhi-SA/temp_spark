@@ -103,7 +103,6 @@ class AlgorithmParameters:
 
 
     def get_param_value(self,hyperParams=True):
-        print "self.name : ==== ",self.name
         defaultValue = self.get_default_value()
         if hyperParams:
             if self.hyperpatameterTuningCandidate != True:

@@ -137,6 +137,11 @@ class RFClassificationModelScript:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
+                print clf.get_params()
+                print "="*200
+                for k,v in params_grid.items():
+                    if k not in clf.get_params():
+                        print k,v
                 params_grid = {k:v for k,v in params_grid.items() if k in clf.get_params()}
                 print params_grid
                 if hyperParamAlgoName == "gridsearchcv":
@@ -211,7 +216,7 @@ class RFClassificationModelScript:
             y_test = labelEncoder.inverse_transform(y_test)
 
             featureImportance={}
-            feature_importance = dict(sorted(zip(x_train.columns,clf.feature_importances_),key=lambda x: x[1],reverse=True))
+            feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
             for k, v in feature_importance.iteritems():
                 feature_importance[k] = CommonUtils.round_sig(v)
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
