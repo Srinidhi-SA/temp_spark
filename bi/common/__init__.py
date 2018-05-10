@@ -4,6 +4,7 @@
 ################################################################################
 
 from column import ColumnType
+from algorithmSetting import AlgorithmParameters,HyperParameterSetting,AlgorithmParameterConfig
 from context import ContextSetter
 from metaparser import MetaParser
 from dataframe import DataFrameHelper
@@ -48,5 +49,6 @@ __all__ = [
     'ScatterChartData','NormalChartData','ChartJson','ModelSummary',
     'DataCleanser',
     'MLModelSummary',
-    'ConfigValidator'
+    'ConfigValidator',
+    'AlgorithmParameters','HyperParameterSetting','AlgorithmParameterConfig',
 ]

@@ -209,3 +209,9 @@ class ResultSetter:
 
     def set_anova_cards_regression_score(self,data):
         self.anovaCardsRegScore.append(data)
+
+    def get_coeff_card_regression_score(self):
+        return self.coeffCardScore
+
+    def set_coeff_card_regression_score(self,coeffCardScore):
+        self.coeffCardScore = coeffCardScore

@@ -422,6 +422,8 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         kpiCard = result_setter.get_kpi_card_regression_score()
         kpiCard = json.loads(CommonUtils.convert_python_object_to_json(kpiCard))
 
+        coeffCard = result_setter.get_coeff_card_regression_score()
+
         overviewCard = NormalCard(cardData=[HtmlData("<b><h4>Overview</h4></b>")])
         # overviewCard = CommonUtils.convert_python_object_to_json(overviewCard)
         overviewCard = json.loads(CommonUtils.convert_python_object_to_json(overviewCard))
@@ -430,6 +432,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         distributionNode = result_setter.get_distribution_node()
         if distributionNode != None:
             headNode["listOfCards"] += distributionNode["listOfCards"]
+        headNode["listOfCards"].append(coeffCard)
         anovaCards = result_setter.get_anova_cards_regression_score()
         anovaCards = [CommonUtils.convert_python_object_to_json(obj) for obj in anovaCards]
         headNode["listOfCards"] += anovaCards

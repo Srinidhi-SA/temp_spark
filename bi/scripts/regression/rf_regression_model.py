@@ -100,7 +100,7 @@ class RFRegressionModelScript:
 
         # self._dataframe_context.update_completion_status(self._completionStatus)
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -226,36 +226,53 @@ class RFRegressionModelScript:
             st = time.time()
             est = RandomForestRegressor()
 
-            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+            algoParams = algoSetting.get_params_dict()
             algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
             est.set_params(**algoParams)
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-            if validationDict["name"] == "kFold":
-                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                numFold = int(validationDict["value"])
-                if numFold == 0:
-                    numFold = 3
-                kf = KFold(n_splits=numFold)
-                foldId = 1
-                kFoldOutput = []
-                for train_index, test_index in kf.split(x_train):
-                    x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                    y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                    est.fit(x_train_fold, y_train_fold)
-                    y_score_fold = est.predict(x_test_fold)
-                    metricsFold = {}
-                    metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
-                    metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
-                    metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
-                    metricsFold["rmse"] = sqrt(metricsFold["mse"])
-                    kFoldOutput.append((est,metricsFold))
-                kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
-                bestEstimator = kFoldOutput[-1][0]
-            elif validationDict["name"] == "trainAndtest":
-                est.fit(x_train, y_train)
-                bestEstimator = est
+            if algoSetting.is_hyperparameter_tuning_enabled():
+                hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
+                params_grid = algoSetting.get_params_dict_hyperparameter()
+                print params_grid
+                if hyperParamAlgoName == "gridsearchcv":
+                    clfGrid = GridSearchCV(est,params_grid)
+                    gridParams = clfGrid.get_params()
+                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                    estGrid.set_params(**hyperParamInitParam)
+                    estGrid.fit(x_train,y_train)
+                    bestEstimator = estGrid.best_estimator_
+                elif hyperParamAlgoName == "randomsearchcv":
+                    estRand = RandomizedSearchCV(est,params_grid)
+                    estRand.set_params(**hyperParamInitParam)
+                    bestEstimator = None
+            else:
+                if validationDict["name"] == "kFold":
+                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                    numFold = int(validationDict["value"])
+                    if numFold == 0:
+                        numFold = 3
+                    kf = KFold(n_splits=numFold)
+                    foldId = 1
+                    kFoldOutput = []
+                    for train_index, test_index in kf.split(x_train):
+                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
+                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+                        est.fit(x_train_fold, y_train_fold)
+                        y_score_fold = est.predict(x_test_fold)
+                        metricsFold = {}
+                        metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
+                        metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
+                        metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
+                        metricsFold["rmse"] = sqrt(metricsFold["mse"])
+                        kFoldOutput.append((est,metricsFold))
+                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
+                    bestEstimator = kFoldOutput[-1][0]
+                elif validationDict["name"] == "trainAndtest":
+                    est.fit(x_train, y_train)
+                    bestEstimator = est
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:

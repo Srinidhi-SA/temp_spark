@@ -1,6 +1,7 @@
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
 from cryptography.fernet import Fernet
+from bi.common import AlgorithmParameterConfig
 
 
 class ContextSetter:
@@ -111,33 +112,10 @@ class ContextSetter:
 
         if len(self.ALGORITHM_SETTINGS) > 0:
             for obj in self.ALGORITHM_SETTINGS:
-                if obj["selected"] == True:
-                    trimmedObj = {"algorithmName":obj["algorithmName"],"algorithmSlug":obj["algorithmSlug"]}
-                    trimmedParams = {}
-                    for paramObj in obj["parameters"]:
-                        if paramObj["paramType"] == "number":
-                            if paramObj["name"] != "tol":
-                                if paramObj["acceptedValue"]  != None:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
-                                else:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
-                            else:
-                                if paramObj["acceptedValue"]  != None:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["acceptedValue"]}
-                                else:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["defaultValue"]}
-                        elif paramObj["paramType"] == "boolean":
-                            if paramObj["acceptedValue"]  != None:
-                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
-                            else:
-                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
-                        elif paramObj["paramType"] == "list":
-                            selectedValue = filter(lambda x:x["selected"] == True,paramObj["defaultValue"])
-                            trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":selectedValue[0]["name"]}
-                    trimmedObj["algorithmParams"] = trimmedParams
-                    self.algorithmsToRun.append(trimmedObj)
-
-
+                algoParamConfigInstance = AlgorithmParameterConfig()
+                algoParamConfigInstance.set_params(obj)
+                if algoParamConfigInstance.is_selected():
+                    self.algorithmsToRun.append(algoParamConfigInstance)
 
         if len(dbSettingKeys) > 0:
             if "datasource_details" in dbSettingKeys:
@@ -543,12 +521,12 @@ class ContextSetter:
 
     def initialize_ml_model_training_weight(self):
         appType = self.get_app_type()
+        algoSlugs = [x.get_algorithm_slug() for x in self.algorithmsToRun]
+
         if appType == "REGRESSION":
-            algoSlugs = [x["algorithmSlug"] for x in self.algorithmsToRun]
             algoRelWeight = GLOBALSETTINGS.regressionAlgoRelativeWeight
             intitialScriptWeight = GLOBALSETTINGS.regressionTrainingInitialScriptWeight
         elif appType == "CLASSIFICATION":
-            algoSlugs = GLOBALSETTINGS.classificationAlgorithmsToRunTemp
             algoRelWeight = GLOBALSETTINGS.classificationAlgoRelativeWeight
             intitialScriptWeight = GLOBALSETTINGS.classificationTrainingInitialScriptWeight
 

@@ -14,6 +14,8 @@ from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
 from bi.common import MLModelSummary,NormalCard,KpiData
+from bi.common import NormalChartData, ChartJson
+
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -98,7 +100,7 @@ class LinearRegressionModelScript:
 
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -248,38 +250,55 @@ class LinearRegressionModelScript:
                     print "None"
 
             elif hyperParameterTuning == False:
-                algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
+                algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
                 est.set_params(**algoParams)
 
                 CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
                 self._dataframe_context.update_completion_status(self._completionStatus)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kf = KFold(n_splits=numFold)
-                    foldId = 1
-                    kFoldOutput = []
-                    for train_index, test_index in kf.split(x_train):
-                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                        est.fit(x_train_fold, y_train_fold)
-                        y_score_fold = est.predict(x_test_fold)
-                        metricsFold = {}
-                        metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
-                        metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
-                        metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
-                        metricsFold["rmse"] = sqrt(metricsFold["mse"])
-                        kFoldOutput.append((est,metricsFold))
-                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
-                    # print kFoldOutput
-                    bestEstimator = kFoldOutput[-1][0]
-                elif validationDict["name"] == "trainAndtest":
-                    est.fit(x_train, y_train)
-                    bestEstimator = est
+                if algoSetting.is_hyperparameter_tuning_enabled():
+                    hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                    hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
+                    params_grid = algoSetting.get_params_dict_hyperparameter()
+                    print params_grid
+                    if hyperParamAlgoName == "gridsearchcv":
+                        clfGrid = GridSearchCV(est,params_grid)
+                        gridParams = clfGrid.get_params()
+                        hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                        estGrid.set_params(**hyperParamInitParam)
+                        estGrid.fit(x_train,y_train)
+                        bestEstimator = estGrid.best_estimator_
+                    elif hyperParamAlgoName == "randomsearchcv":
+                        estRand = RandomizedSearchCV(est,params_grid)
+                        estRand.set_params(**hyperParamInitParam)
+                        bestEstimator = None
+                else:
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kf = KFold(n_splits=numFold)
+                        foldId = 1
+                        kFoldOutput = []
+                        for train_index, test_index in kf.split(x_train):
+                            x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
+                            y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+                            est.fit(x_train_fold, y_train_fold)
+                            y_score_fold = est.predict(x_test_fold)
+                            metricsFold = {}
+                            metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
+                            metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
+                            metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
+                            metricsFold["rmse"] = sqrt(metricsFold["mse"])
+                            kFoldOutput.append((est,metricsFold))
+                        kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
+                        # print kFoldOutput
+                        bestEstimator = kFoldOutput[-1][0]
+                    elif validationDict["name"] == "trainAndtest":
+                        est.fit(x_train, y_train)
+                        bestEstimator = est
             print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -454,7 +473,7 @@ class LinearRegressionModelScript:
                 trained_model_path = trained_model_path[7:]
             trained_model = joblib.load(trained_model_path)
             model_columns = self._dataframe_context.get_model_features()
-            print "model_columns",model_columns
+            # print "model_columns",model_columns
 
             df = self._data_frame.toPandas()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -464,6 +483,26 @@ class LinearRegressionModelScript:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             print len(model_columns),len(pandas_df.columns)
             y_score = trained_model.predict(pandas_df)
+            coefficients = trained_model.coef_
+            coefficientsArray = [(col_name, coefficients[idx]) for idx, col_name in enumerate(pandas_df.columns)]
+
+            coefficientsCard = NormalCard()
+            coefficientsArray = sorted(coefficientsArray,key=lambda x:abs(x[1]),reverse=True)
+            coefficientsArray = [{"key":tup[0],"value":tup[1]} for tup in coefficientsArray]
+            chartDataValues = [x["value"] for x in coefficientsArray]
+            coefficientsChartJson = ChartJson()
+            coefficientsChartJson.set_data(coefficientsArray)
+            coefficientsChartJson.set_chart_type("bar")
+            coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
+            coefficientsChartJson.set_axes({"x":"key","y":"value"})
+            coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
+            # coefficientsChartJson.set_yaxis_number_format(".4f")
+            coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
+            coefficientsChart = C3ChartData(data=coefficientsChartJson)
+            coefficientsCardData = [HtmlData(data="<h4><b>Influence of Key Features on {}</b></h4>".format(targetVariable)),coefficientsChart]
+            coefficientsCard.set_card_data(coefficientsCardData)
+            coefficientsCard = json.loads(CommonUtils.convert_python_object_to_json(coefficientsCard))
+            self._result_setter.set_coeff_card_regression_score(coefficientsCard)
 
             scoreKpiArray = MLUtils.get_scored_data_summary(y_score)
             kpiCard = NormalCard()
