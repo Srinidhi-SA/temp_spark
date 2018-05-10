@@ -47,7 +47,8 @@ from sklearn2pmml import PMMLPipeline
 
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import KFold
-
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 
 

@@ -17,6 +17,8 @@ from sklearn import metrics
 from sklearn.svm import SVC
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 
 from pyspark.sql import SQLContext

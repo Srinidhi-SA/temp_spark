@@ -17,6 +17,8 @@ from sklearn2pmml import PMMLPipeline
 import xgboost as xgb
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 
 from pyspark.sql import SQLContext
