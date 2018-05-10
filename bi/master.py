@@ -60,8 +60,11 @@ def main(configJson):
             APP_NAME = configJson["job_config"]["job_name"]
         else:
             APP_NAME = "--missing--"
+    if debugMode:
+        spark = CommonUtils.get_spark_session(app_name=APP_NAME,hive_environment=False)
+    else:
+        spark = CommonUtils.get_spark_session(app_name=APP_NAME)
 
-    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     if debugMode:
         spark.conf.set("spark.sql.execution.arrow.enabled", "true")

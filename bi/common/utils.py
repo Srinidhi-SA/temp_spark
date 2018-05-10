@@ -105,9 +105,11 @@ def frange(start, stop, num_steps=10):
 
 
 @accepts(app_name=basestring)
-def get_spark_session(app_name='Demo App'):
-    # return SparkSession.builder.appName(app_name).config(conf=SparkConf()).enableHiveSupport().getOrCreate()
-    return SparkSession.builder.appName(app_name).getOrCreate()
+def get_spark_session(app_name='Demo App',hive_environment=True):
+    if hive_environment:
+        return SparkSession.builder.appName(app_name).config(conf=SparkConf()).enableHiveSupport().getOrCreate()
+    else:
+        return SparkSession.builder.appName(app_name).getOrCreate()
 
 def clean(x):
     from re import sub

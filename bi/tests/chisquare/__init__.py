@@ -23,14 +23,14 @@ exp_values = {'pval' : {'Price_Range-Deal_Type':0.218540231193,'Price_Range-Disc
 						'Price_Range-Sales':0.0,'Price_Range-Marketing_Cost':0.0,'Price_Range-Shipping_Cost':0.0,'Price_Range-Last_Transaction':0.0},
 			'effect_size': {'Price_Range-Deal_Type':0.0333986132269,'Price_Range-Discount_Range':0.101640637499,'Price_Range-Source':0.0318721598859,'Price_Range-Platform':0.0208378180847,
 							'Price_Range-Buyer_Age':0.0310568881639,'Price_Range-Buyer-Gender':0.0295576603474,'Price_Range-Tenure_in_Days':0.0303854760878,'Price_Range-Sales':0.0991956373975,
-							'Price_Range-Marketing_Cost':0.18938170922,'Price_Range-Shipping_Cost':0.121797494416,'Price_Range-Last_Transaction':0.0860596433083},			
+							'Price_Range-Marketing_Cost':0.18938170922,'Price_Range-Shipping_Cost':0.121797494416,'Price_Range-Last_Transaction':0.0860596433083},
 			'stats' :  {'Price_Range-Deal_Type':22.3093473096,'Price_Range-Discount_Range':206.616383823,'Price_Range-Source':20.3166915159,'Price_Range-Platform':4.34214662532,
 						'Price_Range-Buyer_Age':19.2906060485,'Price_Range-Buyer-Gender':8.73655285213,'Price_Range-Tenure_in_Days':18.4655431416,'Price_Range-Sales':196.795489574,
 						'Price_Range-Marketing_Cost':717.30863574,'Price_Range-Shipping_Cost':296.692592919,'Price_Range-Last_Transaction':148.125244127},
 			'v_value' : {'Price_Range-Deal_Type':0.0333986132269,'Price_Range-Discount_Range':0.101640637499,'Price_Range-Source':0.0318721598859,'Price_Range-Platform':0.0208378180847,
 						'Price_Range-Buyer_Age':0.0310568881639,'Price_Range-Buyer-Gender':0.0295576603474,'Price_Range-Tenure_in_Days':0.0303854760878,'Price_Range-Sales':0.0991956373975,
-						'Price_Range-Marketing_Cost':0.18938170922,'Price_Range-Shipping_Cost':0.121797494416,'Price_Range-Last_Transaction':0.0860596433083}}			
-			
+						'Price_Range-Marketing_Cost':0.18938170922,'Price_Range-Shipping_Cost':0.121797494416,'Price_Range-Last_Transaction':0.0860596433083}}
+
 
 exp_data_dict ={'highlightFlag': '|~HIGHLIGHT~|', 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 406.0,'best_second_share': [1], 'worst_second_target': 'Female',
 				'second_target_bottom_dim_contribution': 370.0, 'worst_second_share': [0], 'best_top_difference': [0], 'bottom_levels': ['Female'], 'second_target': u'51 to 100',
@@ -43,20 +43,20 @@ exp_data_dict ={'highlightFlag': '|~HIGHLIGHT~|', 'plural_colname': 'Buyer_Gende
 				'overall_second': 15.52, 'worst_top_share': [0], 'overall_top': 71.5, 'num_significant': 6, 'top_target_top_dims': ['Male'], 'second_target_top_dims': ['Male'], 'top_target_bottom_dim': 'Female'}
 
 
-exp_target_dict   = {'11 to 50':{'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10', 
-								'blockSplitter': '|~NEWBLOCK~|', 'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58], 'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False, 
-								'best_second_target': 'Female', 'worst_second_target': 'Male', 'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'], 'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male', 
-								'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|', 'random_card4': 96, 'best_second_target_percent': 75.0, 'second_target_top_dims': ['Female']}, u'51 to 100': {'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 
-								'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10', 'blockSplitter': '|~NEWBLOCK~|', 'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58], 
-								'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False, 'best_second_target': 'Female', 'worst_second_target': 'Male', 'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'], 
-								'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male', 'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|', 'random_card4': 96, 'best_second_target_percent': 75.0, 'second_target_top_dims': ['Female']}, 
-					'101 to 500': {'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10', 'blockSplitter': '|~NEWBLOCK~|', 
-									'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58], 'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False, 'best_second_target': 'Female', 'worst_second_target': 'Male', 
-									'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'], 'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male', 'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|', 'random_card4': 96, 
+exp_target_dict   = {'11 to 50':{'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10',
+								'blockSplitter': '|~NEWBLOCK~|', 'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58], 'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False,
+								'best_second_target': 'Female', 'worst_second_target': 'Male', 'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'], 'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male',
+								'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|', 'random_card4': 96, 'best_second_target_percent': 75.0, 'second_target_top_dims': ['Female']}, u'51 to 100': {'binTargetCol': False, 'plural_colname': 'Buyer_Genders',
+								'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10', 'blockSplitter': '|~NEWBLOCK~|', 'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58],
+								'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False, 'best_second_target': 'Female', 'worst_second_target': 'Male', 'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'],
+								'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male', 'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|', 'random_card4': 96, 'best_second_target_percent': 75.0, 'second_target_top_dims': ['Female']},
+					'101 to 500': {'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10', 'blockSplitter': '|~NEWBLOCK~|',
+									'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58], 'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False, 'best_second_target': 'Female', 'worst_second_target': 'Male',
+									'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'], 'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male', 'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|', 'random_card4': 96,
 									'best_second_target_percent': 75.0, 'second_target_top_dims': ['Female']},
-					'0 to 10': {'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10', 
-								'blockSplitter': '|~NEWBLOCK~|', 'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58], 'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False, 'best_second_target': 'Female', 
-								'worst_second_target': 'Male', 'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'], 'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male', 'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|', 
+					'0 to 10': {'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10',
+								'blockSplitter': '|~NEWBLOCK~|', 'distribution_second': [{'index_txt': '', 'd': 'Discount_Range', 'contributions_percent': [3.58], 'variation': 30, 'levels': [], 'contributions': []}], 'worst_second_target_percent': 25.0, 'binAnalyzedCol': False, 'best_second_target': 'Female',
+								'worst_second_target': 'Male', 'num_significant': 6, 'colname': 'Buyer_Gender', 'levels': ['Female', 'Male'], 'num_key_factors': 1, 'second_target_top_dims_contribution': 75.0, 'second_target_bottom_dim': 'Male', 'target': 'Price_Range', 'random_card2': 29, 'highlightFlag': '|~HIGHLIGHT~|',
 								'random_card4': 96, 'best_second_target_percent': 75.0, 'second_target_top_dims': ['Female']}}
 
 
@@ -67,12 +67,12 @@ class TestChiSquare(unittest.TestCase):
 
 	def setUp(self):
 		APP_NAME = "test"
-		spark = CommonUtils.get_spark_session(app_name=APP_NAME)
+		spark = CommonUtils.get_spark_session(app_name=APP_NAME,hive_environment=False)
 		spark.sparkContext.setLogLevel("ERROR")
 		spark.conf.set("spark.sql.execution.arrow.enabled", "true")
-		
+
 		configJson = get_test_configs("testCase",testFor = "chisquare")
-		
+
 		config = configJson["config"]
 		jobConfig = configJson["job_config"]
 		jobType = jobConfig["job_type"]
@@ -115,7 +115,7 @@ class TestChiSquare(unittest.TestCase):
 		metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
 		df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
 		targetVal = dataframe_context.get_result_column()
-		
+
 		self.result_setter = ResultSetter(dataframe_context)
 		self.story_narrative = NarrativesTree()
 		self.story_narrative.set_name("{} Performance Report".format(targetVal))
@@ -203,7 +203,7 @@ class TestChiSquare(unittest.TestCase):
 		target_chisquare_result = self.df_chisquare_result['Price_Range']
 		chisquare_result = self.df_chisquare_obj.get_chisquare_result('Price_Range','Buyer_Gender')
 		out = ChiSquareAnalysis(self.df_context,self.df_helper,chisquare_result, 'Price_Range', 'Buyer_Gender', self.significant_variables, self.num_analysed_variables, self.data_frame, self.measure_columns,self.base_dir, None,target_chisquare_result)._generate_narratives()
-		
+
 		self.assertEqual(out['data_dict'],exp_data_dict)
 		self.assertEqual(out['target_dict']['11 to 50'],out['target_dict']['11 to 50'])
 		self.assertEqual(out['target_dict']['101 to 500'],out['target_dict']['101 to 500'])
@@ -216,6 +216,3 @@ class TestChiSquare(unittest.TestCase):
 
 if __name__ == '__main__':
 	unittest.main()
-
-
-
