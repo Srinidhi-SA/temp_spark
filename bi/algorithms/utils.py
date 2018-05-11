@@ -710,15 +710,14 @@ def create_model_summary_cards(modelSummaryClass):
         # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
         # modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         modelParams = modelSummaryClass.get_model_params()
+        print modelParams
         count = 0
         for k,v in modelParams.items():
             count += 1
             if count <= 4 :
-                print k
-                print v
-                modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
+                modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(k,v)))
             else:
-                htmlDataObj = HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"]))
+                htmlDataObj = HtmlData(data="<p>{} - {}</p>".format(k,v))
                 htmlDataObj.set_class_tag("hidden")
                 modelSummaryCard1Data.append(htmlDataObj)
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)

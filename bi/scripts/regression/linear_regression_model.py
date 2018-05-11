@@ -250,7 +250,6 @@ class LinearRegressionModelScript:
                 elif tuningMethod == "randomsearch":
                     print "None"
             else:
-            # elif hyperParameterTuning == False:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
                 est.set_params(**algoParams)
