@@ -240,7 +240,7 @@ class LinearRegressionModelScript:
             st = time.time()
             est = LinearRegression()
 
-            if hyperParameterTuning == True:
+            if algoSetting.is_hyperparameter_tuning_enabled():
                 tuningMethod = self._dataframe_context.get_hyperparameter_tuning_method()
                 if tuningMethod == "gridsearch":
                     param_grid = {}
@@ -249,8 +249,8 @@ class LinearRegressionModelScript:
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(gridEst.cv_results_)
                 elif tuningMethod == "randomsearch":
                     print "None"
-
-            elif hyperParameterTuning == False:
+            else:
+            # elif hyperParameterTuning == False:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
                 est.set_params(**algoParams)

@@ -714,6 +714,8 @@ def create_model_summary_cards(modelSummaryClass):
         for k,v in modelParams.items():
             count += 1
             if count <= 4 :
+                print k
+                print v
                 modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
             else:
                 htmlDataObj = HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"]))
