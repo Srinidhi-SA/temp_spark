@@ -199,7 +199,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
         #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
     elif app_type == "REGRESSION":
         for obj in algosToRun:
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
                 try:
                     st = time.time()
                     lin_obj = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
@@ -209,7 +209,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-            # if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
+            # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
             #     try:
             #         st = time.time()
             #         lin_obj = GeneralizedLinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
@@ -218,7 +218,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
             #     except Exception as e:
             #         CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedLinearRegression",e)
             #         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
                 try:
                     st = time.time()
                     gbt_obj = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
@@ -227,7 +227,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
                 try:
                     st = time.time()
                     dtree_obj = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
@@ -236,7 +236,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj["algorithmSlug"] == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
                 try:
                     st = time.time()
                     rf_obj = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
