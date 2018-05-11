@@ -104,7 +104,7 @@ def frange(start, stop, num_steps=10):
     return result
 
 
-@accepts(app_name=basestring)
+@accepts(app_name=basestring,hive_environment=bool)
 def get_spark_session(app_name='Demo App',hive_environment=True):
     if hive_environment:
         return SparkSession.builder.appName(app_name).config(conf=SparkConf()).enableHiveSupport().getOrCreate()
