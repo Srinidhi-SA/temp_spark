@@ -429,6 +429,7 @@ class LinearRegressionModelScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
+        targetVariable = result_column
 
         if self._mlEnv == "spark":
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
