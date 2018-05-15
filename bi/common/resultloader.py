@@ -44,6 +44,7 @@ class ResultSetter:
         self.uidTable = None
         self.pmmlObjects = {}
         self.anovaCardsRegScore = []
+        self.kpiCardScore = None
 
     def update_pmml_object(self,data):
         self.pmmlObjects.update(data)

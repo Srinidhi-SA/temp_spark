@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,C3ChartData
 from bi.common import NormalChartData, ChartJson
 
 
@@ -511,7 +511,7 @@ class LinearRegressionModelScript:
             kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
             kpiCard.set_card_data(kpiCardData)
             kpiCard.set_cente_alignment(True)
-            # print CommonUtils.convert_python_object_to_json(kpiCard)
+            print CommonUtils.convert_python_object_to_json(kpiCard)
             self._result_setter.set_kpi_card_regression_score(kpiCard)
 
             pandas_df[result_column] = y_score

@@ -25,7 +25,7 @@ from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import SupportVectorMachine
 from bi.algorithms import utils as MLUtils
-from bi.common import MLModelSummary,NormalCard,KpiData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData
 from bi.common import DataFrameHelper
 from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson

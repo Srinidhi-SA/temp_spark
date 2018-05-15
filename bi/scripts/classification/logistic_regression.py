@@ -25,7 +25,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
-from bi.common import MLModelSummary,NormalCard,KpiData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData
 from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
