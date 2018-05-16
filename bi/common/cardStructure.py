@@ -380,10 +380,11 @@ class KpiData:
 
 class ParallelCoordinateData:
 
-    def __init__(self,data=None,ignoreList=None):
+    def __init__(self,data=None,ignoreList=None,columnOrder=None):
         self.dataType = "parallelCoordinates"
         self.data = data
-        self.ignoreList = None
+        self.ignoreList = ignoreList
+        self.columnOrder = columnOrder
 
     def set_data(self,data):
         self.data = data
@@ -399,3 +400,9 @@ class ParallelCoordinateData:
 
     def get_ignore_list(self):
         return self.ignoreList
+
+    def set_column_order(self,data):
+        self.columnOrder = data
+
+    def get_column_order(self):
+        return self.columnOrder

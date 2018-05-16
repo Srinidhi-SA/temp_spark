@@ -278,7 +278,7 @@ class SklearnGridSearchResult:
             self.resultDf = pd.DataFrame(self.resultDict)
         else:
             self.resultDf = None
-        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared"]
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","slug"]
 
     def get_ignore_list(self):
         return self.ignoreList
@@ -290,8 +290,9 @@ class SklearnGridSearchResult:
             estimator.fit(self.x_train, self.y_train)
             y_score = estimator.predict(self.x_test)
             modelName = "M"+"0"*(4-len(str(idx)))+str(idx)
+            slug = self.modelFilepath.split("/")[-1]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName)
-            row = {"Model Id":modelName}
+            row = {"Model Id":modelName,"slug":slug,"selected":False}
             evaluationMetrics = {}
             if self.appType == "REGRESSION":
                 evaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
@@ -311,7 +312,14 @@ class SklearnGridSearchResult:
             row.update(evaluationMetrics)
             row.update(paramsObj)
             tableOutput.append(row)
+        if self.appType == "REGRESSION":
+            tableOutput = sorted(tableOutput,key=lambda x:x["R-Squared"],reverse=True)
+        elif self.appType == "CLASSIFICATION":
+            tableOutput = sorted(tableOutput,key=lambda x:x["Accuracy"],reverse=True)
 
+        bestMod = tableOutput[0]
+        bestMod["selected"] = True
+        tableOutput[0] = bestMod
         print "="*100
         print tableOutput
         print "="*100
