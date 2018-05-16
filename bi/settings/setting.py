@@ -185,7 +185,6 @@ classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"lr"  : 1,
     ALGORITHMRANDOMSLUG+"svm" : 2
 }
-classificationAlgorithmsToRunTemp = [ALGORITHMRANDOMSLUG+"rf",ALGORITHMRANDOMSLUG+"xgb",ALGORITHMRANDOMSLUG+"lr"]
 
 metadataScriptWeight = {
     "initialization":{"total":3,"script":2,"narratives":1},

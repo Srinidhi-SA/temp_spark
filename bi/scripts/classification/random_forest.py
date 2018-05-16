@@ -17,6 +17,8 @@ from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 
 
@@ -24,7 +26,7 @@ from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
-from bi.common import MLModelSummary,NormalCard,KpiData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult
 from bi.common import DataFrameHelper
 from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
@@ -82,7 +84,7 @@ class RFClassificationModelScript:
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -130,41 +132,69 @@ class RFClassificationModelScript:
             labelMapping = dict(zip(transformed,classes))
             inverseLabelMapping = dict(zip(classes,transformed))
             posLabel = inverseLabelMapping[self._targetLevel]
-            print labelMapping,inverseLabelMapping,posLabel,self._targetLevel
+            print "="*300
+            if algoSetting.is_hyperparameter_tuning_enabled():
+                hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
+                params_grid = algoSetting.get_params_dict_hyperparameter()
+                print clf.get_params()
+                print "="*200
+                for k,v in params_grid.items():
+                    if k not in clf.get_params():
+                        print k,v
+                params_grid = {k:v for k,v in params_grid.items() if k in clf.get_params()}
+                print params_grid
+                if hyperParamAlgoName == "gridsearchcv":
+                    clfGrid = GridSearchCV(clf,params_grid)
+                    gridParams = clfGrid.get_params()
+                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                    clfGrid.set_params(**hyperParamInitParam)
+                    clfGrid.fit(x_train,y_train)
+                    bestEstimator = clfGrid.best_estimator_
+                    appType = self._dataframe_context.get_app_type()
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    self._result_setter.set_ignore_list_parallel_coordinates(sklearnHyperParameterResultObj.get_ignore_list())
+                elif hyperParamAlgoName == "randomsearchcv":
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    clfRand.set_params(**hyperParamInitParam)
+                    bestEstimator = None
+            else:
+                algoParams = algoSetting.get_params_dict()
+                algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
+                clf.set_params(**algoParams)
 
-            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
-            algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
-            clf.set_params(**algoParams)
-
-            if validationDict["name"] == "kFold":
-                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                numFold = int(validationDict["value"])
-                if numFold == 0:
-                    numFold = 3
-                kf = KFold(n_splits=numFold)
-                foldId = 1
-                kFoldOutput = []
-                for train_index, test_index in kf.split(x_train):
-                    x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                    y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                    clf.fit(x_train_fold, y_train_fold)
-                    y_score_fold = clf.predict(x_test_fold)
-                    metricsFold = {}
-                    if len(levels) <= 2:
-                        metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
-                        metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
-                        metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
-                    elif len(levels) > 2:
-                        metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
-                        metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
-                        # metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold,average="weighted")
-                        metricsFold["auc"] = None
-                    kFoldOutput.append((clf,metricsFold))
-                kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["precision"])
-                bestEstimator = kFoldOutput[-1][0]
-            elif validationDict["name"] == "trainAndtest":
-                clf.fit(x_train, y_train)
-                bestEstimator = clf
+                if validationDict["name"] == "kFold":
+                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                    numFold = int(validationDict["value"])
+                    if numFold == 0:
+                        numFold = 3
+                    kf = KFold(n_splits=numFold)
+                    foldId = 1
+                    kFoldOutput = []
+                    for train_index, test_index in kf.split(x_train):
+                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
+                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+                        clf.fit(x_train_fold, y_train_fold)
+                        y_score_fold = clf.predict(x_test_fold)
+                        metricsFold = {}
+                        if len(levels) <= 2:
+                            metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
+                            metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
+                            metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                        elif len(levels) > 2:
+                            metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
+                            metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
+                            # metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold,average="weighted")
+                            metricsFold["auc"] = None
+                        kFoldOutput.append((clf,metricsFold))
+                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["precision"])
+                    bestEstimator = kFoldOutput[-1][0]
+                elif validationDict["name"] == "trainAndtest":
+                    clf.fit(x_train, y_train)
+                    bestEstimator = clf
 
             # clf.fit(x_train, y_train)
             # bestEstimator = clf
@@ -192,7 +222,7 @@ class RFClassificationModelScript:
             y_test = labelEncoder.inverse_transform(y_test)
 
             featureImportance={}
-            feature_importance = dict(sorted(zip(x_train.columns,clf.feature_importances_),key=lambda x: x[1],reverse=True))
+            feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
             for k, v in feature_importance.iteritems():
                 feature_importance[k] = CommonUtils.round_sig(v)
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}

@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -173,7 +173,7 @@ class GeneralizedLinearRegressionModelScript:
         self._model_summary.set_target_variable(result_column)
         self._model_summary.set_validation_method(validationDict["displayName"])
         self._model_summary.set_model_evaluation_metrics(metrics)
-        self._model_summary.set_model_params(algoSetting["algorithmParams"])
+        self._model_summary.set_model_params(algoParams)
         self._model_summary.set_quantile_summary(quantileSummaryArr)
         self._model_summary.set_mape_stats(mapeStatsArr)
         self._model_summary.set_sample_data(sampleData.toPandas().to_dict())

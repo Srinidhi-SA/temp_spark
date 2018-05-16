@@ -13,7 +13,10 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData
+
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,C3ChartData
+from bi.common import NormalChartData, ChartJson
+
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -47,7 +50,8 @@ from sklearn2pmml import PMMLPipeline
 
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
-
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 
 
@@ -98,7 +102,7 @@ class LinearRegressionModelScript:
 
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -221,7 +225,7 @@ class LinearRegressionModelScript:
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_validation_method(validationDict["displayName"])
             self._model_summary.set_model_evaluation_metrics(metrics)
-            self._model_summary.set_model_params(algoSetting["algorithmParams"])
+            self._model_summary.set_model_params(algoParams)
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
@@ -237,24 +241,37 @@ class LinearRegressionModelScript:
             st = time.time()
             est = LinearRegression()
 
-            if hyperParameterTuning == True:
-                tuningMethod = self._dataframe_context.get_hyperparameter_tuning_method()
-                if tuningMethod == "gridsearch":
-                    param_grid = {}
-                    gridEst = GridSearchCV(est, param_grid)
-                    gridEst.fit(x_train, y_train)
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(gridEst.cv_results_)
-                elif tuningMethod == "randomsearch":
-                    print "None"
-                    
-            elif hyperParameterTuning == False:
-                algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
-                algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
-                est.set_params(**algoParams)
+            algoParams = algoSetting.get_params_dict()
+            algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
+            est.set_params(**algoParams)
 
-                CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-                self._dataframe_context.update_completion_status(self._completionStatus)
+            self._dataframe_context.update_completion_status(self._completionStatus)
+            if algoSetting.is_hyperparameter_tuning_enabled():
+                hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
+                params_grid = algoSetting.get_params_dict_hyperparameter()
+                params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
+                print params_grid
+                if hyperParamAlgoName == "gridsearchcv":
+                    estGrid = GridSearchCV(est,params_grid)
+                    gridParams = estGrid.get_params()
+                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                    estGrid.set_params(**hyperParamInitParam)
+                    estGrid.fit(x_train,y_train)
+                    bestEstimator = estGrid.best_estimator_
+                    appType = self._dataframe_context.get_app_type()
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    self._result_setter.set_ignore_list_parallel_coordinates(sklearnHyperParameterResultObj.get_ignore_list())
+                elif hyperParamAlgoName == "randomsearchcv":
+                    estRand = RandomizedSearchCV(est,params_grid)
+                    estRand.set_params(**hyperParamInitParam)
+                    bestEstimator = None
+            else:
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
@@ -280,7 +297,7 @@ class LinearRegressionModelScript:
                 elif validationDict["name"] == "trainAndtest":
                     est.fit(x_train, y_train)
                     bestEstimator = est
-            print x_train.columns
+            # print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
@@ -335,7 +352,7 @@ class LinearRegressionModelScript:
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_validation_method(validationDict["displayName"])
             self._model_summary.set_model_evaluation_metrics(metrics)
-            self._model_summary.set_model_params(algoSetting["algorithmParams"])
+            self._model_summary.set_model_params(algoParams)
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.to_dict())
@@ -409,6 +426,7 @@ class LinearRegressionModelScript:
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         test_data_path = self._dataframe_context.get_input_file()
+        targetVariable = result_column
 
         if self._mlEnv == "spark":
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
@@ -454,7 +472,7 @@ class LinearRegressionModelScript:
                 trained_model_path = trained_model_path[7:]
             trained_model = joblib.load(trained_model_path)
             model_columns = self._dataframe_context.get_model_features()
-            print "model_columns",model_columns
+            # print "model_columns",model_columns
 
             df = self._data_frame.toPandas()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -464,13 +482,33 @@ class LinearRegressionModelScript:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             print len(model_columns),len(pandas_df.columns)
             y_score = trained_model.predict(pandas_df)
+            coefficients = trained_model.coef_
+            coefficientsArray = [(col_name, coefficients[idx]) for idx, col_name in enumerate(pandas_df.columns)]
+
+            coefficientsCard = NormalCard()
+            coefficientsArray = sorted(coefficientsArray,key=lambda x:abs(x[1]),reverse=True)
+            coefficientsArray = [{"key":tup[0],"value":tup[1]} for tup in coefficientsArray]
+            chartDataValues = [x["value"] for x in coefficientsArray]
+            coefficientsChartJson = ChartJson()
+            coefficientsChartJson.set_data(coefficientsArray)
+            coefficientsChartJson.set_chart_type("bar")
+            coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
+            coefficientsChartJson.set_axes({"x":"key","y":"value"})
+            coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
+            # coefficientsChartJson.set_yaxis_number_format(".4f")
+            coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
+            coefficientsChart = C3ChartData(data=coefficientsChartJson)
+            coefficientsCardData = [HtmlData(data="<h4><b>Influence of Key Features on {}</b></h4>".format(targetVariable)),coefficientsChart]
+            coefficientsCard.set_card_data(coefficientsCardData)
+            coefficientsCard = json.loads(CommonUtils.convert_python_object_to_json(coefficientsCard))
+            self._result_setter.set_coeff_card_regression_score(coefficientsCard)
 
             scoreKpiArray = MLUtils.get_scored_data_summary(y_score)
             kpiCard = NormalCard()
             kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
             kpiCard.set_card_data(kpiCardData)
             kpiCard.set_cente_alignment(True)
-            # print CommonUtils.convert_python_object_to_json(kpiCard)
+            print CommonUtils.convert_python_object_to_json(kpiCard)
             self._result_setter.set_kpi_card_regression_score(kpiCard)
 
             pandas_df[result_column] = y_score

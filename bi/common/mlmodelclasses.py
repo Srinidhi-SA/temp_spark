@@ -1,4 +1,9 @@
 import pandas as pd
+from sklearn import metrics
+from math import sqrt
+from sklearn.externals import joblib
+
+
 
 class ModelSummary:
     """
@@ -20,7 +25,7 @@ class ModelSummary:
                         }
                     }
     """
-    def __init__(self, model_summary=None, model_dropdown=None, modelConfig=None):
+    def __init__(self, model_summary=None, model_dropdown=None, modelConfig=None, modelHyperparameter=None):
         if model_summary is None:
             model_summary = {}
         if model_dropdown is None:
@@ -30,6 +35,7 @@ class ModelSummary:
         self.model_summary = model_summary
         self.model_dropdown = model_dropdown
         self.config = modelConfig
+        self.model_hyperparameter_summary = modelHyperparameter
 
     def set_model_summary(self,data):
         self.model_summary = data
@@ -43,11 +49,16 @@ class ModelSummary:
         self.config = data
     def get_model_config(self):
         return self.config
+    def get_model_hyperparameter_summary(self):
+        return self.model_hyperparameter_summary
+    def set_model_hyperparameter_summary(self,data):
+        self.model_hyperparameter_summary = data
     def get_json_data(self):
         output =  {
                 "model_summary":self.model_summary,
                 "model_dropdown":self.model_dropdown,
                 "config":self.config,
+                "model_hyperparameter":self.model_hyperparameter_summary
                 }
         return output
 
@@ -252,12 +263,65 @@ class ParamsGrid:
     """
 
 class SklearnGridSearchResult:
-    def __init__(self,resultDict = {}):
+    def __init__(self,resultDict = {},estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,modelFilepath = None,levels=None,posLabel=None):
         self.resultDict = resultDict
+        self.estimator = estimator
+        self.appType = appType
+        self.x_train = x_train
+        self.x_test = x_test
+        self.y_train = y_train
+        self.y_test = y_test
+        self.posLabel = posLabel
+        self.levels = levels
+        self.modelFilepath = modelFilepath
         if self.resultDict != {}:
             self.resultDf = pd.DataFrame(self.resultDict)
         else:
             self.resultDf = None
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","slug"]
 
-    def get_best_params(self):
-        return self.resultDf["params"]
+    def get_ignore_list(self):
+        return self.ignoreList
+
+    def train_and_save_models(self):
+        tableOutput = []
+        for idx,paramsObj in enumerate(self.resultDf["params"]):
+            estimator = self.estimator.set_params(**paramsObj)
+            estimator.fit(self.x_train, self.y_train)
+            y_score = estimator.predict(self.x_test)
+            modelName = "M"+"0"*(4-len(str(idx)))+str(idx)
+            slug = self.modelFilepath.split("/")[-1]
+            joblib.dump(estimator,self.modelFilepath+"/"+modelName)
+            row = {"Model Id":modelName,"slug":slug,"selected":False}
+            evaluationMetrics = {}
+            if self.appType == "REGRESSION":
+                evaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
+                evaluationMetrics["MSE"] = metrics.mean_squared_error(self.y_test, y_score)
+                evaluationMetrics["MAE"] = metrics.mean_absolute_error(self.y_test, y_score)
+                evaluationMetrics["RMSE"] = sqrt(evaluationMetrics["MSE"])
+            elif self.appType == "CLASSIFICATION":
+                evaluationMetrics["Accuracy"] = metrics.accuracy_score(self.y_test,y_score)
+                if len(self.levels) <= 2:
+                    evaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
+                    evaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
+                    evaluationMetrics["ROC-AUC"] = metrics.roc_auc_score(self.y_test,y_score)
+                elif len(self.levels) > 2:
+                    evaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
+                    evaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
+                    evaluationMetrics["ROC-AUC"] = None
+            row.update(evaluationMetrics)
+            row.update(paramsObj)
+            tableOutput.append(row)
+        if self.appType == "REGRESSION":
+            tableOutput = sorted(tableOutput,key=lambda x:x["R-Squared"],reverse=True)
+        elif self.appType == "CLASSIFICATION":
+            tableOutput = sorted(tableOutput,key=lambda x:x["Accuracy"],reverse=True)
+
+        bestMod = tableOutput[0]
+        bestMod["selected"] = True
+        tableOutput[0] = bestMod
+        print "="*100
+        print tableOutput
+        print "="*100
+
+        return tableOutput

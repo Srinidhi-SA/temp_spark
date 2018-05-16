@@ -49,9 +49,12 @@ class TwoWayAnova:
 
         print "=================dimension columns======================"
         print self._dimension_columns
+        print "=================dimension columns======================"
+
         print "==================measure_columns ========================"
         print self._measure_columns
-
+        print "==================measure_columns ========================"
+        
         self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()

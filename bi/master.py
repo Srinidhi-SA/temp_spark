@@ -41,8 +41,8 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "story"
-            
+
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -50,7 +50,7 @@ def main(configJson):
 
             print configJson
             print "="*20
-            
+
 
 
     print "######################## Creating Spark Session ###########################"
@@ -61,8 +61,11 @@ def main(configJson):
             APP_NAME = configJson["job_config"]["job_name"]
         else:
             APP_NAME = "--missing--"
+    if debugMode:
+        spark = CommonUtils.get_spark_session(app_name=APP_NAME,hive_environment=False)
+    else:
+        spark = CommonUtils.get_spark_session(app_name=APP_NAME)
 
-    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
     spark.sparkContext.setLogLevel("ERROR")
     if debugMode:
         spark.conf.set("spark.sql.execution.arrow.enabled", "true")
@@ -206,11 +209,11 @@ def main(configJson):
             # TestChiSquare().setUp()
             unittest.TextTestRunner(verbosity=2).run(unittest.TestLoader().loadTestsFromTestCase(TestChiSquare))
 
-            # TestChiSquare(df,df_helper,dataframe_context,metaParserInstance).run_chisquare_test()            
+            # TestChiSquare(df,df_helper,dataframe_context,metaParserInstance).run_chisquare_test()
             # TestChiSquare().setup()
-            # TestChiSquare().run_chisquare_test()         
+            # TestChiSquare().run_chisquare_test()
             # TestChiSquare().test_upper()
-            # test = test_chisquare.run_chisquare_test(df,df_helper,dataframe_context,metaParserInstance)         
+            # test = test_chisquare.run_chisquare_test(df,df_helper,dataframe_context,metaParserInstance)
             # suit = unittest.TestLoader().loadTestsFromTestCase(TestChiSquare)
 
         ############################################################################
