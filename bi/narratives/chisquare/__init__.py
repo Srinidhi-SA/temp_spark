@@ -33,22 +33,16 @@ class ChiSquareNarratives:
         self._base_dir = "/chisquare/"
         self._spark = spark
         
-        print 'self._measure_columns'*100
-        print self._measure_columns
-        print self._data_frame
         ############################DataFrame Measure to Dimesion Column#####################
         
-        pandas_df = self._data_frame.toPandas()
-        
+        pandas_df = self._data_frame.toPandas()    
         target_dimension = self._df_chisquare_result.keys()
-        print target_dimension
 
         bin_data = {}
         for col in self._measure_columns:
             chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension[0],col)
             bin_data[col] = chisquare_result.get_contingency_table().get_column_two_levels()
 
-        print bin_data
         for bin_col in bin_data.keys():
             for split in bin_data[bin_col]:
                 val = split.split('to')
@@ -59,7 +53,7 @@ class ChiSquareNarratives:
 
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         self._data_frame = SQLctx.createDataFrame(pandas_df,schema)
-        print self._data_frame.show()
+
         ############################DataFrame Measure to Dimesion Column#####################
 
         if self._appid != None:

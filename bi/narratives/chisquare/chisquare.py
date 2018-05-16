@@ -32,24 +32,6 @@ class ChiSquareAnalysis:
         self._num_analysed_variables = num_analysed_variables
         self._chiSquareTable = chisquare_result.get_contingency_table()
 
-        # significant_variables=list(set(significant_variables) - {analysed_dimension})
-
-        # significant_variables = list(set(significant_variables)-set(measure_columns))
-
-        # if len(significant_variables)<=20:
-        #     if len(significant_variables)<=3:
-        #         self._second_level_dimensions = list(significant_variables)
-        #         random.shuffle(significant_variables)
-        #         self._second_level_dimensions1 = list(significant_variables)
-        #     else:
-        #         self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
-        #         self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
-        # elif len(significant_variables)>=20:
-        #     self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
-        #     self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
-
-      ###################### Block of Code By Sumit #############################################
-
         significant_variables=list(set(significant_variables) - {analysed_dimension})
         if len(significant_variables)<=20:
             if len(significant_variables)<=3:
@@ -58,8 +40,6 @@ class ChiSquareAnalysis:
                 self._second_level_dimensions = list(significant_variables)[:3]
         else:
             self._second_level_dimensions = list(significant_variables)[:5]
-
-      ###################### Block of Code By Sumit #############################################
 
         self._appid = appid
         self._card1 = NormalCard()
@@ -106,7 +86,6 @@ class ChiSquareAnalysis:
           table = self._chiSquareTable
           total = self._chiSquareTable.get_total()
 
-          print "Changed By Sumit"
           levels = self._chiSquareTable.get_column_two_levels()
           level_counts = self._chiSquareTable.get_column_total()
           levels_count_sum = sum(level_counts)
@@ -403,34 +382,17 @@ class ChiSquareAnalysis:
                   distribution_second = []
                   for d in self._second_level_dimensions:
 
-                    print "++++++++++++++ Check Assosiation +++++++++++++++"*10
-                    print targetLevel
-                    print self._analysed_dimension
-                    print d
-
                     grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
-                    print grouped
                     contributions = df_second_dim.groupby(d).agg({d:'count'})
-                    print contributions
                     contribution_index = list(contributions.index)
-                    print contribution_index
                     contributions_val = contributions[d].tolist()
-                    print contributions_val
                     contributions_list = dict(zip(contribution_index,contributions_val))
-                    print contributions_list
                     index_list = list(grouped.index)
-                    print index_list
                     grouped_list = grouped[d].tolist()
-                    print 'grouped_list'
-                    print grouped_list
                     contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
-                    print contributions_percent_list
                     sum_ = grouped[d].sum()
-                    print sum_
                     diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
-                    print diffs
                     max_diff = diffs.index(max(diffs))
-                    print max_diff  
 
                     index_txt=''
                     if max_diff == 1:
