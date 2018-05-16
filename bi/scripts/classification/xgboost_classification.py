@@ -139,6 +139,12 @@ class XgboostScript:
                     clfGrid.set_params(**hyperParamInitParam)
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
+                    appType = self._dataframe_context.get_app_type()
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    self._result_setter.set_ignore_list_parallel_coordinates(sklearnHyperParameterResultObj.get_ignore_list())
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
