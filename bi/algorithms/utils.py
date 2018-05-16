@@ -895,6 +895,15 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","ROC-AUC","Run Time"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
         counter = 1
+        hyperParameterFlagArray = []
+        hyperParameterFlag = False
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
+            if obj != None:
+                if result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"]) != None:
+                    hyperParameterFlagArray.append(True)
+                    hyperParameterFlag = True
+                else:
+                    hyperParameterFlagArray.append(False)
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
@@ -902,9 +911,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]
                 if targetVariableLevelcount == {}:
                     targetVariableLevelcount = obj["levelcount"][target_variable]
-
-                hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
-                if hyperParamSummary != None:
+                if hyperParameterFlag == True:
+                    hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
                     algoRows = []
                     for rowDict in hyperParamSummary:
                         row = []
@@ -934,11 +942,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
                     algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                     model_hyperparameter_summary.append(json.loads(algoCardJson))
-        algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
-        htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
-        allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
-        algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
-        algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
+        if hyperParameterFlag == True:
+            algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
+            htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
+            allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
+            algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
+            algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
+            algoSummaryCardDict = json.loads(algoSummaryCardJson)
+            model_hyperparameter_summary.insert(0,algoSummaryCardDict)
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = labelMappingDict
@@ -946,9 +957,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
-        algoSummaryCardDict = json.loads(algoSummaryCardJson)
-        model_hyperparameter_summary.insert(0,algoSummaryCardDict)
-        modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
+        if hyperParameterFlag == True:
+            modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
     else:
@@ -1050,16 +1060,22 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
         counter = 1
+        hyperParameterFlagArray = []
+        hyperParameterFlag = False
+        for obj in allRegressionModelSummary:
+            if obj != None:
+                if result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"]) != None:
+                    hyperParameterFlagArray.append(True)
+                    hyperParameterFlag = True
+                else:
+                    hyperParameterFlagArray.append(False)
         for obj in allRegressionModelSummary:
             if obj != None:
                 print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
-                try:
+                if hyperParameterFlag == True:
                     hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
-                except:
-                    hyperParamSummary = None
-                if hyperParamSummary != None:
                     algoRows = []
                     for rowDict in hyperParamSummary:
                         row = []
@@ -1090,11 +1106,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                     model_hyperparameter_summary.append(json.loads(algoCardJson))
 
-        algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
-        htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
-        allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
-        algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
-        algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
+        if hyperParameterFlag == True:
+            algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
+            htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
+            allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
+            algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
+            algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
+            algoSummaryCardDict = json.loads(algoSummaryCardJson)
+            model_hyperparameter_summary.insert(0,algoSummaryCardDict)
 
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
@@ -1103,9 +1122,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
-        algoSummaryCardDict = json.loads(algoSummaryCardJson)
-        model_hyperparameter_summary.insert(0,algoSummaryCardDict)
-        modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
+        if hyperParameterFlag == True:
+            modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
 

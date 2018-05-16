@@ -281,7 +281,7 @@ class SklearnGridSearchResult:
             self.resultDf = pd.DataFrame(self.resultDict)
         else:
             self.resultDf = None
-        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","slug"]
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time"]
 
     def get_ignore_list(self):
         return self.ignoreList
