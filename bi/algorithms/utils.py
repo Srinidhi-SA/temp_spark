@@ -923,7 +923,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
                 allAlgorithmTable += algoRows
 
-                algoCard = NormalCard(name=obj["dropdown"]["name"])
+                algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
                 masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
                 ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
                 print "="*20
@@ -933,6 +933,11 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
                 algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                 model_hyperparameter_summary.append(json.loads(algoCardJson))
+        algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
+        htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
+        allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
+        algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
+        algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = labelMappingDict
@@ -940,6 +945,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
+        algoSummaryCardDict = json.loads(algoSummaryCardJson)
+        model_hyperparameter_summary.insert(0,algoSummaryCardDict)
         modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
