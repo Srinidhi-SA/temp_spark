@@ -4,6 +4,7 @@ from sklearn import metrics
 from math import sqrt
 from sklearn.externals import joblib
 from bi.settings import setting as GLOBALSETTINGS
+from bi.common import utils as CommonUtils
 
 
 
@@ -295,7 +296,7 @@ class SklearnGridSearchResult:
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx)))+str(idx)
             slug = self.modelFilepath.split("/")[-1]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
-            row = {"Model Id":modelName,"Slug":slug,"Selected":False,"Run Time":time.time()-st}
+            row = {"Model Id":modelName,"Slug":slug,"Selected":False,"Run Time":str(CommonUtils.round_sig(time.time()-st))}
             evaluationMetrics = {}
             if self.appType == "REGRESSION":
                 evaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
@@ -312,13 +313,14 @@ class SklearnGridSearchResult:
                     evaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
                     evaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
                     evaluationMetrics["ROC-AUC"] = None
+            evaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in evaluationMetrics.items()}
             row.update(evaluationMetrics)
             row.update(paramsObj)
             tableOutput.append(row)
         if self.appType == "REGRESSION":
-            tableOutput = sorted(tableOutput,key=lambda x:x["R-Squared"],reverse=True)
+            tableOutput = sorted(tableOutput,key=lambda x:float(x["R-Squared"]),reverse=True)
         elif self.appType == "CLASSIFICATION":
-            tableOutput = sorted(tableOutput,key=lambda x:x["Accuracy"],reverse=True)
+            tableOutput = sorted(tableOutput,key=lambda x:float(x["Accuracy"]),reverse=True)
 
         bestMod = tableOutput[0]
         bestMod["selected"] = True
