@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -239,12 +239,19 @@ class DTREERegressionModelScript:
                 params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
                 print params_grid
                 if hyperParamAlgoName == "gridsearchcv":
-                    clfGrid = GridSearchCV(est,params_grid)
-                    gridParams = clfGrid.get_params()
+                    estGrid = GridSearchCV(est,params_grid)
+                    gridParams = estGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     estGrid.set_params(**hyperParamInitParam)
                     estGrid.fit(x_train,y_train)
                     bestEstimator = estGrid.best_estimator_
+                    appType = self._dataframe_context.get_app_type()
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    self._result_setter.set_ignore_list_parallel_coordinates(sklearnHyperParameterResultObj.get_ignore_list())
+                    
                 elif hyperParamAlgoName == "randomsearchcv":
                     estRand = RandomizedSearchCV(est,params_grid)
                     estRand.set_params(**hyperParamInitParam)

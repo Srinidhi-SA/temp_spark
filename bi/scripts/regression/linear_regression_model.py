@@ -13,9 +13,8 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,C3ChartData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,C3ChartData
 from bi.common import NormalChartData, ChartJson
-
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -240,67 +239,63 @@ class LinearRegressionModelScript:
             st = time.time()
             est = LinearRegression()
 
+            algoParams = algoSetting.get_params_dict()
+            algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
+            est.set_params(**algoParams)
+
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+            self._dataframe_context.update_completion_status(self._completionStatus)
             if algoSetting.is_hyperparameter_tuning_enabled():
-                tuningMethod = self._dataframe_context.get_hyperparameter_tuning_method()
-                if tuningMethod == "gridsearch":
-                    param_grid = {}
-                    gridEst = GridSearchCV(est, param_grid)
-                    gridEst.fit(x_train, y_train)
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(gridEst.cv_results_)
-                elif tuningMethod == "randomsearch":
-                    print "None"
+                hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
+                params_grid = algoSetting.get_params_dict_hyperparameter()
+                params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
+                print params_grid
+                if hyperParamAlgoName == "gridsearchcv":
+                    estGrid = GridSearchCV(est,params_grid)
+                    gridParams = estGrid.get_params()
+                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                    estGrid.set_params(**hyperParamInitParam)
+                    estGrid.fit(x_train,y_train)
+                    bestEstimator = estGrid.best_estimator_
+                    appType = self._dataframe_context.get_app_type()
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    self._result_setter.set_ignore_list_parallel_coordinates(sklearnHyperParameterResultObj.get_ignore_list())
+                elif hyperParamAlgoName == "randomsearchcv":
+                    estRand = RandomizedSearchCV(est,params_grid)
+                    estRand.set_params(**hyperParamInitParam)
+                    bestEstimator = None
             else:
-                algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
-                est.set_params(**algoParams)
-
-                CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
-
-                self._dataframe_context.update_completion_status(self._completionStatus)
-                if algoSetting.is_hyperparameter_tuning_enabled():
-                    hyperParamInitParam = algoSetting.get_hyperparameter_params()
-                    hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
-                    params_grid = algoSetting.get_params_dict_hyperparameter()
-                    params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
-                    print params_grid
-                    if hyperParamAlgoName == "gridsearchcv":
-                        clfGrid = GridSearchCV(est,params_grid)
-                        gridParams = clfGrid.get_params()
-                        hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
-                        estGrid.set_params(**hyperParamInitParam)
-                        estGrid.fit(x_train,y_train)
-                        bestEstimator = estGrid.best_estimator_
-                    elif hyperParamAlgoName == "randomsearchcv":
-                        estRand = RandomizedSearchCV(est,params_grid)
-                        estRand.set_params(**hyperParamInitParam)
-                        bestEstimator = None
-                else:
-                    if validationDict["name"] == "kFold":
-                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                        numFold = int(validationDict["value"])
-                        if numFold == 0:
-                            numFold = 3
-                        kf = KFold(n_splits=numFold)
-                        foldId = 1
-                        kFoldOutput = []
-                        for train_index, test_index in kf.split(x_train):
-                            x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                            y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                            est.fit(x_train_fold, y_train_fold)
-                            y_score_fold = est.predict(x_test_fold)
-                            metricsFold = {}
-                            metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
-                            metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
-                            metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
-                            metricsFold["rmse"] = sqrt(metricsFold["mse"])
-                            kFoldOutput.append((est,metricsFold))
-                        kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
-                        # print kFoldOutput
-                        bestEstimator = kFoldOutput[-1][0]
-                    elif validationDict["name"] == "trainAndtest":
-                        est.fit(x_train, y_train)
-                        bestEstimator = est
-            print x_train.columns
+                if validationDict["name"] == "kFold":
+                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                    numFold = int(validationDict["value"])
+                    if numFold == 0:
+                        numFold = 3
+                    kf = KFold(n_splits=numFold)
+                    foldId = 1
+                    kFoldOutput = []
+                    for train_index, test_index in kf.split(x_train):
+                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
+                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
+                        est.fit(x_train_fold, y_train_fold)
+                        y_score_fold = est.predict(x_test_fold)
+                        metricsFold = {}
+                        metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
+                        metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
+                        metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
+                        metricsFold["rmse"] = sqrt(metricsFold["mse"])
+                        kFoldOutput.append((est,metricsFold))
+                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
+                    # print kFoldOutput
+                    bestEstimator = kFoldOutput[-1][0]
+                elif validationDict["name"] == "trainAndtest":
+                    est.fit(x_train, y_train)
+                    bestEstimator = est
+            # print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:

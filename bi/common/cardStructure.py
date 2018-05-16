@@ -377,3 +377,25 @@ class KpiData:
 
     def set_width_percent(self,data):
         self.widthPercent = data
+
+class ParallelCoordinateData:
+
+    def __init__(self,data=None,ignoreList=None):
+        self.dataType = "parallelCoordinates"
+        self.data = data
+        self.ignoreList = None
+
+    def set_data(self,data):
+        self.data = data
+
+    def get_data(self):
+        return self.data
+
+    def get_data_type(self):
+        return self.dataType
+
+    def set_ignore_list(self,data):
+        self.ignoreList = data
+
+    def get_ignore_list(self):
+        return self.ignoreList

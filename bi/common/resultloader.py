@@ -45,7 +45,17 @@ class ResultSetter:
         self.pmmlObjects = {}
         self.anovaCardsRegScore = []
         self.kpiCardScore = None
+        self.hyperParameterResultDict = {}
+        self.ignoreList = []
 
+    def set_ignore_list_parallel_coordinates(self,data):
+        self.ignoreList = data
+    def get_ignore_list_parallel_coordinates(self):
+        return self.ignoreList
+    def set_hyper_parameter_results(self,slug,data):
+        self.hyperParameterResultDict[slug] = data
+    def get_hyper_parameter_results(self,slug):
+        return self.hyperParameterResultDict[slug]
     def update_pmml_object(self,data):
         self.pmmlObjects.update(data)
     def get_pmml_object(self):

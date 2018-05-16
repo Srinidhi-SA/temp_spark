@@ -21,7 +21,7 @@ from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.types import StringType
 
-from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
@@ -996,6 +996,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         ####
 
         model_dropdowns = []
+        model_hyperparameter_summary = []
         model_features = {}
         model_configs = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
@@ -1005,6 +1006,17 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
+                hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
+                algoCard = NormalCard(name=obj["dropdown"]["name"])
+                masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
+                ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                print "="*20
+                print masterIgnoreList
+                print ignoreList
+                print "="*20
+                algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
+                algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
+                model_hyperparameter_summary.append(json.loads(algoCardJson))
 
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
@@ -1013,6 +1025,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
+        modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
 

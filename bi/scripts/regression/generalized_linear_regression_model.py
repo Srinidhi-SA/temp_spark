@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
