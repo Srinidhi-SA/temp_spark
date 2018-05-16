@@ -291,7 +291,7 @@ class SklearnGridSearchResult:
             y_score = estimator.predict(self.x_test)
             modelName = "M"+"0"*(4-len(str(idx)))+str(idx)
             slug = self.modelFilepath.split("/")[-1]
-            joblib.dump(estimator,self.modelFilepath+"/"+modelName)
+            joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
             row = {"Model Id":modelName,"slug":slug,"selected":False}
             evaluationMetrics = {}
             if self.appType == "REGRESSION":
