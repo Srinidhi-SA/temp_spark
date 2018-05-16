@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData,SklearnGridSearchResult
+from bi.common import MLModelSummary,NormalCard,KpiData
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -245,6 +245,7 @@ class LinearRegressionModelScript:
                     gridEst.fit(x_train, y_train)
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(gridEst.cv_results_)
                 elif tuningMethod == "randomsearch":
+                    print "None"
                     
             elif hyperParameterTuning == False:
                 algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}

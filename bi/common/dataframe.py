@@ -118,7 +118,6 @@ class DataFrameHelper:
         self.change_data_type(dataTypeChange)
         self.update_column_data()
 
-
     def update_column_data(self):
         dfSchemaFields = self._data_frame.schema.fields
         self.columns = [field.name for field in dfSchemaFields]
@@ -208,7 +207,6 @@ class DataFrameHelper:
         """
         self._data_frame = self._data_frame.na.drop(subset=[column_name])
         self.num_rows = self._data_frame.count()
-
 
 
     def bin_columns(self,colsToBin):
