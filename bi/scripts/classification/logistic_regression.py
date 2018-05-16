@@ -160,6 +160,7 @@ class LogisticRegressionScript:
                     clfRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
+                self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if len(levels) > 2:
                     clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
                     algoParams = algoSetting.get_params_dict()

@@ -246,12 +246,13 @@ class GBTRegressionModelScript:
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_ignore_list_parallel_coordinates(sklearnHyperParameterResultObj.get_ignore_list())
-                    
+
                 elif hyperParamAlgoName == "randomsearchcv":
                     estRand = RandomizedSearchCV(est,params_grid)
                     estRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
+                self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])

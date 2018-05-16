@@ -904,35 +904,36 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     targetVariableLevelcount = obj["levelcount"][target_variable]
 
                 hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
-                algoRows = []
-                for rowDict in hyperParamSummary:
-                    row = []
-                    for key in allAlgorithmTableHeaderRow:
-                        if key == "#":
-                            row.append(counter)
-                        elif key == "Algorithm Name":
-                            row.append(obj["dropdown"]["name"])
-                        elif key == "Optimization Method":
-                            row.append("Grid Search")
-                        elif key == "Metric":
-                            row.append("ROC")
-                        else:
-                            row.append(rowDict[key])
-                    algoRows.append(row)
-                    counter += 1
+                if hyperParamSummary != None:
+                    algoRows = []
+                    for rowDict in hyperParamSummary:
+                        row = []
+                        for key in allAlgorithmTableHeaderRow:
+                            if key == "#":
+                                row.append(counter)
+                            elif key == "Algorithm Name":
+                                row.append(obj["dropdown"]["name"])
+                            elif key == "Optimization Method":
+                                row.append("Grid Search")
+                            elif key == "Metric":
+                                row.append("ROC")
+                            else:
+                                row.append(rowDict[key])
+                        algoRows.append(row)
+                        counter += 1
 
-                allAlgorithmTable += algoRows
+                    allAlgorithmTable += algoRows
 
-                algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
-                masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
-                ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
-                print "="*20
-                print masterIgnoreList
-                print ignoreList
-                print "="*20
-                algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
-                algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
-                model_hyperparameter_summary.append(json.loads(algoCardJson))
+                    algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
+                    masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
+                    ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                    print "="*20
+                    print masterIgnoreList
+                    print ignoreList
+                    print "="*20
+                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
+                    algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
+                    model_hyperparameter_summary.append(json.loads(algoCardJson))
         algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
         htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
         allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
@@ -1045,22 +1046,55 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         allRegressionModelSummary = result_setter.get_all_regression_model_summary()
+        allAlgorithmTable = []
+        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time"]
+        allAlgorithmTable.append(allAlgorithmTableHeaderRow)
+        counter = 1
         for obj in allRegressionModelSummary:
             if obj != None:
                 print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
-                hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
-                algoCard = NormalCard(name=obj["dropdown"]["name"])
-                masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
-                ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
-                print "="*20
-                print masterIgnoreList
-                print ignoreList
-                print "="*20
-                algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
-                algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
-                model_hyperparameter_summary.append(json.loads(algoCardJson))
+                try:
+                    hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
+                except:
+                    hyperParamSummary = None
+                if hyperParamSummary != None:
+                    algoRows = []
+                    for rowDict in hyperParamSummary:
+                        row = []
+                        for key in allAlgorithmTableHeaderRow:
+                            if key == "#":
+                                row.append(counter)
+                            elif key == "Algorithm Name":
+                                row.append(obj["dropdown"]["name"])
+                            elif key == "Optimization Method":
+                                row.append("Grid Search")
+                            elif key == "Metric":
+                                row.append("R-Squared")
+                            else:
+                                row.append(rowDict[key])
+                        algoRows.append(row)
+                        counter += 1
+
+                    allAlgorithmTable += algoRows
+
+                    algoCard = NormalCard(name=obj["dropdown"]["name"])
+                    masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
+                    ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                    print "="*20
+                    print masterIgnoreList
+                    print ignoreList
+                    print "="*20
+                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
+                    algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
+                    model_hyperparameter_summary.append(json.loads(algoCardJson))
+
+        algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
+        htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
+        allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
+        algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
+        algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
 
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
@@ -1069,6 +1103,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
+        algoSummaryCardDict = json.loads(algoSummaryCardJson)
+        model_hyperparameter_summary.insert(0,algoSummaryCardDict)
         modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput

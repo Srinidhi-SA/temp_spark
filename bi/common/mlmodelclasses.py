@@ -296,7 +296,7 @@ class SklearnGridSearchResult:
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx)))+str(idx)
             slug = self.modelFilepath.split("/")[-1]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
-            row = {"Model Id":modelName,"Slug":slug,"Selected":False,"Run Time":str(CommonUtils.round_sig(time.time()-st))}
+            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time":str(CommonUtils.round_sig(time.time()-st))}
             evaluationMetrics = {}
             if self.appType == "REGRESSION":
                 evaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
@@ -315,6 +315,7 @@ class SklearnGridSearchResult:
                     evaluationMetrics["ROC-AUC"] = None
             evaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in evaluationMetrics.items()}
             row.update(evaluationMetrics)
+            paramsObj = {k:str(v) for k,v in paramsObj.items()}
             row.update(paramsObj)
             tableOutput.append(row)
         if self.appType == "REGRESSION":
@@ -323,7 +324,7 @@ class SklearnGridSearchResult:
             tableOutput = sorted(tableOutput,key=lambda x:float(x["Accuracy"]),reverse=True)
 
         bestMod = tableOutput[0]
-        bestMod["selected"] = True
+        bestMod["Selected"] = "True"
         tableOutput[0] = bestMod
         print "="*100
         print tableOutput

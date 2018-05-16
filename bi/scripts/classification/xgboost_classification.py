@@ -150,6 +150,7 @@ class XgboostScript:
                     clfRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
+                self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
