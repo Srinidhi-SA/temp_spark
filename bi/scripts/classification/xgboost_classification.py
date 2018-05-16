@@ -141,7 +141,7 @@ class XgboostScript:
                     bestEstimator = clfGrid.best_estimator_
                     appType = self._dataframe_context.get_app_type()
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath)
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_ignore_list_parallel_coordinates(sklearnHyperParameterResultObj.get_ignore_list())

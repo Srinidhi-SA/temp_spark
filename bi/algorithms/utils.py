@@ -891,6 +891,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         labelMappingDict = {}
         targetVariableLevelcount = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
+        allAlgorithmTable = []
+        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","ROC-AUC","Run Time"]
+        allAlgorithmTable.append(allAlgorithmTableHeaderRow)
+        counter = 1
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
@@ -900,6 +904,25 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     targetVariableLevelcount = obj["levelcount"][target_variable]
 
                 hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
+                algoRows = []
+                for rowDict in hyperParamSummary:
+                    row = []
+                    for key in allAlgorithmTableHeaderRow:
+                        if key == "#":
+                            row.append(counter)
+                        elif key == "Algorithm Name":
+                            row.append(obj["dropdown"]["name"])
+                        elif key == "Optimization Method":
+                            row.append("Grid Search")
+                        elif key == "Metric":
+                            row.append("ROC")
+                        else:
+                            row.append(rowDict[key])
+                    algoRows.append(row)
+                    counter += 1
+
+                allAlgorithmTable += algoRows
+
                 algoCard = NormalCard(name=obj["dropdown"]["name"])
                 masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
                 ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]

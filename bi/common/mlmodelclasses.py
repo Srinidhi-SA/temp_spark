@@ -1,7 +1,9 @@
+import time
 import pandas as pd
 from sklearn import metrics
 from math import sqrt
 from sklearn.externals import joblib
+from bi.settings import setting as GLOBALSETTINGS
 
 
 
@@ -286,13 +288,14 @@ class SklearnGridSearchResult:
     def train_and_save_models(self):
         tableOutput = []
         for idx,paramsObj in enumerate(self.resultDf["params"]):
+            st = time.time()
             estimator = self.estimator.set_params(**paramsObj)
             estimator.fit(self.x_train, self.y_train)
             y_score = estimator.predict(self.x_test)
-            modelName = "M"+"0"*(4-len(str(idx)))+str(idx)
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx)))+str(idx)
             slug = self.modelFilepath.split("/")[-1]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
-            row = {"Model Id":modelName,"slug":slug,"selected":False}
+            row = {"Model Id":modelName,"Slug":slug,"Selected":False,"Run Time":time.time()-st}
             evaluationMetrics = {}
             if self.appType == "REGRESSION":
                 evaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)

@@ -4,6 +4,7 @@ from sklearnMLClassificationParams import *
 from sklearnMLRegressionParams import *
 
 UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION = 20
+MODEL_NAME_MAX_LENGTH = 4
 REG_SCORE_HIGHLIGHT = False
 REG_SCORE_ANOVA_KEY_FACTORS = False
 
