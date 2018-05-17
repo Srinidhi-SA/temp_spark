@@ -963,7 +963,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             built using {} algorithm is the best performing model with an {} of {}."\
                             .format(totalModels,GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
-            allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
             algoSummaryCardDict = json.loads(algoSummaryCardJson)
