@@ -5,6 +5,7 @@ from sklearnMLRegressionParams import *
 
 UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION = 20
 MODEL_NAME_MAX_LENGTH = 4
+MAX_NUMBER_OF_MODELS_IN_SUMMARY = 10
 REG_SCORE_HIGHLIGHT = False
 REG_SCORE_ANOVA_KEY_FACTORS = False
 
@@ -132,6 +133,17 @@ MODEL_SLUG_MAPPING = {
             "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
             "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
             "rfregression":ALGORITHMRANDOMSLUG+"rfr"
+            }
+
+SLUG_MODEL_DISPLAY_NAME_MAPPING = {
+            ALGORITHMRANDOMSLUG+"rf":"Random Forest",
+            ALGORITHMRANDOMSLUG+"lr":"Logistic Regression",
+            ALGORITHMRANDOMSLUG+"xgb":"Xgboost",
+            ALGORITHMRANDOMSLUG+"svm":"SVM",
+            ALGORITHMRANDOMSLUG+"linr":"Linear Regression",
+            ALGORITHMRANDOMSLUG+"gbtr":"Gradient Boosted Trees",
+            ALGORITHMRANDOMSLUG+"dtreer":"Decision Tree",
+            ALGORITHMRANDOMSLUG+"rfr":"Random Forest"
             }
 
 scriptsMapping = {

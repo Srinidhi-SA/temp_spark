@@ -892,7 +892,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         targetVariableLevelcount = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         allAlgorithmTable = []
-        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","ROC-AUC","Run Time"]
+        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","Accuracy","ROC-AUC","Run Time"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
         counter = 1
         hyperParameterFlagArray = []
@@ -924,7 +924,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             elif key == "Optimization Method":
                                 row.append("Grid Search")
                             elif key == "Metric":
-                                row.append("ROC")
+                                row.append(rowDict["comparisonMetricUsed"])
                             else:
                                 row.append(rowDict[key])
                         algoRows.append(row)
@@ -933,18 +933,36 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     allAlgorithmTable += algoRows
 
                     algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
-                    masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
+                    parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates()
+                    masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
                     ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
-                    print "="*20
-                    print masterIgnoreList
-                    print ignoreList
-                    print "="*20
-                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
+                    hideColumns = parallelCoordinateMetaData["hideColumns"]
+                    metricColName = parallelCoordinateMetaData["metricColName"]
+                    columnOrder = parallelCoordinateMetaData["columnOrder"]
+
+                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
                     algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                     model_hyperparameter_summary.append(json.loads(algoCardJson))
         if hyperParameterFlag == True:
             algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
-            htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
+            print allAlgorithmTable[0]
+            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("Accuracy")] ,reverse=True)
+            totalModels = len(allAlgorithmTable) - 1
+            allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
+            print allAlgorithmTable[:3]
+            bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
+            print "bestModel",bestModel
+            evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
+            bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
+            print "evalMetric",evalMetric
+            print "bestMetric",bestMetric
+            bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
+            print "bestAlgo",bestAlgo
+            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            built using {} algorithm is the best performing model with an {} of {}."\
+                            .format(totalModels,GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
+            allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
@@ -956,6 +974,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
 
         modelJsonOutput.set_model_dropdown(model_dropdowns)
+        print model_dropdowns
+        print "="*100
         modelJsonOutput.set_model_config(model_configs)
         if hyperParameterFlag == True:
             modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
@@ -1087,7 +1107,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             elif key == "Optimization Method":
                                 row.append("Grid Search")
                             elif key == "Metric":
-                                row.append("R-Squared")
+                                row.append(rowDict["comparisonMetricUsed"])
                             else:
                                 row.append(rowDict[key])
                         algoRows.append(row)
@@ -1096,19 +1116,33 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     allAlgorithmTable += algoRows
 
                     algoCard = NormalCard(name=obj["dropdown"]["name"])
-                    masterIgnoreList = result_setter.get_ignore_list_parallel_coordinates()
+                    parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates()
+                    masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
                     ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                    hideColumns = parallelCoordinateMetaData["hideColumns"]
+                    metricColName = parallelCoordinateMetaData["metricColName"]
+                    columnOrder = parallelCoordinateMetaData["columnOrder"]
                     print "="*20
                     print masterIgnoreList
                     print ignoreList
                     print "="*20
-                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList)])
+                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
                     algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                     model_hyperparameter_summary.append(json.loads(algoCardJson))
 
         if hyperParameterFlag == True:
             algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
-            htmlData = HtmlData(data = "mAdvisor has built 150 models by changing the input parameter specifications and the following are the top 10 models based on chosen evaluation metric. M013 which is built using Random Forest algorithm is the best performing model with an accuracy of 0.82.")
+            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("R-Squared")] ,reverse=True)
+            totalModels = len(allAlgorithmTable) - 1
+            allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
+            bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
+            evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
+            bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
+            bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
+            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            built using {} algorithm is the best performing model with an {} of {}."\
+                            .format(totalModels,GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
@@ -1119,7 +1153,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = {}
         model_configs["targetVariableLevelcount"] = []
-
+        print model_dropdowns
+        print "="*100
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
         if hyperParameterFlag == True:

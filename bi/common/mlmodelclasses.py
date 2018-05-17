@@ -281,50 +281,67 @@ class SklearnGridSearchResult:
             self.resultDf = pd.DataFrame(self.resultDict)
         else:
             self.resultDf = None
-        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time"]
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time","comparisonMetricUsed","algorithmName","alwaysSelected"]
+        self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName"]
+        self.metricColName = "comparisonMetricUsed"
 
     def get_ignore_list(self):
         return self.ignoreList
 
+    def get_hide_columns(self):
+        return self.hideFromTable
+
+    def get_comparison_metric_colname(self):
+        return self.metricColName
+
     def train_and_save_models(self):
         tableOutput = []
+        evaluationMetric = None
         for idx,paramsObj in enumerate(self.resultDf["params"]):
             st = time.time()
             estimator = self.estimator.set_params(**paramsObj)
             estimator.fit(self.x_train, self.y_train)
             y_score = estimator.predict(self.x_test)
-            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx)))+str(idx)
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx+1)))+str(idx+1)
             slug = self.modelFilepath.split("/")[-1]
+            algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
-            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time":str(CommonUtils.round_sig(time.time()-st))}
+            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False","Run Time":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
+            # row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time":str(CommonUtils.round_sig(time.time()-st))}
             evaluationMetrics = {}
             if self.appType == "REGRESSION":
                 evaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
                 evaluationMetrics["MSE"] = metrics.mean_squared_error(self.y_test, y_score)
                 evaluationMetrics["MAE"] = metrics.mean_absolute_error(self.y_test, y_score)
                 evaluationMetrics["RMSE"] = sqrt(evaluationMetrics["MSE"])
+                row["comparisonMetricUsed"] = "R-Squared"
             elif self.appType == "CLASSIFICATION":
                 evaluationMetrics["Accuracy"] = metrics.accuracy_score(self.y_test,y_score)
                 if len(self.levels) <= 2:
                     evaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
                     evaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
                     evaluationMetrics["ROC-AUC"] = metrics.roc_auc_score(self.y_test,y_score)
+                    row["comparisonMetricUsed"] = "ROC-AUC"
                 elif len(self.levels) > 2:
                     evaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
                     evaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
                     evaluationMetrics["ROC-AUC"] = None
-            evaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in evaluationMetrics.items()}
+                    row["comparisonMetricUsed"] = "Accuracy"
+
+            evaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in evaluationMetrics.items()}
+            # evaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in evaluationMetrics.items()}
             row.update(evaluationMetrics)
-            paramsObj = {k:str(v) for k,v in paramsObj.items()}
+            # paramsObj = {k:str(v) for k,v in paramsObj.items()}
             row.update(paramsObj)
             tableOutput.append(row)
         if self.appType == "REGRESSION":
-            tableOutput = sorted(tableOutput,key=lambda x:float(x["R-Squared"]),reverse=True)
+            tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
         elif self.appType == "CLASSIFICATION":
-            tableOutput = sorted(tableOutput,key=lambda x:float(x["Accuracy"]),reverse=True)
+            tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
 
         bestMod = tableOutput[0]
         bestMod["Selected"] = "True"
+        bestMod["alwaysSelected"] = "True"
         tableOutput[0] = bestMod
         print "="*100
         print tableOutput

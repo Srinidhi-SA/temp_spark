@@ -46,12 +46,15 @@ class ResultSetter:
         self.anovaCardsRegScore = []
         self.kpiCardScore = None
         self.hyperParameterResultDict = {}
-        self.ignoreList = []
+        self.parallelCooridnateMetaData = {"ignoreList":[],"hideColumns":[],"metricColName":None,"columnOrder":[]}
+        self.hideTableColumns = []
 
-    def set_ignore_list_parallel_coordinates(self,data):
-        self.ignoreList = data
-    def get_ignore_list_parallel_coordinates(self):
-        return self.ignoreList
+    def set_metadata_parallel_coordinates(self,data):
+        # TODO add validation for keys
+        self.parallelCooridnateMetaData = data
+    def get_metadata_parallel_coordinates(self):
+        return self.parallelCooridnateMetaData
+
     def set_hyper_parameter_results(self,slug,data):
         self.hyperParameterResultDict[slug] = data
     def get_hyper_parameter_results(self,slug):
