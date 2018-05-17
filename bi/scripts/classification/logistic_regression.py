@@ -277,7 +277,8 @@ class LogisticRegressionScript:
                 "dropdown":{
                             "name":self._model_summary.get_algorithm_name(),
                             "accuracy":self._model_summary.get_model_accuracy(),
-                            "slug":self._model_summary.get_slug()
+                            "slug":self._model_summary.get_slug(),
+                            "modelName":"model.pkl"
                             },
                 "levelcount":self._model_summary.get_level_counts(),
                 "modelFeatureList":self._model_summary.get_feature_list(),
