@@ -73,6 +73,7 @@ class AlgorithmParameters:
                 return self.defaultValue
 
     def hyperParameterInputParser(self,stringObj):
+        print stringObj
         out = []
         blocks =  stringObj.split(",")
         for val in blocks:
@@ -99,6 +100,7 @@ class AlgorithmParameters:
                 else:
                     valRange = range(int(startVal),int(endVal))
                 out += valRange
+        print out
         return out
 
 
@@ -120,7 +122,10 @@ class AlgorithmParameters:
                 if self.paramType != "list":
                     if self.acceptedValue == None:
                         self.acceptedValue = self.defaultValue
-                    outRange = self.hyperParameterInputParser(str(self.acceptedValue))
+                    if self.acceptedValue != None:
+                        outRange = self.hyperParameterInputParser(str(self.acceptedValue))
+                    else:
+                        outRange = [None]
                     if self.name != "tol":
                         return {self.name:outRange}
                     else:

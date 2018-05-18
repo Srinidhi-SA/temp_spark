@@ -284,6 +284,7 @@ class SklearnGridSearchResult:
         self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time","comparisonMetricUsed","algorithmName","alwaysSelected"]
         self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName"]
         self.metricColName = "comparisonMetricUsed"
+        self.keepColumns = ["Model Id"]
 
     def get_ignore_list(self):
         return self.ignoreList
@@ -293,6 +294,9 @@ class SklearnGridSearchResult:
 
     def get_comparison_metric_colname(self):
         return self.metricColName
+
+    def get_keep_columns(self):
+        return self.keepColumns
 
     def train_and_save_models(self):
         tableOutput = []
@@ -328,23 +332,24 @@ class SklearnGridSearchResult:
                     evaluationMetrics["ROC-AUC"] = None
                     row["comparisonMetricUsed"] = "Accuracy"
 
+
             evaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in evaluationMetrics.items()}
             # evaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in evaluationMetrics.items()}
             row.update(evaluationMetrics)
-            # paramsObj = {k:str(v) for k,v in paramsObj.items()}
+            paramsObj = dict([(k,str(v)) if (v == None) | (v in [True,False]) else (k,v) for k,v in paramsObj.items()])
             row.update(paramsObj)
+            self.keepColumns += paramsObj.keys()
             tableOutput.append(row)
         if self.appType == "REGRESSION":
+            self.keepColumns += ["RMSE","MAE","MSE","R-Squared"]
             tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
         elif self.appType == "CLASSIFICATION":
             tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
-
+            self.keepColumns += ["Precision","Recall","ROC-AUC"]
+        self.keepColumns += paramsObj.keys()
+        self.keepColumns.append("Selected")
         bestMod = tableOutput[0]
         bestMod["Selected"] = "True"
         bestMod["alwaysSelected"] = "True"
         tableOutput[0] = bestMod
-        print "="*100
-        print tableOutput
-        print "="*100
-
         return tableOutput
