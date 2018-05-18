@@ -39,6 +39,7 @@ class ModelSummary:
         self.model_dropdown = model_dropdown
         self.config = modelConfig
         self.model_hyperparameter_summary = modelHyperparameter
+        self.modelSelectedByUser = False
 
     def set_model_summary(self,data):
         self.model_summary = data
@@ -61,7 +62,8 @@ class ModelSummary:
                 "model_summary":self.model_summary,
                 "model_dropdown":self.model_dropdown,
                 "config":self.config,
-                "model_hyperparameter":self.model_hyperparameter_summary
+                "model_hyperparameter":self.model_hyperparameter_summary,
+                "modelSelected":self.modelSelectedByUser
                 }
         return output
 
