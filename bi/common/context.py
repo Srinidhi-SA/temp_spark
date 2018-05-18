@@ -151,6 +151,8 @@ class ContextSetter:
                 self.train_test_split =self.FILE_SETTINGS['train_test_split'][0]
             if "modelpath" in fileSettingKeys:
                 self.MODEL_PATH =self.FILE_SETTINGS['modelpath'][0]
+            if "selectedModel" in fileSettingKeys:
+                self.MODEL_FOR_SCORING = self.FILE_SETTINGS['selectedModel'][0]
             if "scorepath" in fileSettingKeys:
                 self.SCORE_PATH =self.FILE_SETTINGS['scorepath'][0]
             if "foldername" in fileSettingKeys:
@@ -330,6 +332,8 @@ class ContextSetter:
             print "self.analysistype",self.analysistype
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def get_model_for_scoring(self):
+        return self.MODEL_FOR_SCORING["Model Id"]
     def set_ml_environment(self,data):
         self.mlEnv = data
     def get_ml_environment(self):

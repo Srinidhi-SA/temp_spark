@@ -379,7 +379,7 @@ class LinearRegressionModelScript:
                         "name":self._model_summary.get_algorithm_name(),
                         "accuracy":CommonUtils.round_sig(self._model_summary.get_model_evaluation_metrics()["r2"]),
                         "slug":self._model_summary.get_slug(),
-                        "modelName":"model.pkl"
+                        "Model Id":"M"+"0"*GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH
                         },
             "levelcount":self._model_summary.get_level_counts(),
             "modelFeatureList":self._model_summary.get_feature_list(),
@@ -465,7 +465,7 @@ class LinearRegressionModelScript:
 
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
-            trained_model_path += "/model.pkl"
+            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl
             print "trained_model_path",trained_model_path
             print "score_data_path",score_data_path
             if trained_model_path.startswith("file"):
