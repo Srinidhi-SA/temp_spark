@@ -355,7 +355,7 @@ class SupportVectorMachineScript:
             if score_data_path.startswith("file"):
                 score_data_path = score_data_path[7:]
             trained_model_path = self._dataframe_context.get_model_path()
-            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl
+            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"

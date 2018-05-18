@@ -350,7 +350,7 @@ class XgboostScript:
                 score_data_path = score_data_path[7:]
             trained_model_path = self._dataframe_context.get_model_path()
             print trained_model_path
-            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl
+            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
 
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]

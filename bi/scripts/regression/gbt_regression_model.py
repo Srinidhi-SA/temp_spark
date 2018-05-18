@@ -447,7 +447,7 @@ class GBTRegressionModelScript:
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionStart","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
-            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl
+            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
             print "trained_model_path",trained_model_path
             print "score_data_path",score_data_path
             if trained_model_path.startswith("file"):
