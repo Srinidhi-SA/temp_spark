@@ -377,7 +377,8 @@ class LinearRegressionModelScript:
         modelSummaryJson = {
             "dropdown":{
                         "name":self._model_summary.get_algorithm_name(),
-                        "accuracy":CommonUtils.round_sig(self._model_summary.get_model_evaluation_metrics()["r2"]),
+                        "evaluationMetricValue":CommonUtils.round_sig(self._model_summary.get_model_evaluation_metrics()["r2"]),
+                        "evaluationMetricName":"R-Squared",
                         "slug":self._model_summary.get_slug(),
                         "Model Id":"M"+"0"*GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH
                         },

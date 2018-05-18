@@ -276,7 +276,8 @@ class LogisticRegressionScript:
             modelSummaryJson = {
                 "dropdown":{
                             "name":self._model_summary.get_algorithm_name(),
-                            "accuracy":self._model_summary.get_model_accuracy(),
+                            "evaluationMetricValue":self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName":"accuracy",
                             "slug":self._model_summary.get_slug(),
                             "Model Id":"M"+"0"*GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH
                             },
