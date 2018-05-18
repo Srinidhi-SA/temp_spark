@@ -54,6 +54,7 @@ class ChiSquareNarratives:
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         self._data_frame = SQLctx.createDataFrame(pandas_df,schema)
 
+        # print self._data_frame
         ############################DataFrame Measure to Dimesion Column#####################
 
         if self._appid != None:

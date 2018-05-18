@@ -11,7 +11,6 @@ from bi.algorithms import utils as MLUtils
 
 import time
 
-
 class LinearRegression:
     LABEL_COLUMN_NAME = 'label'
     FEATURES_COLUMN_NAME = 'features'

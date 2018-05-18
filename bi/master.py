@@ -116,11 +116,7 @@ def main(configJson):
     print "########################## Validate the Config ###############################"
     configValidator = ConfigValidator(dataframe_context)
     configValid = configValidator.get_sanity_check()
-    print "#"*100
-    print "analysistype",analysistype
-    print "jobType",jobType
-    print "configValid",configValid
-    print "#"*100
+
     if not configValid:
         progressMessage = CommonUtils.create_progress_message_object("mAdvisor Job","custom","info","Please Provide a Valid Configuration",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
@@ -152,9 +148,6 @@ def main(configJson):
             dataframe_context.update_completion_status(completionStatus)
         ########################## Load the dataframe ##############################
         df = MasterHelper.load_dataset(spark,dataframe_context)
-        print 'data_frame in Master-'*10
-        print df.show()
-        print df.printSchema()
         if jobType != "metaData":
             metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
             df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
@@ -162,9 +155,7 @@ def main(configJson):
             colsToBin = df_helper.get_cols_to_bin()
             levelCountDict = df_helper.get_level_counts(colsToBin)
             metaParserInstance.update_level_counts(colsToBin,levelCountDict)
-            print 'data_frame in MetaData-'*10
-            print df.show()
-            print df.printSchema()
+
         ############################ MetaData Calculation ##########################
 
         if jobType == "metaData":
@@ -179,9 +170,6 @@ def main(configJson):
         ################################ Story Creation ############################
         if jobType == "story":
             if analysistype == "dimension":
-                print 'data_frame in MasterStory-'*10
-                print df.show()
-                print df.printSchema()
                 MasterHelper.run_dimension_analysis(spark,df,dataframe_context,df_helper,metaParserInstance)
             elif analysistype == "measure":
                 MasterHelper.run_measure_analysis(spark,df,dataframe_context,df_helper,metaParserInstance)

@@ -8,6 +8,8 @@ import shutil
 
 import numpy as np
 import pandas as pd
+from sklearn import linear_model
+from sklearn.metrics import mean_squared_error, r2_score
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
 from pyspark.ml.regression import LinearRegressionModel,GeneralizedLinearRegressionModel,GBTRegressionModel,DecisionTreeRegressionModel,RandomForestRegressionModel

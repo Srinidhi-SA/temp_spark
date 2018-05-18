@@ -41,6 +41,8 @@ class ChiSquareAnalysis:
         else:
             self._second_level_dimensions = list(significant_variables)[:5]
 
+        print self._second_level_dimensions
+
         self._appid = appid
         self._card1 = NormalCard()
         self._targetCards = []
@@ -416,7 +418,7 @@ class ChiSquareAnalysis:
                   targetCardDataDict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/sum(second_target_contributions),2)
                   targetCardDataDict['worst_second_target'] = levels[worst_second_target_index]
                   targetCardDataDict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/sum(second_target_contributions),2)
-              
+
                   card2Data = []
                   targetLevelContributions = [table.get_value(targetLevel,i) for i in levels]
                   card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + targetLevel + ') across ' + self._analysed_dimension+"</h3>"

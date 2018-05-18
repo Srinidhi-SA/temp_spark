@@ -238,6 +238,25 @@ class LinearRegressionModelScript:
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
 
+            # print "features before VIF-"*100
+            # print x_train.columns.tolist()
+            # print len(x_train.columns)
+
+            ############# Uncomment following part if you want to use VIF feature selection #############
+            ######################## VIF feature slection block of code ########################
+
+            # x_train_new = MLUtils.feature_selection_vif(x_train)
+            # x_test_new =x_test[x_train_new.columns.tolist()] 
+
+            # print "features after VIF-"*100
+            # print x_test_new.columns.tolist()
+            # print len(x_test_new.columns)
+
+            # x_train = x_train_new
+            # x_test = x_test_new
+
+            ######################## VIF feature slection block of code ########################
+
             st = time.time()
             est = LinearRegression()
 
