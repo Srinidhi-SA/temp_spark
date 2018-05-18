@@ -135,10 +135,12 @@ class AlgorithmParameters:
                     outList = [x["name"] for x in filteredVal]
                     outListMod = []
                     for x in outList:
-                        if x not in ["True","False"]:
+                        if x.lower() not in ["true","false"]:
                             outListMod.append(x)
                         else:
-                            if x == "True":
+                            print "humse hai muqabla"
+                            print "="*50
+                            if x == "true":
                                 outListMod.append(True)
                             else:
                                 outListMod.append(False)
