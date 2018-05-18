@@ -21,6 +21,9 @@ from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.types import StringType
 
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.evaluation import RegressionEvaluator
+
 from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
@@ -1119,3 +1122,85 @@ def get_scored_data_summary(scoredCol,outlierConstant=1.5):
     out.append({"name":"meanValue","value":round(avgVal,2),"text":"Average of Predicted Values"})
     out.append({"name":"outlierCount","value":nOutliers,"text":"Number of Outliers"})
     return out
+
+
+#-------- VIF based feature selection for Linear regression (on sparkdf) --------------# 
+
+def vif_cal_spark(df):
+    xvar_names=df.columns
+    vif_ser = pd.Series(index=xvar_names)
+    for i in range(0,len(xvar_names)):
+        y_col=[xvar_names[i]] 
+        x_col=list(set(xvar_names)-set(y_col))
+        vectorAssembler = VectorAssembler(inputCols=x_col, outputCol='features')
+        train_df = vectorAssembler.transform(df)
+        train_df = train_df.select(['features',y_col[0]])
+        lin_reg = LinearRegression(featuresCol = 'features', labelCol=y_col[0])
+        lin_reg_model = lin_reg.fit(train_df)
+        predictions = lin_reg_model.transform(train_df)
+        lr_evaluator = RegressionEvaluator(predictionCol="prediction",labelCol=y_col[0],metricName="r2")
+        rsq =lr_evaluator.evaluate(predictions) 
+        if rsq == 1:
+            rsq=0.999
+        vif=round(1/(1-rsq),2)
+        vif_ser[xvar_names[i]] = vif
+    return vif_ser
+
+def feature_selection_vif_spark(df,vif_thr=5):
+    temp_vif = vif_cal_spark(df)
+    check = (temp_vif>vif_thr).sum()
+    print temp_vif
+    if check == 0:
+        return df
+    else:
+        all_col = df.columns
+        while check !=0:
+            print "In While"
+            mx_col =temp_vif.idxmax()
+            col2use = list(set(all_col)-set([mx_col]))
+            temp_df = df.select(col2use)
+            print "\ncolumn dropped : " + mx_col
+            all_col = col2use
+            temp_vif = vif_cal_spark(temp_df)
+            print temp_vif
+            check = (temp_vif>vif_thr).sum()
+        return df.select(col2use)
+
+
+#-------- VIF based feature selection for Linear regression (on Pandas df) --------------# 
+
+def vif_cal(df):
+    xvar_names=df.columns
+    vif_ser = pd.Series(index=xvar_names)
+    for i in range(0,len(xvar_names)):
+        y_col=[xvar_names[i]] 
+        x_col=list(set(xvar_names)-set(y_col))
+        lin_reg = linear_model.LinearRegression()
+        lin_reg.fit(df[x_col],df[y_col[0]])
+        y_prd = lin_reg.predict(df[x_col])
+        rsq = r2_score(df[y_col[0]],y_prd)
+        if rsq == 1:
+            rsq=0.999
+        vif=round(1/(1-rsq),2)
+        vif_ser[xvar_names[i]] = vif
+    return vif_ser
+
+def feature_selection_vif(df,vif_thr=5):
+    temp_vif = vif_cal(df)
+    check = (temp_vif>vif_thr).sum()
+    print temp_vif
+    if check == 0:
+        return df
+    else:
+        all_col = df.columns
+        while check !=0:
+            print "In While"
+            mx_col =temp_vif.idxmax()
+            col2use = list(set(all_col)-set([mx_col]))
+            temp_df = df[col2use]
+            print "\ncolumn dropped : " + mx_col
+            all_col = col2use
+            temp_vif = vif_cal(temp_df)
+            print temp_vif
+            check = (temp_vif>vif_thr).sum()
+        return df[col2use]
