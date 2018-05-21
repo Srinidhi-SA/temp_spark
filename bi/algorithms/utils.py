@@ -914,35 +914,36 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 if hyperParameterFlag == True:
                     hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
                     algoRows = []
-                    for rowDict in hyperParamSummary:
-                        row = []
-                        for key in allAlgorithmTableHeaderRow:
-                            if key == "#":
-                                row.append(counter)
-                            elif key == "Algorithm Name":
-                                row.append(obj["dropdown"]["name"])
-                            elif key == "Optimization Method":
-                                row.append("Grid Search")
-                            elif key == "Metric":
-                                row.append(rowDict["comparisonMetricUsed"])
-                            else:
-                                row.append(rowDict[key])
-                        algoRows.append(row)
-                        counter += 1
+                    if hyperParamSummary != None:
+                        for rowDict in hyperParamSummary:
+                            row = []
+                            for key in allAlgorithmTableHeaderRow:
+                                if key == "#":
+                                    row.append(counter)
+                                elif key == "Algorithm Name":
+                                    row.append(obj["dropdown"]["name"])
+                                elif key == "Optimization Method":
+                                    row.append("Grid Search")
+                                elif key == "Metric":
+                                    row.append(rowDict["comparisonMetricUsed"])
+                                else:
+                                    row.append(rowDict[key])
+                            algoRows.append(row)
+                            counter += 1
 
-                    allAlgorithmTable += algoRows
+                        allAlgorithmTable += algoRows
 
-                    algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
-                    parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates()
-                    masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
-                    ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
-                    hideColumns = parallelCoordinateMetaData["hideColumns"]
-                    metricColName = parallelCoordinateMetaData["metricColName"]
-                    columnOrder = parallelCoordinateMetaData["columnOrder"]
+                        algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
+                        parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates()
+                        masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
+                        ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                        hideColumns = parallelCoordinateMetaData["hideColumns"]
+                        metricColName = parallelCoordinateMetaData["metricColName"]
+                        columnOrder = parallelCoordinateMetaData["columnOrder"]
 
-                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
-                    algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
-                    model_hyperparameter_summary.append(json.loads(algoCardJson))
+                        algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
+                        algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
+                        model_hyperparameter_summary.append(json.loads(algoCardJson))
         if hyperParameterFlag == True:
             algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
             print allAlgorithmTable[0]
