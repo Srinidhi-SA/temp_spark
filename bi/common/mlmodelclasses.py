@@ -340,13 +340,14 @@ class SklearnGridSearchResult:
             row.update(evaluationMetrics)
             paramsObj = dict([(k,str(v)) if (v == None) | (v in [True,False]) else (k,v) for k,v in paramsObj.items()])
             row.update(paramsObj)
-            self.keepColumns += paramsObj.keys()
             tableOutput.append(row)
         if self.appType == "REGRESSION":
-            self.keepColumns += ["RMSE","MAE","MSE","R-Squared"]
             tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
         elif self.appType == "CLASSIFICATION":
             tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+        if self.appType == "REGRESSION":
+            self.keepColumns += ["RMSE","MAE","MSE","R-Squared"]
+        elif self.appType == "CLASSIFICATION":
             self.keepColumns += ["Precision","Recall","ROC-AUC"]
         self.keepColumns += paramsObj.keys()
         self.keepColumns.append("Selected")

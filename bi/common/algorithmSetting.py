@@ -138,8 +138,6 @@ class AlgorithmParameters:
                         if x.lower() not in ["true","false"]:
                             outListMod.append(x)
                         else:
-                            print "humse hai muqabla"
-                            print "="*50
                             if x == "true":
                                 outListMod.append(True)
                             else:

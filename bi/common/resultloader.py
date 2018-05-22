@@ -51,7 +51,10 @@ class ResultSetter:
 
     def set_metadata_parallel_coordinates(self,data):
         # TODO add validation for keys
+        # if set(data.keys())==set(self.parallelCooridnateMetaData.keys())
         self.parallelCooridnateMetaData = data
+        # else:
+            # print "keys mismatch of the self.parallelCooridnateMetaData object"
     def get_metadata_parallel_coordinates(self):
         return self.parallelCooridnateMetaData
 

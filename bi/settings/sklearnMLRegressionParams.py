@@ -51,7 +51,7 @@ SKLEARN_ML_LINEAR_REGRESSION_PARAMS = [
                 "paramType":"list",
                 "uiElemType":"checkbox",
                 "display":True,
-                "hyperpatameterTuningCandidate":False,
+                "hyperpatameterTuningCandidate":True,
                 "expectedDataType": ["bool"]
              },
              {
@@ -72,7 +72,7 @@ SKLEARN_ML_LINEAR_REGRESSION_PARAMS = [
                 "paramType":"list",
                 "uiElemType":"checkbox",
                 "display":True,
-                "hyperpatameterTuningCandidate":False,
+                "hyperpatameterTuningCandidate":True,
                 "expectedDataType": ["bool"]
              }
 ]
@@ -97,9 +97,9 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                 {
                     "name":"n_estimators",
                     "displayName":"Learning Rate",
-                    "defaultValue":100,
+                    "defaultValue":10,
                     "acceptedValue":None,
-                    "valueRange":[1,1000],
+                    "valueRange":[10,1000],
                     "paramType":"number",
                     "uiElemType":"slider",
                     "display":True,
@@ -134,7 +134,7 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "displayName":"Minimum Instances For Split",
                     "defaultValue":2,
                     "acceptedValue":None,
-                    "valueRange":[1,100],
+                    "valueRange":[2,10],
                     "paramType":"number",
                     "uiElemType":"slider",
                     "display":True,
@@ -146,7 +146,7 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "displayName":"Minimum Instances For Leaf Node",
                     "defaultValue":1,
                     "acceptedValue":None,
-                    "valueRange":[1,1000],
+                    "valueRange":[1,100],
                     "paramType":"number",
                     "uiElemType":"slider",
                     "display":True,
@@ -158,11 +158,11 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "displayName":"Sub Sampling Rate",
                     "defaultValue":1.0,
                     "acceptedValue":None,
-                    "valueRange":[0.0,1.0],
+                    "valueRange":[0.1,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
                     "display":True,
-                    "hyperpatameterTuningCandidate":False,
+                    "hyperpatameterTuningCandidate":True,
                     "expectedDataType": ["float"]
                 },
                 {
@@ -170,11 +170,11 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "displayName":"Maximum Features for Split",
                     "defaultValue":None,
                     "acceptedValue":None,
-                    "valueRange":[0.0,1.0],
+                    "valueRange":[0.1,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
                     "display":True,
-                    "hyperpatameterTuningCandidate":False,
+                    "hyperpatameterTuningCandidate":True,
                     "expectedDataType": ["int", "float", "string", None]
                 },
                 {
@@ -206,7 +206,7 @@ SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                  "displayName":"Random Seed",
                  "defaultValue":None,
                  "acceptedValue":None,
-                 "valueRange":[0,4294967294],
+                 "valueRange":[1,100],
                  "paramType":"number",
                  "uiElemType":"textBox",
                  "display":True,
@@ -231,7 +231,7 @@ SKLEARN_ML_GBT_REGRESSION_PARAMS = [
             "displayName":"alpha-quantile for huber and quantile loss",
             "defaultValue":0.9,
             "acceptedValue":None,
-            "valueRange":[0.001,0.999],
+            "valueRange":[0.1,1.0],
             "paramType":"number",
             "uiElemType":"slider",
             "display":False,
@@ -296,7 +296,7 @@ SKLEARN_ML_RF_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
             "paramType":"list",
             "uiElemType":"checkbox",
             "display":True,
-            "hyperpatameterTuningCandidate":False,
+            "hyperpatameterTuningCandidate":True,
         "expectedDataType": ["bool"]
 
     },
@@ -318,7 +318,7 @@ SKLEARN_ML_RF_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
             "paramType":"list",
             "uiElemType":"checkbox",
             "display":True,
-            "hyperpatameterTuningCandidate":False,
+            "hyperpatameterTuningCandidate":True,
         "expectedDataType": ["bool"]
 
     },
@@ -378,7 +378,7 @@ SKLEARN_ML_DTREE_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PAR
             "paramType":"list",
             "uiElemType":"checkbox",
             "display":True,
-            "hyperpatameterTuningCandidate":False,
+            "hyperpatameterTuningCandidate":True,
             "expectedDataType": ["string"]
 
         },

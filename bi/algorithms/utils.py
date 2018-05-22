@@ -820,13 +820,13 @@ def create_model_summary_cards(modelSummaryClass):
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
     if appType == "CLASSIFICATION":
+        compareMetric = GLOBALSETTINGS.CLASSIFICATION_MODEL_COMPARISON_METRIC
         collated_summary = result_setter.get_model_summary()
         card1 = NormalCard()
         card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
         card1Data.append(HtmlData(data = get_total_models_classification(collated_summary)))
         card1.set_card_data(card1Data)
         card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
-
 
         try:
             featureImportanceC3Object = get_feature_importance(collated_summary)
@@ -940,13 +940,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                         hideColumns = parallelCoordinateMetaData["hideColumns"]
                         metricColName = parallelCoordinateMetaData["metricColName"]
                         columnOrder = parallelCoordinateMetaData["columnOrder"]
-
+                        print "="*50
+                        print columnOrder
+                        print "="*50
                         algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
                         algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                         model_hyperparameter_summary.append(json.loads(algoCardJson))
         if hyperParameterFlag == True:
             algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
-            print allAlgorithmTable[0]
             allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("Accuracy")] ,reverse=True)
             totalModels = len(allAlgorithmTable) - 1
             allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
@@ -1122,10 +1123,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     hideColumns = parallelCoordinateMetaData["hideColumns"]
                     metricColName = parallelCoordinateMetaData["metricColName"]
                     columnOrder = parallelCoordinateMetaData["columnOrder"]
-                    print "="*20
-                    print masterIgnoreList
-                    print ignoreList
-                    print "="*20
+                    print "="*50
+                    print columnOrder
+                    print "="*50
                     algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
                     algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                     model_hyperparameter_summary.append(json.loads(algoCardJson))
