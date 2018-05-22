@@ -3,7 +3,7 @@ SKLEARN_ML_LINEAR_REGRESSION_PARAMS = [
             {
                 "name":"n_jobs",
                 "displayName":"No Of Jobs",
-                "description":"Number of CPU cores used when parallelizing over classes,
+                "description":"Number of CPU cores used when parallelizing over classes",
                 "acceptedValue":None,
                 "valueRange":[-1,4],
                 "paramType":"number",
