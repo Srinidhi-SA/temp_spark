@@ -136,7 +136,7 @@ SKLEARN_ML_DTREE_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_CO
         {
             "name":"splitter",
             "displayName":"Node Split Strategy",
-            "description":"It shrinks the contribution of each tree by learning_rate",
+            "description":"The strategy used to choose the split at each node",
             "defaultValue":[
              {
                  "name":"best",
