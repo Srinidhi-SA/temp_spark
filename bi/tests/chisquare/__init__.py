@@ -18,6 +18,8 @@ from bi.settings import *
 # Chisq_exp_op = {'dimension' : {'pval':0.315275,'effect_size':0.031872,'stats':20.316691,'v_value':0.031872},
 # 				'measure' :{'pval':0.0,'effect_size':0.18938170922,'stats':717.30863574,'v_value':0.18938170922}}
 
+# 0.218540231193
+
 exp_values = {'pval' : {'Price_Range-Deal_Type':0.218540231193,'Price_Range-Discount_Range':0.0,'Price_Range-Source':0.315275240154,'Price_Range-Platform':0.22681006213,
 						'Price_Range-Buyer_Age':0.200865796163,'Price_Range-Buyer-Gender':0.0330065858455,'Price_Range-Tenure_in_Days':0.10226883755,
 						'Price_Range-Sales':0.0,'Price_Range-Marketing_Cost':0.0,'Price_Range-Shipping_Cost':0.0,'Price_Range-Last_Transaction':0.0},
@@ -41,6 +43,7 @@ exp_data_dict ={'highlightFlag': '|~HIGHLIGHT~|', 'plural_colname': 'Buyer_Gende
 				'top_target_bottom_dim_contribution': 1760.0, 'second_target_top_dims_contribution': 52.31958762886598, 'second_target_bottom_dim': 'Female', 'top_target_top_dims_contribution': 50.76923076923077,
 				'top_levels_percent': 50.6, 'best_top_target_percent': 50.77, 'target': 'Price_Range', 'blockSplitter': '|~NEWBLOCK~|', 'best_top_target': 'Male', 'second_target_shares': [14.967637540453074, 16.060126582278482],
 				'overall_second': 15.52, 'worst_top_share': [0], 'overall_top': 71.5, 'num_significant': 6, 'top_target_top_dims': ['Male'], 'second_target_top_dims': ['Male'], 'top_target_bottom_dim': 'Female'}
+
 
 
 exp_target_dict   = {'11 to 50':{'binTargetCol': False, 'plural_colname': 'Buyer_Genders', 'best_second_target_count': 18.0, 'key_factors': 'Discount_Range', 'second_target_bottom_dim_contribution': 6.0, 'second_target': u'0 to 10',

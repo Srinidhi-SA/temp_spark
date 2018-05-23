@@ -85,8 +85,6 @@ class ChiSquare:
         for d in all_dimensions:
             try:
                 chisquare_result = self.test_dimension(targetDimension, d)
-                # print "chisquare_result"*180
-                # print chisquare_result
                 df_chisquare_result.add_chisquare_result(targetDimension, d, chisquare_result)
             except Exception, e:
                 print repr(e), d
@@ -146,7 +144,6 @@ class ChiSquare:
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
         result = Statistics.chiSqTest(data_matrix)
         chisquare_result.set_params(result)
-
         freq_table = self._get_contingency_table_of_freq(pivot_table)
         freq_table.update_col2_names(splits)
         freq_table.set_tables()

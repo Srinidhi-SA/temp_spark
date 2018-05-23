@@ -41,6 +41,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
+
             jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
@@ -115,11 +116,7 @@ def main(configJson):
     print "########################## Validate the Config ###############################"
     configValidator = ConfigValidator(dataframe_context)
     configValid = configValidator.get_sanity_check()
-    print "#"*100
-    print "analysistype",analysistype
-    print "jobType",jobType
-    print "configValid",configValid
-    print "#"*100
+
     if not configValid:
         progressMessage = CommonUtils.create_progress_message_object("mAdvisor Job","custom","info","Please Provide a Valid Configuration",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)

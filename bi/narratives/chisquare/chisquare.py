@@ -4,12 +4,13 @@ import random
 
 from pyspark.sql.functions import col
 
-from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ToggleData
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ToggleData,DataFrameHelper
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
+from bi.transformations import Binner
+from pyspark.sql import functions as F
 
 class ChiSquareAnalysis:
     def __init__ (self, df_context, df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns,base_dir,appid=None,target_chisquare_result=None):
@@ -32,19 +33,15 @@ class ChiSquareAnalysis:
         self._chiSquareTable = chisquare_result.get_contingency_table()
 
         significant_variables=list(set(significant_variables) - {analysed_dimension})
-        significant_variables = list(set(significant_variables)-set(measure_columns))
-
         if len(significant_variables)<=20:
             if len(significant_variables)<=3:
                 self._second_level_dimensions = list(significant_variables)
-                random.shuffle(significant_variables)
-                self._second_level_dimensions1 = list(significant_variables)
             else:
-                self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
-                self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),3)]
-        elif len(significant_variables)>=20:
-            self._second_level_dimensions = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
-            self._second_level_dimensions1 = [significant_variables[i] for i in random.sample(range(len(significant_variables)),5)]
+                self._second_level_dimensions = list(significant_variables)[:3]
+        else:
+            self._second_level_dimensions = list(significant_variables)[:5]
+
+        print self._second_level_dimensions
 
         self._appid = appid
         self._card1 = NormalCard()
@@ -62,8 +59,7 @@ class ChiSquareAnalysis:
             if binnedColObj != None and (self._analysed_dimension in binnedColObj or self._analysed_dimension in self._measure_columns):
                 self._binAnalyzedCol = True
 
-        # print "binTargetCol : ",  self._binTargetCol
-        # print "BinAnalyzedCol : ", self._binAnalyzedCol
+
         if self._appid == None:
             self._generate_narratives()
             self._dimensionNode.add_cards([self._card1]+self._targetCards)
@@ -106,16 +102,12 @@ class ChiSquareAnalysis:
           bottom_dims = [y for x,y in sorted_levels if x==bottom_dim_contribution]
 
           target_levels = self._chiSquareTable.get_column_one_levels()
+
           target_counts = self._chiSquareTable.get_row_total()
           sorted_target_levels = sorted(zip(target_counts,target_levels),reverse=True)
-          # print "sorted_target_levels : "*3, sorted_target_levels
 
           top_target_count, top_target = sorted_target_levels[0]
           second_target_count, second_target = sorted_target_levels[1]
-
-          # print "target_dimension : ", target_dimension
-          # print "top_target",top_target
-          # print "second_target",second_target
 
           top_target_contributions = [table.get_value(top_target,i) for i in levels]
           sum_top_target = sum(top_target_contributions)
@@ -254,8 +246,6 @@ class ChiSquareAnalysis:
           data_dict["binAnalyzedCol"] = self._binAnalyzedCol
           data_dict['highlightFlag'] = self._highlightFlag
 
-          # print "data_dict"*100
-          # print data_dict
 
           ###############
           #     CARD1   #
@@ -331,6 +321,7 @@ class ChiSquareAnalysis:
                   sum_second_target = sum(second_target_contributions)
 
                   sorted_levels = sorted(zip(second_target_contributions,levels), reverse=True)
+       
                   level_differences = [0.0] + [sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
                   second_target_top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
                   second_target_top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
@@ -362,28 +353,37 @@ class ChiSquareAnalysis:
                   worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
                   overall_second_percentage = sum_second_target*100.0/total
 
-                                    # DataFrame for contribution calculation
-                  if self._chisquare_result.get_splits():
-                      splits = self._chisquare_result.get_splits()
-                      idx = self._chiSquareTable.get_bin_names(splits).index(second_target_top_dims[0])
-                      idx1 = self._chiSquareTable.get_bin_names(splits).index(top_target_top_dims[0])
-                      splits[len(splits)-1] = splits[len(splits)-1]+1
-                      df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
-                                          filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
-                                          select(self._second_level_dimensions).toPandas()
-                      df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
-                                      filter(col(self._analysed_dimension)<splits[idx+1]).\
-                                      select(self._second_level_dimensions).toPandas()
-                  else:
-                      df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
+                  # DataFrame for contribution calculation
+
+                  df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
                                           filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
                                           select(self._second_level_dimensions).toPandas()
-                      df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                  df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
                                       select(self._second_level_dimensions).toPandas()
 
+                  # if self._chisquare_result.get_splits():
+                  #     splits = self._chisquare_result.get_splits()
+                  #     idx = self._chiSquareTable.get_bin_names(splits).index(second_target_top_dims[0])
+                  #     idx1 = self._chiSquareTable.get_bin_names(splits).index(top_target_top_dims[0])
+                  #     splits[len(splits)-1] = splits[len(splits)-1]+1
+                  #     df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
+                  #                         filter(col(self._analysed_dimension)>=splits[idx]).filter(col(self._analysed_dimension)<splits[idx+1]).\
+                  #                         select(self._second_level_dimensions).toPandas()
+                  #     df_second_dim = self._data_frame.filter(col(self._analysed_dimension)>=splits[idx]).\
+                  #                     filter(col(self._analysed_dimension)<splits[idx+1]).\
+                  #                     select(self._second_level_dimensions).toPandas()
+                  # else:
+                  #     df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
+                  #                         filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                  #                         select(self._second_level_dimensions).toPandas()
+                  #     df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                  #                     select(self._second_level_dimensions).toPandas()
+
+                  # print self._data_frame.select('Sales').show()
 
                   distribution_second = []
                   for d in self._second_level_dimensions:
+
                     grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
                     contributions = df_second_dim.groupby(d).agg({d:'count'})
                     contribution_index = list(contributions.index)
@@ -418,7 +418,7 @@ class ChiSquareAnalysis:
                   targetCardDataDict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/sum(second_target_contributions),2)
                   targetCardDataDict['worst_second_target'] = levels[worst_second_target_index]
                   targetCardDataDict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/sum(second_target_contributions),2)
-              
+
                   card2Data = []
                   targetLevelContributions = [table.get_value(targetLevel,i) for i in levels]
                   card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + targetLevel + ') across ' + self._analysed_dimension+"</h3>"
@@ -461,12 +461,10 @@ class ChiSquareAnalysis:
                   self._targetCards.append(targetCard)
                   dict_for_test[targetLevel] = targetCardDataDict
           out = {'data_dict' : data_dict,
-                'target_dict':dict_for_test}
-          # print "0uT"*100
-          # print out
+                'target_dict':dict_for_test}  
+
           return out
 
- 
     # def generate_card2_narratives(self):
 
     def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):

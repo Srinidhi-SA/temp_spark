@@ -537,6 +537,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     print "STARTING DIMENSION ANALYSIS ..."
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
     df = dataframe_helper.get_data_frame()
+
     if ('Descriptive analysis' in scripts_to_run):
         dataframe_context.set_analysis_name("Descriptive analysis")
         completionStatus = dataframe_context.get_completion_status()
