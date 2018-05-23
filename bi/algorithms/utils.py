@@ -934,7 +934,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                         allAlgorithmTable += algoRows
 
                         algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
-                        parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates()
+                        parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["dropdown"]["slug"])
                         masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
                         ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
                         hideColumns = parallelCoordinateMetaData["hideColumns"]
@@ -943,7 +943,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                         print "="*50
                         print columnOrder
                         print "="*50
-                        algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
+                        algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
                         algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                         model_hyperparameter_summary.append(json.loads(algoCardJson))
         if hyperParameterFlag == True:
@@ -1117,7 +1117,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     allAlgorithmTable += algoRows
 
                     algoCard = NormalCard(name=obj["dropdown"]["name"])
-                    parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates()
+                    parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["dropdown"]["slug"])
                     masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
                     ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
                     hideColumns = parallelCoordinateMetaData["hideColumns"]
@@ -1126,7 +1126,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     print "="*50
                     print columnOrder
                     print "="*50
-                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName)])
+                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
                     algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                     model_hyperparameter_summary.append(json.loads(algoCardJson))
 
