@@ -1092,7 +1092,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     hyperParameterFlagArray.append(False)
         for obj in allRegressionModelSummary:
             if obj != None:
-                print obj["dropdown"]
+                # print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
                 if hyperParameterFlag == True:
@@ -1116,7 +1116,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
                     allAlgorithmTable += algoRows
 
-                    algoCard = NormalCard(name=obj["dropdown"]["name"])
+                    algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
                     parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["dropdown"]["slug"])
                     masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
                     ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]

@@ -84,7 +84,7 @@ SKLEARN_ML_GENERALIZED_LINEAR_REGRESSION_PARAMS = [
 
 ]
 
-SKLEARN_GBT_LEARNING_RATES = [
+SKLEARN_SGD_LEARNING_RATES = [
     {"name":"invscaling","selected":True,"displayName":"Inverse Scaling"},
     {"name":"optimal","selected":False,"displayName":"Optimal"},
     {"name":"constant","selected":False,"displayName":"Constant"},
@@ -105,7 +105,7 @@ SKLEARN_ML_SUPPORTED_SPLIT_CRITERION_REGRESSION = [
 SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                 {
                     "name":"n_estimators",
-                    "displayName":"Learning Rate",
+                    "displayName":"No. Of Estimators",
                     "description":"The number of trees in the forest",
                     "defaultValue":10,
                     "acceptedValue":None,
@@ -264,12 +264,14 @@ SKLEARN_ML_GBT_REGRESSION_PARAMS = [
             "name":"learning_rate",
             "displayName":"Learning Rate",
             "description":"It shrinks the contribution of each tree by learning_rate",
-            "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in SKLEARN_GBT_LEARNING_RATES],
-            "paramType":"list",
-            "uiElemType":"checkbox",
+            "defaultValue":0.1,
+            "acceptedValue":None,
+            "valueRange":[0.1,1.0],
+            "paramType":"number",
+            "uiElemType":"slider",
             "display":True,
             "hyperpatameterTuningCandidate":True,
-            "expectedDataType": ["string"]
+            "expectedDataType": ["float"]
         },
         {
             "name":"warm_start",
@@ -394,7 +396,7 @@ SKLEARN_ML_DTREE_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PAR
                  "displayName":"Best split"
              },
              {
-                 "name":"randome",
+                 "name":"random",
                  "selected":True,
                  "displayName":"Best random split"
              }
