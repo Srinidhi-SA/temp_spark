@@ -900,15 +900,15 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","Accuracy","ROC-AUC","Run Time"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
         counter = 1
-        hyperParameterFlagArray = []
+        hyperParameterFlagDict = {}
         hyperParameterFlag = False
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"]) != None:
-                    hyperParameterFlagArray.append(True)
+                    hyperParameterFlagDict[obj["dropdown"]["slug"]] = True
                     hyperParameterFlag = True
                 else:
-                    hyperParameterFlagArray.append(False)
+                    hyperParameterFlagDict[obj["dropdown"]["slug"]] = False
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
@@ -917,9 +917,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 if targetVariableLevelcount == {}:
                     targetVariableLevelcount = obj["levelcount"][target_variable]
                 if hyperParameterFlag == True:
-                    hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
-                    algoRows = []
-                    if hyperParamSummary != None:
+                    if hyperParameterFlagDict[obj["dropdown"]["slug"]] == True:
+                        hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
+                        algoRows = []
                         for rowDict in hyperParamSummary:
                             row = []
                             for key in allAlgorithmTableHeaderRow:
@@ -1086,54 +1086,55 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
         counter = 1
-        hyperParameterFlagArray = []
+        hyperParameterFlagDict = {}
         hyperParameterFlag = False
         for obj in allRegressionModelSummary:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"]) != None:
-                    hyperParameterFlagArray.append(True)
+                    hyperParameterFlagDict[obj["dropdown"]["slug"]] = True
                     hyperParameterFlag = True
                 else:
-                    hyperParameterFlagArray.append(False)
+                    hyperParameterFlagDict[obj["dropdown"]["slug"]] = False
         for obj in allRegressionModelSummary:
             if obj != None:
-                # print obj["dropdown"]
+                print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
                 if hyperParameterFlag == True:
-                    hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
-                    algoRows = []
-                    for rowDict in hyperParamSummary:
-                        row = []
-                        for key in allAlgorithmTableHeaderRow:
-                            if key == "#":
-                                row.append(counter)
-                            elif key == "Algorithm Name":
-                                row.append(obj["dropdown"]["name"])
-                            elif key == "Optimization Method":
-                                row.append("Grid Search")
-                            elif key == "Metric":
-                                row.append(rowDict["comparisonMetricUsed"])
-                            else:
-                                row.append(rowDict[key])
-                        algoRows.append(row)
-                        counter += 1
+                    if hyperParameterFlagDict[obj["dropdown"]["slug"]] == True:
+                        hyperParamSummary = result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"])
+                        algoRows = []
+                        for rowDict in hyperParamSummary:
+                            row = []
+                            for key in allAlgorithmTableHeaderRow:
+                                if key == "#":
+                                    row.append(counter)
+                                elif key == "Algorithm Name":
+                                    row.append(obj["dropdown"]["name"])
+                                elif key == "Optimization Method":
+                                    row.append("Grid Search")
+                                elif key == "Metric":
+                                    row.append(rowDict["comparisonMetricUsed"])
+                                else:
+                                    row.append(rowDict[key])
+                            algoRows.append(row)
+                            counter += 1
 
-                    allAlgorithmTable += algoRows
+                        allAlgorithmTable += algoRows
 
-                    algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
-                    parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["dropdown"]["slug"])
-                    masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
-                    ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
-                    hideColumns = parallelCoordinateMetaData["hideColumns"]
-                    metricColName = parallelCoordinateMetaData["metricColName"]
-                    columnOrder = parallelCoordinateMetaData["columnOrder"]
-                    print "="*50
-                    print columnOrder
-                    print "="*50
-                    algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
-                    algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
-                    model_hyperparameter_summary.append(json.loads(algoCardJson))
+                        algoCard = NormalCard(name=obj["dropdown"]["name"],slug=obj["dropdown"]["slug"])
+                        parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["dropdown"]["slug"])
+                        masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
+                        ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                        hideColumns = parallelCoordinateMetaData["hideColumns"]
+                        metricColName = parallelCoordinateMetaData["metricColName"]
+                        columnOrder = parallelCoordinateMetaData["columnOrder"]
+                        print "="*50
+                        print columnOrder
+                        print "="*50
+                        algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
+                        algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
+                        model_hyperparameter_summary.append(json.loads(algoCardJson))
 
         if hyperParameterFlag == True:
             algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")

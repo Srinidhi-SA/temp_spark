@@ -15,6 +15,7 @@ class AlgorithmParameters:
         self.uiElemType = None
         self.diplay = None
         self.hyperpatameterTuningCandidate = None
+        self.expectedDataType = None
 
 
     def set_params(self,algoParamObj):
@@ -28,11 +29,6 @@ class AlgorithmParameters:
             self.paramType = algoParamObj["paramType"]
         if "defaultValue" in algoParamObj:
             self.defaultValue = algoParamObj["defaultValue"]
-        if "acceptedValue" in algoParamObj:
-            if algoParamObj["acceptedValue"] != None:
-                # self.acceptedValue = float(algoParamObj["acceptedValue"])
-                self.acceptedValue = algoParamObj["acceptedValue"]
-
         if "valueRange" in algoParamObj:
             self.valueRange = algoParamObj["valueRange"]
         if "uiElemType" in algoParamObj:
@@ -41,6 +37,14 @@ class AlgorithmParameters:
             self.diplay = algoParamObj["diplay"]
         if "hyperpatameterTuningCandidate" in algoParamObj:
             self.hyperpatameterTuningCandidate = algoParamObj["hyperpatameterTuningCandidate"]
+        if "expectedDataType" in algoParamObj:
+            self.expectedDataType = algoParamObj["expectedDataType"]
+        if "acceptedValue" in algoParamObj:
+            if algoParamObj["acceptedValue"] != None:
+                if "float" in self.expectedDataType:
+                    self.acceptedValue = float(algoParamObj["acceptedValue"])
+                elif "int" in self.expectedDataType:
+                    self.acceptedValue = int(algoParamObj["acceptedValue"])
 
     def get_name(self):
         return self.name
@@ -54,6 +58,8 @@ class AlgorithmParameters:
         return self.hyperpatameterTuningCandidate
     def get_accepted_value(self):
         return self.acceptedValue
+    def get_expected_datatype(self):
+        return self.expectedDataType
     def get_default_value(self):
         if type(self.defaultValue) == list:
             filteredVal = filter(lambda x:x["selected"] == True,self.defaultValue)[0]["name"]
