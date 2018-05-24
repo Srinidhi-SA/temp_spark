@@ -1055,7 +1055,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             }
         metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
         full_names = map(lambda x: metricNamesMapping[x],metricNames)
-        metricTableTopRow = [""]+full_names
+        metricTableTopRow = ["Algorithm"]+full_names
         allMetricsData.append(metricTableTopRow)
         # print "collated_summary : ", collated_summary
         for algoName,dataObj in collated_summary.items():
