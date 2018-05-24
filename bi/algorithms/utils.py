@@ -956,15 +956,15 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("Accuracy")] ,reverse=True)
             totalModels = len(allAlgorithmTable) - 1
             allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
-            print allAlgorithmTable[:3]
+            allAlgorithmTableModified = [allAlgorithmTable[0]]
+            for idx,row in enumerate(allAlgorithmTable[1:]):
+                row[0] = idx+1
+                allAlgorithmTableModified.append(row)
+            allAlgorithmTable = allAlgorithmTableModified
             bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
-            print "bestModel",bestModel
             evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
-            print "evalMetric",evalMetric
-            print "bestMetric",bestMetric
             bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
-            print "bestAlgo",bestAlgo
             htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
@@ -1140,6 +1140,11 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("R-Squared")] ,reverse=True)
             totalModels = len(allAlgorithmTable) - 1
             allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
+            allAlgorithmTableModified = [allAlgorithmTable[0]]
+            for idx,row in enumerate(allAlgorithmTable[1:]):
+                row[0] = idx+1
+                allAlgorithmTableModified.append(row)
+            allAlgorithmTable = allAlgorithmTableModified
             bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
             evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
@@ -1245,13 +1250,13 @@ def get_scored_data_summary(scoredCol,outlierConstant=1.5):
     return out
 
 
-#-------- VIF based feature selection for Linear regression (on sparkdf) --------------# 
+#-------- VIF based feature selection for Linear regression (on sparkdf) --------------#
 
 def vif_cal_spark(df):
     xvar_names=df.columns
     vif_ser = pd.Series(index=xvar_names)
     for i in range(0,len(xvar_names)):
-        y_col=[xvar_names[i]] 
+        y_col=[xvar_names[i]]
         x_col=list(set(xvar_names)-set(y_col))
         vectorAssembler = VectorAssembler(inputCols=x_col, outputCol='features')
         train_df = vectorAssembler.transform(df)
@@ -1260,7 +1265,7 @@ def vif_cal_spark(df):
         lin_reg_model = lin_reg.fit(train_df)
         predictions = lin_reg_model.transform(train_df)
         lr_evaluator = RegressionEvaluator(predictionCol="prediction",labelCol=y_col[0],metricName="r2")
-        rsq =lr_evaluator.evaluate(predictions) 
+        rsq =lr_evaluator.evaluate(predictions)
         if rsq == 1:
             rsq=0.999
         vif=round(1/(1-rsq),2)
@@ -1288,13 +1293,13 @@ def feature_selection_vif_spark(df,vif_thr=5):
         return df.select(col2use)
 
 
-#-------- VIF based feature selection for Linear regression (on Pandas df) --------------# 
+#-------- VIF based feature selection for Linear regression (on Pandas df) --------------#
 
 def vif_cal(df):
     xvar_names=df.columns
     vif_ser = pd.Series(index=xvar_names)
     for i in range(0,len(xvar_names)):
-        y_col=[xvar_names[i]] 
+        y_col=[xvar_names[i]]
         x_col=list(set(xvar_names)-set(y_col))
         lin_reg = linear_model.LinearRegression()
         lin_reg.fit(df[x_col],df[y_col[0]])
