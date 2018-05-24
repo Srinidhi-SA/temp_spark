@@ -591,9 +591,12 @@ def get_model_comparison(collated_summary):
     summary_html = "<ul class='list-unstyled bullets_primary'>{}{}{}{}</ul>".format(inner_html[0],inner_html[1],inner_html[2],inner_html[3])
     summaryData = HtmlData(data = summary_html)
 
+
     modelTable = TableData()
     modelTable.set_table_data([list(x) for x in np.transpose(out)])
     modelTable.set_table_type("circularChartTable")
+    if len(algos) == 1:
+        summaryData = None
     return modelTable,summaryData
 
 def get_feature_importance(collated_summary):
@@ -613,7 +616,7 @@ def get_feature_importance(collated_summary):
 
 def get_total_models_classification(collated_summary):
     algos = collated_summary.keys()
-    n_model = 0
+    n_model = 1
     algorithm_name = []
     for val in algos:
         trees = collated_summary[val].get("nTrees")
@@ -840,7 +843,11 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         if featureImportanceC3Object != None:
             card2 = NormalCard()
             card2_elements = get_model_comparison(collated_summary)
-            card2Data = [card2_elements[0],card2_elements[1]]
+            if card2_elements[1] == None:
+                card2Data = [card2_elements[0]]
+            else:
+                card2Data = [card2_elements[0],card2_elements[1]]
+
             card2.set_card_data(card2Data)
             card2.set_card_width(50)
 
@@ -863,11 +870,13 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             card2Data = [card2_elements[0]]
             card2.set_card_data(card2Data)
             card2.set_card_width(50)
-            card3 = NormalCard()
-            card3Data = [card2_elements[1]]
-            card3.set_card_data(card3Data)
-            card3.set_card_width(50)
-            # card3 = None
+            if card2_elements[1] != None:
+                card3 = NormalCard()
+                card3Data = [card2_elements[1]]
+                card3.set_card_data(card3Data)
+                card3.set_card_width(50)
+            else:
+                card3 = None
 
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         modelResult = json.loads(modelResult)
