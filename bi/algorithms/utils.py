@@ -1000,7 +1000,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         collated_summary = result_setter.get_model_summary()
         targetVariable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         card1 = NormalCard()
-        card1Data = [HtmlData(data="<h4><b>Predicting {}</b></h4>".format(targetVariable))]
+        # card1Data = [HtmlData(data="<h4><b>Predicting {}</b></h4>".format(targetVariable))]
+        card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
         card1Data.append(HtmlData(data = get_total_models_regression(collated_summary)))
         card1.set_card_data(card1Data)
         card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
@@ -1016,7 +1017,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             coefficientsChartJson.set_chart_type("bar")
             coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
             coefficientsChartJson.set_axes({"x":"key","y":"value"})
-            coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
+            # coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
             # coefficientsChartJson.set_yaxis_number_format(".4f")
             coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)

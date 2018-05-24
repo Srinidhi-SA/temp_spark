@@ -246,7 +246,7 @@ class LinearRegressionModelScript:
             ######################## VIF feature slection block of code ########################
 
             # x_train_new = MLUtils.feature_selection_vif(x_train)
-            # x_test_new =x_test[x_train_new.columns.tolist()] 
+            # x_test_new =x_test[x_train_new.columns.tolist()]
 
             # print "features after VIF-"*100
             # print x_test_new.columns.tolist()
@@ -516,7 +516,7 @@ class LinearRegressionModelScript:
             coefficientsChartJson.set_chart_type("bar")
             coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
             coefficientsChartJson.set_axes({"x":"key","y":"value"})
-            coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
+            # coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
             # coefficientsChartJson.set_yaxis_number_format(".4f")
             coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)
