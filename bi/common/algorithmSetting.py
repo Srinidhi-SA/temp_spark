@@ -95,10 +95,18 @@ class AlgorithmParameters:
                     floatType = True
                     endValPrecision = len(endVal.split(".")[1])
                 precision = max(endValPrecision,startValPrecision)
-                if precision > 0:
-                    valRange = list(np.arange(float(startVal),float(endVal),1.0/(10**precision)))
+                if startVal == endVal:
+                    if precision > 0:
+                        valRange = [float(startVal)]
+                    else:
+                        valRange = [startVal]
                 else:
-                    valRange = range(int(startVal),int(endVal))
+                    if precision > 0:
+                        valRange = list(np.arange(float(startVal),float(endVal),1.0/(10**precision)))
+                        valRange.append(float(endVal))
+                    else:
+                        valRange = range(int(startVal),int(endVal))
+                        valRange.append(endVal)
                 out += valRange
         print out
         return out
