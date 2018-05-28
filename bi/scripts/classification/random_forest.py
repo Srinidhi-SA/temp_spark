@@ -26,7 +26,7 @@ from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
-from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
 from bi.common import DataFrameHelper
 from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
@@ -132,7 +132,10 @@ class RFClassificationModelScript:
             labelMapping = dict(zip(transformed,classes))
             inverseLabelMapping = dict(zip(classes,transformed))
             posLabel = inverseLabelMapping[self._targetLevel]
-            print "="*300
+            appType = self._dataframe_context.get_app_type()
+            print appType,labelMapping,inverseLabelMapping,posLabel,self._targetLevel
+            
+
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
@@ -151,7 +154,6 @@ class RFClassificationModelScript:
                     clfGrid.set_params(**hyperParamInitParam)
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
-                    appType = self._dataframe_context.get_app_type()
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
@@ -173,27 +175,10 @@ class RFClassificationModelScript:
                     numFold = int(validationDict["value"])
                     if numFold == 0:
                         numFold = 3
-                    kf = KFold(n_splits=numFold)
-                    foldId = 1
-                    kFoldOutput = []
-                    for train_index, test_index in kf.split(x_train):
-                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                        clf.fit(x_train_fold, y_train_fold)
-                        y_score_fold = clf.predict(x_test_fold)
-                        metricsFold = {}
-                        if len(levels) <= 2:
-                            metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
-                            metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
-                            metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
-                        elif len(levels) > 2:
-                            metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
-                            metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
-                            # metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold,average="weighted")
-                            metricsFold["auc"] = None
-                        kFoldOutput.append((clf,metricsFold))
-                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["precision"])
-                    bestEstimator = kFoldOutput[-1][0]
+                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel)
+                    kFoldClass.train_and_save_result()
+                    kFoldOutput = kFoldClass.get_kfold_result()
+                    bestEstimator = kFoldClass.get_best_estimator()
                 elif validationDict["name"] == "trainAndtest":
                     clf.fit(x_train, y_train)
                     bestEstimator = clf

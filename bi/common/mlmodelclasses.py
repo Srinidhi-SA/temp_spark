@@ -5,6 +5,9 @@ from math import sqrt
 from sklearn.externals import joblib
 from bi.settings import setting as GLOBALSETTINGS
 from bi.common import utils as CommonUtils
+from sklearn.model_selection import KFold
+from sklearn import metrics
+
 
 
 
@@ -356,3 +359,50 @@ class SklearnGridSearchResult:
         bestMod["alwaysSelected"] = "True"
         tableOutput[0] = bestMod
         return tableOutput
+
+class SkleanrKFoldResult:
+    def __init__(self,numFold=3,estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,levels=None,posLabel=None):
+        self.estimator = estimator
+        self.appType = appType
+        self.x_train = x_train
+        self.x_test = x_test
+        self.y_train = y_train
+        self.y_test = y_test
+        self.posLabel = posLabel
+        self.levels = levels
+        self.kFoldOutput = []
+        self.kfObject = KFold(n_splits=numFold)
+
+    def train_and_save_result(self):
+        for train_index, test_index in self.kfObject.split(self.x_train):
+            x_train_fold, x_test_fold = self.x_train.iloc[train_index,:], self.x_train.iloc[test_index,:]
+            y_train_fold, y_test_fold = self.y_train.iloc[train_index], self.y_train.iloc[test_index]
+            self.estimator.fit(x_train_fold, y_train_fold)
+            y_score_fold = self.estimator.predict(x_test_fold)
+            metricsFold = {}
+            if self.appType == "CLASSIFICATION":
+                metricsFold["accuracy"] = metrics.accuracy_score(y_test_fold,y_score_fold)
+                if len(self.levels) <= 2:
+                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
+                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
+                    metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                elif len(self.levels) > 2:
+                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
+                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
+                    metricsFold["auc"] = None
+            elif self.appType == "REGRESSION":
+                metricsFold["r2"] = metrics.r2_score(y_test_fold, y_score_fold)
+                metricsFold["mse"] = metrics.mean_squared_error(y_test_fold, y_score_fold)
+                metricsFold["mae"] = metrics.mean_absolute_error(y_test_fold, y_score_fold)
+                metricsFold["rmse"] = sqrt(metricsFold["mse"])
+            self.kFoldOutput.append((self.estimator,metricsFold))
+        if self.appType == "CLASSIFICATION":
+            self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1]["accuracy"],reverse=True)
+        elif self.appType == "REGRESSION":
+            self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1]["r2"],reverse=True)
+
+    def get_kfold_result(self):
+        return self.kFoldOutput
+
+    def get_best_estimator(self):
+        return self.kFoldOutput[0][0]

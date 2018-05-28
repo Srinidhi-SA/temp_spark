@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -96,7 +96,7 @@ class GBTRegressionModelScript:
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-
+        appType = self._dataframe_context.get_app_type()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
         algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
@@ -240,7 +240,6 @@ class GBTRegressionModelScript:
                     estGrid.set_params(**hyperParamInitParam)
                     estGrid.fit(x_train,y_train)
                     bestEstimator = estGrid.best_estimator_
-                    appType = self._dataframe_context.get_app_type()
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
@@ -258,22 +257,10 @@ class GBTRegressionModelScript:
                     numFold = int(validationDict["value"])
                     if numFold == 0:
                         numFold = 3
-                    kf = KFold(n_splits=numFold)
-                    foldId = 1
-                    kFoldOutput = []
-                    for train_index, test_index in kf.split(x_train):
-                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                        est.fit(x_train_fold, y_train_fold)
-                        y_score_fold = est.predict(x_test_fold)
-                        metricsFold = {}
-                        metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
-                        metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
-                        metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
-                        metricsFold["rmse"] = sqrt(metricsFold["mse"])
-                        kFoldOutput.append((est,metricsFold))
-                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
-                    bestEstimator = kFoldOutput[-1][0]
+                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType)
+                    kFoldClass.train_and_save_result()
+                    kFoldOutput = kFoldClass.get_kfold_result()
+                    bestEstimator = kFoldClass.get_best_estimator()
                 elif validationDict["name"] == "trainAndtest":
                     est.fit(x_train, y_train)
                     bestEstimator = est

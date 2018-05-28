@@ -25,7 +25,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
-from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
 from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
@@ -129,7 +129,9 @@ class LogisticRegressionScript:
             labelMapping = dict(zip(transformed,classes))
             inverseLabelMapping = dict(zip(classes,transformed))
             posLabel = inverseLabelMapping[self._targetLevel]
-            print labelMapping,inverseLabelMapping,posLabel,self._targetLevel
+            appType = self._dataframe_context.get_app_type()
+
+            print appType,labelMapping,inverseLabelMapping,posLabel,self._targetLevel
 
             print "="*200
             if algoSetting.is_hyperparameter_tuning_enabled():
@@ -149,13 +151,15 @@ class LogisticRegressionScript:
                     clfGrid.set_params(**hyperParamInitParam)
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
-                    appType = self._dataframe_context.get_app_type()
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    if self.appType == "REGRESSION":
+                        self.evaluationMetric = GLOBALSETTINGS.REGRESSION_MODEL_COMPARISON_METRIC
+                    elif self.appType == "CLASSIFICATION":
+                        self.evaluationMetric = GLOBALSETTINGS.CLASSIFICATION_MODEL_COMPARISON_METRIC
+
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
-                    print sklearnHyperParameterResultObj.get_keep_columns()
-                    print "="*300
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
@@ -167,7 +171,7 @@ class LogisticRegressionScript:
                     clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
                     algoParams = algoSetting.get_params_dict()
                     algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
-                    algoParams = {k:v for k,v in algoParams.items() if k in["multi_class"]}
+                    algoParams = {k:v for k,v in algoParams.items() if k in ["multi_class"]}
                     algoParams["multi_class"] = "multinomial"
                     algoParams["solver"] = "newton-cg"
                     clf.set_params(**algoParams)
@@ -181,33 +185,14 @@ class LogisticRegressionScript:
                     numFold = int(validationDict["value"])
                     if numFold == 0:
                         numFold = 3
-                    kf = KFold(n_splits=numFold)
-                    foldId = 1
-                    kFoldOutput = []
-                    for train_index, test_index in kf.split(x_train):
-                        x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                        y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                        clf.fit(x_train_fold, y_train_fold)
-                        y_score_fold = clf.predict(x_test_fold)
-                        metricsFold = {}
-                        if len(levels) <= 2:
-                            metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
-                            metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="binary")
-                            metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
-                        elif len(levels) > 2:
-                            metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
-                            metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=posLabel,average="macro")
-                            # metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold,average="weighted")
-                            metricsFold["auc"] = None
-                        kFoldOutput.append((clf,metricsFold))
-                    kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["precision"])
-                    bestEstimator = kFoldOutput[-1][0]
+                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel)
+                    kFoldClass.train_and_save_result()
+                    kFoldOutput = kFoldClass.get_kfold_result()
+                    bestEstimator = kFoldClass.get_best_estimator()
                 elif validationDict["name"] == "trainAndtest":
                     clf.fit(x_train, y_train)
                     bestEstimator = clf
 
-            # clf.fit(x_train, y_train)
-            # bestEstimator = clf
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
