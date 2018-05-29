@@ -908,14 +908,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
-            if obj != None:
+            if obj != None and obj["dropdown"] != None :
                 if result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"]) != None:
                     hyperParameterFlagDict[obj["dropdown"]["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["dropdown"]["slug"]] = False
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
-            if obj != None:
+            if obj != None and obj["dropdown"] != None:
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
                 labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]
@@ -1095,14 +1095,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
         for obj in allRegressionModelSummary:
-            if obj != None:
+            if obj != None and obj["dropdown"] != None:
                 if result_setter.get_hyper_parameter_results(obj["dropdown"]["slug"]) != None:
                     hyperParameterFlagDict[obj["dropdown"]["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["dropdown"]["slug"]] = False
         for obj in allRegressionModelSummary:
-            if obj != None:
+            if obj != None and obj["dropdown"] != None:
                 print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
