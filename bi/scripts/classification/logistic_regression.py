@@ -148,11 +148,6 @@ class LogisticRegressionScript:
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    if self.appType == "REGRESSION":
-                        self.evaluationMetric = GLOBALSETTINGS.REGRESSION_MODEL_COMPARISON_METRIC
-                    elif self.appType == "CLASSIFICATION":
-                        self.evaluationMetric = GLOBALSETTINGS.CLASSIFICATION_MODEL_COMPARISON_METRIC
-
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
