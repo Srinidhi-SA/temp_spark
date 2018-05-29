@@ -112,13 +112,10 @@ class LogisticRegressionScript:
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
 
-
-
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
             st = time.time()
             levels = df[result_column].unique()
-
 
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
@@ -133,12 +130,11 @@ class LogisticRegressionScript:
 
             print appType,labelMapping,inverseLabelMapping,posLabel,self._targetLevel
 
-            print "="*200
+            if len(levels) > 2:
+                clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
+            else:
+                clf = Logit()
             if algoSetting.is_hyperparameter_tuning_enabled():
-                if len(levels) > 2:
-                    clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
-                else:
-                    clf = Logit()
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
@@ -167,19 +163,13 @@ class LogisticRegressionScript:
                     bestEstimator = None
             else:
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
+                algoParams = algoSetting.get_params_dict()
+                algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 if len(levels) > 2:
-                    clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
-                    algoParams = algoSetting.get_params_dict()
-                    algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
-                    algoParams = {k:v for k,v in algoParams.items() if k in ["multi_class"]}
+                    algoParams = {k:v for k,v in algoParams.items() if k not in ["multi_class"]}
                     algoParams["multi_class"] = "multinomial"
                     algoParams["solver"] = "newton-cg"
-                    clf.set_params(**algoParams)
-                else:
-                    clf = Logit()
-                    algoParams = algoSetting.get_params_dict()
-                    algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
-                    clf.set_params(**algoParams)
+                clf.set_params(**algoParams)
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
@@ -200,8 +190,6 @@ class LogisticRegressionScript:
             except:
                 y_prob = [0]*len(y_score)
 
-            # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
-            # print overall_precision_recall
             accuracy = metrics.accuracy_score(y_test,y_score)
             if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
@@ -218,8 +206,11 @@ class LogisticRegressionScript:
             feature_importance = {}
 
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
-
-            joblib.dump(objs["trained_model"],model_filepath)
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
+                modelFilepathArr = model_filepath.split("/")[:-1]
+                modelFilepathArr.append(modelName+".pkl")
+                joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
             runtime = round((time.time() - st_global),2)
 
             try:
@@ -259,19 +250,28 @@ class LogisticRegressionScript:
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
             # self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
-
-            modelSummaryJson = {
-                "dropdown":{
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
                             "evaluationMetricValue":self._model_summary.get_model_accuracy(),
                             "evaluationMetricName":"accuracy",
                             "slug":self._model_summary.get_slug(),
-                            "Model Id":"M"+"0"*GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH
-                            },
-                "levelcount":self._model_summary.get_level_counts(),
-                "modelFeatureList":self._model_summary.get_feature_list(),
-                "levelMapping":self._model_summary.get_level_map_dict()
-            }
+                            "Model Id":modelName
+                            }
+
+                modelSummaryJson = {
+                    "dropdown":modelDropDownObj,
+                    "levelcount":self._model_summary.get_level_counts(),
+                    "modelFeatureList":self._model_summary.get_feature_list(),
+                    "levelMapping":self._model_summary.get_level_map_dict()
+                }
+            else:
+                modelSummaryJson = {
+                    "dropdown":None,
+                    "levelcount":self._model_summary.get_level_counts(),
+                    "modelFeatureList":self._model_summary.get_feature_list(),
+                    "levelMapping":self._model_summary.get_level_map_dict()
+                }
 
             lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in lrCards:

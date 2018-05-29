@@ -134,7 +134,7 @@ class RFClassificationModelScript:
             posLabel = inverseLabelMapping[self._targetLevel]
             appType = self._dataframe_context.get_app_type()
             print appType,labelMapping,inverseLabelMapping,posLabel,self._targetLevel
-            
+
 
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -214,7 +214,11 @@ class RFClassificationModelScript:
                 feature_importance[k] = CommonUtils.round_sig(v)
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
 
-            joblib.dump(objs["trained_model"],model_filepath)
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
+                modelFilepathArr = model_filepath.split("/")[:-1]
+                modelFilepathArr.append(modelName+".pkl")
+                joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
             runtime = round((time.time() - st_global),2)
 
             try:
@@ -254,18 +258,28 @@ class RFClassificationModelScript:
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
             self._model_summary.set_num_trees(100)
             self._model_summary.set_num_rules(300)
-            modelSummaryJson = {
-                "dropdown":{
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
                             "evaluationMetricValue":self._model_summary.get_model_accuracy(),
                             "evaluationMetricName":"accuracy",
                             "slug":self._model_summary.get_slug(),
-                            "Model Id":"M"+"0"*GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH
-                            },
-                "levelcount":self._model_summary.get_level_counts(),
-                "modelFeatureList":self._model_summary.get_feature_list(),
-                "levelMapping":self._model_summary.get_level_map_dict()
-            }
+                            "Model Id":modelName
+                            }
+
+                modelSummaryJson = {
+                    "dropdown":modelDropDownObj,
+                    "levelcount":self._model_summary.get_level_counts(),
+                    "modelFeatureList":self._model_summary.get_feature_list(),
+                    "levelMapping":self._model_summary.get_level_map_dict()
+                }
+            else:
+                modelSummaryJson = {
+                    "dropdown":None,
+                    "levelcount":self._model_summary.get_level_counts(),
+                    "modelFeatureList":self._model_summary.get_feature_list(),
+                    "levelMapping":self._model_summary.get_level_map_dict()
+                }
 
             rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in rfCards:

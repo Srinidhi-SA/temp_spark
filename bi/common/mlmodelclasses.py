@@ -5,7 +5,7 @@ from math import sqrt
 from sklearn.externals import joblib
 from bi.settings import setting as GLOBALSETTINGS
 from bi.common import utils as CommonUtils
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold,StratifiedKFold,StratifiedShuffleSplit
 from sklearn import metrics
 
 
@@ -361,17 +361,28 @@ class SklearnGridSearchResult:
         return tableOutput
 
 class SkleanrKFoldResult:
-    def __init__(self,numFold=3,estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,levels=None,posLabel=None):
+    """
+    sampling can be ["kfold","stratifiedKfold","stratifiedShuffleSplit"]
+    by default its kfold
+    """
+    def __init__(self,numFold=3,estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,levels=None,posLabel=None,sampling="kfold"):
         self.estimator = estimator
         self.appType = appType
-        self.x_train = x_train
-        self.x_test = x_test
-        self.y_train = y_train
-        self.y_test = y_test
+        self.x_train = pd.concat([x_train,x_test])
+        self.y_train = pd.concat([pd.Series(y_train),pd.Series(y_test)])
         self.posLabel = posLabel
         self.levels = levels
         self.kFoldOutput = []
-        self.kfObject = KFold(n_splits=numFold)
+        self.sampling = sampling
+        if self.sampling == "stratifiedKfold":
+            self.kfObject = StratifiedKFold(n_splits=numFold,random_state=None, shuffle=False)
+            self.kfObjectSplit = self.kfObject.split(self.x_train,self.y_train)
+        elif self.sampling == "kfold":
+            self.kfObject = KFold(n_splits=numFold,random_state=None, shuffle=False)
+            self.kfObjectSplit = self.kfObject.split(self.x_train)
+        elif self.sampling == "stratifiedShuffleSplit":
+            self.kfObject = StratifiedShuffleSplit(n_splits=numFold,test_size=0.5, random_state=0)
+            self.kfObjectSplit = self.kfObject.split(self.x_train,self.y_train)
 
     def train_and_save_result(self):
         for train_index, test_index in self.kfObject.split(self.x_train):

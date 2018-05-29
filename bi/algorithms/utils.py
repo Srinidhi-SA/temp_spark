@@ -285,8 +285,8 @@ def calculate_scored_probability_stats(scored_dataframe):
     for key in output.keys():
         if output[key] == {}:
             output.pop(key, None)
-
-    return reformat_prediction_split(output)
+    formattedSplit = reformat_prediction_split(output)
+    return formattedSplit
 
 def create_dummy_columns(df,colnames):
     df1 = df[[col for col in df.columns if col not in colnames]]
@@ -442,12 +442,10 @@ def load_pipeline(filepath):
     return model
 
 ##########################SKLEARN Model Pipelines ##############################
-# def create_
 
 def load_rf_model(filepath):
     model = RandomForestClassificationModel.load(filepath)
     return model
-
 def load_linear_regresssion_pyspark_model(filepath):
     model = LinearRegressionModel.load(filepath)
     return model
@@ -463,11 +461,9 @@ def load_dtree_regresssion_pyspark_model(filepath):
 def load_rf_regresssion_pyspark_model(filepath):
     model = RandomForestRegressionModel.load(filepath)
     return model
-
 def load_one_vs_rest_model(filepath):
     model = OneVsRestModel.load(filepath)
     return model
-
 def load_logistic_model(filepath):
     model = LogisticRegressionModel.load(filepath)
     return model
@@ -987,7 +983,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = labelMappingDict
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
-
+        model_dropdowns = [x for x in model_dropdowns if x != None]
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         print model_dropdowns
         print "="*100
@@ -1176,6 +1172,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["targetVariableLevelcount"] = []
         print model_dropdowns
         print "="*100
+        model_dropdowns = [x for x in model_dropdowns if x != None]
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
         if hyperParameterFlag == True:
