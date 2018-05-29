@@ -258,14 +258,18 @@ class XgboostScript:
                     "dropdown":modelDropDownObj,
                     "levelcount":self._model_summary.get_level_counts(),
                     "modelFeatureList":self._model_summary.get_feature_list(),
-                    "levelMapping":self._model_summary.get_level_map_dict()
+                    "levelMapping":self._model_summary.get_level_map_dict(),
+                    "slug":self._model_summary.get_slug(),
+                    "name":self._model_summary.get_algorithm_name()
                 }
             else:
                 modelSummaryJson = {
                     "dropdown":None,
                     "levelcount":self._model_summary.get_level_counts(),
                     "modelFeatureList":self._model_summary.get_feature_list(),
-                    "levelMapping":self._model_summary.get_level_map_dict()
+                    "levelMapping":self._model_summary.get_level_map_dict(),
+                    "slug":self._model_summary.get_slug(),
+                    "name":self._model_summary.get_algorithm_name()
                 }
 
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]

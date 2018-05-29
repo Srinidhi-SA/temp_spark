@@ -275,7 +275,11 @@ class GBTRegressionModelScript:
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
             featureImportance = objs["trained_model"].feature_importances_
             featuresArray = [(col_name, featureImportance[idx]) for idx, col_name in enumerate(x_train.columns)]
-            joblib.dump(objs["trained_model"],model_filepath)
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
+                modelFilepathArr = model_filepath.split("/")[:-1]
+                modelFilepathArr.append(modelName+".pkl")
+                joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
             metrics = {}
             metrics["r2"] = r2_score(y_test, y_score)
             metrics["mse"] = mean_squared_error(y_test, y_score)
@@ -343,18 +347,32 @@ class GBTRegressionModelScript:
 
 
 
-        modelSummaryJson = {
-            "dropdown":{
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            modelDropDownObj = {
                         "name":self._model_summary.get_algorithm_name(),
-                        "evaluationMetricValue":CommonUtils.round_sig(self._model_summary.get_model_evaluation_metrics()["r2"]),
-                        "evaluationMetricName":"R-Squared",
+                        "evaluationMetricValue":self._model_summary.get_model_accuracy(),
+                        "evaluationMetricName":"accuracy",
                         "slug":self._model_summary.get_slug(),
-                        "Model Id":"M"+"0"*GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH
-                        },
-            "levelcount":self._model_summary.get_level_counts(),
-            "modelFeatureList":self._model_summary.get_feature_list(),
-            "levelMapping":self._model_summary.get_level_map_dict()
-        }
+                        "Model Id":modelName
+                        }
+
+            modelSummaryJson = {
+                "dropdown":modelDropDownObj,
+                "levelcount":self._model_summary.get_level_counts(),
+                "modelFeatureList":self._model_summary.get_feature_list(),
+                "levelMapping":self._model_summary.get_level_map_dict(),
+                "slug":self._model_summary.get_slug(),
+                "name":self._model_summary.get_algorithm_name()
+            }
+        else:
+            modelSummaryJson = {
+                "dropdown":None,
+                "levelcount":self._model_summary.get_level_counts(),
+                "modelFeatureList":self._model_summary.get_feature_list(),
+                "levelMapping":self._model_summary.get_level_map_dict(),
+                "slug":self._model_summary.get_slug(),
+                "name":self._model_summary.get_algorithm_name()
+            }
 
         gbtrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
