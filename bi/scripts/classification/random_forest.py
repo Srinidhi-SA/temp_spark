@@ -183,8 +183,6 @@ class RFClassificationModelScript:
                     clf.fit(x_train, y_train)
                     bestEstimator = clf
 
-            # clf.fit(x_train, y_train)
-            # bestEstimator = clf
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
@@ -276,8 +274,15 @@ class RFClassificationModelScript:
                     "name":self._model_summary.get_algorithm_name()
                 }
             else:
+                modelDropDownObj = {
+                            "name":self._model_summary.get_algorithm_name(),
+                            "evaluationMetricValue":resultArray[0]["Accuracy"],
+                            "evaluationMetricName":"accuracy",
+                            "slug":self._model_summary.get_slug(),
+                            "Model Id":resultArray[0]["Model Id"]
+                            }
                 modelSummaryJson = {
-                    "dropdown":None,
+                    "dropdown":modelDropDownObj,
                     "levelcount":self._model_summary.get_level_counts(),
                     "modelFeatureList":self._model_summary.get_feature_list(),
                     "levelMapping":self._model_summary.get_level_map_dict(),

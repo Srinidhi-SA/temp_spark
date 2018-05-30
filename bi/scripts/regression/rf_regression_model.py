@@ -353,7 +353,7 @@ class RFRegressionModelScript:
             modelDropDownObj = {
                         "name":self._model_summary.get_algorithm_name(),
                         "evaluationMetricValue":self._model_summary.get_model_accuracy(),
-                        "evaluationMetricName":"accuracy",
+                        "evaluationMetricName":"r2",
                         "slug":self._model_summary.get_slug(),
                         "Model Id":modelName
                         }
@@ -367,8 +367,15 @@ class RFRegressionModelScript:
                 "name":self._model_summary.get_algorithm_name()
             }
         else:
+            modelDropDownObj = {
+                        "name":self._model_summary.get_algorithm_name(),
+                        "evaluationMetricValue":resultArray[0]["R-Squared"],
+                        "evaluationMetricName":"r2",
+                        "slug":self._model_summary.get_slug(),
+                        "Model Id":resultArray[0]["Model Id"]
+                        }
             modelSummaryJson = {
-                "dropdown":None,
+                "dropdown":modelDropDownObj,
                 "levelcount":self._model_summary.get_level_counts(),
                 "modelFeatureList":self._model_summary.get_feature_list(),
                 "levelMapping":self._model_summary.get_level_map_dict(),

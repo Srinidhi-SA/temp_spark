@@ -1091,3 +1091,17 @@ def reformat_level_count_tuple(levelCountTuple):
         obj.update({"percentage":newPercentArray[idx]})
         output.append(obj)
     return output
+
+def ret_smart_round(n):
+    """
+    sumit's legacy
+    """
+    n_int = np.floor(n)
+    n_dec = n-n_int
+    sum_n = sum(n)
+    sum_int = sum(n_int)
+    while sum_int != 100:
+        n_int[np.argmax(n_dec)] = np.round(n[np.argmax(n_dec)])
+        n_dec = n-n_int
+        sum_int = sum(n_int)
+    return [int(x) for x in n_int]
