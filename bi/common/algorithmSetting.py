@@ -40,11 +40,7 @@ class AlgorithmParameters:
         if "expectedDataType" in algoParamObj:
             self.expectedDataType = algoParamObj["expectedDataType"]
         if "acceptedValue" in algoParamObj:
-            if algoParamObj["acceptedValue"] != None:
-                if "float" in self.expectedDataType:
-                    self.acceptedValue = float(algoParamObj["acceptedValue"])
-                elif "int" in self.expectedDataType:
-                    self.acceptedValue = int(algoParamObj["acceptedValue"])
+            self.acceptedValue = algoParamObj["acceptedValue"]
 
     def get_name(self):
         return self.name
@@ -159,6 +155,10 @@ class AlgorithmParameters:
                     return {self.name:outListMod}
         else:
             if self.acceptedValue != None:
+                if "float" in self.expectedDataType:
+                    self.acceptedValue = float(algoParamObj["acceptedValue"])
+                elif "int" in self.expectedDataType:
+                    self.acceptedValue = int(algoParamObj["acceptedValue"])
                 if self.name != "tol":
                     return {self.name:self.acceptedValue}
                 else:
