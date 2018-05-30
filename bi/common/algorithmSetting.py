@@ -108,7 +108,7 @@ class AlgorithmParameters:
                         valRange.append(float(endVal))
                     else:
                         valRange = range(int(startVal),int(endVal))
-                        valRange.append(endVal)
+                        valRange.append(int(endVal))
                 out += valRange
         print out
         return out

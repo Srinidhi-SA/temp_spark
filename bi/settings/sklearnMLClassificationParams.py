@@ -387,7 +387,7 @@ SKLEARN_ML_LOGISTIC_REGRESSION_PARAMS = [
              "uiElemType":"slider",
              "display":True,
              "hyperpatameterTuningCandidate":True,
-             "expectedDataType": ["float"]
+             "expectedDataType": ["int"]
          },
          {
              "name":"C",
