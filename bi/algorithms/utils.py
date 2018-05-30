@@ -286,6 +286,9 @@ def calculate_scored_probability_stats(scored_dataframe):
         if output[key] == {}:
             output.pop(key, None)
     formattedSplit = reformat_prediction_split(output)
+    print "formattedSplit"
+    print formattedSplit
+    print "="*200
     return formattedSplit
 
 def create_dummy_columns(df,colnames):
@@ -1179,8 +1182,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
-
-
 
 
 def get_mape_stats(df,colname):

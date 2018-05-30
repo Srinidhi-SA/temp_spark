@@ -81,14 +81,14 @@ SKLEARN_GRIDSEARCH_PARAMS = [
                 "display":True
             },
             {
-                    "name":"kFold",
-                    "displayName":"No Of Folds to Use",
-                    "defaultValue":3,
-                    "acceptedValue":None,
-                    "valueRange":[2,10],
-                    "paramType":"number",
-                    "uiElemType":"slider",
-                    "display":True
+                "name":"kFold",
+                "displayName":"No Of Folds to Use",
+                "defaultValue":3,
+                "acceptedValue":None,
+                "valueRange":[2,10],
+                "paramType":"number",
+                "uiElemType":"slider",
+                "display":True
             }
 ]
 SKLEARN_RANDOMSEARCH_PARAMS = [
@@ -169,13 +169,12 @@ SKLEARN_HYPERPARAMETER_OBJECT = [
         "displayName":"Grid Search",
         "selected":False
     },
-    {
-        "name":"randomsearchcv",
-        "params":SKLEARN_RANDOMSEARCH_PARAMS,
-        "displayName":"Random Search",
-        "selected": False
-
-    },
+    # {
+    #     "name":"randomsearchcv",
+    #     "params":SKLEARN_RANDOMSEARCH_PARAMS,
+    #     "displayName":"Random Search",
+    #     "selected": False
+    # },
     {
         "name":"none",
         "params":None,

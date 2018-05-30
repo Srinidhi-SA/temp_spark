@@ -1074,3 +1074,20 @@ def select_y_axis_format(dataArray):
             return ".4f"
     else:
         return ".2f"
+
+def reformat_level_count_tuple(levelCountTuple):
+    percentArray = [val["percentage"] for val in levelCountTuple]
+    newPercentArray = []
+    for perCent in percentArray:
+        if perCent < 99:
+            perCent = math.ceil(perCent)
+            newPercentArray.append(perCent)
+        else:
+            newPercentArray.append(99)
+    if sum(newPercentArray) > 100:
+        newPercentArray[-1] = newPercentArray[-1]-1
+    output = []
+    for idx,obj in enumerate(levelCountTuple):
+        obj.update({"percentage":newPercentArray[idx]})
+        output.append(obj)
+    return output

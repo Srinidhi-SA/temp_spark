@@ -287,10 +287,11 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
     print "="*100
 
     if jsonData["globalCompletionPercentage"] > 100:
-        print "Red Alert ( percentage more than 100)"*50
+        print "Red Alert ( percentage more than 100)"*5
     if emptyBin == True:
         url += "?emptyBin=True"
     print "message url",url
+    ignore = True
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
         return res

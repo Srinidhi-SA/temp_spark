@@ -235,7 +235,7 @@ SKLEANR_ML_RF_CLASSIFICATION_PARAMS = SKLEARN_ML_TREE_BASED_CLASSIFICATION_COMMO
             ],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True,
+            "display":False,
             "hyperpatameterTuningCandidate":False,
             "expectedDataType": ["bool"]
         },
