@@ -57,7 +57,7 @@ class AlgorithmParameters:
         return self.acceptedValue
     def get_expected_datatype(self):
         return self.expectedDataType
-    def get_default_value(self):
+    def get_default_value(self,tuningParams=True):
         if type(self.defaultValue) == list:
             filteredArr = [x["name"] for x in filter(lambda x:x["selected"] == True,self.defaultValue)]
             outArray = []
@@ -76,10 +76,14 @@ class AlgorithmParameters:
             if len(outArray) == 0:
                 print "SOMETHING FISHY IN",self.name
                 return None
-            elif len(outArray) > 1:
-                return outArray
             else:
-                return outArray[0]
+                if tuningParams == False:
+                    if len(outArray) > 1:
+                        return outArray
+                    else:
+                        return outArray[0]
+                else:
+                    return outArray
         else:
             if self.defaultValue != None:
                 return self.defaultValue
@@ -127,7 +131,7 @@ class AlgorithmParameters:
 
 
     def get_param_value(self,hyperParams=True):
-        defaultValue = self.get_default_value()
+        defaultValue = self.get_default_value(tuningParams=hyperParams)
         if hyperParams:
             if self.hyperpatameterTuningCandidate != True:
                 if self.acceptedValue != None:
