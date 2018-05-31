@@ -78,10 +78,7 @@ class AlgorithmParameters:
                 return None
             else:
                 if tuningParams == False:
-                    if len(outArray) > 1:
-                        return outArray
-                    else:
-                        return outArray[0]
+                    return outArray[0]
                 else:
                     return outArray
         else:
