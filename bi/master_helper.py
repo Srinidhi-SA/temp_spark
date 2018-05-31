@@ -160,43 +160,45 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
     if app_type == "CLASSIFICATION":
-        try:
-            st = time.time()
-            rf_obj = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-            # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-            rf_obj.Train()
-            print "Random Forest Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-
-        try:
-            st = time.time()
-            xgb_obj = XgboostScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-            xgb_obj.Train()
-            print "XGBoost Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-
-        try:
-            st = time.time()
-            lr_obj = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-            # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-            lr_obj.Train()
-            print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
-        except Exception as e:
-            CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
-            CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-
-        # try:
-        #     st = time.time()
-        #     svm_obj = SupportVectorMachineScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-        #     svm_obj.Train()
-        #     print "SVM Model Done in ", time.time() - st,  " seconds."
-        # except Exception as e:
-        #     CommonUtils.print_errors_and_store_traceback(LOGGER,"svm",e)
-        #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+        for obj in algosToRun:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["randomforest"]:
+                try:
+                    st = time.time()
+                    rf_obj = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    rf_obj.Train()
+                    print "Random Forest Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["xgboost"]:
+                try:
+                    st = time.time()
+                    xgb_obj = XgboostScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    xgb_obj.Train()
+                    print "XGBoost Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]:
+                try:
+                    st = time.time()
+                    lr_obj = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    lr_obj.Train()
+                    print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
+                # try:
+                #     st = time.time()
+                #     svm_obj = SupportVectorMachineScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                #     svm_obj.Train()
+                #     print "SVM Model Done in ", time.time() - st,  " seconds."
+                # except Exception as e:
+                #     CommonUtils.print_errors_and_store_traceback(LOGGER,"svm",e)
+                #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
     elif app_type == "REGRESSION":
         for obj in algosToRun:
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
