@@ -60,7 +60,8 @@ SKLEARN_GRIDSEARCH_PARAMS = [
                 "defaultValue":None,
                 "paramType":"list",
                 "uiElemType":"dropDown",
-                "display":True
+                "display":True,
+                "expectedDataType":[None,"string"]
             },
             {
                 "name":"iidAssumption",
@@ -79,7 +80,9 @@ SKLEARN_GRIDSEARCH_PARAMS = [
                        ],
                 "paramType":"list",
                 "uiElemType":"dropDown",
-                "display":True
+                "display":True,
+                "expectedDataType":["string"]
+
             },
             {
                 "name":"kFold",
@@ -89,7 +92,8 @@ SKLEARN_GRIDSEARCH_PARAMS = [
                 "valueRange":[2,10],
                 "paramType":"number",
                 "uiElemType":"slider",
-                "display":True
+                "display":True,
+                "expectedDataType":[None,"int"]
             }
 ]
 SKLEARN_RANDOMSEARCH_PARAMS = [

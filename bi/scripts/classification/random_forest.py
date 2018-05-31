@@ -140,8 +140,6 @@ class RFClassificationModelScript:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
-                print clf.get_params()
-                print "="*200
                 for k,v in params_grid.items():
                     if k not in clf.get_params():
                         print k,v
@@ -169,7 +167,9 @@ class RFClassificationModelScript:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
-
+                print "!"*50
+                print clf.get_params()
+                print "!"*50
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])

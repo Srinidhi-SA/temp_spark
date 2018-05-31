@@ -27,8 +27,6 @@ class AlgorithmParameters:
             self.displayName = algoParamObj["displayName"]
         if "paramType" in algoParamObj:
             self.paramType = algoParamObj["paramType"]
-        if "defaultValue" in algoParamObj:
-            self.defaultValue = algoParamObj["defaultValue"]
         if "valueRange" in algoParamObj:
             self.valueRange = algoParamObj["valueRange"]
         if "uiElemType" in algoParamObj:
@@ -41,6 +39,9 @@ class AlgorithmParameters:
             self.expectedDataType = algoParamObj["expectedDataType"]
         if "acceptedValue" in algoParamObj:
             self.acceptedValue = algoParamObj["acceptedValue"]
+        ### Should be the last key
+        if "defaultValue" in algoParamObj:
+            self.defaultValue = algoParamObj["defaultValue"]
 
     def get_name(self):
         return self.name
@@ -58,19 +59,30 @@ class AlgorithmParameters:
         return self.expectedDataType
     def get_default_value(self):
         if type(self.defaultValue) == list:
-            filteredVal = filter(lambda x:x["selected"] == True,self.defaultValue)[0]["name"]
-            if filteredVal not in ["True","False"]:
-                return  filteredVal
+            filteredArr = [x["name"] for x in filter(lambda x:x["selected"] == True,self.defaultValue)]
+            outArray = []
+            if len(filteredArr) > 0:
+                for filteredVal in filteredArr:
+                    if isinstance(filteredVal,str):
+                        if filteredVal.lower() not in ["true","false"]:
+                            outArray.append(filteredVal)
+                        else:
+                            if filteredVal.lower() == "true":
+                                outArray.append(True)
+                            else:
+                                outArray.append(False)
+                    else:
+                        outArray.append(filteredVal)
+            if len(outArray) == 0:
+                print "SOMETHING FISHY IN",self.name
+                return None
+            elif len(outArray) > 1:
+                return outArray
             else:
-                if filteredVal == "True":
-                    return True
-                else:
-                    return False
+                return outArray[0]
         else:
             if self.defaultValue != None:
-                # return float(self.defaultValue)
                 return self.defaultValue
-
             else:
                 return self.defaultValue
 
@@ -127,47 +139,41 @@ class AlgorithmParameters:
                     if self.name != "tol":
                         return {self.name:defaultValue}
                     else:
-                        return {self.name:1.0/10**self.defaultValue}
+                        return {self.name:1.0/10**defaultValue}
             else:
                 if self.paramType != "list":
-                    if self.acceptedValue == None:
-                        self.acceptedValue = self.defaultValue
                     if self.acceptedValue != None:
                         outRange = self.hyperParameterInputParser(str(self.acceptedValue))
                     else:
-                        outRange = [None]
+                        outRange = [defaultValue]
                     if self.name != "tol":
                         return {self.name:outRange}
                     else:
                         return {self.name:[1.0/10**x for x in outRange]}
                 else:
-                    filteredVal = filter(lambda x:x["selected"] == True,self.defaultValue)
-                    outList = [x["name"] for x in filteredVal]
-                    outListMod = []
-                    for x in outList:
-                        if x.lower() not in ["true","false"]:
-                            outListMod.append(x)
-                        else:
-                            if x == "true":
-                                outListMod.append(True)
-                            else:
-                                outListMod.append(False)
-                    return {self.name:outListMod}
+                    return {self.name:defaultValue}
         else:
             if self.acceptedValue != None:
-                if "float" in self.expectedDataType:
-                    self.acceptedValue = float(algoParamObj["acceptedValue"])
-                elif "int" in self.expectedDataType:
-                    self.acceptedValue = int(algoParamObj["acceptedValue"])
+                if self.expectedDataType != None:
+                    if "float" in self.expectedDataType:
+                        self.acceptedValue = float(algoParamObj["acceptedValue"])
+                    elif "int" in self.expectedDataType:
+                        self.acceptedValue = int(algoParamObj["acceptedValue"])
                 if self.name != "tol":
                     return {self.name:self.acceptedValue}
                 else:
                     return {self.name:1.0/10**self.acceptedValue}
             else:
+                if self.expectedDataType != None:
+                    if defaultValue != None:
+                        if "float" in self.expectedDataType:
+                            self.acceptedValue = float(defaultValue)
+                        elif "int" in self.expectedDataType:
+                            self.acceptedValue = int(defaultValue)
                 if self.name != "tol":
                     return {self.name:defaultValue}
                 else:
-                    return {self.name:1.0/10**self.defaultValue}
+                    return {self.name:1.0/10**defaultValue}
 
 
 
@@ -228,7 +234,6 @@ class AlgorithmParameterConfig:
                 hyperParameterSettingInstance = HyperParameterSetting()
                 hyperParameterSettingInstance.set_params(hyperParamObj)
                 hyperSettingArr.append(hyperParameterSettingInstance)
-
             self.hyperParameterSetting = hyperSettingArr
 
         if "parameters" in algoParamObj:
@@ -257,7 +262,7 @@ class AlgorithmParameterConfig:
             return False
 
     def get_hyperparameter_params(self):
-        hyperParamsObj = [obj for obj in self.hyperParameterSetting if (obj.is_selected() & len(obj.get_params()) > 0) == True][0]
+        hyperParamsObj = [obj for obj in self.hyperParameterSetting if (obj.is_selected() & len(obj.get_params()) > 0)][0]
         hyperParamsArray = hyperParamsObj.get_params()
         params_dict = {}
         for obj in hyperParamsArray:

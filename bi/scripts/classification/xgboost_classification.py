@@ -156,7 +156,9 @@ class XgboostScript:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
-
+                print "!"*50
+                print clf.get_params()
+                print "!"*50
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
