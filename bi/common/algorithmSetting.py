@@ -57,6 +57,37 @@ class AlgorithmParameters:
         return self.acceptedValue
     def get_expected_datatype(self):
         return self.expectedDataType
+
+    def handle_boolean(self,dictObj):
+        newArray = []
+        for k,v in dictObj.items():
+            if isinstance(v,list):
+                vNew = []
+                for val in v:
+                    if str(val).lower() in ["true","false"]:
+                        if str(val).lower() == "true":
+                            vNew.append(True)
+                        else:
+                            vNew.append(False)
+                    else:
+                        vNew.append(val)
+                newArray.append((k,vNew))
+            elif isinstance(v,str):
+                if str(v).lower() in ["true","false"]:
+                    if str(v).lower() == "true":
+                        vNew = True
+                    else:
+                        vNew = False
+                    newArray.append((k,vNew))
+                else:
+                    newArray.append((k,v))
+            else:
+                newArray.append((k,v))
+        return dict(newArray)
+
+
+
+
     def get_default_value(self,tuningParams=True):
         if type(self.defaultValue) == list:
             filteredArr = [x["name"] for x in filter(lambda x:x["selected"] == True,self.defaultValue)]
@@ -128,19 +159,20 @@ class AlgorithmParameters:
 
 
     def get_param_value(self,hyperParams=True):
+        output = None
         defaultValue = self.get_default_value(tuningParams=hyperParams)
         if hyperParams:
             if self.hyperpatameterTuningCandidate != True:
                 if self.acceptedValue != None:
                     if self.name != "tol":
-                        return {self.name:self.acceptedValue}
+                        output = {self.name:self.acceptedValue}
                     else:
-                        return {self.name:1.0/10**self.acceptedValue}
+                        output = {self.name:1.0/10**self.acceptedValue}
                 else:
                     if self.name != "tol":
-                        return {self.name:defaultValue}
+                        output = {self.name:defaultValue}
                     else:
-                        return {self.name:1.0/10**defaultValue}
+                        output = {self.name:1.0/10**defaultValue}
             else:
                 if self.paramType != "list":
                     if self.acceptedValue != None:
@@ -148,11 +180,11 @@ class AlgorithmParameters:
                     else:
                         outRange = [defaultValue]
                     if self.name != "tol":
-                        return {self.name:outRange}
+                        output = {self.name:outRange}
                     else:
-                        return {self.name:[1.0/10**x for x in outRange]}
+                        output = {self.name:[1.0/10**x for x in outRange]}
                 else:
-                    return {self.name:defaultValue}
+                    output = {self.name:defaultValue}
         else:
             if self.acceptedValue != None:
                 if self.expectedDataType != None:
@@ -161,9 +193,9 @@ class AlgorithmParameters:
                     elif "int" in self.expectedDataType:
                         self.acceptedValue = int(algoParamObj["acceptedValue"])
                 if self.name != "tol":
-                    return {self.name:self.acceptedValue}
+                    output = {self.name:self.acceptedValue}
                 else:
-                    return {self.name:1.0/10**self.acceptedValue}
+                    output = {self.name:1.0/10**self.acceptedValue}
             else:
                 if self.expectedDataType != None:
                     if defaultValue != None:
@@ -172,9 +204,10 @@ class AlgorithmParameters:
                         elif "int" in self.expectedDataType:
                             self.acceptedValue = int(defaultValue)
                 if self.name != "tol":
-                    return {self.name:defaultValue}
+                    output = {self.name:defaultValue}
                 else:
-                    return {self.name:1.0/10**defaultValue}
+                    output = {self.name:1.0/10**defaultValue}
+        return self.handle_boolean(output)
 
 
 
