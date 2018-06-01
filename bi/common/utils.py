@@ -60,6 +60,7 @@ def get_existing_metadata(dataframe_context):
     sigString = generate_signature(jsonToken,secretKey)
     jsonToken["signature"] = sigString
     url = "http://{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
+    # print "url",url
     metaObj = requests.get(url)
     output = metaObj.json()
     if "Message" in output:

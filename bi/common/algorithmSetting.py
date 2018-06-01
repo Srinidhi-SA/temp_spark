@@ -161,7 +161,9 @@ class AlgorithmParameters:
     def get_param_value(self,hyperParams=True):
         output = None
         defaultValue = self.get_default_value(tuningParams=hyperParams)
-        if hyperParams:
+        print hyperParams
+        print "DSDA",hyperParams
+        if hyperParams == True:
             if self.hyperpatameterTuningCandidate != True:
                 if self.acceptedValue != None:
                     if self.name != "tol":
@@ -189,6 +191,8 @@ class AlgorithmParameters:
             if self.acceptedValue != None:
                 if self.expectedDataType != None:
                     if "float" in self.expectedDataType:
+                        print self.name
+                        print self.acceptedValue
                         self.acceptedValue = float(self.acceptedValue)
                     elif "int" in self.expectedDataType:
                         self.acceptedValue = int(self.acceptedValue)
@@ -296,6 +300,9 @@ class AlgorithmParameterConfig:
             return False
 
     def get_hyperparameter_params(self):
+        """
+        give hyperparameter algorithm parameters
+        """
         hyperParamsObj = [obj for obj in self.hyperParameterSetting if (obj.is_selected() & len(obj.get_params()) > 0)][0]
         hyperParamsArray = hyperParamsObj.get_params()
         params_dict = {}
@@ -308,12 +315,18 @@ class AlgorithmParameterConfig:
         return hyperParamsObj.get_name()
 
     def get_params_dict(self):
+        """
+        give algorithm parameters when there is no tuning
+        """
         params_dict = {}
         for obj in self.parameters:
             params_dict.update(obj.get_param_value(hyperParams=False))
         return params_dict
 
     def get_params_dict_hyperparameter(self):
+        """
+        give algorithm parameters when there is tuning
+        """
         params_dict = {}
         for obj in self.parameters:
             if obj.check_for_tuning():

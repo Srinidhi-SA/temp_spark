@@ -210,7 +210,7 @@ class DTREERegressionModelScript:
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_validation_method(validationDict["displayName"])
             self._model_summary.set_model_evaluation_metrics(metrics)
-            self._model_summary.set_model_params(algoParams)
+            self._model_summary.set_model_params(bestEstimator.get_params())
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
@@ -225,10 +225,6 @@ class DTREERegressionModelScript:
 
             st = time.time()
             est = DecisionTreeRegressor()
-
-            algoParams = algoSetting.get_params_dict()
-            algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
-            est.set_params(**algoParams)
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -256,6 +252,9 @@ class DTREERegressionModelScript:
                     estRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
+                algoParams = algoSetting.get_params_dict()
+                algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
+                est.set_params(**algoParams)
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
@@ -328,7 +327,7 @@ class DTREERegressionModelScript:
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_validation_method(validationDict["displayName"])
             self._model_summary.set_model_evaluation_metrics(metrics)
-            self._model_summary.set_model_params(algoParams)
+            self._model_summary.set_model_params(bestEstimator.get_params())
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.to_dict())
