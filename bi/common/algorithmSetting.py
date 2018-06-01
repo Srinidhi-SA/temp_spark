@@ -189,9 +189,9 @@ class AlgorithmParameters:
             if self.acceptedValue != None:
                 if self.expectedDataType != None:
                     if "float" in self.expectedDataType:
-                        self.acceptedValue = float(algoParamObj["acceptedValue"])
+                        self.acceptedValue = float(self.acceptedValue)
                     elif "int" in self.expectedDataType:
-                        self.acceptedValue = int(algoParamObj["acceptedValue"])
+                        self.acceptedValue = int(self.acceptedValue)
                 if self.name != "tol":
                     output = {self.name:self.acceptedValue}
                 else:
