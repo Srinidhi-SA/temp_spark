@@ -161,8 +161,6 @@ class AlgorithmParameters:
     def get_param_value(self,hyperParams=True):
         output = None
         defaultValue = self.get_default_value(tuningParams=hyperParams)
-        print hyperParams
-        print "DSDA",hyperParams
         if hyperParams == True:
             if self.hyperpatameterTuningCandidate != True:
                 if self.acceptedValue != None:
@@ -191,8 +189,6 @@ class AlgorithmParameters:
             if self.acceptedValue != None:
                 if self.expectedDataType != None:
                     if "float" in self.expectedDataType:
-                        print self.name
-                        print self.acceptedValue
                         self.acceptedValue = float(self.acceptedValue)
                     elif "int" in self.expectedDataType:
                         self.acceptedValue = int(self.acceptedValue)
