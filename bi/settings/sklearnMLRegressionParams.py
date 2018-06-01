@@ -392,7 +392,7 @@ SKLEARN_ML_DTREE_REGRESSION_PARAMS = SKLEARN_ML_TREE_BASED_REGRESSION_COMMON_PAR
             "defaultValue":[
              {
                  "name":"best",
-                 "selected":True,
+                 "selected":False,
                  "displayName":"Best split"
              },
              {
