@@ -226,7 +226,7 @@ class RFRegressionModelScript:
 
             st = time.time()
             est = RandomForestRegressor()
-            
+
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
             if algoSetting.is_hyperparameter_tuning_enabled():

@@ -292,7 +292,14 @@ class AlgorithmParameterConfig:
         return self.algorithmSlug
 
     def is_hyperparameter_tuning_enabled(self):
-        hyperCheckArr = [obj.is_selected() & len(obj.get_params()) > 0  for obj in self.hyperParameterSetting]
+        # hyperCheckArr = [(obj.is_selected(),len(obj.get_params()) > 0) for obj in self.hyperParameterSetting]
+        # hyperCheckArr =  [val[0]&val[1] for val in hyperCheckArr]
+        hyperCheckArr = []
+        for obj in self.hyperParameterSetting:
+            truthTuple = (obj.is_selected(),len(obj.get_params()) > 0)
+            hyperCheckArr.append(truthTuple[0] & truthTuple[1])
+
+        # hyperCheckArr = [(obj.is_selected() & len(obj.get_params()) > 0)  for obj in self.hyperParameterSetting]
         if True in hyperCheckArr:
             return True
         else:
@@ -302,7 +309,9 @@ class AlgorithmParameterConfig:
         """
         give hyperparameter algorithm parameters
         """
-        hyperParamsObj = [obj for obj in self.hyperParameterSetting if (obj.is_selected() & len(obj.get_params()) > 0)][0]
+        hyperCheckArr = [(obj.is_selected(),len(obj.get_params()) > 0) for obj in self.hyperParameterSetting]
+        hyperCheckArr =  [val[0]&val[1] for val in hyperCheckArr]
+        hyperParamsObj = [obj for idx,obj in enumerate(self.hyperParameterSetting) if hyperCheckArr[idx] == True][0]
         hyperParamsArray = hyperParamsObj.get_params()
         params_dict = {}
         for obj in hyperParamsArray:
@@ -310,7 +319,11 @@ class AlgorithmParameterConfig:
         return params_dict
 
     def get_hyperparameter_algo_name(self):
-        hyperParamsObj = [obj for obj in self.hyperParameterSetting if (obj.is_selected() & len(obj.get_params()) > 0) == True][0]
+        # hyperParamsObj = [obj for obj in self.hyperParameterSetting if (obj.is_selected() & len(obj.get_params()) > 0) == True][0]
+        hyperCheckArr = [(obj.is_selected(),len(obj.get_params()) > 0) for obj in self.hyperParameterSetting]
+        hyperCheckArr =  [val[0]&val[1] for val in hyperCheckArr]
+        hyperParamsObj = [obj for idx,obj in enumerate(self.hyperParameterSetting) if hyperCheckArr[idx] == True][0]
+        hyperParamsArray = hyperParamsObj.get_params()
         return hyperParamsObj.get_name()
 
     def get_params_dict(self):
