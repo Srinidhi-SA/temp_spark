@@ -16,6 +16,7 @@ class AlgorithmParameters:
         self.diplay = None
         self.hyperpatameterTuningCandidate = None
         self.expectedDataType = None
+        self.allowedDataType = None
 
 
     def set_params(self,algoParamObj):
@@ -37,6 +38,8 @@ class AlgorithmParameters:
             self.hyperpatameterTuningCandidate = algoParamObj["hyperpatameterTuningCandidate"]
         if "expectedDataType" in algoParamObj:
             self.expectedDataType = algoParamObj["expectedDataType"]
+        if "allowedDataType" in algoParamObj:
+            self.allowedDataType = algoParamObj["allowedDataType"]
         if "acceptedValue" in algoParamObj:
             self.acceptedValue = algoParamObj["acceptedValue"]
         ### Should be the last key
