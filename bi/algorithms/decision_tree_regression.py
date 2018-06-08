@@ -48,24 +48,8 @@ class DecisionTreeRegression:
         self._important_vars = {}
         self._numCluster = None
 
-
-        if not self._dataframe_context.get_story_on_scored_data():
-            datasource_type = self._dataframe_context.get_datasource_type()
-            if datasource_type == "Hana":
-                dbConnectionParams = self._dataframe_context.get_dbconnection_params()
-                self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
-                self._data_frame1 = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
-            elif datasource_type == "fileUpload":
-                self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-                self._data_frame1 = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-            self._dataframe_helper = DataFrameHelper(self._data_frame,self._dataframe_context,self._metaParser)
-            self._dataframe_helper.set_params()
-            self.temp_df = self._dataframe_helper.get_data_frame()
-            self._data_frame = self._dataframe_helper.fill_missing_values(self.temp_df)
-            self._data_frame1 = self._dataframe_helper.fill_missing_values(self.temp_df)
-        else:
-            self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
-            self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
+        self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
+        self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._messageURL = self._dataframe_context.get_message_url()
@@ -87,15 +71,7 @@ class DecisionTreeRegression:
                 "weight":10
                 },
             }
-        # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
-        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-        #                             "dtreeTrainingStart",\
-        #                             "info",\
-        #                             self._scriptStages["dtreeTrainingStart"]["summary"],\
-        #                             self._completionStatus,\
-        #                             self._completionStatus)
-        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        # self._dataframe_context.update_completion_status(self._completionStatus)
+
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingStart","info",weightKey="script")
 
 

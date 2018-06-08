@@ -827,7 +827,6 @@ def create_model_summary_cards(modelSummaryClass):
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
     if appType == "CLASSIFICATION":
-        compareMetric = GLOBALSETTINGS.CLASSIFICATION_MODEL_COMPARISON_METRIC
         collated_summary = result_setter.get_model_summary()
         card1 = NormalCard()
         card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
@@ -953,9 +952,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                         hideColumns = parallelCoordinateMetaData["hideColumns"]
                         metricColName = parallelCoordinateMetaData["metricColName"]
                         columnOrder = parallelCoordinateMetaData["columnOrder"]
-                        print "="*50
-                        print columnOrder
-                        print "="*50
                         algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
                         algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                         model_hyperparameter_summary.append(json.loads(algoCardJson))
@@ -1052,6 +1048,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             "r2" : "R-Squared",
                             "rmse" : "Root Mean Square Error"
                             }
+        # print collated_summary[collated_summary.keys()[0]]
         metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
         full_names = map(lambda x: metricNamesMapping[x],metricNames)
         metricTableTopRow = ["Algorithm"]+full_names

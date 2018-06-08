@@ -271,7 +271,7 @@ class ParamsGrid:
     """
 
 class SklearnGridSearchResult:
-    def __init__(self,resultDict = {},estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,modelFilepath = None,levels=None,posLabel=None):
+    def __init__(self,resultDict = {},estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,modelFilepath = None,levels=None,posLabel=None,evaluationMetricDict=None):
         self.resultDict = resultDict
         self.estimator = estimator
         self.appType = appType
@@ -281,6 +281,7 @@ class SklearnGridSearchResult:
         self.y_test = y_test
         self.posLabel = posLabel
         self.levels = levels
+        self.evaluationMetricDict = evaluationMetricDict
         self.modelFilepath = modelFilepath
         if self.resultDict != {}:
             self.resultDf = pd.DataFrame(self.resultDict)
@@ -305,7 +306,7 @@ class SklearnGridSearchResult:
 
     def train_and_save_models(self):
         tableOutput = []
-        evaluationMetric = None
+        evaluationMetric = self.evaluationMetricDict["name"]
         for idx,paramsObj in enumerate(self.resultDf["params"]):
             st = time.time()
             estimator = self.estimator.set_params(**paramsObj)
@@ -317,41 +318,43 @@ class SklearnGridSearchResult:
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
             row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False","Run Time":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
             # row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time":str(CommonUtils.round_sig(time.time()-st))}
-            evaluationMetrics = {}
+            algoEvaluationMetrics = {}
             if self.appType == "REGRESSION":
-                evaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
-                evaluationMetrics["MSE"] = metrics.mean_squared_error(self.y_test, y_score)
-                evaluationMetrics["MAE"] = metrics.mean_absolute_error(self.y_test, y_score)
-                evaluationMetrics["RMSE"] = sqrt(evaluationMetrics["MSE"])
-                row["comparisonMetricUsed"] = "R-Squared"
+                algoEvaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
+                algoEvaluationMetrics["MSE"] = metrics.mean_squared_error(self.y_test, y_score)
+                algoEvaluationMetrics["MAE"] = metrics.mean_absolute_error(self.y_test, y_score)
+                algoEvaluationMetrics["RMSE"] = sqrt(algoEvaluationMetrics["MSE"])
+                row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
             elif self.appType == "CLASSIFICATION":
-                evaluationMetrics["Accuracy"] = metrics.accuracy_score(self.y_test,y_score)
+                algoEvaluationMetrics["Accuracy"] = metrics.accuracy_score(self.y_test,y_score)
+                row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
                 if len(self.levels) <= 2:
-                    evaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
-                    evaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
-                    evaluationMetrics["ROC-AUC"] = metrics.roc_auc_score(self.y_test,y_score)
-                    row["comparisonMetricUsed"] = "ROC-AUC"
+                    algoEvaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
+                    algoEvaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
+                    algoEvaluationMetrics["ROC-AUC"] = metrics.roc_auc_score(self.y_test,y_score)
                 elif len(self.levels) > 2:
-                    evaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
-                    evaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
-                    evaluationMetrics["ROC-AUC"] = None
-                    row["comparisonMetricUsed"] = "Accuracy"
+                    algoEvaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
+                    algoEvaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
+                    algoEvaluationMetrics["ROC-AUC"] = "NA"
 
-
-            evaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in evaluationMetrics.items()}
-            # evaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in evaluationMetrics.items()}
-            row.update(evaluationMetrics)
+            algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in algoEvaluationMetrics.items()}
+            # algoEvaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in algoEvaluationMetrics.items()}
+            row.update(algoEvaluationMetrics)
             paramsObj = dict([(k,str(v)) if (v == None) | (v in [True,False]) else (k,v) for k,v in paramsObj.items()])
             row.update(paramsObj)
             tableOutput.append(row)
         if self.appType == "REGRESSION":
-            tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+            if self.evaluationMetricDict["name"] == "r2":
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+            else:
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=False)
+
         elif self.appType == "CLASSIFICATION":
             tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
         if self.appType == "REGRESSION":
             self.keepColumns += ["RMSE","MAE","MSE","R-Squared"]
         elif self.appType == "CLASSIFICATION":
-            self.keepColumns += ["Precision","Recall","ROC-AUC"]
+            self.keepColumns += ["Accuracy","Precision","Recall","ROC-AUC"]
         self.keepColumns += paramsObj.keys()
         self.keepColumns.append("Selected")
         bestMod = tableOutput[0]
@@ -365,13 +368,14 @@ class SkleanrKFoldResult:
     sampling can be ["kfold","stratifiedKfold","stratifiedShuffleSplit"]
     by default its kfold
     """
-    def __init__(self,numFold=3,estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,levels=None,posLabel=None,sampling="kfold"):
+    def __init__(self,numFold=3,estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,levels=None,posLabel=None,sampling="kfold",evaluationMetricDict=None):
         self.estimator = estimator
         self.appType = appType
         self.x_train = pd.concat([x_train,x_test])
         self.y_train = pd.concat([pd.Series(y_train),pd.Series(y_test)])
         self.posLabel = posLabel
         self.levels = levels
+        self.evaluationMetricDict = evaluationMetricDict
         self.kFoldOutput = []
         self.sampling = sampling
         if self.sampling == "stratifiedKfold":
@@ -385,6 +389,7 @@ class SkleanrKFoldResult:
             self.kfObjectSplit = self.kfObject.split(self.x_train,self.y_train)
 
     def train_and_save_result(self):
+        evaluationMetric = self.evaluationMetricDict["name"]
         for train_index, test_index in self.kfObject.split(self.x_train):
             x_train_fold, x_test_fold = self.x_train.iloc[train_index,:], self.x_train.iloc[test_index,:]
             y_train_fold, y_test_fold = self.y_train.iloc[train_index], self.y_train.iloc[test_index]
@@ -396,21 +401,26 @@ class SkleanrKFoldResult:
                 if len(self.levels) <= 2:
                     metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
                     metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
-                    metricsFold["auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                    metricsFold["roc_auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
                 elif len(self.levels) > 2:
                     metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
                     metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
-                    metricsFold["auc"] = None
+                    metricsFold["roc_auc"] = "NA"
             elif self.appType == "REGRESSION":
                 metricsFold["r2"] = metrics.r2_score(y_test_fold, y_score_fold)
-                metricsFold["mse"] = metrics.mean_squared_error(y_test_fold, y_score_fold)
-                metricsFold["mae"] = metrics.mean_absolute_error(y_test_fold, y_score_fold)
+                metricsFold["neg_mean_squared_error"] = metrics.mean_squared_error(y_test_fold, y_score_fold)
+                metricsFold["neg_mean_absolute_error"] = metrics.mean_absolute_error(y_test_fold, y_score_fold)
+                metricsFold["neg_mean_squared_log_error"] = metrics.mean_squared_log_error(y_test_fold, y_score_fold)
                 metricsFold["rmse"] = sqrt(metricsFold["mse"])
             self.kFoldOutput.append((self.estimator,metricsFold))
         if self.appType == "CLASSIFICATION":
-            self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1]["accuracy"],reverse=True)
+            self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
         elif self.appType == "REGRESSION":
-            self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1]["r2"],reverse=True)
+            if self.evaluationMetricDict["name"] == "r2":
+                self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
+            else:
+                self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=False)
+
 
     def get_kfold_result(self):
         return self.kFoldOutput

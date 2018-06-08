@@ -5,8 +5,18 @@ from sklearnMLRegressionParams import *
 
 UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION = 20
 MODEL_NAME_MAX_LENGTH = 4
-CLASSIFICATION_MODEL_COMPARISON_METRIC = {"name":"accuracy","displayName":"Accuracy"}
-REGRESSION_MODEL_COMPARISON_METRIC = {"name":"r2","displayName":"R-Squared"}
+CLASSIFICATION_MODEL_EVALUATION_METRIC = "accuracy"
+REGRESSION_MODEL_EVALUATION_METRIC = "r2"
+SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP = {
+    "r2":"R-Squared",
+    "neg_mean_absolute_error":"MAE",
+    "neg_mean_squared_error":"MSE",
+    "neg_mean_squared_log_error":"MSE(log)",
+    "accuracy":"Accuracy",
+    "precision":"Precision",
+    "recall":"Recall",
+    "roc_auc":"ROC-AUC"
+}
 
 MAX_NUMBER_OF_MODELS_IN_SUMMARY = 10
 REG_SCORE_HIGHLIGHT = False

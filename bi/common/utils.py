@@ -32,13 +32,16 @@ from bi.settings import setting as GLOBALSETTINGS
 #     stringCols =
 
 def round_sig(x, sig=3):
-    try:
-        if abs(x)>=1:
-            x = round(x,sig)
-        else:
-            x = round(x, sig-int(floor(log10(abs(x))))-1)
-    except:
-        pass
+    if isinstance(x,str):
+        return x
+    else:
+        try:
+            if abs(x)>=1:
+                x = round(x,sig)
+            else:
+                x = round(x, sig-int(floor(log10(abs(x))))-1)
+        except:
+            pass
     return x
 
 def generate_signature(json_obj,secretKey=None):

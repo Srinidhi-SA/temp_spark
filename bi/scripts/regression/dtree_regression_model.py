@@ -230,6 +230,8 @@ class DTREERegressionModelScript:
 
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
                 params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
@@ -242,7 +244,7 @@ class DTREERegressionModelScript:
                     estGrid.fit(x_train,y_train)
                     bestEstimator = estGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath)
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
@@ -252,6 +254,8 @@ class DTREERegressionModelScript:
                     estRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
+                evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
                 est.set_params(**algoParams)
@@ -261,7 +265,7 @@ class DTREERegressionModelScript:
                     numFold = int(validationDict["value"])
                     if numFold == 0:
                         numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType)
+                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,modelFiappType,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()

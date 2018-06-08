@@ -142,6 +142,7 @@ def main(configJson):
             dataframe_context.update_completion_status(completionStatus)
         ########################## Load the dataframe ##############################
         df = MasterHelper.load_dataset(spark,dataframe_context)
+        df = df.persist()
         if jobType != "metaData":
             metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
             df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
