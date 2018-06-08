@@ -254,7 +254,7 @@ class DTREERegressionModelScript:
                     estRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
-                evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
+                evaluationMetricDict = {"name":GLOBALSETTINGS.REGRESSION_MODEL_EVALUATION_METRIC}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
