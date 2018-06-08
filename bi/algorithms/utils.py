@@ -1048,7 +1048,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             "r2" : "R-Squared",
                             "rmse" : "Root Mean Square Error"
                             }
-        # print collated_summary[collated_summary.keys()[0]]
         metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
         full_names = map(lambda x: metricNamesMapping[x],metricNames)
         metricTableTopRow = ["Algorithm"]+full_names

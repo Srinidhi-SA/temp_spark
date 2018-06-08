@@ -266,7 +266,7 @@ class RFRegressionModelScript:
                     numFold = int(validationDict["value"])
                     if numFold == 0:
                         numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,modelFiappType,evaluationMetricDict=evaluationMetricDict)
+                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()

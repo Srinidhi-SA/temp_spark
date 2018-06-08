@@ -161,7 +161,6 @@ class LogisticRegressionScript:
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
-                print "evaluationMetricDict",evaluationMetricDict
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
@@ -171,6 +170,7 @@ class LogisticRegressionScript:
                     algoParams["solver"] = "newton-cg"
                 clf.set_params(**algoParams)
                 print "!"*50
+                print algoParams
                 print clf.get_params()
                 print "!"*50
                 if validationDict["name"] == "kFold":
