@@ -350,7 +350,11 @@ class SklearnGridSearchResult:
                 tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=False)
 
         elif self.appType == "CLASSIFICATION":
-            tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+            if (len(self.levels) > 2) & (self.evaluationMetricDict["name"]=="roc_auc"):
+                defaultComparisonMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[defaultComparisonMetric]),reverse=True)
+            else:
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
         if self.appType == "REGRESSION":
             self.keepColumns += ["RMSE","MAE","MSE","R-Squared"]
         elif self.appType == "CLASSIFICATION":

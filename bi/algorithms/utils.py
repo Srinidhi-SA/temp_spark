@@ -969,6 +969,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
             bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
+            if bestMetric == "NA":
+                evalMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
+    
             htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\

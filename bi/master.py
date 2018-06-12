@@ -219,8 +219,8 @@ def main(configJson):
         #spark.stop()
 
 def submit_job_through_yarn():
-    print sys.argv
-    print json.loads(sys.argv[1])
+    # print sys.argv
+    # print json.loads(sys.argv[1])
     json_config = json.loads(sys.argv[1])
     # json_config["config"] = ""
 
