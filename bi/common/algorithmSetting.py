@@ -159,7 +159,7 @@ class AlgorithmParameters:
                     if precision > 0:
                         valRange = [float(startVal)]
                     else:
-                        valRange = [startVal]
+                        valRange = [int(startVal)]
                 else:
                     if precision > 0:
                         valRange = list(np.arange(float(startVal),float(endVal),1.0/(10**precision)))
