@@ -46,11 +46,11 @@ SKLEARN_REGRESSION_EVALUATION_METRICS = [
             "selected":False,
             "displayName":"MSE"
         },
-        {
-            "name":"neg_mean_squared_log_error",
-            "selected":False,
-            "displayName":"MSE(log)"
-        }
+        # {
+        #     "name":"neg_mean_squared_log_error",
+        #     "selected":False,
+        #     "displayName":"MSE(log)"
+        # }
        ]
 
 SKLEARN_GRIDSEARCH_PARAMS = [
@@ -296,7 +296,7 @@ else:
             "parameters": SKLEARN_ML_LINEAR_REGRESSION_PARAMS,
             "algorithmSlug": ALGORITHMRANDOMSLUG+"linr",
             "hyperParameterSetting":SKLEARN_HYPERPARAMETER_OBJECT_REGRESSION,
-            "description":"fill in the blanks"
+            "description":"A statistical method to predict the likely outcome of any quantitative attribute. It is invariably used for estimating values of any numeric variables like sales, number of products, etc."
           },
           {
             "algorithmName": "Gradient Boosted Tree Regression",
@@ -304,7 +304,7 @@ else:
             "parameters": SKLEARN_ML_GBT_REGRESSION_PARAMS,
             "algorithmSlug": ALGORITHMRANDOMSLUG+"gbtr",
             "hyperParameterSetting": SKLEARN_HYPERPARAMETER_OBJECT_REGRESSION,
-            "description":"fill in the blanks"
+            "description":"A machine learning technique that produces an ensemble of multiple decision tree models to predict numeric variables. It is highly preferred to leverage computational power to build scalable and accurate models."
 
           },
           {
@@ -313,7 +313,7 @@ else:
             "parameters": SKLEARN_ML_DTREE_REGRESSION_PARAMS,
             "algorithmSlug": ALGORITHMRANDOMSLUG+"dtreer",
             "hyperParameterSetting": SKLEARN_HYPERPARAMETER_OBJECT_REGRESSION,
-            "description":"fill in the blanks"
+            "description":"A machine learning technique that produces an ensemble of multiple decision tree models to predict numeric variables. It is highly preferred to leverage computational power to build scalable and accurate models."
           },
           {
             "algorithmName": "Random Forest Regression",
@@ -321,7 +321,7 @@ else:
             "parameters": SKLEARN_ML_RF_REGRESSION_PARAMS,
             "algorithmSlug": ALGORITHMRANDOMSLUG+"rfr",
             "hyperParameterSetting": SKLEARN_HYPERPARAMETER_OBJECT_REGRESSION,
-            "description":"fill in the blanks"
+            "description":"A meta estimator that uses averaging predictive power of a number of decision tree classification models. This is very effective in predicting the expected values of numeric variables and also to control overfitting."
           }
         ]
     }

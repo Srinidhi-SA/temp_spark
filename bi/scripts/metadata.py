@@ -67,7 +67,7 @@ class MetaDataScript:
         self.update_column_type_dict()
 
         time_taken_schema = time.time()-self._start_time
-        print "schema trendering takes",time_taken_schema
+        print "schema rendering takes",time_taken_schema
 
         self._completionStatus += self._scriptStages["schema"]["weight"]
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
