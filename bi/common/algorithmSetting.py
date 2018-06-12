@@ -107,10 +107,21 @@ class AlgorithmParameters:
                                 outArray.append(False)
                     else:
                         outArray.append(filteredVal)
+            outArrayNew = []
+            for val in outArray:
+                if str(val).lower() in ["true","false"]:
+                    if str(val).lower() == "true":
+                        outArrayNew.append(True)
+                    else:
+                        outArrayNew.append(False)
+                else:
+                    outArrayNew.append(val)
+            outArray = outArrayNew
             if len(outArray) == 0:
                 print "SOMETHING FISHY IN",self.name
                 return None
             else:
+
                 if tuningParams == False:
                     return outArray[0]
                 else:
@@ -190,7 +201,7 @@ class AlgorithmParameters:
                 else:
                     output = {self.name:defaultValue}
         else:
-            print "YUHOOOOOOOODSA"
+            print "YUHOOOOOOOODSA",self.acceptedValue
             if self.acceptedValue != None:
                 if self.expectedDataType != None:
                     if "float" in self.expectedDataType:
