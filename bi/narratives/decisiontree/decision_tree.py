@@ -238,6 +238,8 @@ class DecisionTreeNarrative:
             tableArray += targetArray
 
         donutChartMaxLevel = 10
+        print self._dataframe_context.get_story_on_scored_data() == True
+        print "DDDASAF"*3
         if self._dataframe_context.get_story_on_scored_data() == True:
             chartDict = {}
             probabilityRangeForChart = GLOBALSETTINGS.PROBABILITY_RANGE_FOR_DONUT_CHART
@@ -248,6 +250,9 @@ class DecisionTreeNarrative:
                         chartDict[grps] = chartDict[grps]+1
             chartDict = {k:v for k,v in chartDict.items() if v != 0}
             print chartDict
+        else:
+            chartDict = dict([(k,sum(v)) for k,v in self.total_predictions.items()])
+            chartDict = {k:v for k,v in chartDict.items() if v != 0}
         if len(chartDict) > donutChartMaxLevel:
             chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)
         chartData = NormalChartData([chartDict]).get_data()
