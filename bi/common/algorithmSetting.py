@@ -163,6 +163,7 @@ class AlgorithmParameters:
                 else:
                     if precision > 0:
                         valRange = list(np.arange(float(startVal),float(endVal),1.0/(10**precision)))
+                        valRange = [round(x,precision) for x in valRange]
                         valRange.append(float(endVal))
                     else:
                         valRange = range(int(startVal),int(endVal))
