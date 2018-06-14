@@ -576,13 +576,13 @@ class LinearRegressionModelScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        try:
-            fs = time.time()
-            descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName="Descriptive analysis")
-            descr_stats_obj.Run()
-            print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
-        except:
-            print "DescriptiveStats Analysis Failed "
+        # try:
+        fs = time.time()
+        descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName="Descriptive analysis")
+        descr_stats_obj.Run()
+        print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+        # except:
+        #     print "DescriptiveStats Analysis Failed "
 
         # try:
         #     fs = time.time()
