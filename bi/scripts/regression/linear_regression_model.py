@@ -594,13 +594,13 @@ class LinearRegressionModelScript:
         # except:
         #     print "DTREE FAILED"
         #
-        try:
-            fs = time.time()
-            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
-            two_way_obj.Run()
-            print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
-        except:
-            print "Anova Analysis Failed"
+        # try:
+        #     fs = time.time()
+        #     two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
+        #     two_way_obj.Run()
+        #     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+        # except:
+        #     print "Anova Analysis Failed"
 
 
 
