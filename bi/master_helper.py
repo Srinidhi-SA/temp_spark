@@ -434,7 +434,8 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         distributionNode = result_setter.get_distribution_node()
         if distributionNode != None:
             headNode["listOfCards"] += distributionNode["listOfCards"]
-        headNode["listOfCards"].append(coeffCard)
+        if coeffCard != None:
+            headNode["listOfCards"].append(coeffCard)
         anovaCards = result_setter.get_anova_cards_regression_score()
         anovaCards = [CommonUtils.convert_python_object_to_json(obj) for obj in anovaCards]
         headNode["listOfCards"] += anovaCards

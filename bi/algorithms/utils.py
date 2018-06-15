@@ -31,6 +31,15 @@ from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
 
+def normalize_coefficients(coefficientsArray):
+    valArray = [abs(obj["value"]) for obj in coefficientsArray]
+    maxVal = max(valArray)
+    outArray = []
+    for obj in coefficientsArray:
+        v = obj["value"]
+        v = round(float(v)/maxVal,2)
+        outArray.append({"key":obj["key"],"value":v})
+    return outArray
 
 def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
     if target_measure is None:
@@ -720,6 +729,7 @@ def create_model_summary_cards(modelSummaryClass):
         print modelParams
         count = 0
         for k,v in modelParams.items():
+            k = k.capitalize()
             count += 1
             if count <= 4 :
                 modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(k,v)))
@@ -904,7 +914,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         targetVariableLevelcount = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         allAlgorithmTable = []
-        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","Accuracy","ROC-AUC","Run Time"]
+        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","Accuracy","ROC-AUC","Run Time(Secs)"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
         counter = 1
         hyperParameterFlagDict = {}
@@ -972,7 +982,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             if bestMetric == "NA":
                 evalMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
                 bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
-    
+
             htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
@@ -1010,6 +1020,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             card2 = NormalCard()
             coefficientsArray = sorted(collated_summary["linearregression"]["coefficinetsArray"],key=lambda x:abs(x[1]),reverse=True)
             coefficientsArray = [{"key":tup[0],"value":tup[1]} for tup in coefficientsArray]
+            coefficientsArray = normalize_coefficients(coefficientsArray)
             chartDataValues = [x["value"] for x in coefficientsArray]
             coefficientsChartJson = ChartJson()
             coefficientsChartJson.set_data(coefficientsArray)
@@ -1092,7 +1103,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         allRegressionModelSummary = result_setter.get_all_regression_model_summary()
         allAlgorithmTable = []
-        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time"]
+        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time(Secs)"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
         counter = 1
         hyperParameterFlagDict = {}
@@ -1151,6 +1162,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             totalModels = len(allAlgorithmTable) - 1
             allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
             allAlgorithmTableModified = [allAlgorithmTable[0]]
+            allAlgorithmTableModified[0][-1] = "Run Time(Secs)"
             for idx,row in enumerate(allAlgorithmTable[1:]):
                 row[0] = idx+1
                 allAlgorithmTableModified.append(row)
@@ -1182,7 +1194,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
-
 
 def get_mape_stats(df,colname):
     df = df.na.drop(subset=colname)
@@ -1257,6 +1268,7 @@ def get_scored_data_summary(scoredCol,outlierConstant=1.5):
     out.append({"name":"meanValue","value":round(avgVal,2),"text":"Average of Predicted Values"})
     out.append({"name":"outlierCount","value":nOutliers,"text":"Number of Outliers"})
     return out
+
 
 
 #-------- VIF based feature selection for Linear regression (on sparkdf) --------------#

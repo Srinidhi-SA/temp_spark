@@ -525,6 +525,7 @@ class LinearRegressionModelScript:
             coefficientsCard = NormalCard()
             coefficientsArray = sorted(coefficientsArray,key=lambda x:abs(x[1]),reverse=True)
             coefficientsArray = [{"key":tup[0],"value":tup[1]} for tup in coefficientsArray]
+            coefficientsArray = MLUtils.normalize_coefficients(coefficientsArray)
             chartDataValues = [x["value"] for x in coefficientsArray]
             coefficientsChartJson = ChartJson()
             coefficientsChartJson.set_data(coefficientsArray)

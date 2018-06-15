@@ -48,6 +48,7 @@ class ResultSetter:
         self.hyperParameterResultDict = {}
         self.parallelCooridnateMetaData = {}
         self.hideTableColumns = []
+        self.coeffCardScore = None
 
     def set_metadata_parallel_coordinates(self,slug,data):
         self.parallelCooridnateMetaData[slug] = data

@@ -287,7 +287,7 @@ class SklearnGridSearchResult:
             self.resultDf = pd.DataFrame(self.resultDict)
         else:
             self.resultDf = None
-        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time","comparisonMetricUsed","algorithmName","alwaysSelected"]
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time(Secs)","comparisonMetricUsed","algorithmName","alwaysSelected"]
         self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName"]
         self.metricColName = "comparisonMetricUsed"
         self.keepColumns = ["Model Id"]
@@ -316,8 +316,8 @@ class SklearnGridSearchResult:
             slug = self.modelFilepath.split("/")[-1]
             algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
-            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False","Run Time":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
-            # row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time":str(CommonUtils.round_sig(time.time()-st))}
+            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False","Run Time(Secs)":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
+            # row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time(Secs)":str(CommonUtils.round_sig(time.time()-st))}
             algoEvaluationMetrics = {}
             if self.appType == "REGRESSION":
                 algoEvaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
