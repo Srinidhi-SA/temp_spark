@@ -18,7 +18,7 @@ from datafilterer import DataFrameFilterer
 from datafilterhelper import DataFilterHelper
 from filtercontext import FilterContextSetter
 from resultloader import ResultSetter
-from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData,TreeData,ToggleData,PopupData,KpiData,ParallelCoordinateData
+from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData,TreeData,ToggleData,PopupData,KpiData,ParallelCoordinateData,DataBox,WordCloud
 from metadatahelper import MetaDataHelper
 from charts import ScatterChartData,NormalChartData,ChartJson
 from datacleansing import DataCleanser
@@ -44,7 +44,7 @@ __all__ = [
     'DataFilterHelper',
     'FilterContextSetter',
     'ResultSetter',
-    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData','TableData','TreeData','ToggleData','PopupData','KpiData','ParallelCoordinateData',
+    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData','TableData','TreeData','ToggleData','PopupData','KpiData','ParallelCoordinateData','DataBox','WordCloud',
     'MetaDataHelper',
     'ScatterChartData','NormalChartData','ChartJson','ModelSummary',
     'DataCleanser',

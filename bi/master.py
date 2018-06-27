@@ -41,7 +41,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "stockAdvisor"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -62,7 +62,8 @@ def main(configJson):
 
     spark.sparkContext.setLogLevel("ERROR")
     if debugMode:
-        spark.conf.set("spark.sql.execution.arrow.enabled", "true")
+        if jobType != "stockAdvisor":
+            spark.conf.set("spark.sql.execution.arrow.enabled", "true")
     else:
         spark.conf.set("spark.sql.execution.arrow.enabled", "false")
 
@@ -96,7 +97,8 @@ def main(configJson):
     dataframe_context.set_app_name(APP_NAME)
     dataframe_context.set_error_url(errorURL)
     dataframe_context.set_logger(LOGGER)
-    dataframe_context.set_xml_url(jobConfig["xml_url"])
+    # dataframe_context.set_xml_url(jobConfig["xml_url"])
+    dataframe_context.set_xml_url("CHILL")
     dataframe_context.set_job_name(jobName)
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
@@ -133,23 +135,23 @@ def main(configJson):
             progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             dataframe_context.update_completion_status(completionStatus)
-
-        df = None
-        data_loading_st = time.time()
-        progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
-        if jobType != "story" and jobType != "metaData":
-            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-            dataframe_context.update_completion_status(completionStatus)
-        ########################## Load the dataframe ##############################
-        df = MasterHelper.load_dataset(spark,dataframe_context)
-        df = df.persist()
-        if jobType != "metaData":
-            metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
-            df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
-            # updating metaData for binned Cols
-            colsToBin = df_helper.get_cols_to_bin()
-            levelCountDict = df_helper.get_level_counts(colsToBin)
-            metaParserInstance.update_level_counts(colsToBin,levelCountDict)
+        if jobType != "stockAdvisor":
+            df = None
+            data_loading_st = time.time()
+            progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
+            if jobType != "story" and jobType != "metaData":
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+                dataframe_context.update_completion_status(completionStatus)
+            ########################## Load the dataframe ##############################
+            df = MasterHelper.load_dataset(spark,dataframe_context)
+            df = df.persist()
+            if jobType != "metaData":
+                metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
+                df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
+                # updating metaData for binned Cols
+                colsToBin = df_helper.get_cols_to_bin()
+                levelCountDict = df_helper.get_level_counts(colsToBin)
+                metaParserInstance.update_level_counts(colsToBin,levelCountDict)
 
         ############################ MetaData Calculation ##########################
 
