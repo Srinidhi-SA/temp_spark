@@ -163,6 +163,8 @@ class StockAdvisor:
 
     def identify_concepts_python(self,df):
         pandasDf = df.toPandas()
+        print type(pandasDf["keywords"])
+        print pandasDf["keywords"][:3]
         pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_concepts_for_item_python)
         return pandasDf
 
