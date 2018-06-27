@@ -45,7 +45,7 @@ class StockAdvisor:
         req = urllib2.urlopen(url)
         req_data = req.read()
         randNO = str(int(random.random()*10000000))
-        tempFileName = "/tmp/temp{}.csv".format(randNO)
+        tempFileName = "/tmp/temp{}.json".format(randNO)
         tf = open(tempFileName,"w")
         tf.write(req_data)
         tf.close()
