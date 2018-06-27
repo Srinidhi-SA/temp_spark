@@ -420,3 +420,49 @@ class ParallelCoordinateData:
 
     def get_metric_colname(self):
         return self.evaluationMetricColName
+
+class DataBox:
+    """
+                sampleData = [{
+                      "name": "Total Articles",
+                      "value": "128"
+                    },
+                    {
+                      "name": "Total Source",
+                      "value": "26"
+                    },
+                    {
+                      "name": "Average Sentiment Score",
+                      "value": "0.31"
+                    }]
+    """
+    def __init__(self,data=[]):
+        self.data = data
+        self.dataType = "dataBox"
+
+    def set_data(self,data):
+        self.data = data
+    def get_data():
+        return self.data
+
+class WordCloud:
+    """
+    sampleData = [
+                    {
+                      "text": "Alphabet",
+                      "value": "58"
+                    },
+                    {
+                      "text": "mobile interface",
+                      "value": "48"
+                    }
+                ]
+    """
+    def __init__(self,data=[]):
+        self.data = data
+        self.dataType = "wordCloud"
+
+    def set_data(self,data):
+        self.data = data
+    def get_data():
+        return self.data

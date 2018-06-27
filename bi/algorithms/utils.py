@@ -26,7 +26,7 @@ from pyspark.sql.types import StringType
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
 
-from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData,DataBox,WordCloud
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
@@ -1351,3 +1351,113 @@ def feature_selection_vif(df,vif_thr=5):
             print temp_vif
             check = (temp_vif>vif_thr).sum()
         return df[col2use]
+
+
+
+def stock_sense_overviewCard(data_dict_overall):
+    overviewCard = NormalCard()
+    overviewCard.set_card_name("Overview")
+    overviewCardData = []
+    summaryData = [
+        {
+          "name":"Total Articles",
+          "value":str(data_dict_overall["number_articles"])
+        },
+        {
+          "name": "Total Sources",
+          "value": str(data_dict_overall["number_sources"])
+        },
+        {
+          "name": "Average Sentiment Score",
+          "value": str(data_dict_overall["avg_sentiment_score"])
+        },
+        {
+          "name": "Overall Stock % Change",
+          "value": str(data_dict_overall["stock_percent_change"])
+        },
+        {
+          "name": "Max Increase in Price",
+          "value": "{}% ({})".format(data_dict_overall["max_value_change_overall"][1],data_dict_overall["max_value_change_overall"][0])
+        },
+        {
+          "name": "Max Decrease in Price",
+          "value": "{}% ({})".format(data_dict_overall["min_value_change_overall"][1],data_dict_overall["min_value_change_overall"][0])
+        }
+    ]
+    summaryDataClass = DataBox(data=summaryData)
+    overviewCardData.append(summaryDataClass)
+
+    articlesByStockCardData = data_dict_overall["number_articles_by_stock"]
+    plotData = []
+    for k,v in articlesByStockCardData.items():
+        plotData.append({"name":k,"value":v})
+    articlesByStockData = NormalChartData(data=plotData)
+    chart_json = ChartJson()
+    chart_json.set_data(articlesByStockData.get_data())
+    chart_json.set_chart_type("bar")
+    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_label_text({'x':'Stock','y':'No. of Articles'})
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2s")
+    articlesByStockChart = C3ChartData(data=chart_json)
+    articlesByStockChart.set_width_percent(50)
+    overviewCardData.append(articlesByStockChart)
+
+    articlesByConceptCardData = data_dict_overall["number_articles_by_concept"]
+    articlesByConceptData = NormalChartData(data=articlesByConceptCardData.items())
+    chart_json = ChartJson()
+    chart_json.set_data(articlesByConceptData.get_data())
+    chart_json.set_chart_type("pie")
+    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_label_text({'x':'Stock','y':'No. of Articles'})
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2s")
+    articlesByConceptChart = C3ChartData(data=chart_json)
+    articlesByConceptChart.set_width_percent(50)
+    overviewCardData.append(articlesByConceptChart)
+
+    priceTrendData = NormalChartData(data=data_dict_overall["price_trend"])
+    chart_json = ChartJson()
+    chart_json.set_data(priceTrendData.get_data())
+    chart_json.set_chart_type("line")
+    chart_json.set_subchart(True)
+    chart_json.set_yaxis_number_format(".2s")
+    trendChart = C3ChartData(data=chart_json)
+    overviewCardData.append(trendChart)
+
+    articlesBySourceCardData = data_dict_overall["number_articles_per_source"]
+    plotData = []
+    for k,v in articlesBySourceCardData.items():
+        plotData.append({"name":k,"value":v})
+    articlesBySourceData = NormalChartData(data=plotData)
+    chart_json = ChartJson()
+    chart_json.set_data(articlesBySourceData.get_data())
+    chart_json.set_chart_type("bar")
+    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_label_text({'x':'Source','y':'No. of Articles'})
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2s")
+    articlesBySourceChart = C3ChartData(data=chart_json)
+    articlesBySourceChart.set_width_percent(50)
+    overviewCardData.append(articlesBySourceChart)
+
+
+
+    sentimentByStockCardData = data_dict_overall["stocks_by_sentiment"]
+    plotData = []
+    for k,v in sentimentByStockCardData.items():
+        plotData.append({"name":k,"value":v})
+    sentimentByStockData = NormalChartData(data=plotData)
+    chart_json = ChartJson()
+    chart_json.set_data(sentimentByStockData.get_data())
+    chart_json.set_chart_type("bar")
+    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_label_text({'x':'Source','y':'No. of Articles'})
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2s")
+    sentimentByStockDataChart = C3ChartData(data=chart_json)
+    sentimentByStockDataChart.set_width_percent(50)
+    overviewCardData.append(sentimentByStockDataChart)
+
+    overviewCard.set_card_data(overviewCardData)
+    return overviewCard
