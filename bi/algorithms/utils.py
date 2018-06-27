@@ -1369,11 +1369,11 @@ def stock_sense_overviewCard(data_dict_overall):
         },
         {
           "name": "Average Sentiment Score",
-          "value": str(data_dict_overall["avg_sentiment_score"])
+          "value": str(CommonUtils.round_sig(data_dict_overall["avg_sentiment_score"],sig=2))
         },
         {
           "name": "Overall Stock % Change",
-          "value": str(data_dict_overall["stock_percent_change"])
+          "value": str(CommonUtils.round_sig(data_dict_overall["stock_percent_change"],sig=2))
         },
         {
           "name": "Max Increase in Price",
@@ -1397,6 +1397,7 @@ def stock_sense_overviewCard(data_dict_overall):
     chart_json.set_chart_type("bar")
     chart_json.set_axes({"x":"name","y":"value"})
     chart_json.set_label_text({'x':'Stock','y':'No. of Articles'})
+    chart_json.set_title("Articles by Stock")
     chart_json.set_subchart(False)
     chart_json.set_yaxis_number_format(".2s")
     articlesByStockChart = C3ChartData(data=chart_json)
@@ -1404,24 +1405,29 @@ def stock_sense_overviewCard(data_dict_overall):
     overviewCardData.append(articlesByStockChart)
 
     articlesByConceptCardData = data_dict_overall["number_articles_by_concept"]
-    articlesByConceptData = NormalChartData(data=articlesByConceptCardData.items())
+    valuesTotal = __builtin__.sum(articlesByConceptCardData.values())
+    articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in articlesByConceptCardData.items()}
+    articlesByConceptData = NormalChartData(data=[articlesByConceptCardData])
     chart_json = ChartJson()
     chart_json.set_data(articlesByConceptData.get_data())
     chart_json.set_chart_type("pie")
-    chart_json.set_axes({"x":"name","y":"value"})
-    chart_json.set_label_text({'x':'Stock','y':'No. of Articles'})
+    chart_json.set_title("Articles by Concept")
     chart_json.set_subchart(False)
     chart_json.set_yaxis_number_format(".2s")
     articlesByConceptChart = C3ChartData(data=chart_json)
     articlesByConceptChart.set_width_percent(50)
     overviewCardData.append(articlesByConceptChart)
 
+    # print data_dict_overall["price_trend"]
     priceTrendData = NormalChartData(data=data_dict_overall["price_trend"])
     chart_json = ChartJson()
     chart_json.set_data(priceTrendData.get_data())
-    chart_json.set_chart_type("line")
     chart_json.set_subchart(True)
-    chart_json.set_yaxis_number_format(".2s")
+    chart_json.set_title("Stock Performance Analysis")
+    chart_json.set_label_text({"x":"DATE","Y":" "})
+    chart_json.set_chart_type("line")
+    chart_json.set_yaxis_number_format(".2f")
+    chart_json.set_axes({"x":"date","y":" "})
     trendChart = C3ChartData(data=chart_json)
     overviewCardData.append(trendChart)
 
@@ -1435,6 +1441,7 @@ def stock_sense_overviewCard(data_dict_overall):
     chart_json.set_chart_type("bar")
     chart_json.set_axes({"x":"name","y":"value"})
     chart_json.set_label_text({'x':'Source','y':'No. of Articles'})
+    chart_json.set_title("Top Sources")
     chart_json.set_subchart(False)
     chart_json.set_yaxis_number_format(".2s")
     articlesBySourceChart = C3ChartData(data=chart_json)
@@ -1452,9 +1459,10 @@ def stock_sense_overviewCard(data_dict_overall):
     chart_json.set_data(sentimentByStockData.get_data())
     chart_json.set_chart_type("bar")
     chart_json.set_axes({"x":"name","y":"value"})
-    chart_json.set_label_text({'x':'Source','y':'No. of Articles'})
+    chart_json.set_label_text({'x':'Stock','y':'Avg. Sentiment Score'})
+    chart_json.set_title("Sentiment Score by Stocks")
     chart_json.set_subchart(False)
-    chart_json.set_yaxis_number_format(".2s")
+    chart_json.set_yaxis_number_format(".2f")
     sentimentByStockDataChart = C3ChartData(data=chart_json)
     sentimentByStockDataChart.set_width_percent(50)
     overviewCardData.append(sentimentByStockDataChart)

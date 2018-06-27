@@ -449,10 +449,10 @@ class StockAdvisor:
         stockPriceTrendArray = stockPriceTrendDict[self._stockNameList[0]].items()
         capNameList = [self.get_capitalized_name(x) for x in self._stockNameList]
         capNameDict = dict(zip(self._stockNameList,capNameList))
-        stockPriceTrendArray = [{"date":obj[0],capNameList[0]:obj[1]} for obj in stockPriceTrendArray]
+        stockPriceTrendArray = [{"date":obj[0],capNameList[0]:CommonUtils.round_sig(obj[1],sig=2)} for obj in stockPriceTrendArray]
         for obj in stockPriceTrendArray:
             for stockName in self._stockNameList[1:]:
-                obj.update({capNameDict[stockName]:stockPriceTrendDict[stockName][obj["date"]]})
+                obj.update({capNameDict[stockName]:CommonUtils.round_sig(stockPriceTrendDict[stockName][obj["date"]],sig=2)})
 
         data_dict_overall["price_trend"] = stockPriceTrendArray
 
