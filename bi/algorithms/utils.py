@@ -1354,7 +1354,7 @@ def feature_selection_vif(df,vif_thr=5):
 
 
 
-def stock_sense_overviewCard(data_dict_overall):
+def stock_sense_overview_card(data_dict_overall):
     overviewCard = NormalCard()
     overviewCard.set_card_name("Overview")
     overviewCardData = []
@@ -1469,3 +1469,98 @@ def stock_sense_overviewCard(data_dict_overall):
 
     overviewCard.set_card_data(overviewCardData)
     return overviewCard
+
+def stock_sense_individual_stock_cards(stockDict):
+    allStockNodes = []
+    for stockName,dataDict in stockDict.items():
+        stockNode = NarrativesTree()
+        stockNode.set_name(stockName)
+        analysisOverviewCard = NormalCard()
+        analysisOverviewCard.set_card_name("Analysis Overview")
+
+        overviewCardData = []
+        summaryData = [
+            {
+              "name":"Total Articles",
+              "value":str(dataDict["numArticles"])
+            },
+            {
+              "name": "Total Sources",
+              "value": str(dataDict["numSources"])
+            },
+            {
+              "name": "Average Sentiment Score",
+              "value": str(CommonUtils.round_sig(dataDict["avgSentimetScore"],sig=2))
+            },
+            {
+              "name": "Change in Stock Value",
+              "value": str(CommonUtils.round_sig(dataDict["stockValueChange"],sig=2))
+            },
+            {
+              "name": "Change in Sentiment Score",
+              "value": str(CommonUtils.round_sig(dataDict["changeInSentiment"],sig=2))
+            },
+            {
+              "name": "Percent Change in Stock value",
+              "value": str(CommonUtils.round_sig(dataDict["stockValuePercentChange"],sig=2))
+            }
+        ]
+        summaryDataClass = DataBox(data=summaryData)
+        overviewCardData.append(summaryDataClass)
+
+        sentimentNdArticlesBySource = NormalChartData(data=dataDict["articlesAndSentimentsPerSource"])
+        chart_json = ChartJson()
+        chart_json.set_data(sentimentNdArticlesBySource.get_data())
+        chart_json.set_chart_type("combination")
+        chart_json.set_axes({"x":"source","y":"articles","y2":"avgSentiment"})
+        chart_json.set_label_text({'x':'Source','y':'No. of Articles',"y2":"Average Sentiment Score"})
+        chart_json.set_types({"source":"line","articles":"bar","avgSentiment":"line"})
+        chart_json.set_title("Sentiment Score by Source")
+        chart_json.set_subchart(False)
+        chart_json.set_yaxis_number_format(".2s")
+        chart_json.set_y2axis_number_format(".2f")
+        sentimentNdArticlesBySourceChart = C3ChartData(data=chart_json)
+        sentimentNdArticlesBySourceChart.set_width_percent(50)
+        overviewCardData.append(sentimentNdArticlesBySourceChart)
+
+        conceptData = dataDict["articlesAndSentimentsPerConcept"]
+        chartData = []
+        for k,v in dataDict["articlesAndSentimentsPerConcept"].items():
+            chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
+        sentimentNdArticlesByConcept = NormalChartData(data=chartData)
+        chart_json = ChartJson()
+        chart_json.set_data(sentimentNdArticlesByConcept.get_data())
+        chart_json.set_chart_type("combination")
+        chart_json.set_axes({"x":"concept","y":"articles","y2":"avgSentiment"})
+        chart_json.set_label_text({'x':'concept','y':'No. of Articles',"y2":"Average Sentiment Score"})
+        chart_json.set_types({"concept":"line","articles":"bar","avgSentiment":"line"})
+        chart_json.set_title("Sentiment Score by Concept")
+        chart_json.set_subchart(False)
+        chart_json.set_yaxis_number_format(".2s")
+        chart_json.set_y2axis_number_format(".2f")
+        sentimentNdArticlesByConceptChart = C3ChartData(data=chart_json)
+        sentimentNdArticlesByConceptChart.set_width_percent(50)
+        overviewCardData.append(sentimentNdArticlesByConceptChart)
+
+        priceAndSentimentTrendData = NormalChartData(data=dataDict["stockPriceAndSentimentTrend"])
+        chart_json = ChartJson()
+        chart_json.set_data(priceAndSentimentTrendData.get_data())
+        chart_json.set_subchart(True)
+        chart_json.set_title("Stock Performance Vs Sentiment Score")
+        chart_json.set_axes({"x":"date","y":"close","y2":"overallSentiment"})
+        chart_json.set_label_text({"x":"Date","Y":"Stock Value","y2":"Sentiment Score"})
+        chart_json.set_chart_type("line")
+        chart_json.set_yaxis_number_format(".2f")
+        chart_json.set_y2axis_number_format(".2f")
+        priceAndSentimentTrendChart = C3ChartData(data=chart_json)
+        overviewCardData.append(priceAndSentimentTrendChart)
+
+        overviewCardData.append(HtmlData(data="<h3>Top Entities</h3>"))
+        wordCloudData = WordCloud(data=dataDict["topEntities"])
+        overviewCardData.append(wordCloudData)
+
+        analysisOverviewCard.set_card_data(overviewCardData)
+        stockNode.add_a_card(analysisOverviewCard)
+        allStockNodes.append(stockNode)
+
+    return allStockNodes

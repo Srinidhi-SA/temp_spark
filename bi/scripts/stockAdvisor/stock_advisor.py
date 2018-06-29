@@ -80,10 +80,9 @@ class StockAdvisor:
 
     def get_number_articles_per_source(self, df):
         output = dict(df.groupby('source').count().rdd.collect())
-        print "*"*50
-        print output
-        print "*"*50
-
+        # print "*"*50
+        # print output
+        # print "*"*50
         return output
 
     def get_average_sentiment_per_source(self, df, number_articles_per_source):
@@ -119,7 +118,6 @@ class StockAdvisor:
         return capWord
 
     def identify_concepts(self, df):
-
         # temp_fun = udf( lambda x: self.get_concepts_for_item(x), ArrayType)
         # new_df = df.withColumn("concepts", temp_fun(col("keywords")))
         # new_df.printSchema()
@@ -134,8 +132,6 @@ class StockAdvisor:
         return concepts
 
     def get_concepts_for_item(self, item):
-        print "="*20
-        print item
         cur_keywords = [item["text"].lower() for item in item["keywords"]]
         cur_concepts = []
         # print set(keywords)
@@ -163,9 +159,8 @@ class StockAdvisor:
 
     def identify_concepts_python(self,df):
         pandasDf = df.toPandas()
-        print type(pandasDf["keywords"])
-        print pandasDf["keywords"][:3]
         pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_concepts_for_item_python)
+        # print pandasDf[["sentiment","time"]].head(2)
         return pandasDf
 
     def get_concepts_for_item_python(self, item):
@@ -204,7 +199,7 @@ class StockAdvisor:
         self.pandasDf = pd.concat([pandasDf,conceptCounterDf,sentimentCounterDf], axis=1)
         self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
         # print "*"*50
-        # print outputDict
+        # print self.pandasDf[["overallSentiment","source"]].head(3)
         # print "*"*50
         return outputDict
 
@@ -315,6 +310,33 @@ class StockAdvisor:
         print model_summary
         return reverseMappedCoef
 
+    def get_number_articles_and_sentiments_per_source(self,pandasDf):
+        pandasDf["articlesCount"] = 1
+        grouped = pandasDf.groupby("source", as_index=False).agg({"overallSentiment":np.mean,"articlesCount":np.sum})
+        grouped.columns = ["source","avgSentiment","articles"]
+        output = grouped.T.to_dict().values()
+        return output
+
+    def get_datewise_stock_value_and_sentiment(self,pandasDf,stockPriceData):
+        relevantDf = pandasDf[["time","overallSentiment"]]
+        relevantDf.columns = ["date","overallSentiment"]
+        merged = pd.merge(relevantDf,stockPriceData[["close","date"]],on="date",how="inner")
+        output = merged.T.to_dict().values()
+        return output
+
+    def apply_counter(self,keyWordArray):
+        output = [x["text"] for x in keyWordArray]
+        countDict = dict(Counter(output))
+        return countDict
+
+    def get_top_entities(self,pandasDf):
+        pandasDf["entitiesCount"] = pandasDf["keywords"].apply(self.apply_counter)
+        finalCountDict = {}
+        for index, dfRow in pandasDf.iterrows():
+            finalCountDict = Counter(finalCountDict)+Counter(dfRow["entitiesCount"])
+        finalCount = sorted(dict(finalCountDict).items(),key=lambda x:x[1],reverse=True)
+        return [{"text":x[0],"value":x[1]} for x in finalCount][:50]
+
 
 
 
@@ -328,9 +350,11 @@ class StockAdvisor:
             self.concepts = self.read_ankush_json(self.dataFilePath.format("concepts",""))
 
         masterDfDict = {}
+        stockDict = {}
         stockPriceTrendDict = {}
         for stock_symbol in self._stockNameList:
             #-------------- Read Operations ----------------
+            stockDict[stock_symbol] = {}
             if self._runEnv == "debugMode":
                 df = self.read_json(self.BASE_DIR+stock_symbol+".json")
                 df_historic = self.read_json(self.BASE_DIR+stock_symbol+"_historic.json")
@@ -345,9 +369,19 @@ class StockAdvisor:
 
             self.pandasDf = self.identify_concepts_python(df)
 
+
             # overall Distribution of articles and sentiments by concecpts
             # needs final presentation
             nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
+            nArticlesAndSentimentsPerSource = self.get_number_articles_and_sentiments_per_source(self.pandasDf)
+            # print nArticlesAndSentimentsPerSource
+            data_dict_overall["nArticlesAndSentimentsPerConcept"][stock_symbol] = nArticlesAndSentimentsPerConcept
+            stockDict[stock_symbol]["articlesAndSentimentsPerConcept"] = nArticlesAndSentimentsPerConcept
+            stockDict[stock_symbol]["articlesAndSentimentsPerSource"] = nArticlesAndSentimentsPerSource
+            stockPriceAndSentimentTrend = self.get_datewise_stock_value_and_sentiment(self.pandasDf,stockPriceData)
+            stockDict[stock_symbol]["stockPriceAndSentimentTrend"] = stockPriceAndSentimentTrend
+            stockDict[stock_symbol]["topEntities"] = self.get_top_entities(self.pandasDf)
+
             # print nArticlesAndSentimentsPerConcept
             # print self.pandasDf.shape
             regDf = self.pandasDf[["time","overallSentiment","totalCount"]+[x+"_count" for x in self.concepts.keys()]]
@@ -361,28 +395,34 @@ class StockAdvisor:
             regDfFinal.drop(["date"],axis = 1,inplace=True)
             # regDfFinal.columns = ["time","overallSentiment"+"_"+stock_symbol,"totalCount"+"_"+stock_symbol]+[x+"_count" for x in self.concepts.keys()]+["close"+"_"+stock_symbol]
             masterDfDict[stock_symbol] = regDfFinal
-            self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,stockPriceData)
+            # self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,stockPriceData)
             # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
-            self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
+            # self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
             #-------------- Start Calculations ----------------
             number_articles = self.get_stock_articles(df)
+            stockDict[stock_symbol]["numArticles"] = number_articles
             data_dict_overall["number_articles"] += number_articles
             data_dict_overall["number_articles_by_stock"][stock_symbol] = number_articles  #used for bar plot
 
-            data_dict_overall["nArticlesAndSentimentsPerConcept"][stock_symbol] = nArticlesAndSentimentsPerConcept
+
 
             number_sources = self.get_stock_sources(df)
+            stockDict[stock_symbol]["numSources"] = number_sources
             data_dict_overall["number_sources"] += number_sources
 
             avg_sentiment_score = self.get_stock_sentiment(df)
+            stockDict[stock_symbol]["avgSentimetScore"] = avg_sentiment_score
             data_dict_overall["avg_sentiment_score"] += avg_sentiment_score
             data_dict_overall["stocks_by_sentiment"][stock_symbol] = avg_sentiment_score #used for bar plot
 
             sentiment_change = self.get_sentiment_change(df)
-            data_dict_overall["max_sentiment_change"][stock_symbol]=sentiment_change
+            stockDict[stock_symbol]["changeInSentiment"] = sentiment_change
+            data_dict_overall["max_sentiment_change"][stock_symbol]=sentiment_change  #verify: this is start to end sentiment change
             # print "sentiment_change : ", sentiment_change
 
             (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
+            stockDict[stock_symbol]["stockValueChange"] = stock_value_change
+            stockDict[stock_symbol]["stockValuePercentChange"] = stock_percent_change
             data_dict_overall["stock_value_change"] += stock_value_change
             data_dict_overall["stock_percent_change"] += stock_percent_change
             data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
@@ -390,6 +430,7 @@ class StockAdvisor:
             # print "stock_percent_change : ", stock_percent_change
 
             number_articles_per_source = self.get_number_articles_per_source(df)
+            stockDict[stock_symbol]["articlesPerSource"] = number_articles_per_source
             # print "number_articles_per_source : ", number_articles_per_source
             # data_dict_overall["number_articles_per_source"][stock_symbol]=number_articles_per_source
             data_dict_overall["number_articles_per_source"]= dict(Counter(number_articles_per_source) + Counter(data_dict_overall["number_articles_per_source"]))
@@ -474,243 +515,13 @@ class StockAdvisor:
         finalResult = NarrativesTree()
         overviewNode = NarrativesTree()
         stockNode = NarrativesTree()
-
-        overviewCard = MLUtils.stock_sense_overviewCard(data_dict_overall)
+        overviewNode.set_name("Overview")
+        stockNode.set_name("Single Stock Analysis")
+        overviewCard = MLUtils.stock_sense_overview_card(data_dict_overall)
         overviewNode.add_a_card(overviewCard)
         finalResult.add_a_node(overviewNode)
-
+        individualStockNodes = MLUtils.stock_sense_individual_stock_cards(stockDict)
+        stockNode.add_nodes(individualStockNodes)
+        finalResult.add_a_node(stockNode)
 
         return finalResult
-
-
-    def __generate_normal_card(self, name, html):
-        return {
-                "cardType": "normal",
-                "name": name,
-                "slug": self.genarate_slug(name),
-                "cardData": [
-                    {
-                        "dataType": "html",
-                        "data": '<p><h2>{}</h2>{}</p>'.format(name, html)
-                    }
-                ]
-            }
-
-    def __generate_react_gauge_chart_card(self, name, score):
-        score = round(score, 2)
-        gauge_c3_chart_data = {
-            "dataType": "gauge",
-            "data": {
-                    "min" : -1,
-                    "max" : 1,
-                    "value" : score,
-                    "segments" : 2
-                }
-
-        }
-
-        return gauge_c3_chart_data
-
-    def __generate_c3_gauge_chart_card(self, name, score):
-
-        score = round(score, 2)
-        gauge_c3_chart_data = {
-            "dataType": "c3Chart",
-            "data": {
-                "chart_c3": {
-                    "color": {
-                        "threshold": {
-                            "values": [
-                                -1,
-                                0,
-                                0.5,
-                                1
-                            ],
-                            "unit": "value"
-                        },
-                        "pattern": [
-                            '#0fc4b5',
-                            '#005662',
-                            '#148071',
-                            '#6cba86'
-                        ]
-                    },
-                    "data": {
-                        "type": "gauge",
-                        "columns": [
-                            [
-                                "data",
-                                score
-                            ]
-                        ]
-                    },
-                    "gauge": {
-                        "label": {
-                            "format" : ""
-                        },
-                        "max": 1,
-                        "min": -1,
-                        "width": 39
-                    },
-                    "size": {
-                        "height": 180
-                    }
-                },
-                "gauge_format": True,
-                # "xdata":["score"],
-                # "table_c3": [
-                #     ['score', score]
-                # ]
-            }
-        }
-
-        return gauge_c3_chart_data
-
-    def generate_para_html(self):
-        emotions_sorted = sorted(self.nl_understanding.get("emotion").get("document").get("emotion").items(),
-                                 key=lambda (key, val): val, reverse=True)
-        (best_emotion, best_value) = emotions_sorted[0]
-        (second_best_emotion, second_best_value) = emotions_sorted[1]
-        keywords = self.nl_understanding.get("keywords")
-        keywords_html = " and ".join(
-            ["<strong>{} ({})</strong>".format(item.get("text"), round(item.get("relevance"), 2)) for item in keywords[:2]])
-
-        categories_html = " and ".join(["<strong>{}</strong>".format(item.get("label").split("/")[-1]) for item in
-                                    self.nl_understanding.get("categories")[:2]])
-
-        return """<p>The overall sentiment in the speech seems to be <strong>{} {}</strong>.
-            The most predominant emotion is <strong>{}</strong> at around <strong>{}%</strong>.
-            Another important emotion identified is  <strong>{}</strong> at <strong>{}%</strong>.
-           mAdvisor identified <strong>{} keywords</strong> in the speech,
-            {}
-            having the highest relevance.
-           The major categories are {}.</p>
-             """.format(self.nl_understanding.get("sentiment").get("document").get("label"),
-                        round(self.nl_understanding.get("sentiment").get("document").get("score"), 2),
-                        best_emotion, int(best_value * 100),
-                        second_best_emotion, int(second_best_value * 100),
-                        len(keywords),
-                        keywords_html,
-                        categories_html
-                        )
-
-
-    def get_bar_chart(self, data, rotate=False, x="label", y="score", label_text=None):
-
-        c3 = C3chart_ML(
-            axes={
-                "x": x,
-                "y": y
-            },
-            label_text=label_text,
-            data=data,
-            axisRotation=rotate
-        )
-        details = c3.get_details()
-
-        # decoded_chart =  decode_and_convert_chart_raw_data(details)
-
-        # del decoded_chart['chart_c3']['axis']['x']['tick']['format']
-        # del decoded_chart['chart_c3']['axis']['y']['tick']['format']
-        # del decoded_chart['yformat']
-
-        return {
-            "dataType": "c3Chart",
-            "data": details
-        }
-
-
-    def get_categories_bar(self, categories):
-
-        data = categories
-        return self.get_bar_chart(
-            data=data,
-            label_text={
-                "x": "category",
-                "y": "score"
-            }
-        )
-
-    def get_keywords_bar(self, keywords):
-
-        data = []
-
-        for d in keywords:
-            temp = {}
-            temp['text'] = d.get('text')
-            temp['score'] = d.get('relevance')
-            data.append(temp)
-
-        return self.get_bar_chart(
-            data=data,
-            x='text',
-            y='score',
-            label_text={
-                "x": "keyword",
-                "y": "score"
-            }
-        )
-
-    def get_entities_bar(self, entities):
-
-        data = []
-
-        for d in entities:
-            temp = {}
-            temp['type'] = d.get('type')
-            temp['relevance'] = d.get('relevance')
-            data.append(temp)
-
-        return self.get_bar_chart(
-            data=data,
-            x='type',
-            y='relevance',
-            label_text={
-                "x": "entity",
-                "y": "relevance"
-            }
-        )
-
-
-class C3chart_ML(object):
-
-    def __init__(self, **kwrgs):
-        self.chart_type = kwrgs.get('chart_type', 'bar')
-        self.axes = kwrgs.get('axes', {})
-        self.label_text = kwrgs.get('label_text', {})
-        self.types = kwrgs.get('types')
-        self.axisRotation = kwrgs.get('axisRotation', False)
-        self.yAxisNumberFormat = kwrgs.get('yAxisNumberFormat', ".2f")
-        # self.y2AxisNumberFormat = kwrgs.get('y2AxisNumberFormat', False)
-        self.showLegend = kwrgs.get('showLegend', False)
-        self.hide_xtick = kwrgs.get('hide_xtick', False)
-        self.subchart = kwrgs.get('subchart', False)
-        self.rotate = kwrgs.get('rotate', False)
-        self.data = kwrgs.get('data')
-        self.legend = {}
-
-    def get_details(self):
-
-        return {
-            'chart_type': self.chart_type,
-            'axes': self.axes,
-            'label_text': self.label_text,
-            'types': self.types,
-            'axisRotation': self.axisRotation,
-            'yAxisNumberFormat': self.yAxisNumberFormat,
-            'showLegend': self.showLegend,
-            'hide_xtick': self.hide_xtick,
-            'subchart': self.subchart,
-            'rotate': self.rotate,
-            'data': self.data,
-            'legend': self.legend
-        }
-
-    def update_data(self, data):
-        self.data = data
-
-    def rotate_axis(self):
-        self.axisRotation = True
-
-    def update_axes(self, axes):
-        self.axes = axes
