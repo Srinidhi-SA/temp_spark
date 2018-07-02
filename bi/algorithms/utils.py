@@ -1561,6 +1561,31 @@ def stock_sense_individual_stock_cards(stockDict):
 
         analysisOverviewCard.set_card_data(overviewCardData)
         stockNode.add_a_card(analysisOverviewCard)
+
+        eventAnalysisCard = NormalCard()
+        eventAnalysisCard.set_card_name("Event Analysis")
+        eventAnalysisCardData = []
+        eventAnalysisCardData.append(HtmlData(data="<h3>Key Days and Impactful Articles</h3>"))
+        keyDaysTable = TableData()
+        keyDaysTableData = dataDict["keyDays"]
+        keyDaysTable.set_table_data(keyDaysTableData)
+        keyDaysTable.set_table_type("normal")
+        eventAnalysisCardData.append(keyDaysTable)
+        eventAnalysisCardData.append(HtmlData(data="<h3>Top Articles</h3>"))
+        topArticlesTable = TableData()
+        topArticlesTableData = dataDict["keyArticles"]
+        topArticlesTable.set_table_data(topArticlesTableData)
+        topArticlesTable.set_table_type("normal")
+        eventAnalysisCardData.append(topArticlesTable)
+        eventAnalysisCard.set_card_data(eventAnalysisCardData)
+        stockNode.add_a_card(eventAnalysisCard)
+
+        # impactAnalysisCard = NormalCard()
+        # impactAnalysisCard.set_card_name("Impact Analysis")
+        # impactAnalysisCardData = []
+        # impactAnalysisCard.set_card_data(impactAnalysisCardData)
+        # stockNode.add_a_card(impactAnalysisCard)
+
         allStockNodes.append(stockNode)
 
     return allStockNodes

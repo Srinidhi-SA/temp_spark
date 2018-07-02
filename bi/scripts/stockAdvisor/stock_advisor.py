@@ -337,6 +337,41 @@ class StockAdvisor:
         finalCount = sorted(dict(finalCountDict).items(),key=lambda x:x[1],reverse=True)
         return [{"text":x[0],"value":x[1]} for x in finalCount][:50]
 
+    def get_key_days_and_impactful_articles(self,pandasDf,stockPriceData):
+        relevantDf1 = stockPriceData[["date","closePerChange"]]
+        relevantDf1.columns = ["time","closePerChange"]
+        relevantDf2 = pandasDf[["time","source","title","overallSentiment"]]
+        merged = pd.merge(relevantDf2,relevantDf1,on="time",how="inner")
+        merged = merged.sort_values(by=['closePerChange'],ascending=False)
+        topIncrease = merged.ix[:1] #top2
+        print topIncrease.shape
+        merged = merged.sort_values(by=['closePerChange'],ascending=True)
+        topDecrease = merged.ix[:1] #top2
+        print topDecrease.shape
+        outDf = pd.concat([topIncrease,topDecrease])
+        print outDf.shape
+        output = [["Date","% increase/ Decrease stock Price","Source","Title","Sentiment"]]
+        for idx,dfRow in outDf.iterrows():
+            row = [dfRow["time"],str(CommonUtils.round_sig(dfRow["closePerChange"],sig=2))+"%",dfRow["source"],dfRow["title"],CommonUtils.round_sig(dfRow["overallSentiment"],sig=2)]
+            output.append(row)
+        return output
+
+    def get_top_articles(self,pandasDf):
+        relevantDf = pandasDf[["time","source","title","overallSentiment"]]
+        relevantDf["sentimentPerChange"] = relevantDf["overallSentiment"].pct_change()
+        relevantDf = relevantDf.fillna(0)
+
+        relevantDf = relevantDf.sort_values(by=['overallSentiment'],ascending=False)
+        topIncrease = relevantDf.ix[:2] #top3
+        relevantDf = relevantDf.sort_values(by=['overallSentiment'],ascending=True)
+        topDecrease = relevantDf.ix[:2] #top3
+        outDf = pd.concat([topIncrease,topDecrease])
+        output = [["Date","Source","Title","Sentiment","% increase/ Decrease"]]
+        for idx,dfRow in outDf.iterrows():
+            row = [dfRow["time"],dfRow["source"],dfRow["title"],CommonUtils.round_sig(dfRow["overallSentiment"],sig=2),str(CommonUtils.round_sig(dfRow["sentimentPerChange"],sig=2))+"%"]
+            output.append(row)
+        return output
+
 
 
 
@@ -366,6 +401,8 @@ class StockAdvisor:
             stockPriceData["close"] = stockPriceData["close"].apply(float)
             stockPriceData["open"] = stockPriceData["open"].apply(float)
             stockPriceData["dayPriceDiff"] = stockPriceData["close"] - stockPriceData["open"]
+            stockPriceData["closePerChange"] = stockPriceData["close"].pct_change()
+            stockPriceData = stockPriceData.fillna(0)
 
             self.pandasDf = self.identify_concepts_python(df)
 
@@ -381,6 +418,8 @@ class StockAdvisor:
             stockPriceAndSentimentTrend = self.get_datewise_stock_value_and_sentiment(self.pandasDf,stockPriceData)
             stockDict[stock_symbol]["stockPriceAndSentimentTrend"] = stockPriceAndSentimentTrend
             stockDict[stock_symbol]["topEntities"] = self.get_top_entities(self.pandasDf)
+            stockDict[stock_symbol]["keyDays"] = self.get_key_days_and_impactful_articles(self.pandasDf,stockPriceData)
+            stockDict[stock_symbol]["keyArticles"] = self.get_top_articles(self.pandasDf)
 
             # print nArticlesAndSentimentsPerConcept
             # print self.pandasDf.shape
@@ -391,10 +430,10 @@ class StockAdvisor:
             stockDf.index = stockDf["date"]
             priceTrendDict = stockDf.to_dict()["close"]
             stockPriceTrendDict[stock_symbol] = priceTrendDict
-            regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
-            regDfFinal.drop(["date"],axis = 1,inplace=True)
+            # regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
+            # regDfFinal.drop(["date"],axis = 1,inplace=True)
             # regDfFinal.columns = ["time","overallSentiment"+"_"+stock_symbol,"totalCount"+"_"+stock_symbol]+[x+"_count" for x in self.concepts.keys()]+["close"+"_"+stock_symbol]
-            masterDfDict[stock_symbol] = regDfFinal
+            # masterDfDict[stock_symbol] = regDfFinal
             # self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,stockPriceData)
             # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
             # self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
@@ -452,35 +491,26 @@ class StockAdvisor:
             # print "average_sentiment_per_date : ", average_sentiment_per_date
 
             (top_events_positive, top_events_negative) = self.get_top_events(df)
-            # print "top events positive : ", top_events_positive
-            # print "top events negative : ", top_events_negative
 
-            # top_days = self.get_top_days(unpacked_df)
 
-            # sentiment_by_concept_by_keyword = self.get_sentiment_by_concept_by_keyword(unpacked_df)
-
-            # statistical_significance_keywords = self.get_statistical_significance_keywords(unpacked_df)
-
-            # key_parameters_impacting_stock = self.get_key_parameters_impacting_stock(unpacked_df)
-
-        print "_"*50+"REGRESSIONDATA"+"_"*50
-        self.regressionResultDict = {}
-        for current_stock in self._stockNameList:
-            regressionDf = masterDfDict[current_stock]
-            regressionDf.index = regressionDf["time"]
-            remaining_stocks = list(set(self._stockNameList) - {current_stock})
-            if len(remaining_stocks) > 0:
-                for other_stock in remaining_stocks:
-                    colsToConsider = ["time","overallSentiment","close"]
-                    otherStockDf = masterDfDict[other_stock][colsToConsider]
-                    otherStockDf.columns = [x+"_"+other_stock for x in colsToConsider]
-                    otherStockDf.index = otherStockDf["time"+"_"+other_stock]
-                    regressionDf = pd.concat([regressionDf,otherStockDf], axis=1, join='inner')
-                    regressionDf.drop(["time","time"+"_"+other_stock],axis=1,inplace=True)
+        # print "_"*50+"REGRESSIONDATA"+"_"*50
+        # self.regressionResultDict = {}
+        # for current_stock in self._stockNameList:
+        #     regressionDf = masterDfDict[current_stock]
+        #     regressionDf.index = regressionDf["time"]
+        #     remaining_stocks = list(set(self._stockNameList) - {current_stock})
+        #     if len(remaining_stocks) > 0:
+        #         for other_stock in remaining_stocks:
+        #             colsToConsider = ["time","overallSentiment","close"]
+        #             otherStockDf = masterDfDict[other_stock][colsToConsider]
+        #             otherStockDf.columns = [x+"_"+other_stock for x in colsToConsider]
+        #             otherStockDf.index = otherStockDf["time"+"_"+other_stock]
+        #             regressionDf = pd.concat([regressionDf,otherStockDf], axis=1, join='inner')
+        #             regressionDf.drop(["time","time"+"_"+other_stock],axis=1,inplace=True)
             # print regressionDf.columns
             # Run linear regression on the regressionDf dataframe
-            regressionCoeff = self.run_regression(regressionDf,"close")
-            self.regressionResultDict[current_stock] = regressionCoeff
+            # regressionCoeff = self.run_regression(regressionDf,"close")
+            # self.regressionResultDict[current_stock] = regressionCoeff
 
         print "#"*110
         number_stocks = len(self._stockNameList)

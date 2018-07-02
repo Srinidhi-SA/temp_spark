@@ -41,7 +41,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "stockAdvisor"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -97,8 +97,7 @@ def main(configJson):
     dataframe_context.set_app_name(APP_NAME)
     dataframe_context.set_error_url(errorURL)
     dataframe_context.set_logger(LOGGER)
-    # dataframe_context.set_xml_url(jobConfig["xml_url"])
-    dataframe_context.set_xml_url("CHILL")
+    dataframe_context.set_xml_url(jobConfig["xml_url"])
     dataframe_context.set_job_name(jobName)
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
