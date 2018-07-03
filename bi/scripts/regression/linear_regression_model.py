@@ -237,7 +237,10 @@ class LinearRegressionModelScript:
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
-
+            # x_train.to_csv("/home/gulshan/marlabs/datasets/lrTest/x_train.csv",index=False)
+            # x_test.to_csv("/home/gulshan/marlabs/datasets/lrTest/x_test.csv",index=False)
+            # y_train.to_csv("/home/gulshan/marlabs/datasets/lrTest/y_train.csv",index=False)
+            # y_test.to_csv("/home/gulshan/marlabs/datasets/lrTest/y_test.csv",index=False)
 
             # print "features before VIF-"*100
             # print x_train.columns.tolist()

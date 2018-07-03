@@ -23,6 +23,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
+from bi.narratives import utils as NarrativesUtils
 from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
 from bi.algorithms import XgboostClassifier
 from bi.algorithms import utils as MLUtils
