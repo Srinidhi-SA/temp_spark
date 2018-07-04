@@ -19,9 +19,10 @@ class DataLoader:
     @accepts(SparkSession, basestring, dict)
     def create_dataframe_from_jdbc_connector(spark_session, datasource_type, dbConnectionParams):
         datasource_type = datasource_type.lower()
-        print "$"*100
-        print datasource_type
-        print dbConnectionParams
+        print "~"*100
+        print "Data Source :- ",datasource_type
+        print "Database Connection Params :- ",dbConnectionParams
+        print "~"*100
         if "hana" == datasource_type:
             return DataLoader.create_dataframe_from_hana_connector(spark_session, dbConnectionParams)
         elif "mysql" == datasource_type:

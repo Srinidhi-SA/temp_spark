@@ -41,7 +41,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "story"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -61,11 +61,7 @@ def main(configJson):
         spark = CommonUtils.get_spark_session(app_name=APP_NAME)
 
     spark.sparkContext.setLogLevel("ERROR")
-    if debugMode:
-        if jobType != "stockAdvisor":
-            spark.conf.set("spark.sql.execution.arrow.enabled", "true")
-    else:
-        spark.conf.set("spark.sql.execution.arrow.enabled", "false")
+    spark.conf.set("spark.sql.execution.arrow.enabled", "true")
 
     print "######################### Parsing the configs #############################"
 
