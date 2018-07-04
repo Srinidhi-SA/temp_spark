@@ -8,7 +8,8 @@ PYSPARK_ML_REGRESSION_PARAMS = [
                 "valueRange":[1,200],
                 "paramType":"number",
                 "uiElemType":"slider",
-                "display":True
+                "display":True,
+                "hyperpatameterTuningCandidate":False,
             },
             {
                 "name":"regParam",
@@ -18,7 +19,8 @@ PYSPARK_ML_REGRESSION_PARAMS = [
                 "valueRange":[0.0,1.0],
                 "paramType":"number",
                 "uiElemType":"slider",
-                "display":True
+                "display":True,
+                "hyperpatameterTuningCandidate":True,
             },
             {
                 "name":"tol",
@@ -28,7 +30,8 @@ PYSPARK_ML_REGRESSION_PARAMS = [
                 "valueRange":[3,10],
                 "paramType":"number",
                 "uiElemType":"slider",
-                "display":True
+                "display":True,
+                "hyperpatameterTuningCandidate":True,
             },
             {
                  "name":"fitIntercept",
@@ -37,7 +40,8 @@ PYSPARK_ML_REGRESSION_PARAMS = [
                  "acceptedValue":None,
                  "paramType":"boolean",
                  "uiElemType":"checkbox",
-                 "display":True
+                 "display":True,
+                 "hyperpatameterTuningCandidate":False,
              },
              {
                  "name":"weightCol",
@@ -46,7 +50,8 @@ PYSPARK_ML_REGRESSION_PARAMS = [
                  "acceptedValue":None,
                  "paramType":"string",
                  "uiElemType":"dropDown",
-                 "display":False
+                 "display":False,
+                 "hyperpatameterTuningCandidate":False,
              }
 ]
 PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
@@ -58,7 +63,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                  {
                       "name":"standardization",
@@ -67,7 +73,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
                       "acceptedValue":None,
                       "paramType":"boolean",
                       "uiElemType":"checkbox",
-                      "display":True
+                      "display":True,
+                      "hyperpatameterTuningCandidate":False,
                   },
                    {
                        "name":"solver",
@@ -91,7 +98,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
                        ],
                        "paramType":"list",
                        "uiElemType":"checkbox",
-                       "display":True
+                       "display":True,
+                       "hyperpatameterTuningCandidate":True,
                    },
                    {
                        "name":"loss",
@@ -110,7 +118,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
                        ],
                        "paramType":"list",
                        "uiElemType":"checkbox",
-                       "display":True
+                       "display":True,
+                       "hyperpatameterTuningCandidate":False,
                    },
                    {
                        "name":"epsilon",
@@ -120,7 +129,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
                        "valueRange":[1.0,5.0],
                        "paramType":"number",
                        "uiElemType":"slider",
-                       "display":True
+                       "display":True,
+                       "hyperpatameterTuningCandidate":False,
                    },
                 {
                     "name":"aggregationDepth",
@@ -130,7 +140,8 @@ PYSPARK_ML_LINEAR_REGRESSION_PARAMS = PYSPARK_ML_REGRESSION_PARAMS + [
                     "valueRange":[2,5],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
                 }
 ]
 GLM_FAMILY_LINK_MAPPING = {
@@ -294,7 +305,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[2,20],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"maxBins",
@@ -305,7 +317,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "paramType":"number",
                     "uiElemType":"slider",
                     "powerOf2":True,
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"checkpointInterval",
@@ -315,7 +328,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[10,20],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"minInstancesPerNode",
@@ -325,7 +339,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[1,10],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"subsamplingRate",
@@ -335,7 +350,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
                 },
                 {
                     "name":"minInfoGain",
@@ -345,7 +361,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[0.0,1.0],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"maxMemoryInMB",
@@ -355,7 +372,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                     "valueRange":[128,10240],
                     "paramType":"number",
                     "uiElemType":"slider",
-                    "display":True
+                    "display":True,
+                    "hyperpatameterTuningCandidate":False,
                 },
                 {
                      "name":"cacheNodeIds",
@@ -364,7 +382,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                      "acceptedValue":None,
                      "paramType":"boolean",
                      "uiElemType":"checkbox",
-                     "display":True
+                     "display":True,
+                     "hyperpatameterTuningCandidate":False,
                  },
                  {
                      "name":"impuriy",
@@ -372,7 +391,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                      "defaultValue":[{"name":obj["name"],"selected":obj["selected"],"displayName":obj["displayName"]} for obj in PYSPARK_ML_SUPPORTED_IMPURITIES],
                      "paramType":"list",
                      "uiElemType":"checkbox",
-                     "display":True
+                     "display":True,
+                     "hyperpatameterTuningCandidate":True,
                  },
                  {
                  "name":"seed",
@@ -382,7 +402,8 @@ PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS = [
                  "valueRange":[],
                  "paramType":"number",
                  "uiElemType":"textBox",
-                 "display":True
+                 "display":True,
+                 "hyperpatameterTuningCandidate":False,
                  }
 ]
 PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +[
@@ -393,7 +414,8 @@ PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAM
                     "acceptedValue":None,
                     "valueRange":[1,100],
                     "paramType":"number",
-                    "uiElemType":"slider"
+                    "uiElemType":"slider",
+                    "hyperpatameterTuningCandidate":True,
                 },
                 {
                     "name":"stepSize",
@@ -402,7 +424,8 @@ PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAM
                     "acceptedValue":None,
                     "valueRange":[0.1,1.0],
                     "paramType":"number",
-                    "uiElemType":"slider"
+                    "uiElemType":"slider",
+                    "hyperpatameterTuningCandidate":True,
                 },
                {
                    "name":"lossType",
@@ -420,7 +443,8 @@ PYSPARK_ML_GBT_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAM
                     }
                    ],
                    "paramType":"list",
-                   "uiElemType":"checkbox"
+                   "uiElemType":"checkbox",
+                   "hyperpatameterTuningCandidate":False,
                },
             ]
 PYSPARK_ML_DTREE_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS +[
@@ -431,7 +455,8 @@ PYSPARK_ML_DTREE_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PAR
             "acceptedValue":None,
             "paramType":"string",
             "uiElemType":"dropDown",
-            "display":False
+            "display":False,
+            "hyperpatameterTuningCandidate":False,
         },
 
     ]
@@ -444,7 +469,8 @@ PYSPARK_ML_RF_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
             "valueRange":[1,1000],
             "paramType":"number",
             "uiElemType":"slider",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":True,
         },
         {
             "name":"featureSubsetStrategy",
@@ -483,6 +509,7 @@ PYSPARK_ML_RF_REGRESSION_PARAMS = PYSPARK_ML_TREE_BASED_REGRESSION_COMMON_PARAMS
             ],
             "paramType":"list",
             "uiElemType":"checkbox",
-            "display":True
+            "display":True,
+            "hyperpatameterTuningCandidate":True,
         },
     ]

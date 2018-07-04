@@ -2,11 +2,14 @@ import __builtin__
 import json
 import os
 import time
+import math
 import random
 import shutil
 
 import numpy as np
 import pandas as pd
+from sklearn import linear_model
+from sklearn.metrics import mean_squared_error, r2_score
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
 from pyspark.ml.regression import LinearRegressionModel,GeneralizedLinearRegressionModel,GBTRegressionModel,DecisionTreeRegressionModel,RandomForestRegressionModel
@@ -20,11 +23,23 @@ from pyspark.sql.functions import mean, stddev, col, sum, count
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.types import StringType
 
-from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.evaluation import RegressionEvaluator
+
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData,DataBox,WordCloud
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
 
+def normalize_coefficients(coefficientsArray):
+    valArray = [abs(obj["value"]) for obj in coefficientsArray]
+    maxVal = max(valArray)
+    outArray = []
+    for obj in coefficientsArray:
+        v = obj["value"]
+        v = round(float(v)/maxVal,2)
+        outArray.append({"key":obj["key"],"value":v})
+    return outArray
 
 def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
     if target_measure is None:
@@ -279,8 +294,11 @@ def calculate_scored_probability_stats(scored_dataframe):
     for key in output.keys():
         if output[key] == {}:
             output.pop(key, None)
-
-    return reformat_prediction_split(output)
+    formattedSplit = reformat_prediction_split(output)
+    print "formattedSplit"
+    print formattedSplit
+    print "="*200
+    return formattedSplit
 
 def create_dummy_columns(df,colnames):
     df1 = df[[col for col in df.columns if col not in colnames]]
@@ -436,12 +454,10 @@ def load_pipeline(filepath):
     return model
 
 ##########################SKLEARN Model Pipelines ##############################
-# def create_
 
 def load_rf_model(filepath):
     model = RandomForestClassificationModel.load(filepath)
     return model
-
 def load_linear_regresssion_pyspark_model(filepath):
     model = LinearRegressionModel.load(filepath)
     return model
@@ -457,11 +473,9 @@ def load_dtree_regresssion_pyspark_model(filepath):
 def load_rf_regresssion_pyspark_model(filepath):
     model = RandomForestRegressionModel.load(filepath)
     return model
-
 def load_one_vs_rest_model(filepath):
     model = OneVsRestModel.load(filepath)
     return model
-
 def load_logistic_model(filepath):
     model = LogisticRegressionModel.load(filepath)
     return model
@@ -568,7 +582,9 @@ def get_model_comparison(collated_summary):
     for key in first_column:
         row = []
         for val in algos:
-            row.append(round(100*(collated_summary[val][map_dict[key]]),2))
+            # row.append(round(100*(collated_summary[val][map_dict[key]]),2))
+            roundedVal = int(round(100*(collated_summary[val][map_dict[key]])))
+            row.append(roundedVal)
         out.append([key]+row)
         max_index = __builtin__.max(xrange(len(row)), key = lambda x: row[x])
         summary.append(["Best "+key,algos_dict[algos[max_index]]])
@@ -583,9 +599,12 @@ def get_model_comparison(collated_summary):
     summary_html = "<ul class='list-unstyled bullets_primary'>{}{}{}{}</ul>".format(inner_html[0],inner_html[1],inner_html[2],inner_html[3])
     summaryData = HtmlData(data = summary_html)
 
+
     modelTable = TableData()
-    modelTable.set_table_data(out)
+    modelTable.set_table_data([list(x) for x in np.transpose(out)])
     modelTable.set_table_type("circularChartTable")
+    if len(algos) == 1:
+        summaryData = None
     return modelTable,summaryData
 
 def get_feature_importance(collated_summary):
@@ -605,7 +624,7 @@ def get_feature_importance(collated_summary):
 
 def get_total_models_classification(collated_summary):
     algos = collated_summary.keys()
-    n_model = 0
+    n_model = 1
     algorithm_name = []
     for val in algos:
         trees = collated_summary[val].get("nTrees")
@@ -669,7 +688,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data = []
         modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
         modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Target Variable - {}</p>".format(modelSummaryClass.get_target_variable())))
         modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
         modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         prediction_split_array = sorted([(k,v) for k,v in modelSummaryClass.get_prediction_split().items()],key=lambda x:x[1],reverse=True)
@@ -683,6 +702,7 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard1Data.append(HtmlData(data="<p>Validation Method - {}</p>".format(modelSummaryClass.get_validation_method())))
         modelSummaryCard1Data.append(HtmlData(data="<p>Model Accuracy - {}</p>".format(modelSummaryClass.get_model_accuracy())))
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
+        modelSummaryCard1.set_card_width(50)
 
         modelSummaryCard2 = NormalCard()
         modelSummaryCard2Data = []
@@ -694,33 +714,60 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard2Table.set_table_left_header("Predicted")
         modelSummaryCard2Data.append(modelSummaryCard2Table)
         modelSummaryCard2.set_card_data(modelSummaryCard2Data)
+        modelSummaryCard2.set_card_width(50)
         return [modelSummaryCard1,modelSummaryCard2]
     elif modelSummaryClass.get_model_type() == "regression":
+        targetVariable = modelSummaryClass.get_target_variable()
         modelSummaryCard1 = NormalCard()
         modelSummaryCard1.set_card_width(50)
         modelSummaryCard1Data = []
-        modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
-        modelSummaryCard1Data.append(HtmlData(data="<h5>Summary</h5>"))
-        modelSummaryCard1Data.append(HtmlData(data="<p>Target Varialble - {}</p>".format(modelSummaryClass.get_target_variable())))
+        modelSummaryCard1Data.append(HtmlData(data="<h5><b>Algorithm Parameters: </b></h5>"))
+        modelSummaryCard1Data.append(HtmlData(data="<p>Target Variable - {}</p>".format(targetVariable)))
         # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
-        modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
-        quantileSummaryArr = modelSummaryClass.get_quantile_summary()
-        targetVariable = modelSummaryClass.get_target_variable()
-        for val in quantileSummaryArr:
-            if val[0] == "0":
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q1(less than {}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
-            elif val[0]=="3":
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q3(>{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["mean"],2))))
-            elif val[0]=="2":
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q2-Q3(between {}-{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
-            else:
-                modelSummaryCard1Data.append(HtmlData(data="<p>Average {} of Q2(between {}-{}) - {}</p>".format(targetVariable,round(val[1]["splitRange"][0],2),round(val[1]["splitRange"][1],2),round(val[1]["mean"],2))))
-
-        modelSummaryCard1Data.append(HtmlData(data="<h5>Algorithm Parameters:</h5>"))
+        # modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         modelParams = modelSummaryClass.get_model_params()
+        print modelParams
+        count = 0
         for k,v in modelParams.items():
-            modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(v["displayName"],v["value"])))
+            k = k.capitalize()
+            count += 1
+            if count <= 4 :
+                modelSummaryCard1Data.append(HtmlData(data="<p>{} - {}</p>".format(k,v)))
+            else:
+                htmlDataObj = HtmlData(data="<p>{} - {}</p>".format(k,v))
+                htmlDataObj.set_class_tag("hidden")
+                modelSummaryCard1Data.append(htmlDataObj)
         modelSummaryCard1.set_card_data(modelSummaryCard1Data)
+
+        quantileSummaryArr = modelSummaryClass.get_quantile_summary()
+        quantileTableData = []
+        quantileTableTopRow = ["Distribution of Quartiles","Average Value"]
+        quantileTableData.append(quantileTableTopRow)
+
+        for quantileSummaryObj in quantileSummaryArr:
+            qunatileRow = []
+            if quantileSummaryObj[0] == 0:
+                qunatileRow = ["Bottom 25% observations",round(quantileSummaryObj[1]["mean"],2)]
+            if quantileSummaryObj[0] == 1:
+                qunatileRow = ["25% to 50% observations",round(quantileSummaryObj[1]["mean"],2)]
+            if quantileSummaryObj[0] == 2:
+                qunatileRow = ["50% to 75% observations",round(quantileSummaryObj[1]["mean"],2)]
+            if quantileSummaryObj[0] == 3:
+                qunatileRow = ["Top 25% observations",round(quantileSummaryObj[1]["mean"],2)]
+            if len(qunatileRow) > 0:
+                quantileTableData.append(qunatileRow)
+
+        quantileTable = TableData({'tableType':'normal','tableData':quantileTableData})
+        quantileTable.set_table_top_header("Distribution of predicted values")
+
+        modelSummaryCard2 = NormalCard()
+        modelSummaryCard2.set_card_width(50)
+        modelSummaryCard2Data = []
+        modelSummaryCard2Data.append(HtmlData(data="<h4 class = 'sm-mb-20'><b>{}</b></h4>".format(modelSummaryClass.get_algorithm_display_name())))
+        modelSummaryCard2Data.append(HtmlData(data="<h5><b>Summary</b></h5>"))
+        modelSummaryCard2Data.append(HtmlData(data="<p><b><center>Distribution of predicted values</center></b></p>"))
+        modelSummaryCard2Data.append(quantileTable)
+        modelSummaryCard2.set_card_data(modelSummaryCard2Data)
 
         ######################MAPE CHART#######################################
 
@@ -740,7 +787,7 @@ def create_model_summary_cards(modelSummaryClass):
         mapeChartJson.set_chart_type("bar")
         mapeChartJson.set_label_text({'x':' ','y':'No of Observations'})
         mapeChartJson.set_axes({"x":"key","y":"value"})
-        mapeChartJson.set_title('Error Distribution Chart (MAPE)')
+        mapeChartJson.set_title('Distribution Of Errors')
         # mapeChartJson.set_yaxis_number_format(".4f")
         # mapeChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
 
@@ -758,6 +805,8 @@ def create_model_summary_cards(modelSummaryClass):
         actualVsPredictedChartJson.set_data({"data":actualVsPredictedData})
         actualVsPredictedChartJson.set_axes({"x":targetVariable,"y":"predicted"})
         actualVsPredictedChartJson.set_label_text({'x':'Actual Values','y':'Predicted Values'})
+        actualVsPredictedChartJson.set_title('Actual Vs Predicted Chart')
+
 
         actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
 
@@ -774,12 +823,16 @@ def create_model_summary_cards(modelSummaryClass):
         residualButton.set_data(residualChart)
         residualButton.set_name("View Residuals")
 
-        modelSummaryCard2 = NormalCard()
-        modelSummaryCard2.set_card_width(50)
-        modelSummaryCard2.set_card_data([modelSummaryMapeChart,actualVsPredictedChart,residualButton])
+        modelSummaryCard3 = NormalCard()
+        modelSummaryCard3.set_card_width(50)
+        # modelSummaryCard3.set_card_data([modelSummaryMapeChart,actualVsPredictedChart,residualButton])
+        modelSummaryCard3.set_card_data([actualVsPredictedChart,residualButton])
 
-
-        return [modelSummaryCard1,modelSummaryCard2]
+        modelSummaryCard4 = NormalCard()
+        modelSummaryCard4.set_card_width(50)
+        modelSummaryCard4.set_card_data([modelSummaryMapeChart])
+        return [modelSummaryCard2,modelSummaryCard4,modelSummaryCard1,modelSummaryCard3]
+        # return [modelSummaryCard1,modelSummaryCard2]
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
@@ -791,33 +844,57 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card1.set_card_data(card1Data)
         card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
 
-        card2 = NormalCard()
-        card2_elements = get_model_comparison(collated_summary)
-        card2Data = [card2_elements[0],card2_elements[1]]
-        card2.set_card_data(card2Data)
-        # prediction_narrative.insert_card_at_given_index(card2,1)
-        card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
+        try:
+            featureImportanceC3Object = get_feature_importance(collated_summary)
+        except:
+            featureImportanceC3Object = None
+        if featureImportanceC3Object != None:
+            card2 = NormalCard()
+            card2_elements = get_model_comparison(collated_summary)
+            if card2_elements[1] == None:
+                card2Data = [card2_elements[0]]
+            else:
+                card2Data = [card2_elements[0],card2_elements[1]]
 
-        card3 = NormalCard()
-        if appid == None:
-            card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
-        else:
-            try:
-                card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_MAP[appid]["heading"]))]
-            except:
+            card2.set_card_data(card2Data)
+            card2.set_card_width(50)
+
+            card3 = NormalCard()
+            if appid == None:
                 card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
-        card3Data.append(get_feature_importance(collated_summary))
-        card3.set_card_data(card3Data)
-        # prediction_narrative.insert_card_at_given_index(card3,2)
-        card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+            else:
+                try:
+                    card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>{}</h4>".format(GLOBALSETTINGS.APPS_ID_MAP[appid]["heading"]))]
+                except:
+                    card3Data = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Feature Importance</h4>")]
+            card3Data.append(featureImportanceC3Object)
+            card3.set_card_data(card3Data)
+            card3.set_card_width(50)
+            # prediction_narrative.insert_card_at_given_index(card3,2)
+            card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
+        else:
+            card2 = NormalCard()
+            card2_elements = get_model_comparison(collated_summary)
+            card2Data = [card2_elements[0]]
+            card2.set_card_data(card2Data)
+            card2.set_card_width(50)
+            if card2_elements[1] != None:
+                card3 = NormalCard()
+                card3Data = [card2_elements[1]]
+                card3.set_card_data(card3Data)
+                card3.set_card_width(50)
+            else:
+                card3 = None
+
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         modelResult = json.loads(modelResult)
         existing_cards = modelResult["listOfCards"]
         existing_cards = result_setter.get_all_classification_cards()
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
+        card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
         all_cards = [card1,card2,card3] + existing_cards
-
+        all_cards = [x for x in all_cards if x != None]
         modelResult = NarrativesTree()
         modelResult.add_cards(all_cards)
         modelResult = CommonUtils.convert_python_object_to_json(modelResult)
@@ -830,30 +907,109 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         svmModelSummary = result_setter.get_svm_model_summary()
 
         model_dropdowns = []
+        model_hyperparameter_summary = []
         model_features = {}
         model_configs = {}
         labelMappingDict = {}
         targetVariableLevelcount = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
+        allAlgorithmTable = []
+        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","Accuracy","ROC-AUC","Run Time(Secs)"]
+        allAlgorithmTable.append(allAlgorithmTableHeaderRow)
+        counter = 1
+        hyperParameterFlagDict = {}
+        hyperParameterFlag = False
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
+            if obj != None:
+                if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
+                    hyperParameterFlagDict[obj["slug"]] = True
+                    hyperParameterFlag = True
+                else:
+                    hyperParameterFlagDict[obj["slug"]] = False
         for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
-                model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
-                labelMappingDict[obj["dropdown"]["slug"]] = obj["levelMapping"]
+                model_features[obj["slug"]] = obj["modelFeatureList"]
+                labelMappingDict[obj["slug"]] = obj["levelMapping"]
                 if targetVariableLevelcount == {}:
                     targetVariableLevelcount = obj["levelcount"][target_variable]
+                if hyperParameterFlag == True:
+                    if hyperParameterFlagDict[obj["slug"]] == True:
+                        hyperParamSummary = result_setter.get_hyper_parameter_results(obj["slug"])
+                        algoRows = []
+                        for rowDict in hyperParamSummary:
+                            row = []
+                            for key in allAlgorithmTableHeaderRow:
+                                if key == "#":
+                                    row.append(counter)
+                                elif key == "Algorithm Name":
+                                    row.append(obj["name"])
+                                elif key == "Optimization Method":
+                                    row.append("Grid Search")
+                                elif key == "Metric":
+                                    row.append(rowDict["comparisonMetricUsed"])
+                                else:
+                                    row.append(rowDict[key])
+                            algoRows.append(row)
+                            counter += 1
+
+                        allAlgorithmTable += algoRows
+
+                        algoCard = NormalCard(name=obj["name"],slug=obj["slug"])
+                        parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["slug"])
+                        masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
+                        ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                        hideColumns = parallelCoordinateMetaData["hideColumns"]
+                        metricColName = parallelCoordinateMetaData["metricColName"]
+                        columnOrder = parallelCoordinateMetaData["columnOrder"]
+                        algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
+                        algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
+                        model_hyperparameter_summary.append(json.loads(algoCardJson))
+        if hyperParameterFlag == True:
+            algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
+            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("Accuracy")] ,reverse=True)
+            totalModels = len(allAlgorithmTable) - 1
+            allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
+            allAlgorithmTableModified = [allAlgorithmTable[0]]
+            for idx,row in enumerate(allAlgorithmTable[1:]):
+                row[0] = idx+1
+                allAlgorithmTableModified.append(row)
+            allAlgorithmTable = allAlgorithmTableModified
+            bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
+            evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
+            bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
+            bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
+            if bestMetric == "NA":
+                evalMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
+
+            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            built using {} algorithm is the best performing model with an {} of {}."\
+                            .format(totalModels,GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
+            allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
+            algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
+            algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
+            algoSummaryCardDict = json.loads(algoSummaryCardJson)
+            model_hyperparameter_summary.insert(0,algoSummaryCardDict)
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = labelMappingDict
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
-
+        model_dropdowns = [x for x in model_dropdowns if x != None]
         modelJsonOutput.set_model_dropdown(model_dropdowns)
+        print model_dropdowns
+        print "="*100
         modelJsonOutput.set_model_config(model_configs)
+        if hyperParameterFlag == True:
+            modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
     else:
         collated_summary = result_setter.get_model_summary()
+        targetVariable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         card1 = NormalCard()
+        # card1Data = [HtmlData(data="<h4><b>Predicting {}</b></h4>".format(targetVariable))]
         card1Data = [HtmlData(data="<h4>Model Summary</h4>")]
         card1Data.append(HtmlData(data = get_total_models_regression(collated_summary)))
         card1.set_card_data(card1Data)
@@ -864,17 +1020,18 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             card2 = NormalCard()
             coefficientsArray = sorted(collated_summary["linearregression"]["coefficinetsArray"],key=lambda x:abs(x[1]),reverse=True)
             coefficientsArray = [{"key":tup[0],"value":tup[1]} for tup in coefficientsArray]
+            coefficientsArray = normalize_coefficients(coefficientsArray)
             chartDataValues = [x["value"] for x in coefficientsArray]
             coefficientsChartJson = ChartJson()
             coefficientsChartJson.set_data(coefficientsArray)
             coefficientsChartJson.set_chart_type("bar")
             coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
             coefficientsChartJson.set_axes({"x":"key","y":"value"})
-            coefficientsChartJson.set_title('Coefficients (LR)')
+            # coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
             # coefficientsChartJson.set_yaxis_number_format(".4f")
             coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)
-            card2Data = [HtmlData(data="<h4>Model Coefficients</h4>"),coefficientsChart]
+            card2Data = [HtmlData(data="<h4><b>Influence of Key Features on {}</b></h4>".format(targetVariable)),coefficientsChart]
             card2.set_card_data(card2Data)
             card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
@@ -889,12 +1046,13 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             featureChartJson.set_chart_type("bar")
             featureChartJson.set_label_text({'x':' ','y':'Feature Importance'})
             featureChartJson.set_axes({"x":"key","y":"value"})
-            featureChartJson.set_title('Feature Importance (RF)')
+            featureChartJson.set_title('Feature Importance')
             # featureChartJson.set_yaxis_number_format(".4f")
             featureChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             featureChart = C3ChartData(data=featureChartJson)
-            card3Data = [HtmlData(data="<h4>Feature Importance</h4>"),featureChart]
+            card3Data = [HtmlData(data="<h4><b><center>Feature Importance</center></b></h4>"),featureChart]
             card3.set_card_data(card3Data)
+            card3.set_card_width(50)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
 
         card4 = NormalCard()
@@ -907,9 +1065,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             }
         metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
         full_names = map(lambda x: metricNamesMapping[x],metricNames)
-        metricTableTopRow = [""]+full_names
+        metricTableTopRow = ["Algorithm"]+full_names
         allMetricsData.append(metricTableTopRow)
-        print "collated_summary : ", collated_summary
+        # print "collated_summary : ", collated_summary
         for algoName,dataObj in collated_summary.items():
             algoRow = []
             algoRow.append(collated_summary[algoName]['algorithmDisplayName'])
@@ -918,14 +1076,17 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             allMetricsData.append(algoRow)
 
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
-        card4Data = [HtmlData(data="<h4>Model Comparison</h4>"),evaluationMetricsTable]
+        evaluationMetricsTable.set_table_top_header("Model Comparison")
+        card4Data = [HtmlData(data="<h4><b><center>Model Comparison</center></b></h4>"),evaluationMetricsTable]
         card4.set_card_data(card4Data)
+        card4.set_card_width(50)
+
         card4 = json.loads(CommonUtils.convert_python_object_to_json(card4))
 
         existing_cards = result_setter.get_all_regression_cards()
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
-        all_cards = [card1,card2,card3,card4] + existing_cards
+        all_cards = [card1,card4,card3,card2] + existing_cards
         all_cards = [x for x in all_cards if x != None]
 
         modelResult = NarrativesTree()
@@ -936,28 +1097,103 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         ####
 
         model_dropdowns = []
+        model_hyperparameter_summary = []
         model_features = {}
         model_configs = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
         allRegressionModelSummary = result_setter.get_all_regression_model_summary()
+        allAlgorithmTable = []
+        allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time(Secs)"]
+        allAlgorithmTable.append(allAlgorithmTableHeaderRow)
+        counter = 1
+        hyperParameterFlagDict = {}
+        hyperParameterFlag = False
+        for obj in allRegressionModelSummary:
+            if obj != None:
+                if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
+                    hyperParameterFlagDict[obj["slug"]] = True
+                    hyperParameterFlag = True
+                else:
+                    hyperParameterFlagDict[obj["slug"]] = False
         for obj in allRegressionModelSummary:
             if obj != None:
                 print obj["dropdown"]
                 model_dropdowns.append(obj["dropdown"])
-                model_features[obj["dropdown"]["slug"]] = obj["modelFeatureList"]
+                model_features[obj["slug"]] = obj["modelFeatureList"]
+                if hyperParameterFlag == True:
+                    if hyperParameterFlagDict[obj["slug"]] == True:
+                        hyperParamSummary = result_setter.get_hyper_parameter_results(obj["slug"])
+                        algoRows = []
+                        for rowDict in hyperParamSummary:
+                            row = []
+                            for key in allAlgorithmTableHeaderRow:
+                                if key == "#":
+                                    row.append(counter)
+                                elif key == "Algorithm Name":
+                                    row.append(obj["name"])
+                                elif key == "Optimization Method":
+                                    row.append("Grid Search")
+                                elif key == "Metric":
+                                    row.append(rowDict["comparisonMetricUsed"])
+                                else:
+                                    row.append(rowDict[key])
+                            algoRows.append(row)
+                            counter += 1
+
+                        allAlgorithmTable += algoRows
+
+                        algoCard = NormalCard(name=obj["name"],slug=obj["slug"])
+                        parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["slug"])
+                        masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
+                        ignoreList = [x for x in masterIgnoreList if x in hyperParamSummary[0]]
+                        hideColumns = parallelCoordinateMetaData["hideColumns"]
+                        metricColName = parallelCoordinateMetaData["metricColName"]
+                        columnOrder = parallelCoordinateMetaData["columnOrder"]
+                        print "="*50
+                        print columnOrder
+                        print "="*50
+                        algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
+                        algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
+                        model_hyperparameter_summary.append(json.loads(algoCardJson))
+
+        if hyperParameterFlag == True:
+            algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
+            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("R-Squared")] ,reverse=True)
+            totalModels = len(allAlgorithmTable) - 1
+            allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
+            allAlgorithmTableModified = [allAlgorithmTable[0]]
+            allAlgorithmTableModified[0][-1] = "Run Time(Secs)"
+            for idx,row in enumerate(allAlgorithmTable[1:]):
+                row[0] = idx+1
+                allAlgorithmTableModified.append(row)
+            allAlgorithmTable = allAlgorithmTableModified
+            bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
+            evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
+            bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
+            bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
+            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            built using {} algorithm is the best performing model with an {} of {}."\
+                            .format(totalModels,GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
+            allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
+            algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
+            algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
+            algoSummaryCardDict = json.loads(algoSummaryCardJson)
+            model_hyperparameter_summary.insert(0,algoSummaryCardDict)
 
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = {}
         model_configs["targetVariableLevelcount"] = []
-
+        print model_dropdowns
+        print "="*100
+        model_dropdowns = [x for x in model_dropdowns if x != None]
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
+        if hyperParameterFlag == True:
+            modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()
         return modelJsonOutput
-
-
-
 
 def get_mape_stats(df,colname):
     df = df.na.drop(subset=colname)
@@ -994,7 +1230,7 @@ def get_quantile_summary(df,colname):
         bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
         bucketizer.setSplits(splits)
         df = bucketizer.transform(df)
-        print df.show()
+        # print df.show()
     except:
         print "using bias splitRange"
         splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
@@ -1002,7 +1238,7 @@ def get_quantile_summary(df,colname):
         bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
         bucketizer.setSplits(splits)
         df = bucketizer.transform(df)
-        print df.show()
+        # print df.show()
 
     quantileGrpDf = df.groupby("buckGULSHAN").agg(FN.sum(colname).alias('sum'),FN.mean(colname).alias('mean'),FN.count(colname).alias('count'))
     splitDict = {}
@@ -1012,3 +1248,344 @@ def get_quantile_summary(df,colname):
         if str(idx) in splitDict:
             splitDict[str(idx)].update({"splitRange":val})
     return splitDict
+
+def get_scored_data_summary(scoredCol,outlierConstant=1.5):
+    maxVal = np.max(scoredCol)
+    sumVal = np.sum(scoredCol)
+    avgVal = np.mean(scoredCol)
+    nObs = len(scoredCol)
+    sd = np.std(scoredCol,axis=0)
+    upper_quartile = np.percentile(scoredCol, 75)
+    lower_quartile = np.percentile(scoredCol, 25)
+    IQR = (upper_quartile - lower_quartile) * outlierConstant
+    quartileSet = (lower_quartile - IQR, upper_quartile + IQR)
+    resultList = [x for x in scoredCol if x < quartileSet[0] or x > quartileSet[1]]
+    nOutliers = len(resultList)
+    out = []
+    out.append({"name":"totalCount","value":nObs,"text":"Number of Observations"})
+    out.append({"name":"totalSum","value":round(sumVal,2),"text":"Sum of Predicted Values"})
+    out.append({"name":"maxValue","value":round(maxVal,2),"text":"Maximum of Predicted Values"})
+    out.append({"name":"meanValue","value":round(avgVal,2),"text":"Average of Predicted Values"})
+    out.append({"name":"outlierCount","value":nOutliers,"text":"Number of Outliers"})
+    return out
+
+
+
+#-------- VIF based feature selection for Linear regression (on sparkdf) --------------#
+
+def vif_cal_spark(df):
+    xvar_names=df.columns
+    vif_ser = pd.Series(index=xvar_names)
+    for i in range(0,len(xvar_names)):
+        y_col=[xvar_names[i]]
+        x_col=list(set(xvar_names)-set(y_col))
+        vectorAssembler = VectorAssembler(inputCols=x_col, outputCol='features')
+        train_df = vectorAssembler.transform(df)
+        train_df = train_df.select(['features',y_col[0]])
+        lin_reg = LinearRegression(featuresCol = 'features', labelCol=y_col[0])
+        lin_reg_model = lin_reg.fit(train_df)
+        predictions = lin_reg_model.transform(train_df)
+        lr_evaluator = RegressionEvaluator(predictionCol="prediction",labelCol=y_col[0],metricName="r2")
+        rsq =lr_evaluator.evaluate(predictions)
+        if rsq == 1:
+            rsq=0.999
+        vif=round(1/(1-rsq),2)
+        vif_ser[xvar_names[i]] = vif
+    return vif_ser
+
+def feature_selection_vif_spark(df,vif_thr=5):
+    temp_vif = vif_cal_spark(df)
+    check = (temp_vif>vif_thr).sum()
+    print temp_vif
+    if check == 0:
+        return df
+    else:
+        all_col = df.columns
+        while check !=0:
+            print "In While"
+            mx_col =temp_vif.idxmax()
+            col2use = list(set(all_col)-set([mx_col]))
+            temp_df = df.select(col2use)
+            print "\ncolumn dropped : " + mx_col
+            all_col = col2use
+            temp_vif = vif_cal_spark(temp_df)
+            print temp_vif
+            check = (temp_vif>vif_thr).sum()
+        return df.select(col2use)
+
+
+#-------- VIF based feature selection for Linear regression (on Pandas df) --------------#
+
+def vif_cal(df):
+    xvar_names=df.columns
+    vif_ser = pd.Series(index=xvar_names)
+    for i in range(0,len(xvar_names)):
+        y_col=[xvar_names[i]]
+        x_col=list(set(xvar_names)-set(y_col))
+        lin_reg = linear_model.LinearRegression()
+        lin_reg.fit(df[x_col],df[y_col[0]])
+        y_prd = lin_reg.predict(df[x_col])
+        rsq = r2_score(df[y_col[0]],y_prd)
+        if rsq == 1:
+            rsq=0.999
+        vif=round(1/(1-rsq),2)
+        vif_ser[xvar_names[i]] = vif
+    return vif_ser
+
+def feature_selection_vif(df,vif_thr=5):
+    temp_vif = vif_cal(df)
+    check = (temp_vif>vif_thr).sum()
+    print temp_vif
+    if check == 0:
+        return df
+    else:
+        all_col = df.columns
+        while check !=0:
+            print "In While"
+            mx_col =temp_vif.idxmax()
+            col2use = list(set(all_col)-set([mx_col]))
+            temp_df = df[col2use]
+            print "\ncolumn dropped : " + mx_col
+            all_col = col2use
+            temp_vif = vif_cal(temp_df)
+            print temp_vif
+            check = (temp_vif>vif_thr).sum()
+        return df[col2use]
+
+
+
+def stock_sense_overview_card(data_dict_overall):
+    overviewCard = NormalCard()
+    overviewCard.set_card_name("Overview")
+    overviewCardData = []
+    summaryData = [
+        {
+          "name":"Total Articles",
+          "value":str(data_dict_overall["number_articles"])
+        },
+        {
+          "name": "Total Sources",
+          "value": str(data_dict_overall["number_sources"])
+        },
+        {
+          "name": "Average Sentiment Score",
+          "value": str(CommonUtils.round_sig(data_dict_overall["avg_sentiment_score"],sig=2))
+        },
+        {
+          "name": "Overall Stock % Change",
+          "value": str(CommonUtils.round_sig(data_dict_overall["stock_percent_change"],sig=2))
+        },
+        {
+          "name": "Max Increase in Price",
+          "value": "{}% ({})".format(data_dict_overall["max_value_change_overall"][1],data_dict_overall["max_value_change_overall"][0])
+        },
+        {
+          "name": "Max Decrease in Price",
+          "value": "{}% ({})".format(data_dict_overall["min_value_change_overall"][1],data_dict_overall["min_value_change_overall"][0])
+        }
+    ]
+    summaryDataClass = DataBox(data=summaryData)
+    overviewCardData.append(summaryDataClass)
+
+    articlesByStockCardData = data_dict_overall["number_articles_by_stock"]
+    plotData = []
+    for k,v in articlesByStockCardData.items():
+        plotData.append({"name":k,"value":v})
+    articlesByStockData = NormalChartData(data=plotData)
+    chart_json = ChartJson()
+    chart_json.set_data(articlesByStockData.get_data())
+    chart_json.set_chart_type("bar")
+    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_label_text({'x':'Stock','y':'No. of Articles'})
+    chart_json.set_title("Articles by Stock")
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2s")
+    articlesByStockChart = C3ChartData(data=chart_json)
+    articlesByStockChart.set_width_percent(50)
+    overviewCardData.append(articlesByStockChart)
+
+    articlesByConceptCardData = data_dict_overall["number_articles_by_concept"]
+    valuesTotal = __builtin__.sum(articlesByConceptCardData.values())
+    articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in articlesByConceptCardData.items()}
+    articlesByConceptData = NormalChartData(data=[articlesByConceptCardData])
+    chart_json = ChartJson()
+    chart_json.set_data(articlesByConceptData.get_data())
+    chart_json.set_chart_type("pie")
+    chart_json.set_title("Articles by Concept")
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2s")
+    articlesByConceptChart = C3ChartData(data=chart_json)
+    articlesByConceptChart.set_width_percent(50)
+    overviewCardData.append(articlesByConceptChart)
+
+    # print data_dict_overall["price_trend"]
+    priceTrendData = NormalChartData(data=data_dict_overall["price_trend"])
+    chart_json = ChartJson()
+    chart_json.set_data(priceTrendData.get_data())
+    chart_json.set_subchart(True)
+    chart_json.set_title("Stock Performance Analysis")
+    chart_json.set_label_text({"x":"DATE","Y":" "})
+    chart_json.set_chart_type("line")
+    chart_json.set_yaxis_number_format(".2f")
+    chart_json.set_axes({"x":"date","y":" "})
+    trendChart = C3ChartData(data=chart_json)
+    overviewCardData.append(trendChart)
+
+    articlesBySourceCardData = data_dict_overall["number_articles_per_source"]
+    plotData = []
+    for k,v in articlesBySourceCardData.items():
+        plotData.append({"name":k,"value":v})
+    articlesBySourceData = NormalChartData(data=plotData)
+    chart_json = ChartJson()
+    chart_json.set_data(articlesBySourceData.get_data())
+    chart_json.set_chart_type("bar")
+    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_label_text({'x':'Source','y':'No. of Articles'})
+    chart_json.set_title("Top Sources")
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2s")
+    articlesBySourceChart = C3ChartData(data=chart_json)
+    articlesBySourceChart.set_width_percent(50)
+    overviewCardData.append(articlesBySourceChart)
+
+
+
+    sentimentByStockCardData = data_dict_overall["stocks_by_sentiment"]
+    plotData = []
+    for k,v in sentimentByStockCardData.items():
+        plotData.append({"name":k,"value":v})
+    sentimentByStockData = NormalChartData(data=plotData)
+    chart_json = ChartJson()
+    chart_json.set_data(sentimentByStockData.get_data())
+    chart_json.set_chart_type("bar")
+    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_label_text({'x':'Stock','y':'Avg. Sentiment Score'})
+    chart_json.set_title("Sentiment Score by Stocks")
+    chart_json.set_subchart(False)
+    chart_json.set_yaxis_number_format(".2f")
+    sentimentByStockDataChart = C3ChartData(data=chart_json)
+    sentimentByStockDataChart.set_width_percent(50)
+    overviewCardData.append(sentimentByStockDataChart)
+
+    overviewCard.set_card_data(overviewCardData)
+    return overviewCard
+
+def stock_sense_individual_stock_cards(stockDict):
+    allStockNodes = []
+    for stockName,dataDict in stockDict.items():
+        stockNode = NarrativesTree()
+        stockNode.set_name(stockName)
+        analysisOverviewCard = NormalCard()
+        analysisOverviewCard.set_card_name("Analysis Overview")
+
+        overviewCardData = []
+        summaryData = [
+            {
+              "name":"Total Articles",
+              "value":str(dataDict["numArticles"])
+            },
+            {
+              "name": "Total Sources",
+              "value": str(dataDict["numSources"])
+            },
+            {
+              "name": "Average Sentiment Score",
+              "value": str(CommonUtils.round_sig(dataDict["avgSentimetScore"],sig=2))
+            },
+            {
+              "name": "Change in Stock Value",
+              "value": str(CommonUtils.round_sig(dataDict["stockValueChange"],sig=2))
+            },
+            {
+              "name": "Change in Sentiment Score",
+              "value": str(CommonUtils.round_sig(dataDict["changeInSentiment"],sig=2))
+            },
+            {
+              "name": "Percent Change in Stock value",
+              "value": str(CommonUtils.round_sig(dataDict["stockValuePercentChange"],sig=2))
+            }
+        ]
+        summaryDataClass = DataBox(data=summaryData)
+        overviewCardData.append(summaryDataClass)
+
+        sentimentNdArticlesBySource = NormalChartData(data=dataDict["articlesAndSentimentsPerSource"])
+        chart_json = ChartJson()
+        chart_json.set_data(sentimentNdArticlesBySource.get_data())
+        chart_json.set_chart_type("combination")
+        chart_json.set_axes({"x":"source","y":"articles","y2":"avgSentiment"})
+        chart_json.set_label_text({'x':'Source','y':'No. of Articles',"y2":"Average Sentiment Score"})
+        chart_json.set_types({"source":"line","articles":"bar","avgSentiment":"line"})
+        chart_json.set_title("Sentiment Score by Source")
+        chart_json.set_subchart(False)
+        chart_json.set_yaxis_number_format(".2s")
+        chart_json.set_y2axis_number_format(".2f")
+        sentimentNdArticlesBySourceChart = C3ChartData(data=chart_json)
+        sentimentNdArticlesBySourceChart.set_width_percent(50)
+        overviewCardData.append(sentimentNdArticlesBySourceChart)
+
+        conceptData = dataDict["articlesAndSentimentsPerConcept"]
+        chartData = []
+        for k,v in dataDict["articlesAndSentimentsPerConcept"].items():
+            chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
+        sentimentNdArticlesByConcept = NormalChartData(data=chartData)
+        chart_json = ChartJson()
+        chart_json.set_data(sentimentNdArticlesByConcept.get_data())
+        chart_json.set_chart_type("combination")
+        chart_json.set_axes({"x":"concept","y":"articles","y2":"avgSentiment"})
+        chart_json.set_label_text({'x':'concept','y':'No. of Articles',"y2":"Average Sentiment Score"})
+        chart_json.set_types({"concept":"line","articles":"bar","avgSentiment":"line"})
+        chart_json.set_title("Sentiment Score by Concept")
+        chart_json.set_subchart(False)
+        chart_json.set_yaxis_number_format(".2s")
+        chart_json.set_y2axis_number_format(".2f")
+        sentimentNdArticlesByConceptChart = C3ChartData(data=chart_json)
+        sentimentNdArticlesByConceptChart.set_width_percent(50)
+        overviewCardData.append(sentimentNdArticlesByConceptChart)
+
+        priceAndSentimentTrendData = NormalChartData(data=dataDict["stockPriceAndSentimentTrend"])
+        chart_json = ChartJson()
+        chart_json.set_data(priceAndSentimentTrendData.get_data())
+        chart_json.set_subchart(True)
+        chart_json.set_title("Stock Performance Vs Sentiment Score")
+        chart_json.set_axes({"x":"date","y":"close","y2":"overallSentiment"})
+        chart_json.set_label_text({"x":"Date","Y":"Stock Value","y2":"Sentiment Score"})
+        chart_json.set_chart_type("line")
+        chart_json.set_yaxis_number_format(".2f")
+        chart_json.set_y2axis_number_format(".2f")
+        priceAndSentimentTrendChart = C3ChartData(data=chart_json)
+        overviewCardData.append(priceAndSentimentTrendChart)
+
+        overviewCardData.append(HtmlData(data="<h3>Top Entities</h3>"))
+        wordCloudData = WordCloud(data=dataDict["topEntities"])
+        overviewCardData.append(wordCloudData)
+
+        analysisOverviewCard.set_card_data(overviewCardData)
+        stockNode.add_a_card(analysisOverviewCard)
+
+        eventAnalysisCard = NormalCard()
+        eventAnalysisCard.set_card_name("Event Analysis")
+        eventAnalysisCardData = []
+        eventAnalysisCardData.append(HtmlData(data="<h3>Key Days and Impactful Articles</h3>"))
+        keyDaysTable = TableData()
+        keyDaysTableData = dataDict["keyDays"]
+        keyDaysTable.set_table_data(keyDaysTableData)
+        keyDaysTable.set_table_type("normal")
+        eventAnalysisCardData.append(keyDaysTable)
+        eventAnalysisCardData.append(HtmlData(data="<h3>Top Articles</h3>"))
+        topArticlesTable = TableData()
+        topArticlesTableData = dataDict["keyArticles"]
+        topArticlesTable.set_table_data(topArticlesTableData)
+        topArticlesTable.set_table_type("normal")
+        eventAnalysisCardData.append(topArticlesTable)
+        eventAnalysisCard.set_card_data(eventAnalysisCardData)
+        stockNode.add_a_card(eventAnalysisCard)
+
+        # impactAnalysisCard = NormalCard()
+        # impactAnalysisCard.set_card_name("Impact Analysis")
+        # impactAnalysisCardData = []
+        # impactAnalysisCard.set_card_data(impactAnalysisCardData)
+        # stockNode.add_a_card(impactAnalysisCard)
+
+        allStockNodes.append(stockNode)
+
+    return allStockNodes

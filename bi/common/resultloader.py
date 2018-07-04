@@ -43,7 +43,23 @@ class ResultSetter:
         self.stockAdvisorNode = None
         self.uidTable = None
         self.pmmlObjects = {}
+        self.anovaCardsRegScore = []
+        self.kpiCardScore = None
+        self.hyperParameterResultDict = {}
+        self.parallelCooridnateMetaData = {}
+        self.hideTableColumns = []
+        self.coeffCardScore = None
 
+    def set_metadata_parallel_coordinates(self,slug,data):
+        self.parallelCooridnateMetaData[slug] = data
+
+    def get_metadata_parallel_coordinates(self,slug):
+        return self.parallelCooridnateMetaData[slug]
+
+    def set_hyper_parameter_results(self,slug,data):
+        self.hyperParameterResultDict[slug] = data
+    def get_hyper_parameter_results(self,slug):
+        return self.hyperParameterResultDict[slug]
     def update_pmml_object(self,data):
         self.pmmlObjects.update(data)
     def get_pmml_object(self):
@@ -127,7 +143,7 @@ class ResultSetter:
         allRegressionModelSummary = [self.linearRegressionModelSummary,self.gbtRegressionModelSummary,self.dtreeRegressionModelSummary,self.rfRegressionModelSummary,self.generalizedLinearRegressionModelSummary]
         allRegressionModelSummary = [x for x in allRegressionModelSummary if x != None]
         return allRegressionModelSummary
-        
+
     def set_head_node(self,node):
         self.headNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_trend_node(self,node):
@@ -196,3 +212,21 @@ class ResultSetter:
 
     def get_unique_identifier_table(self):
         return self.uidTable
+
+    def get_kpi_card_regression_score(self):
+        return self.kpiCardScore
+
+    def set_kpi_card_regression_score(self,kpiCardScore):
+        self.kpiCardScore = kpiCardScore
+
+    def get_anova_cards_regression_score(self):
+        return self.anovaCardsRegScore
+
+    def set_anova_cards_regression_score(self,data):
+        self.anovaCardsRegScore.append(data)
+
+    def get_coeff_card_regression_score(self):
+        return self.coeffCardScore
+
+    def set_coeff_card_regression_score(self,coeffCardScore):
+        self.coeffCardScore = coeffCardScore

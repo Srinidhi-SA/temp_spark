@@ -108,6 +108,8 @@ class ContingencyTable:
         column_two_values = self.column_two_values
         self.table_percent = [[round(self.table[i][j]*100.0/total,2) for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
+        # print 'table_percent' *5
+        # print self.table_percent
         self.table_percent_by_row = [[round(self.table[i][j]*100.0/row_total[i],2) for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
         self.table_percent_by_column = [[round(self.table[i][j]*100.0/column_total[j],2) for j in range(0,len(column_two_values))] \

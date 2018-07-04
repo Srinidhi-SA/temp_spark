@@ -1,6 +1,7 @@
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
 from cryptography.fernet import Fernet
+from bi.common import AlgorithmParameterConfig
 
 
 class ContextSetter:
@@ -54,6 +55,7 @@ class ContextSetter:
         self.trendSettings = None
         self.metaIgnoreMsgFlag = False
         self.customAnalysisDetails = []
+        self.changeDataTypeCols = []
         self.jobType = None
         self.storyOnScoredData = False
         self.uidCol = None
@@ -110,33 +112,10 @@ class ContextSetter:
 
         if len(self.ALGORITHM_SETTINGS) > 0:
             for obj in self.ALGORITHM_SETTINGS:
-                if obj["selected"] == True:
-                    trimmedObj = {"algorithmName":obj["algorithmName"],"algorithmSlug":obj["algorithmSlug"]}
-                    trimmedParams = {}
-                    for paramObj in obj["parameters"]:
-                        if paramObj["paramType"] == "number":
-                            if paramObj["name"] != "tol":
-                                if paramObj["acceptedValue"]  != None:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
-                                else:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
-                            else:
-                                if paramObj["acceptedValue"]  != None:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["acceptedValue"]}
-                                else:
-                                    trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":float(1)/10**paramObj["defaultValue"]}
-                        elif paramObj["paramType"] == "boolean":
-                            if paramObj["acceptedValue"]  != None:
-                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["acceptedValue"]}
-                            else:
-                                trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":paramObj["defaultValue"]}
-                        elif paramObj["paramType"] == "list":
-                            selectedValue = filter(lambda x:x["selected"] == True,paramObj["defaultValue"])
-                            trimmedParams[paramObj["name"]] = {"displayName":paramObj["displayName"],"value":selectedValue[0]["name"]}
-                    trimmedObj["algorithmParams"] = trimmedParams
-                    self.algorithmsToRun.append(trimmedObj)
-
-
+                algoParamConfigInstance = AlgorithmParameterConfig()
+                algoParamConfigInstance.set_params(obj)
+                if algoParamConfigInstance.is_selected():
+                    self.algorithmsToRun.append(algoParamConfigInstance)
 
         if len(dbSettingKeys) > 0:
             if "datasource_details" in dbSettingKeys:
@@ -172,6 +151,8 @@ class ContextSetter:
                 self.train_test_split =self.FILE_SETTINGS['train_test_split'][0]
             if "modelpath" in fileSettingKeys:
                 self.MODEL_PATH =self.FILE_SETTINGS['modelpath'][0]
+            if "selectedModel" in fileSettingKeys:
+                self.MODEL_FOR_SCORING = self.FILE_SETTINGS['selectedModel'][0]
             if "scorepath" in fileSettingKeys:
                 self.SCORE_PATH =self.FILE_SETTINGS['scorepath'][0]
             if "foldername" in fileSettingKeys:
@@ -242,6 +223,8 @@ class ContextSetter:
                             self.selected_date_columns.append(str(colSetting["name"]))
                     if colSetting["dateSuggestionFlag"] == True:
                         self.dateTimeSuggestions.append(str(colSetting["name"]))
+                    if colSetting["actualColumnType"] != colSetting["columnType"] and colSetting["selected"] == True:
+                        self.changeDataTypeCols.append({"colName":str(colSetting["name"]),"actualColumnType":colSetting["actualColumnType"],"columnType":colSetting["columnType"]})
                     if colSetting["setVarAs"] != None and colSetting["selected"] == True:
                         self.customAnalysisDetails.append({"colName":str(colSetting["name"]),"treatAs":colSetting["setVarAs"]})
                     if "targetColSetVarAs" in colSetting and colSetting["targetColumn"] == True:
@@ -349,6 +332,8 @@ class ContextSetter:
             print "self.analysistype",self.analysistype
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def get_model_for_scoring(self):
+        return self.MODEL_FOR_SCORING["Model Id"]
     def set_ml_environment(self,data):
         self.mlEnv = data
     def get_ml_environment(self):
@@ -508,6 +493,9 @@ class ContextSetter:
     def get_custom_analysis_details(self):
         return self.customAnalysisDetails
 
+    def get_change_datatype_details(self):
+        return self.changeDataTypeCols
+
     def set_cols_to_bin(self,colArray):
         self.customAnalysisDetails = colArray
 
@@ -537,12 +525,12 @@ class ContextSetter:
 
     def initialize_ml_model_training_weight(self):
         appType = self.get_app_type()
+        algoSlugs = [x.get_algorithm_slug() for x in self.algorithmsToRun]
+
         if appType == "REGRESSION":
-            algoSlugs = [x["algorithmSlug"] for x in self.algorithmsToRun]
             algoRelWeight = GLOBALSETTINGS.regressionAlgoRelativeWeight
             intitialScriptWeight = GLOBALSETTINGS.regressionTrainingInitialScriptWeight
         elif appType == "CLASSIFICATION":
-            algoSlugs = GLOBALSETTINGS.classificationAlgorithmsToRunTemp
             algoRelWeight = GLOBALSETTINGS.classificationAlgoRelativeWeight
             intitialScriptWeight = GLOBALSETTINGS.classificationTrainingInitialScriptWeight
 

@@ -87,7 +87,6 @@ class Binner:
                 FN.col(column_name).cast('double').alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
         else:
             column_df = self._data_frame.select(FN.col(column_name).alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
-
         bucketizer = Bucketizer(inputCol=BinnerConstants.ORIGINAL_COLUMN_NAME,
                                 outputCol=BinnerConstants.BINNED_COLUMN_NAME)
         bucketizer.setSplits(splits)
@@ -98,8 +97,7 @@ class Binner:
             end_value = max_value+0.5
             histogram.add_bin(bin_number, start_value, end_value, self._num_rows)
         else:
-            buckets_and_counts = bucketizer.transform(column_df).groupBy(BinnerConstants.BINNED_COLUMN_NAME).agg(
-                {'*': 'count'}).collect()
+            buckets_and_counts = bucketizer.transform(column_df).groupBy(BinnerConstants.BINNED_COLUMN_NAME).agg({'*': 'count'}).collect()
             histogram = Histogram(column_name, self._num_rows)
             for row in buckets_and_counts:
                 bin_number = int(row[0])

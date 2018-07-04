@@ -1074,3 +1074,34 @@ def select_y_axis_format(dataArray):
             return ".4f"
     else:
         return ".2f"
+
+def reformat_level_count_tuple(levelCountTuple):
+    percentArray = [val["percentage"] for val in levelCountTuple]
+    newPercentArray = []
+    for perCent in percentArray:
+        if perCent < 99:
+            perCent = math.ceil(perCent)
+            newPercentArray.append(perCent)
+        else:
+            newPercentArray.append(99)
+    if sum(newPercentArray) > 100:
+        newPercentArray[-1] = newPercentArray[-1]-1
+    output = []
+    for idx,obj in enumerate(levelCountTuple):
+        obj.update({"percentage":newPercentArray[idx]})
+        output.append(obj)
+    return output
+
+def ret_smart_round(n):
+    """
+    sumit's legacy
+    """
+    n_int = np.floor(n)
+    n_dec = n-n_int
+    sum_n = sum(n)
+    sum_int = sum(n_int)
+    while sum_int != 100:
+        n_int[np.argmax(n_dec)] = np.round(n[np.argmax(n_dec)])
+        n_dec = n-n_int
+        sum_int = sum(n_int)
+    return [int(x) for x in n_int]

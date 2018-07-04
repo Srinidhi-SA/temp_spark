@@ -13,6 +13,7 @@ from pyspark.sql.functions import col, create_map, lit
 from pyspark.sql.functions import udf
 from pyspark.sql.types import *
 from pyspark.sql.types import StringType
+from pyspark.sql.types import IntegerType
 from sklearn.model_selection import train_test_split
 
 from bi.common import ContextSetter
@@ -67,6 +68,9 @@ class DataFrameHelper:
         self.dollar_columns = self._dataframe_context.get_dollar_columns()
         self.colsToBin = []
 
+    def set_dataframe(self,sparkDf):
+        self._data_frame = sparkDf
+
     def set_params(self):
         print "Setting the dataframe"
         self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
@@ -109,8 +113,10 @@ class DataFrameHelper:
         self.update_column_data()
         print "boolean_columns",self.boolean_columns
         self.boolean_to_string(list(set(colsToKeep) & set(self.boolean_columns)))
+        dataTypeChange = self._dataframe_context.get_change_datatype_details()
+        print dataTypeChange
+        self.change_data_type(dataTypeChange)
         self.update_column_data()
-
 
     def update_column_data(self):
         dfSchemaFields = self._data_frame.schema.fields
@@ -133,10 +139,23 @@ class DataFrameHelper:
                 self.timestamp_columns.append(field.name)
         # print self.string_columns
 
+
     def boolean_to_string(self,colsToConvert):
         if len(colsToConvert) > 0:
             for column in colsToConvert:
                 self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType()))
+
+    def change_data_type(self,dataTypeChange):
+        print "Updating column data type"
+        for obj in dataTypeChange:
+            try:
+                if obj["columnType"] == "dimension":
+                    self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(StringType()))
+                elif obj["columnType"] == "measure":
+                    self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(IntegerType()))
+                print self._data_frame.printSchema()
+            except:
+                pass
 
     def set_train_test_data(self,df):
         result_column = self._dataframe_context.get_result_column()
@@ -190,7 +209,6 @@ class DataFrameHelper:
         self.num_rows = self._data_frame.count()
 
 
-
     def bin_columns(self,colsToBin):
         for bincol in colsToBin:
             minval,maxval = self._data_frame.select([FN.max(bincol).alias("max"),FN.min(bincol).alias("min")]).collect()[0]
@@ -205,7 +223,6 @@ class DataFrameHelper:
             self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
             self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
             self._data_frame = self._data_frame.select(self.columns)
-
 
     def get_cols_to_bin(self):
         return self.colsToBin

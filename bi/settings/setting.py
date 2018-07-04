@@ -1,8 +1,32 @@
-from pySparkMlParams import *
-from sklernMlParams import *
+from pySparkMLClassificationParams import *
+from pySparkMLRegressionParams import *
+from sklearnMLClassificationParams import *
+from sklearnMLRegressionParams import *
+
+UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION = 20
+MODEL_NAME_MAX_LENGTH = 4
+CLASSIFICATION_MODEL_EVALUATION_METRIC = "accuracy"
+REGRESSION_MODEL_EVALUATION_METRIC = "r2"
+SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP = {
+    "r2":"R-Squared",
+    "neg_mean_absolute_error":"MAE",
+    "neg_mean_squared_error":"MSE",
+    "neg_mean_squared_log_error":"MSE(log)",
+    "accuracy":"Accuracy",
+    "precision":"Precision",
+    "recall":"Recall",
+    "roc_auc":"ROC-AUC"
+}
+
+MAX_NUMBER_OF_MODELS_IN_SUMMARY = 10
+REG_SCORE_HIGHLIGHT = False
+REG_SCORE_ANOVA_KEY_FACTORS = False
 
 CHISQUARELEVELLIMIT = 10
 CHISQUARESIGNIFICANTDIMENSIONTOSHOW = 8
+
+DTREE_TARGET_DIMENSION_MAX_LEVEL = 10
+DTREE_OTHER_DIMENSION_MAX_LEVEL = 50
 
 DECISIONTREERKMEANSTARGETNAME = ['Low','Medium','High']
 MAPEBINS = [0,5,15,25,100]
@@ -124,6 +148,17 @@ MODEL_SLUG_MAPPING = {
             "rfregression":ALGORITHMRANDOMSLUG+"rfr"
             }
 
+SLUG_MODEL_DISPLAY_NAME_MAPPING = {
+            ALGORITHMRANDOMSLUG+"rf":"Random Forest",
+            ALGORITHMRANDOMSLUG+"lr":"Logistic Regression",
+            ALGORITHMRANDOMSLUG+"xgb":"Xgboost",
+            ALGORITHMRANDOMSLUG+"svm":"SVM",
+            ALGORITHMRANDOMSLUG+"linr":"Linear Regression",
+            ALGORITHMRANDOMSLUG+"gbtr":"Gradient Boosted Trees",
+            ALGORITHMRANDOMSLUG+"dtreer":"Decision Tree",
+            ALGORITHMRANDOMSLUG+"rfr":"Random Forest"
+            }
+
 scriptsMapping = {
     "overview" : "Descriptive analysis",
     "performance" : "Measure vs. Dimension",
@@ -176,7 +211,6 @@ classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"lr"  : 1,
     ALGORITHMRANDOMSLUG+"svm" : 2
 }
-classificationAlgorithmsToRunTemp = [ALGORITHMRANDOMSLUG+"rf",ALGORITHMRANDOMSLUG+"xgb",ALGORITHMRANDOMSLUG+"lr"]
 
 metadataScriptWeight = {
     "initialization":{"total":3,"script":2,"narratives":1},

@@ -120,6 +120,10 @@ class NormalCard:
         self.slug = slug
         self.cardData = list(cardData)
         self.cardWidth = 100
+        self.centerAlign = False
+
+    def set_cente_alignment(self,data):
+        self.centerAlign = data
 
     def set_card_data(self,data):
         self.cardData = list(data)
@@ -220,7 +224,7 @@ class SummaryCard:
 
 class HtmlData:
 
-    def __init__(self,data=None):
+    def __init__(self,data=None,classTag=None):
         self.dataType = "html"
         self.data = data
         self.classTag = None
@@ -355,3 +359,110 @@ class PopupData:
 
     def get_data_type(self):
         return self.dataType
+
+class KpiData:
+    def __init__(self,data=None, datatype = 'kpi', widthPercent = 20):
+        self.dataType = datatype
+        self.data = data
+        self.widthPercent = widthPercent
+
+    def set_data(self,data):
+        self.data = data
+
+    def get_data(self):
+        return self.data
+
+    def get_data_type(self):
+        return self.dataType
+
+    def set_width_percent(self,data):
+        self.widthPercent = data
+
+class ParallelCoordinateData:
+
+    def __init__(self,data=None,ignoreList=[],hideColumns=[],metricColName=None,columnOrder=[]):
+        self.dataType = "parallelCoordinates"
+        self.data = data
+        self.evaluationMetricColName = metricColName
+        self.ignoreList = ignoreList
+        self.columnOrder = columnOrder
+        self.hideColumns = hideColumns
+
+    def set_data(self,data):
+        self.data = data
+
+    def get_data(self):
+        return self.data
+
+    def get_data_type(self):
+        return self.dataType
+
+    def set_ignore_list(self,data):
+        self.ignoreList = data
+
+    def get_ignore_list(self):
+        return self.ignoreList
+
+    def set_column_order(self,data):
+        self.columnOrder = data
+
+    def get_column_order(self):
+        return self.columnOrder
+
+    def set_hide_columns(self,data):
+        self.hideColumns = data
+
+    def get_hide_columns(self):
+        return self.hideColumns
+
+    def set_metric_colname(self,data):
+        self.evaluationMetricColName = data
+
+    def get_metric_colname(self):
+        return self.evaluationMetricColName
+
+class DataBox:
+    """
+                sampleData = [{
+                      "name": "Total Articles",
+                      "value": "128"
+                    },
+                    {
+                      "name": "Total Source",
+                      "value": "26"
+                    },
+                    {
+                      "name": "Average Sentiment Score",
+                      "value": "0.31"
+                    }]
+    """
+    def __init__(self,data=[]):
+        self.data = data
+        self.dataType = "dataBox"
+
+    def set_data(self,data):
+        self.data = data
+    def get_data():
+        return self.data
+
+class WordCloud:
+    """
+    sampleData = [
+                    {
+                      "text": "Alphabet",
+                      "value": "58"
+                    },
+                    {
+                      "text": "mobile interface",
+                      "value": "48"
+                    }
+                ]
+    """
+    def __init__(self,data=[]):
+        self.data = data
+        self.dataType = "wordCloud"
+
+    def set_data(self,data):
+        self.data = data
+    def get_data():
+        return self.data

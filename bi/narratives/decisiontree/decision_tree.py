@@ -248,6 +248,9 @@ class DecisionTreeNarrative:
                         chartDict[grps] = chartDict[grps]+1
             chartDict = {k:v for k,v in chartDict.items() if v != 0}
             print chartDict
+        else:
+            chartDict = dict([(k,sum(v)) for k,v in self.total_predictions.items()])
+            chartDict = {k:v for k,v in chartDict.items() if v != 0}
         if len(chartDict) > donutChartMaxLevel:
             chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)
         chartData = NormalChartData([chartDict]).get_data()
@@ -280,8 +283,10 @@ class DecisionTreeNarrative:
                 levelCountDict[k] = sum(v)
             # levelCountDict = self._metaParser.get_unique_level_dict(self._colname)
             total = float(sum([x for x in levelCountDict.values() if x != None]))
-            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%" if v*100/total >=10 else str(int(v*100/total))+"%"}) for k,v in levelCountDict.items() if v != None]
-            levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
+            levelCountTuple = [{"name":k,"count":v,"percentage":round(v*100/total,2)} for k,v in levelCountDict.items() if v != None]
+            percentageArray = [x["percentage"] for x in levelCountTuple]
+            percentageArray = NarrativesUtils.ret_smart_round(percentageArray)
+            levelCountTuple = [{"name":obj["name"],"count":obj["count"],"percentage":str(percentageArray[idx])+"%"} for idx,obj in enumerate(levelCountTuple)]
             data_dict["nlevel"] = len(levelCountDict)
             print "levelCountTuple",levelCountTuple
             print "levelCountDict",levelCountDict

@@ -9,7 +9,7 @@ from bi.common import utils as CommonUtils
 from bi.common.datafilterer import DataFrameFilterer
 from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
-
+from bi.settings import setting as GLOBALSETTINGS
 """
 Decision Tree
 """
@@ -212,13 +212,14 @@ class DecisionTrees:
 
 
 
-    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
-    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=50):
+    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
+    def test_all(self, measure_columns=None, dimension_columns=None):
         measures = measure_columns
         if measure_columns is None:
             measures = self._measure_columns
         self._target_dimension = dimension_columns[0]
         dimension = self._target_dimension
+        max_num_levels = GLOBALSETTINGS.DTREE_TARGET_DIMENSION_MAX_LEVEL
         max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
         # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
@@ -230,6 +231,7 @@ class DecisionTrees:
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
         self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
+        print self._data_frame.show(1)
         # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
         standard_measure_index = {0.0:'Low',1.0:'Below Average',2.0:'Average',3.0:'Above Average',4.0:'High'}
         for measure in all_measures:
@@ -260,7 +262,12 @@ class DecisionTrees:
         except:
             dimension_classes = self._data_frame.select(dimension).distinct().count()
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
-
+        print "="*200
+        print self._data_frame.rdd.first()
+        print "numClasses",dimension_classes
+        print "maxDepth",self._maxDepth
+        print "maxBins",max_length
+        print "="*200
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column

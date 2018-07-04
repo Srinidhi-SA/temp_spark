@@ -252,12 +252,16 @@ class MeasureColumnNarrative:
                     "q4_mean" : NarrativesUtils.round_number(quartile_means['q4'], 2),
                     "q1_sum" : NarrativesUtils.round_number(quartile_sums['q1'], 2),
                     "q4_overall_mean" : round(quartile_means['q4']*1.0/avg, 2),
-                    "q4_q1_mean" : round(quartile_means['q4']*1.0/quartile_means['q1'] - 1, 1),
                     "total" : NarrativesUtils.round_number(total,2),
                     "avg" : NarrativesUtils.round_number(avg,2),
                     "highlightFlag":self._highlightFlag,
                     "blockSplitter":self._blockSplitter
         }
+        try:
+            data_dict["q4_q1_mean"] = round(quartile_means['q4']*1.0/quartile_means['q1'] - 1, 1)
+        except:
+            data_dict["q4_q1_mean"] = None
+
         self._result_setter.update_executive_summary_data({"skew":data_dict["skew"]})
         if abs(self._measure_descr_stats.get_skew())>0.1:
             content = NarrativesUtils.get_template_output(self._base_dir,\

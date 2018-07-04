@@ -48,24 +48,8 @@ class DecisionTreeRegression:
         self._important_vars = {}
         self._numCluster = None
 
-
-        if not self._dataframe_context.get_story_on_scored_data():
-            datasource_type = self._dataframe_context.get_datasource_type()
-            if datasource_type == "Hana":
-                dbConnectionParams = self._dataframe_context.get_dbconnection_params()
-                self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
-                self._data_frame1 = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
-            elif datasource_type == "fileUpload":
-                self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-                self._data_frame1 = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-            self._dataframe_helper = DataFrameHelper(self._data_frame,self._dataframe_context,self._metaParser)
-            self._dataframe_helper.set_params()
-            self.temp_df = self._dataframe_helper.get_data_frame()
-            self._data_frame = self._dataframe_helper.fill_missing_values(self.temp_df)
-            self._data_frame1 = self._dataframe_helper.fill_missing_values(self.temp_df)
-        else:
-            self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
-            self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
+        self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
+        self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._messageURL = self._dataframe_context.get_message_url()
@@ -87,15 +71,7 @@ class DecisionTreeRegression:
                 "weight":10
                 },
             }
-        # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10
-        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-        #                             "dtreeTrainingStart",\
-        #                             "info",\
-        #                             self._scriptStages["dtreeTrainingStart"]["summary"],\
-        #                             self._completionStatus,\
-        #                             self._completionStatus)
-        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        # self._dataframe_context.update_completion_status(self._completionStatus)
+
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"dtreeTrainingStart","info",weightKey="script")
 
 
@@ -284,12 +260,13 @@ class DecisionTreeRegression:
             mapping_dict[k] = temp
         self._mapping_dict = mapping_dict
 
-    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple), max_num_levels=int)
-    def test_all(self, measure_columns=None, dimension_columns=None, max_num_levels=50):
+    @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
+    def test_all(self, measure_columns=None, dimension_columns=None):
         if dimension_columns is None:
             dimensions = self._dimension_columns
         self._target_dimension = measure_columns[0]
         dimension = self._target_dimension
+        max_num_levels = GLOBALSETTINGS.DTREE_TARGET_DIMENSION_MAX_LEVEL
         max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
         # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]

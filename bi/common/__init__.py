@@ -4,6 +4,7 @@
 ################################################################################
 
 from column import ColumnType
+from algorithmSetting import AlgorithmParameters,HyperParameterSetting,AlgorithmParameterConfig
 from context import ContextSetter
 from metaparser import MetaParser
 from dataframe import DataFrameHelper
@@ -17,11 +18,11 @@ from datafilterer import DataFrameFilterer
 from datafilterhelper import DataFilterHelper
 from filtercontext import FilterContextSetter
 from resultloader import ResultSetter
-from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData,TreeData,ToggleData,PopupData
+from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3ChartData,TableData,TreeData,ToggleData,PopupData,KpiData,ParallelCoordinateData,DataBox,WordCloud
 from metadatahelper import MetaDataHelper
 from charts import ScatterChartData,NormalChartData,ChartJson
 from datacleansing import DataCleanser
-from mlmodelclasses import MLModelSummary,ModelSummary
+from mlmodelclasses import MLModelSummary,ModelSummary,SklearnGridSearchResult,SkleanrKFoldResult
 from configvalidator import ConfigValidator
 
 # Alpha levels corresponding to (90%, 95%, 99%, 99.9%, 99.99%, 99.999%, 99.9999%, 99.99999%)
@@ -43,10 +44,12 @@ __all__ = [
     'DataFilterHelper',
     'FilterContextSetter',
     'ResultSetter',
-    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData','TableData','TreeData','ToggleData','PopupData',
+    'NarrativesTree','NormalCard','SummaryCard','HtmlData','C3ChartData','TableData','TreeData','ToggleData','PopupData','KpiData','ParallelCoordinateData','DataBox','WordCloud',
     'MetaDataHelper',
     'ScatterChartData','NormalChartData','ChartJson','ModelSummary',
     'DataCleanser',
     'MLModelSummary',
-    'ConfigValidator'
+    'SklearnGridSearchResult',
+    'ConfigValidator',
+    'AlgorithmParameters','HyperParameterSetting','AlgorithmParameterConfig','SkleanrKFoldResult',
 ]

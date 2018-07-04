@@ -11,7 +11,6 @@ from bi.algorithms import utils as MLUtils
 
 import time
 
-
 class LinearRegression:
     LABEL_COLUMN_NAME = 'label'
     FEATURES_COLUMN_NAME = 'features'
@@ -21,7 +20,7 @@ class LinearRegression:
 
     def __init__(self, data_frame, df_helper, df_context, meta_parser,spark):
         self._data_frame = data_frame
-        # self._dataframe_helper = df_helper
+        self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._metaParser = meta_parser
         self._spark = spark
@@ -52,16 +51,7 @@ class LinearRegression:
             CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore = self._ignoreRegressionElasticityMessages)
             self._dataframe_context.update_completion_status(self._completionStatus)
 
-        datasource_type = self._dataframe_context.get_datasource_type()
-        if datasource_type == "Hana":
-            dbConnectionParams = self._dataframe_context.get_dbconnection_params()
-            self._data_frame = DataLoader.create_dataframe_from_hana_connector(self._spark, dbConnectionParams)
-        elif datasource_type == "fileUpload":
-            self._data_frame = DataLoader.load_csv_file(self._spark, self._dataframe_context.get_input_file())
-        self._dataframe_helper = DataFrameHelper(self._data_frame,self._dataframe_context,self._metaParser)
-        self._dataframe_helper.set_params()
-        self.temp_df = self._dataframe_helper.get_data_frame()
-        self._data_frame = self._dataframe_helper.fill_missing_values(self.temp_df)
+        self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
 
     def fit_all(self):
         """

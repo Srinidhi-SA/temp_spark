@@ -13,7 +13,7 @@ from pyspark.sql.types import DoubleType
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import MLModelSummary
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
@@ -47,11 +47,13 @@ from sklearn2pmml import PMMLPipeline
 
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import KFold
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 
 
 
 
-class GBTRegressionModelPysparkScript:
+class GBTRegressionModelScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -94,9 +96,9 @@ class GBTRegressionModelPysparkScript:
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-
+        appType = self._dataframe_context.get_app_type()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x["algorithmSlug"]==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -204,7 +206,7 @@ class GBTRegressionModelPysparkScript:
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_validation_method(validationDict["displayName"])
             self._model_summary.set_model_evaluation_metrics(metrics)
-            self._model_summary.set_model_params(algoSetting["algorithmParams"])
+            self._model_summary.set_model_params(bestEstimator.get_params())
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
@@ -220,36 +222,51 @@ class GBTRegressionModelPysparkScript:
             st = time.time()
             est = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1,max_depth=1, random_state=0, loss='ls')
 
-            algoParams = {k:v["value"] for k,v in algoSetting["algorithmParams"].items()}
-            algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
-            est.set_params(**algoParams)
-
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+            if algoSetting.is_hyperparameter_tuning_enabled():
+                hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
+                params_grid = algoSetting.get_params_dict_hyperparameter()
+                params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
+                print params_grid
+                if hyperParamAlgoName == "gridsearchcv":
+                    estGrid = GridSearchCV(est,params_grid)
+                    gridParams = estGrid.get_params()
+                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                    estGrid.set_params(**hyperParamInitParam)
+                    estGrid.fit(x_train,y_train)
+                    bestEstimator = estGrid.best_estimator_
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
 
-            if validationDict["name"] == "kFold":
-                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                numFold = int(validationDict["value"])
-                if numFold == 0:
-                    numFold = 3
-                kf = KFold(n_splits=numFold)
-                foldId = 1
-                kFoldOutput = []
-                for train_index, test_index in kf.split(x_train):
-                    x_train_fold, x_test_fold = x_train.iloc[train_index,:], x_train.iloc[test_index,:]
-                    y_train_fold, y_test_fold = y_train.iloc[train_index], y_train.iloc[test_index]
-                    est.fit(x_train_fold, y_train_fold)
-                    y_score_fold = est.predict(x_test_fold)
-                    metricsFold = {}
-                    metricsFold["r2"] = r2_score(y_test_fold, y_score_fold)
-                    metricsFold["mse"] = mean_squared_error(y_test_fold, y_score_fold)
-                    metricsFold["mae"] = mean_absolute_error(y_test_fold, y_score_fold)
-                    metricsFold["rmse"] = sqrt(metricsFold["mse"])
-                    kFoldOutput.append((est,metricsFold))
-                kFoldOutput = sorted(kFoldOutput,key=lambda x:x[1]["r2"])
-                bestEstimator = kFoldOutput[-1][0]
-            elif validationDict["name"] == "trainAndtest":
-                est.fit(x_train, y_train)
-                bestEstimator = est
+                elif hyperParamAlgoName == "randomsearchcv":
+                    estRand = RandomizedSearchCV(est,params_grid)
+                    estRand.set_params(**hyperParamInitParam)
+                    bestEstimator = None
+            else:
+                evaluationMetricDict = {"name":GLOBALSETTINGS.REGRESSION_MODEL_EVALUATION_METRIC}
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                algoParams = algoSetting.get_params_dict()
+                algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
+                est.set_params(**algoParams)
+                self._result_setter.set_hyper_parameter_results(self._slug,None)
+                if validationDict["name"] == "kFold":
+                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                    numFold = int(validationDict["value"])
+                    if numFold == 0:
+                        numFold = 3
+                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
+                    kFoldClass.train_and_save_result()
+                    kFoldOutput = kFoldClass.get_kfold_result()
+                    bestEstimator = kFoldClass.get_best_estimator()
+                elif validationDict["name"] == "trainAndtest":
+                    est.fit(x_train, y_train)
+                    bestEstimator = est
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
@@ -261,7 +278,11 @@ class GBTRegressionModelPysparkScript:
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
             featureImportance = objs["trained_model"].feature_importances_
             featuresArray = [(col_name, featureImportance[idx]) for idx, col_name in enumerate(x_train.columns)]
-            joblib.dump(objs["trained_model"],model_filepath)
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
+                modelFilepathArr = model_filepath.split("/")[:-1]
+                modelFilepathArr.append(modelName+".pkl")
+                joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
             metrics = {}
             metrics["r2"] = r2_score(y_test, y_score)
             metrics["mse"] = mean_squared_error(y_test, y_score)
@@ -302,7 +323,7 @@ class GBTRegressionModelPysparkScript:
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_validation_method(validationDict["displayName"])
             self._model_summary.set_model_evaluation_metrics(metrics)
-            self._model_summary.set_model_params(algoSetting["algorithmParams"])
+            self._model_summary.set_model_params(bestEstimator.get_params())
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.to_dict())
@@ -329,16 +350,39 @@ class GBTRegressionModelPysparkScript:
 
 
 
-        modelSummaryJson = {
-            "dropdown":{
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            modelDropDownObj = {
                         "name":self._model_summary.get_algorithm_name(),
-                        "accuracy":CommonUtils.round_sig(self._model_summary.get_model_evaluation_metrics()["r2"]),
-                        "slug":self._model_summary.get_slug()
-                        },
-            "levelcount":self._model_summary.get_level_counts(),
-            "modelFeatureList":self._model_summary.get_feature_list(),
-            "levelMapping":self._model_summary.get_level_map_dict()
-        }
+                        "evaluationMetricValue":self._model_summary.get_model_accuracy(),
+                        "evaluationMetricName":"r2",
+                        "slug":self._model_summary.get_slug(),
+                        "Model Id":modelName
+                        }
+
+            modelSummaryJson = {
+                "dropdown":modelDropDownObj,
+                "levelcount":self._model_summary.get_level_counts(),
+                "modelFeatureList":self._model_summary.get_feature_list(),
+                "levelMapping":self._model_summary.get_level_map_dict(),
+                "slug":self._model_summary.get_slug(),
+                "name":self._model_summary.get_algorithm_name()
+            }
+        else:
+            modelDropDownObj = {
+                        "name":self._model_summary.get_algorithm_name(),
+                        "evaluationMetricValue":resultArray[0]["R-Squared"],
+                        "evaluationMetricName":"r2",
+                        "slug":self._model_summary.get_slug(),
+                        "Model Id":resultArray[0]["Model Id"]
+                        }
+            modelSummaryJson = {
+                "dropdown":modelDropDownObj,
+                "levelcount":self._model_summary.get_level_counts(),
+                "modelFeatureList":self._model_summary.get_feature_list(),
+                "levelMapping":self._model_summary.get_level_map_dict(),
+                "slug":self._model_summary.get_slug(),
+                "name":self._model_summary.get_algorithm_name()
+            }
 
         gbtrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
@@ -419,7 +463,7 @@ class GBTRegressionModelPysparkScript:
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionStart","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
-            trained_model_path += "/model.pkl"
+            trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
             print "trained_model_path",trained_model_path
             print "score_data_path",score_data_path
             if trained_model_path.startswith("file"):
@@ -435,6 +479,15 @@ class GBTRegressionModelPysparkScript:
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             y_score = trained_model.predict(pandas_df)
+
+            scoreKpiArray = MLUtils.get_scored_data_summary(y_score)
+            kpiCard = NormalCard()
+            kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
+            kpiCard.set_card_data(kpiCardData)
+            kpiCard.set_cente_alignment(True)
+            print CommonUtils.convert_python_object_to_json(kpiCard)
+            self._result_setter.set_kpi_card_regression_score(kpiCard)
+
             pandas_df[result_column] = y_score
             df[result_column] = y_score
             df.to_csv(score_data_path,header=True,index=False)

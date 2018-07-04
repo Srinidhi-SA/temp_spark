@@ -32,13 +32,16 @@ from bi.settings import setting as GLOBALSETTINGS
 #     stringCols =
 
 def round_sig(x, sig=3):
-    try:
-        if abs(x)>=1:
-            x = round(x,sig)
-        else:
-            x = round(x, sig-int(floor(log10(abs(x))))-1)
-    except:
-        pass
+    if isinstance(x,str):
+        return x
+    else:
+        try:
+            if abs(x)>=1:
+                x = round(x,sig)
+            else:
+                x = round(x, sig-int(floor(log10(abs(x))))-1)
+        except:
+            pass
     return x
 
 def generate_signature(json_obj,secretKey=None):
@@ -60,6 +63,7 @@ def get_existing_metadata(dataframe_context):
     sigString = generate_signature(jsonToken,secretKey)
     jsonToken["signature"] = sigString
     url = "http://{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
+    # print "url",url
     metaObj = requests.get(url)
     output = metaObj.json()
     if "Message" in output:
@@ -104,10 +108,12 @@ def frange(start, stop, num_steps=10):
     return result
 
 
-@accepts(app_name=basestring)
-def get_spark_session(app_name='Demo App'):
-    return SparkSession.builder.appName(app_name).config(conf=SparkConf()).getOrCreate()
-    #return SparkSession.builder.appName(app_name).getOrCreate()
+@accepts(app_name=basestring,hive_environment=bool)
+def get_spark_session(app_name='Demo App',hive_environment=True):
+    if hive_environment:
+        return SparkSession.builder.appName(app_name).config(conf=SparkConf()).enableHiveSupport().getOrCreate()
+    else:
+        return SparkSession.builder.appName(app_name).getOrCreate()
 
 def clean(x):
     from re import sub
@@ -285,10 +291,10 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
     print "="*100
 
     if jsonData["globalCompletionPercentage"] > 100:
-        print "Red Alert ( percentage more than 100)"*50
+        print "Red Alert ( percentage more than 100)"*5
     if emptyBin == True:
         url += "?emptyBin=True"
-    print "message url",url
+    # print "message url",url
     if ignore == False:
         res = requests.put(url=url,data=json.dumps(jsonData))
         return res

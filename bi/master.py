@@ -3,6 +3,7 @@ import sys
 import time
 import json
 import pyhocon
+import unittest
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -13,7 +14,8 @@ from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,Resul
 from bi.common import NarrativesTree,ConfigValidator
 from bi.scripts.stockAdvisor.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
-
+# from bi.tests.chisquare.test_chisquare import TestChiSquare
+from bi.tests.chisquare import TestChiSquare
 import master_helper as MasterHelper
 from parser import configparser
 
@@ -39,9 +41,11 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "prediction"
-            configJson = get_test_configs(jobType)
-
+            jobType = "story"
+            if jobType == "testCase":
+                configJson = get_test_configs(jobType,testFor = "chisquare")
+            else:
+                configJson = get_test_configs(jobType)
 
     print "######################## Creating Spark Session ###########################"
     if debugMode:
@@ -51,13 +55,13 @@ def main(configJson):
             APP_NAME = configJson["job_config"]["job_name"]
         else:
             APP_NAME = "--missing--"
-
-    spark = CommonUtils.get_spark_session(app_name=APP_NAME)
-    spark.sparkContext.setLogLevel("ERROR")
     if debugMode:
-        spark.conf.set("spark.sql.execution.arrow.enabled", "true")
+        spark = CommonUtils.get_spark_session(app_name=APP_NAME,hive_environment=False)
     else:
-        spark.conf.set("spark.sql.execution.arrow.enabled", "false")
+        spark = CommonUtils.get_spark_session(app_name=APP_NAME)
+
+    spark.sparkContext.setLogLevel("ERROR")
+    spark.conf.set("spark.sql.execution.arrow.enabled", "true")
 
     print "######################### Parsing the configs #############################"
 
@@ -103,11 +107,7 @@ def main(configJson):
     print "########################## Validate the Config ###############################"
     configValidator = ConfigValidator(dataframe_context)
     configValid = configValidator.get_sanity_check()
-    print "#"*100
-    print "analysistype",analysistype
-    print "jobType",jobType
-    print "configValid",configValid
-    print "#"*100
+
     if not configValid:
         progressMessage = CommonUtils.create_progress_message_object("mAdvisor Job","custom","info","Please Provide a Valid Configuration",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
@@ -130,22 +130,23 @@ def main(configJson):
             progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             dataframe_context.update_completion_status(completionStatus)
-
-        df = None
-        data_loading_st = time.time()
-        progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
-        if jobType != "story" and jobType != "metaData":
-            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-            dataframe_context.update_completion_status(completionStatus)
-        ########################## Load the dataframe ##############################
-        df = MasterHelper.load_dataset(spark,dataframe_context)
-        if jobType != "metaData":
-            metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
-            df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
-            # updating metaData for binned Cols
-            colsToBin = df_helper.get_cols_to_bin()
-            levelCountDict = df_helper.get_level_counts(colsToBin)
-            metaParserInstance.update_level_counts(colsToBin,levelCountDict)
+        if jobType != "stockAdvisor":
+            df = None
+            data_loading_st = time.time()
+            progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
+            if jobType != "story" and jobType != "metaData":
+                CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+                dataframe_context.update_completion_status(completionStatus)
+            ########################## Load the dataframe ##############################
+            df = MasterHelper.load_dataset(spark,dataframe_context)
+            df = df.persist()
+            if jobType != "metaData":
+                metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
+                df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
+                # updating metaData for binned Cols
+                colsToBin = df_helper.get_cols_to_bin()
+                levelCountDict = df_helper.get_level_counts(colsToBin)
+                metaParserInstance.update_level_counts(colsToBin,levelCountDict)
 
         ############################ MetaData Calculation ##########################
 
@@ -181,6 +182,22 @@ def main(configJson):
             MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
 
         ############################################################################
+        ################################### Test Cases  ############################
+
+        if jobType == "testCase":
+            print "Running Test Case for Chi-square Analysis---------------"
+            # TestChiSquare().setUp()
+            unittest.TextTestRunner(verbosity=2).run(unittest.TestLoader().loadTestsFromTestCase(TestChiSquare))
+
+            # TestChiSquare(df,df_helper,dataframe_context,metaParserInstance).run_chisquare_test()
+            # TestChiSquare().setup()
+            # TestChiSquare().run_chisquare_test()
+            # TestChiSquare().test_upper()
+            # test = test_chisquare.run_chisquare_test(df,df_helper,dataframe_context,metaParserInstance)
+            # suit = unittest.TestLoader().loadTestsFromTestCase(TestChiSquare)
+
+        ############################################################################
+
 
         ################################### Stock ADVISOR ##########################
         if jobType == 'stockAdvisor':
@@ -199,8 +216,8 @@ def main(configJson):
         #spark.stop()
 
 def submit_job_through_yarn():
-    print sys.argv
-    print json.loads(sys.argv[1])
+    # print sys.argv
+    # print json.loads(sys.argv[1])
     json_config = json.loads(sys.argv[1])
     # json_config["config"] = ""
 
