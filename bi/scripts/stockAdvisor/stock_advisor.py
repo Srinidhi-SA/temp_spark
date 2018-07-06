@@ -50,6 +50,7 @@ class StockAdvisor:
         tf.write(req_data)
         tf.close()
         df = self._spark.read.json("file:///"+tempFileName)
+        print df.show()
         return df
 
     def unpack_df(self, df):

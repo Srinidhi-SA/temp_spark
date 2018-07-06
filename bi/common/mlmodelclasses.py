@@ -313,6 +313,14 @@ class SklearnGridSearchResult:
             estimator.fit(self.x_train, self.y_train)
             y_score = estimator.predict(self.x_test)
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx+1)))+str(idx+1)
+            print "#"*100
+            print "Feature Importance ",modelName
+            try:
+                print estimator.feature_importances_
+            except:
+                print "Feature Importance Not Defined"
+
+            print "#"*100
             slug = self.modelFilepath.split("/")[-1]
             algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
