@@ -44,11 +44,13 @@ class StockAdvisor:
     def read_ankush_json(self,url):
         req = urllib2.urlopen(url)
         req_data = req.read()
-        randNO = str(int(random.random()*10000000))
-        tempFileName = "/tmp/temp{}.json".format(randNO)
-        tf = open(tempFileName,"w")
-        tf.write(req_data)
-        tf.close()
+        # randNO = str(int(random.random()*10000000))
+        # tempFileName = "/tmp/temp{}.json".format(randNO)
+        # tf = open(tempFileName,"w")
+        # tf.write(req_data)
+        # tf.close()
+        print type(req_data)
+        print req_data
         df = self._spark.read.json("file:///"+tempFileName)
         return df
 
