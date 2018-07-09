@@ -50,7 +50,7 @@ class StockAdvisor:
         tf.write(req_data)
         tf.close()
         df = self._spark.read.json("file:///"+tempFileName)
-        print df.show()
+        # print df.show(2)
         return df
 
     def unpack_df(self, df):
@@ -160,6 +160,7 @@ class StockAdvisor:
 
     def identify_concepts_python(self,df):
         pandasDf = df.toPandas()
+        print pandasDf.columns
         pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_concepts_for_item_python)
         # print pandasDf[["sentiment","time"]].head(2)
         return pandasDf
@@ -399,6 +400,7 @@ class StockAdvisor:
                 df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
 
             stockPriceData = df_historic.select(["date","close","open"]).toPandas()
+            print stockPriceData.shape
             stockPriceData["close"] = stockPriceData["close"].apply(float)
             stockPriceData["open"] = stockPriceData["open"].apply(float)
             stockPriceData["dayPriceDiff"] = stockPriceData["close"] - stockPriceData["open"]
@@ -406,6 +408,7 @@ class StockAdvisor:
             stockPriceData = stockPriceData.fillna(0)
 
             self.pandasDf = self.identify_concepts_python(df)
+
 
 
             # overall Distribution of articles and sentiments by concecpts
