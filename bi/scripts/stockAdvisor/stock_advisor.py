@@ -166,10 +166,8 @@ class StockAdvisor:
 
     def identify_concepts_python(self,df):
         pandasDf = df.toPandas()
-        print pandasDf.columns
         pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_concepts_for_item_python)
         print pandasDf[["sentiment","time"]].head(2)
-        print "here"
         return pandasDf
 
     def get_concepts_for_item_python(self, item):
@@ -178,9 +176,7 @@ class StockAdvisor:
         sentimentsDict = dict(zip(cur_keywords,cur_sentiments))
         cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
         for key in self.concepts:
-            print "key",key
             keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
-            print "keywordIntersection",keywordIntersection
             if len(keywordIntersection) > 0:
                 cur_concepts["conceptList"].append(key)
                 cur_concepts["conceptKeywordDict"][key] = keywordIntersection
@@ -196,6 +192,7 @@ class StockAdvisor:
         conceptCountArray = []
         sentimentArray = []
         for index, dfRow in pandasDf.iterrows():
+            print dfRow["concepts"]
             conceptNameDict = self.update_article_count_and_sentiment_score(conceptNameDict,dfRow)
             rowConceptArray = [1 if x in dfRow["concepts"]["conceptList"] else 0 for x in self.concepts.keys()]
             rowConceptArray.append(np.sum(np.array(rowConceptArray)))
@@ -203,6 +200,8 @@ class StockAdvisor:
             sentimentArray.append([dfRow["concepts"]["conceptAvgSentimentDict"][x] if x in dfRow["concepts"]["conceptAvgSentimentDict"] else 0 for x in self.concepts.keys()])
         outputDict = {}
         for key,value in conceptNameDict.items():
+            print key,value
+            print "DSD"
             value["avgSentiment"] = round(float(value["totalSentiment"])/value["articlesCount"],2)
             outputDict[key] = value
         conceptCounterDf = pd.DataFrame(np.array(conceptCountArray),columns=[x+"_count" for x in self.concepts.keys()]+["totalCount"])
