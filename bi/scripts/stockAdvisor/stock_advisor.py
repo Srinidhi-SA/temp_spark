@@ -202,8 +202,12 @@ class StockAdvisor:
         for key,value in conceptNameDict.items():
             print key,value
             print "DSD"
-            value["avgSentiment"] = round(float(value["totalSentiment"])/value["articlesCount"],2)
-            outputDict[key] = value
+            if value["articlesCount"] > 0:
+                value["avgSentiment"] = round(float(value["totalSentiment"])/value["articlesCount"],2)
+                outputDict[key] = value
+            else:
+                value["avgSentiment"] = 0
+                outputDict[key] = value
         conceptCounterDf = pd.DataFrame(np.array(conceptCountArray),columns=[x+"_count" for x in self.concepts.keys()]+["totalCount"])
         sentimentCounterDf = pd.DataFrame(np.array(sentimentArray),columns=[x+"_sentiment" for x in self.concepts.keys()])
         self.pandasDf = pd.concat([pandasDf,conceptCounterDf,sentimentCounterDf], axis=1)
