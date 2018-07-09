@@ -41,6 +41,10 @@ class StockAdvisor:
         df = self._spark.read.json(filepath)
         return df
 
+    def read_ankush_concepts(self,url):
+        req = urllib2.urlopen(url)
+        req_data = req.read()
+        return json.loads(req_data)
     def read_ankush_json(self,url):
         req = urllib2.urlopen(url)
         req_data = req.read()
@@ -388,7 +392,7 @@ class StockAdvisor:
         if self._runEnv == "debugMode":
             self.concepts = self.load_concepts_from_json()
         else:
-            self.concepts = self.read_ankush_json(self.dataFilePath.format("concepts",""))
+            self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
 
         masterDfDict = {}
         stockDict = {}
