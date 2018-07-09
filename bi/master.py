@@ -42,6 +42,7 @@ def main(configJson):
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
             jobType = "stockAdvisor"
+            debugMode = False
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:

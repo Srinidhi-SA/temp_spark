@@ -46,6 +46,7 @@ class StockAdvisor:
         req_data = req.read()
         randNO = str(int(random.random()*10000000))
         tempFileName = "/tmp/temp{}.json".format(randNO)
+        print tempFileName
         tf = open(tempFileName,"w")
         tf.write(req_data)
         tf.close()
@@ -162,7 +163,8 @@ class StockAdvisor:
         pandasDf = df.toPandas()
         print pandasDf.columns
         pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_concepts_for_item_python)
-        # print pandasDf[["sentiment","time"]].head(2)
+        print pandasDf[["sentiment","time"]].head(2)
+        print "here"
         return pandasDf
 
     def get_concepts_for_item_python(self, item):
@@ -171,7 +173,9 @@ class StockAdvisor:
         sentimentsDict = dict(zip(cur_keywords,cur_sentiments))
         cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
         for key in self.concepts:
+            print "key",key
             keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
+            print "keywordIntersection",keywordIntersection
             if len(keywordIntersection) > 0:
                 cur_concepts["conceptList"].append(key)
                 cur_concepts["conceptKeywordDict"][key] = keywordIntersection
