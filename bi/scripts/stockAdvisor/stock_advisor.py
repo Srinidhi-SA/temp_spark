@@ -429,8 +429,12 @@ class StockAdvisor:
                 # df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
                 newsFilepath = self._hdfsBaseDir+"/news/"+stock_symbol+".json"
                 historicFilepath = self._hdfsBaseDir+"/historic/"+stock_symbol+"_historic.json"
+                print "newsFilepath",newsFilepath
+                print "historicFilepath",historicFilepath
                 df = self.read_hdfs_json(newsFilepath)
+                print "df columns",df.columns
                 df_historic = self.read_hdfs_json(historicFilepath)
+                print "df_historic Columns",df_historic.columns
             stockPriceData = df_historic.select(["date","close","open"]).toPandas()
             stockPriceData["close"] = stockPriceData["close"].apply(float)
             stockPriceData["open"] = stockPriceData["open"].apply(float)
