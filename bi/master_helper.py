@@ -426,7 +426,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
 
         coeffCard = result_setter.get_coeff_card_regression_score()
 
-        overviewCard = NormalCard(cardData=[HtmlData("<b><h4>Overview</h4></b>")])
+        overviewCard = NormalCard(cardData=[HtmlData("<h4>Overview</h4>")])
         # overviewCard = CommonUtils.convert_python_object_to_json(overviewCard)
         overviewCard = json.loads(CommonUtils.convert_python_object_to_json(overviewCard))
         headNode["listOfCards"].append(overviewCard)
