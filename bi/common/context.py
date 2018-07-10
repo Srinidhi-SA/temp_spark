@@ -52,6 +52,7 @@ class ContextSetter:
         self.analysisDict = {}
         self.stockSymbolList = []
         self.dataAPI = ""
+        self._hdfsBaseDir = ""
         self.trendSettings = None
         self.metaIgnoreMsgFlag = False
         self.customAnalysisDetails = []
@@ -326,6 +327,8 @@ class ContextSetter:
                 self.stockSymbolList = self.STOCK_SETTINGS.get("stockSymbolList")
             if "dataAPI" in stockSettingKeys:
                 self.dataAPI = self.STOCK_SETTINGS.get("dataAPI")
+            if "hdfs_path" in stockSettingKeys:
+                self._hdfsBaseDir = self.STOCK_SETTINGS.get("hdfs_path")
 
         if self.analysistype in ["measure","dimension"]:
             print "self.analysisList",self.analysisList
@@ -510,6 +513,9 @@ class ContextSetter:
 
     def get_stock_data_api(self):
         return self.dataAPI
+
+    def get_stock_data_path(self):
+        return self._hdfsBaseDir
 
     def get_trend_settings(self):
         return self.trendSettings

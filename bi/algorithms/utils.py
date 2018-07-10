@@ -1392,6 +1392,7 @@ def stock_sense_overview_card(data_dict_overall):
     plotData = []
     for k,v in articlesByStockCardData.items():
         plotData.append({"name":k,"value":v})
+    plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     articlesByStockData = NormalChartData(data=plotData)
     chart_json = ChartJson()
     chart_json.set_data(articlesByStockData.get_data())
@@ -1436,6 +1437,7 @@ def stock_sense_overview_card(data_dict_overall):
     plotData = []
     for k,v in articlesBySourceCardData.items():
         plotData.append({"name":k,"value":v})
+    plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     articlesBySourceData = NormalChartData(data=plotData)
     chart_json = ChartJson()
     chart_json.set_data(articlesBySourceData.get_data())
@@ -1455,6 +1457,7 @@ def stock_sense_overview_card(data_dict_overall):
     plotData = []
     for k,v in sentimentByStockCardData.items():
         plotData.append({"name":k,"value":v})
+    plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     sentimentByStockData = NormalChartData(data=plotData)
     chart_json = ChartJson()
     chart_json.set_data(sentimentByStockData.get_data())
@@ -1528,6 +1531,7 @@ def stock_sense_individual_stock_cards(stockDict):
         chartData = []
         for k,v in dataDict["articlesAndSentimentsPerConcept"].items():
             chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
+        chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
         chart_json = ChartJson()
         chart_json.set_data(sentimentNdArticlesByConcept.get_data())
