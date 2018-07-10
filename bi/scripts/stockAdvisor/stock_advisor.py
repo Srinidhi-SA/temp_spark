@@ -371,10 +371,10 @@ class StockAdvisor:
         relevantDf2 = pandasDf[["time","source","title","overallSentiment"]]
         merged = pd.merge(relevantDf2,relevantDf1,on="time",how="inner")
         merged = merged.sort_values(by=['closePerChange'],ascending=False)
-        topIncrease = merged.ix[:1] #top2
+        topIncrease = merged.iloc[0:2] #top2
         # print topIncrease.shape
         merged = merged.sort_values(by=['closePerChange'],ascending=True)
-        topDecrease = merged.ix[:1] #top2
+        topDecrease = merged.iloc[0:2] #top2
         # print topDecrease.shape
         outDf = pd.concat([topIncrease,topDecrease])
         outDf["time"] = outDf["time"].apply(self.change_date_format)
@@ -391,9 +391,9 @@ class StockAdvisor:
         relevantDf = relevantDf.fillna(0)
 
         relevantDf = relevantDf.sort_values(by=['overallSentiment'],ascending=False)
-        topIncrease = relevantDf.ix[:2] #top3
+        topIncrease = relevantDf.iloc[0:3] #top3
         relevantDf = relevantDf.sort_values(by=['overallSentiment'],ascending=True)
-        topDecrease = relevantDf.ix[:2] #top3
+        topDecrease = relevantDf.iloc[0:3] #top3
         outDf = pd.concat([topIncrease,topDecrease])
         outDf["time"] = outDf["time"].apply(self.change_date_format)
         output = [["Date","Source","Title","Sentiment","% increase/ Decrease"]]

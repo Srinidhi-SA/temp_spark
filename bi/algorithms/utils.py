@@ -1474,6 +1474,24 @@ def stock_sense_overview_card(data_dict_overall):
     overviewCard.set_card_data(overviewCardData)
     return overviewCard
 
+def aggregate_concept_stats(conceptDictArray):
+    # {"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]}
+    concepts = list(set([obj["concept"].split("__")[0] for obj in conceptDictArray]))
+    newArray = [(obj,concept.split("__")[0],obj["articles"]*obj[avgSentiment]) for obj in conceptDictArray]
+    articlesDict = dict(zip(concepts,[0]*len(concepts)))
+    sentimentDict = dict(zip(concepts,[0]*len(concepts)))
+    for tupObj in newArray:
+        for concept in concepts:
+            if tupObj[1] == concept:
+                articlesDict[tupObj[1]] += tupObj[2]
+                sentimentDict[tupObj[1]] += tupObj[3]
+    outArray = []
+    for val in concepts:
+        obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
+        outArray.append(val)
+    outArray = sorted(outArray,key=lambda x:x["articles"],reverse=True)
+    return outArray
+
 def stock_sense_individual_stock_cards(stockDict):
     allStockNodes = []
     for stockName,dataDict in stockDict.items():
@@ -1531,7 +1549,8 @@ def stock_sense_individual_stock_cards(stockDict):
         chartData = []
         for k,v in dataDict["articlesAndSentimentsPerConcept"].items():
             chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
-        chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
+        # chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
+        chartData= aggregate_concept_stats(chartData)
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
         chart_json = ChartJson()
         chart_json.set_data(sentimentNdArticlesByConcept.get_data())
