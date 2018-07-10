@@ -232,10 +232,11 @@ class StockAdvisor:
         for stock,conceptDict in stockConceptsData.items():
             for k,v in conceptDict.items():
                 outputDict[k] += v["articlesCount"]
-        # outputTuple = outputDict.items()
-        # concepts = list(set([x.split("__")[0] for x in outputDict.keys()]))
-        # outputTuple = [()]
-        return outputDict
+        concepts = list(set([x.split("__")[0] for x in outputDict.keys()]))
+        newDict = dict(zip(concepts,[0]*len(concepts)))
+        for k,v in outputDict.items():
+            newDict[k.split("__")[0]] += v
+        return newDict
 
 
     def update_article_count_and_sentiment_score(self,counterDict,dfRow):
