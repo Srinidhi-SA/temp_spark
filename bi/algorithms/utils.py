@@ -1483,8 +1483,8 @@ def aggregate_concept_stats(conceptDictArray):
     for tupObj in newArray:
         for concept in concepts:
             if tupObj[1] == concept:
-                articlesDict[tupObj[1]] += tupObj[2]
-                sentimentDict[tupObj[1]] += tupObj[3]
+                articlesDict[tupObj[1]] += tupObj[0]["articles"]
+                sentimentDict[tupObj[1]] += tupObj[2]
     outArray = []
     for val in concepts:
         obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
