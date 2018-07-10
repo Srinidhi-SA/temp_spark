@@ -63,7 +63,7 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
     # applicationIDspark = spark.sparkContext.applicationId
 
-    spark.conf.set("spark.sql.execution.arrow.enabled", "false")
+    spark.conf.set("spark.sql.execution.arrow.enabled", "true")
 
     print "######################### Parsing the configs #############################"
 
@@ -203,6 +203,7 @@ def main(configJson):
 
         ################################### Stock ADVISOR ##########################
         if jobType == 'stockAdvisor':
+            spark.conf.set("spark.sql.execution.arrow.enabled", "false")
             file_names = dataframe_context.get_stock_symbol_list()
             stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
             stockAdvisorData = stockObj.Run()
