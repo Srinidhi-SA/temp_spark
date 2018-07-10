@@ -1477,18 +1477,23 @@ def stock_sense_overview_card(data_dict_overall):
 def aggregate_concept_stats(conceptDictArray):
     # {"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]}
     concepts = list(set([obj["concept"].split("__")[0] for obj in conceptDictArray]))
-    newArray = [(obj,obj["concept"].split("__")[0],obj["articles"]*obj["avgSentiment"]) for obj in conceptDictArray]
+    # newArray = [(obj,obj["concept"].split("__")[0],obj["articles"]*obj["avgSentiment"]) for obj in conceptDictArray]
     articlesDict = dict(zip(concepts,[0]*len(concepts)))
     sentimentDict = dict(zip(concepts,[0]*len(concepts)))
-    for tupObj in newArray:
+    for conceptDict in conceptDictArray:
         for concept in concepts:
-            if tupObj[1] == concept:
-                articlesDict[tupObj[1]] += tupObj[0]["articles"]
-                sentimentDict[tupObj[1]] += tupObj[2]
+            if conceptDict["concept"].split("__")[0] == concept:
+                articlesDict[concept] += conceptDict["articles"]
+                sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
     outArray = []
+    print articlesDict
+    print sentimentDict
     for val in concepts:
-        obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
-        outArray.append(val)
+        if articlesDict[val] != 0:
+            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
+        else:
+            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":0.0}
+        outArray.append(obj)
     outArray = sorted(outArray,key=lambda x:x["articles"],reverse=True)
     return outArray
 
