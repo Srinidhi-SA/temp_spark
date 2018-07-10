@@ -63,15 +63,6 @@ class MeasureColumnNarrative:
                 "weight":10
                 },
             }
-        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeStart"]["weight"]/10
-        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-        #                             "statNarrativeStart",\
-        #                             "info",\
-        #                             self._scriptStages["statNarrativeStart"]["summary"],\
-        #                             self._completionStatus,\
-        #                             self._completionStatus)
-        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        # self._dataframe_context.update_completion_status(self._completionStatus)
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeStart","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
 
@@ -84,15 +75,6 @@ class MeasureColumnNarrative:
         self._result_setter.set_head_node(self._headNode)
         self._result_setter.set_distribution_node(self._measureSummaryNode)
 
-        # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["statNarrativeEnd"]["weight"]/10
-        # progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-        #                             "statNarrativeEnd",\
-        #                             "info",\
-        #                             self._scriptStages["statNarrativeEnd"]["summary"],\
-        #                             self._completionStatus,\
-        #                             self._completionStatus)
-        # CommonUtils.save_progress_message(self._messageURL,progressMessage)
-        # self._dataframe_context.update_completion_status(self._completionStatus)
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"statNarrativeEnd","info",display=False,emptyBin=False,customMsg=None,weightKey="narratives")
 
 

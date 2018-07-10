@@ -1477,7 +1477,6 @@ def stock_sense_overview_card(data_dict_overall):
 def aggregate_concept_stats(conceptDictArray):
     # {"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]}
     concepts = list(set([obj["concept"].split("__")[0] for obj in conceptDictArray]))
-    # newArray = [(obj,obj["concept"].split("__")[0],obj["articles"]*obj["avgSentiment"]) for obj in conceptDictArray]
     articlesDict = dict(zip(concepts,[0]*len(concepts)))
     sentimentDict = dict(zip(concepts,[0]*len(concepts)))
     for conceptDict in conceptDictArray:
@@ -1486,8 +1485,8 @@ def aggregate_concept_stats(conceptDictArray):
                 articlesDict[concept] += conceptDict["articles"]
                 sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
     outArray = []
-    print articlesDict
-    print sentimentDict
+    # print articlesDict
+    # print sentimentDict
     for val in concepts:
         if articlesDict[val] != 0:
             obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
