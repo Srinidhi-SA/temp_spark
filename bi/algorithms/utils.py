@@ -5,6 +5,7 @@ import time
 import math
 import random
 import shutil
+import copy
 
 import numpy as np
 import pandas as pd
@@ -1485,16 +1486,29 @@ def aggregate_concept_stats(conceptDictArray):
                 articlesDict[concept] += conceptDict["articles"]
                 sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
     outArray = []
-    # print articlesDict
-    # print sentimentDict
-    for val in concepts:
+    conceptTableDict = dict(zip(concepts,[[]]*len(concepts)))
+    for obj in conceptDictArray:
+        conceptName,subConcept = obj["concept"].split("__")
+        tableDict = {"text":subConcept,"value":obj["avgSentiment"]}
+        existingVal = copy.deepcopy(conceptTableDict[conceptName])
+        newVal = existingVal + [tableDict]
+        conceptTableDict[conceptName] = newVal
+    conceptOrder = sorted([(k,len(v)) for k,v in conceptTableDict.items()],key=lambda x:x[1],reverse=True)
+    maxNoSubConcepts = max([len(v) for k,v in conceptTableDict.items()])
+    conceptTable = [[x[0] for x in conceptOrder]]
+    for idx,val in enumerate(concepts):
+        if len(conceptTableDict[val]) < maxNoSubConcepts:
+            conceptTableDict[val] += [{"text":"","value":0}]*(maxNoSubConcepts-len(conceptTableDict[val]))
         if articlesDict[val] != 0:
             obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
         else:
             obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":0.0}
         outArray.append(obj)
     outArray = sorted(outArray,key=lambda x:x["articles"],reverse=True)
-    return outArray
+
+    conceptTableRows = [list(obj) for obj in np.column_stack(tuple([sorted(conceptTableDict[x[0]],key=lambda k:k["value"] if k["text"] != "" else -99999,reverse=True) for x in conceptOrder]))]
+    conceptTable += conceptTableRows
+    return outArray,conceptTable
 
 def stock_sense_individual_stock_cards(stockDict):
     allStockNodes = []
@@ -1554,7 +1568,8 @@ def stock_sense_individual_stock_cards(stockDict):
         for k,v in dataDict["articlesAndSentimentsPerConcept"].items():
             chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
         # chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
-        chartData= aggregate_concept_stats(chartData)
+        chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)
+        # print conceptSubConceptTableData
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
         chart_json = ChartJson()
         chart_json.set_data(sentimentNdArticlesByConcept.get_data())
@@ -1608,11 +1623,16 @@ def stock_sense_individual_stock_cards(stockDict):
         eventAnalysisCard.set_card_data(eventAnalysisCardData)
         stockNode.add_a_card(eventAnalysisCard)
 
-        # impactAnalysisCard = NormalCard()
-        # impactAnalysisCard.set_card_name("Impact Analysis")
-        # impactAnalysisCardData = []
-        # impactAnalysisCard.set_card_data(impactAnalysisCardData)
-        # stockNode.add_a_card(impactAnalysisCard)
+        impactAnalysisCard = NormalCard()
+        impactAnalysisCard.set_card_name("Impact Analysis")
+        impactAnalysisCardData = []
+        impactAnalysisCardData.append(HtmlData(data="<h4>Sentiment by Concept</h4>"))
+        conceptImpactTable = TableData()
+        conceptImpactTable.set_table_type("textHeatMapTable")
+        conceptImpactTable.set_table_data(conceptSubConceptTableData)
+        impactAnalysisCardData.append(conceptImpactTable)
+        impactAnalysisCard.set_card_data(impactAnalysisCardData)
+        stockNode.add_a_card(impactAnalysisCard)
 
         allStockNodes.append(stockNode)
 
