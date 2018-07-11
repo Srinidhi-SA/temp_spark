@@ -1631,6 +1631,20 @@ def stock_sense_individual_stock_cards(stockDict):
         conceptImpactTable.set_table_type("textHeatMapTable")
         conceptImpactTable.set_table_data(conceptSubConceptTableData)
         impactAnalysisCardData.append(conceptImpactTable)
+        impactCoefficients = dataDict["regCoefficient"]
+        coefficientsArray = normalize_coefficients(impactCoefficients)
+        chartDataValues = [x["value"] for x in coefficientsArray]
+        coefficientsChartJson = ChartJson()
+        coefficientsChartJson.set_data(coefficientsArray)
+        coefficientsChartJson.set_chart_type("bar")
+        coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
+        coefficientsChartJson.set_axes({"x":"key","y":"value"})
+        # coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
+        # coefficientsChartJson.set_yaxis_number_format(".4f")
+        coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
+        coefficientsChart = C3ChartData(data=coefficientsChartJson)
+        impactAnalysisCardData.append(coefficientsChart)
+
         impactAnalysisCard.set_card_data(impactAnalysisCardData)
         stockNode.add_a_card(impactAnalysisCard)
 
