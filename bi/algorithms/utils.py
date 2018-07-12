@@ -1631,6 +1631,7 @@ def stock_sense_individual_stock_cards(stockDict):
         conceptImpactTable.set_table_type("textHeatMapTable")
         conceptImpactTable.set_table_data(conceptSubConceptTableData)
         impactAnalysisCardData.append(conceptImpactTable)
+        impactAnalysisCardData.append(HtmlData(data="<h4>Impact on Stock Price</h4>"))
         impactCoefficients = dataDict["regCoefficient"]
         coefficientsArray = normalize_coefficients(impactCoefficients)
         chartDataValues = [x["value"] for x in coefficientsArray]
