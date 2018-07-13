@@ -49,6 +49,20 @@ class ResultSetter:
         self.parallelCooridnateMetaData = {}
         self.hideTableColumns = []
         self.coeffCardScore = None
+        self.anovaNarrativeOnScoredData = {}
+        self.anovaChartOnScoredData = {}
+
+    def set_anova_narrative_on_scored_data(self,dataDict):
+        self.anovaNarrativeOnScoredData.update(dataDict)
+
+    def set_anova_chart_on_scored_data(self,dataDict):
+        self.anovaChartOnScoredData.update(dataDict)
+
+    def get_anova_narratives_scored_data(self):
+        return self.anovaNarrativeOnScoredData
+
+    def get_anova_charts_scored_data(self):
+        return self.anovaChartOnScoredData
 
     def set_metadata_parallel_coordinates(self,slug,data):
         self.parallelCooridnateMetaData[slug] = data

@@ -89,6 +89,7 @@ class ContextSetter:
         self.mlEnv = None #can be sklearn or spark
         self.mlModelTrainingWeight = {}
         self.mlModelPredictionWeight = {}
+        self.anovaOnScoredData = False
 
 
 
@@ -335,6 +336,10 @@ class ContextSetter:
             print "self.analysistype",self.analysistype
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
+    def set_anova_on_scored_data(self,data):
+        self.anovaOnScoredData = data
+    def get_anova_on_scored_data(self):
+        return self.anovaOnScoredData
     def get_model_for_scoring(self):
         return self.MODEL_FOR_SCORING["Model Id"]
     def set_ml_environment(self,data):

@@ -558,7 +558,7 @@ class LinearRegressionModelScript:
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
-
+            print df.columns
             print "STARTING Measure ANALYSIS ..."
             columns_to_keep = []
             columns_to_drop = []
@@ -599,10 +599,10 @@ class LinearRegressionModelScript:
         #     print "DTREE FAILED"
         #
         # try:
-        #     fs = time.time()
-        #     two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
-        #     two_way_obj.Run()
-        #     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+        fs = time.time()
+        two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
+        two_way_obj.Run()
+        print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
         # except:
         #     print "Anova Analysis Failed"
 

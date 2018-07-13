@@ -54,7 +54,7 @@ class TwoWayAnova:
         print "==================measure_columns ========================"
         print self._measure_columns
         print "==================measure_columns ========================"
-        
+
         self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
@@ -86,18 +86,19 @@ class TwoWayAnova:
                                                     self._dateFormatConversionDict,
                                                     self._requestedDateFormat)
         # print dateColCheck
-        if dateColCheck:
-            self._dataframe_context.set_date_format_details(dateColCheck)
-            self._dateFormatDetected = dateColCheck["dateFormatDetected"]
-            self._trend_on_td_column = dateColCheck["trendOnTdCol"]
+        if not self._dataframe_context.get_anova_on_scored_data():
+            if dateColCheck:
+                self._dataframe_context.set_date_format_details(dateColCheck)
+                self._dateFormatDetected = dateColCheck["dateFormatDetected"]
+                self._trend_on_td_column = dateColCheck["trendOnTdCol"]
+                if self._dateFormatDetected:
+                    self._requestedDateFormat = dateColCheck["requestedDateFormat"]
+                    self._existingDateFormat = dateColCheck["existingDateFormat"]
+                    self._date_columns_suggested = dateColCheck["suggestedDateColumn"]
             if self._dateFormatDetected:
-                self._requestedDateFormat = dateColCheck["requestedDateFormat"]
-                self._existingDateFormat = dateColCheck["existingDateFormat"]
-                self._date_columns_suggested = dateColCheck["suggestedDateColumn"]
-        if self._dateFormatDetected:
-            print "self._existingDateFormat",self._existingDateFormat
-            print "self._existingDateFormat",self._existingDateFormat
-            self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_columns_suggested,self._trend_on_td_column)
+                print "self._existingDateFormat",self._existingDateFormat
+                print "self._existingDateFormat",self._existingDateFormat
+                self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_columns_suggested,self._trend_on_td_column)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()

@@ -528,15 +528,15 @@ class DTREERegressionModelScript:
         except:
             print "Frequency Analysis Failed "
 
-        try:
-            fs = time.time()
-            df_helper.fill_na_dimension_nulls()
-            df = df_helper.get_data_frame()
-            dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Predictive modeling")
-            dt_reg.Run()
-            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
-        except:
-            print "DTREE FAILED"
+        # try:
+        #     fs = time.time()
+        #     df_helper.fill_na_dimension_nulls()
+        #     df = df_helper.get_data_frame()
+        #     dt_reg = DecisionTreeRegressionScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Predictive modeling")
+        #     dt_reg.Run()
+        #     print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+        # except:
+        #     print "DTREE FAILED"
 
         try:
             fs = time.time()
