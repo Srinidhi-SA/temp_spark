@@ -237,9 +237,9 @@
 10. **Architecture Diagram**:
 
 
-![Architecture%20Flow.png](attachment:Architecture%20Flow.png)
+![Architecture%20Flow.png](architectureFlow.png)
 
 11. **WorkFlow Diagram**:
 
 
-![WorkFlow.png](attachment:WorkFlow.png)
+![WorkFlow.png](workFlow.png)
