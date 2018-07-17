@@ -224,22 +224,22 @@
 9. **Enviroment+servers+Deployed branches**:
 
 
-| Environemnt Name  | Branch Deployed | Celery Server |
-| :---:             |     :---:       |          ---: |
-| dev               | configRevamp    |               |
-| production        | master          |               |
-| webinar           | master          |               |
-| staging           | staging         |               |
-| cwpoc             | cwpoc           |               |
+| Environemnt Name  | Branch Deployed | Celery Server      |
+| :---:             |     :---:       |          ---:      |
+| dev               | configRevamp    | 34.201.31.116(EMR) |
+| production        | master          | 34.196.22.246(EMR) |
+| webinar           | master          | 34.196.22.246(EMR) |
+| staging           | staging         | 34.196.22.246(EMR) |
+| cwpoc             | cwpoc           | 54.236.57.59(EC2)  |
 
 
 
 10. **Architecture Diagram**:
 
 
-![Architecture%20Flow.png](architectureFlow.png)
+![Architecture%20Flow.png](architectureFlow.png?raw=true)
 
 11. **WorkFlow Diagram**:
 
 
-![WorkFlow.png](workFlow.png)
+![WorkFlow.png](workFlow.png?raw=true)
