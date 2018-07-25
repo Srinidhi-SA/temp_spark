@@ -566,7 +566,7 @@ class StockAdvisor:
             except Exception, e:
                 print "Failed for : ", current_stock, " with error : ", str(e)
 
-        print "#"*110
+        print "#"*100
         self._stockNameList = working_stock_list
         number_stocks = len(self._stockNameList)
         if number_stocks == 0:
