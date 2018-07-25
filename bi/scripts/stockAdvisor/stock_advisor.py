@@ -62,6 +62,7 @@ class StockAdvisor:
         return df
 
     def read_hdfs_json(self,filepath):
+        print "filepath : ", filepath
         df = self._spark.read.json(filepath)
         return df
 
