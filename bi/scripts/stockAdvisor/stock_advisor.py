@@ -25,7 +25,7 @@ class StockAdvisor:
         self._hdfsBaseDir = dataframe_context.get_stock_data_path()
         self.dataFilePath = self._dataAPI+"?stockDataType={}&stockName={}"
         self._runEnv = dataframe_context.get_environement()
-        self.BASE_DIR = "file:///home/gulshan/marlabs/datasets/"
+        self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/"
         self._dateFormat = "%Y%m%d"
 
 
@@ -422,145 +422,160 @@ class StockAdvisor:
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
+        working_stock_list = []
         for stock_symbol in self._stockNameList:
-            #-------------- Read Operations ----------------
-            stockDict[stock_symbol] = {}
-            if self._runEnv == "debugMode":
-                df = self.read_json(self.BASE_DIR+stock_symbol+".json")
-                df_historic = self.read_json(self.BASE_DIR+stock_symbol+"_historic.json")
-            else:
-                # df = self.read_ankush_json(self.dataFilePath.format("bluemix",stock_symbol))
-                # df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
-                newsFilepath = self._hdfsBaseDir+"/news/"+stock_symbol+".json"
-                historicFilepath = self._hdfsBaseDir+"/historic/"+stock_symbol+"_historic.json"
-                print "newsFilepath",newsFilepath
-                print "historicFilepath",historicFilepath
-                df = self.read_hdfs_json(newsFilepath)
-                print "df columns",df.columns
-                df_historic = self.read_hdfs_json(historicFilepath)
-                print "df_historic Columns",df_historic.columns
-            stockPriceData = df_historic.select(["date","close","open"]).toPandas()
-            stockPriceData["close"] = stockPriceData["close"].apply(float)
-            stockPriceData["open"] = stockPriceData["open"].apply(float)
-            stockPriceData["dayPriceDiff"] = stockPriceData["close"] - stockPriceData["open"]
-            stockPriceData["closePerChange"] = stockPriceData["close"].pct_change()
-            stockPriceData = stockPriceData.fillna(0)
+            try:
+                #-------------- Read Operations ----------------
+                stockDict[stock_symbol] = {}
+                if self._runEnv == "debugMode":
+                    df = self.read_json(self.BASE_DIR+stock_symbol+".json")
+                    df_historic = self.read_json(self.BASE_DIR+stock_symbol+"_historic.json")
+                else:
+                    # df = self.read_ankush_json(self.dataFilePath.format("bluemix",stock_symbol))
+                    # df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
+                    newsFilepath = self._hdfsBaseDir+"/news/"+stock_symbol+".json"
+                    historicFilepath = self._hdfsBaseDir+"/historic/"+stock_symbol+"_historic.json"
+                    print "newsFilepath",newsFilepath
+                    print "historicFilepath",historicFilepath
+                    df = self.read_hdfs_json(newsFilepath)
+                    print "df columns",df.columns
+                    df_historic = self.read_hdfs_json(historicFilepath)
+                    print "df_historic Columns",df_historic.columns
+                stockPriceData = df_historic.select(["date","close","open"]).toPandas()
+                stockPriceData["close"] = stockPriceData["close"].apply(float)
+                stockPriceData["open"] = stockPriceData["open"].apply(float)
+                stockPriceData["dayPriceDiff"] = stockPriceData["close"] - stockPriceData["open"]
+                stockPriceData["closePerChange"] = stockPriceData["close"].pct_change()
+                stockPriceData = stockPriceData.fillna(0)
 
-            self.pandasDf = self.identify_concepts_python(df)
-
-
-
-            # overall Distribution of articles and sentiments by concecpts
-            # needs final presentation
-            nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
-            nArticlesAndSentimentsPerSource = self.get_number_articles_and_sentiments_per_source(self.pandasDf)
-            # print nArticlesAndSentimentsPerSource
-            data_dict_overall["nArticlesAndSentimentsPerConcept"][stock_symbol] = nArticlesAndSentimentsPerConcept
-            stockDict[stock_symbol]["articlesAndSentimentsPerConcept"] = nArticlesAndSentimentsPerConcept
-            stockDict[stock_symbol]["articlesAndSentimentsPerSource"] = nArticlesAndSentimentsPerSource
-            stockPriceAndSentimentTrend = self.get_datewise_stock_value_and_sentiment(self.pandasDf,stockPriceData)
-            stockDict[stock_symbol]["stockPriceAndSentimentTrend"] = stockPriceAndSentimentTrend
-            stockDict[stock_symbol]["topEntities"] = self.get_top_entities(self.pandasDf)
-            stockDict[stock_symbol]["keyDays"] = self.get_key_days_and_impactful_articles(self.pandasDf,stockPriceData)
-            stockDict[stock_symbol]["keyArticles"] = self.get_top_articles(self.pandasDf)
-
-            regDf = self.pandasDf[["time","overallSentiment","totalCount"]+[x+"_count" for x in self.concepts.keys()]]
-            regDfgrouped = regDf.groupby("time").sum().reset_index()
-            regDfgrouped.index = regDfgrouped["time"]
-            stockDf  = stockPriceData[["close","date"]]
-            stockDf.index = stockDf["date"]
-            priceTrendDict = stockDf.to_dict()["close"]
-            stockPriceTrendDict[stock_symbol] = priceTrendDict
-            # print regDfgrouped.columns
-            # print stockDf.columns
-            regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
-            regDfFinal.drop(["date"],axis = 1,inplace=True)
-            regDfFinal.columns = ["time","overallSentiment"+"_"+stock_symbol,"totalCount"+"_"+stock_symbol]+[x+"_count" for x in self.concepts.keys()]+["close"+"_"+stock_symbol]
-            masterDfDict[stock_symbol] = regDfFinal
-            # self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,stockPriceData)
-            # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
-            # self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
-
-            #-------------- Start Calculations ----------------
-            number_articles = self.get_stock_articles(df)
-            stockDict[stock_symbol]["numArticles"] = number_articles
-            data_dict_overall["number_articles"] += number_articles
-            data_dict_overall["number_articles_by_stock"][stock_symbol] = number_articles  #used for bar plot
+                self.pandasDf = self.identify_concepts_python(df)
 
 
 
-            number_sources = self.get_stock_sources(df)
-            stockDict[stock_symbol]["numSources"] = number_sources
-            data_dict_overall["number_sources"] += number_sources
+                # overall Distribution of articles and sentiments by concecpts
+                # needs final presentation
+                nArticlesAndSentimentsPerConcept = self.get_number_articles_and_sentiments_per_concept(self.pandasDf)
+                nArticlesAndSentimentsPerSource = self.get_number_articles_and_sentiments_per_source(self.pandasDf)
+                # print nArticlesAndSentimentsPerSource
+                data_dict_overall["nArticlesAndSentimentsPerConcept"][stock_symbol] = nArticlesAndSentimentsPerConcept
+                stockDict[stock_symbol]["articlesAndSentimentsPerConcept"] = nArticlesAndSentimentsPerConcept
+                stockDict[stock_symbol]["articlesAndSentimentsPerSource"] = nArticlesAndSentimentsPerSource
+                stockPriceAndSentimentTrend = self.get_datewise_stock_value_and_sentiment(self.pandasDf,stockPriceData)
+                stockDict[stock_symbol]["stockPriceAndSentimentTrend"] = stockPriceAndSentimentTrend
+                stockDict[stock_symbol]["topEntities"] = self.get_top_entities(self.pandasDf)
+                stockDict[stock_symbol]["keyDays"] = self.get_key_days_and_impactful_articles(self.pandasDf,stockPriceData)
+                stockDict[stock_symbol]["keyArticles"] = self.get_top_articles(self.pandasDf)
 
-            avg_sentiment_score = self.get_stock_sentiment(df)
-            stockDict[stock_symbol]["avgSentimetScore"] = avg_sentiment_score
-            data_dict_overall["avg_sentiment_score"] += avg_sentiment_score
-            data_dict_overall["stocks_by_sentiment"][stock_symbol] = avg_sentiment_score #used for bar plot
+                regDf = self.pandasDf[["time","overallSentiment","totalCount"]+[x+"_count" for x in self.concepts.keys()]]
+                regDfgrouped = regDf.groupby("time").sum().reset_index()
+                regDfgrouped.index = regDfgrouped["time"]
+                stockDf  = stockPriceData[["close","date"]]
+                stockDf.index = stockDf["date"]
+                priceTrendDict = stockDf.to_dict()["close"]
+                stockPriceTrendDict[stock_symbol] = priceTrendDict
+                # print regDfgrouped.columns
+                # print stockDf.columns
+                regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
+                regDfFinal.drop(["date"],axis = 1,inplace=True)
+                regDfFinal.columns = ["time","overallSentiment"+"_"+stock_symbol,"totalCount"+"_"+stock_symbol]+[x+"_count" for x in self.concepts.keys()]+["close"+"_"+stock_symbol]
+                masterDfDict[stock_symbol] = regDfFinal
+                # self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,stockPriceData)
+                # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
+                # self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
 
-            sentiment_change = self.get_sentiment_change(df)
-            stockDict[stock_symbol]["changeInSentiment"] = sentiment_change
-            data_dict_overall["max_sentiment_change"][stock_symbol]=sentiment_change  #verify: this is start to end sentiment change
-            # print "sentiment_change : ", sentiment_change
-
-            (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
-            stockDict[stock_symbol]["stockValueChange"] = stock_value_change
-            stockDict[stock_symbol]["stockValuePercentChange"] = stock_percent_change
-            data_dict_overall["stock_value_change"] += stock_value_change
-            data_dict_overall["stock_percent_change"] += stock_percent_change
-            data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
-            # print "stock_value_change : ", stock_value_change
-            # print "stock_percent_change : ", stock_percent_change
-
-            number_articles_per_source = self.get_number_articles_per_source(df)
-            stockDict[stock_symbol]["articlesPerSource"] = number_articles_per_source
-            # print "number_articles_per_source : ", number_articles_per_source
-            # data_dict_overall["number_articles_per_source"][stock_symbol]=number_articles_per_source
-            data_dict_overall["number_articles_per_source"]= dict(Counter(number_articles_per_source) + Counter(data_dict_overall["number_articles_per_source"]))
-            average_sentiment_per_source = self.get_average_sentiment_per_source(df, number_articles_per_source)
-            # print "average_sentiment_per_source : ", average_sentiment_per_source
-
-
-            # # number_articles_per_concept = self.get_number_articles_per_concept(unpacked_df)
-            # # average_sentiment_per_concept = self.get_average_sentiment_per_concept(unpacked_df)
-            #
-
-            top_keywords = self.get_top_keywords(df)
-            # print "top_keywords : ", top_keywords
-            data_dict_overall["top_keywords"] = dict(Counter(top_keywords) + Counter(data_dict_overall["top_keywords"]))
-
-            # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
-
-            average_sentiment_per_date = self.get_average_sentiment_per_date(df)
-            # print "average_sentiment_per_date : ", average_sentiment_per_date
-
-            (top_events_positive, top_events_negative) = self.get_top_events(df)
+                #-------------- Start Calculations ----------------
+                number_articles = self.get_stock_articles(df)
+                stockDict[stock_symbol]["numArticles"] = number_articles
+                data_dict_overall["number_articles"] += number_articles
+                data_dict_overall["number_articles_by_stock"][stock_symbol] = number_articles  #used for bar plot
 
 
+
+                number_sources = self.get_stock_sources(df)
+                stockDict[stock_symbol]["numSources"] = number_sources
+                data_dict_overall["number_sources"] += number_sources
+
+                avg_sentiment_score = self.get_stock_sentiment(df)
+                stockDict[stock_symbol]["avgSentimetScore"] = avg_sentiment_score
+                data_dict_overall["avg_sentiment_score"] += avg_sentiment_score
+                data_dict_overall["stocks_by_sentiment"][stock_symbol] = avg_sentiment_score #used for bar plot
+
+                sentiment_change = self.get_sentiment_change(df)
+                stockDict[stock_symbol]["changeInSentiment"] = sentiment_change
+                data_dict_overall["max_sentiment_change"][stock_symbol]=sentiment_change  #verify: this is start to end sentiment change
+                # print "sentiment_change : ", sentiment_change
+
+                (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
+                stockDict[stock_symbol]["stockValueChange"] = stock_value_change
+                stockDict[stock_symbol]["stockValuePercentChange"] = stock_percent_change
+                data_dict_overall["stock_value_change"] += stock_value_change
+                data_dict_overall["stock_percent_change"] += stock_percent_change
+                data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
+                # print "stock_value_change : ", stock_value_change
+                # print "stock_percent_change : ", stock_percent_change
+
+                number_articles_per_source = self.get_number_articles_per_source(df)
+                stockDict[stock_symbol]["articlesPerSource"] = number_articles_per_source
+                # print "number_articles_per_source : ", number_articles_per_source
+                # data_dict_overall["number_articles_per_source"][stock_symbol]=number_articles_per_source
+                data_dict_overall["number_articles_per_source"]= dict(Counter(number_articles_per_source) + Counter(data_dict_overall["number_articles_per_source"]))
+                average_sentiment_per_source = self.get_average_sentiment_per_source(df, number_articles_per_source)
+                # print "average_sentiment_per_source : ", average_sentiment_per_source
+
+
+                # # number_articles_per_concept = self.get_number_articles_per_concept(unpacked_df)
+                # # average_sentiment_per_concept = self.get_average_sentiment_per_concept(unpacked_df)
+                #
+
+                top_keywords = self.get_top_keywords(df)
+                # print "top_keywords : ", top_keywords
+                data_dict_overall["top_keywords"] = dict(Counter(top_keywords) + Counter(data_dict_overall["top_keywords"]))
+
+                # average_stock_per_date = self.get_average_stock_per_date(unpacked_df)
+
+                average_sentiment_per_date = self.get_average_sentiment_per_date(df)
+                # print "average_sentiment_per_date : ", average_sentiment_per_date
+
+                (top_events_positive, top_events_negative) = self.get_top_events(df)
+                working_stock_list.append(stock_symbol)
+            except Exception, e:
+                print "Analysis for stock failed : ", stock_symbol, " with error : ", str(e)
+        self._stockNameList = working_stock_list
+        working_stock_list = []
         for current_stock in self._stockNameList:
-            regressionDf = masterDfDict[current_stock]
-            regressionDf.index = regressionDf["time"]
-            remaining_stocks = list(set(self._stockNameList) - {current_stock})
-            # if len(remaining_stocks) > 0:
-            #     for other_stock in remaining_stocks:
-            #         colsToConsider = ["time","overallSentiment","close"]
-            #         otherStockDf = masterDfDict[other_stock][colsToConsider]
-            #         otherStockDf.columns = [x+"_"+other_stock for x in colsToConsider]
-            #         otherStockDf.index = otherStockDf["time"+"_"+other_stock]
-            #         regressionDf = pd.concat([regressionDf,otherStockDf], axis=1, join='inner')
-            #         regressionDf.drop(["time","time"+"_"+other_stock],axis=1,inplace=True)
-            print regressionDf.columns
-            print "-"*100
-            # Run linear regression on the regressionDf dataframe
-            regressionCoeff = self.run_regression(regressionDf,"close"+"_"+current_stock)
-            regCoeffArray = sorted([{"key":k,"value":v} for k,v in regressionCoeff.items()],key=lambda x:abs(x["value"]),reverse=True)
-            stockDict[current_stock]["regCoefficient"] = regCoeffArray
+            try:
+                regressionDf = masterDfDict[current_stock]
+                regressionDf.index = regressionDf["time"]
+                remaining_stocks = list(set(self._stockNameList) - {current_stock})
+                # if len(remaining_stocks) > 0:
+                #     for other_stock in remaining_stocks:
+                #         colsToConsider = ["time","overallSentiment","close"]
+                #         otherStockDf = masterDfDict[other_stock][colsToConsider]
+                #         otherStockDf.columns = [x+"_"+other_stock for x in colsToConsider]
+                #         otherStockDf.index = otherStockDf["time"+"_"+other_stock]
+                #         regressionDf = pd.concat([regressionDf,otherStockDf], axis=1, join='inner')
+                #         regressionDf.drop(["time","time"+"_"+other_stock],axis=1,inplace=True)
+                print regressionDf.columns
+                print "-"*100
+                # Run linear regression on the regressionDf dataframe
+                regressionCoeff = self.run_regression(regressionDf,"close"+"_"+current_stock)
+                regCoeffArray = sorted([{"key":k,"value":v} for k,v in regressionCoeff.items()],key=lambda x:abs(x["value"]),reverse=True)
+                stockDict[current_stock]["regCoefficient"] = regCoeffArray
+                working_stock_list.append(current_stock)
+            except Exception, e:
+                print "Failed for : ", current_stock, " with error : ", str(e)
 
         print "#"*110
+        self._stockNameList = working_stock_list
         number_stocks = len(self._stockNameList)
+        if number_stocks == 0:
+            return {}
 
         stockPriceTrendArray = []
+        print "self._stockNameList : ", self._stockNameList
+        print "working_stock_list : ", working_stock_list
         dateList = stockPriceTrendDict[self._stockNameList[0]].keys()
+        print "dateList : ", dateList
         stockPriceTrendArray = stockPriceTrendDict[self._stockNameList[0]].items()
         capNameList = [self.get_capitalized_name(x) for x in self._stockNameList]
         capNameDict = dict(zip(self._stockNameList,capNameList))

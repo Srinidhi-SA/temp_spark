@@ -1512,6 +1512,7 @@ def aggregate_concept_stats(conceptDictArray):
 
 def stock_sense_individual_stock_cards(stockDict):
     allStockNodes = []
+    print "stockDict : ", stockDict
     for stockName,dataDict in stockDict.items():
         stockNode = NarrativesTree()
         stockNode.set_name(stockName)
