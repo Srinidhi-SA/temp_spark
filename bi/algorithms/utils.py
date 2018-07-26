@@ -1379,11 +1379,11 @@ def stock_sense_overview_card(data_dict_overall):
         },
         {
           "name": "Max Increase in Price",
-          "value": "{}% ({})".format(data_dict_overall["max_value_change_overall"][1],data_dict_overall["max_value_change_overall"][0])
+          "value": "{} ({})".format(data_dict_overall["max_value_change_overall"][1],data_dict_overall["max_value_change_overall"][0])
         },
         {
           "name": "Max Decrease in Price",
-          "value": "{}% ({})".format(data_dict_overall["min_value_change_overall"][1],data_dict_overall["min_value_change_overall"][0])
+          "value": "{} ({})".format(data_dict_overall["min_value_change_overall"][1],data_dict_overall["min_value_change_overall"][0])
         }
     ]
     summaryDataClass = DataBox(data=summaryData)
@@ -1512,7 +1512,7 @@ def aggregate_concept_stats(conceptDictArray):
 
 def stock_sense_individual_stock_cards(stockDict):
     allStockNodes = []
-    print "stockDict : ", stockDict
+    # print "stockDict : ", stockDict
     for stockName,dataDict in stockDict.items():
         stockNode = NarrativesTree()
         stockNode.set_name(stockName)

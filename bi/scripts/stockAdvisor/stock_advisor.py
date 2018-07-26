@@ -25,12 +25,12 @@ class StockAdvisor:
         self._hdfsBaseDir = dataframe_context.get_stock_data_path()
         self.dataFilePath = self._dataAPI+"?stockDataType={}&stockName={}"
         self._runEnv = dataframe_context.get_environement()
-        self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/"
+        self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/all_49/49stocks-e7xppjg1fl/"
         self._dateFormat = "%Y%m%d"
 
 
     def read_csv(self, file_name):
-        print "-"*50
+        # print "-"*50
         print "Reading File : ", file_name + ".csv"
         name = self.BASE_DIR + file_name + ".csv"
         df = (self._sqlContext.read
@@ -273,9 +273,9 @@ class StockAdvisor:
         stockDf = stockPriceData[["date","dayPriceDiff"]]
         stockDf.index = stockDf["date"]
         chiSquareDf = pd.concat([conceptsDF, stockDf], axis=1, join='inner')
-        print chiSquareDf.columns
+        # print chiSquareDf.columns
         chiSquareDf.drop(['time','date'], axis=1, inplace=True)
-        print chiSquareDf.columns
+        # print chiSquareDf.columns
         return chiSquareDf
 
     def get_chisquare_concept_columns(self,conceptCountDict,dfRow):
@@ -314,18 +314,18 @@ class StockAdvisor:
         return cramerStat
 
     def run_regression(self,df,targetCol):
-        print "~"*100
+        # print "~"*100
         colMaps = ["c"+str(idx) if x != targetCol else x for idx,x in enumerate(df.columns)]
-        print colMaps
+        # print colMaps
         reverseMap = dict(zip(colMaps,df.columns))
-        print reverseMap
+        # print reverseMap
         df.columns = colMaps
         reg_model = ols("{} ~ ".format(targetCol) +"+".join(list(set(df.columns) - {targetCol})), data=df).fit()
         # summarize our model
         model_summary = reg_model.summary()
         modelParams = reg_model.params
         modelParamsDf = pd.DataFrame({'id':modelParams.index, 'value':modelParams.values})
-        print modelParamsDf
+        # print modelParamsDf
         coeffDict = modelParamsDf.set_index('id').to_dict()["value"]
         reverseMappedCoef = {}
         for k,v in coeffDict.items():
@@ -336,8 +336,8 @@ class StockAdvisor:
                     pass
             else:
                 reverseMappedCoef[k] = coeffDict[k]
-        print reverseMappedCoef
-        print model_summary
+        # print reverseMappedCoef
+        # print model_summary
         return reverseMappedCoef
 
     def get_number_articles_and_sentiments_per_source(self,pandasDf):
@@ -436,12 +436,12 @@ class StockAdvisor:
                     # df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
                     newsFilepath = self._hdfsBaseDir+"/news/"+stock_symbol+".json"
                     historicFilepath = self._hdfsBaseDir+"/historic/"+stock_symbol+"_historic.json"
-                    print "newsFilepath",newsFilepath
-                    print "historicFilepath",historicFilepath
+                    # print "newsFilepath",newsFilepath
+                    # print "historicFilepath",historicFilepath
                     df = self.read_hdfs_json(newsFilepath)
-                    print "df columns",df.columns
+                    # print "df columns",df.columns
                     df_historic = self.read_hdfs_json(historicFilepath)
-                    print "df_historic Columns",df_historic.columns
+                    # print "df_historic Columns",df_historic.columns
                 stockPriceData = df_historic.select(["date","close","open"]).toPandas()
                 stockPriceData["close"] = stockPriceData["close"].apply(float)
                 stockPriceData["open"] = stockPriceData["open"].apply(float)
@@ -557,18 +557,19 @@ class StockAdvisor:
                 #         otherStockDf.index = otherStockDf["time"+"_"+other_stock]
                 #         regressionDf = pd.concat([regressionDf,otherStockDf], axis=1, join='inner')
                 #         regressionDf.drop(["time","time"+"_"+other_stock],axis=1,inplace=True)
-                print regressionDf.columns
-                print "-"*100
+                # print regressionDf.columns
+                # print "-"*100
                 # Run linear regression on the regressionDf dataframe
                 regressionCoeff = self.run_regression(regressionDf,"close"+"_"+current_stock)
                 regCoeffArray = sorted([{"key":k,"value":v} for k,v in regressionCoeff.items()],key=lambda x:abs(x["value"]),reverse=True)
                 stockDict[current_stock]["regCoefficient"] = regCoeffArray
+                # print current_stock , " : regCoeffArray : ", regCoeffArray
                 working_stock_list.append(current_stock)
             except Exception, e:
-                stockDict.pop(stock_symbol, None)
+                stockDict.pop(current_stock, None)
                 print "Failed for : ", current_stock, " with error : ", str(e)
 
-        print "#"*100
+        # print "#"*100
         self._stockNameList = working_stock_list
         number_stocks = len(self._stockNameList)
         if number_stocks == 0:
@@ -583,6 +584,17 @@ class StockAdvisor:
 
         for obj in stockPriceTrendArray:
             for stockName in self._stockNameList[1:]:
+                # print "stockName : ", stockName
+                # print "obj : ", obj
+                # print "stockPriceTrendDict[stockName] : ", stockPriceTrendDict[stockName]
+                # print "stockPriceTrendDict[stockName]obj date : ", stockPriceTrendDict[stockName][obj["date"]]
+                # print "_"*50
+                stock_price_dates = stockPriceTrendDict[stockName].keys()
+                if obj["date"] not in stock_price_dates:
+                    if len(stock_price_dates) > 0 :
+                        stockPriceTrendDict[stockName][obj["date"]] = sum([stockPriceTrendDict[stockName][key] for key in stock_price_dates])/len(stock_price_dates)
+                    else:
+                        stockPriceTrendDict[stockName][obj["date"]] = 0.0
                 obj.update({capNameDict[stockName]:CommonUtils.round_sig(stockPriceTrendDict[stockName][obj["date"]],sig=2)})
         stockPriceTrendArrayFormatted = []
         for obj in stockPriceTrendArray:
