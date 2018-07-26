@@ -540,6 +540,7 @@ class StockAdvisor:
                 (top_events_positive, top_events_negative) = self.get_top_events(df)
                 working_stock_list.append(stock_symbol)
             except Exception, e:
+                stockDict.pop(stock_symbol, None)
                 print "Analysis for stock failed : ", stock_symbol, " with error : ", str(e)
         self._stockNameList = working_stock_list
         working_stock_list = []
@@ -564,6 +565,7 @@ class StockAdvisor:
                 stockDict[current_stock]["regCoefficient"] = regCoeffArray
                 working_stock_list.append(current_stock)
             except Exception, e:
+                stockDict.pop(stock_symbol, None)
                 print "Failed for : ", current_stock, " with error : ", str(e)
 
         print "#"*100
@@ -573,10 +575,7 @@ class StockAdvisor:
             return {}
 
         stockPriceTrendArray = []
-        print "self._stockNameList : ", self._stockNameList
-        print "working_stock_list : ", working_stock_list
         dateList = stockPriceTrendDict[self._stockNameList[0]].keys()
-        print "dateList : ", dateList
         stockPriceTrendArray = stockPriceTrendDict[self._stockNameList[0]].items()
         capNameList = [self.get_capitalized_name(x) for x in self._stockNameList]
         capNameDict = dict(zip(self._stockNameList,capNameList))

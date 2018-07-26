@@ -208,6 +208,9 @@ def main(configJson):
             stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
             stockAdvisorData = stockObj.Run()
             stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
+            # stockAdvisorDataJson["name"] = jobName
+            print "*"*100
+            print "Result : ", stockAdvisorDataJson
             response = CommonUtils.save_result_json(jobURL,stockAdvisorDataJson)
 
         ############################################################################
