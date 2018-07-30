@@ -2,6 +2,7 @@ import random
 import json
 import urllib2
 from collections import Counter
+import operator
 
 import numpy as np
 import pandas as pd
@@ -25,7 +26,7 @@ class StockAdvisor:
         self._hdfsBaseDir = dataframe_context.get_stock_data_path()
         self.dataFilePath = self._dataAPI+"?stockDataType={}&stockName={}"
         self._runEnv = dataframe_context.get_environement()
-        self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/all_49/49stocks-e7xppjg1fl/"
+        self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/"
         self._dateFormat = "%Y%m%d"
 
 
@@ -128,6 +129,12 @@ class StockAdvisor:
         start_price = float(sorted_list[-1]['close'])
         end_price = float(sorted_list[0]['close'])
         return (end_price-start_price, ((end_price-start_price)*100.0)/start_price )
+
+    def get_stock_start_end_value(self, df_historic):
+        sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
+        start_price = float(sorted_list[-1]['close'])
+        end_price = float(sorted_list[0]['close'])
+        return (start_price,end_price)
 
     def get_capitalized_name(self,word):
         capWord = ""
@@ -407,8 +414,48 @@ class StockAdvisor:
             output.append(row)
         return output
 
+    def get_average_sentiment_per_concept(self, nArticlesAndSentimentsPerConcept):
+        concept_list = (set([obj.split("__")[0] for obj in nArticlesAndSentimentsPerConcept.keys()]))
+        sentimentDict = dict(zip(concept_list,[0]*len(concept_list)))
+        for each_concept in nArticlesAndSentimentsPerConcept:
+            for each_item in concept_list:
+                if each_concept.split("__")[0]==each_item:
+                    sentimentDict[each_item] += nArticlesAndSentimentsPerConcept[each_concept]['avgSentiment']
+        return sentimentDict
 
+    def get_recommendation_data(self, stock_symbol, avg_sentiment_score , nArticlesAndSentimentsPerConcept, start_end_values, stock_percent_change):
+        stock_symbol = self.get_capitalized_name(stock_symbol)
+        avg_sentiment_score = round(avg_sentiment_score,2)
+        stock_percent_change = round(stock_percent_change,2)
+        sentiment_by_concept = self.get_average_sentiment_per_concept(nArticlesAndSentimentsPerConcept)
+        concept_name = max(sentiment_by_concept.iteritems(), key=operator.itemgetter(1))[0]
+        if avg_sentiment_score >= 0:
+            score_polarity = "positive"
+        else:
+            score_polarity = "negative"
 
+        if start_end_values[1]-start_end_values[0] > 0:
+            stock_grown_dropped = "grown"
+            percentage_growth_drop = "growth"
+        else:
+            stock_grown_dropped = "dropped"
+            percentage_growth_drop = "drop"
+
+        if stock_percent_change >= 1:
+            outlook = "good"
+            recom = "add"
+        elif stock_percent_change<1 and stock_percent_change>=0:
+            outlook = "moderate"
+            recom = "hold"
+        else:
+            outlook = "below par"
+            recom = "trim"
+        # recommendations_data = []
+        # recommendations_data.append("<li>Based on the news articles analysed, <b>{}</b> has a <b>{}</b> score of <b>{}</b>, which is strongly driven by events in <b>{}</b>.</li>".format(stock_symbol, score_polarity, avg_sentiment_score, concept_name))
+        # recommendations_data.append("<li>The stock price has {} from {} to {}, showing a <b>{}</b> of <b>{}%</b></li>.".format(stock_grown_dropped, start_end_values[0], start_end_values[1], percentage_growth_drop, stock_percent_change))
+        # recommendations_data.append("<li>The interim outlook for this stock is <b>{}</b> and hence the recommendation is <b>{}</b>.</li>".format(outlook, recom))
+        recommendations_data = "<li>Based on the news articles analysed, <b>{}</b> has a <b>{}</b> score of <b>{}</b>, which is strongly driven by events in <b>{}</b>.</li><li>The stock price has {} from {} to {}, showing a <b>{}</b> of <b>{}%</b>.</li><li>The interim outlook for this stock is <b>{}</b> and hence the recommendation is <b>{}</b>.</li>".format(stock_symbol, score_polarity, avg_sentiment_score, concept_name, stock_grown_dropped, start_end_values[0], start_end_values[1], percentage_growth_drop, stock_percent_change, outlook, recom)
+        return recommendations_data
 
     def Run(self):
         print "In stockAdvisor"
@@ -538,6 +585,13 @@ class StockAdvisor:
                 # print "average_sentiment_per_date : ", average_sentiment_per_date
 
                 (top_events_positive, top_events_negative) = self.get_top_events(df)
+
+                start_end_values = self.get_stock_start_end_value(df_historic)
+                try:
+                    stockDict[stock_symbol]['recommendations'] = self.get_recommendation_data(stock_symbol, avg_sentiment_score, nArticlesAndSentimentsPerConcept, start_end_values, stock_percent_change)
+                except Exception, e:
+                    print "Exception in getting recommendation : ", str(e)
+
                 working_stock_list.append(stock_symbol)
             except Exception, e:
                 stockDict.pop(stock_symbol, None)

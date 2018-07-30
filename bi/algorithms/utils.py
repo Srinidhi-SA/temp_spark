@@ -1512,7 +1512,6 @@ def aggregate_concept_stats(conceptDictArray):
 
 def stock_sense_individual_stock_cards(stockDict):
     allStockNodes = []
-    # print "stockDict : ", stockDict
     for stockName,dataDict in stockDict.items():
         stockNode = NarrativesTree()
         stockNode.set_name(stockName)
@@ -1570,7 +1569,6 @@ def stock_sense_individual_stock_cards(stockDict):
             chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
         # chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
         chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)
-        # print conceptSubConceptTableData
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
         chart_json = ChartJson()
         chart_json.set_data(sentimentNdArticlesByConcept.get_data())
@@ -1647,6 +1645,13 @@ def stock_sense_individual_stock_cards(stockDict):
         coefficientsChart = C3ChartData(data=coefficientsChartJson)
         impactAnalysisCardData.append(coefficientsChart)
 
+        if stockDict[stockName].get('recommendations'):
+            impactAnalysisCardData.append(HtmlData(data="<h4>Recommendations</h4>"))
+        # recommndation_html = "<ul class='list-unstyled bullets_primary'>{}{}{}</ul>".format(stockDict[stockName]['recommendations'][0],stockDict[stockName]['recommendations'][1],stockDict[stockName]['recommendations'][2])
+            recommndation_html = "<ul class='list-unstyled bullets_primary'>{}</ul>".format(stockDict[stockName]['recommendations'])
+
+            htmlData = HtmlData(data = recommndation_html)
+            impactAnalysisCardData.append(htmlData)
         impactAnalysisCard.set_card_data(impactAnalysisCardData)
         stockNode.add_a_card(impactAnalysisCard)
 
