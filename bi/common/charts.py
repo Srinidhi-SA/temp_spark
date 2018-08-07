@@ -200,6 +200,23 @@ class ChartJson:
         self.title = None
 
 
+    def get_dict_object(self):
+        out = {
+            "data":self.data,
+            "axes":self.axes,
+            "label_text":self.label_text,
+            "legend":self.legend,
+            "chart_type":self.chart_type,
+            "types":self.types,
+            "axisRotation":self.axisRotation,
+            "yAxisNumberFormat":self.yAxisNumberFormat,
+            "y2AxisNumberFormat":self.y2AxisNumberFormat,
+            "subchart":self.subchart,
+            "show_legend":self.show_legend,
+            "hide_xtick":self.hide_xtick,
+            "title":self.title,
+        }
+        return out
     def set_data(self,data):
         """
             data can be of array type or dictionary

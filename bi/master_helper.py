@@ -259,6 +259,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     print "Model Training Completed in ", time.time() - st, " seconds."
 
 def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
+    dataframe_context.set_anova_on_scored_data(True)
     LOGGER = dataframe_context.get_logger()
     messageURL = dataframe_context.get_message_url()
     APP_NAME = dataframe_context.get_app_name()
@@ -409,8 +410,8 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
 
         headNode = NarrativesTree()
         if headNode != None:
-            headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
-        headNode["name"] = jobName
+            headNode.set_name(jobName)
+        # headNode["name"] = jobName
         # distributionNode = result_setter.get_distribution_node()
         # if distributionNode != None:
         #     headNode["listOfNodes"].append(distributionNode)
@@ -426,21 +427,38 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
 
         coeffCard = result_setter.get_coeff_card_regression_score()
 
-        overviewCard = NormalCard(cardData=[HtmlData("<b><h4>Overview</h4></b>")])
-        # overviewCard = CommonUtils.convert_python_object_to_json(overviewCard)
-        overviewCard = json.loads(CommonUtils.convert_python_object_to_json(overviewCard))
-        headNode["listOfCards"].append(overviewCard)
-        headNode["listOfCards"].append(kpiCard)
+        overviewCard = NormalCard(cardData=[HtmlData("<h4>Overview</h4>")])
+        headNode.add_a_card(overviewCard)
+        headNode.add_a_card(kpiCard)
         distributionNode = result_setter.get_distribution_node()
         if distributionNode != None:
-            headNode["listOfCards"] += distributionNode["listOfCards"]
+            headNode.add_cards(distributionNode["listOfCards"])
         if coeffCard != None:
-            headNode["listOfCards"].append(coeffCard)
-        anovaCards = result_setter.get_anova_cards_regression_score()
-        anovaCards = [CommonUtils.convert_python_object_to_json(obj) for obj in anovaCards]
-        headNode["listOfCards"] += anovaCards
-        print json.dumps(headNode,indent=2)
-        response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
+            headNode.add_a_card(coeffCard)
+        anovaNarratives = result_setter.get_anova_narratives_scored_data()
+        anovaCharts = result_setter.get_anova_charts_scored_data()
+        if anovaNarratives != {}:
+            anovaHeaderCard = NormalCard(cardData=[HtmlData("<h4>Analysis by Key Factors</h4>")])
+            headNode.add_a_card(anovaHeaderCard)
+            anovaCard = NormalCard()
+            significantDims = len(anovaNarratives)
+            anovaNarrativesArray = anovaNarratives.items()
+            if significantDims == 1:
+                anovaCard.set_card_width(100)
+            elif significantDims % 2 == 0:
+                anovaCard.set_card_width(50)
+            else:
+                anovaCard.set_card_width(50)
+                anovaNarrativesArray = anovaNarrativesArray[:-1]
+
+            for k,v in anovaNarrativesArray:
+                chartobj = anovaCharts[k].get_dict_object()
+                anovaCard.add_card_data([anovaCharts[k],HtmlData(data=v)])
+                headNode.add_a_card(anovaCard)
+
+        headNodeJson = CommonUtils.convert_python_object_to_json(headNode)
+        print headNodeJson
+        response = CommonUtils.save_result_json(jobUrl,headNodeJson)
         # print "Dimension Analysis Completed in", time.time()-st," Seconds"
         print "Model Scoring Completed in ", time.time() - st, " seconds."
 

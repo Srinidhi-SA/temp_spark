@@ -89,7 +89,6 @@ class OneWayAnovaNarratives:
     def _generate_narratives(self):
         self._card3_required = False
         self._generate_card1()
-        print "self._dataframe_context.get_job_type()",self._dataframe_context.get_job_type()
 
         if self._dataframe_context.get_job_type() != "prediction":
             print "duration is ",self._trendDuration
@@ -108,12 +107,16 @@ class OneWayAnovaNarratives:
     def _get_c3chart_card1_chart1(self, total, average):
         data = []
         for key in total:
-            data.append({'dimension':key, 'total': total[key], 'average':average[key]})
-        return ChartJson(data = NormalChartData(data).get_data(),axes={'x':'dimension','y':'total','y2':'average'},
+            data.append({'dimension':str(key), 'total': total[key], 'average':average[key]})
+        data = sorted(data,key=lambda x:x["total"],reverse=True)
+        output = ChartJson(data = NormalChartData(data).get_data(),axes={'x':'dimension','y':'total','y2':'average'},
                          label_text={'x':self._dimension_column_capitalized,
                                      'y':'Total '+self._measure_column_capitalized,
                                      'y2':'Average '+self._measure_column_capitalized},
                          chart_type='bar')
+        return output
+
+
 
     def _get_c3chart_trend(self,data,x,y,y2):
         key_list = ['k1','k2','k3']
@@ -172,8 +175,11 @@ class OneWayAnovaNarratives:
             ("Inference","There is a significant effect of {} on {} (target).".format(self._dimension_column_capitalized,self._measure_column_capitalized) )
             ]
         statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
+        card1_chart1 = C3ChartData(data=self._get_c3chart_card1_chart1(group_by_total,group_by_mean),info=statistical_info_array)
 
-        lines += [C3ChartData(data=self._get_c3chart_card1_chart1(group_by_total,group_by_mean),info=statistical_info_array)]
+        self._result_setter.set_anova_chart_on_scored_data({self._dimension_column:card1_chart1})
+        lines += [card1_chart1]
+
 
         # top_group_by_total = keys[totals.index(max(totals))]
         top_group_by_total = keys[totals.argmax()]
@@ -263,9 +269,13 @@ class OneWayAnovaNarratives:
                 }
         output = {'header' : 'Overview', 'content': []}
         if self._binAnalyzedCol == True:
-            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3_binned_IV.html',data_dict))
+            narrativeText = NarrativesUtils.get_template_output(self._base_dir,'anova_template_3_binned_IV.html',data_dict)
+            output['content'].append(narrativeText)
+            self._result_setter.set_anova_narrative_on_scored_data({self._dimension_column:narrativeText})
         else:
-            output['content'].append(NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.html',data_dict))
+            narrativeText = NarrativesUtils.get_template_output(self._base_dir,'anova_template_3.html',data_dict)
+            output['content'].append(narrativeText)
+            self._result_setter.set_anova_narrative_on_scored_data({self._dimension_column:narrativeText})
 
         for cnt in output['content']:
             lines += NarrativesUtils.block_splitter(cnt,self._blockSplitter)

@@ -5,6 +5,7 @@ import time
 import math
 import random
 import shutil
+import copy
 
 import numpy as np
 import pandas as pd
@@ -1378,11 +1379,11 @@ def stock_sense_overview_card(data_dict_overall):
         },
         {
           "name": "Max Increase in Price",
-          "value": "{}% ({})".format(data_dict_overall["max_value_change_overall"][1],data_dict_overall["max_value_change_overall"][0])
+          "value": "{} ({})".format(data_dict_overall["max_value_change_overall"][1],data_dict_overall["max_value_change_overall"][0])
         },
         {
           "name": "Max Decrease in Price",
-          "value": "{}% ({})".format(data_dict_overall["min_value_change_overall"][1],data_dict_overall["min_value_change_overall"][0])
+          "value": "{} ({})".format(data_dict_overall["min_value_change_overall"][1],data_dict_overall["min_value_change_overall"][0])
         }
     ]
     summaryDataClass = DataBox(data=summaryData)
@@ -1392,6 +1393,7 @@ def stock_sense_overview_card(data_dict_overall):
     plotData = []
     for k,v in articlesByStockCardData.items():
         plotData.append({"name":k,"value":v})
+    plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     articlesByStockData = NormalChartData(data=plotData)
     chart_json = ChartJson()
     chart_json.set_data(articlesByStockData.get_data())
@@ -1436,6 +1438,7 @@ def stock_sense_overview_card(data_dict_overall):
     plotData = []
     for k,v in articlesBySourceCardData.items():
         plotData.append({"name":k,"value":v})
+    plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     articlesBySourceData = NormalChartData(data=plotData)
     chart_json = ChartJson()
     chart_json.set_data(articlesBySourceData.get_data())
@@ -1455,6 +1458,7 @@ def stock_sense_overview_card(data_dict_overall):
     plotData = []
     for k,v in sentimentByStockCardData.items():
         plotData.append({"name":k,"value":v})
+    plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     sentimentByStockData = NormalChartData(data=plotData)
     chart_json = ChartJson()
     chart_json.set_data(sentimentByStockData.get_data())
@@ -1470,6 +1474,41 @@ def stock_sense_overview_card(data_dict_overall):
 
     overviewCard.set_card_data(overviewCardData)
     return overviewCard
+
+def aggregate_concept_stats(conceptDictArray):
+    # {"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]}
+    concepts = list(set([obj["concept"].split("__")[0] for obj in conceptDictArray]))
+    articlesDict = dict(zip(concepts,[0]*len(concepts)))
+    sentimentDict = dict(zip(concepts,[0]*len(concepts)))
+    for conceptDict in conceptDictArray:
+        for concept in concepts:
+            if conceptDict["concept"].split("__")[0] == concept:
+                articlesDict[concept] += conceptDict["articles"]
+                sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
+    outArray = []
+    conceptTableDict = dict(zip(concepts,[[]]*len(concepts)))
+    for obj in conceptDictArray:
+        conceptName,subConcept = obj["concept"].split("__")
+        tableDict = {"text":subConcept,"value":obj["avgSentiment"]}
+        existingVal = copy.deepcopy(conceptTableDict[conceptName])
+        newVal = existingVal + [tableDict]
+        conceptTableDict[conceptName] = newVal
+    conceptOrder = sorted([(k,len(v)) for k,v in conceptTableDict.items()],key=lambda x:x[1],reverse=True)
+    maxNoSubConcepts = max([len(v) for k,v in conceptTableDict.items()])
+    conceptTable = [[x[0] for x in conceptOrder]]
+    for idx,val in enumerate(concepts):
+        if len(conceptTableDict[val]) < maxNoSubConcepts:
+            conceptTableDict[val] += [{"text":"","value":0}]*(maxNoSubConcepts-len(conceptTableDict[val]))
+        if articlesDict[val] != 0:
+            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
+        else:
+            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":0.0}
+        outArray.append(obj)
+    outArray = sorted(outArray,key=lambda x:x["articles"],reverse=True)
+
+    conceptTableRows = [list(obj) for obj in np.column_stack(tuple([sorted(conceptTableDict[x[0]],key=lambda k:k["value"] if k["text"] != "" else -99999,reverse=True) for x in conceptOrder]))]
+    conceptTable += conceptTableRows
+    return outArray,conceptTable
 
 def stock_sense_individual_stock_cards(stockDict):
     allStockNodes = []
@@ -1528,6 +1567,8 @@ def stock_sense_individual_stock_cards(stockDict):
         chartData = []
         for k,v in dataDict["articlesAndSentimentsPerConcept"].items():
             chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
+        # chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
+        chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
         chart_json = ChartJson()
         chart_json.set_data(sentimentNdArticlesByConcept.get_data())
@@ -1581,11 +1622,38 @@ def stock_sense_individual_stock_cards(stockDict):
         eventAnalysisCard.set_card_data(eventAnalysisCardData)
         stockNode.add_a_card(eventAnalysisCard)
 
-        # impactAnalysisCard = NormalCard()
-        # impactAnalysisCard.set_card_name("Impact Analysis")
-        # impactAnalysisCardData = []
-        # impactAnalysisCard.set_card_data(impactAnalysisCardData)
-        # stockNode.add_a_card(impactAnalysisCard)
+        impactAnalysisCard = NormalCard()
+        impactAnalysisCard.set_card_name("Impact Analysis")
+        impactAnalysisCardData = []
+        impactAnalysisCardData.append(HtmlData(data="<h4>Sentiment by Concept</h4>"))
+        conceptImpactTable = TableData()
+        conceptImpactTable.set_table_type("textHeatMapTable")
+        conceptImpactTable.set_table_data(conceptSubConceptTableData)
+        impactAnalysisCardData.append(conceptImpactTable)
+        impactAnalysisCardData.append(HtmlData(data="<h4>Impact on Stock Price</h4>"))
+        impactCoefficients = dataDict["regCoefficient"]
+        coefficientsArray = normalize_coefficients(impactCoefficients)
+        chartDataValues = [x["value"] for x in coefficientsArray]
+        coefficientsChartJson = ChartJson()
+        coefficientsChartJson.set_data(coefficientsArray)
+        coefficientsChartJson.set_chart_type("bar")
+        coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
+        coefficientsChartJson.set_axes({"x":"key","y":"value"})
+        # coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
+        # coefficientsChartJson.set_yaxis_number_format(".4f")
+        coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
+        coefficientsChart = C3ChartData(data=coefficientsChartJson)
+        impactAnalysisCardData.append(coefficientsChart)
+
+        if stockDict[stockName].get('recommendations'):
+            impactAnalysisCardData.append(HtmlData(data="<h4>Recommendations</h4>"))
+        # recommndation_html = "<ul class='list-unstyled bullets_primary'>{}{}{}</ul>".format(stockDict[stockName]['recommendations'][0],stockDict[stockName]['recommendations'][1],stockDict[stockName]['recommendations'][2])
+            recommndation_html = "<ul class='list-unstyled bullets_primary'>{}</ul>".format(stockDict[stockName]['recommendations'])
+
+            htmlData = HtmlData(data = recommndation_html)
+            impactAnalysisCardData.append(htmlData)
+        impactAnalysisCard.set_card_data(impactAnalysisCardData)
+        stockNode.add_a_card(impactAnalysisCard)
 
         allStockNodes.append(stockNode)
 

@@ -72,7 +72,7 @@ class TestChiSquare(unittest.TestCase):
 		APP_NAME = "test"
 		spark = CommonUtils.get_spark_session(app_name=APP_NAME,hive_environment=False)
 		spark.sparkContext.setLogLevel("ERROR")
-		spark.conf.set("spark.sql.execution.arrow.enabled", "true")
+		# spark.conf.set("spark.sql.execution.arrow.enabled", "true")
 
 		configJson = get_test_configs("testCase",testFor = "chisquare")
 

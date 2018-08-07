@@ -15,25 +15,25 @@ def get_metadata_config():
         },
         "FILE_SETTINGS": {
           "inputfile": [
-            "file:///home/gulshan/marlabs/datasets/Equipment.csv"
+            "file:///home/gulshan/marlabs/datasets/insuranceClaimsV2All12MonthDistintDates.csv"
           ]
         }
       },
       "job_config": {
-        "message_url": "http://34.196.204.54:9012/api/messages/Job_metadata-equipmentcsv-5awj1omo0m-m46od9pzfg_123/",
+        "message_url": "http://34.196.204.54:9012/api/messages/Job_metadata-insuranceclaimsv2all12monthdistintdatescsv-07wg9nidz0-bzzrdw3nqu_123/",
         "get_config": {
           "action": "get_config",
           "method": "GET"
         },
-        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/metadata-equipmentcsv-5awj1omo0m-m46od9pzfg/",
+        "error_reporting_url": "http://34.196.204.54:9012/api/set_job_report/metadata-insuranceclaimsv2all12monthdistintdatescsv-07wg9nidz0-bzzrdw3nqu/",
         "set_result": {
           "action": "result",
           "method": "PUT"
         },
-        "job_url": "http://34.196.204.54:9012/api/job/metadata-equipmentcsv-5awj1omo0m-m46od9pzfg/",
+        "job_url": "http://34.196.204.54:9012/api/job/metadata-insuranceclaimsv2all12monthdistintdatescsv-07wg9nidz0-bzzrdw3nqu/",
         "job_type": "metaData",
-        "job_name": "Equipment.csv",
-        "xml_url": "http://34.196.204.54:9012/api/xml/metadata-equipmentcsv-5awj1omo0m-m46od9pzfg/",
+        "job_name": "insuranceClaimsV2All12MonthDistintDates.csv",
+        "xml_url": "http://34.196.204.54:9012/api/xml/metadata-insuranceclaimsv2all12monthdistintdatescsv-07wg9nidz0-bzzrdw3nqu/",
         "app_id": None
       }
     }

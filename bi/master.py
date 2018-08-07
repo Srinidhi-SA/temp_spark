@@ -41,7 +41,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "prediction"
+            jobType = "stockAdvisor"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -63,7 +63,7 @@ def main(configJson):
     spark.sparkContext.setLogLevel("ERROR")
     # applicationIDspark = spark.sparkContext.applicationId
 
-    spark.conf.set("spark.sql.execution.arrow.enabled", "true")
+    # spark.conf.set("spark.sql.execution.arrow.enabled", "true")
 
     print "######################### Parsing the configs #############################"
 
@@ -203,10 +203,14 @@ def main(configJson):
 
         ################################### Stock ADVISOR ##########################
         if jobType == 'stockAdvisor':
+            # spark.conf.set("spark.sql.execution.arrow.enabled", "false")
             file_names = dataframe_context.get_stock_symbol_list()
             stockObj = StockAdvisor(spark, file_names,dataframe_context,result_setter)
             stockAdvisorData = stockObj.Run()
             stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
+            # stockAdvisorDataJson["name"] = jobName
+            print "*"*100
+            print "Result : ", stockAdvisorDataJson
             response = CommonUtils.save_result_json(jobURL,stockAdvisorDataJson)
 
         ############################################################################

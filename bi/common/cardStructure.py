@@ -302,6 +302,17 @@ class C3ChartData:
         self.widthPercent=100
         self.chartInfo = info
         # self.chartInfo = ["Statistical Test : Avova","Variables : Call Volume","Effect Size : 0.2"]
+    def get_dict_object(self):
+        out = {
+            "dataType":self.dataType,
+            "widthPercent":self.widthPercent,
+            "chartInfo":self.chartInfo,
+        }
+        if isinstance(self.data,dict):
+            out["data"] = self.data
+        else:
+            out["data"] = self.data.get_dict_object()
+        return out
 
     def set_data(self,data):
         self.data = data

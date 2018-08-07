@@ -539,7 +539,7 @@ class LinearRegressionModelScript:
             # coefficientsChartJson.set_yaxis_number_format(".4f")
             coefficientsChartJson.set_yaxis_number_format(CommonUtils.select_y_axis_format(chartDataValues))
             coefficientsChart = C3ChartData(data=coefficientsChartJson)
-            coefficientsCardData = [HtmlData(data="<h4><b>Influence of Key Features on {}</b></h4>".format(targetVariable)),coefficientsChart]
+            coefficientsCardData = [HtmlData(data="<h4>Influence of Key Features on {}</h4>".format(targetVariable)),coefficientsChart]
             coefficientsCard.set_card_data(coefficientsCardData)
             coefficientsCard = json.loads(CommonUtils.convert_python_object_to_json(coefficientsCard))
             self._result_setter.set_coeff_card_regression_score(coefficientsCard)
@@ -558,7 +558,7 @@ class LinearRegressionModelScript:
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
-
+            print df.columns
             print "STARTING Measure ANALYSIS ..."
             columns_to_keep = []
             columns_to_drop = []
@@ -580,13 +580,13 @@ class LinearRegressionModelScript:
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         df = df_helper.get_data_frame()
-        # try:
-        fs = time.time()
-        descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName="Descriptive analysis")
-        descr_stats_obj.Run()
-        print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
-        # except:
-        #     print "DescriptiveStats Analysis Failed "
+        try:
+            fs = time.time()
+            descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName="Descriptive analysis")
+            descr_stats_obj.Run()
+            print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+        except:
+            print "DescriptiveStats Analysis Failed "
 
         # try:
         #     fs = time.time()
@@ -599,10 +599,10 @@ class LinearRegressionModelScript:
         #     print "DTREE FAILED"
         #
         # try:
-        #     fs = time.time()
-        #     two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
-        #     two_way_obj.Run()
-        #     print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+        fs = time.time()
+        two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
+        two_way_obj.Run()
+        print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
         # except:
         #     print "Anova Analysis Failed"
 
