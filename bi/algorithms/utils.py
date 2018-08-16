@@ -987,7 +987,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
-                            .format(totalModels,GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
+                            .format(totalModels,totalModels if totalModels < GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY else GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY ,bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
@@ -1176,7 +1176,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
-                            .format(totalModels,GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
+                            .format(totalModels,totalModels if totalModels < GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY else GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
