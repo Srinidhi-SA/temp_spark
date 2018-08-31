@@ -178,7 +178,10 @@ class DataFrameHelper:
         print "app_type",app_type
         print "="*30
         if app_type == "CLASSIFICATION":
-            x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+            if train_test_ratio != 1.0:
+                x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
+            else:
+                x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio,test_size = train_test_ratio, random_state=42, stratify=df[result_column])
         elif app_type == "REGRESSION":
             x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42)
         # x_train,x_test,y_train,y_test = MLUtils.generate_train_test_split(df,train_test_ratio,result_column,drop_column_list)
