@@ -284,7 +284,7 @@ class DecisionTreeNarrative:
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [{"name":k,"count":v,"percentage":round(v*100/total,2)} for k,v in levelCountDict.items() if v != None]
             percentageArray = [x["percentage"] for x in levelCountTuple]
-            percentageArray = NarrativesUtils.ret_smart_round(percentageArray)
+            # percentageArray = NarrativesUtils.ret_smart_round(percentageArray)
             levelCountTuple = [{"name":obj["name"],"count":obj["count"],"percentage":str(percentageArray[idx])+"%"} for idx,obj in enumerate(levelCountTuple)]
             data_dict["nlevel"] = len(levelCountDict)
             print "levelCountTuple",levelCountTuple
