@@ -959,14 +959,14 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
     customSeparator = "|~%%~| "
     for var in key_measures.keys():
         if key_measures[var].has_key('upper_limit') and key_measures[var].has_key('lower_limit'):
-            temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + key_measures[var]['lower_limit'] + ' to ' + key_measures[var]['upper_limit']+customSeparator
-            crude_narrative = crude_narrative + 'value of ' + var + ' is between ' + key_measures[var]['lower_limit'] + ' to ' + key_measures[var]['upper_limit']+customSeparator
+            temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+            crude_narrative = crude_narrative + 'value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
         elif key_measures[var].has_key('upper_limit'):
-            temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + key_measures[var]['upper_limit']+customSeparator
-            crude_narrative = crude_narrative + 'value of ' + var + ' is less than or equal to ' + key_measures[var]['upper_limit']+customSeparator
+            temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+            crude_narrative = crude_narrative + 'value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
         elif key_measures[var].has_key('lower_limit'):
-            temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + key_measures[var]['lower_limit']+customSeparator
-            crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + key_measures[var]['lower_limit']+customSeparator
+            temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
+            crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
     # crude_narrative = temp_narrative
     for var in key_dimensions.keys():
         if key_dimensions[var].has_key('in'):
