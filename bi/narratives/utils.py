@@ -655,7 +655,7 @@ def get_bucket_data_dict(bucket_dict):
     out = {}
     out["bucket_length"] = zip_list[0][0]
     key = str(zip_list[0][0])
-    out["bucket_contribution"] = round(bucket_dict[key]["contribution"],2)
+    out["bucket_contribution"] = round_number(bucket_dict[key]["contribution"])
     out["bucket_start"] = bucket_dict[key]["start_streak"]
     out["bucket_end"] = bucket_dict[key]["end_streak"]
     # print "end_streak",bucket_dict[key]["end_streak"]
