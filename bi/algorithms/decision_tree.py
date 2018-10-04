@@ -263,7 +263,7 @@ class DecisionTrees:
             dimension_classes = self._data_frame.select(dimension).distinct().count()
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         print "="*200
-        print self._data_frame.rdd.first()
+        # print self._data_frame.rdd.first()
         print "numClasses",dimension_classes
         print "maxDepth",self._maxDepth
         print "maxBins",max_length
@@ -271,7 +271,10 @@ class DecisionTrees:
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
+        # model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
+        # Removed categoricalFeaturesInfo to be passed to DecisionTree to get all levels
+        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo={}, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
+
         output_result = model.toDebugString()
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)
