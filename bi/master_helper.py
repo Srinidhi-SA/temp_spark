@@ -440,18 +440,20 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         if anovaNarratives != {}:
             anovaHeaderCard = NormalCard(cardData=[HtmlData("<h4>Analysis by Key Factors</h4>")])
             headNode.add_a_card(anovaHeaderCard)
-            anovaCard = NormalCard()
             significantDims = len(anovaNarratives)
             anovaNarrativesArray = anovaNarratives.items()
+            anovaCardWidth = 100
             if significantDims == 1:
-                anovaCard.set_card_width(100)
+                anovaCardWidth = 100
             elif significantDims % 2 == 0:
-                anovaCard.set_card_width(50)
+                anovaCardWidth = 50
             else:
-                anovaCard.set_card_width(50)
+                anovaCardWidth = 50
                 anovaNarrativesArray = anovaNarrativesArray[:-1]
 
             for k,v in anovaNarrativesArray:
+                anovaCard = NormalCard()
+                anovaCard.set_card_width(anovaCardWidth)
                 chartobj = anovaCharts[k].get_dict_object()
                 anovaCard.add_card_data([anovaCharts[k],HtmlData(data=v)])
                 headNode.add_a_card(anovaCard)
