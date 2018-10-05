@@ -421,7 +421,7 @@ class ChiSquareAnalysis:
 
                   card2Data = []
                   targetLevelContributions = [table.get_value(targetLevel,i) for i in levels]
-                  card2Heading = '<h3>Distribution of ' + self._target_dimension + ' (' + targetLevel + ') across ' + self._analysed_dimension+"</h3>"
+                  card2Heading = '<h3>Key Drivers of ' + self._target_dimension + ' (' + targetLevel + ')'+"</h3>"
                   chart,bubble = self.generate_distribution_card_chart(targetLevel, targetLevelContributions, levels, level_counts, total)
                   card2ChartData = NormalChartData(data=chart["data"])
                   card2ChartJson = ChartJson()
