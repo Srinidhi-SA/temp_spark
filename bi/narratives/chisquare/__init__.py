@@ -27,15 +27,15 @@ class ChiSquareNarratives:
         self.narratives = {}
         self._appid = df_context.get_app_id()
         self._chiSquareNode = NarrativesTree()
-        self._chiSquareNode.set_name("Association")
+        self._chiSquareNode.set_name("Key Drivers")
         self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._noOfSigDimsToShow = GLOBALSETTINGS.CHISQUARESIGNIFICANTDIMENSIONTOSHOW
         self._base_dir = "/chisquare/"
         self._spark = spark
-        
+
         ############################DataFrame Measure to Dimesion Column#####################
-        
-        pandas_df = self._data_frame.toPandas()    
+
+        pandas_df = self._data_frame.toPandas()
         target_dimension = self._df_chisquare_result.keys()
 
         bin_data = {}
@@ -110,13 +110,13 @@ class ChiSquareNarratives:
             target_chisquare_result = self._df_chisquare_result[target_dimension]
             analysed_variables = target_chisquare_result.keys()  ## List of all analyzed var.
             # List of significant var out of analyzed var.
-            significant_variables = [dim for dim in target_chisquare_result.keys() if target_chisquare_result[dim].get_pvalue()<=0.05]   
+            significant_variables = [dim for dim in target_chisquare_result.keys() if target_chisquare_result[dim].get_pvalue()<=0.05]
             effect_sizes = [target_chisquare_result[dim].get_effect_size() for dim in significant_variables]
 
             effect_size_dict = dict(zip(significant_variables,effect_sizes))
             significant_variables = [y for (x,y) in sorted(zip(effect_sizes,significant_variables),reverse=True)]
             #insignificant_variables = [i for i in self._df_chisquare_result[target_dimension] if i['pv']>0.05]
- 
+
             num_analysed_variables = len(analysed_variables)
             num_significant_variables = len(significant_variables)
             self.narratives['main_card']= {}
