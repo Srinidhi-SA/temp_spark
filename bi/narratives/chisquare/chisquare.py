@@ -262,7 +262,7 @@ class ChiSquareAnalysis:
               output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
 
           targetDimCard1Data = []
-          targetDimcard1Heading = '<h3>Relationship between '+ self._target_dimension + '  and '+self._analysed_dimension+"</h3>"
+          targetDimcard1Heading = '<h3>Impact of '+ self._analysed_dimension + '  on '+self._target_dimension+"</h3>"
 
           toggledata = ToggleData()
 
@@ -293,7 +293,7 @@ class ChiSquareAnalysis:
           ###############
 
           if self._appid == None:
- 
+
               key_factors = ''
               num_key_factors = len(self._second_level_dimensions)
 
@@ -321,7 +321,7 @@ class ChiSquareAnalysis:
                   sum_second_target = sum(second_target_contributions)
 
                   sorted_levels = sorted(zip(second_target_contributions,levels), reverse=True)
-       
+
                   level_differences = [0.0] + [sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
                   second_target_top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
                   second_target_top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
@@ -461,7 +461,7 @@ class ChiSquareAnalysis:
                   self._targetCards.append(targetCard)
                   dict_for_test[targetLevel] = targetCardDataDict
           out = {'data_dict' : data_dict,
-                'target_dict':dict_for_test}  
+                'target_dict':dict_for_test}
 
           return out
 
