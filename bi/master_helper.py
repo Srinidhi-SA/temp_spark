@@ -1,6 +1,6 @@
-
 import json
 import time
+import re
 
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
@@ -140,7 +140,8 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
     if mlEnv == "sklearn":
         df = df.toPandas()
-        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        df.columns = [re.sub("[[]|[]]|[<]","", col) for col in df.columns.values]
+        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         dataframe_helper.set_train_test_data(df)
 
     model_slug = dataframe_context.get_model_path()

@@ -1,4 +1,5 @@
 import time
+import re
 import pandas as pd
 from sklearn import metrics
 from math import sqrt
@@ -405,6 +406,7 @@ class SkleanrKFoldResult:
         for train_index, test_index in self.kfObject.split(self.x_train):
             x_train_fold, x_test_fold = self.x_train.iloc[train_index,:], self.x_train.iloc[test_index,:]
             y_train_fold, y_test_fold = self.y_train.iloc[train_index], self.y_train.iloc[test_index]
+            x_train_fold.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train_fold.columns.values]
             self.estimator.fit(x_train_fold, y_train_fold)
             y_score_fold = self.estimator.predict(x_test_fold)
             metricsFold = {}
