@@ -253,6 +253,7 @@ class LogisticRegressionScript:
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
+            self._model_summary.set_target_level(self._targetLevel)
             # self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
