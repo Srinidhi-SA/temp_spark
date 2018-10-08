@@ -160,7 +160,7 @@ class ChiSquareNarratives:
 
 
             main_card = NormalCard()
-            header = "<h3>Strength of association between "+target_dimension+" and other dimensions</h3>"
+            header = "<h3>Key Factors that drive "+target_dimension+"</h3>"
             main_card_data = [HtmlData(data=header)]
             main_card_narrative = NarrativesUtils.get_template_output(self._base_dir,'main_card.html',data_dict)
             main_card_narrative = NarrativesUtils.block_splitter(main_card_narrative,self._blockSplitter)
