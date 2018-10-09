@@ -12,6 +12,7 @@ class ResultSetter:
         self.trend_subsection_data = None
         self.trend_subsection_complete = False
         self.model_summary = {}
+        self.businessImpactNode = None
         self.distributionNode = None
         self.chisquareNode = None
         self.trendNode = None
@@ -172,6 +173,8 @@ class ResultSetter:
         self.anovaNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_regression_node(self,node):
         self.regressionNode = json.loads(CommonUtils.convert_python_object_to_json(node))
+    def set_business_impact_node(self,node):
+        self.businessImpactNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def get_head_node(self):
         return self.headNode
     def get_trend_node(self):
@@ -186,6 +189,8 @@ class ResultSetter:
         return self.anovaNode
     def get_regression_node(self):
         return self.regressionNode
+    def get_business_impact_node(self):
+        return self.businessImpactNode
 
     def update_executive_summary_data(self,data_dict):
         if data_dict != None:

@@ -196,6 +196,9 @@ class MLModelSummary:
     def set_num_rules(self,data):
         self.nRules = data
 
+    def set_target_level(self,data):
+        self.targetLevel = data
+
     def set_slug(self,data):
         self.slug = data
 
@@ -225,6 +228,9 @@ class MLModelSummary:
 
     def get_target_variable(self):
         return self.targetVariable
+
+    def get_target_level(self):
+        return self.targetLevel
 
     def get_prediction_split(self):
         return self.predictionSplit
