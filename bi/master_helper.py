@@ -683,7 +683,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     if business_card_calculation:
         try:
             fs = time.time()
-            business_card_obj = BusinessCard(business_impact_nodes, headNode, metaParserInstance, result_setter)
+            business_card_obj = BusinessCard(business_impact_nodes, headNode, metaParserInstance, result_setter, st)
             business_card_obj.Run()
             print "Business Card Analysis Done in ", time.time() - fs, " seconds."
         except Exception, e:
