@@ -11,6 +11,9 @@ class BusinessCard:
         self._meta_parser = meta_parser
         self._result_setter = result_setter
         self.subheader = "Business Impact"
+        self.business_card1 = NormalCard()
+        self.business_card1.set_card_name("Overview")
+        self.businessCardData = []
 
     def get_number_charts(self):
         return 15
@@ -27,21 +30,27 @@ class BusinessCard:
     def get_number_data_points(self):
         return self._meta_parser.get_num_rows()*self._meta_parser.get_num_columns()
 
-    def get_data_dict(self):
+    def get_number_variables(self):
+        return self._meta_parser.get_num_columns()
+
+    def get_number_dimensions(self):
+        return 12
+
+    def get_number_measures(self):
+        return 14
+
+    def get_number_queries(self):
+        return 1200
+
+    def get_time_analyst(self):
+        return "12 hours and 30 minutes"
+
+    def get_summary_data(self):
         self.data_points = self.get_number_data_points()
         self.number_analysis = self.get_number_analysis()
         self.number_charts = self.get_number_charts()
         self.number_prediction_rules = self.get_number_prediction_rules()
         self.number_pages = self.get_number_pages()
-
-    def Run(self):
-        print "In Run of BusinessCard"
-        self._businessImpactNode = NarrativesTree()
-        self._businessImpactNode.set_name("Business Impact")
-        data_dict = self.get_data_dict()
-        business_card1 = NormalCard()
-        business_card1.set_card_name("Overview")
-        businessCardData = []
         summaryData = [
             {
               "name":"Total Points",
@@ -70,8 +79,30 @@ class BusinessCard:
         ]
         # summaryData = HtmlData(data="<p> Hello World!!! </p>")
         summaryDataClass = DataBox(data=summaryData)
-        businessCardData.append(summaryDataClass)
+        self.businessCardData.append(summaryDataClass)
         # businessCardData.append(summaryData)
-        business_card1.set_card_data(businessCardData)
-        self._businessImpactNode.add_a_card(business_card1)
+        # self.business_card1.set_card_data(self.businessCardData)
+        # self._businessImpactNode.add_a_card(self.business_card1)
+
+    def get_summary_para(self):
+        self.number_variables = self.get_number_variables()
+        self.number_dimensions = self.get_number_dimensions()
+        self.number_measures = self.get_number_measures()
+        self.number_queries = self.get_number_queries()
+        self.time_analyst = self.get_time_analyst()
+        para = "mAdvisor has analysed the dataset that contains {} variables ({} dimensions and {} measures) and executed about {} queries for {} analysis. This would have taken an estimated average of {} for a data analyst to come up with a similar analysis.".format(self.number_variables, self.number_dimensions, self.number_measures, self.number_queries, self.number_analysis, self.time_analyst)
+        # summary_para_class
+        print para
+        paraDataClass = HtmlData(data=para)
+        self.businessCardData.append(paraDataClass)
+
+    def Run(self):
+        print "In Run of BusinessCard"
+        self._businessImpactNode = NarrativesTree()
+        self._businessImpactNode.set_name("Business Impact")
+        summary = self.get_summary_data()
+        summary_para = self.get_summary_para()
+
+        self.business_card1.set_card_data(self.businessCardData)
+        self._businessImpactNode.add_a_card(self.business_card1)
         self._result_setter.set_business_impact_node(self._businessImpactNode)
