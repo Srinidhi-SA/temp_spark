@@ -32,6 +32,7 @@ from bi.scripts.measureAnalysis.linear_regression import LinearRegressionScript
 from bi.scripts.timeseries import TrendScript
 from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
 
+from bi.scripts.business_impact import BusinessCard
 
 def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
@@ -655,22 +656,44 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     # story_narrative.reorder_nodes(ordered_node_name_list)
     dimensionResult = CommonUtils.convert_python_object_to_json(story_narrative)
     headNode = result_setter.get_head_node()
+
+    business_impact_nodes = []
     if headNode != None:
         headNode = json.loads(CommonUtils.convert_python_object_to_json(headNode))
     headNode["name"] = jobName
     dimensionNode = result_setter.get_distribution_node()
     if dimensionNode != None:
+        business_impact_nodes.append("Overview")
         headNode["listOfNodes"].append(dimensionNode)
     trendNode = result_setter.get_trend_node()
     if trendNode != None:
+        business_impact_nodes.append("Trend")
         headNode["listOfNodes"].append(trendNode)
     chisquareNode = result_setter.get_chisquare_node()
     if chisquareNode != None:
+        business_impact_nodes.append("Association")
         headNode["listOfNodes"].append(chisquareNode)
-
     decisionTreeNode = result_setter.get_decision_tree_node()
     if decisionTreeNode != None:
+        business_impact_nodes.append("Prediction")
         headNode["listOfNodes"].append(decisionTreeNode)
+
+    # Business Impact Card Implementation #
+    business_card_calculation = True
+    if business_card_calculation:
+        try:
+            fs = time.time()
+            business_card_obj = BusinessCard(business_impact_nodes, headNode, metaParserInstance, result_setter)
+            business_card_obj.Run()
+            print "Business Card Analysis Done in ", time.time() - fs, " seconds."
+        except Exception, e:
+            print "Business Card Calculation failed : ", str(e)
+    businessImpactNode = result_setter.get_business_impact_node()
+    # print "businessImpactNode : ", json.dumps(businessImpactNode, indent=2)
+
+    if businessImpactNode != None:
+        headNode["listOfNodes"].append(businessImpactNode)
+
     print json.dumps(headNode,indent=2)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Dimension Analysis Completed in", time.time()-st," Seconds"
