@@ -1,4 +1,4 @@
-import time, json
+import time, json, re, sys
 from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData,DataBox,WordCloud
 
 class BusinessCard:
@@ -18,7 +18,7 @@ class BusinessCard:
         self.start_time = start_time
 
     def get_number_charts(self):
-        return 15
+        return json.dumps(self._story_result,indent=2).count("c3Chart")
 
     def get_number_analysis(self):
         self.target_levels = 2
@@ -54,12 +54,16 @@ class BusinessCard:
         return self._meta_parser.get_num_columns()
 
     def get_number_dimensions(self):
-        self.number_dimensions = 12
-        return self.number_dimensions
+        textdata = json.dumps(self._story_result,indent=2)
+        t= next(re.finditer(r'"noOfDimensions": [\d]+', textdata)).group(0)
+        l=next(re.finditer(r'[\d]+', t)).group(0)
+        return int(l)
 
     def get_number_measures(self):
-        self.number_measures = 14
-        return self.number_measures
+        textdata = json.dumps(self._story_result,indent=2)
+        t= next(re.finditer(r'"noOfMeasures": [\d]+', textdata)).group(0)
+        l=next(re.finditer(r'[\d]+', t)).group(0)
+        return int(l)
 
     def get_number_queries(self):
         return 1200
