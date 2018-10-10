@@ -465,6 +465,8 @@ def humanize_time(time_in_secs):
     time_in_secs = int(round(time_in_secs))
     hours = time_in_secs/3600
     minutes = (time_in_secs - (hours*3600))/60
+    if time_in_secs < 60:
+        return "{} Seconds".format(time_in_secs)
     return "{} Hours {} Minutes".format(hours, minutes)
 
 

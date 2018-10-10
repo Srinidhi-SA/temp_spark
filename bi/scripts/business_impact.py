@@ -145,7 +145,38 @@ class BusinessCard:
         # self._businessImpactNode.add_a_card(self.business_card1)
 
     def get_summary_para(self):
-        para = "mAdvisor has analysed the dataset that contains {} variables ({} dimensions and {} measures) and executed about <b>{}</b> queries for <b>{}</b> analysis. This would have taken an estimated average of <b>{}</b> for a data analyst to come up with a similar analysis.".format(self.number_variables, self.number_dimensions, self.number_measures, self.number_queries, self.number_analysis, CommonUtils.humanize_time(self.time_analyst))
+        para = """<blockquote><p>
+        <b>Great Job !!!</b>mAdvisor has analysed the dataset that contains {} variables ({} dimensions and {} measures) and executed about <b>{}</b> queries for <b>{}</b> analysis. This would have taken an estimated average of <b>{}</b> for a data analyst to come up with a similar analysis.
+        </p></blockquote>
+        """.format(self.number_variables, self.number_dimensions, self.number_measures, self.number_queries, self.number_analysis, CommonUtils.humanize_time(self.time_analyst))
+        paraDataClass = HtmlData(data=para)
+        self.businessCardData.append(paraDataClass)
+
+    def get_image_data(self):
+        para = """<div class="col-md-6">
+
+                              <img src="images/icon_dataAnalyst.png" class="pull-left" />
+
+                              <h1 class="pull-left xs-mt-40 xs-ml-10"><small>Data Analyst <img src="images/icon_bAClock.png" class="xs-ml-10" /></small><br>
+
+                                 <small>{}</small>
+
+                              </h1>
+
+                           </div>
+
+                           <div class="col-md-6">
+
+                              <img src="images/icon_bAmAdvisor.png" class="pull-left" />
+
+                              <h1 class="pull-left xs-mt-40 xs-ml-10 text-primary"> <img src="images/icon_bAClock.png" /><br>
+
+                                 <small>{}</small>
+
+                              </h1>
+
+                           </div>
+           """.format(CommonUtils.humanize_time(self.time_analyst), CommonUtils.humanize_time(self.time_mAdvisor))
         paraDataClass = HtmlData(data=para)
         self.businessCardData.append(paraDataClass)
 
@@ -157,6 +188,7 @@ class BusinessCard:
         self.set_params()
 
         summary = self.get_summary_data()
+        image_data = self.get_image_data()
         summary_para = self.get_summary_para()
 
         self.business_card1.set_card_data(self.businessCardData)
