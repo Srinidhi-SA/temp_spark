@@ -458,6 +458,15 @@ def select_y_axis_format(dataArray):
     else:
         return ".2f"
 
+def humanize_time(time_in_secs):
+    '''
+    Takes time in seconds (67856) and converts to 12 hours 13 minutes
+    '''
+    time_in_secs = int(round(time_in_secs))
+    hours = time_in_secs/3600
+    minutes = (time_in_secs - (hours*3600))/60
+    return "{} Hours {} Minutes".format(hours, minutes)
+
 
 if __name__ == '__main__':
     x = frange(0.01,0.02,5)
