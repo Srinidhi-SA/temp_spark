@@ -5,12 +5,13 @@ class BusinessCard:
     """
     Functionalities
     """
-    def __init__(self, business_impact_nodes, story_result, meta_parser, result_setter, dataframe_context, start_time):
+    def __init__(self, business_impact_nodes, story_result, meta_parser, result_setter, dataframe_context, dataframe_helper, start_time):
         self._business_impact_nodes = business_impact_nodes
         self._story_result = story_result
         self._meta_parser = meta_parser
         self._result_setter = result_setter
         self._dataframe_context = dataframe_context
+        self._dataframe_helper = dataframe_helper
         self.subheader = "Business Impact"
         self.business_card1 = NormalCard()
         self.business_card1.set_card_name("Overview")
@@ -21,16 +22,21 @@ class BusinessCard:
         return json.dumps(self._story_result,indent=2).count("c3Chart")
 
     def get_number_analysis(self):
-        self.target_levels = 2
-        significant_variables_levels = {}
+        self.target_levels = self._dataframe_helper.get_num_unique_values(self._dataframe_context.get_result_column())
+        self.number_measures = self.get_number_measures()
+        self.number_dimensions = self.get_number_dimensions()
+        significant_variables_levels = {"None" : 0}
         for each in self._story_result['listOfNodes']:
-            print each['name']
-            if each['name'] == 'Association':
+            if each['name'] == 'Key Drivers':
                 for node in each['listOfNodes']:
-                    significant_variables_levels[node['name']] = self.meta_parser.get_num_unique_values(node['name'])
-        print "significant_variables_levels : ", significant_variables_levels
+                    significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
 
-        return 270
+        self.number_analysis_dict = {}
+        self.number_analysis_dict["overview_rules"] = self.target_levels*2
+        self.number_analysis_dict["association_rules"] = ((self.number_dimensions+self.number_measures)*2) + sum(significant_variables_levels.values())*6
+        self.number_analysis_dict["prediction_rules"] = self.get_number_prediction_rules()*5
+
+        return sum(self.number_analysis_dict.values())
 
     def get_number_prediction_rules(self):
         for i in self._story_result['listOfNodes']:
@@ -51,7 +57,6 @@ class BusinessCard:
                 sum += len(each['listOfCards'])
             else:
                 sum += len(each['listOfCards'])
-        # print "sum : ", sum
         return sum
 
     def get_number_data_points(self):
@@ -61,16 +66,12 @@ class BusinessCard:
         return self._meta_parser.get_num_columns()
 
     def get_number_dimensions(self):
-        textdata = json.dumps(self._story_result,indent=2)
-        t= next(re.finditer(r'"noOfDimensions": [\d]+', textdata)).group(0)
-        l=next(re.finditer(r'[\d]+', t)).group(0)
-        return int(l)
+        self.number_dimensions = len(self._dataframe_helper.get_string_columns())
+        return self.number_dimensions
 
     def get_number_measures(self):
-        textdata = json.dumps(self._story_result,indent=2)
-        t= next(re.finditer(r'"noOfMeasures": [\d]+', textdata)).group(0)
-        l=next(re.finditer(r'[\d]+', t)).group(0)
-        return int(l)
+        self.number_measures = len(self._dataframe_helper.get_numeric_columns())
+        return self.number_measures
 
     def get_number_queries(self):
         return 1200
@@ -132,8 +133,6 @@ class BusinessCard:
 
     def get_summary_para(self):
         self.number_variables = self.get_number_variables()
-        self.number_dimensions = self.get_number_dimensions()
-        self.number_measures = self.get_number_measures()
         self.time_analyst = self.get_time_analyst()
         para = "mAdvisor has analysed the dataset that contains {} variables ({} dimensions and {} measures) and executed about <b>{}</b> queries for <b>{}</b> analysis. This would have taken an estimated average of <b>{}</b> for a data analyst to come up with a similar analysis.".format(self.number_variables, self.number_dimensions, self.number_measures, self.number_queries, self.number_analysis, self.time_analyst)
         # summary_para_class
