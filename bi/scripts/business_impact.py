@@ -39,7 +39,16 @@ class BusinessCard:
     #     return 21
 
     def get_number_pages(self):
-        return 20
+        sum = 0
+        for each in self._story_result['listOfNodes']:
+            if each['listOfNodes']:
+                for items in each['listOfNodes']:
+                    sum += len(items['listOfCards'])
+                sum += len(each['listOfCards'])
+            else:
+                sum += len(each['listOfCards'])
+        print "sum : ", sum
+        return sum
 
     def get_number_data_points(self):
         return self._meta_parser.get_num_rows()*self._meta_parser.get_num_columns()
