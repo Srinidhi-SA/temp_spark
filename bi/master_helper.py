@@ -683,7 +683,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     if business_card_calculation:
         try:
             fs = time.time()
-            business_card_obj = BusinessCard(business_impact_nodes, headNode, metaParserInstance, result_setter, st)
+            business_card_obj = BusinessCard(business_impact_nodes, headNode, metaParserInstance, result_setter, dataframe_context, st)
             business_card_obj.Run()
             print "Business Card Analysis Done in ", time.time() - fs, " seconds."
         except Exception, e:
@@ -694,7 +694,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     if businessImpactNode != None:
         headNode["listOfNodes"].append(businessImpactNode)
 
-    print json.dumps(headNode,indent=2)
+    # print json.dumps(headNode,indent=2)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Dimension Analysis Completed in", time.time()-st," Seconds"
     progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your signal is ready",100,100,display=True)

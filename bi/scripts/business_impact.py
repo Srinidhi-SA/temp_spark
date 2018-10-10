@@ -5,11 +5,12 @@ class BusinessCard:
     """
     Functionalities
     """
-    def __init__(self, business_impact_nodes, story_result, meta_parser, result_setter, start_time):
+    def __init__(self, business_impact_nodes, story_result, meta_parser, result_setter, dataframe_context, start_time):
         self._business_impact_nodes = business_impact_nodes
         self._story_result = story_result
         self._meta_parser = meta_parser
         self._result_setter = result_setter
+        self._dataframe_context = dataframe_context
         self.subheader = "Business Impact"
         self.business_card1 = NormalCard()
         self.business_card1.set_card_name("Overview")
@@ -20,6 +21,15 @@ class BusinessCard:
         return 15
 
     def get_number_analysis(self):
+        self.target_levels = 2
+        significant_variables_levels = {}
+        for each in self._story_result['listOfNodes']:
+            print each['name']
+            if each['name'] == 'Association':
+                for node in each['listOfNodes']:
+                    significant_variables_levels[node['name']] = self.meta_parser.get_num_unique_values(node['name'])
+        print "significant_variables_levels : ", significant_variables_levels
+
         return 270
 
     # def get_number_prediction_rules(self):
@@ -34,7 +44,7 @@ class BusinessCard:
                 sum += len(each['listOfCards'])
             else:
                 sum += len(each['listOfCards'])
-        print "sum : ", sum
+        # print "sum : ", sum
         return sum
 
     def get_number_data_points(self):
@@ -44,10 +54,12 @@ class BusinessCard:
         return self._meta_parser.get_num_columns()
 
     def get_number_dimensions(self):
-        return 12
+        self.number_dimensions = 12
+        return self.number_dimensions
 
     def get_number_measures(self):
-        return 14
+        self.number_measures = 14
+        return self.number_measures
 
     def get_number_queries(self):
         return 1200
