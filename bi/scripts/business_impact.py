@@ -32,8 +32,15 @@ class BusinessCard:
 
         return 270
 
-    # def get_number_prediction_rules(self):
-    #     return 21
+    def get_number_prediction_rules(self):
+        for i in self._story_result['listOfNodes']:
+            for j in i['listOfCards']:
+                if j['name'] == 'Predicting Key Drivers of loan_status':
+                    for cards in j['cardData']:
+                        if cards['dataType'] == 'table':
+                             get_number_prediction_rules_count = len(cards['data']['tableData'])
+
+        return get_number_prediction_rules_count - 1
 
     def get_number_pages(self):
         sum = 0
