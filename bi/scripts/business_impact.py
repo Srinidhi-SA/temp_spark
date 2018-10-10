@@ -1,15 +1,16 @@
-import time, json
+import time, json, re, sys
 from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData,DataBox,WordCloud
 
 class BusinessCard:
     """
     Functionalities
     """
-    def __init__(self, business_impact_nodes, story_result, meta_parser, result_setter, start_time):
+    def __init__(self, business_impact_nodes, story_result, meta_parser, result_setter, dataframe_context, start_time):
         self._business_impact_nodes = business_impact_nodes
         self._story_result = story_result
         self._meta_parser = meta_parser
         self._result_setter = result_setter
+        self._dataframe_context = dataframe_context
         self.subheader = "Business Impact"
         self.business_card1 = NormalCard()
         self.business_card1.set_card_name("Overview")
@@ -17,9 +18,21 @@ class BusinessCard:
         self.start_time = start_time
 
     def get_number_charts(self):
-        return 15
+        return json.dumps(self._story_result,indent=2).count("c3Chart")
 
     def get_number_analysis(self):
+        NoOfOverview = (self._meta_parser.get_num_unique_values(self._dataframe_context.get_result_column()) - 1)*2
+
+        # Leaving trend as of now
+        # trend = self._meta_parser.get_num_unique_values(self._dataframe_context.get_date_columns())
+        # NoOfTrend = NoOfOverview * trend
+        ChiSuqareSummary = (self.get_number_dimensions() + self.get_number_measures())*2
+
+
+
+
+
+        # print self._meta_parser.get_unique_level_names(self._dataframe_context.get_result_column())
         return 270
 
     # def get_number_prediction_rules(self):
@@ -35,10 +48,16 @@ class BusinessCard:
         return self._meta_parser.get_num_columns()
 
     def get_number_dimensions(self):
-        return 12
+        textdata = json.dumps(self._story_result,indent=2)
+        t= next(re.finditer(r'"noOfDimensions": [\d]+', textdata)).group(0)
+        l=next(re.finditer(r'[\d]+', t)).group(0)
+        return int(l)
 
     def get_number_measures(self):
-        return 14
+        textdata = json.dumps(self._story_result,indent=2)
+        t= next(re.finditer(r'"noOfMeasures": [\d]+', textdata)).group(0)
+        l=next(re.finditer(r'[\d]+', t)).group(0)
+        return int(l)
 
     def get_number_queries(self):
         return 1200
