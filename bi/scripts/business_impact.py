@@ -35,18 +35,18 @@ class BusinessCard:
         self.number_analysis_dict["overview_rules"] = self.target_levels*2
         self.number_analysis_dict["association_rules"] = ((self.number_dimensions+self.number_measures)*2) + sum(significant_variables_levels.values())*6
         self.number_analysis_dict["prediction_rules"] = self.get_number_prediction_rules()*5
-
         return sum(self.number_analysis_dict.values())
 
     def get_number_prediction_rules(self):
-        for i in self._story_result['listOfNodes']:
-            for j in i['listOfCards']:
-                if j['name'] == 'Predicting Key Drivers of loan_status':
-                    for cards in j['cardData']:
-                        if cards['dataType'] == 'table':
-                             get_number_prediction_rules_count = len(cards['data']['tableData'])
+        num_prediction_rules = 0
+        for each_node in self._story_result['listOfNodes']:
+            if each_node['name'] == 'Prediction':
+                for card in each_node['listOfCards'][0]['cardData']:
+                    if card['dataType'] == 'table':
+                        num_prediction_rules = len(card['data']['tableData'])
 
-        return get_number_prediction_rules_count - 1
+        print "prediction rules : ", num_prediction_rules
+        return num_prediction_rules
 
     def get_number_pages(self):
         sum = 0
