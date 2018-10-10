@@ -149,39 +149,33 @@ class BusinessCard:
         # self._businessImpactNode.add_a_card(self.business_card1)
 
     def get_summary_para(self):
-        para = """<blockquote><p>
+        para_normal = """<blockquote><p>
         <b>Great Job !!!</b>mAdvisor has analysed the dataset that contains {} variables ({} dimensions and {} measures) and executed about <b>{}</b> queries for <b>{}</b> analysis. This would have taken an estimated average of <b>{}</b> for a data analyst to come up with a similar analysis.
         </p></blockquote>
         """.format(self.number_variables, self.number_dimensions, self.number_measures, self.number_queries, self.number_analysis, CommonUtils.humanize_time(self.time_analyst))
-        paraDataClass = HtmlData(data=para)
-        self.businessCardData.append(paraDataClass)
 
-    def get_image_data(self):
-        para = """<div class="col-md-6">
-
-                              <img src="images/icon_dataAnalyst.png" class="pull-left" />
-
-                              <h1 class="pull-left xs-mt-40 xs-ml-10"><small>Data Analyst <img src="images/icon_bAClock.png" class="xs-ml-10" /></small><br>
-
-                                 <small>{}</small>
-
-                              </h1>
-
-                           </div>
-
-                           <div class="col-md-6">
-
-                              <img src="images/icon_bAmAdvisor.png" class="pull-left" />
-
-                              <h1 class="pull-left xs-mt-40 xs-ml-10 text-primary"> <img src="images/icon_bAClock.png" /><br>
-
-                                 <small>{}</small>
-
-                              </h1>
-
-                           </div>
+        para_images = """<div class="col-md-8 col-md-offset-2 xs-mt-20">
+<div class="col-md-6">
+    <div class="d_analyst_block">
+        <span class="d_analyst_img" ></span>
+        <h1 class="pull-left xs-mt-40 xs-ml-10"><small>Data Analyst <span class="bImpact_time_icon xs-ml-10"></span></small><br>
+        <small>{}</small>
+        </h1>
+    </div>
+<div class="col-md-6">
+    <div class="d_m_block">
+        <span class="d_m_img" ></span>
+        <h1 class="pull-left xs-mt-40 xs-ml-10"> <span class="bImpact_time_icon"></span><br>
+        <small>{}</small>
+        </h1>
+    </div>
+    
            """.format(CommonUtils.humanize_time(self.time_analyst), CommonUtils.humanize_time(self.time_mAdvisor))
-        paraDataClass = HtmlData(data=para)
+
+
+        para_concatinated = """<div class="row">{}{}</div>""".format(para_images, para_normal)
+
+        paraDataClass = HtmlData(data=para_concatinated)
         self.businessCardData.append(paraDataClass)
 
     def Run(self):
@@ -192,7 +186,6 @@ class BusinessCard:
         self.set_params()
 
         summary = self.get_summary_data()
-        image_data = self.get_image_data()
         summary_para = self.get_summary_para()
 
         self.business_card1.set_card_data(self.businessCardData)
