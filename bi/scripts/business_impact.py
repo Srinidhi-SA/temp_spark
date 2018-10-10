@@ -31,11 +31,12 @@ class BusinessCard:
                 for node in each['listOfNodes']:
                     significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
 
-        overview_rules = self.target_levels*2
-        association_rules = ((self.number_dimensions+self.number_measures)*2) + sum(significant_variables_levels.values())*2
-        prediction_rules = self.get_number_prediction_rules()*5
+        self.number_analysis_dict = {}
+        self.number_analysis_dict["overview_rules"] = self.target_levels*2
+        self.number_analysis_dict["association_rules"] = ((self.number_dimensions+self.number_measures)*2) + sum(significant_variables_levels.values())*6
+        self.number_analysis_dict["prediction_rules"] = self.get_number_prediction_rules()*5
 
-        return overview_rules+association_rules+prediction_rules
+        return sum(self.number_analysis_dict.values())
 
     def get_number_prediction_rules(self):
         return 21
