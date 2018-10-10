@@ -154,26 +154,36 @@ class BusinessCard:
         </p></blockquote>
         """.format(self.number_variables, self.number_dimensions, self.number_measures, self.number_queries, self.number_analysis, CommonUtils.humanize_time(self.time_analyst))
 
-        para_images = """<div class="col-md-8 col-md-offset-2 xs-mt-20">
-<div class="col-md-6">
-    <div class="d_analyst_block">
-        <span class="d_analyst_img" ></span>
-        <h1 class="pull-left xs-mt-40 xs-ml-10"><small>Data Analyst <span class="bImpact_time_icon xs-ml-10"></span></small><br>
-        <small>{}</small>
-        </h1>
-    </div>
-<div class="col-md-6">
-    <div class="d_m_block">
-        <span class="d_m_img" ></span>
-        <h1 class="pull-left xs-mt-40 xs-ml-10"> <span class="bImpact_time_icon"></span><br>
-        <small>{}</small>
-        </h1>
-    </div>
+        para_images = """<div class="col-md-6">
+            <div class="d_analyst_block">
+                <span class="d_analyst_img"></span>
+                <h1 class="pull-left xs-mt-40 xs-ml-10">
+                    <small>Data Analyst <span class="bImpact_time_icon xs-ml-10"></span></small>
+                    <br>
+                    <small>{}</small>
+                </h1>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="d_m_block">
+                <span class="d_m_img"></span>
+                <h1 class="pull-left xs-mt-40 xs-ml-10"><span class="bImpact_time_icon"></span><br>
+                    <small>{}</small>
+                </h1>
+            </div>
+        </div>
+        <div class="clearfix xs-m-50"></div>
     
            """.format(CommonUtils.humanize_time(self.time_analyst), CommonUtils.humanize_time(self.time_mAdvisor))
 
 
-        para_concatinated = """<div class="row">{}{}</div>""".format(para_images, para_normal)
+        para_concatinated = """
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 xs-mt-20">
+                {}{}
+            </div>
+        </div>    
+        """.format(para_images, para_normal)
 
         paraDataClass = HtmlData(data=para_concatinated)
         self.businessCardData.append(paraDataClass)
