@@ -25,12 +25,12 @@ class BusinessCard:
         self.number_measures = self.get_number_measures()
         self.number_dimensions = self.get_number_dimensions()
         self.analysis_list = ["overview_rules","association_summary","association_rules","prediction_rules"]
-        self.number_queries = self.get_number_queries()
         self.data_points = self.get_number_data_points()
         self.number_charts = self.get_number_charts()
         self.number_prediction_rules = self.get_number_prediction_rules()
         self.number_pages = self.get_number_pages()
         self.number_analysis = self.get_number_analysis()
+        self.number_queries = self.get_number_queries()
         self.time_mAdvisor = time.time() - self.start_time
         self.time_analyst = self.get_time_analyst()
         self.time_saved = self.get_time_saved()
@@ -52,6 +52,13 @@ class BusinessCard:
         self.number_analysis_dict["association_rules"] = sum(significant_variables_levels.values())*6
         self.number_analysis_dict["prediction_rules"] = self.number_prediction_rules*5
         return sum(self.number_analysis_dict.values())
+
+    def get_number_queries(self):
+        queries_per_analysis_dict = {"overview_rules" : 15, "association_summary" : 120, "association_rules" : 600, "prediction_rules" : 200}
+        sum = 0
+        for analysis in self.analysis_list:
+            sum += self.number_analysis_dict[analysis]*queries_per_analysis_dict[analysis]
+        return sum
 
     def get_number_prediction_rules(self):
         num_prediction_rules = 0
@@ -86,9 +93,6 @@ class BusinessCard:
     def get_number_measures(self):
         self.number_measures = len(self._dataframe_helper.get_numeric_columns())
         return self.number_measures
-
-    def get_number_queries(self):
-        return 1200
 
     def get_time_analyst(self):
         time_per_analysis_dict = {"overview_rules" : 10, "association_summary" : 120, "association_rules" : 180, "prediction_rules" : 300}
