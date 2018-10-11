@@ -684,7 +684,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     if business_card_calculation:
         try:
             fs = time.time()
-            business_card_obj = BusinessCard(business_impact_nodes, headNode, metaParserInstance, result_setter, dataframe_context, dataframe_helper, st)
+            business_card_obj = BusinessCard(headNode, metaParserInstance, result_setter, dataframe_context, dataframe_helper, st, "dimension")
             business_card_obj.Run()
             print "Business Card Analysis Done in ", time.time() - fs, " seconds."
         except Exception, e:
@@ -877,6 +877,23 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     decisionTreeNode = result_setter.get_decision_tree_node()
     if decisionTreeNode != None:
         headNode["listOfNodes"].append(decisionTreeNode)
+
+    # Business Impact Card Implementation #
+    business_card_calculation = True
+    if business_card_calculation:
+        try:
+            fs = time.time()
+            business_card_obj = BusinessCard(headNode, metaParserInstance, result_setter, dataframe_context, dataframe_helper, st, "measure")
+            business_card_obj.Run()
+            print "Business Card Analysis Done in ", time.time() - fs, " seconds."
+        except Exception, e:
+            print "Business Card Calculation failed : ", str(e)
+    businessImpactNode = result_setter.get_business_impact_node()
+    # print "businessImpactNode : ", json.dumps(businessImpactNode, indent=2)
+
+    if businessImpactNode != None:
+        headNode["listOfNodes"].append(businessImpactNode)
+
     print json.dumps(headNode)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Measure Analysis Completed in :", time.time()-st," Seconds"

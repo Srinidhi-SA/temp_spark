@@ -6,25 +6,28 @@ class BusinessCard:
     """
     Functionalities
     """
-    def __init__(self, business_impact_nodes, story_result, meta_parser, result_setter, dataframe_context, dataframe_helper, start_time):
-        self._business_impact_nodes = business_impact_nodes
+    def __init__(self, story_result, meta_parser, result_setter, dataframe_context, dataframe_helper, start_time, analysis_type):
         self._story_result = story_result
         self._meta_parser = meta_parser
         self._result_setter = result_setter
         self._dataframe_context = dataframe_context
         self._dataframe_helper = dataframe_helper
-        self.subheader = "Business Impact"
+        self.subheader = "Impact"
         self.business_card1 = NormalCard()
         self.business_card1.set_card_name("Overview")
         self.businessCardData = []
         self.start_time = start_time
+        self.analysis_type = analysis_type
 
     def set_params(self):
         self.target_levels = self._dataframe_helper.get_num_unique_values(self._dataframe_context.get_result_column())
         self.number_variables = self.get_number_variables()
         self.number_measures = self.get_number_measures()
         self.number_dimensions = self.get_number_dimensions()
-        self.analysis_list = ["overview_rules","association_summary","association_rules","prediction_rules"]
+        if self.analysis_type == 'dimension':
+            self.analysis_list = ["overview_rules","association_summary","association_rules","prediction_rules"]
+        elif self.analysis_type == 'measure':
+            self.analysis_list = ["overview_rules","performance_summary","performance_rules", "influencers_summary", "influencers_rules", "prediction_rules"]
         self.data_points = self.get_number_data_points()
         self.number_charts = self.get_number_charts()
         self.number_prediction_rules = self.get_number_prediction_rules()
@@ -40,21 +43,39 @@ class BusinessCard:
         return json.dumps(self._story_result,indent=2).count("c3Chart")
 
     def get_number_analysis(self):
-        significant_variables_levels = {"None" : 0}
-        for each in self._story_result['listOfNodes']:
-            if each['name'] == 'Key Drivers':
-                for node in each['listOfNodes']:
-                    significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
+        if self.analysis_type == 'dimension':
+            significant_variables_levels = {"None" : 0}
+            for each in self._story_result['listOfNodes']:
+                if each['name'] == 'Key Drivers':
+                    for node in each['listOfNodes']:
+                        significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
 
-        self.number_analysis_dict = {}
-        self.number_analysis_dict["overview_rules"] = self.target_levels*2
-        self.number_analysis_dict['association_summary'] = (self.number_dimensions+self.number_measures)*2
-        self.number_analysis_dict["association_rules"] = sum(significant_variables_levels.values())*6
-        self.number_analysis_dict["prediction_rules"] = self.number_prediction_rules*5
-        return sum(self.number_analysis_dict.values())
+            self.number_analysis_dict = {}
+            self.number_analysis_dict["overview_rules"] = self.target_levels*2
+            self.number_analysis_dict['association_summary'] = (self.number_dimensions+self.number_measures)*2
+            self.number_analysis_dict["association_rules"] = sum(significant_variables_levels.values())*6
+            self.number_analysis_dict["prediction_rules"] = self.number_prediction_rules*5
+            return sum(self.number_analysis_dict.values())
+        elif self.analysis_type == 'measure':
+            significant_variables_levels = {"None" : 0}
+            for each in self._story_result['listOfNodes']:
+                if each['name'] == 'Performance':
+                    for node in each['listOfNodes']:
+                        significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
+            self.number_analysis_dict = {}
+            self.number_analysis_dict["overview_rules"] = self.target_levels*2
+            self.number_analysis_dict["performance_summary"] = (self.number_dimensions+self.number_measures)*2
+            self.number_analysis_dict["performance_rules"] = sum(significant_variables_levels.values())*6
+            self.number_analysis_dict["prediction_rules"] = self.number_prediction_rules*5
+            self.number_analysis_dict["influencers_summary"] = self.number_measures*2
+            self.number_analysis_dict["influencers_rules"] = 8
+            return sum(self.number_analysis_dict.values())
 
     def get_number_queries(self):
-        queries_per_analysis_dict = {"overview_rules" : 15, "association_summary" : 120, "association_rules" : 600, "prediction_rules" : 200}
+        if self.analysis_type == 'dimension':
+            queries_per_analysis_dict = {"overview_rules" : 15, "association_summary" : 120, "association_rules" : 600, "prediction_rules" : 200}
+        elif self.analysis_type == 'measure':
+            queries_per_analysis_dict = {"overview_rules" : 15, "performance_summary" : 120, "performance_rules" : 600, "influencers_summary" : 100, "influencers_rules" : 80, "prediction_rules" : 200}
         sum = 0
         for analysis in self.analysis_list:
             sum += self.number_analysis_dict[analysis]*queries_per_analysis_dict[analysis]
@@ -95,7 +116,10 @@ class BusinessCard:
         return self.number_measures
 
     def get_time_analyst(self):
-        time_per_analysis_dict = {"overview_rules" : 10, "association_summary" : 120, "association_rules" : 180, "prediction_rules" : 300}
+        if self.analysis_type == 'dimension':
+            time_per_analysis_dict = {"overview_rules" : 10, "association_summary" : 120, "association_rules" : 180, "prediction_rules" : 300}
+        elif self.analysis_type == 'measure':
+            time_per_analysis_dict = {"overview_rules" : 10, "performance_summary" : 120, "performance_rules" : 180, "influencers_summary" : 120, "influencers_rules" : 180, "prediction_rules" : 300}
         sum = 0
         for analysis in self.analysis_list:
             sum += self.number_analysis_dict[analysis]*time_per_analysis_dict[analysis]
@@ -191,7 +215,7 @@ class BusinessCard:
     def Run(self):
         print "In Run of BusinessCard"
         self._businessImpactNode = NarrativesTree()
-        self._businessImpactNode.set_name("Business Impact")
+        self._businessImpactNode.set_name("Impact")
 
         self.set_params()
 
