@@ -150,9 +150,9 @@ class BusinessCard:
 
     def get_summary_para(self):
         para_normal = """<blockquote><p>
-        <b>Great Job !!!</b>mAdvisor has analysed the dataset that contains {} variables ({} dimensions and {} measures) and executed about <b>{}</b> queries for <b>{}</b> analysis. This would have taken an estimated average of <b>{}</b> for a data analyst to come up with a similar analysis.
+        <b>Great Job !!!</b> You have analysed the dataset that contains {} variables after executing about <b>{}</b> analytics queries and <b>{}</b> Statistical and ML analysis in parallel. Using mAdvisor, you have completed the analysis within <b>{}</b> which would have required around <b>{}</b>.
         </p></blockquote>
-        """.format(self.number_variables, self.number_dimensions, self.number_measures, self.number_queries, self.number_analysis, CommonUtils.humanize_time(self.time_analyst))
+        """.format(self.number_variables, self.number_queries, self.number_analysis, CommonUtils.humanize_time(self.time_mAdvisor), CommonUtils.humanize_time(self.time_analyst))
 
         para_images = """<div class="col-md-6">
             <div class="d_analyst_block">
@@ -173,7 +173,7 @@ class BusinessCard:
             </div>
         </div>
         <div class="clearfix xs-m-50"></div>
-    
+
            """.format(CommonUtils.humanize_time(self.time_analyst), CommonUtils.humanize_time(self.time_mAdvisor))
 
 
@@ -182,7 +182,7 @@ class BusinessCard:
             <div class="col-md-8 col-md-offset-2 xs-mt-20">
                 {}{}
             </div>
-        </div>    
+        </div>
         """.format(para_images, para_normal)
 
         paraDataClass = HtmlData(data=para_concatinated)
