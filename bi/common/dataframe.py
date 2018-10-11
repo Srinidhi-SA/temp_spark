@@ -214,18 +214,21 @@ class DataFrameHelper:
 
     def bin_columns(self,colsToBin):
         for bincol in colsToBin:
-            minval,maxval = self._data_frame.select([FN.max(bincol).alias("max"),FN.min(bincol).alias("min")]).collect()[0]
-            n_split=10
-            splitsData = CommonUtils.get_splits(minval,maxval,n_split)
-            splits = splitsData["splits"]
-            self._data_frame = self._data_frame.withColumn(bincol, self._data_frame[bincol].cast(DoubleType()))
-            bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
-            bucketizer.setSplits(splits)
-            self._data_frame = bucketizer.transform(self._data_frame)
-            mapping_expr = create_map([lit(x) for x in chain(*splitsData["bin_mapping"].items())])
-            self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
-            self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
-            self._data_frame = self._data_frame.select(self.columns)
+            try:
+                minval,maxval = self._data_frame.select([FN.max(bincol).alias("max"),FN.min(bincol).alias("min")]).collect()[0]
+                n_split=10
+                splitsData = CommonUtils.get_splits(minval,maxval,n_split)
+                splits = splitsData["splits"]
+                self._data_frame = self._data_frame.withColumn(bincol, self._data_frame[bincol].cast(DoubleType()))
+                bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
+                bucketizer.setSplits(splits)
+                self._data_frame = bucketizer.transform(self._data_frame)
+                mapping_expr = create_map([lit(x) for x in chain(*splitsData["bin_mapping"].items())])
+                self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
+                self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
+                self._data_frame = self._data_frame.select(self.columns)
+            except Exception, e:
+                print "Binning failed for : ", bincol
 
     def get_cols_to_bin(self):
         return self.colsToBin
