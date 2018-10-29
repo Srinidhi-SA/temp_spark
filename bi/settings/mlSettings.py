@@ -346,6 +346,16 @@ else:
                 classifications and also to control overfitting."""
             },
             {
+                "algorithmName": "Naive Bayes",
+                "selected": True,
+                "parameters": SKLEANR_ML_RF_CLASSIFICATION_PARAMS,
+                "algorithmSlug": ALGORITHMRANDOMSLUG + "nb",
+                "hyperParameterSetting": SKLEARN_HYPERPARAMETER_OBJECT_CLASSIFICATION,
+                "description":"""A meta estimator that uses averaging predictive power of a number of decision tree
+                classification models. This is very effective in predicting the likelihood in multi-class
+                classifications and also to control overfitting."""
+            },
+            {
                 "algorithmName": "XGBoost",
                 "selected": True,
                 "parameters": SKLEARN_ML_XGBOOST_CLASSIFICATION_PARAMS,

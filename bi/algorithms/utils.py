@@ -571,7 +571,7 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
-    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine"}
+    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -701,6 +701,10 @@ def create_model_summary_para(modelSummaryClass):
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naivebayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
     else:
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
@@ -708,6 +712,11 @@ def create_model_summary_para(modelSummaryClass):
             print "prediction_split_array : ", prediction_split_array
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
         elif modelSummaryClass.get_algorithm_name() == 'Logistic Regression':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())

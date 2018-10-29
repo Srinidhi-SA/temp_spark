@@ -10,6 +10,9 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter,NormalCard,HtmlData
 
 from bi.scripts.classification.random_forest import RFClassificationModelScript
+from bi.scripts.classification.naive_bayes import NBBClassificationModelScript
+from bi.scripts.classification.naive_bayes import NBGClassificationModelScript
+from bi.scripts.classification.naive_bayes import NBMClassificationModelScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
@@ -33,6 +36,7 @@ from bi.scripts.timeseries import TrendScript
 from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
 
 from bi.scripts.business_impact import BusinessCard
+
 
 def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
@@ -191,6 +195,37 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesber"]:
+                try:
+                    st = time.time()
+                    nb_obj = NBBClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    nb_obj.Train()
+                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesgau"]:
+                try:
+                    st = time.time()
+                    nb_obj = NBGClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    nb_obj.Train()
+                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesmul"]:
+                try:
+                    st = time.time()
+                    nb_obj = NBMClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    nb_obj.Train()
+                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
                 # try:
@@ -894,7 +929,8 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     if businessImpactNode != None:
         headNode["listOfNodes"].append(businessImpactNode)
 
-    print json.dumps(headNode)
+
+    # print json.dumps(headNode)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Measure Analysis Completed in :", time.time()-st," Seconds"
     progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Your signal is ready",100,100,display=True)
