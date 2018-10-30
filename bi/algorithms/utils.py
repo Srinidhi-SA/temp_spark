@@ -874,6 +874,10 @@ def create_model_summary_cards(modelSummaryClass):
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
+    """
+    This function is used to collect the output of all
+    different algorithms to pass it to result json
+    """
     if appType == "CLASSIFICATION":
         collated_summary = result_setter.get_model_summary()
         card1 = NormalCard()
@@ -940,6 +944,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         modelJsonOutput.set_model_summary(json.loads(modelResult))
         ####
         rfModelSummary = result_setter.get_random_forest_model_summary()
+        nbModelSummary = result_setter.get_naive_bayes_model_summary()
         lrModelSummary = result_setter.get_logistic_regression_model_summary()
         xgbModelSummary = result_setter.get_xgboost_model_summary()
         svmModelSummary = result_setter.get_svm_model_summary()
@@ -957,14 +962,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         counter = 1
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary]:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
                     hyperParameterFlagDict[obj["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["slug"]] = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["slug"]] = obj["modelFeatureList"]

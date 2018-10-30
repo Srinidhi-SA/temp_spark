@@ -197,7 +197,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesber"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesber"] and obj.get_algorithm_name() == "naivebayesber":
                 try:
                     st = time.time()
                     nb_obj = NBBClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
@@ -207,7 +207,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesgau"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesgau"] and obj.get_algorithm_name() == "naivebayesgau":
                 try:
                     st = time.time()
                     nb_obj = NBGClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
@@ -217,7 +217,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesmul"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesmul"] and obj.get_algorithm_name() == "naivebayesmul":
                 try:
                     st = time.time()
                     nb_obj = NBMClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
