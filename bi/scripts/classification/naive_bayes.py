@@ -265,8 +265,8 @@ class NBBClassificationModelScript:
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
-            self._model_summary.set_num_trees(100)
-            self._model_summary.set_num_rules(300)
+            # self._model_summary.set_num_trees(100)
+            # self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
@@ -307,8 +307,8 @@ class NBBClassificationModelScript:
                 self._prediction_narrative.add_a_card(card)
 
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_random_forest_model_summary(modelSummaryJson)
-            self._result_setter.set_rf_cards(nbCards)
+            self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
+            self._result_setter.set_nb_cards(nbCards)
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -792,8 +792,8 @@ class NBGClassificationModelScript:
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
-            self._model_summary.set_num_trees(100)
-            self._model_summary.set_num_rules(300)
+            # self._model_summary.set_num_trees(100)
+            # self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
@@ -834,8 +834,8 @@ class NBGClassificationModelScript:
                 self._prediction_narrative.add_a_card(card)
 
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_random_forest_model_summary(modelSummaryJson)
-            self._result_setter.set_rf_cards(nbCards)
+            self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
+            self._result_setter.set_nb_cards(nbCards)
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -1317,8 +1317,8 @@ class NBMClassificationModelScript:
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
-            self._model_summary.set_num_trees(100)
-            self._model_summary.set_num_rules(300)
+            # self._model_summary.set_num_trees(100)
+            # self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
@@ -1359,8 +1359,8 @@ class NBMClassificationModelScript:
                 self._prediction_narrative.add_a_card(card)
 
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_random_forest_model_summary(modelSummaryJson)
-            self._result_setter.set_rf_cards(nbCards)
+            self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
+            self._result_setter.set_nb_cards(nbCards)
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
