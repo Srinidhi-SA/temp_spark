@@ -151,21 +151,29 @@ class NBBClassificationModelScript:
                 params_grid = {k:v for k,v in params_grid.items() if k in clf.get_params()}
                 print params_grid
                 if hyperParamAlgoName == "gridsearchcv":
-                    clfGrid = GridSearchCV(clf,params_grid)
-                    gridParams = clfGrid.get_params()
-                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
-                    clfGrid.set_params(**hyperParamInitParam)
-                    clfGrid.fit(x_train,y_train)
-                    bestEstimator = clfGrid.best_estimator_
-                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
-                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
-                    self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
-                    self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
-                elif hyperParamAlgoName == "randomsearchcv":
-                    clfRand = RandomizedSearchCV(clf,params_grid)
-                    clfRand.set_params(**hyperParamInitParam)
-                    bestEstimator = None
+                    hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                    evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
+                    evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                    hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
+                    params_grid = algoSetting.get_params_dict_hyperparameter()
+                    params_grid = {k:v for k,v in params_grid.items() if k in clf.get_params()}
+                    print params_grid
+                    if hyperParamAlgoName == "gridsearchcv":
+                        clfGrid = GridSearchCV(clf,params_grid)
+                        gridParams = clfGrid.get_params()
+                        hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                        clfGrid.set_params(**hyperParamInitParam)
+                        clfGrid.fit(x_train,y_train)
+                        bestEstimator = clfGrid.best_estimator_
+                        modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                        sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
+                        resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                        self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                        self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    elif hyperParamAlgoName == "randomsearchcv":
+                        clfRand = RandomizedSearchCV(clf,params_grid)
+                        clfRand.set_params(**hyperParamInitParam)
+                        bestEstimator = None
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
