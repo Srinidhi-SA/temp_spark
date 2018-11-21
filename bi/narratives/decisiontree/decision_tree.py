@@ -286,21 +286,22 @@ class DecisionTreeNarrative:
             percentageArray = [x["percentage"] for x in levelCountTuple]
             # percentageArray = NarrativesUtils.ret_smart_round(percentageArray)
             levelCountTuple = [{"name":obj["name"],"count":obj["count"],"percentage":str(percentageArray[idx])+"%"} for idx,obj in enumerate(levelCountTuple)]
+            levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["nlevel"] = len(levelCountDict)
             print "levelCountTuple",levelCountTuple
             print "levelCountDict",levelCountDict
-            if targetLevel in levelCountDict:
-                data_dict["topLevel"] = [x for x in levelCountTuple if x["name"]==targetLevel][0]
-                if len(levelCountTuple) > 1:
-                    data_dict["secondLevel"] = max([x for x in levelCountTuple if x["name"]!=targetLevel],key=lambda x:x["count"])
-                else:
-                    data_dict["secondLevel"] = None
+            # if targetLevel in levelCountDict:
+            #     data_dict["topLevel"] = [x for x in levelCountTuple if x["name"]==targetLevel][0]
+            #     if len(levelCountTuple) > 1:
+            #         data_dict["secondLevel"] = max([x for x in levelCountTuple if x["name"]!=targetLevel],key=lambda x:x["count"])
+            #     else:
+            #         data_dict["secondLevel"] = None
+            # else:
+            data_dict["topLevel"] = levelCountTuple[0]
+            if len(levelCountTuple) > 1:
+                data_dict["secondLevel"] = levelCountTuple[1]
             else:
-                data_dict["topLevel"] = levelCountTuple[0]
-                if len(levelCountTuple) > 1:
-                    data_dict["secondLevel"] = levelCountTuple[1]
-                else:
-                    data_dict["secondLevel"] = None
+                data_dict["secondLevel"] = None
             print data_dict
             maincardSummary = NarrativesUtils.get_template_output(self._base_dir,'decisiontreescore.html',data_dict)
         main_card = NormalCard()
