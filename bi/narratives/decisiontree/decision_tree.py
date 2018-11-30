@@ -276,7 +276,6 @@ class DecisionTreeNarrative:
             # predictedLevelcountDict = defaultdict(predictedLevelcountArray)
             for val in predictedLevelcountArray:
                 predictedLevelCountDict.setdefault(val[0], []).append(val[1])
-
             levelCountDict = {}
             for k,v in predictedLevelCountDict.items():
                 levelCountDict[k] = sum(v)
