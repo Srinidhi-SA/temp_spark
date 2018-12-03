@@ -118,15 +118,15 @@ class DecisionTreeNarrative:
     #     for target in rules_dict.keys():
     #         self.condensedTable[target]=[]
     #         total = self.total_predictions[target]
-    #         success = self.successful_predictions[target]
+    #         freqArray = self.successful_predictions[target]
     #         success_percent = self.success_percent[target]
     #         for idx,rule in enumerate(rules_dict[target]):
-    #             rules1 = NarrativeUtils.generate_rules(target,rule, total[idx], success[idx], success_percent[idx])
+    #             rules1 = NarrativeUtils.generate_rules(target,rule, total[idx], freqArray[idx], success_percent[idx])
     #             self.condensedTable[target].append(rules1)
     #     self.dropdownValues = rules_dict.keys()
     #     data_dict["blockSplitter"] = self._blockSplitter
     #     data_dict['rules'] = self.condensedTable
-    #     data_dict['success'] = self.success_percent
+    #     data_dict['freqArray'] = self.success_percent
     #     data_dict['significant_vars'] = list(set(itertools.chain.from_iterable(self._important_vars.values())))
     #     data_dict['significant_vars'] = self._important_vars
     #     # print '*'*16
@@ -215,8 +215,8 @@ class DecisionTreeNarrative:
                 probabilityGroups[idx2] = obj
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
-            chartDict[target] = sum(freqArray)
             success = self.successful_predictions[target]
+            chartDict[target] = sum(success)
             success_percent = self.success_percent[target]
             richRulesArray = []
             crudeRuleArray = []
@@ -228,12 +228,12 @@ class DecisionTreeNarrative:
                 if binnedColObj != None and targetCol in binnedColObj:
                     binFlag = True
             for idx2,crudeRule in enumerate(rulesArray):
-                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx2], success[idx2], success_percent[idx2],analysisType,binFlag=binFlag)
+                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, success[idx2], freqArray[idx2], success_percent[idx2],analysisType,binFlag=binFlag)
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
-            # targetArray = zip(richRulesArray,probabilityArray,predictionArray,freqArray,groupArray)
-            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
+            # targetArray = zip(richRulesArray,probabilityArray,predictionArray,success,groupArray)
+            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,success,groupArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 

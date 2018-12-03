@@ -214,6 +214,20 @@ def get_rules_dictionary(rules):
             if not key_dimensions.has_key(var):
                 key_dimensions[var]={}
             key_dimensions[var]['in'] = levels
+    for var in key_dimensions.keys():
+        if key_dimensions[var].has_key('in') and key_dimensions[var].has_key('not_in'):
+            in_val = str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')
+            print in_val
+            not_in_val = str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')
+            print not_in_val
+            valInBoth_inAnd_not_in = set(in_val).intersection(not_in_val)
+            print valInBoth_inAnd_not_in
+            for val in valInBoth_inAnd_not_in:
+                val
+
+                key_dimensions[var]['in'].remove(val)
+                key_dimensions[var]['not_in'].remove(val)
+
     return [key_dimensions,key_measures]
 
 def generate_leaf_rule_dict(rule_list,separator):
@@ -953,6 +967,10 @@ def restructure_donut_chart_data(dataDict,nLevels=None):
 
 def generate_rules(colname,target,rules, total, success, success_percent,analysisType,binFlag=False):
     key_dimensions,key_measures = get_rules_dictionary(rules)
+    # print "(())"*5
+    # print key_dimensions
+    # print
+    # print key_measures
     temp_narrative = ''
     crude_narrative = ''
 

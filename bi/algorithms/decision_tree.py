@@ -312,6 +312,7 @@ class DecisionTrees:
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         print self._new_rules.keys()
         print "==="*40
+
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["treegeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
