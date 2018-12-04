@@ -208,23 +208,18 @@ def get_rules_dictionary(rules):
             var,levels = re.split(' not in ',rx)
             if not key_dimensions.has_key(var):
                 key_dimensions[var]={}
-            key_dimensions[var]['not_in'] = levels
+            key_dimensions[var]['not_in'] = str(levels).replace('(', '').replace(')','').split(',')
         elif ' in ' in rx:
             var,levels = re.split(' in ',rx)
             if not key_dimensions.has_key(var):
                 key_dimensions[var]={}
-            key_dimensions[var]['in'] = levels
+            key_dimensions[var]['in'] = str(levels).replace('(', '').replace(')','').split(',')
     for var in key_dimensions.keys():
         if key_dimensions[var].has_key('in') and key_dimensions[var].has_key('not_in'):
-            in_val = str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')
-            print in_val
-            not_in_val = str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')
-            print not_in_val
-            valInBoth_inAnd_not_in = set(in_val).intersection(not_in_val)
-            print valInBoth_inAnd_not_in
+            in_val = key_dimensions[var]['in']
+            not_in_val = key_dimensions[var]['not_in']
+            valInBoth_inAnd_not_in = list(set(in_val).intersection(not_in_val))
             for val in valInBoth_inAnd_not_in:
-                val
-
                 key_dimensions[var]['in'].remove(val)
                 key_dimensions[var]['not_in'].remove(val)
 
@@ -967,10 +962,6 @@ def restructure_donut_chart_data(dataDict,nLevels=None):
 
 def generate_rules(colname,target,rules, total, success, success_percent,analysisType,binFlag=False):
     key_dimensions,key_measures = get_rules_dictionary(rules)
-    # print "(())"*5
-    # print key_dimensions
-    # print
-    # print key_measures
     temp_narrative = ''
     crude_narrative = ''
 
@@ -987,8 +978,9 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
             crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
     # crude_narrative = temp_narrative
     for var in key_dimensions.keys():
-        if key_dimensions[var].has_key('in'):
-            key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')))
+        if key_dimensions[var].has_key('in') and len(key_dimensions[var]['in'])>0:
+            # key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')))
+            key_dimensions_tuple = key_dimensions[var]['in']
             if len(key_dimensions_tuple) > 5:
 
                 if (len(key_dimensions_tuple)-5) == 1:
@@ -997,14 +989,15 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                     key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
 
                 temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dims) + customSeparator
-                crude_narrative = crude_narrative + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
+                crude_narrative = crude_narrative + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
 
             else:
-                temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
-                crude_narrative = crude_narrative + var + ' falls among ' + key_dimensions[var]['in'] + customSeparator
+                temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
+                crude_narrative = crude_narrative + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
 
-        elif key_dimensions[var].has_key('not_in'):
-            key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
+        elif key_dimensions[var].has_key('not_in') and len(key_dimensions[var]['not_in'])>0:
+            # key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
+            key_dimensions_tuple = key_dimensions[var]['not_in']
             if len(key_dimensions_tuple) > 5:
 
                 if (len(key_dimensions_tuple)-5) == 1:
@@ -1013,15 +1006,14 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                     key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
 
                 temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + str(key_dims) + customSeparator
-                crude_narrative = crude_narrative + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
+                crude_narrative = crude_narrative + var + ' does not fall in ' + str(key_dimensions[var]['not_in']) + customSeparator
 
             else:
-                temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
-                crude_narrative = crude_narrative +  var + ' does not fall in ' + key_dimensions[var]['not_in'] + customSeparator
-
+                temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + str(key_dimensions[var]['not_in']) + customSeparator
+                crude_narrative = crude_narrative +  var + ' does not fall in ' + str(key_dimensions[var]['not_in']) + customSeparator
     temp_narrative_arr = temp_narrative.split(customSeparator)[:-1]
     if len(temp_narrative_arr) > 2:
-        temp_narrative = ", ".join(temp_narrative_arr[:-2])+" and "+temp_narrative_arr[-1]
+        temp_narrative = ", ".join(temp_narrative_arr[:-1])+" and "+temp_narrative_arr[-1]
     elif len(temp_narrative_arr) == 2:
         temp_narrative = temp_narrative_arr[0]+" and "+temp_narrative_arr[1]
     else:
@@ -1029,7 +1021,7 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
 
     crude_narrative_arr = crude_narrative.split(customSeparator)[:-1]
     if len(crude_narrative_arr) > 2:
-        crude_narrative = ", ".join(crude_narrative_arr[:-2])+" and "+crude_narrative_arr[-1]
+        crude_narrative = ", ".join(crude_narrative_arr[:-1])+" and "+crude_narrative_arr[-1]
     elif len(crude_narrative_arr) == 2:
         crude_narrative = crude_narrative_arr[0]+" and "+crude_narrative_arr[1]
     else:

@@ -400,7 +400,6 @@ class RFClassificationModelScript:
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
-        df.to_csv('Random Forest Predicted.csv',header=True,index=False)
         uidCol = self._dataframe_context.get_uid_column()
         if uidCol == None:
             uidCols = self._metaParser.get_suggested_uid_columns()
@@ -517,13 +516,13 @@ class RFClassificationModelScript:
         # except:
         #     print "ChiSquare Analysis Failed "
         if len(predictedClasses) >=2:
-            # try:
+            try:
                 fs = time.time()
                 df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print narratives_obj
-            # except:
-            #     print "DecisionTree Analysis Failed "
+            except:
+                print "DecisionTree Analysis Failed "
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
             if data_dict["nactual"] > 2:
