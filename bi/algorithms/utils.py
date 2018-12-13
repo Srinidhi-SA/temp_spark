@@ -733,8 +733,8 @@ def create_model_summary_para(modelSummaryClass):
     return paragraph
 
 def create_model_summary_cards(modelSummaryClass):
-    paragraph = create_model_summary_para(modelSummaryClass)
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
+        paragraph = create_model_summary_para(modelSummaryClass)
         modelSummaryCard1 = NormalCard()
         modelSummaryCard1Data = []
         modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
