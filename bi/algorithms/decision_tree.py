@@ -231,7 +231,6 @@ class DecisionTrees:
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
-        print self._data_frame.toPandas().to_csv('DEcision Tree.csv')
         self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
         print self._data_frame.show(1)
         # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
