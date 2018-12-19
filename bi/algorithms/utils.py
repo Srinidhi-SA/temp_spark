@@ -1451,7 +1451,12 @@ def stock_sense_overview_card(data_dict_overall):
 
     articlesByConceptCardData = data_dict_overall["number_articles_by_concept"]
     valuesTotal = __builtin__.sum(articlesByConceptCardData.values())
-    articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in articlesByConceptCardData.items()}
+    try:
+        articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in articlesByConceptCardData.items()}
+    except Exception as e:
+        print "=="*100
+        print "Could not find any content on this stock"
+        
     articlesByConceptData = NormalChartData(data=[articlesByConceptCardData])
     chart_json = ChartJson()
     chart_json.set_data(articlesByConceptData.get_data())
