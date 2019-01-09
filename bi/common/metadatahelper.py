@@ -13,6 +13,7 @@ from bi.common.cardStructure import C3ChartData
 from bi.common.charts import ChartJson, NormalChartData
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
+from bi.stats.util import Stats
 
 
 class MetaDataHelper():
@@ -69,11 +70,14 @@ class MetaDataHelper():
                             "numberOfNulls":"Null Values",
                             "numberOfUniqueValues":"Unique Values",
                             "numberOfNotNulls":"Not Nulls",
-                            "LevelCount":"Unique Values"
+                            "LevelCount":"Unique Values",
+                            "Outliers":"Outliers",
+                            "PercentageMissingValue":"PercentageMissingValue"
                             }
-        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7,"LevelCount":8}
+        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7,"LevelCount":8,"Outliers":9,"PercentageMissingValue":10}
 
         for column in measure_columns:
+            outlier = Stats.detect_outliers_z(df,column)
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
             for k,v in col_stat.items():
                 if "." in v:
@@ -84,7 +88,9 @@ class MetaDataHelper():
                     col_stat[k] = v
             col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
             col_stat["numberOfNotNulls"] = col_stat["count"]
+            col_stat["PercentageMissingValue"] = (col_stat["numberOfNulls"]/total_count)*100
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
+            col_stat["Outliers"] = outlier
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 fs1 = time.time()
                 levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
@@ -137,12 +143,13 @@ class MetaDataHelper():
                             "numberOfNotNulls":"Not Nulls",
                             "MaxLevel":"Max Level",
                             "MinLevel":"Min Level",
-                            "LevelCount":"LevelCount"
+                            "LevelCount":"LevelCount",
+                            "PercentageMissingValue":"PercentageMissingValue"
                             }
 
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7, "max": 8,
-                            "stddev": 9, "mean": 10, "LevelCount": 11}
+                            "stddev": 9, "mean": 10, "LevelCount": 11,"PercentageMissingValue":12}
         for column in dimension_columns:
             st = time.time()
             col_stat = {}
@@ -158,7 +165,7 @@ class MetaDataHelper():
                 else:
                     col_stat["numberOfNulls"] = 0
                     col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-
+                col_stat["PercentageMissingValue"] = (col_stat["numberOfNulls"]/total_count)*100
                 col_stat["numberOfUniqueValues"] = len(levelCount.keys())
                 levelCountWithoutNull = levelCount
                 dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]

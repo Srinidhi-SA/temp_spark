@@ -8,6 +8,9 @@ from bi.common.results import DfMetaData, MetaData, ColumnData, ColumnHeader
 
 
 class MetaDataScript:
+    '''
+    Gives metaData information about the data
+    '''
     def __init__(self, data_frame, spark, dataframe_context):
         self._dataframe_context = dataframe_context
         self._completionStatus = self._dataframe_context.get_completion_status()
