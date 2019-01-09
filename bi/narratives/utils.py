@@ -984,9 +984,9 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
             if len(key_dimensions_tuple) > 5:
 
                 if (len(key_dimensions_tuple)-5) == 1:
-                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " other",)
+                    key_dims = key_dimensions_tuple[:5] + ["and "] + [str(len(key_dimensions_tuple)-5)] + [" other"]
                 else:
-                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
+                    key_dims = key_dimensions_tuple[:5] + ["and "] + [str(len(key_dimensions_tuple)-5)] + [" others"]
 
                 temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dims) + customSeparator
                 crude_narrative = crude_narrative + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
@@ -1001,9 +1001,9 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
             if len(key_dimensions_tuple) > 5:
 
                 if (len(key_dimensions_tuple)-5) == 1:
-                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " other",)
+                    key_dims = key_dimensions_tuple[:5] + ["and "] + [str(len(key_dimensions_tuple)-5)] + [" other"]
                 else:
-                    key_dims = key_dimensions_tuple[:5] + ("and " + str(len(key_dimensions_tuple)-5) + " others",)
+                    key_dims = key_dimensions_tuple[:5] + ["and "] + [str(len(key_dimensions_tuple)-5)] + [" others"]
 
                 temp_narrative = temp_narrative + 'the ' + var + ' does not fall in ' + str(key_dims) + customSeparator
                 crude_narrative = crude_narrative + var + ' does not fall in ' + str(key_dimensions[var]['not_in']) + customSeparator
