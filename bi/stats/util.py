@@ -119,5 +119,5 @@ class Stats:
         # print "Outlier_Count = ", outlier_count
         # print "Total_Count = ", total_count
         # print "Outlier_Percentage = ", outlier_percentage
-        print outliers
-        return outlier_count
+        # print outliers
+        return outlier_count,lower_val,upper_val

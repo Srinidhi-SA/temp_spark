@@ -72,12 +72,14 @@ class MetaDataHelper():
                             "numberOfNotNulls":"Not Nulls",
                             "LevelCount":"Unique Values",
                             "Outliers":"Outliers",
+                            "OutlierLR":"OutlierLR",
+                            "OutlierUR":"OutlierUR",
                             "PercentageMissingValue":"PercentageMissingValue"
                             }
-        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7,"LevelCount":8,"Outliers":9,"PercentageMissingValue":10}
+        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7,"LevelCount":8,"Outliers":9,"OutlierLR":10,"OutlierUR":11,"PercentageMissingValue":12}
 
         for column in measure_columns:
-            outlier = Stats.detect_outliers_z(df,column)
+            outlier, outlier_LR, outlier_UR = Stats.detect_outliers_z(df,column)
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
             for k,v in col_stat.items():
                 if "." in v:
@@ -91,6 +93,8 @@ class MetaDataHelper():
             col_stat["PercentageMissingValue"] = (col_stat["numberOfNulls"]/total_count)*100
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             col_stat["Outliers"] = outlier
+            col_stat["OutlierLR"] = outlier_LR
+            col_stat["OutlierUR"] = outlier_UR
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 fs1 = time.time()
                 levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
@@ -112,7 +116,7 @@ class MetaDataHelper():
                 chart_data[column] = {}
             modified_col_stat = []
             for k,v in col_stat.items():
-                if k not in ["numberOfNotNulls","LevelCount"]:
+                if k not in ["numberOfNotNulls","LevelCount","OutlierLR","OutlierUR"]:
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
