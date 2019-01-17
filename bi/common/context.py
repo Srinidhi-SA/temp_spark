@@ -81,6 +81,9 @@ class ContextSetter:
         self.errorUrl = None
         self.logger = None
 
+        self.dataCleansingDict = {}
+        self.featureEngineeringDict = {}
+
         self.ignoreRegressionElasticityMessages = False
         self.validationTechniqueObj = None
         self.train_test_split = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
@@ -103,9 +106,11 @@ class ContextSetter:
         self.STOCK_SETTINGS = self._config_obj.get_stock_settings()
         self.DATABASE_SETTINGS = self._config_obj.get_database_settings()
         self.ALGORITHM_SETTINGS = self._config_obj.get_algorithm_settings()
+        self.FEATURE_SETTINGS = self._config_obj.get_feature_settings()
 
         fileSettingKeys = self.FILE_SETTINGS.keys()
         columnSettingKeys = self.COLUMN_SETTINGS.keys()
+        featureSettingKeys = self.FEATURE_SETTINGS.keys()
         filterSettingKeys = self.FILTER_SETTINGS.keys()
         advanceSettingKeys = self.ADVANCE_SETTINGS.keys()
         transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
@@ -330,6 +335,12 @@ class ContextSetter:
                 self.dataAPI = self.STOCK_SETTINGS.get("dataAPI")
             if "hdfs_path" in stockSettingKeys:
                 self._hdfsBaseDir = self.STOCK_SETTINGS.get("hdfs_path")
+
+        if len(featureSettingKeys) > 0:
+            if "DATA_CLEANSING" in featureSettingKeys:
+                self.dataCleansingDict = self.FEATURE_SETTINGS.get("DATA_CLEANSING")
+            if "FEATURE_ENGINEERING" in featureSettingKeys:
+                self.featureEngineeringDict = self.FEATURE_SETTINGS.get("FEATURE_ENGINEERING")
 
         if self.analysistype in ["measure","dimension"]:
             print "self.analysisList",self.analysisList
@@ -749,3 +760,9 @@ class ContextSetter:
         elif jobType == "subSetting":
             scriptWeightDict = self.get_subsetting_script_weight()
         return scriptWeightDict
+
+    def get_dataCleansing_info(self):
+        return self.dataCleansingDict
+
+    def get_featureEngginerring_info(self):
+        return self.featureEngineeringDict

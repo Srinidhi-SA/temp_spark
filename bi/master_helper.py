@@ -4,6 +4,7 @@ import re
 
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
+from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
@@ -126,6 +127,9 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     APP_NAME = dataframe_context.get_app_name()
     appid = dataframe_context.get_app_id()
     mlEnv = dataframe_context.get_ml_environment()
+    dataCleansingDict = dataframe_context.get_dataCleansing_info()
+    featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
+
     print "appid",appid
     dataframe_context.initialize_ml_model_training_weight()
 
@@ -134,8 +138,13 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_setter = ResultSetter(dataframe_context)
 
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
-    df = dataframe_helper.fill_missing_values(df)
+    ####New Feature Enginerring Implemetation#############
 
+    if dataCleansingDict['selected']:
+        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark,df,dataframe_context,dataframe_helper,metaParserInstance,dataCleansingDict,featureEngineeringDict)
+        df = data_preprocessing_obj.data_cleansing()
+
+    df = dataframe_helper.fill_missing_values(df)
     categorical_columns = dataframe_helper.get_string_columns()
     uid_col = dataframe_context.get_uid_column()
     if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
@@ -143,6 +152,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_column = dataframe_context.get_result_column()
     allDateCols = dataframe_context.get_date_columns()
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
+
     if mlEnv == "sklearn":
         df = df.toPandas()
         df.columns = [re.sub("[[]|[]]|[<]","", col) for col in df.columns.values]
