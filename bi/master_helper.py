@@ -138,11 +138,15 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_setter = ResultSetter(dataframe_context)
 
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
-    ####New Feature Enginerring Implemetation#############
+    ####New Feature Engineering Implementation#############
 
     if dataCleansingDict['selected']:
-        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark,df,dataframe_context,dataframe_helper,metaParserInstance,dataCleansingDict,featureEngineeringDict)
+        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
         df = data_preprocessing_obj.data_cleansing()
+
+    if featureEngineeringDict['selected']:
+        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+        df = feature_engineering_obj.feature_engineering()
 
     df = dataframe_helper.fill_missing_values(df)
     categorical_columns = dataframe_helper.get_string_columns()
