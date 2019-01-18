@@ -31,7 +31,7 @@ class DataPreprocessingHelper():
     		for j in range(i+1, len(numerical_col)):
     			if numerical_col[i] in removed_col or numerical_col[j] in removed_col:
     				continue
-    			if self._data_frame.where(self._data_frame[numerical_col[i]] == self._data_frame[numerical_col[j]]).count() == df.count():
+    			if self._data_frame.where(self._data_frame[numerical_col[i]] == self._data_frame[numerical_col[j]]).count() == self._data_frame.count():
     				removed_col.append(numerical_col[j])
     				self._data_frame = self._data_frame.drop(numerical_col[j])
 
@@ -63,14 +63,23 @@ class DataPreprocessingHelper():
     def median_impute_missing_values(self, col_to_impute):
         df_copy = self._data_frame
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
-        median_value = get_median(self._data_frame, col_to_impute)
+        median_value = self.get_median(col_to_impute)
         df_copy = df_copy.fillna({col_to_impute : median_value})
         return df_copy
+
+    def get_mode(self, col_for_mode):
+        '''Only returns one mode even in case of multiple available modes'''
+        df_mode = self.get_frequency_of_unique_val(col_for_mode)
+        df_mode = df_mode.orderBy("count", ascending=False)
+        df_mode = df_mode.limit(1)
+        mode = df_mode.collect()[0][0]
+        return mode
+
 
     def mode_impute_missing_values(self, col_to_impute):
         df_copy = self._data_frame
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
-        mode_value = get_mode(self._data_frame, col_to_impute)
+        mode_value = self.get_mode(col_to_impute)
         df_copy = df_copy.fillna({col_to_impute : mode_value})
         return df_copy
 
@@ -93,3 +102,49 @@ class DataPreprocessingHelper():
         self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] > ol_lower_range)
         self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] < ol_upper_range)
         return self._data_frame
+
+
+    def get_frequency_of_unique_val(self, col_for_uvf):
+        df_counts = self._data_frame.groupBy(col_for_uvf).count()
+        return df_counts
+
+
+    def get_n_most_common(self, col_for_nmc, n):
+        '''Only returns first n most commmon even if there are multiple duplicate values'''
+        df_nmc = self.get_frequency_of_unique_val(col_for_nmc)
+        df_nmc = df_nmc.orderBy("count", ascending=False)
+        row_count = df_nmc.count()
+        if n >= row_count:
+            n = row_count
+            df_nmc = df_nmc.limit(n)
+        else:
+            df_nmc = df_nmc.limit(n)
+        return df_nmc
+
+
+    def get_proportion_of_unique_val(self, col_for_uvpro):
+        df_counts = self._data_frame.groupBy(col_for_uvpro).count()
+        total =  df_counts.select(F.sum("count")).collect()[0][0]
+        df_prop = df_counts.withColumn("PROPORTION", (df_counts["count"] / total))
+        df_prop = df_prop.drop("count")
+        return df_prop
+
+
+    def get_percentage_of_unique_val(self, col_for_uvper):
+        df_counts = self._data_frame.groupBy(col_for_uvper).count()
+        total =  df_counts.select(F.sum("count")).collect()[0][0]
+        df_prop = df_counts.withColumn("PERCENTAGE", 100*(df_counts["count"] / total))
+        df_prop = df_prop.drop("count")
+        return df_prop
+
+
+    def get_count_of_unique_val(self):
+        df_temp = self._data_frame.agg(*(countDistinct(col(c)).alias(c) for c in self._data_frame.columns))
+        df_pandas = df_temp.toPandas().transpose()
+        print df_pandas
+
+
+    def get_median(self, col_for_median):
+        median_val = self._data_frame.approxQuantile(col_for_median, [0.5], 0)
+        median =  median_val[0]
+        return median

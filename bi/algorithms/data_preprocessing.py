@@ -13,7 +13,7 @@ class DataPreprocessing:
         self._featureEngineeringDict = featureEngineeringDict
 
     def data_cleansing(self):
-        print "Cleaning the data"
+        print "Cleaning The Data"
         data_preprocessing_helper_obj = DataPreprocessingHelper(self._df)
         for settings in self._dataCleansingDict['overall_settings']:
             if settings['name'] == "duplicate_row" and settings['selected'] == True:
@@ -44,5 +44,5 @@ class DataPreprocessing:
                                 for column in operation['columns']:
                                     self._df = data_preprocessing_helper_obj.remove_outliers(column["name"],column['ol_lower_range'],column['ol_upper_range'])
 
-        print "cleaning Data completed"
+        print "Data Cleaning Completed"
         return self._df

@@ -39,8 +39,8 @@ class FeatureEngineering:
                                     self._df = feature_engineering_helper_obj.create_new_levels_datetimes(column["name"], column["mapping_dict"])
 
                     #call respective function
-                if self._featureEngineeringDict['columns_wise_settings'][key]['name'] == "Transformation_Settings":
-                    for operation in self._featureEngineeringDict['columns_wise_settings'][key]['operations']:
+                if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "Transformation_Settings":
+                    for operation in self._featureEngineeringDict['column_wise_settings'][key]['operations']:
                         if operation['selected']:
                             if operation['name'] == 'Replace_Values_With':
                                 for column in operation['columns']:
@@ -50,7 +50,10 @@ class FeatureEngineering:
                                     self._df = feature_engineering_helper_obj.logTransform_column(column["name"])
                             if operation['name'] == 'Encoding_Dimensions':
                                 for column in operation['columns']:
-                                    self._df = feature_engineering_helper_obj.label_encoding_column(column["name"])
+                                    if column["Encoding_type"] == "Label Encoding":
+                                        self._df = feature_engineering_helper_obj.label_encoding_column(column["name"])
+                                    if column["Encoding_type"] == "One-hot Encoding":
+                                        self._df = feature_engineering_helper_obj.onehot_encoding_column(column["name"])
                             if operation['name'] == 'return_character_count':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.character_count_string(column["name"])

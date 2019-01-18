@@ -5,6 +5,7 @@ import re
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.algorithms import data_preprocessing as data_preprocessing
+from bi.algorithms import feature_engineering as feature_engineering
 from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
@@ -139,7 +140,8 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
 
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
     ####New Feature Engineering Implementation#############
-
+    import sys
+    time_before_preprocessing = time.time()
     if dataCleansingDict['selected']:
         data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
         df = data_preprocessing_obj.data_cleansing()
@@ -147,6 +149,12 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     if featureEngineeringDict['selected']:
         feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
         df = feature_engineering_obj.feature_engineering()
+
+    time_after_preprocessing = time.time()
+    time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
+    print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
+    df.show()
+    sys.exit()
 
     df = dataframe_helper.fill_missing_values(df)
     categorical_columns = dataframe_helper.get_string_columns()
