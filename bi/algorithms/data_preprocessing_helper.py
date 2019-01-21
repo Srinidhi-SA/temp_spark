@@ -51,57 +51,7 @@ class DataPreprocessingHelper():
     				removed_col.append(timestamp_col[j])
     				self._data_frame = self._data_frame.drop(timestamp_col[j])
         return self._data_frame
-    	#print("Removing duplicate measures, dimensions and dates")
 
-    def mean_impute_missing_values(self, col_to_impute):
-        df_copy = self._data_frame
-        self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
-        mean_value = self._data_frame.agg(avg(col_to_impute)).first()[0]
-        df_copy = df_copy.fillna({col_to_impute : mean_value})
-        return df_copy
-
-    def median_impute_missing_values(self, col_to_impute):
-        df_copy = self._data_frame
-        self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
-        median_value = self.get_median(col_to_impute)
-        df_copy = df_copy.fillna({col_to_impute : median_value})
-        return df_copy
-
-    def get_mode(self, col_for_mode):
-        '''Only returns one mode even in case of multiple available modes'''
-        df_mode = self.get_frequency_of_unique_val(col_for_mode)
-        df_mode = df_mode.orderBy("count", ascending=False)
-        df_mode = df_mode.limit(1)
-        mode = df_mode.collect()[0][0]
-        return mode
-
-
-    def mode_impute_missing_values(self, col_to_impute):
-        df_copy = self._data_frame
-        self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
-        mode_value = self.get_mode(col_to_impute)
-        df_copy = df_copy.fillna({col_to_impute : mode_value})
-        return df_copy
-
-
-    def detect_outliers(self, outlier_detection_col):
-        df_stats = self._data_frame.select(mean(col(outlier_detection_col)).alias('mean'), stddev(col(outlier_detection_col)).alias('std')).collect()
-        mean_val = df_stats[0]['mean']
-        std_val = df_stats[0]['std']
-        upper_val = mean_val + (3*std_val)
-        lower_val = mean_val - (3*std_val)
-        outliers = [lower_val, upper_val]
-        #print mean_val
-        #print std_val
-        #print outliers
-        return outliers
-
-
-    def remove_outliers(self, outlier_removal_col, ol_lower_range,ol_upper_range):
-        '''Need to check how it will affect multiple columns'''
-        self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] > ol_lower_range)
-        self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] < ol_upper_range)
-        return self._data_frame
 
 
     def get_frequency_of_unique_val(self, col_for_uvf):
@@ -144,7 +94,98 @@ class DataPreprocessingHelper():
         print df_pandas
 
 
+    def get_mode(self, col_for_mode):
+        '''Only returns one mode even in case of multiple available modes'''
+        df_mode = self.get_frequency_of_unique_val(col_for_mode)
+        df_mode = df_mode.orderBy("count", ascending=False)
+        df_mode = df_mode.limit(1)
+        mode = df_mode.collect()[0][0]
+        return mode
+
+
     def get_median(self, col_for_median):
         median_val = self._data_frame.approxQuantile(col_for_median, [0.5], 0)
         median =  median_val[0]
         return median
+
+
+    def mean_impute_missing_values(self, col_to_impute):
+        df_copy = self._data_frame
+        self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
+        mean_value = self._data_frame.agg(avg(col_to_impute)).first()[0]
+        df_copy = df_copy.fillna({col_to_impute : mean_value})
+        return df_copy
+
+
+    def median_impute_missing_values(self, col_to_impute):
+        df_copy = self._data_frame
+        self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
+        median_value = self.get_median(col_to_impute)
+        df_copy = df_copy.fillna({col_to_impute : median_value})
+        return df_copy
+
+
+    def mode_impute_missing_values(self, col_to_impute):
+        df_copy = self._data_frame
+        self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
+        mode_value = self.get_mode(col_to_impute)
+        df_copy = df_copy.fillna({col_to_impute : mode_value})
+        return df_copy
+
+
+    def user_impute_missing_values(self, col_to_impute, mvt_value):
+        df_copy = self._data_frame
+        self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
+        df_copy = df_copy.fillna({col_to_impute : mvt_value})
+        return df_copy
+
+
+    def detect_outliers(self, outlier_detection_col):
+        df_stats = self._data_frame.select(mean(col(outlier_detection_col)).alias('mean'), stddev(col(outlier_detection_col)).alias('std')).collect()
+        mean_val = df_stats[0]['mean']
+        std_val = df_stats[0]['std']
+        upper_val = mean_val + (3*std_val)
+        lower_val = mean_val - (3*std_val)
+        outliers = [lower_val, upper_val]
+        #print mean_val
+        #print std_val
+        #print outliers
+        return outliers
+
+
+    def remove_outliers(self, outlier_removal_col, ol_lower_range, ol_upper_range):
+        '''Need to check how it will affect multiple columns'''
+        self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] > ol_lower_range)
+        self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] < ol_upper_range)
+        return self._data_frame
+
+
+    def mean_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range):
+        df_dup = self._data_frame
+        df_without_outliers = self.remove_outliers(outlier_imputation_col, ol_lower_range, ol_upper_range)
+        mean_without_outliers = df_without_outliers.agg(avg(outlier_imputation_col)).first()[0]
+        self._data_frame = df_dup.withColumn(outlier_imputation_col, when((df_dup[outlier_imputation_col] < ol_lower_range) | (df_dup[outlier_imputation_col] > ol_upper_range), mean_without_outliers).otherwise(df_dup[outlier_imputation_col]))
+        return self._data_frame
+
+
+    def median_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range):
+        df_dup = self._data_frame
+        df_without_outliers = self.remove_outliers(outlier_imputation_col, ol_lower_range, ol_upper_range)
+        median_without_outliers = self.get_median(outlier_imputation_col)
+        self._data_frame = df_dup.withColumn(outlier_imputation_col, when((df_dup[outlier_imputation_col] < ol_lower_range) | (df_dup[outlier_imputation_col] > ol_upper_range), median_without_outliers).otherwise(df_dup[outlier_imputation_col]))
+        return self._data_frame
+
+
+    def mode_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range):
+        df_dup = self._data_frame
+        df_without_outliers = self.remove_outliers(outlier_imputation_col, ol_lower_range, ol_upper_range)
+        mode_without_outliers = self.get_mode(df_without_outliers[outlier_imputation_col])
+        self._data_frame = df_dup.withColumn(outlier_imputation_col, when((df_dup[outlier_imputation_col] < ol_lower_range) | (df_dup[outlier_imputation_col] > ol_upper_range), mode_without_outliers).otherwise(df_dup[outlier_imputation_col]))
+        return self._data_frame
+
+
+    def user_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range, mvt_value):
+        pass
+
+    def remove_missing_values(self, col):
+        pass

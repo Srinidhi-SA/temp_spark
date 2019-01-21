@@ -71,7 +71,11 @@ class FeatureEngineering:
                                     self._df = feature_engineering_helper_obj.count_time_since(column["name"], column["time_since"])
                             if operation['name'] == 'Perform_Standardization':
                                 for column in operation['columns']:
-                                    self._df = feature_engineering_helper_obj.standardize_column(column["name"])
+                                    if column["standardization_type"] == "Standardization":
+                                        self._df = feature_engineering_helper_obj.standardize_column(column["name"])
+                                for column in operation['columns']:
+                                    if column["standardization_type"] == "Normalization":
+                                        self._df = feature_engineering_helper_obj.normalize_column(column["name"])
 
         print "Feature Engineering Operations successfully Performed"
         return self._df

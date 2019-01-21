@@ -35,6 +35,10 @@ class DataPreprocessing:
                             if operation['name'] == 'mode_imputation':
                                 for column in operation['columns']:
                                     self._df = data_preprocessing_helper_obj.mode_impute_missing_values(column["name"])
+                            if operation['name'] == 'user_imputation':
+                                for column in operation['columns']:
+                                    self._df = data_preprocessing_helper_obj.user_impute_missing_values(column["name"], column["mvt_value"])
+
 
                     #call respective function
                 if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "outlier_treatment":
@@ -42,7 +46,16 @@ class DataPreprocessing:
                         if operation['selected']:
                             if operation['name'] == 'remove_outlier':
                                 for column in operation['columns']:
-                                    self._df = data_preprocessing_helper_obj.remove_outliers(column["name"],column['ol_lower_range'],column['ol_upper_range'])
+                                    self._df = data_preprocessing_helper_obj.remove_outliers(column["name"], column['ol_lower_range'], column['ol_upper_range'])
+                            if operation['name'] == 'outlier_mean_imputation':
+                                for column in operation['columns']:
+                                    self._df = data_preprocessing_helper_obj.mean_impute_outliers(column["name"], column['ol_lower_range'], column['ol_upper_range'])
+                            if operation['name'] == 'outlier_median_imputation':
+                                for column in operation['columns']:
+                                    self._df = data_preprocessing_helper_obj.median_impute_outliers(column["name"], column['ol_lower_range'], column['ol_upper_range'])
+                            if operation['name'] == 'outlier_mode_imputation':
+                                for column in operation['columns']:
+                                    self._df = data_preprocessing_helper_obj.mode_impute_outliers(column["name"], column['ol_lower_range'], column['ol_upper_range'])
 
         print "Data Cleaning Completed"
         return self._df

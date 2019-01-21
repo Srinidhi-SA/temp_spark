@@ -64,6 +64,16 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
 
+    '''Rounds off the returned value ==> values formed are either 0 or 1'''
+    def normalize_column(self, column_name):
+        def normalize_column_helper(min, max):
+            return udf(lambda x: float((x - min)/(max - min)))
+        max = self._data_frame.select(F.max(column_name)).collect()[0][0]
+        min = self._data_frame.select(F.min(column_name)).collect()[0][0]
+        self._data_frame = self._data_frame.withColumn(column_name + "_normalized", normalize_column_helper(min, max)(col(column_name)))
+        return self._data_frame
+
+
     def replacerUDF(self, value, operation):
         if operation == "prod":
             return udf(lambda x: x*value)
