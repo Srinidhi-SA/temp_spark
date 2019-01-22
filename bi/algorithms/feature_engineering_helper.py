@@ -7,7 +7,8 @@ from pyspark.sql.types import IntegerType, StringType, DateType
 from pyspark.sql import SparkSession, Row
 from pyspark.sql import functions as F
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import StringIndexer, OneHotEncoder
+from pyspark.ml.feature import StringIndexer, OneHotEncoder, Bucketizer
+from scipy import linspace
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
 
@@ -16,12 +17,57 @@ class FeatureEngineeringHelper:
     """Contains Feature Engineering Operation Functions"""
 
 
-    def __init__(self, df):
+    def __init__(self, df, dataframe_helper):
         self._data_frame = df
+        self._dataframe_helper = dataframe_helper
 
 
-    def binning_all_measures(self):
+    def binning_all_measures(self, n_bins):
         pass
+
+    def binning_all_measures_sumeet(self, n_bins):
+        numeric_columns = self._dataframe_helper.get_numeric_columns()
+        for column_name in numeric_columns:
+            col_min = self._data_frame.select(F.min(column_name)).collect()[0][0]
+            col_max = self._data_frame.select(F.max(column_name)).collect()[0][0]
+            bins_unrounded = linspace(col_min, col_max, n_bins + 1)
+
+            bins = []
+            bins.insert(0, col_min)
+            for val in bins_unrounded[1:n_bins]:
+                bins.append(round(val, 2))
+            bins.append(col_max)
+
+            bucketizer = Bucketizer(splits = bins, inputCol = column_name, outputCol = column_name + "_binned")
+            self._data_frame = bucketizer.transform(self._data_frame)
+
+            keys = []
+            lists = []
+            for val in range(0, n_bins):
+                keys.append(str(bins[val]) + "-" + str(bins[val + 1]))
+                list = []
+                list.append(bins[val])
+                list.append(bins[val + 1])
+                lists.append(list)
+
+            dict = {}
+            for i in range(0, n_bins):
+                dict[keys[i]] = lists[i]
+
+            map_list = [x for x in range(n_bins)]
+            dict_new = {}
+            for n in range(0, n_bins):
+                dict_new[map_list[n]] = keys[n]
+
+            def create_level_udf_sumeet(dict):
+                def check_key(x, dict):
+                    for key in dict.keys():
+                        if x == key:
+                            return dict[key]
+                return udf(lambda x: check_key(x,dict))
+
+            self._data_frame = self._data_frame.withColumn(column_name + "_binned", create_level_udf_sumeet(dict_new)(col(column_name + "_binned")))
+        return self._data_frame
 
 
     def create_level_udf(self, dict):
@@ -31,8 +77,8 @@ class FeatureEngineeringHelper:
                     return key
         return udf(lambda x: check_key(x,dict))
 
-    def create_new_levels_dimension(self, column_name, dict):
-        self._data_frame = self._data_frame.withColumn(column_name+"_level", self.create_level_udf(dict)(col(column_name)))
+    def create_new_levels_dimension(self, col, dict):
+        self._data_frame = self._data_frame.withColumn(col+"_level", self.create_level_udf(dict)(col(col)))
         return self._data_frame
 
 
@@ -57,7 +103,7 @@ class FeatureEngineeringHelper:
 
     def standardize_column(self, column_name):
         def standardize_column_helper(mean, sd):
-            return udf(lambda x: (x-mean)/sd)
+            return udf(lambda x: (x-mean)*1.0/sd)
         mean = self._data_frame.select(F.mean(column_name)).collect()[0][0]
         StdDev = self._data_frame.select(F.stddev_samp(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_standardized", standardize_column_helper(mean,StdDev)(col(column_name)))
@@ -67,7 +113,7 @@ class FeatureEngineeringHelper:
     '''Rounds off the returned value ==> values formed are either 0 or 1'''
     def normalize_column(self, column_name):
         def normalize_column_helper(min, max):
-            return udf(lambda x: float((x - min)/(max - min)))
+            return udf(lambda x: (x - min)*1.0/(max - min))
         max = self._data_frame.select(F.max(column_name)).collect()[0][0]
         min = self._data_frame.select(F.min(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_normalized", normalize_column_helper(min, max)(col(column_name)))
