@@ -3,22 +3,21 @@ from feature_engineering_helper import FeatureEngineeringHelper
 
 class FeatureEngineering:
 
-    def __init__(self, spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict):
+    def __init__(self, spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict):
         self._spark = spark
         self._df = df
         self._dataframe_context = dataframe_context
         self._dataframe_helper = dataframe_helper
         self._metaParserInstance = metaParserInstance
-        self._dataCleansingDict = dataCleansingDict
         self._featureEngineeringDict = featureEngineeringDict
 
 
     def feature_engineering(self):
         print "Performing Feature Engineering Operations"
-        feature_engineering_helper_obj = FeatureEngineeringHelper(self._df)
+        feature_engineering_helper_obj = FeatureEngineeringHelper(self._df,self._dataframe_helper)
         for settings in self._featureEngineeringDict['overall_settings']:
             if settings['name'] == "binning_all_measures" and settings['selected'] == True:
-                self._df = feature_engineering_helper_obj.binning_all_measures()
+                self._df = feature_engineering_helper_obj.binning_all_measures(settings['number_of_bins'])
 
         for key in self._featureEngineeringDict['column_wise_settings'].keys():
             if self._featureEngineeringDict['column_wise_settings'][key]['selected']:

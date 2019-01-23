@@ -8,6 +8,8 @@ from pyspark.sql import SparkSession, Row
 from pyspark.sql import functions as F
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import StringIndexer, OneHotEncoder
+
+
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
 
@@ -16,12 +18,18 @@ class FeatureEngineeringHelper:
     """Contains Feature Engineering Operation Functions"""
 
 
-    def __init__(self, df):
+    def __init__(self, df,dataframe_helper):
         self._data_frame = df
+        self._dataframe_helper = dataframe_helper
+
+    def binning_all_measures(self,number_of_bins):
+        self._numeric_columns = self._dataframe_helper.get_numeric_columns()
+        for column_name in self._numeric_columns:
+            self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
+        return self._data_frame
 
 
-    def binning_all_measures(self):
-        pass
+
 
 
     def create_level_udf(self, dict):
@@ -40,11 +48,52 @@ class FeatureEngineeringHelper:
         pass
 
 
-    def create_equal_sized_measure_bins(self):
-        pass
+    def create_bin_udf(self,dict):
+        def check_key(x, dict):
+            for key in dict.keys():
+                if (x >= dict[key][0] and x <= dict[key][1]):
+                    return key
+        return udf(lambda x: check_key(x,dict))
 
-    def create_custom_measure_bins(self):
-        pass
+
+    def create_equal_sized_measure_bins(self, column_name,number_of_bins):
+        def create_dict_for_bin():
+            min_max = self._data_frame.agg(F.min(column_name).alias('min'), F.max(column_name).alias('max')).collect()
+            min_value = min_max[0]['min']
+            max_value = min_max[0]['max']
+            interval_size = ((max_value - min_value)*1.0/number_of_bins)
+            dict = {}
+            temp = min_value
+            while temp <=max_value:
+                dict[str(temp)+"-"+str(temp+interval_size)] = [temp, temp+interval_size]
+                temp = temp+interval_size
+            return dict
+        dict = create_dict_for_bin()
+        self._data_frame = self._data_frame.withColumn(column_name+"_bin", self.create_bin_udf(dict)(col(column_name)))
+        return self._data_frame
+
+
+    def create_custom_measure_bins(self,column_name,list_of_intervals):
+        def create_dict_for_bin():
+            min_max = self._data_frame.agg(F.min(column_name).alias('min'), F.max(column_name).alias('max')).collect()
+            min_value = min_max[0]['min']
+            max_value = min_max[0]['max']
+            dict = {}
+            if list_of_intervals[0]>min_value:
+                dict[str(min_value)+"-"+str(list_of_intervals[0])] = [min_value, list_of_intervals[0]]
+            for i in range(len(list_of_intervals)):
+                if i+2<=len(list_of_intervals):
+                    dict[str(list_of_intervals[i])+"-"+str(list_of_intervals[i+1])] = [list_of_intervals[i], list_of_intervals[i+1]]
+            if list_of_intervals[-1]<max_value:
+                dict[str(list_of_intervals[-1])+"-"+str(max_value)] = [list_of_intervals[-1], max_value]
+
+            return dict
+        dict = create_dict_for_bin()
+        self._data_frame = self._data_frame.withColumn(column_name+"_bin", self.create_bin_udf(dict)(col(column_name)))
+        print self._data_frame.show(20)
+        return self._data_frame
+
+
 
 
     def replace_values_in_column(self, column_name, range, value):
