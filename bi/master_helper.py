@@ -154,8 +154,8 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
     print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
 
-    df.show()
     import sys
+    df.show()
     sys.exit()
 
     df = dataframe_helper.fill_missing_values(df)

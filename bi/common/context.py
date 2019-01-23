@@ -567,8 +567,8 @@ class ContextSetter:
         for k,v in weightDict.items():
             outputdict[k] = {"total":v}
         outputdict.update(intitialScriptWeight)
-        print outputdict
         self.mlModelTrainingWeight = outputdict
+
 
     def get_ml_model_training_weight(self):
         return self.mlModelTrainingWeight
