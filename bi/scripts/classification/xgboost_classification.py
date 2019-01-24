@@ -1,5 +1,6 @@
 import json
 import time
+import re
 
 import humanize
 import numpy as np
@@ -109,6 +110,9 @@ class XgboostScript:
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+            x_train.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train.columns.values]
+            x_test.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_test.columns.values]
+
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
