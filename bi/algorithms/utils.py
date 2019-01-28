@@ -914,8 +914,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             # prediction_narrative.insert_card_at_given_index(card3,2)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
         else:
-            card_x = NormalCard()
-            card_x.set_card_width(50)
+            emptycard = NormalCard()
+            emptycard.set_card_width(50)
 
             card2 = NormalCard()
             card2_elements = get_model_comparison(collated_summary)
@@ -939,8 +939,12 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
 
         if featureImportanceC3Object == None:
-            all_cards = [card1,card2,card_x,card3,card_x] + existing_cards
-            all_cards = [x for x in all_cards if x != None]
+            if card3 == None:
+                all_cards = [card1,card2,emptycard] + existing_cards
+                all_cards = [x for x in all_cards if x != None]
+            else:
+                all_cards = [card1,card2,emptycard,card3,emptycard] + existing_cards
+                all_cards = [x for x in all_cards if x != None]
         else:
             all_cards = [card1,card2,card3] + existing_cards
             all_cards = [x for x in all_cards if x != None]
