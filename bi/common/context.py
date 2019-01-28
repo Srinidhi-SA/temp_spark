@@ -724,6 +724,11 @@ class ContextSetter:
         return self.ignoremessages
 
     def get_target_level_for_model(self):
+        if self.targetLevelForModel=="True":
+            self.targetLevelForModel="true"
+        elif self.targetLevelForModel=="False":
+            self.targetLevelForModel="false"
+        else: self.targetLevelForModel=self.targetLevelForModel
         return self.targetLevelForModel
 
     def set_ignore_msg_regression_elasticity(self,data):
