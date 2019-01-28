@@ -13,7 +13,7 @@ SKLEARN_ML_SUPPORTED_SOLVER_CLASSIFICATION = [
     {"name":"lbfgs","selected":False,"displayName":"lbfgs","penalty":"l2"},
     {"name":"sag","selected":False,"displayName":"sag","penalty":"l2"},
     # {"name":"liblinear","selected":False,"displayName":"liblinear","penalty":"l1"},
-    {"name":"saga","selected":False,"displayName":"saga","penalty":"l1"},
+    {"name":"saga","selected":False,"displayName":"saga","penalty":"l1"}
 
 ]
 SKLEARN_ML_SUPPORTED_SPLIT_CRITERION_CLASSIFICATION = [

@@ -93,22 +93,18 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
     def create_level_udf_time(self, dict):
-        def check_key(x, dict):
-            def convert_to_date(x):
-                converted_to_date = datetime.strptime(x,"%d/%m/%Y")
-                return converted_to_date
-            def convert_list_to_date(x,y):
-                x=datetime.strptime(x,"%d/%m/%Y")
-                y=datetime.strptime(y,"%d/%m/%Y")
-                return [x,y]
-            v=[]
-            print(x)
-            x = convert_to_date(x)
-            for key,val in  dict.items():
-                v=convert_list_to_date(val[0],val[1])
-                if  (x >= v[0] and x <= v[1]):
+        def convert_to_date( value):
+            value = datetime.strptime(value, "%d/%m/%Y")
+            return value
+        def check_key(date, dict):
+            date = convert_to_date(date)
+            for key, value in dict.items():
+                val1_date = convert_to_date(value[0])
+                val2_date = convert_to_date(value[1])
+                date_range = [val1_date, val2_date]
+                if (date >= date_range[0] and date <= date_range[1]):
                     return key
-        return udf(lambda x: check_key(x,dict))
+        return udf(lambda x: check_key(x, dict))
 
 
     def create_new_levels_datetimes(self, col_for_timelevels, dict):
