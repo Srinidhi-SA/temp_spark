@@ -324,7 +324,7 @@ def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,sc
         else:
             save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
         dataframeContext.update_completion_status(completionStatus)
-        print "outgoing completionStatus",completionStatus
+        print "Outgoing Completion Status - ", completionStatus
 
 
 def save_pmml_models(url,jsonData,ignore=False):

@@ -139,7 +139,8 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_setter = ResultSetter(dataframe_context)
 
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
-    ####New Feature Engineering Implementation#############
+####New Feature Engineering Implementation#############
+
     time_before_preprocessing = time.time()
     if dataCleansingDict['selected']:
         data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
@@ -148,7 +149,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     if featureEngineeringDict['selected']:
         feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
         df = feature_engineering_obj.feature_engineering()
-    
+
     time_after_preprocessing = time.time()
     time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
     print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
@@ -324,6 +325,8 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     jobName = dataframe_context.get_job_name()
     ignoreMsg = dataframe_context.get_message_ignore()
     targetLevel = dataframe_context.get_target_level_for_model()
+    dataCleansingDict = dataframe_context.get_dataCleansing_info()
+    featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
     print "Prediction Started"
     dataframe_context.initialize_ml_model_prediction_weight()
 
@@ -336,6 +339,20 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     result_column = dataframe_context.get_result_column()
     if result_column in df.columns:
         dataframe_helper.remove_null_rows(result_column)
+####New Feature Engineering Implementation#############
+    time_before_preprocessing = time.time()
+    if dataCleansingDict['selected']:
+        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+        df = data_preprocessing_obj.data_cleansing()
+
+    if featureEngineeringDict['selected']:
+        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+        df = feature_engineering_obj.feature_engineering()
+
+    time_after_preprocessing = time.time()
+    time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
+    print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
+
     df = dataframe_helper.get_data_frame()
     df = dataframe_helper.fill_missing_values(df)
     model_slug = model_path

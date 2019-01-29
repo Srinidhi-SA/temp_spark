@@ -1,4 +1,5 @@
 import math
+from datetime import datetime
 from pyspark.sql.functions import avg, mean, stddev, when, create_map, udf, lower
 from pyspark.sql.functions import to_timestamp, hour, minute, year, month, dayofmonth, dayofyear, unix_timestamp
 from pyspark.sql.functions import weekofyear, from_unixtime, datediff, date_format
@@ -7,9 +8,8 @@ from pyspark.sql.types import IntegerType, StringType, DateType
 from pyspark.sql import SparkSession, Row
 from pyspark.sql import functions as F
 from pyspark.ml import Pipeline
-from pyspark.ml.feature import StringIndexer, OneHotEncoder
-
-
+from pyspark.ml.feature import StringIndexer, OneHotEncoder, Bucketizer
+from scipy import linspace
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
 
@@ -29,7 +29,58 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
 
+    def create_bin_udf(self,dict):
+          def check_key(x, dict):
+              for key in dict.keys():
+                  if (x >= dict[key][0] and x <= dict[key][1]):
+                      return key
+          return udf(lambda x: check_key(x,dict))
 
+
+
+    def binning_all_measures_sumeet(self, n_bins):
+        numeric_columns = self._dataframe_helper.get_numeric_columns()
+        for column_name in numeric_columns:
+            col_min = self._data_frame.select(F.min(column_name)).collect()[0][0]
+            col_max = self._data_frame.select(F.max(column_name)).collect()[0][0]
+            bins_unrounded = linspace(col_min, col_max, n_bins + 1)
+
+            bins = []
+            bins.insert(0, col_min)
+            for val in bins_unrounded[1:n_bins]:
+                bins.append(round(val, 2))
+            bins.append(col_max)
+
+            bucketizer = Bucketizer(splits = bins, inputCol = column_name, outputCol = column_name + "_binned")
+            self._data_frame = bucketizer.transform(self._data_frame)
+
+            keys = []
+            lists = []
+            for val in range(0, n_bins):
+                keys.append(str(bins[val]) + "-" + str(bins[val + 1]))
+                list = []
+                list.append(bins[val])
+                list.append(bins[val + 1])
+                lists.append(list)
+
+            dict = {}
+            for i in range(0, n_bins):
+                dict[keys[i]] = lists[i]
+
+            map_list = [x for x in range(n_bins)]
+            dict_new = {}
+            for n in range(0, n_bins):
+                dict_new[map_list[n]] = keys[n]
+
+            def create_level_udf_sumeet(dict):
+                def check_key(x, dict):
+                    for key in dict.keys():
+                        if x == key:
+                            return dict[key]
+                return udf(lambda x: check_key(x,dict))
+
+            self._data_frame = self._data_frame.withColumn(column_name + "_binned", create_level_udf_sumeet(dict_new)(col(column_name + "_binned")))
+        return self._data_frame
 
 
     def create_level_udf(self, dict):
@@ -43,10 +94,24 @@ class FeatureEngineeringHelper:
         self._data_frame = self._data_frame.withColumn(column_name+"_level", self.create_level_udf(dict)(col(column_name)))
         return self._data_frame
 
+    def create_level_udf_time(self, dict):
+        def convert_to_date( value):
+            value = datetime.strptime(value, "%d/%m/%Y")
+            return value
+        def check_key(date, dict):
+            date = convert_to_date(date)
+            for key, value in dict.items():
+                val1_date = convert_to_date(value[0])
+                val2_date = convert_to_date(value[1])
+                date_range = [val1_date, val2_date]
+                if (date >= date_range[0] and date <= date_range[1]):
+                    return key
+        return udf(lambda x: check_key(x, dict))
 
-    def create_new_levels_datetimes(self):
-        pass
 
+    def create_new_levels_datetimes(self, col_for_timelevels, dict):
+        self._data_frame = self._data_frame.withColumn(col_for_timelevels+"_level", self.create_level_udf_time(dict)(col(col_for_timelevels)))
+        return self._data_frame
 
     def create_bin_udf(self,dict):
         def check_key(x, dict):
@@ -90,7 +155,6 @@ class FeatureEngineeringHelper:
             return dict
         dict = create_dict_for_bin()
         self._data_frame = self._data_frame.withColumn(column_name+"_bin", self.create_bin_udf(dict)(col(column_name)))
-        print self._data_frame.show(20)
         return self._data_frame
 
 
@@ -106,10 +170,20 @@ class FeatureEngineeringHelper:
 
     def standardize_column(self, column_name):
         def standardize_column_helper(mean, sd):
-            return udf(lambda x: (x-mean)/sd)
+            return udf(lambda x: (x-mean)*1.0/sd)
         mean = self._data_frame.select(F.mean(column_name)).collect()[0][0]
         StdDev = self._data_frame.select(F.stddev_samp(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_standardized", standardize_column_helper(mean,StdDev)(col(column_name)))
+        return self._data_frame
+
+
+    '''Rounds off the returned value ==> values formed are either 0 or 1'''
+    def normalize_column(self, column_name):
+        def normalize_column_helper(min, max):
+            return udf(lambda x: (x - min)*1.0/(max - min))
+        max = self._data_frame.select(F.max(column_name)).collect()[0][0]
+        min = self._data_frame.select(F.min(column_name)).collect()[0][0]
+        self._data_frame = self._data_frame.withColumn(column_name + "_normalized", normalize_column_helper(min, max)(col(column_name)))
         return self._data_frame
 
 

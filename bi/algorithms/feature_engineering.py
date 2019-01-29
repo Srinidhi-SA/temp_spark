@@ -21,7 +21,7 @@ class FeatureEngineering:
 
         for key in self._featureEngineeringDict['column_wise_settings'].keys():
             if self._featureEngineeringDict['column_wise_settings'][key]['selected']:
-                if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "Creating_New_Bins_or_Levels":
+                if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "level_creation_settings":
                     for operation in self._featureEngineeringDict['column_wise_settings'][key]['operations']:
                         if operation['selected']:
                             if operation['name'] == 'create_equal_sized_bins':
@@ -38,20 +38,20 @@ class FeatureEngineering:
                                     self._df = feature_engineering_helper_obj.create_new_levels_datetimes(column["name"], column["mapping_dict"])
 
                     #call respective function
-                if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "Transformation_Settings":
+                if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "transformation_settings":
                     for operation in self._featureEngineeringDict['column_wise_settings'][key]['operations']:
                         if operation['selected']:
-                            if operation['name'] == 'Replace_Values_With':
+                            if operation['name'] == 'replace_values_with':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.replace_values_in_column(column["name"], column["replace_values_in_range"], column["replace_by"])
-                            if operation['name'] == 'Variable_Transformation':
+                            if operation['name'] == 'variable_transformation':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.logTransform_column(column["name"])
-                            if operation['name'] == 'Encoding_Dimensions':
+                            if operation['name'] == 'encoding_dimensions':
                                 for column in operation['columns']:
-                                    if column["Encoding_type"] == "Label Encoding":
+                                    if column["encoding_type"] == "Label Encoding":
                                         self._df = feature_engineering_helper_obj.label_encoding_column(column["name"])
-                                    if column["Encoding_type"] == "One-hot Encoding":
+                                    if column["encoding_type"] == "One-hot Encoding":
                                         self._df = feature_engineering_helper_obj.onehot_encoding_column(column["name"])
                             if operation['name'] == 'return_character_count':
                                 for column in operation['columns']:
@@ -68,9 +68,13 @@ class FeatureEngineering:
                             if operation['name'] == 'time_since':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.count_time_since(column["name"], column["time_since"])
-                            if operation['name'] == 'Perform_Standardization':
+                            if operation['name'] == 'perform_standardization':
                                 for column in operation['columns']:
-                                    self._df = feature_engineering_helper_obj.standardize_column(column["name"])
+                                    if column["standardization_type"] == "standardization":
+                                        self._df = feature_engineering_helper_obj.standardize_column(column["name"])
+                                for column in operation['columns']:
+                                    if column["standardization_type"] == "normalization":
+                                        self._df = feature_engineering_helper_obj.normalize_column(column["name"])
 
         print "Feature Engineering Operations successfully Performed"
         return self._df
