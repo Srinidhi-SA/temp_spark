@@ -632,8 +632,8 @@ def get_total_models_classification(collated_summary):
         algorithm_name.append(collated_summary[val].get("algorithmName"))
         if trees:
             n_model += trees
-    output = "<p>mAdvisor has built {} models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    output = "<p>mAdvisor has built predictive models using {} algorithms ({}) to predict {} and \
+        has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def get_total_models_regression(collated_summary):
@@ -644,8 +644,8 @@ def get_total_models_regression(collated_summary):
         trees = collated_summary[val].get("nTrees")
         algorithm_name.append(collated_summary[val].get("algorithmDisplayName"))
     n_model = len(algorithm_name)
-    output = "<p>mAdvisor has built {} regression models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(n_model,len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    output = "<p>mAdvisor has built predictive regression models using {} algorithms ({}) to predict {} and \
+        has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def create_model_folders(model_slug, basefoldername, subfolders=None):
@@ -1038,10 +1038,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 evalMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
                 bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
 
-            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+            htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
-                            .format(totalModels,totalModels if totalModels < GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY else GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY ,bestModel,bestAlgo,evalMetric,bestMetric))
+                            .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
@@ -1227,10 +1227,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
             bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
-            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+            htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
-                            .format(totalModels,totalModels if totalModels < GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY else GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
+                            .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)

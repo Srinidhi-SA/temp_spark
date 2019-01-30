@@ -346,7 +346,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         df = data_preprocessing_obj.data_cleansing()
 
     if featureEngineeringDict['selected']:
-        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
         df = feature_engineering_obj.feature_engineering()
 
     time_after_preprocessing = time.time()

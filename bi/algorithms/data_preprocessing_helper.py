@@ -140,6 +140,11 @@ class DataPreprocessingHelper():
         return df_copy
 
 
+    def remove_missing_values(self, null_removal_col):
+        self._data_frame = self._data_frame.na.drop()
+        return self._data_frame
+
+
     def detect_outliers(self, outlier_detection_col):
         df_stats = self._data_frame.select(mean(col(outlier_detection_col)).alias('mean'), stddev(col(outlier_detection_col)).alias('std')).collect()
         mean_val = df_stats[0]['mean']
@@ -187,5 +192,5 @@ class DataPreprocessingHelper():
     def user_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range, mvt_value):
         pass
 
-    def remove_missing_values(self, col):
-        pass
+    # def remove_missing_values(self, col):
+    #     pass

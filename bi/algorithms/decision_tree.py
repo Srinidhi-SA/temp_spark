@@ -3,8 +3,7 @@ import re
 
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.tree import DecisionTree
-from pyspark.ml.classification import DecisionTreeClassifier
-from pyspark.ml.feature import OneHotEncoderEstimator, StringIndexer, VectorAssembler
+
 from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
 from bi.common.datafilterer import DataFrameFilterer
@@ -194,6 +193,7 @@ class DecisionTrees:
             if 'Predict:' in rules['name'] and num_success>0:
                 return new_rules
 
+
     def wrap_tree(self, tree):
         new_tree = {}
         if "children" in tree.keys() and len(tree['children'])>0:
@@ -269,50 +269,22 @@ class DecisionTrees:
         print "maxDepth",self._maxDepth
         print "maxBins",max_length
         print "="*200
-        # data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
-        # (trainingData, testData) = data.randomSplit([1.0, 0.0])
-        # # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        # # model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
-        # # Removed categoricalFeaturesInfo to be passed to DecisionTree to get all levels and consider all feature as continuous variables
-        # #But that results in wrong result in Prediction Rule eg: columns containing "yes" or "no" as its value is considered as float value(0.5) so removing categoricalFeaturesInfo={} with categoricalFeaturesInfo=cat_feature_info
+        data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
+        (trainingData, testData) = data.randomSplit([1.0, 0.0])
+        # TO DO : set maxBins at least equal to the max level of categories in dimension column
         # model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
-        # df = self._data_frame
+        # Removed categoricalFeaturesInfo to be passed to DecisionTree to get all levels and consider all feature as continuous variables
+        #But that results in wrong result in Prediction Rule eg: columns containing "yes" or "no" as its value is considered as float value(0.5) so removing categoricalFeaturesInfo={} with categoricalFeaturesInfo=cat_feature_info
+        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
 
-        feature_columns = []
-        categoryNames = {}
-        for categoricalCol in all_dimensions:
-            stringIndexer = StringIndexer(inputCol = categoricalCol, outputCol = categoricalCol + 'Index')
-            a = stringIndexer.fit(self._data_frame)
-            self._data_frame = a.transform((self._data_frame))
-            if categoricalCol != dimension:
-                feature_columns.append(categoricalCol + 'Index')
-                categoryNames[categoricalCol + 'Index'] = a.labels
-            if categoricalCol == dimension:
-                labelCol = categoricalCol + 'Index'
-
-                classNames = a.labels
-        feature_assembler = VectorAssembler(inputCols=feature_columns, outputCol="features")
-        self._data_frame = feature_assembler.transform(self._data_frame)
-        print (self._data_frame.printSchema())
-
-        dtree = DecisionTreeClassifier(featuresCol="features",
-                                       labelCol=labelCol,
-                                       maxDepth=5,
-                                       maxBins=32)
-
-        dtree_model = dtree.fit(self._data_frame)
-        print(dtree_model.toDebugString)
-
-        output_result = dtree_model.toDebugString
+        output_result = model.toDebugString()
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)
-
         self._new_tree = self.wrap_tree(self._new_tree)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         print self._new_rules.keys()
         print "==="*40
-
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["treegeneration"]["weight"]/10
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\

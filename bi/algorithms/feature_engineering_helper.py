@@ -158,8 +158,6 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
 
-
-
     def replace_values_in_column(self, column_name, range, value):
         if len(range) == 2:
             self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
