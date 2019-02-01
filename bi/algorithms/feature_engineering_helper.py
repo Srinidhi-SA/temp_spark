@@ -13,6 +13,8 @@ from scipy import linspace
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
 
+from data_preprocessing_helper import DataPreprocessingHelper
+
 
 class FeatureEngineeringHelper:
     """Contains Feature Engineering Operation Functions"""
@@ -158,13 +160,34 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
 
-
-
+    '''To be verified'''
     def replace_values_in_column(self, column_name, range, value):
         if len(range) == 2:
-            self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+            if value == "median":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                median_val = dp_helper_obj.get_median(column_name)
+                value = median_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+            if value == "mode":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                mode_val = dp_helper_obj.get_mode(column_name)
+                value = mode_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+            else:
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
         else:
-            self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == range[0], value).otherwise(self._data_frame[column_name]))
+            if value == "median":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                median_val = dp_helper_obj.get_median(column_name)
+                value = median_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == range[0], value).otherwise(self._data_frame[column_name]))
+            if value == "mode":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                mode_val = dp_helper_obj.get_mode(column_name)
+                value = mode_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == range[0], value).otherwise(self._data_frame[column_name]))
+            else:
+                self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == range[0], value).otherwise(self._data_frame[column_name]))
         return self._data_frame
 
 
@@ -210,6 +233,18 @@ class FeatureEngineeringHelper:
 
     def logTransform_column(self, column_name):
         self._data_frame = self._data_frame.withColumn(column_name + "_log-transformed", self.replacerUDF(10, "logTransform")(col(column_name)))
+        return self._data_frame
+
+    def modulus_transform_column(self, column_name):
+        self._data_frame = self._data_frame.withColumn(column_name + "_modulus-transformed", self.replacerUDF(10, "modulus")(col(column_name)))
+        return self._data_frame
+
+    def cuberoot_transform_column(self, column_name):
+        self._data_frame = self._data_frame.withColumn(column_name + "_cuberoot-transformed", self.replacerUDF(3, "NthRoot")(col(column_name)))
+        return self._data_frame
+
+    def squareroot_transform_column(self, column_name):
+        self._data_frame = self._data_frame.withColumn(column_name + "_squareroot-transformed", self.replacerUDF(2, "NthRoot")(col(column_name)))
         return self._data_frame
 
 

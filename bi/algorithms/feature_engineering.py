@@ -21,7 +21,7 @@ class FeatureEngineering:
 
         for key in self._featureEngineeringDict['column_wise_settings'].keys():
             if self._featureEngineeringDict['column_wise_settings'][key]['selected']:
-                if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "level_creation_settings":
+                if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "creating_new_bins_or_levels":
                     for operation in self._featureEngineeringDict['column_wise_settings'][key]['operations']:
                         if operation['selected']:
                             if operation['name'] == 'create_equal_sized_bins':
@@ -46,19 +46,26 @@ class FeatureEngineering:
                                     self._df = feature_engineering_helper_obj.replace_values_in_column(column["name"], column["replace_values_in_range"], column["replace_by"])
                             if operation['name'] == 'variable_transformation':
                                 for column in operation['columns']:
-                                    self._df = feature_engineering_helper_obj.logTransform_column(column["name"])
+                                    if column["transformation_type"] == "log_transform":
+                                        self._df = feature_engineering_helper_obj.logTransform_column(column["name"])
+                                    if column["transformation_type"] == "modulus_transform":
+                                        self._df = feature_engineering_helper_obj.modulus_transform_column(column["name"])
+                                    if column["transformation_type"] == "cube_root_transform":
+                                        self._df = feature_engineering_helper_obj.cuberoot_transform_column(column["name"])
+                                    if column["transformation_type"] == "square_root_transform":
+                                        self._df = feature_engineering_helper_obj.squareroot_transform_column(column["name"])
                             if operation['name'] == 'encoding_dimensions':
                                 for column in operation['columns']:
-                                    if column["encoding_type"] == "Label Encoding":
+                                    if column["encoding_type"] == "label_encoding":
                                         self._df = feature_engineering_helper_obj.label_encoding_column(column["name"])
-                                    if column["encoding_type"] == "One-hot Encoding":
+                                    if column["encoding_type"] == "one_hot_encoding":
                                         self._df = feature_engineering_helper_obj.onehot_encoding_column(column["name"])
                             if operation['name'] == 'return_character_count':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.character_count_string(column["name"])
                             if operation['name'] == 'is_custom_string_in':
                                 for column in operation['columns']:
-                                    self._df = feature_engineering_helper_obj.contains_word(column["name"], column["User_given_character"])
+                                    self._df = feature_engineering_helper_obj.contains_word(column["name"], column["user_given_string"])
                             if operation['name'] == 'is_date_weekend':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.is_weekend(column["name"])

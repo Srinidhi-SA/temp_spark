@@ -26,6 +26,9 @@ class DataPreprocessing:
                 if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "missing_value_treatment":
                     for operation in self._dataCleansingDict['columns_wise_settings'][key]['operations']:
                         if operation['selected']:
+                            if operation['name'] == 'remove_observations':
+                                for column in operation['columns']:
+                                    self._df = data_preprocessing_helper_obj.remove_missing_values(column["name"])
                             if operation['name'] == 'mean_imputation':
                                 for column in operation['columns']:
                                     self._df = data_preprocessing_helper_obj.mean_impute_missing_values(column["name"])
@@ -41,7 +44,7 @@ class DataPreprocessing:
 
 
                     #call respective function
-                if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "outlier_removal":
+                if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "outlier_treatment":
                     for operation in self._dataCleansingDict['columns_wise_settings'][key]['operations']:
                         if operation['selected']:
                             if operation['name'] == 'remove_outliers':
