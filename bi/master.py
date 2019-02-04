@@ -44,7 +44,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "story"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -106,7 +106,6 @@ def main(configJson):
 
     analysistype = dataframe_context.get_analysis_type()
     result_setter = ResultSetter(dataframe_context)
-    # scripts_to_run = dataframe_context.get_scripts_to_run()
     appid = dataframe_context.get_app_id()
     completionStatus = 0
     print "########################## Validate the Config ###############################"
@@ -146,18 +145,19 @@ def main(configJson):
             df = MasterHelper.load_dataset(spark,dataframe_context)
             df = df.persist()
             if jobType != "metaData":
-                dataCleansingDict = dataframe_context.get_dataCleansing_info()
-                featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
 
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
-                if dataCleansingDict['selected']:
-                    data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
-                    df = data_preprocessing_obj.data_cleansing()
+                if jobType == "training" or jobType == "prediction":
+                    dataCleansingDict = dataframe_context.get_dataCleansing_info()
+                    featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
+                    if dataCleansingDict['selected']:
+                        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
+                        df = data_preprocessing_obj.data_cleansing()
 
-                if featureEngineeringDict['selected']:
-                    feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
-                    df = feature_engineering_obj.feature_engineering()
-                print df.printSchema()
+                    if featureEngineeringDict['selected']:
+                        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
+                        df = feature_engineering_obj.feature_engineering()
+                    print df.printSchema()
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
