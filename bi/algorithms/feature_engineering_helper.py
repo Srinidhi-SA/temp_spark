@@ -12,6 +12,7 @@ from pyspark.ml.feature import StringIndexer, OneHotEncoder, Bucketizer
 from scipy import linspace
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
+from bi.common.column import ColumnType
 
 from data_preprocessing_helper import DataPreprocessingHelper
 
@@ -24,11 +25,15 @@ class FeatureEngineeringHelper:
         self._data_frame = df
         # self._dataframe_helper = dataframe_helper
 
-    # def binning_all_measures(self,number_of_bins):
-    #     self._numeric_columns = self._dataframe_helper.get_numeric_columns()
-    #     for column_name in self._numeric_columns:
-    #         self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
-    #     return self._data_frame
+    def binning_all_measures(self,number_of_bins):
+        dfSchemaFields = self._data_frame.schema.fields
+        numeric_columns = []
+        for field in dfSchemaFields:
+            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
+                numeric_columns.append(field.name)
+        for column_name in numeric_columns:
+            self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
+        return self._data_frame
 
 
     def create_bin_udf(self,dict):
@@ -40,49 +45,53 @@ class FeatureEngineeringHelper:
 
 
 
-    def binning_all_measures_sumeet(self, n_bins):
-        numeric_columns = self._dataframe_helper.get_numeric_columns()
-        for column_name in numeric_columns:
-            col_min = self._data_frame.select(F.min(column_name)).collect()[0][0]
-            col_max = self._data_frame.select(F.max(column_name)).collect()[0][0]
-            bins_unrounded = linspace(col_min, col_max, n_bins + 1)
-
-            bins = []
-            bins.insert(0, col_min)
-            for val in bins_unrounded[1:n_bins]:
-                bins.append(round(val, 2))
-            bins.append(col_max)
-
-            bucketizer = Bucketizer(splits = bins, inputCol = column_name, outputCol = column_name + "_binned")
-            self._data_frame = bucketizer.transform(self._data_frame)
-
-            keys = []
-            lists = []
-            for val in range(0, n_bins):
-                keys.append(str(bins[val]) + "-" + str(bins[val + 1]))
-                list = []
-                list.append(bins[val])
-                list.append(bins[val + 1])
-                lists.append(list)
-
-            dict = {}
-            for i in range(0, n_bins):
-                dict[keys[i]] = lists[i]
-
-            map_list = [x for x in range(n_bins)]
-            dict_new = {}
-            for n in range(0, n_bins):
-                dict_new[map_list[n]] = keys[n]
-
-            def create_level_udf_sumeet(dict):
-                def check_key(x, dict):
-                    for key in dict.keys():
-                        if x == key:
-                            return dict[key]
-                return udf(lambda x: check_key(x,dict))
-
-            self._data_frame = self._data_frame.withColumn(column_name + "_binned", create_level_udf_sumeet(dict_new)(col(column_name + "_binned")))
-        return self._data_frame
+    # def binning_all_measures_sumeet(self, n_bins):
+    #     dfSchemaFields = self._data_frame.schema.fields
+    #     numeric_columns = []
+    #     for field in dfSchemaFields:
+    #         if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
+    #             numeric_columns.append(field.name)
+    #     for column_name in numeric_columns:
+    #         col_min = self._data_frame.select(F.min(column_name)).collect()[0][0]
+    #         col_max = self._data_frame.select(F.max(column_name)).collect()[0][0]
+    #         bins_unrounded = linspace(col_min, col_max, n_bins + 1)
+    #
+    #         bins = []
+    #         bins.insert(0, col_min)
+    #         for val in bins_unrounded[1:n_bins]:
+    #             bins.append(round(val, 2))
+    #         bins.append(col_max)
+    #
+    #         bucketizer = Bucketizer(splits = bins, inputCol = column_name, outputCol = column_name + "_binned")
+    #         self._data_frame = bucketizer.transform(self._data_frame)
+    #
+    #         keys = []
+    #         lists = []
+    #         for val in range(0, n_bins):
+    #             keys.append(str(bins[val]) + "-" + str(bins[val + 1]))
+    #             list = []
+    #             list.append(bins[val])
+    #             list.append(bins[val + 1])
+    #             lists.append(list)
+    #
+    #         dict = {}
+    #         for i in range(0, n_bins):
+    #             dict[keys[i]] = lists[i]
+    #
+    #         map_list = [x for x in range(n_bins)]
+    #         dict_new = {}
+    #         for n in range(0, n_bins):
+    #             dict_new[map_list[n]] = keys[n]
+    #
+    #         def create_level_udf_sumeet(dict):
+    #             def check_key(x, dict):
+    #                 for key in dict.keys():
+    #                     if x == key:
+    #                         return dict[key]
+    #             return udf(lambda x: check_key(x,dict))
+    #
+    #         self._data_frame = self._data_frame.withColumn(column_name + "_binned", create_level_udf_sumeet(dict_new)(col(column_name + "_binned")))
+    #     return self._data_frame
 
 
     def create_level_udf(self, dict):
@@ -136,7 +145,7 @@ class FeatureEngineeringHelper:
                 temp = temp+interval_size
             return dict
         dict = create_dict_for_bin()
-        self._data_frame = self._data_frame.withColumn(column_name+"_bin", self.create_bin_udf(dict)(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name+"_bin_"+str(number_of_bins), self.create_bin_udf(dict)(col(column_name)))
         return self._data_frame
 
 
@@ -270,7 +279,7 @@ class FeatureEngineeringHelper:
 
     def onehot_encoding_column(self, column_name):
         self._data_frame = self.label_encoding_column(column_name)
-        encoder = OneHotEncoder(dropLast=False, inputCol = column_name+"_l_encoded", outputCol = column_name+"_onehot_encoded")
+        encoder = OneHotEncoder(dropLast=False, inputCol = column_name+"_l_encoded", outputCol = column_name+"_ed_one_hot_encoding")
         self._data_frame = encoder.transform(self._data_frame)
         return self._data_frame
 
