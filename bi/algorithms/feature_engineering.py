@@ -45,12 +45,19 @@ class FeatureEngineering:
                                     self._df = feature_engineering_helper_obj.replace_values_in_column(column["name"], column["replace_value"], column["replace_by"])
                             if operation['name'] == 'variable_transformation':
                                 for column in operation['columns']:
-                                    self._df = feature_engineering_helper_obj.logTransform_column(column["name"])
+                                    if column["transformation_type"] == "log_transform":
+                                        self._df = feature_engineering_helper_obj.logTransform_column(column["name"])
+                                    if column["transformation_type"] == "modulus_transform":
+                                        self._df = feature_engineering_helper_obj.modulus_transform_column(column["name"])
+                                    if column["transformation_type"] == "cube_root_transform":
+                                        self._df = feature_engineering_helper_obj.cuberoot_transform_column(column["name"])
+                                    if column["transformation_type"] == "square_root_transform":
+                                        self._df = feature_engineering_helper_obj.squareroot_transform_column(column["name"])
                             if operation['name'] == 'encoding_dimensions':
                                 for column in operation['columns']:
                                     if column["encoding_type"] == "label_encoding":
                                         self._df = feature_engineering_helper_obj.label_encoding_column(column["name"])
-                                    if column["encoding_type"] == "onehot_encoding":
+                                    if column["encoding_type"] == "one_hot_encoding":
                                         self._df = feature_engineering_helper_obj.onehot_encoding_column(column["name"])
                             if operation['name'] == 'return_character_count':
                                 for column in operation['columns']:

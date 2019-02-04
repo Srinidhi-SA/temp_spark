@@ -13,6 +13,8 @@ from scipy import linspace
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
 
+from data_preprocessing_helper import DataPreprocessingHelper
+
 
 class FeatureEngineeringHelper:
     """Contains Feature Engineering Operation Functions"""
@@ -158,11 +160,41 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
 
+    '''To be verified'''
     def replace_values_in_column(self, column_name, range, value):
-        # if len(range) == 2:
-        #     self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_"+str(value), when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
-        # else:
-        self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_"+str(value), when(self._data_frame[column_name] == range[0], value).otherwise(self._data_frame[column_name]))
+        if False:
+            if value == "median":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                median_val = dp_helper_obj.get_median(column_name)
+                value = median_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+            if value == "mode":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                mode_val = dp_helper_obj.get_mode(column_name)
+                value = mode_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+            else:
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+        else:
+            if value == "median":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                median_val = dp_helper_obj.get_median(column_name)
+                value = median_val
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_median", when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
+            if value == "mode":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                mode_val = dp_helper_obj.get_mode(column_name)
+                value = mode_val
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mode", when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
+            if value == "mean":
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                mean_value = self._data_frame.agg(avg(column_name)).first()[0]
+                value = mean_value
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mean", when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
+
+
+            else:
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_"+str(value), when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
         return self._data_frame
 
 
@@ -213,6 +245,21 @@ class FeatureEngineeringHelper:
         self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transform", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
         return self._data_frame
 
+    def modulus_transform_column(self, column_name):
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_modulus_transformed", self.replacerUDF(10, "modulus")(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_modulus_transformed", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
+        return self._data_frame
+
+    def cuberoot_transform_column(self, column_name):
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_cuberoot_transformed", self.replacerUDF(3, "NthRoot")(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_cuberoot_transformed", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
+        return self._data_frame
+
+    def squareroot_transform_column(self, column_name):
+        self._data_frame = self._data_frame.withColumn(column_name + "vt__squareroot_transformed", self.replacerUDF(2, "NthRoot")(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "vt__squareroot_transformed", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
+        return self._data_frame
+
 
     def label_encoding_column(self, column_name):
         indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_l_encoded").fit(self._data_frame)]
@@ -223,7 +270,7 @@ class FeatureEngineeringHelper:
 
     def onehot_encoding_column(self, column_name):
         self._data_frame = self.label_encoding_column(column_name)
-        encoder = OneHotEncoder(dropLast=False, inputCol = column_name+"_labelled", outputCol = column_name+"_onehot_encoded")
+        encoder = OneHotEncoder(dropLast=False, inputCol = column_name+"_l_encoded", outputCol = column_name+"_onehot_encoded")
         self._data_frame = encoder.transform(self._data_frame)
         return self._data_frame
 

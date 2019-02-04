@@ -44,7 +44,7 @@ class DataPreprocessing:
 
 
                     #call respective function
-                if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "outlier_removal":
+                if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "outlier_treatment":
                     for operation in self._dataCleansingDict['columns_wise_settings'][key]['operations']:
                         if operation['selected']:
                             if operation['name'] == 'remove_outliers':
