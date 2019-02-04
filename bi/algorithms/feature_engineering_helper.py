@@ -18,15 +18,15 @@ class FeatureEngineeringHelper:
     """Contains Feature Engineering Operation Functions"""
 
 
-    def __init__(self, df,dataframe_helper):
+    def __init__(self, df):
         self._data_frame = df
-        self._dataframe_helper = dataframe_helper
+        # self._dataframe_helper = dataframe_helper
 
-    def binning_all_measures(self,number_of_bins):
-        self._numeric_columns = self._dataframe_helper.get_numeric_columns()
-        for column_name in self._numeric_columns:
-            self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
-        return self._data_frame
+    # def binning_all_measures(self,number_of_bins):
+    #     self._numeric_columns = self._dataframe_helper.get_numeric_columns()
+    #     for column_name in self._numeric_columns:
+    #         self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
+    #     return self._data_frame
 
 
     def create_bin_udf(self,dict):
@@ -110,7 +110,7 @@ class FeatureEngineeringHelper:
 
 
     def create_new_levels_datetimes(self, col_for_timelevels, dict):
-        self._data_frame = self._data_frame.withColumn(col_for_timelevels+"_level", self.create_level_udf_time(dict)(col(col_for_timelevels)))
+        self._data_frame = self._data_frame.withColumn(col_for_timelevels+"_t_level", self.create_level_udf_time(dict)(col(col_for_timelevels)))
         return self._data_frame
 
     def create_bin_udf(self,dict):
@@ -154,15 +154,15 @@ class FeatureEngineeringHelper:
 
             return dict
         dict = create_dict_for_bin()
-        self._data_frame = self._data_frame.withColumn(column_name+"_bin", self.create_bin_udf(dict)(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name+"_c_bin", self.create_bin_udf(dict)(col(column_name)))
         return self._data_frame
 
 
     def replace_values_in_column(self, column_name, range, value):
-        if len(range) == 2:
-            self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
-        else:
-            self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == range[0], value).otherwise(self._data_frame[column_name]))
+        # if len(range) == 2:
+        #     self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_"+str(value), when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+        # else:
+        self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_"+str(value), when(self._data_frame[column_name] == range[0], value).otherwise(self._data_frame[column_name]))
         return self._data_frame
 
 
@@ -171,7 +171,8 @@ class FeatureEngineeringHelper:
             return udf(lambda x: (x-mean)*1.0/sd)
         mean = self._data_frame.select(F.mean(column_name)).collect()[0][0]
         StdDev = self._data_frame.select(F.stddev_samp(column_name)).collect()[0][0]
-        self._data_frame = self._data_frame.withColumn(column_name + "_standardized", standardize_column_helper(mean,StdDev)(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_fs_standardized", standardize_column_helper(mean,StdDev)(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_fs_standardized", self._data_frame[column_name + "_fs_standardized"].cast('float'))
         return self._data_frame
 
 
@@ -181,7 +182,8 @@ class FeatureEngineeringHelper:
             return udf(lambda x: (x - min)*1.0/(max - min))
         max = self._data_frame.select(F.max(column_name)).collect()[0][0]
         min = self._data_frame.select(F.min(column_name)).collect()[0][0]
-        self._data_frame = self._data_frame.withColumn(column_name + "_normalized", normalize_column_helper(min, max)(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_fs_normalized", normalize_column_helper(min, max)(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_fs_normalized", self._data_frame[column_name + "_fs_normalized"].cast('float'))
         return self._data_frame
 
 
@@ -207,12 +209,13 @@ class FeatureEngineeringHelper:
 
 
     def logTransform_column(self, column_name):
-        self._data_frame = self._data_frame.withColumn(column_name + "_log-transformed", self.replacerUDF(10, "logTransform")(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transform", self.replacerUDF(10, "logTransform")(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transform", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
         return self._data_frame
 
 
     def label_encoding_column(self, column_name):
-        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_labelled").fit(self._data_frame)]
+        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_l_encoded").fit(self._data_frame)]
         pipeline = Pipeline(stages=indexers)
         self._data_frame = pipeline.fit(self._data_frame).transform(self._data_frame)
         return self._data_frame
@@ -229,6 +232,7 @@ class FeatureEngineeringHelper:
         def character_count_string_helper():
             return udf(lambda x:x.count("")-1)
         self._data_frame = self._data_frame.withColumn(column_name+"_character_count", character_count_string_helper()(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_character_count", self._data_frame[column_name + "_character_count"].cast('float'))
         return self._data_frame
 
 

@@ -3,18 +3,18 @@ from feature_engineering_helper import FeatureEngineeringHelper
 
 class FeatureEngineering:
 
-    def __init__(self, spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict):
+    def __init__(self, spark, df,  featureEngineeringDict):
         self._spark = spark
         self._df = df
-        self._dataframe_context = dataframe_context
-        self._dataframe_helper = dataframe_helper
-        self._metaParserInstance = metaParserInstance
+        # self._dataframe_context = dataframe_context
+        # self._dataframe_helper = dataframe_helper
+        # self._metaParserInstance = metaParserInstance
         self._featureEngineeringDict = featureEngineeringDict
 
 
     def feature_engineering(self):
         print "Performing Feature Engineering Operations"
-        feature_engineering_helper_obj = FeatureEngineeringHelper(self._df,self._dataframe_helper)
+        feature_engineering_helper_obj = FeatureEngineeringHelper(self._df)
         for settings in self._featureEngineeringDict['overall_settings']:
             if settings['name'] == "binning_all_measures" and settings['selected'] == True:
                 self._df = feature_engineering_helper_obj.binning_all_measures(settings['number_of_bins'])
@@ -37,13 +37,12 @@ class FeatureEngineering:
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.create_new_levels_datetimes(column["name"], column["mapping_dict"])
 
-                    #call respective function
                 if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "transformation_settings":
                     for operation in self._featureEngineeringDict['column_wise_settings'][key]['operations']:
                         if operation['selected']:
                             if operation['name'] == 'replace_values_with':
                                 for column in operation['columns']:
-                                    self._df = feature_engineering_helper_obj.replace_values_in_column(column["name"], column["replace_values_in_range"], column["replace_by"])
+                                    self._df = feature_engineering_helper_obj.replace_values_in_column(column["name"], column["replace_value"], column["replace_by"])
                             if operation['name'] == 'variable_transformation':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.logTransform_column(column["name"])

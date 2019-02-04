@@ -3,14 +3,14 @@ from data_preprocessing_helper import DataPreprocessingHelper
 
 class DataPreprocessing:
 
-    def __init__(self,spark,df,dataframe_context,dataframe_helper,metaParserInstance,dataCleansingDict,featureEngineeringDict):
+    def __init__(self,spark,df,dataCleansingDict):
         self._spark = spark
         self._df = df
-        self._dataframe_context = dataframe_context
-        self._dataframe_helper = dataframe_helper
-        self._metaParserInstance = metaParserInstance
+        # self._dataframe_context = dataframe_context
+        # self._dataframe_helper = dataframe_helper
+        # self._metaParserInstance = metaParserInstance
         self._dataCleansingDict = dataCleansingDict
-        self._featureEngineeringDict = featureEngineeringDict
+        # self._featureEngineeringDict = featureEngineeringDict
 
     def data_cleansing(self):
         print "Cleaning The Data"

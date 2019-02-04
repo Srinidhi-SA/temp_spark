@@ -65,7 +65,10 @@ def get_metadata(df,spark,dataframe_context):
         if debugMode != True:
             if jobType != "metaData":
                 print "Retrieving MetaData"
-                metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                if jobType == "training" or jobType == "prediction":
+                    metaDataObj = None
+                else:
+                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 if metaDataObj:
                     metaParserInstance.set_params(metaDataObj)
                 else:
@@ -83,7 +86,10 @@ def get_metadata(df,spark,dataframe_context):
                 # else it will run metadata first
                 # while running in debug mode the dataset_slug should be correct or some random String
                 try:
-                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                    if jobType == "training" or jobType == "prediction":
+                        metaDataObj = None
+                    else:
+                        metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 except:
                     metaDataObj = None
                 if metaDataObj:
@@ -128,8 +134,8 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     APP_NAME = dataframe_context.get_app_name()
     appid = dataframe_context.get_app_id()
     mlEnv = dataframe_context.get_ml_environment()
-    dataCleansingDict = dataframe_context.get_dataCleansing_info()
-    featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
+    # dataCleansingDict = dataframe_context.get_dataCleansing_info()
+    # featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
 
     print "appid",appid
     dataframe_context.initialize_ml_model_training_weight()
@@ -141,19 +147,19 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
 ####New Feature Engineering Implementation#############
 
-    time_before_preprocessing = time.time()
-    if dataCleansingDict['selected']:
-        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
-        df = data_preprocessing_obj.data_cleansing()
-
-    if featureEngineeringDict['selected']:
-        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
-        df = feature_engineering_obj.feature_engineering()
-
-    time_after_preprocessing = time.time()
-    time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
-    print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
-
+    # time_before_preprocessing = time.time()
+    # if dataCleansingDict['selected']:
+    #     data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+    #     df = data_preprocessing_obj.data_cleansing()
+    #
+    # if featureEngineeringDict['selected']:
+    #     feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
+    #     df = feature_engineering_obj.feature_engineering()
+    #
+    # time_after_preprocessing = time.time()
+    # time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
+    # print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
+    # df,dataframe_helper = set_dataframe_helper(df,dataframe_context,metaParserInstance)
     df = dataframe_helper.fill_missing_values(df)
     categorical_columns = dataframe_helper.get_string_columns()
     uid_col = dataframe_context.get_uid_column()
@@ -340,18 +346,18 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     if result_column in df.columns:
         dataframe_helper.remove_null_rows(result_column)
 ####New Feature Engineering Implementation#############
-    time_before_preprocessing = time.time()
-    if dataCleansingDict['selected']:
-        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
-        df = data_preprocessing_obj.data_cleansing()
-
-    if featureEngineeringDict['selected']:
-        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
-        df = feature_engineering_obj.feature_engineering()
-
-    time_after_preprocessing = time.time()
-    time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
-    print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
+    # time_before_preprocessing = time.time()
+    # if dataCleansingDict['selected']:
+    #     data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+    #     df = data_preprocessing_obj.data_cleansing()
+    #
+    # if featureEngineeringDict['selected']:
+    #     feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
+    #     df = feature_engineering_obj.feature_engineering()
+    #
+    # time_after_preprocessing = time.time()
+    # time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
+    # print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
 
     df = dataframe_helper.get_data_frame()
     df = dataframe_helper.fill_missing_values(df)

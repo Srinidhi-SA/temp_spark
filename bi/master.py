@@ -9,6 +9,9 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 from bi.settings import *
+from bi.algorithms import data_preprocessing as data_preprocessing
+from bi.algorithms import feature_engineering as feature_engineering
+
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.common import NarrativesTree,ConfigValidator
@@ -41,7 +44,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "prediction"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -143,6 +146,18 @@ def main(configJson):
             df = MasterHelper.load_dataset(spark,dataframe_context)
             df = df.persist()
             if jobType != "metaData":
+                dataCleansingDict = dataframe_context.get_dataCleansing_info()
+                featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
+
+                # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
+                if dataCleansingDict['selected']:
+                    data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
+                    df = data_preprocessing_obj.data_cleansing()
+
+                if featureEngineeringDict['selected']:
+                    feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
+                    df = feature_engineering_obj.feature_engineering()
+                print df.printSchema()
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
