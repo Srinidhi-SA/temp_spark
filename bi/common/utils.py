@@ -308,7 +308,10 @@ def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,sc
         completionStatus = min(completionStatus,100)
         messageURL = dataframeContext.get_message_url()
         if customMsg == None:
-            completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
+            if dataframeContext.get_job_type() == 'training' or dataframeContext.get_job_type() == 'prediction':
+                completionStatus += scriptStages[stageName]["weight"]
+            else:
+                completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
             progressMessage = create_progress_message_object(analysisName,\
                                         stageName,\
                                         messageType,\

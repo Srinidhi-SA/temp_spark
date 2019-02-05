@@ -60,15 +60,15 @@ class XgboostScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Logistic Regression Scripts",
+                "summary":"Initialized the Xgboost Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Logistic Regression Model Training Started",
+                "summary":"Xgboost Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Logistic Regression Model Training Finished",
+                "summary":"Xgboost Model Training Finished",
                 "weight":4
                 },
             }

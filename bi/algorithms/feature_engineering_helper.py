@@ -256,17 +256,17 @@ class FeatureEngineeringHelper:
 
     def modulus_transform_column(self, column_name):
         self._data_frame = self._data_frame.withColumn(column_name + "_vt_modulus_transformed", self.replacerUDF(10, "modulus")(col(column_name)))
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_modulus_transformed", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_modulus_transformed", self._data_frame[column_name + "_vt_modulus_transformed"].cast('float'))
         return self._data_frame
 
     def cuberoot_transform_column(self, column_name):
         self._data_frame = self._data_frame.withColumn(column_name + "_vt_cuberoot_transformed", self.replacerUDF(3, "NthRoot")(col(column_name)))
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_cuberoot_transformed", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_cuberoot_transformed", self._data_frame[column_name + "_vt_cuberoot_transformed"].cast('float'))
         return self._data_frame
 
     def squareroot_transform_column(self, column_name):
         self._data_frame = self._data_frame.withColumn(column_name + "vt__squareroot_transformed", self.replacerUDF(2, "NthRoot")(col(column_name)))
-        self._data_frame = self._data_frame.withColumn(column_name + "vt__squareroot_transformed", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
+        self._data_frame = self._data_frame.withColumn(column_name + "vt__squareroot_transformed", self._data_frame[column_name + "vt__squareroot_transformed"].cast('float'))
         return self._data_frame
 
 
@@ -281,6 +281,8 @@ class FeatureEngineeringHelper:
         self._data_frame = self.label_encoding_column(column_name)
         encoder = OneHotEncoder(dropLast=False, inputCol = column_name+"_l_encoded", outputCol = column_name+"_ed_one_hot_encoding")
         self._data_frame = encoder.transform(self._data_frame)
+        self._data_frame = self._data_frame.withColumn(column_name + "_ed_one_hot_encoding", self._data_frame[column_name + "_ed_one_hot_encoding"].cast('string'))
+        self._data_frame.drop(column_name+"_l_encoded").collect()
         return self._data_frame
 
 
@@ -297,7 +299,7 @@ class FeatureEngineeringHelper:
 
 
     def contains_word(self, column_name, word):
-        word = word.lower()
+        # word = word.lower()
         self._data_frame = self._data_frame.withColumn(column_name+"_contains_"+word, self.contains_word_helper(word)(col(column_name)))
         return self._data_frame
 

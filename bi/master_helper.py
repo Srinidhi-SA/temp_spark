@@ -186,11 +186,19 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     scriptStages = {
         "preprocessing":{
             "summary":"Dataset Loading Completed",
-            "weight":10
+            "weight":4
             }
         }
     CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
-
+    if len(algosToRun) == 3:
+        completionStatus = 40
+        dataframe_context.update_completion_status(completionStatus)
+    if len(algosToRun) == 2:
+        completionStatus = 50
+        dataframe_context.update_completion_status(completionStatus)
+    if len(algosToRun) == 1:
+        completionStatus = 60
+        dataframe_context.update_completion_status(completionStatus)
     if app_type == "CLASSIFICATION":
         for obj in algosToRun:
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["randomforest"]:
@@ -311,13 +319,16 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Evaluating and comparing performance of all predictive models",85,85,display=True)
+    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
     print modelJsonOutput
 
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
-    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor has successfully completed building machine learning models",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     print "Model Training Completed in ", time.time() - st, " seconds."
 
@@ -377,7 +388,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     scriptStages = {
         "preprocessing":{
             "summary":"Dataset Loading Completed",
-            "weight":10
+            "weight":4
             }
         }
     print scriptWeightDict
@@ -431,8 +442,6 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         else:
             print "Could Not Load the Model for Scoring"
 
-
-
         # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
         storycards = result_setter.get_score_cards()
         storyNode = NarrativesTree()
@@ -442,7 +451,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         print scoreSummary
         jobUrl = dataframe_context.get_job_url()
         response = CommonUtils.save_result_json(jobUrl,scoreSummary)
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor has successfully completed building machine learning models",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
     elif app_type == "REGRESSION":
