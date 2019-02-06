@@ -254,7 +254,7 @@ def byteify(input):
         return input
 
 
-def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=False):
+def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=True):
     """
     messageType = ["info","failure"]
     """
@@ -301,7 +301,7 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
     else:
         return True
 
-def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None,weightKey="script"):
+def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=True,emptyBin=False,customMsg=None,weightKey="script"):
     if dataframeContext.get_dont_send_message() == False:
         completionStatus = dataframeContext.get_completion_status()
         print "incoming completionStatus",completionStatus
