@@ -2,6 +2,7 @@ import datetime
 from pyspark.sql.functions import col, floor, concat, lit, concat_ws, unix_timestamp, from_unixtime, datediff, to_timestamp, avg, mean, stddev, when
 from pyspark.sql.types import IntegerType, StringType, DateType
 from pyspark.sql import functions as F
+from bi.stats.util import Stats
 
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
@@ -158,36 +159,40 @@ class DataPreprocessingHelper():
         return outliers
 
 
-    def remove_outliers(self, outlier_removal_col, ol_lower_range, ol_upper_range):
+    def remove_outliers(self, outlier_removal_col):
         '''Need to check how it will affect multiple columns'''
+        outlier_count, ol_lower_range, ol_upper_range = Stats.detect_outliers_z(self._data_frame, outlier_removal_col)
         self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] > ol_lower_range)
         self._data_frame = self._data_frame.filter(self._data_frame[outlier_removal_col] < ol_upper_range)
         return self._data_frame
 
 
-    def mean_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range):
+    def mean_impute_outliers(self, outlier_imputation_col):
+        outlier_count, ol_lower_range, ol_upper_range = Stats.detect_outliers_z(self._data_frame, outlier_imputation_col)
         df_dup = self._data_frame
-        df_without_outliers = self.remove_outliers(outlier_imputation_col, ol_lower_range, ol_upper_range)
+        df_without_outliers = self.remove_outliers(outlier_imputation_col)
         mean_without_outliers = df_without_outliers.agg(avg(outlier_imputation_col)).first()[0]
         self._data_frame = df_dup.withColumn(outlier_imputation_col, when((df_dup[outlier_imputation_col] < ol_lower_range) | (df_dup[outlier_imputation_col] > ol_upper_range), mean_without_outliers).otherwise(df_dup[outlier_imputation_col]))
         return self._data_frame
 
 
-    def median_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range):
+    def median_impute_outliers(self, outlier_imputation_col):
+        outlier_count, ol_lower_range, ol_upper_range = Stats.detect_outliers_z(self._data_frame, outlier_imputation_col)
         df_dup = self._data_frame
-        df_without_outliers = self.remove_outliers(outlier_imputation_col, ol_lower_range, ol_upper_range)
+        df_without_outliers = self.remove_outliers(outlier_imputation_col)
         median_without_outliers = self.get_median(outlier_imputation_col)
         self._data_frame = df_dup.withColumn(outlier_imputation_col, when((df_dup[outlier_imputation_col] < ol_lower_range) | (df_dup[outlier_imputation_col] > ol_upper_range), median_without_outliers).otherwise(df_dup[outlier_imputation_col]))
         return self._data_frame
 
 
-    def mode_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range):
+    def mode_impute_outliers(self, outlier_imputation_col):
+        outlier_count, ol_lower_range, ol_upper_range = Stats.detect_outliers_z(self._data_frame, outlier_imputation_col)
         df_dup = self._data_frame
-        df_without_outliers = self.remove_outliers(outlier_imputation_col, ol_lower_range, ol_upper_range)
+        df_without_outliers = self.remove_outliers(outlier_imputation_col)
         mode_without_outliers = self.get_mode(df_without_outliers[outlier_imputation_col])
         self._data_frame = df_dup.withColumn(outlier_imputation_col, when((df_dup[outlier_imputation_col] < ol_lower_range) | (df_dup[outlier_imputation_col] > ol_upper_range), mode_without_outliers).otherwise(df_dup[outlier_imputation_col]))
         return self._data_frame
 
 
-    def user_impute_outliers(self, outlier_imputation_col, ol_lower_range, ol_upper_range, mvt_value):
+    def user_impute_outliers(self, outlier_imputation_col, mvt_value):
         pass

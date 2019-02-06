@@ -145,7 +145,6 @@ def main(configJson):
             df = MasterHelper.load_dataset(spark,dataframe_context)
             df = df.persist()
             if jobType != "metaData":
-
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
                     dataCleansingDict = dataframe_context.get_dataCleansing_info()
@@ -163,7 +162,6 @@ def main(configJson):
                         feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
                         df = feature_engineering_obj.feature_engineering()
                     print df.printSchema()
-                
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
