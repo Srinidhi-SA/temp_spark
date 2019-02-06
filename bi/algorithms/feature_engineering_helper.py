@@ -137,7 +137,7 @@ class FeatureEngineeringHelper:
             min_max = self._data_frame.agg(F.min(column_name).alias('min'), F.max(column_name).alias('max')).collect()
             min_value = min_max[0]['min']
             max_value = min_max[0]['max']
-            interval_size = ((max_value - min_value)*1.0/number_of_bins)
+            interval_size = ((max_value - min_value)*1.0/(number_of_bins-1))
             dict = {}
             temp = min_value
             while temp <=max_value:
@@ -145,7 +145,7 @@ class FeatureEngineeringHelper:
                 temp = temp+interval_size
             return dict
         dict = create_dict_for_bin()
-        self._data_frame = self._data_frame.withColumn(column_name+"_bin_"+str(number_of_bins), self.create_bin_udf(dict)(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name+"_bin", self.create_bin_udf(dict)(col(column_name)))
         return self._data_frame
 
 
@@ -175,35 +175,35 @@ class FeatureEngineeringHelper:
             if value == "median":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
                 median_val = dp_helper_obj.get_median(column_name)
-                value = median_val
-                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+                replace_value = median_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
             if value == "mode":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
                 mode_val = dp_helper_obj.get_mode(column_name)
-                value = mode_val
-                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+                replace_value = mode_val
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
             else:
-                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), value).otherwise(self._data_frame[column_name]))
+                replace_value = value
+                self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
         else:
             if value == "median":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
                 median_val = dp_helper_obj.get_median(column_name)
-                value = median_val
-                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_median", when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
-            if value == "mode":
+                replace_value = median_val
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_median", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
+            elif value == "mode":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
                 mode_val = dp_helper_obj.get_mode(column_name)
-                value = mode_val
-                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mode", when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
-            if value == "mean":
+                replace_value = mode_val
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mode", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
+            elif value == "mean":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
                 mean_value = self._data_frame.agg(avg(column_name)).first()[0]
-                value = mean_value
-                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mean", when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
-
-
+                replace_value = mean_value
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mean", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
             else:
-                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_"+str(value), when(self._data_frame[column_name] == range, value).otherwise(self._data_frame[column_name]))
+                replace_value = value
+                self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_"+str(replace_value), when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
         return self._data_frame
 
 
@@ -250,8 +250,8 @@ class FeatureEngineeringHelper:
 
 
     def logTransform_column(self, column_name):
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transform", self.replacerUDF(10, "logTransform")(col(column_name)))
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transform", self._data_frame[column_name + "_vt_log_transform"].cast('float'))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self.replacerUDF(10, "logTransform")(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
         return self._data_frame
 
     def modulus_transform_column(self, column_name):
@@ -265,13 +265,13 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
     def squareroot_transform_column(self, column_name):
-        self._data_frame = self._data_frame.withColumn(column_name + "vt__squareroot_transformed", self.replacerUDF(2, "NthRoot")(col(column_name)))
-        self._data_frame = self._data_frame.withColumn(column_name + "vt__squareroot_transformed", self._data_frame[column_name + "vt__squareroot_transformed"].cast('float'))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_squareroot_transformed", self.replacerUDF(2, "NthRoot")(col(column_name)))
+        self._data_frame = self._data_frame.withColumn(column_name + "_vt_squareroot_transformed", self._data_frame[column_name + "_vt_squareroot_transformed"].cast('float'))
         return self._data_frame
 
 
     def label_encoding_column(self, column_name):
-        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_l_encoded").fit(self._data_frame)]
+        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_ed_label_encoded").fit(self._data_frame)]
         pipeline = Pipeline(stages=indexers)
         self._data_frame = pipeline.fit(self._data_frame).transform(self._data_frame)
         return self._data_frame
@@ -279,10 +279,10 @@ class FeatureEngineeringHelper:
 
     def onehot_encoding_column(self, column_name):
         self._data_frame = self.label_encoding_column(column_name)
-        encoder = OneHotEncoder(dropLast=False, inputCol = column_name+"_l_encoded", outputCol = column_name+"_ed_one_hot_encoding")
+        encoder = OneHotEncoder(dropLast=False, inputCol = column_name+"_ed_label_encoded", outputCol = column_name+"_ed_one_hot_encoded")
         self._data_frame = encoder.transform(self._data_frame)
-        self._data_frame = self._data_frame.withColumn(column_name + "_ed_one_hot_encoding", self._data_frame[column_name + "_ed_one_hot_encoding"].cast('string'))
-        self._data_frame.drop(column_name+"_l_encoded").collect()
+        self._data_frame = self._data_frame.withColumn(column_name + "_ed_one_hot_encoded", self._data_frame[column_name + "_ed_one_hot_encoded"].cast('string'))
+        self._data_frame = self._data_frame.drop(column_name+"_ed_label_encoded")
         return self._data_frame
 
 
