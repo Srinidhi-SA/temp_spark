@@ -10,6 +10,7 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter,NormalCard,HtmlData
 
 from bi.scripts.classification.random_forest import RFClassificationModelScript
+from bi.scripts.classification.random_forest_pyspark import RandomForestPysparkScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
@@ -106,7 +107,7 @@ def get_metadata(df,spark,dataframe_context):
         return None
 
 def set_dataframe_helper(df,dataframe_context,metaParserInstance):
-    dataframe_helper = DataFrameHelper(df, dataframe_context,metaParserInstance)
+    dataframe_helper = DataFrameHelper(df, dataframe_context, metaParserInstance)
     dataframe_helper.set_params()
     df = dataframe_helper.get_data_frame()
     return df,dataframe_helper
@@ -152,6 +153,8 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     dataframe_context.set_model_path(model_file_path)
     app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
     algosToRun = dataframe_context.get_algorithms_to_run()
+    for obj in algosToRun:
+        print '###########################', obj.get_algorithm_name(), obj.get_algorithm_slug(), '#############################'
     scriptWeightDict = dataframe_context.get_ml_model_training_weight()
     scriptStages = {
         "preprocessing":{
@@ -167,11 +170,21 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 try:
                     st = time.time()
                     rf_obj = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                    # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     rf_obj.Train()
                     print "Random Forest Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkrandomforest"]:
+                print "###################################### WE ARE HERE ##############################################"
+                try:
+                    st = time.time()
+                    rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    rf_obj.Train()
+                    print "Spark ML Random Forest Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkRandomForest",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["xgboost"]:
                 try:
@@ -216,7 +229,8 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
             #     try:
             #         st = time.time()
-            #         lin_obj = GeneralizedLinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+            #         lin_obj = GeneralizedLinearRegressionModelScript(df,
+            # , dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
             #         lin_obj.Train()
             #         print "Generalized Linear Regression Model Done in ", time.time() - st,  " seconds."
             #     except Exception as e:

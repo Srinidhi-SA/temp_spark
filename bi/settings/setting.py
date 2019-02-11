@@ -128,6 +128,7 @@ APPS_ID_MAP = {
 
 SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"randomforest",
+            ALGORITHMRANDOMSLUG+"sprf":"sparkrandomforest",
             ALGORITHMRANDOMSLUG+"lr":"logisticregression",
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
@@ -138,6 +139,7 @@ SLUG_MODEL_MAPPING = {
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
+            "sparkrandomforest":ALGORITHMRANDOMSLUG+"sprf",
             "logisticregression":ALGORITHMRANDOMSLUG+"lr",
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
             "svm":ALGORITHMRANDOMSLUG+"svm",
@@ -150,6 +152,7 @@ MODEL_SLUG_MAPPING = {
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"Random Forest",
+            ALGORITHMRANDOMSLUG+"sprf":"Spark Random Forest",
             ALGORITHMRANDOMSLUG+"lr":"Logistic Regression",
             ALGORITHMRANDOMSLUG+"xgb":"Xgboost",
             ALGORITHMRANDOMSLUG+"svm":"SVM",
@@ -207,6 +210,7 @@ regressionAlgoRelativeWeight = {
 
 classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"rf"  : 1,
+    ALGORITHMRANDOMSLUG+"sprf"  : 1,
     ALGORITHMRANDOMSLUG+"xgb" : 1,
     ALGORITHMRANDOMSLUG+"lr"  : 1,
     ALGORITHMRANDOMSLUG+"svm" : 2

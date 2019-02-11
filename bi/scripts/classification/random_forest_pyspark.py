@@ -10,17 +10,27 @@ from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
+from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
+from bi.common import SklearnGridSearchResult, SkleanrKFoldResult
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 
-from pyspark.ml.classification import RandomForestClassifier as RF
+from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
+from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
+from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetrics
 from pyspark.ml.feature import IndexToString
 from pyspark.sql.functions import udf
 from pyspark.sql.types import *
+
+from bi.settings import setting as GLOBALSETTINGS
+from pyspark.ml.feature import StringIndexer, VectorAssembler
+from pyspark.ml.pipeline import PipelineModel
+
 
 
 
@@ -29,78 +39,230 @@ from pyspark.sql.types import *
 
 
 class RandomForestPysparkScript:
-    def __init__(self, data_frame, df_helper,df_context, spark):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter, meta_parser, mlEnvironment="pyspark"):
+        # self._data_frame = data_frame
+        # self._dataframe_helper = df_helper
+        # self._dataframe_context = df_context
+        # self._spark = spark
+        # self._model_summary = MLModelSummary()
+        # self._score_summary = {}
+        self._metaParser = meta_parser
+        self._prediction_narrative = prediction_narrative
+        self._result_setter = result_setter
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._spark = spark
-        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
+        self._model_summary =  MLModelSummary()
         self._score_summary = {}
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkrandomforest"]
+        self._targetLevel = self._dataframe_context.get_target_level_for_model()
+
+        self._completionStatus = self._dataframe_context.get_completion_status()
+        print self._completionStatus,"initial completion status"
+        self._analysisName = self._slug
+        self._messageURL = self._dataframe_context.get_message_url()
+        self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
+        self._mlEnv = mlEnvironment
+
+        self._scriptStages = {
+            "initialization":{
+                "summary":"Initialized the Random Forest Scripts",
+                "weight":4
+                },
+            "training":{
+                "summary":"Random Forest Model Training Started",
+                "weight":2
+                },
+            "completion":{
+                "summary":"Random Forest Model Training Finished",
+                "weight":4
+                },
+            }
+
 
     def Train(self):
-        st = time.time()
+        st_global = time.time()
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,  self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+        algosToRun = self._dataframe_context.get_algorithms_to_run()
+        algoSetting = filter(lambda x: x.get_algorithm_slug()==self._slug,algosToRun)[0]
         categorical_columns = self._dataframe_helper.get_string_columns()
+        uid_col = self._dataframe_context.get_uid_column()
+
+        if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
+            categorical_columns = list(set(categorical_columns) - {uid_col})
+
+        allDateCols = self._dataframe_context.get_date_columns()
+        categorical_columns = list(set(categorical_columns)-set(allDateCols))
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
         categorical_columns = [x for x in categorical_columns if x != result_column]
 
         model_path = self._dataframe_context.get_model_path()
-        pipeline_filepath = model_path+"/RandomForest/TrainedModels/pipeline"
-        model_filepath = model_path+"/RandomForest/TrainedModels/model"
-        summary_filepath = model_path+"/RandomForest/ModelSummary/summary.json"
+        if model_path.startswith("file"):
+            model_path = model_path[7:]
+        validationDict = self._dataframe_context.get_validation_dict()
+        print "model_path",model_path
+        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
-        df=self._data_frame
-        pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column)
-        pipelineModel = pipeline.fit(df)
-        indexed = pipelineModel.transform(df)
-        MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
-        trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
+        df = self._data_frame
+
+        print "########################## ", df
+        levels = df.select(result_column).distinct().count()
+
+        model_filepath = model_path+"/"+self._slug+"/model.pkl"
+        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+        st = time.time()
+        pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns, categorical_columns, result_column)
+        # pipelineModel = pipeline.fit(df)
+        # indexed = pipelineModel.transform(df)
+        # MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
+        trainingData,validationData = MLUtils.get_training_and_validation_data(df ,result_column,0.8)   # indexed
+
+        labelIndexer = StringIndexer(inputCol=result_column, outputCol="label")
         OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-        rf = RF(labelCol='label', featuresCol='features',numTrees=200)
-        fit = rf.fit(trainingData)
-        transformed = fit.transform(validationData)
-        MLUtils.save_pipeline_or_model(fit,model_filepath)
-        feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
 
-        label_classes = transformed.select("label").distinct().collect()
-        results = transformed.select(["prediction","label"])
-        if len(label_classes) > 2:
-            evaluator = MulticlassClassificationEvaluator(predictionCol="prediction")
-            evaluator.evaluate(results)
-            self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "accuracy"}) # accuracy of the model
+        clf = RandomForestClassifier()
+        algoParams = algoSetting.get_params_dict()
+        clfParams = [prm.name for prm in clf.params]
+        algoParams = {getattr(clf, k):v if type(v)=='list' else [v] for k,v in algoParams.items() if k in clfParams}
+
+        paramGrid = ParamGridBuilder()
+        for k,v in algoParams.items():
+            paramGrid = paramGrid.addGrid(k,v)
+        paramGrid = paramGrid.build()
+
+        evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
+        evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+        self._result_setter.set_hyper_parameter_results(self._slug,None)
+
+        if validationDict["name"] == "kFold":
+            numFold = int(validationDict["value"])
+            crossval = CrossValidator(estimator=Pipeline(stages=[pipeline, labelIndexer, clf]),
+                          estimatorParamMaps=paramGrid,
+                          evaluator=BinaryClassificationEvaluator(),
+                          numFolds=3 if numFold == 0 else numFold)  # use 3+ folds in practice
+            cvrf = crossval.fit(trainingData)
+            prediction = cvrf.transform(validationData)
+            bestModel = cvrf.bestModel
         else:
-            evaluator = BinaryClassificationEvaluator(rawPredictionCol="prediction")
-            evaluator.evaluate(results)
-            # print evaluator.evaluate(results,{evaluator.metricName: "areaUnderROC"})
-            # print evaluator.evaluate(results,{evaluator.metricName: "areaUnderPR"})
-            self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "areaUnderPR"}) # accuracy of the model
+            tvs = TrainValidationSplit(estimator=Pipeline(stages=[pipeline, labelIndexer, clf]),
+                       estimatorParamMaps=paramGrid,
+                       evaluator=BinaryClassificationEvaluator(),
+                       trainRatio=0.8)
 
+            model = tvs.fit(train)
+            bestModel = model
 
-        self._model_summary["feature_importance"] = MLUtils.transform_feature_importance(feature_importance)
-        self._model_summary["runtime_in_seconds"] = round((time.time() - st),2)
+        predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
+        metrics = MulticlassMetrics(predsAndLabels)
+        labelMapping = {k:v for k, v in enumerate(bestModel.stages[-2].labels)}
+        inverseLabelMapping = {v:float(k) for k, v in enumerate(bestModel.stages[-2].labels)}
 
-        transformed = OriginalTargetconverter.transform(transformed)
-        label_indexer_dict = [dict(enumerate(field.metadata["ml_attr"]["vals"])) for field in transformed.schema.fields if field.name == "label"][0]
-        prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
-        transformed = transformed.withColumn("predictedClass",prediction_to_levels(transformed.prediction))
-        prediction_df = transformed.select(["originalTargetColumn","predictedClass"]).toPandas()
-        objs = {"actual":prediction_df["originalTargetColumn"],"predicted":prediction_df["predictedClass"]}
+        conf_mat_ar = metrics.confusionMatrix().toArray()
+        print conf_mat_ar
+        confusion_matrix = {}
+        for i in range(len(conf_mat_ar)):
+        	confusion_matrix[labelMapping[i]] = {}
+        	for j, val in enumerate(conf_mat_ar[i]):
+        		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
+        print confusion_matrix
 
-        self._model_summary["confusion_matrix"] = MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"])
-        overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"])
-        self._model_summary["precision_recall_stats"] = overall_precision_recall["classwise_stats"]
-        self._model_summary["model_precision"] = overall_precision_recall["precision"]
-        self._model_summary["model_recall"] = overall_precision_recall["recall"]
-        self._model_summary["target_variable"] = result_column
-        self._model_summary["test_sample_prediction"] = overall_precision_recall["prediction_split"]
-        self._model_summary["algorithm_name"] = "Random Forest"
-        self._model_summary["validation_method"] = "Train and Test"
-        self._model_summary["independent_variables"] = len(categorical_columns)+len(numerical_columns)
-        self._model_summary["level_counts"] = CommonUtils.get_level_count_dict(trainingData,categorical_columns,self._dataframe_context.get_column_separator(),dataType="spark")
-        # print json.dumps(self._model_summary,indent=2)
-        self._model_summary["total_trees"] = 100
-        self._model_summary["total_rules"] = 300
-        CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
+        trainingTime = time.time()-st
+        print "="*100
+        print "Target level", inverseLabelMapping[self._targetLevel]
+        print "="*100
+        f1_score = metrics.fMeasure(inverseLabelMapping[self._targetLevel], 1.0)
+        precision = metrics.precision(inverseLabelMapping[self._targetLevel])
+        recall = metrics.recall(inverseLabelMapping[self._targetLevel])
+        accuracy = metrics.accuracy
+        print "F1 score is ", f1_score
+        print "Precision score is ", precision
+        print "Recall score is ", recall
+        print "Accuracy score is ", accuracy
+
+        feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
+
+        objs = {"trained_model":cvrf,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
+        "probability":prediction.select('probability'),"feature_importance":feature_importance,
+        "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
+
+        # Calculating prediction_split
+        val_cnts = prediction.groupBy('label').count()
+        val_cnts = map(lambda row: row.asDict(), val_cnts.collect())
+        prediction_split = {}
+        total_nos = objs['actual'].count()
+        for item in val_cnts:
+            prediction_split[item['label']] = round(item['count']*100 / float(total_nos), 2)
+
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
+            modelFilepathArr = model_filepath.split("/")[:-1]
+            modelFilepathArr.append(modelName+".pkl")
+            # joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
+        runtime = round((time.time() - st_global),2)
+
+        cat_cols = list(set(categorical_columns) - {result_column})
+        self._model_summary = MLModelSummary()
+        self._model_summary.set_algorithm_name("Spark ML Random Forest")
+        self._model_summary.set_algorithm_display_name("Spark ML Random Forest")
+        self._model_summary.set_slug(self._slug)
+        self._model_summary.set_training_time(runtime)
+        self._model_summary.set_confusion_matrix(confusion_matrix)
+        self._model_summary.set_feature_importance(objs["feature_importance"])
+        self._model_summary.set_feature_list(objs["featureList"])
+        self._model_summary.set_model_accuracy(accuracy)
+        self._model_summary.set_training_time(round((time.time() - st),2))
+        self._model_summary.set_precision_recall_stats([precision, recall])
+        self._model_summary.set_model_precision(precision)
+        self._model_summary.set_model_recall(recall)
+        self._model_summary.set_target_variable(result_column)
+        self._model_summary.set_prediction_split(prediction_split)
+        self._model_summary.set_validation_method("KFold")
+        self._model_summary.set_level_map_dict(objs["labelMapping"])
+        # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
+        self._model_summary.set_model_features(objs["featureList"])
+        self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns)) + [result_column]))
+        self._model_summary.set_num_trees(20)
+        self._model_summary.set_num_rules(300)
+        self._model_summary.set_target_level(self._targetLevel)
+
+        modelDropDownObj = {
+                    "name":self._model_summary.get_algorithm_name(),
+                    "evaluationMetricValue":accuracy,
+                    "evaluationMetricName":"accuracy",
+                    "slug":self._model_summary.get_slug(),
+                    "Model Id": modelName
+                    }
+        modelSummaryJson = {
+            "dropdown":modelDropDownObj,
+            "levelcount":self._model_summary.get_level_counts(),
+            "modelFeatureList":self._model_summary.get_feature_list(),
+            "levelMapping":self._model_summary.get_level_map_dict(),
+            "slug":self._model_summary.get_slug(),
+            "name":self._model_summary.get_algorithm_name()
+        }
+        print "="*100
+        print self._model_summary.get_feature_importance()
+        print "="*100
+
+        rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in rfCards:
+            self._prediction_narrative.add_a_card(card)
+
+        self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_spark_random_forest_model_summary(modelSummaryJson)
+        self._result_setter.set_rf_cards(rfCards)
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
     def Predict(self):
