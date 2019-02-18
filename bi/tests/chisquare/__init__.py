@@ -115,7 +115,7 @@ class TestChiSquare(unittest.TestCase):
 		dataframe_context.set_analysis_name("Descriptive analysis")
 
 		df = MasterHelper.load_dataset(spark,dataframe_context)
-		metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
+		metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,None)
 		df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
 		targetVal = dataframe_context.get_result_column()
 

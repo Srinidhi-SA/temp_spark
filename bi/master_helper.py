@@ -44,6 +44,7 @@ def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+        df = df.select([c for c in df.columns if c not in {'0x3567e0','0x2d461c62a0674c00','0x24f21c22f0e641e2371f04a7bb8d713f89f53550'}])
     else:
         dbConnectionParams = dataframe_context.get_dbconnection_params()
         df = DataLoader.create_dataframe_from_jdbc_connector(spark, datasource_type, dbConnectionParams)
@@ -57,16 +58,26 @@ def load_dataset(spark,dataframe_context):
         print "DATASET NOT LOADED"
     return df
 
-def get_metadata(df,spark,dataframe_context):
+def get_metadata(df,spark,dataframe_context,new_cols_added):
     debugMode = dataframe_context.get_debug_mode()
     jobType = dataframe_context.get_job_type()
     if df != None:
         metaParserInstance = MetaParser()
         if debugMode != True:
             if jobType != "metaData":
-                print "Retrieving MetaData"
-                if jobType == "training" or jobType == "prediction":
-                    metaDataObj = None
+                print "Retrieving MetaData for new columns added"
+                if new_cols_added != None:
+                    df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                    print "starting Metadata for newly added columns"
+                    dataframe_context.set_metadata_ignore_msg_flag(True)
+                    meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)
+                    meta_data_object_new = meta_data_class_new.run()
+                    metaDataObj_new = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object_new))
+                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                    metaDataObj['headers'].append(metaDataObj_new['headers'][0][0])
+                    # metaDataObj['sampleData'].append(metaDataObj_new['sampleData'])
+                    metaDataObj['metaData'].append(metaDataObj_new['metaData'][0][0])
+                    metaDataObj['columnData'].append(metaDataObj_new['columnData'][0][0])
                 else:
                     metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 if metaDataObj:
@@ -86,8 +97,18 @@ def get_metadata(df,spark,dataframe_context):
                 # else it will run metadata first
                 # while running in debug mode the dataset_slug should be correct or some random String
                 try:
-                    if jobType == "training" or jobType == "prediction":
-                        metaDataObj = None
+                    if new_cols_added != None:
+                        df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                        print "starting Metadata for newly added columns"
+                        dataframe_context.set_metadata_ignore_msg_flag(True)
+                        meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)
+                        meta_data_object_new = meta_data_class_new.run()
+                        metaDataObj_new = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object_new))
+                        metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                        metaDataObj['headers'].append(metaDataObj_new['headers'][0][0])
+                        # metaDataObj['sampleData'].append(metaDataObj_new['sampleData'])
+                        metaDataObj['metaData'].append(metaDataObj_new['metaData'][0][0])
+                        metaDataObj['columnData'].append(metaDataObj_new['columnData'][0][0])
                     else:
                         metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 except:

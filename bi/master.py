@@ -150,19 +150,26 @@ def main(configJson):
                     dataCleansingDict = dataframe_context.get_dataCleansing_info()
                     featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
                     if dataCleansingDict['selected'] or featureEngineeringDict['selected']:
+                        old_cols_list = df.columns
                         completionStatus = 10
                         progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Performing required data preprocessing and feature transformation tasks",completionStatus,completionStatus)
                         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                         dataframe_context.update_completion_status(completionStatus)
-                    if dataCleansingDict['selected']:
-                        data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
-                        df = data_preprocessing_obj.data_cleansing()
+                        if dataCleansingDict['selected']:
+                            data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
+                            df = data_preprocessing_obj.data_cleansing()
 
-                    if featureEngineeringDict['selected']:
-                        feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
-                        df = feature_engineering_obj.feature_engineering()
-                    print df.printSchema()
-                metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context)
+                        if featureEngineeringDict['selected']:
+                            feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
+                            df = feature_engineering_obj.feature_engineering()
+                        new_cols_list = df.columns
+                        if len(old_cols_list) < len(new_cols_list):
+                            new_cols_added = list(set(new_cols_list) - set(old_cols_list))
+                        else:
+                             new_cols_added = None
+                        print df.printSchema()
+
+                metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
                 colsToBin = df_helper.get_cols_to_bin()

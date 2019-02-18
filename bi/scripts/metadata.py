@@ -269,7 +269,7 @@ class MetaDataScript:
                 else:
                     utf8Suggestion = False
                 if self._column_type_dict[column]["actual"] != "boolean":
-                    uniqueVals = self._data_frame.select(column).distinct().na.drop().collect()
+                    uniqueVals = self._data_frame.select(column).distinct().na.drop().limit(1000).collect()
                 else:
                     uniqueVals = []
                 if len(uniqueVals) > 0:
