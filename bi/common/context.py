@@ -375,7 +375,9 @@ class ContextSetter:
         self.considercolumns = considerCols
     @accepts(object,(list))
     def set_ignore_column_suggestions(self,ignoreSuggestions):
-        self.ignorecolumns = ignoreSuggestions
+        for x in ignoreSuggestions:
+            self.ignorecolumns.append(x)
+
     @accepts(object,(list))
     def set_utf8_columns(self,utf8Cols):
         self.utf8columns = utf8Cols

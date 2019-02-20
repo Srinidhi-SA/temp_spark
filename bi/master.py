@@ -144,6 +144,7 @@ def main(configJson):
             ########################## Load the dataframe ##############################
             df = MasterHelper.load_dataset(spark,dataframe_context)
             df = df.persist()
+            removed_col=[]
             if jobType != "metaData":
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
@@ -158,6 +159,8 @@ def main(configJson):
                         if dataCleansingDict['selected']:
                             data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
                             df = data_preprocessing_obj.data_cleansing()
+                        removed_col=data_preprocessing_obj.removed_col
+                        dataframe_context.set_ignore_column_suggestions(removed_col)
 
                         if featureEngineeringDict['selected']:
                             feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
@@ -250,11 +253,11 @@ def main(configJson):
 def submit_job_through_yarn():
     # print sys.argv
     # print json.loads(sys.argv[1])
-    json_config = json.loads(sys.argv[1])
+    json_config = json.loads(sys.argv[0])
     # json_config["config"] = ""
 
     main(json_config["job_config"])
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[0])
     print 'Main Method End .....'

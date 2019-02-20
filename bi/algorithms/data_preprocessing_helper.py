@@ -1,8 +1,9 @@
 import datetime
-from pyspark.sql.functions import col, floor, concat, lit, concat_ws, unix_timestamp, from_unixtime, datediff, to_timestamp, avg, mean, stddev, when
+from pyspark.sql.functions import floor, concat, lit, concat_ws, unix_timestamp, from_unixtime, datediff, to_timestamp, avg,when,mean as _mean, stddev as _stddev, col
 from pyspark.sql.types import IntegerType, StringType, DateType
 from pyspark.sql import functions as F
 from bi.stats.util import Stats
+
 
 #from pyspark.sql.functions import mean as _mean, stddev as _stddev, col
 #from pyspark.sql.functions import *
@@ -22,36 +23,88 @@ class DataPreprocessingHelper():
 
     def drop_duplicate_cols(self):
 
-    	numerical_col = [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'int' ]
-    	categorical_col = [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'string' ]
-    	timestamp_col = [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'timestamp' ]
+    	numerical_col = [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'int' or i_type == 'double' or i_type == 'float' ]
+        categorical_col = [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'string' ]
+        boolean_col= [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'boolean']
 
-    	removed_col = []
+        categorical_list1=[]
+        categorical_list2=[]
+        numerical_list1=[]
+        numerical_list2=[]
+        boolean_list1=[]
+        boolean_list2=[]
+        remove_list=[]
 
-    	for i in range(len(numerical_col) - 1):
-    		for j in range(i+1, len(numerical_col)):
-    			if numerical_col[i] in removed_col or numerical_col[j] in removed_col:
-    				continue
-    			if self._data_frame.where(self._data_frame[numerical_col[i]] == self._data_frame[numerical_col[j]]).count() == self._data_frame.count():
-    				removed_col.append(numerical_col[j])
-    				self._data_frame = self._data_frame.drop(numerical_col[j])
+        for i in range(len(categorical_col)-1):
+                for j in range(i+1, len(categorical_col)):
+                    if self._data_frame.groupby(self._data_frame[categorical_col[i]]).count().collect() == self._data_frame.groupby(categorical_col[j]).count().collect():
+                        categorical_list1.append(categorical_col[j])
+                        categorical_list2.append(categorical_col[i])
 
-    	for i in range(len(categorical_col) - 1):
-    		for j in range(i+1, len(categorical_col)):
-    			if categorical_col[i] in removed_col or categorical_col[j] in removed_col:
-    				continue
-    			if self._data_frame.where(self._data_frame[categorical_col[i]] == self._data_frame[categorical_col[j]]).count() == self._data_frame.count():
-    				removed_col.append(categorical_col[j])
-    				self._data_frame= self._data_frame.drop(categorical_col[j])
+        count_dict1=dict(zip(categorical_list1,categorical_list2))
 
-    	for i in range(len(timestamp_col) - 1):
-    		for j in range(i+1, len(timestamp_col)):
-    			if timestamp_col[i] in removed_col or timestamp_col[j] in removed_col:
-    				continue
-    			if self._data_frame.where(self._data_frame[timestamp_col[i]] == self._data_frame[timestamp_col[j]]).count() == df.count():
-    				removed_col.append(timestamp_col[j])
-    				self._data_frame = self._data_frame.drop(timestamp_col[j])
+
+        elements_list1=[]
+        elements_list2=[]
+
+        for k,v in count_dict1.items():
+            elements_list1=self._data_frame.select(k)
+            elements_list2=self._data_frame.select(v)
+            if elements_list1.collect()==elements_list2.collect():
+                remove_list.append(k)
+
+
+        for i in range(len(numerical_col)-1):
+            for j in range(i+1, len(numerical_col)):
+                df_col1_std = self._data_frame.select(_stddev(col(numerical_col[i])).alias('std')).collect()[0][0]
+                df_col2_std = self._data_frame.select(_stddev(col(numerical_col[j])).alias('std')).collect()[0][0]
+                if(df_col1_std==df_col2_std):
+                    numerical_list1.append(numerical_col[j])
+                    numerical_list2.append(numerical_col[i])
+
+
+
+        count_dict2=dict(zip(numerical_list1,numerical_list2))
+
+        elements_list3=[]
+        elements_list4=[]
+
+        for k,v in count_dict2.items():
+            elements_list3=self._data_frame.select(k)
+            elements_list4=self._data_frame.select(v)
+            if elements_list3.collect()==elements_list4.collect():
+                remove_list.append(k)
+
+
+        for i in range(len(boolean_col)-1):
+            for j in range(i+1, len(boolean_col)):
+                if self._data_frame.groupby(df[boolean_col[i]]).count().collect() == self._data_frame.groupby(boolean_col[j]).count().collect():
+                    boolean_list1.append(boolean_col[j])
+                    boolean_list2.append(boolean_col[i])
+
+
+
+        count_dict3=dict(zip(boolean_list1,boolean_list2))
+
+        elements_list5=[]
+        elements_list6=[]
+
+        for k,v in count_dict3.items():
+            elements_list5=self._data_frame.select(k)
+            elements_list6=self._data_frame.select(v)
+            if elements_list5.collect()==elements_list6.collect():
+                remove_list.append(k)
+
+
+        #print(remove_list)
+        #return remove_list
+
+        self.removed_col=remove_list
+        self._data_frame=self._data_frame.drop(*remove_list)
         return self._data_frame
+
+    def get_removed_columns(self):
+        return self.removed_col
 
 
 
