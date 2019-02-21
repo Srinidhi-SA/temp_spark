@@ -277,24 +277,49 @@ class MetaDataHelper():
             if level_count_flag:
                 # print "start level count"
                 fs1 = time.time()
-                tdLevelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+                col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
                 levelCount = {}
-                for k,v in tdLevelCount.items():
-                    if k != None:
-                        levelCount[str(pd.to_datetime(k).date())] = v
+                if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
+                    tdLevelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+                    levelCount = {}
+                    for k,v in tdLevelCount.items():
+                        if k != None:
+                            levelCount[str(pd.to_datetime(k).date())] = v
+                        else:
+                            levelCount[k] = v
+                    # print "time for levelCount ",time.time()-fs1,"Seconds"
+                    col_stat["LevelCount"] = levelCount
+                    if None in levelCount.keys():
+                        col_stat["numberOfNulls"] = levelCount[None]
+                        col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
                     else:
-                        levelCount[k] = v
-                # print "time for levelCount ",time.time()-fs1,"Seconds"
-                col_stat["LevelCount"] = levelCount
-                if None in levelCount.keys():
-                    col_stat["numberOfNulls"] = levelCount[None]
-                    col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+                        col_stat["numberOfNulls"] = 0
+                        col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+
+                    levelCountWithoutNull = levelCount
+                    if None in levelCount:
+                        levelCountWithoutNull.pop(None)
+                    if levelCountWithoutNull != {}:
+                        col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
+                        col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
+                    else:
+                        col_stat["MaxLevel"] = None
+                        col_stat["MinLevel"] = None
                 else:
-                    col_stat["numberOfNulls"] = 0
+                    levelCount = df.groupBy(column).count().limit(1000).toPandas().set_index(column).to_dict().values()[0]
+                    levelCount = {str(k):v for k,v in levelCount.items()}
+                    col_stat["LevelCount"] = levelCount
+                    levelCountBig = df.groupBy(column).count().sort(("count"))
+
+                    col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    levelCountBig = df.groupBy(column).count().sort(desc("count"))
+                    col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+
+                    nullcnt = df.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
+                    col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
                     col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
 
-                col_stat["numberOfUniqueValues"] = len(levelCount.keys())
-                levelCountWithoutNull = levelCount
+
                 dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
                 dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
                 dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
@@ -303,14 +328,7 @@ class MetaDataHelper():
                 dimension_chart_obj.set_hide_xtick(True)
                 dimension_chart_obj.set_show_legend(False)
                 chart_data[column] = C3ChartData(data=dimension_chart_obj)
-                if None in levelCount:
-                    levelCountWithoutNull.pop(None)
-                if levelCountWithoutNull != {}:
-                    col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
-                    col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
-                else:
-                    col_stat["MaxLevel"] = None
-                    col_stat["MinLevel"] = None
+
             else:
                 col_stat["firstDate"] = first_date
                 col_stat["lastDate"] = last_date
