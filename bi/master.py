@@ -166,6 +166,7 @@ def main(configJson):
                             feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
                             df = feature_engineering_obj.feature_engineering()
                         new_cols_list = df.columns
+                        old_cols_list = list(set(old_cols_list) - set(removed_col))
                         if len(old_cols_list) < len(new_cols_list):
                             new_cols_added = list(set(new_cols_list) - set(old_cols_list))
                         else:
@@ -176,9 +177,7 @@ def main(configJson):
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
                 colsToBin = df_helper.get_cols_to_bin()
-                print(colsToBin,"fffffffffffffffffffffffffff")
                 levelCountDict = df_helper.get_level_counts(colsToBin)
-                print(levelCountDict,"fffffffffffffffffffffffff")
                 metaParserInstance.update_level_counts(colsToBin,levelCountDict)
 
         ############################ MetaData Calculation ##########################
