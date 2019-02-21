@@ -176,7 +176,9 @@ def main(configJson):
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
                 colsToBin = df_helper.get_cols_to_bin()
+                print(colsToBin,"fffffffffffffffffffffffffff")
                 levelCountDict = df_helper.get_level_counts(colsToBin)
+                print(levelCountDict,"fffffffffffffffffffffffff")
                 metaParserInstance.update_level_counts(colsToBin,levelCountDict)
 
         ############################ MetaData Calculation ##########################
@@ -253,11 +255,11 @@ def main(configJson):
 def submit_job_through_yarn():
     # print sys.argv
     # print json.loads(sys.argv[1])
-    json_config = json.loads(sys.argv[0])
+    json_config = json.loads(sys.argv[1])
     # json_config["config"] = ""
 
     main(json_config["job_config"])
 
 if __name__ == '__main__':
-    main(sys.argv[0])
+    main(sys.argv[1])
     print 'Main Method End .....'
