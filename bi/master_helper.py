@@ -65,7 +65,7 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
         metaParserInstance = MetaParser()
         if debugMode != True:
             if jobType != "metaData":
-                print "Retrieving MetaData for new columns added"
+                print "Retrieving MetaData"
                 if new_cols_added != None:
                     df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
                     print "starting Metadata for newly added columns"
@@ -74,10 +74,13 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                     meta_data_object_new = meta_data_class_new.run()
                     metaDataObj_new = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object_new))
                     metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
-                    metaDataObj['headers'].append(metaDataObj_new['headers'][0][0])
+                    for x in range(len(metaDataObj_new['headers'][0])):
+                        metaDataObj['headers'].append(metaDataObj_new['headers'][0][x])
                     # metaDataObj['sampleData'].append(metaDataObj_new['sampleData'])
-                    metaDataObj['metaData'].append(metaDataObj_new['metaData'][0][0])
-                    metaDataObj['columnData'].append(metaDataObj_new['columnData'][0][0])
+                    for x in range(len(metaDataObj_new['metaData'][0])):
+                        metaDataObj['metaData'].append(metaDataObj_new['metaData'][0][x])
+                    for x in range(len(metaDataObj_new['columnData'][0])):
+                        metaDataObj['columnData'].append(metaDataObj_new['columnData'][0][x])
                 else:
                     metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 if metaDataObj:
@@ -105,10 +108,13 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                         meta_data_object_new = meta_data_class_new.run()
                         metaDataObj_new = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object_new))
                         metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
-                        metaDataObj['headers'].append(metaDataObj_new['headers'][0][0])
+                        for x in range(len(metaDataObj_new['headers'][0])):
+                            metaDataObj['headers'].append(metaDataObj_new['headers'][0][x])
                         # metaDataObj['sampleData'].append(metaDataObj_new['sampleData'])
-                        metaDataObj['metaData'].append(metaDataObj_new['metaData'][0][0])
-                        metaDataObj['columnData'].append(metaDataObj_new['columnData'][0][0])
+                        for x in range(len(metaDataObj_new['metaData'][0])):
+                            metaDataObj['metaData'].append(metaDataObj_new['metaData'][0][x])
+                        for x in range(len(metaDataObj_new['columnData'][0])):
+                            metaDataObj['columnData'].append(metaDataObj_new['columnData'][0][x])
                     else:
                         metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 except:

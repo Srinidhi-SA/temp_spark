@@ -145,6 +145,7 @@ def main(configJson):
             df = MasterHelper.load_dataset(spark,dataframe_context)
             df = df.persist()
             removed_col=[]
+            new_cols_added = None
             if jobType != "metaData":
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
@@ -172,7 +173,6 @@ def main(configJson):
                         else:
                              new_cols_added = None
                         print df.printSchema()
-
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
