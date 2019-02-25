@@ -144,6 +144,8 @@ def main(configJson):
             ########################## Load the dataframe ##############################
             df = MasterHelper.load_dataset(spark,dataframe_context)
             df = df.persist()
+            removed_col=[]
+            new_cols_added = None
             if jobType != "metaData":
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
@@ -158,17 +160,19 @@ def main(configJson):
                         if dataCleansingDict['selected']:
                             data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
                             df = data_preprocessing_obj.data_cleansing()
+                        removed_col=data_preprocessing_obj.removed_col
+                        dataframe_context.set_ignore_column_suggestions(removed_col)
 
                         if featureEngineeringDict['selected']:
                             feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
                             df = feature_engineering_obj.feature_engineering()
                         new_cols_list = df.columns
+                        old_cols_list = list(set(old_cols_list) - set(removed_col))
                         if len(old_cols_list) < len(new_cols_list):
                             new_cols_added = list(set(new_cols_list) - set(old_cols_list))
                         else:
                              new_cols_added = None
                         print df.printSchema()
-
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols

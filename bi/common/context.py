@@ -375,7 +375,9 @@ class ContextSetter:
         self.considercolumns = considerCols
     @accepts(object,(list))
     def set_ignore_column_suggestions(self,ignoreSuggestions):
-        self.ignorecolumns = ignoreSuggestions
+        for x in ignoreSuggestions:
+            self.ignorecolumns.append(x)
+
     @accepts(object,(list))
     def set_utf8_columns(self,utf8Cols):
         self.utf8columns = utf8Cols
@@ -735,6 +737,11 @@ class ContextSetter:
         return self.ignoremessages
 
     def get_target_level_for_model(self):
+        if self.targetLevelForModel=="True":
+            self.targetLevelForModel="true"
+        elif self.targetLevelForModel=="False":
+            self.targetLevelForModel="false"
+        else: self.targetLevelForModel=self.targetLevelForModel
         return self.targetLevelForModel
 
     def set_ignore_msg_regression_elasticity(self,data):

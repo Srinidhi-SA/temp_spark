@@ -83,8 +83,10 @@ class DataFrameHelper:
         print "self.resultcolumn",self.resultcolumn
         if self.resultcolumn != "":
             colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+            colsToKeep=list(set(colsToKeep)-set(self.ignorecolumns))
         else:
             colsToKeep = list(set(self.consider_columns))
+            colsToKeep=list(set(colsToKeep)-set(self.ignorecolumns))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         print "colsToKeep:-",colsToKeep
         print "colsToBin:-",colsToBin
@@ -162,9 +164,10 @@ class DataFrameHelper:
         train_test_ratio = float(self._dataframe_context.get_train_test_split())
         date_columns = self._dataframe_context.get_date_columns()
         uidCol = self._dataframe_context.get_uid_column()
+        ignored_cols=self._dataframe_context.get_ignore_column_suggestions()
         print "All DATE Columns",date_columns
         considerColumns = self._dataframe_context.get_consider_columns()
-        columns_to_ignore = [result_column]+date_columns
+        columns_to_ignore = [result_column]+date_columns+ignored_cols
         if uidCol:
             columns_to_ignore += [uidCol]
         print "These Columns are Ignored:- ",  columns_to_ignore
@@ -388,7 +391,7 @@ class DataFrameHelper:
     def get_level_counts(self,colList):
         levelCont = {}
         for column in colList:
-            levelCont[column] = self._data_frame.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+            levelCont[column] = dict(self._data_frame.groupBy(column).count().collect())
         return levelCont
 
 class DataFrameColumnMetadata:

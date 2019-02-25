@@ -21,6 +21,9 @@ class DataPreprocessing:
             if settings['name'] == "duplicate_column" and settings['selected'] == True:
                 self._df = data_preprocessing_helper_obj.drop_duplicate_cols()
 
+        data_preprocessing_helper_obj.get_removed_columns()
+        self.removed_col=data_preprocessing_helper_obj.removed_col
+        
         for key in self._dataCleansingDict['columns_wise_settings'].keys():
             if self._dataCleansingDict['columns_wise_settings'][key]['selected']:
                 if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "missing_value_treatment":
