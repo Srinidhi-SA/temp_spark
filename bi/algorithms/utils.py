@@ -416,9 +416,7 @@ def create_pyspark_ml_pipeline(numerical_columns,categorical_columns,target_colu
     indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed') for x in categorical_columns ] #String Indexer
     encoders = [OneHotEncoder(dropLast=False, inputCol=x+"_indexed", outputCol=x+"_encoded") for x in categorical_columns] # one hot encoder
 
-
-
-    if algoName == 'rf' or algoName == 'dt':
+    if algoName == 'rf' or algoName == 'dt' or algoName == 'xgb':
         ml_stages = [i for i in indexers]
         assembler_features = VectorAssembler(inputCols=[x+"_indexed" for x in sorted(categorical_columns)]+sorted(numerical_columns), outputCol='features')
     else:
@@ -531,17 +529,18 @@ def read_string_indexer_mapping(pipeline_path,sqlContext):
     stageuids = json.loads(metadata.take(1)[0][0])["paramMap"]["stageUids"]
     if len(stageuids) < 11:
         try:
-            parquet_key = "0"+str(len(stageuids)-1)+"_"+stageuids[-1]
+            parquet_key = "0"+str(len(stageuids)-2)+"_"+stageuids[-2]
             parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
             level_df = sqlContext.read.parquet(parquet_filepath)
         except:
-            parquet_key = str(len(stageuids)-1)+"_"+stageuids[-1]
+            parquet_key = str(len(stageuids)-2)+"_"+stageuids[-2]
             parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
             level_df = sqlContext.read.parquet(parquet_filepath)
     else:
-        parquet_key = str(len(stageuids)-1)+"_"+stageuids[-1]
+        parquet_key = str(len(stageuids)-2)+"_"+stageuids[-2]
         parquet_filepath = pipeline_path+"/stages/"+parquet_key+"/data"
         level_df = sqlContext.read.parquet(parquet_filepath)
+    # level_df.show()
     levels = [str(v) for v in  [x[0] for x in level_df.select("labels").collect()][0]]
     mapping_dict = dict(enumerate(levels))
     return mapping_dict
@@ -574,7 +573,8 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
-    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine", "sparkrandomforest":"Spark ML Random Forest"}
+    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine",
+    "sparkrandomforest":"Spark ML Random Forest", "sparklogisticregression": "Spark ML Logistic Regression"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -628,6 +628,9 @@ def get_feature_importance(collated_summary):
 
 def get_total_models_classification(collated_summary):
     algos = collated_summary.keys()
+    print "HAHAHAHAHAHAHAHAHAHAHAHA"
+    print algos
+    print "HAHAHAHAHAHAHAHAHAHAHAHA"
     n_model = 1
     algorithm_name = []
     for val in algos:
@@ -635,8 +638,8 @@ def get_total_models_classification(collated_summary):
         algorithm_name.append(collated_summary[val].get("algorithmName"))
         if trees:
             n_model += trees
-    output = "<p>mAdvisor has built {} models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(n_model,len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    output = "<p>mAdvisor has built predictive models using {} algorithms ({}) to predict {} and \
+        has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def get_total_models_regression(collated_summary):
@@ -647,8 +650,8 @@ def get_total_models_regression(collated_summary):
         trees = collated_summary[val].get("nTrees")
         algorithm_name.append(collated_summary[val].get("algorithmDisplayName"))
     n_model = len(algorithm_name)
-    output = "<p>mAdvisor has built {} regression models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(n_model,len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    output = "<p>mAdvisor has built predictive regression models using {} algorithms ({}) to predict {} and \
+        has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def create_model_folders(model_slug, basefoldername, subfolders=None):
@@ -697,10 +700,16 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             print confusion_matrix
             paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+
         elif modelSummaryClass.get_algorithm_name() == 'Logistic Regression':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML Logistic Regression':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Spark ML Logistic Regression. The model has an overall accuracy of <b>{}%</b>. The model using Spark ML Logistic Regression was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[target_level][x] for x in confusion_matrix.keys()))
+
         elif modelSummaryClass.get_algorithm_name() == 'Xgboost':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
@@ -709,6 +718,10 @@ def create_model_summary_para(modelSummaryClass):
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Spark ML Random Forest. The model has an overall accuracy of <b>{}%</b>. The model using Spark ML Random Forest was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[target_level][x] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naivebayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
     else:
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
@@ -716,6 +729,11 @@ def create_model_summary_para(modelSummaryClass):
             print "prediction_split_array : ", prediction_split_array
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
         elif modelSummaryClass.get_algorithm_name() == 'Logistic Regression':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
@@ -731,14 +749,19 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = modelSummaryClass.get_confusion_matrix()
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Spark ML Random Forest. The model has an overall accuracy of <b>{}%</b>. The model using Spark ML Random Forest was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[target_level][x] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML Logistic Regression':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = modelSummaryClass.get_confusion_matrix()
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Spark ML Logistic Regression. The model has an overall accuracy of <b>{}%</b>. The model using Spark ML Logistic Regression was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[target_level][x] for x in confusion_matrix.keys()))
 
         print "paragraph : ", paragraph
         print "-"*200
     return paragraph
 
 def create_model_summary_cards(modelSummaryClass):
-    paragraph = create_model_summary_para(modelSummaryClass)
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
+        paragraph = create_model_summary_para(modelSummaryClass)
         modelSummaryCard1 = NormalCard()
         modelSummaryCard1Data = []
         modelSummaryCard1Data.append(HtmlData(data="<h4 class = 'sm-mb-20'>{}</h4>".format(modelSummaryClass.get_algorithm_display_name())))
@@ -878,6 +901,10 @@ def create_model_summary_cards(modelSummaryClass):
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
+    """
+    This function is used to collect the output of all
+    different algorithms to pass it to result json
+    """
     if appType == "CLASSIFICATION":
         collated_summary = result_setter.get_model_summary()
         card1 = NormalCard()
@@ -897,7 +924,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 card2Data = [card2_elements[0]]
             else:
                 card2Data = [card2_elements[0],card2_elements[1]]
-
             card2.set_card_data(card2Data)
             card2.set_card_width(50)
 
@@ -915,6 +941,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             # prediction_narrative.insert_card_at_given_index(card3,2)
             card3 = json.loads(CommonUtils.convert_python_object_to_json(card3))
         else:
+            emptycard = NormalCard()
+            emptycard.set_card_width(50)
+
             card2 = NormalCard()
             card2_elements = get_model_comparison(collated_summary)
             card2Data = [card2_elements[0]]
@@ -935,8 +964,18 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
         card2 = json.loads(CommonUtils.convert_python_object_to_json(card2))
-        all_cards = [card1,card2,card3] + existing_cards
-        all_cards = [x for x in all_cards if x != None]
+
+        if featureImportanceC3Object == None:
+            if card3 == None:
+                all_cards = [card1,card2,emptycard] + existing_cards
+                all_cards = [x for x in all_cards if x != None]
+            else:
+                all_cards = [card1,card2,emptycard,card3,emptycard] + existing_cards
+                all_cards = [x for x in all_cards if x != None]
+        else:
+            all_cards = [card1,card2,card3] + existing_cards
+            all_cards = [x for x in all_cards if x != None]
+
         modelResult = NarrativesTree()
         modelResult.add_cards(all_cards)
         modelResult = CommonUtils.convert_python_object_to_json(modelResult)
@@ -944,6 +983,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         modelJsonOutput.set_model_summary(json.loads(modelResult))
         ####
         rfModelSummary = result_setter.get_random_forest_model_summary()
+        nbModelSummary = result_setter.get_naive_bayes_model_summary()
         lrModelSummary = result_setter.get_logistic_regression_model_summary()
         xgbModelSummary = result_setter.get_xgboost_model_summary()
         svmModelSummary = result_setter.get_svm_model_summary()
@@ -1018,6 +1058,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 row[0] = idx+1
                 allAlgorithmTableModified.append(row)
             allAlgorithmTable = allAlgorithmTableModified
+            print "$"*100
+            print allAlgorithmTable
             bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
             evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
@@ -1026,10 +1068,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 evalMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
                 bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
 
-            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+            htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
-                            .format(totalModels,totalModels if totalModels < GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY else GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY ,bestModel,bestAlgo,evalMetric,bestMetric))
+                            .format(len(allAlgorithmTable)-1,bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
@@ -1215,10 +1257,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
             bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
-            htmlData = HtmlData(data = "mAdvisor has built {} models by changing the input parameter specifications \
+            htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
                             and the following are the top {} models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
-                            .format(totalModels,totalModels if totalModels < GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY else GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY,bestModel,bestAlgo,evalMetric,bestMetric))
+                            .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
@@ -1451,7 +1493,12 @@ def stock_sense_overview_card(data_dict_overall):
 
     articlesByConceptCardData = data_dict_overall["number_articles_by_concept"]
     valuesTotal = __builtin__.sum(articlesByConceptCardData.values())
-    articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in articlesByConceptCardData.items()}
+    try:
+        articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in articlesByConceptCardData.items()}
+    except Exception as e:
+        print "=="*100
+        print "Could not find any content on this stock"
+
     articlesByConceptData = NormalChartData(data=[articlesByConceptCardData])
     chart_json = ChartJson()
     chart_json.set_data(articlesByConceptData.get_data())

@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import requests
 
+import os
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from numpy import size, zeros, where
@@ -113,7 +115,19 @@ def get_spark_session(app_name='Demo App',hive_environment=True):
     if hive_environment:
         return SparkSession.builder.appName(app_name).config(conf=SparkConf()).enableHiveSupport().getOrCreate()
     else:
-        return SparkSession.builder.appName(app_name).getOrCreate()
+        # os.environ['PYSPARK_SUBMIT_ARGS'] = '--jars /home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar,' \
+        # ' ~/pysparkExternalJars/xgboost4j-0.72.jar, ~/pysparkExternalJars/xgboost4j-spark-0.72.jar pyspark-shell'
+        return SparkSession.builder.appName(app_name) \
+                        .getOrCreate()
+
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar') \
+                        # .config("spark.driver.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-0.72.jar') \
+                        # .config("spark.driver.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-spark-0.72.jar') \
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-0.72.jar') \
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-spark-0.72.jar') \
+                        # .config("spark.driver.extraClassPath", '/home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar') \
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar') \
+
 
 def clean(x):
     from re import sub
@@ -254,7 +268,7 @@ def byteify(input):
         return input
 
 
-def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=False):
+def create_progress_message_object(analysisName,stageName,messageType,shortExplanation,stageCompletionPercentage,globalCompletionPercentage,display=True):
     """
     messageType = ["info","failure"]
     """
@@ -301,14 +315,17 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
     else:
         return True
 
-def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=False,emptyBin=False,customMsg=None,weightKey="script"):
+def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=True,emptyBin=False,customMsg=None,weightKey="script"):
     if dataframeContext.get_dont_send_message() == False:
         completionStatus = dataframeContext.get_completion_status()
         print "incoming completionStatus",completionStatus
         completionStatus = min(completionStatus,100)
         messageURL = dataframeContext.get_message_url()
         if customMsg == None:
-            completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
+            if dataframeContext.get_job_type() == 'training' or dataframeContext.get_job_type() == 'prediction':
+                completionStatus += scriptStages[stageName]["weight"]
+            else:
+                completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
             progressMessage = create_progress_message_object(analysisName,\
                                         stageName,\
                                         messageType,\
@@ -324,7 +341,7 @@ def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,sc
         else:
             save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
         dataframeContext.update_completion_status(completionStatus)
-        print "outgoing completionStatus",completionStatus
+        print "Outgoing Completion Status - ", completionStatus
 
 
 def save_pmml_models(url,jsonData,ignore=False):

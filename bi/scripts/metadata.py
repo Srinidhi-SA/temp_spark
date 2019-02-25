@@ -8,6 +8,9 @@ from bi.common.results import DfMetaData, MetaData, ColumnData, ColumnHeader
 
 
 class MetaDataScript:
+    '''
+    Gives metaData information about the data
+    '''
     def __init__(self, data_frame, spark, dataframe_context):
         self._dataframe_context = dataframe_context
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -15,32 +18,60 @@ class MetaDataScript:
         self._analysisName = "metadata"
         self._messageURL = self._dataframe_context.get_message_url()
         self._ignoreMsgFlag = self._dataframe_context.get_metadata_ignore_msg_flag()
-        self._scriptStages = {
-            "schema":{
-                "summary":"Loaded the data and Schema is Run",
-                "weight":12
-                },
-            "sampling":{
-                "summary":"Sampling the dataframe",
-                "weight":5
-                },
-            "measurestats":{
-                "summary":"calculating stats for measure columns",
-                "weight":25
-                },
-            "dimensionstats":{
-                "summary":"calculating stats for dimension columns",
-                "weight":25
-                },
-            "timedimensionstats":{
-                "summary":"calculating stats for time dimension columns",
-                "weight":5
-                },
-            "suggestions":{
-                "summary":"Ignore and Date Suggestions",
-                "weight":25
-                },
-            }
+        if dataframe_context.get_job_type()== "training" or dataframe_context.get_job_type()== "prediction" :
+            self._scriptStages = {
+                "schema":{
+                    "summary":"Preparing the data for model creation",
+                    "weight":10
+                    },
+                "sampling":{
+                    "summary":"Sampling the dataframe",
+                    "weight":2
+                    },
+                "measurestats":{
+                    "summary":"calculating stats for measure columns",
+                    "weight":2
+                    },
+                "dimensionstats":{
+                    "summary":"calculating stats for dimension columns",
+                    "weight":2
+                    },
+                "timedimensionstats":{
+                    "summary":"calculating stats for time dimension columns",
+                    "weight":2
+                    },
+                "suggestions":{
+                    "summary":"Ignore and Date Suggestions",
+                    "weight":2
+                    },
+                }
+        else:
+            self._scriptStages = {
+                "schema":{
+                    "summary":"Loaded the data and Schema is Run",
+                    "weight":12
+                    },
+                "sampling":{
+                    "summary":"Sampling the dataframe",
+                    "weight":5
+                    },
+                "measurestats":{
+                    "summary":"calculating stats for measure columns",
+                    "weight":25
+                    },
+                "dimensionstats":{
+                    "summary":"calculating stats for dimension columns",
+                    "weight":25
+                    },
+                "timedimensionstats":{
+                    "summary":"calculating stats for time dimension columns",
+                    "weight":5
+                    },
+                "suggestions":{
+                    "summary":"Ignore and Date Suggestions",
+                    "weight":25
+                    },
+                }
 
         self._binned_stat_flag = True
         self._level_count_flag = True

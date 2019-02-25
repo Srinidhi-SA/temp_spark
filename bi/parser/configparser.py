@@ -1,5 +1,5 @@
 class ParserConfig():
-    """docstring for ParserConfig."""
+    """For reading info from config json"""
     def __init__(self, config):
         self.config = config
         self.FileSettings = {}
@@ -14,9 +14,13 @@ class ParserConfig():
         self.StockSettings = {}
         self.DatabaseSettings = {}
         self.AlgorithmSettings = {}
+        self.FeatureSettings = {}
 
     def get_algorithm_settings(self):
         return self.AlgorithmSettings
+
+    def get_feature_settings(self):
+        return self.FeatureSettings
 
     def get_database_settings(self):
         return self.DatabaseSettings
@@ -96,3 +100,5 @@ class ParserConfig():
             self.DatabaseSettings = self.config.get('DATA_SOURCE')
         if 'ALGORITHM_SETTING' in self.config:
             self.AlgorithmSettings = self.config.get('ALGORITHM_SETTING')
+        if 'FEATURE_SETTINGS' in self.config:
+            self.FeatureSettings = self.config.get('FEATURE_SETTINGS')

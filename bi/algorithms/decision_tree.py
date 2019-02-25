@@ -193,6 +193,7 @@ class DecisionTrees:
             if 'Predict:' in rules['name'] and num_success>0:
                 return new_rules
 
+
     def wrap_tree(self, tree):
         new_tree = {}
         if "children" in tree.keys() and len(tree['children'])>0:
@@ -272,8 +273,9 @@ class DecisionTrees:
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
         # model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
-        # Removed categoricalFeaturesInfo to be passed to DecisionTree to get all levels
-        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo={}, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
+        # Removed categoricalFeaturesInfo to be passed to DecisionTree to get all levels and consider all feature as continuous variables
+        #But that results in wrong result in Prediction Rule eg: columns containing "yes" or "no" as its value is considered as float value(0.5) so removing categoricalFeaturesInfo={} with categoricalFeaturesInfo=cat_feature_info
+        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
 
         output_result = model.toDebugString()
         decision_tree = self.tree_json(output_result, self._data_frame)

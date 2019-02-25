@@ -339,7 +339,17 @@ else:
                 "algorithmName": "Random Forest",
                 "selected": True,
                 "parameters": SKLEANR_ML_RF_CLASSIFICATION_PARAMS,
-                "algorithmSlug": ALGORITHMRANDOMSLUG + "rf",
+                "algorithmSlug": ALGORITHMRANDOMSLUG + "sprf",
+                "hyperParameterSetting": SKLEARN_HYPERPARAMETER_OBJECT_CLASSIFICATION,
+                "description":"""A meta estimator that uses averaging predictive power of a number of decision tree
+                classification models. This is very effective in predicting the likelihood in multi-class
+                classifications and also to control overfitting."""
+            },
+            {
+                "algorithmName": "Naive Bayes",
+                "selected": True,
+                "parameters": SKLEANR_ML_RF_CLASSIFICATION_PARAMS,
+                "algorithmSlug": ALGORITHMRANDOMSLUG + "nb",
                 "hyperParameterSetting": SKLEARN_HYPERPARAMETER_OBJECT_CLASSIFICATION,
                 "description":"""A meta estimator that uses averaging predictive power of a number of decision tree
                 classification models. This is very effective in predicting the likelihood in multi-class
@@ -355,6 +365,7 @@ else:
                 models to predict categorical variables. It is highly preferred to leverage
                 computational power to build scalable and accurate models."""
             },
+
             # {
             #     "algorithmName": "SVM",
             #     "selected": False,

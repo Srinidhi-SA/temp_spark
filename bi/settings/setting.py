@@ -128,7 +128,13 @@ APPS_ID_MAP = {
 
 SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"randomforest",
+
             ALGORITHMRANDOMSLUG+"sprf":"sparkrandomforest",
+            ALGORITHMRANDOMSLUG+"spxgb":"sparkxgbost",
+            ALGORITHMRANDOMSLUG+"splr":"sparklogisticregression",
+            ALGORITHMRANDOMSLUG+"nb":"naivebayesber",
+            ALGORITHMRANDOMSLUG+"nb":"naivebayesgau",
+            ALGORITHMRANDOMSLUG+"nb":"naivebayesmul",
             ALGORITHMRANDOMSLUG+"lr":"logisticregression",
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
@@ -139,7 +145,13 @@ SLUG_MODEL_MAPPING = {
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
+
             "sparkrandomforest":ALGORITHMRANDOMSLUG+"sprf",
+            "sparkxgboost":ALGORITHMRANDOMSLUG+"spxgb",
+            "sparklogisticregression":ALGORITHMRANDOMSLUG+"splr",
+            "naivebayesber":ALGORITHMRANDOMSLUG+"nb",
+            "naivebayesgau":ALGORITHMRANDOMSLUG+"nb",
+            "naivebayesmul":ALGORITHMRANDOMSLUG+"nb",
             "logisticregression":ALGORITHMRANDOMSLUG+"lr",
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
             "svm":ALGORITHMRANDOMSLUG+"svm",
@@ -152,7 +164,11 @@ MODEL_SLUG_MAPPING = {
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"Random Forest",
+
             ALGORITHMRANDOMSLUG+"sprf":"Spark Random Forest",
+            ALGORITHMRANDOMSLUG+"spxgb":"Spark XGBoost",
+            ALGORITHMRANDOMSLUG+"splr":"Spark Logistic Regression",
+            ALGORITHMRANDOMSLUG+"nb":"Naive Bayes",
             ALGORITHMRANDOMSLUG+"lr":"Logistic Regression",
             ALGORITHMRANDOMSLUG+"xgb":"Xgboost",
             ALGORITHMRANDOMSLUG+"svm":"SVM",
@@ -210,7 +226,11 @@ regressionAlgoRelativeWeight = {
 
 classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"rf"  : 1,
+
     ALGORITHMRANDOMSLUG+"sprf"  : 1,
+    ALGORITHMRANDOMSLUG+"spxgb"  : 1,
+    ALGORITHMRANDOMSLUG+"splr"  : 1,
+    ALGORITHMRANDOMSLUG+"nb"  : 1,
     ALGORITHMRANDOMSLUG+"xgb" : 1,
     ALGORITHMRANDOMSLUG+"lr"  : 1,
     ALGORITHMRANDOMSLUG+"svm" : 2

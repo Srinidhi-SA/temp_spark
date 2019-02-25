@@ -472,6 +472,7 @@ class StockAdvisor:
         stockPriceTrendDict = {}
         working_stock_list = []
         for stock_symbol in self._stockNameList:
+            print "Analyzing data for Stock: " +stock_symbol
             try:
                 #-------------- Read Operations ----------------
                 stockDict[stock_symbol] = {}
@@ -496,6 +497,7 @@ class StockAdvisor:
                 stockPriceData["closePerChange"] = stockPriceData["close"].pct_change()
                 stockPriceData = stockPriceData.fillna(0)
 
+                df = df.filter(df.sentiment. isNotNull())
                 self.pandasDf = self.identify_concepts_python(df)
 
 

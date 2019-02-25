@@ -4,13 +4,21 @@ import re
 
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
+from bi.algorithms import data_preprocessing as data_preprocessing
+from bi.algorithms import feature_engineering as feature_engineering
 from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter,NormalCard,HtmlData
 
 from bi.scripts.classification.random_forest import RFClassificationModelScript
+
 from bi.scripts.classification.random_forest_pyspark import RandomForestPysparkScript
+from bi.scripts.classification.xgboost_pyspark import XGBoostPysparkScript
+from bi.scripts.classification.logistic_regression_pyspark import LogisticRegressionPysparkScript
+from bi.scripts.classification.naive_bayes import NBBClassificationModelScript
+from bi.scripts.classification.naive_bayes import NBGClassificationModelScript
+from bi.scripts.classification.naive_bayes import NBMClassificationModelScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
@@ -34,6 +42,7 @@ from bi.scripts.timeseries import TrendScript
 from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
 
 from bi.scripts.business_impact import BusinessCard
+
 
 def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
@@ -60,7 +69,10 @@ def get_metadata(df,spark,dataframe_context):
         if debugMode != True:
             if jobType != "metaData":
                 print "Retrieving MetaData"
-                metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                if jobType == "training" or jobType == "prediction":
+                    metaDataObj = None
+                else:
+                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 if metaDataObj:
                     metaParserInstance.set_params(metaDataObj)
                 else:
@@ -78,7 +90,10 @@ def get_metadata(df,spark,dataframe_context):
                 # else it will run metadata first
                 # while running in debug mode the dataset_slug should be correct or some random String
                 try:
-                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                    if jobType == "training" or jobType == "prediction":
+                        metaDataObj = None
+                    else:
+                        metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 except:
                     metaDataObj = None
                 if metaDataObj:
@@ -123,6 +138,9 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     APP_NAME = dataframe_context.get_app_name()
     appid = dataframe_context.get_app_id()
     mlEnv = dataframe_context.get_ml_environment()
+    # dataCleansingDict = dataframe_context.get_dataCleansing_info()
+    # featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
+
     print "appid",appid
     dataframe_context.initialize_ml_model_training_weight()
 
@@ -131,8 +149,22 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_setter = ResultSetter(dataframe_context)
 
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
-    df = dataframe_helper.fill_missing_values(df)
+    ####New Feature Engineering Implementation#############
 
+    # time_before_preprocessing = time.time()
+    # if dataCleansingDict['selected']:
+    #     data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+    #     df = data_preprocessing_obj.data_cleansing()
+    #
+    # if featureEngineeringDict['selected']:
+    #     feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
+    #     df = feature_engineering_obj.feature_engineering()
+    #
+    # time_after_preprocessing = time.time()
+    # time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
+    # print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
+    # df,dataframe_helper = set_dataframe_helper(df,dataframe_context,metaParserInstance)
+    df = dataframe_helper.fill_missing_values(df)
     categorical_columns = dataframe_helper.get_string_columns()
     uid_col = dataframe_context.get_uid_column()
     if metaParserInstance.check_column_isin_ignored_suggestion(uid_col):
@@ -140,10 +172,11 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     result_column = dataframe_context.get_result_column()
     allDateCols = dataframe_context.get_date_columns()
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
+
     if mlEnv == "sklearn":
         df = df.toPandas()
         df.columns = [re.sub("[[]|[]]|[<]","", col) for col in df.columns.values]
-        df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         dataframe_helper.set_train_test_data(df)
 
     model_slug = dataframe_context.get_model_path()
@@ -159,11 +192,19 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     scriptStages = {
         "preprocessing":{
             "summary":"Dataset Loading Completed",
-            "weight":10
+            "weight":4
             }
         }
     CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
-
+    if len(algosToRun) == 3:
+        completionStatus = 40
+        dataframe_context.update_completion_status(completionStatus)
+    if len(algosToRun) == 2:
+        completionStatus = 50
+        dataframe_context.update_completion_status(completionStatus)
+    if len(algosToRun) == 1:
+        completionStatus = 60
+        dataframe_context.update_completion_status(completionStatus)
     if app_type == "CLASSIFICATION":
         for obj in algosToRun:
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["randomforest"]:
@@ -177,7 +218,6 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkrandomforest"]:
-                print "###################################### WE ARE HERE ##############################################"
                 try:
                     st = time.time()
                     rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
@@ -205,6 +245,59 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparklogisticregression"]:
+                try:
+                    st = time.time()
+                    lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    lr_obj.Train()
+                    print "Spark ML Logistic Regression Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesber"] and obj.get_algorithm_name() == "naivebayesber":
+                try:
+                    st = time.time()
+                    nb_obj = NBBClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    nb_obj.Train()
+                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesgau"] and obj.get_algorithm_name() == "naivebayesgau":
+                try:
+                    st = time.time()
+                    nb_obj = NBGClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    nb_obj.Train()
+                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesmul"] and obj.get_algorithm_name() == "naivebayesmul":
+                try:
+                    st = time.time()
+                    nb_obj = NBMClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    nb_obj.Train()
+                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkxgboost"]:
+                try:
+                    st = time.time()
+                    spxgb_obj = XGBoostPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    spxgb_obj.Train()
+                    print "XGBoost Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkxgboost",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
                 # try:
                 #     st = time.time()
@@ -264,13 +357,16 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Evaluating and comparing performance of all predictive models",85,85,display=True)
+    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
     print modelJsonOutput
 
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
-    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor has successfully completed building machine learning models",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     print "Model Training Completed in ", time.time() - st, " seconds."
 
@@ -284,6 +380,8 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     jobName = dataframe_context.get_job_name()
     ignoreMsg = dataframe_context.get_message_ignore()
     targetLevel = dataframe_context.get_target_level_for_model()
+    dataCleansingDict = dataframe_context.get_dataCleansing_info()
+    featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
     print "Prediction Started"
     dataframe_context.initialize_ml_model_prediction_weight()
 
@@ -296,6 +394,20 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     result_column = dataframe_context.get_result_column()
     if result_column in df.columns:
         dataframe_helper.remove_null_rows(result_column)
+####New Feature Engineering Implementation#############
+    # time_before_preprocessing = time.time()
+    # if dataCleansingDict['selected']:
+    #     data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataframe_context, dataframe_helper, metaParserInstance, dataCleansingDict, featureEngineeringDict)
+    #     df = data_preprocessing_obj.data_cleansing()
+    #
+    # if featureEngineeringDict['selected']:
+    #     feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df, dataframe_context, dataframe_helper, metaParserInstance, featureEngineeringDict)
+    #     df = feature_engineering_obj.feature_engineering()
+    #
+    # time_after_preprocessing = time.time()
+    # time_required_for_preprocessing = time_after_preprocessing - time_before_preprocessing
+    # print "Time Required for Data Preprocessing = ", time_required_for_preprocessing
+
     df = dataframe_helper.get_data_frame()
     df = dataframe_helper.fill_missing_values(df)
     model_slug = model_path
@@ -314,7 +426,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     scriptStages = {
         "preprocessing":{
             "summary":"Dataset Loading Completed",
-            "weight":10
+            "weight":4
             }
         }
     print scriptWeightDict
@@ -355,9 +467,28 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "sparklogisticregression" in selected_model_for_prediction:
+            # df = df.toPandas()
+            trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"sparklogisticRegression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "naivebayesmul" in selected_model_for_prediction:
+            # df = df.toPandas()
+            trainedModel = NBMClassificationModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
-
 
         # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
         storycards = result_setter.get_score_cards()
@@ -368,7 +499,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         print scoreSummary
         jobUrl = dataframe_context.get_job_url()
         response = CommonUtils.save_result_json(jobUrl,scoreSummary)
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor has successfully completed building machine learning models",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
     elif app_type == "REGRESSION":
@@ -908,7 +1039,8 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     if businessImpactNode != None:
         headNode["listOfNodes"].append(businessImpactNode)
 
-    print json.dumps(headNode)
+
+    # print json.dumps(headNode)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Measure Analysis Completed in :", time.time()-st," Seconds"
     progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Your signal is ready",100,100,display=True)

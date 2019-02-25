@@ -1,13 +1,16 @@
 
 import math
 
-from bi.common import ALPHA_LEVELS
+# from bi.common import ALPHA_LEVELS
+ALPHA_LEVELS = (0.1, 0.05, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001)
+#substitue for time being 
 from bi.common.decorators import accepts
 from bi.common.exception import BIException
 from bi.common.results import ColumnCorrelations
 from bi.common.results import CorrelationStats
 from bi.common.results import Correlations as AllCorrelations
 from bi.stats.util import Stats
+
 
 """
 Utility class for finding correlation among numerical columns in a data frame

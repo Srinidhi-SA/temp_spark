@@ -6,8 +6,19 @@ from math import sqrt
 from sklearn.externals import joblib
 from bi.settings import setting as GLOBALSETTINGS
 from bi.common import utils as CommonUtils
+
 from sklearn.model_selection import KFold,StratifiedKFold,StratifiedShuffleSplit
 from sklearn import metrics
+
+from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
+from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetrics
+from pyspark.ml.feature import IndexToString
+from pyspark.sql.functions import udf
+from pyspark.sql.types import *
+
 
 
 
@@ -276,6 +287,240 @@ class ParamsGrid:
     """
 
     """
+class PySparkGridSearchResult:
+    def __init__(self, estimator=None,paramGrid=None, appType=None,
+    modelFilepath = None, levels=None, evaluationMetricDict=None,
+    trainingData=None, validationData=None, numFolds=None, targetLevel=None,
+    labelMapping=None, inverseLabelMapping=None, df=None, categorical_columns=None,
+    numerical_columns=None):
+        self.estimator = estimator
+        self.paramGrid = paramGrid
+        self.appType = appType
+        self.levels = levels
+        self.evaluationMetricDict = evaluationMetricDict
+        self.modelFilepath = modelFilepath
+        self.trainingData = trainingData
+        self.validationData = validationData
+        self.numFolds = numFolds
+        self.targetLevel = targetLevel
+        self.labelMapping = labelMapping
+        self.inverseLabelMapping = inverseLabelMapping
+        self.df = df
+        self.categorical_columns = categorical_columns
+        self.numerical_columns = numerical_columns
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time(Secs)","comparisonMetricUsed","algorithmName","alwaysSelected"]
+        self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName"]
+        self.metricColName = "comparisonMetricUsed"
+        self.keepColumns = ["Model Id"]
+        self.bestModel = None
+        self.bestPrediction = None
+
+    def get_ignore_list(self):
+        return self.ignoreList
+
+    def get_hide_columns(self):
+        return self.hideFromTable
+
+    def get_comparison_metric_colname(self):
+        return self.metricColName
+
+    def get_keep_columns(self):
+        return self.keepColumns
+
+
+    def train_and_save_classification_models(self):
+        tableOutput = []
+        evaluationMetric = self.evaluationMetricDict["name"]
+        evaluationMetricVal = -1
+        for idx, params in enumerate(self.paramGrid):
+            st = time.time()
+            crossval = CrossValidator(estimator=self.estimator,
+            estimatorParamMaps=[params],
+            evaluator=BinaryClassificationEvaluator() if self.levels == 2 else MulticlassClassificationEvaluator(),
+            numFolds=3 if self.numFolds is None else self.numFolds)  # use 3+ folds in practice
+
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx+1)))+str(idx+1)
+            cvrf = crossval.fit(self.trainingData)
+
+            prediction = cvrf.transform(self.validationData)
+            predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
+            metrics = MulticlassMetrics(predsAndLabels)
+
+            trainingTime = time.time()-st
+            precision = metrics.precision()
+            recall = metrics.recall()
+            accuracy = metrics.accuracy
+            roc_auc = 'NA'
+            if self.levels == 2:
+                bin_metrics = BinaryClassificationMetrics(predsAndLabels)
+                roc_auc = bin_metrics.areaUnderROC
+                precision = metrics.precision(self.inverseLabelMapping[self.targetLevel])
+                recall = metrics.recall(self.inverseLabelMapping[self.targetLevel])
+
+            # finding out the best model
+            metrics = {'accuracy': accuracy, 'precision': precision, 'recall': recall, 'roc_auc': roc_auc}
+            if metrics[evaluationMetric] > evaluationMetricVal:
+                self.bestModel = cvrf.bestModel
+                self.bestPrediction = prediction
+                evaluationMetricVal = metrics[evaluationMetric]
+
+            # Save model
+            slug = self.modelFilepath.split("/")[-1]
+            algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
+            cvrf.bestModel.save(self.modelFilepath+"/"+modelName+".pkl")
+
+            # Create table output row
+            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False",
+            "Run Time(Secs)":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
+
+            # Algorithm evaluation metrics
+            algoEvaluationMetrics = {}
+            algoEvaluationMetrics["Accuracy"] = accuracy
+            row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
+            algoEvaluationMetrics["Precision"] = precision
+            algoEvaluationMetrics["Recall"] = recall
+            algoEvaluationMetrics["ROC-AUC"] = roc_auc
+
+            algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in algoEvaluationMetrics.items()}
+            row.update(algoEvaluationMetrics)
+            paramsObj = dict([(k.name,str(v)) if (v == None) | (v in [True,False]) else (k.name,v) for k,v in params.items()])
+            row.update(paramsObj)
+            tableOutput.append(row)
+            if (self.levels > 2) & (self.evaluationMetricDict["name"]=="roc_auc"):
+                defaultComparisonMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[defaultComparisonMetric]),reverse=True)
+            else:
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+        self.keepColumns += ["Accuracy","Precision","Recall","ROC-AUC"]
+        self.keepColumns += [k.name for k in params.keys()]
+        self.keepColumns.append("Selected")
+        bestMod = tableOutput[0]
+        bestMod["Selected"] = "True"
+        bestMod["alwaysSelected"] = "True"
+        tableOutput[0] = bestMod
+        return tableOutput
+
+    def getBestModel(self):
+        return self.bestModel
+
+    def getBestPrediction(self):
+        return self.bestPrediction
+
+class PySparkTrainTestResult:
+    def __init__(self, estimator=None,paramGrid=None, appType=None,
+    modelFilepath = None, levels=None, evaluationMetricDict=None,
+    trainingData=None, validationData=None, train_test_ratio=None, targetLevel=None,
+    labelMapping=None, inverseLabelMapping=None, df=None):
+        self.estimator = estimator
+        self.paramGrid = paramGrid
+        self.levels = levels
+        self.evaluationMetricDict = evaluationMetricDict
+        self.modelFilepath = modelFilepath
+        self.trainingData = trainingData
+        self.validationData = validationData
+        self.train_test_ratio = train_test_ratio
+        self.targetLevel = targetLevel
+        self.labelMapping = labelMapping
+        self.inverseLabelMapping = inverseLabelMapping
+        self.df = df
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time(Secs)","comparisonMetricUsed","algorithmName","alwaysSelected"]
+        self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName"]
+        self.metricColName = "comparisonMetricUsed"
+        self.keepColumns = ["Model Id"]
+        self.bestModel = None
+        self.bestPrediction = None
+
+    def get_ignore_list(self):
+        return self.ignoreList
+
+    def get_hide_columns(self):
+        return self.hideFromTable
+
+    def get_comparison_metric_colname(self):
+        return self.metricColName
+
+    def get_keep_columns(self):
+        return self.keepColumns
+
+
+    def train_and_save_classification_models(self):
+        tableOutput = []
+        evaluationMetric = self.evaluationMetricDict["name"]
+        evaluationMetricVal = -1
+        for idx, params in enumerate(self.paramGrid):
+            st = time.time()
+            tvs = TrainValidationSplit(estimator=self.estimator,
+            estimatorParamMaps=[params],
+            evaluator=BinaryClassificationEvaluator() if self.levels == 2 else MulticlassClassificationEvaluator(),
+            trainRatio=self.train_test_ratio)
+
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx+1)))+str(idx+1)
+            cvrf = tvs.fit(self.trainingData)
+
+            prediction = cvrf.transform(self.validationData)
+            predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
+            metrics = MulticlassMetrics(predsAndLabels)
+
+            trainingTime = time.time()-st
+            precision = metrics.precision()
+            recall = metrics.recall()
+            accuracy = metrics.accuracy
+            roc_auc = 'NA'
+            if self.levels == 2:
+                bin_metrics = BinaryClassificationMetrics(predsAndLabels)
+                roc_auc = bin_metrics.areaUnderROC
+                precision = metrics.precision(self.inverseLabelMapping[self.targetLevel])
+                recall = metrics.recall(self.inverseLabelMapping[self.targetLevel])
+
+            # finding out the best model
+            metrics = {'accuracy': accuracy, 'precision': precision, 'recall': recall, 'roc_auc': roc_auc}
+            if metrics[evaluationMetric] > evaluationMetricVal:
+                self.bestModel = cvrf.bestModel
+                self.bestPrediction = prediction
+                evaluationMetricVal = metrics[evaluationMetric]
+
+            # Save model
+            slug = self.modelFilepath.split("/")[-1]
+            algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
+            cvrf.bestModel.save(self.modelFilepath+"/"+modelName)
+
+            # Create table output row
+            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False",
+            "Run Time(Secs)":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
+
+            # Algorithm evaluation metrics
+            algoEvaluationMetrics = {}
+            algoEvaluationMetrics["Accuracy"] = accuracy
+            row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
+            algoEvaluationMetrics["Precision"] = precision
+            algoEvaluationMetrics["Recall"] = recall
+            algoEvaluationMetrics["ROC-AUC"] = roc_auc
+
+            algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in algoEvaluationMetrics.items()}
+            row.update(algoEvaluationMetrics)
+            paramsObj = dict([(k.name,str(v)) if (v == None) | (v in [True,False]) else (k.name,v) for k,v in params.items()])
+            row.update(paramsObj)
+            tableOutput.append(row)
+            if (self.levels > 2) & (self.evaluationMetricDict["name"]=="roc_auc"):
+                defaultComparisonMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[defaultComparisonMetric]),reverse=True)
+            else:
+                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+        self.keepColumns += ["Accuracy","Precision","Recall","ROC-AUC"]
+        self.keepColumns += [k.name for k in params.keys()]
+        self.keepColumns.append("Selected")
+        bestMod = tableOutput[0]
+        bestMod["Selected"] = "True"
+        bestMod["alwaysSelected"] = "True"
+        tableOutput[0] = bestMod
+        return tableOutput
+
+    def getBestModel(self):
+        return self.bestModel
+
+    def getBestPrediction(self):
+        return self.bestPrediction
+
 
 class SklearnGridSearchResult:
     def __init__(self,resultDict = {},estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,modelFilepath = None,levels=None,posLabel=None,evaluationMetricDict=None):

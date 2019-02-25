@@ -22,7 +22,7 @@ from cardStructure import NarrativesTree,NormalCard,SummaryCard,HtmlData,C3Chart
 from metadatahelper import MetaDataHelper
 from charts import ScatterChartData,NormalChartData,ChartJson
 from datacleansing import DataCleanser
-from mlmodelclasses import MLModelSummary,ModelSummary,SklearnGridSearchResult,SkleanrKFoldResult
+from mlmodelclasses import MLModelSummary,ModelSummary,SklearnGridSearchResult,SkleanrKFoldResult,PySparkGridSearchResult, PySparkTrainTestResult
 from configvalidator import ConfigValidator
 
 # Alpha levels corresponding to (90%, 95%, 99%, 99.9%, 99.99%, 99.999%, 99.9999%, 99.99999%)

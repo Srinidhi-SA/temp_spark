@@ -2,6 +2,7 @@
 import pattern.en
 from pyspark.sql import functions as FN
 from scipy.stats import f as FDistribution
+from pyspark.sql.functions import *
 from scipy.stats import norm as NormalDistribution
 from scipy.stats import t as TDistribution
 from statsmodels.stats.libqsturng import qsturng
@@ -97,3 +98,26 @@ class Stats:
     @staticmethod
     def kurtosis(data_frame, measure_column_name):
         return data_frame.select(FN.kurtosis(measure_column_name)).collect()[0][0]
+
+    @staticmethod
+    def detect_outliers_z(df, outlier_detection_col):
+        df_stats = df.select(mean(col(outlier_detection_col)).alias('mean'), stddev(col(outlier_detection_col)).alias('std')).collect()
+        mean_val = df_stats[0]['mean']
+        std_val = df_stats[0]['std']
+        upper_val = mean_val + (3*std_val)
+        lower_val = mean_val - (3*std_val)
+        outliers = [lower_val, upper_val]
+        df = df.withColumn("temp1", df[outlier_detection_col] > outliers[1])
+        df = df.withColumn("temp2", df[outlier_detection_col] < outliers[0])
+        df = df.withColumn("IS_OUTLIER", (df["temp1"] | df["temp2"]))
+        df = df.drop("temp1", "temp2")
+        outlier_count = df.filter(df["IS_OUTLIER"] == "true").count()
+        total_count = df.count()
+        outlier_percentage = (outlier_count*100)/total_count
+        # print "Mean = ", mean_val
+        # print "Std_Dev = ", std_val
+        # print "Outlier_Count = ", outlier_count
+        # print "Total_Count = ", total_count
+        # print "Outlier_Percentage = ", outlier_percentage
+        # print outliers
+        return outlier_count,lower_val,upper_val

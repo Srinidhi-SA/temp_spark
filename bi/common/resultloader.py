@@ -22,6 +22,8 @@ class ResultSetter:
         self.headNode = None
         self.randomForestModelSummary = None
         self.sparkRandomForestModelSummary = None
+        self.sparkLogisticRegressionModelSummary = None
+        self.naiveBayesModelSummary = None
         self.xgboostModelSummary = None
         self.logisticRegressionModelSummary = None
         self.svmModelSummary = None
@@ -31,6 +33,7 @@ class ResultSetter:
         self.dtreeRegressionModelSummary = None
         self.rfRegressionModelSummary = None
         self.rfcards = []
+        self.nbcards = []
         self.lrcards = []
         self.svmcards = []
         self.xgbcards = []
@@ -98,6 +101,8 @@ class ResultSetter:
         self.lrcards = data
     def set_rf_cards(self,data):
         self.rfcards = data
+    def set_nb_cards(self,data):
+        self.nbcards = data
     def set_linr_cards(self,data):
         self.linrcards = data
     def set_glinr_cards(self,data):
@@ -113,7 +118,7 @@ class ResultSetter:
     def set_svm_cards(self,data):
         self.svmcards = data
     def get_all_classification_cards(self):
-        return self.rfcards + self.lrcards + self.xgbcards
+        return self.rfcards + self.lrcards + self.xgbcards+self.nbcards
 
     def get_all_regression_cards(self):
         return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
@@ -122,6 +127,11 @@ class ResultSetter:
         self.randomForestModelSummary = data
     def set_spark_random_forest_model_summary(self, data):
         self.sparkRandomForestModelSummary = data
+    def set_spark_logistic_regression_model_summary(self, data):
+        self.sparkLogisticRegressionModelSummary = data
+
+    def set_naive_bayes_model_summary(self,data):
+        self.naiveBayesModelSummary = data
     def set_xgboost_model_summary(self,data):
         self.xgboostModelSummary = data
     def set_logistic_regression_model_summary(self,data):
@@ -140,8 +150,13 @@ class ResultSetter:
         self.rfRegressionModelSummary = data
     def get_random_forest_model_summary(self):
         return self.randomForestModelSummary
+    def get_spark_logistic_regression_model_summary(self):
+        return self.sparkLogisticRegressionModelSummary
+
     def get_spark_random_forest_model_summary(self):
         return self.sparkRandomForestModelSummary
+    def get_naive_bayes_model_summary(self):
+        return self.naiveBayesModelSummary
     def get_xgboost_model_summary(self):
         return self.xgboostModelSummary
     def get_logistic_regression_model_summary(self):
