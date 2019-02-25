@@ -24,8 +24,11 @@ class ResultSetter:
         self.sparkRandomForestModelSummary = None
         self.sparkLogisticRegressionModelSummary = None
         self.naiveBayesModelSummary = None
+        self.sparknaiveBayesModelSummary = None
         self.xgboostModelSummary = None
+        self.sparkxgboostModelSummary = None
         self.logisticRegressionModelSummary = None
+        self.sparklogisticRegressionModelSummary = None
         self.svmModelSummary = None
         self.linearRegressionModelSummary = None
         self.generalizedLinearRegressionModelSummary = None
@@ -132,10 +135,16 @@ class ResultSetter:
 
     def set_naive_bayes_model_summary(self,data):
         self.naiveBayesModelSummary = data
+    def set_spark_naive_bayes_model_summary(self,data):
+        self.sparknaiveBayesModelSummary = data
     def set_xgboost_model_summary(self,data):
         self.xgboostModelSummary = data
+    def set_spark_xgboost_model_summary(self,data):
+        self.sparkxgboostModelSummary = data
     def set_logistic_regression_model_summary(self,data):
         self.logisticRegressionModelSummary = data
+    def set_spark_logistic_regression_model_summary(self,data):
+        self.sparklogisticRegressionModelSummary = data
     def set_svm_model_summary(self,data):
         self.svmModelSummary = data
     def set_linear_regression_model_summary(self,data):
@@ -157,10 +166,16 @@ class ResultSetter:
         return self.sparkRandomForestModelSummary
     def get_naive_bayes_model_summary(self):
         return self.naiveBayesModelSummary
+    def get_spark_naive_bayes_model_summary(self):
+        return self.sparknaiveBayesModelSummary
     def get_xgboost_model_summary(self):
         return self.xgboostModelSummary
+    def get_spark_xgboost_model_summary(self):
+        return self.sparkxgboostModelSummary
     def get_logistic_regression_model_summary(self):
         return self.logisticRegressionModelSummary
+    def get_spark_logistic_regression_model_summary(self):
+        return self.sparklogisticRegressionModelSummary
     def get_svm_model_summary(self):
         return self.svmModelSummary
     def get_linear_regression_model_summary(self):

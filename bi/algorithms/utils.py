@@ -415,6 +415,7 @@ def add_string_index(df,string_columns):
 def create_pyspark_ml_pipeline(numerical_columns,categorical_columns,target_column,algoName=None,algoType="classification"):
     indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed') for x in categorical_columns ] #String Indexer
     encoders = [OneHotEncoder(dropLast=False, inputCol=x+"_indexed", outputCol=x+"_encoded") for x in categorical_columns] # one hot encoder
+    # assembler_features = VectorAssembler(inputCols=[x+"_encoded" for x in sorted(categorical_columns)]+sorted(numerical_columns), outputCol='features')
 
     if algoName == 'rf' or algoName == 'dt' or algoName == 'xgb':
         ml_stages = [i for i in indexers]
@@ -700,7 +701,10 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             print confusion_matrix
             paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
-
+        # elif modelSummaryClass.get_algorithm_name() == 'Spark ML Random Forest':
+        #     target_level = modelSummaryClass.get_target_level()
+        #     confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+        #     paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
         elif modelSummaryClass.get_algorithm_name() == 'Logistic Regression':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
@@ -718,7 +722,16 @@ def create_model_summary_para(modelSummaryClass):
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Spark ML Random Forest. The model has an overall accuracy of <b>{}%</b>. The model using Spark ML Random Forest was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[target_level][x] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML XGBoost':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+
         elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naivebayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naivebayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
@@ -726,10 +739,19 @@ def create_model_summary_para(modelSummaryClass):
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            print "prediction_split_array : ", prediction_split_array
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML Random Forest':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
         elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
@@ -754,6 +776,11 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = modelSummaryClass.get_confusion_matrix()
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Spark ML Logistic Regression. The model has an overall accuracy of <b>{}%</b>. The model using Spark ML Logistic Regression was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[target_level][x] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML XGBoost':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
 
         print "paragraph : ", paragraph
         print "-"*200
@@ -980,12 +1007,16 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         modelResult.add_cards(all_cards)
         modelResult = CommonUtils.convert_python_object_to_json(modelResult)
         modelJsonOutput = ModelSummary()
+        sprfModelSummary = result_setter.get_spark_random_forest_model_summary()
         modelJsonOutput.set_model_summary(json.loads(modelResult))
         ####
         rfModelSummary = result_setter.get_random_forest_model_summary()
         nbModelSummary = result_setter.get_naive_bayes_model_summary()
+        spnbModelSummary = result_setter.get_spark_naive_bayes_model_summary()
         lrModelSummary = result_setter.get_logistic_regression_model_summary()
+        splrModelSummary = result_setter.get_spark_logistic_regression_model_summary()
         xgbModelSummary = result_setter.get_xgboost_model_summary()
+        spxgbModelSummary = result_setter.get_spark_xgboost_model_summary()
         svmModelSummary = result_setter.get_svm_model_summary()
         sparkRfModelSummary = result_setter.get_spark_random_forest_model_summary()
 
@@ -1002,14 +1033,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         counter = 1
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary, sparkRfModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary, sprfModelSummary, splrModelSummary, spnbModelSummary, spxgbModelSummary]:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
                     hyperParameterFlagDict[obj["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["slug"]] = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary, sparkRfModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary, sprfModelSummary, splrModelSummary, spnbModelSummary, spxgbModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["slug"]] = obj["modelFeatureList"]

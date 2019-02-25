@@ -19,6 +19,8 @@ from bi.scripts.classification.logistic_regression_pyspark import LogisticRegres
 from bi.scripts.classification.naive_bayes import NBBClassificationModelScript
 from bi.scripts.classification.naive_bayes import NBGClassificationModelScript
 from bi.scripts.classification.naive_bayes import NBMClassificationModelScript
+from bi.scripts.classification.naive_bayes_pyspark import NaiveBayesPysparkScript
+from bi.scripts.classification.xgboost_pyspark import XGBoostPysparkScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
@@ -217,15 +219,28 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkrandomforest"]:
                 try:
                     st = time.time()
-                    rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
-                    rf_obj.Train()
+                    sprf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    sprf_obj.Train()
                     print "Spark ML Random Forest Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkRandomForest",e)
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparknaivebayes"]:
+                try:
+                    st = time.time()
+                    spnb_obj = NaiveBayesPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    spnb_obj .Train()
+                    print "Spark ML Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"sparknaivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["xgboost"]:
                 try:
                     st = time.time()
@@ -235,6 +250,17 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkxgboost"]:
+                try:
+                    st = time.time()
+                    spxgb_obj = XGBoostPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    spxgb_obj.Train()
+                    print "XGBoost Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkxgboost",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]:
                 try:
                     st = time.time()
@@ -266,6 +292,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesgau"] and obj.get_algorithm_name() == "naivebayesgau":
                 try:
                     st = time.time()
@@ -276,6 +303,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesmul"] and obj.get_algorithm_name() == "naivebayesmul":
                 try:
                     st = time.time()
