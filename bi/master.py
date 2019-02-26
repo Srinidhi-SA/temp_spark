@@ -160,7 +160,7 @@ def main(configJson):
                         if dataCleansingDict['selected']:
                             data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
                             df = data_preprocessing_obj.data_cleansing()
-                        removed_col=data_preprocessing_obj.removed_col
+                            removed_col=data_preprocessing_obj.removed_col
                         dataframe_context.set_ignore_column_suggestions(removed_col)
 
                         if featureEngineeringDict['selected']:
