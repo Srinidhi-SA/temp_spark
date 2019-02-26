@@ -12,7 +12,7 @@ from pyspark.sql import functions as FN
 from pyspark.sql.functions import col, create_map, lit
 from pyspark.sql.functions import udf
 from pyspark.sql.types import *
-from pyspark.sql.types import StringType
+from pyspark.sql.types import StringType,FloatType
 from pyspark.sql.types import IntegerType
 from sklearn.model_selection import train_test_split
 
@@ -154,7 +154,7 @@ class DataFrameHelper:
                 if obj["columnType"] == "dimension":
                     self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(StringType()))
                 elif obj["columnType"] == "measure":
-                    self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(IntegerType()))
+                    self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(FloatType()))
                 print self._data_frame.printSchema()
             except:
                 pass
