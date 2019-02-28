@@ -17,16 +17,16 @@ class DfMetaData:
         self.sampleData = sampleData
 
     def set_meta_data(self,data):
-        self.metaData.append(data)
+        self.metaData= data
 
     def set_column_data(self,data):
-        self.columnData.append(data)
+        self.columnData = data
 
     def set_header(self,data):
-        self.headers.append(data)
+        self.headers = data
 
     def set_sample_data(self,data):
-        self.sampleData.append(data)
+        self.sampleData = data
 
     def add_meta_data(self,data):
         self.metaData.append(data)
@@ -37,8 +37,8 @@ class DfMetaData:
     def add_headers(self,data):
         self.headers.append(data)
 
-    def add_sample_data(self,data):
-        self.sampleData.append(data)
+    # def add_sample_data(self,data):
+    #     self.sampleData.append(data)
 
 
 class MetaData:
