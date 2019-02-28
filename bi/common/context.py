@@ -455,6 +455,7 @@ class ContextSetter:
 
     def get_label_map(self):
         if len(self.labelMappingDict) > 0:
+            print "LABEL MAPPING DICT - ", self.labelMappingDict
             original = self.labelMappingDict[0]
             modified = {}
             for val in original:

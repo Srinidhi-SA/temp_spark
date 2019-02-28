@@ -122,7 +122,7 @@ class XGBoostPysparkScript:
 
         appType = self._dataframe_context.get_app_type()
 
-        model_filepath = model_path+"/"+self._slug+"/model.pkl"
+        model_filepath = model_path+"/"+self._slug+"/model"
         pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
@@ -279,8 +279,8 @@ class XGBoostPysparkScript:
         if not algoSetting.is_hyperparameter_tuning_enabled():
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
             modelFilepathArr = model_filepath.split("/")[:-1]
-            modelFilepathArr.append(modelName+".pkl")
-            # objs["trained_model"].save(modelFilepathArr)
+            modelFilepathArr.append(modelName)
+            objs["trained_model"].save("/".join(modelFilepathArr))
         runtime = round((time.time() - st_global),2)
 
         cat_cols = list(set(categorical_columns) - {result_column})

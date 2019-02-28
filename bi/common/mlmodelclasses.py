@@ -367,7 +367,7 @@ class PySparkGridSearchResult:
             # Save model
             slug = self.modelFilepath.split("/")[-1]
             algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
-            cvrf.bestModel.save(self.modelFilepath+"/"+modelName+".pkl")
+            cvrf.bestModel.save(self.modelFilepath+"/"+modelName)
 
             # Create table output row
             row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False",

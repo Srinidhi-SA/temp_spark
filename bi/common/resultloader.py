@@ -23,6 +23,7 @@ class ResultSetter:
         self.randomForestModelSummary = None
         self.sparkRandomForestModelSummary = None
         self.sparkLogisticRegressionModelSummary = None
+        self.sparkMultilayerPerceptronModelSummary = None
         self.naiveBayesModelSummary = None
         self.sparknaiveBayesModelSummary = None
         self.xgboostModelSummary = None
@@ -145,6 +146,8 @@ class ResultSetter:
         self.logisticRegressionModelSummary = data
     def set_spark_logistic_regression_model_summary(self,data):
         self.sparklogisticRegressionModelSummary = data
+    def set_spark_multilayer_perceptron_model_summary(self, data):
+        self.sparkMultilayerPerceptronModelSummary = data
     def set_svm_model_summary(self,data):
         self.svmModelSummary = data
     def set_linear_regression_model_summary(self,data):
@@ -176,6 +179,8 @@ class ResultSetter:
         return self.logisticRegressionModelSummary
     def get_spark_logistic_regression_model_summary(self):
         return self.sparklogisticRegressionModelSummary
+    def get_spark_multilayer_perceptron_model_summary(self):
+        return self.sparkMultilayerPerceptronModelSummary
     def get_svm_model_summary(self):
         return self.svmModelSummary
     def get_linear_regression_model_summary(self):

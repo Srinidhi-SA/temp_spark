@@ -92,15 +92,6 @@ class LogisticRegressionPysparkScript:
     def Train(self):
         st_global = time.time()
 
-        print "="*100
-        try:
-            print self._spark.sparkContext.getConf().getAll()
-        except Py4JError as e:
-            print str(e)
-            pass
-
-        print "="*100
-
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,  self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()

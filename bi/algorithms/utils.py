@@ -574,8 +574,9 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
-    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine",
-    "sparkrandomforest":"Spark ML Random Forest", "sparklogisticregression": "Spark ML Logistic Regression"}
+    algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine", "naivebayes": "Naive Bayes",
+    "sparkrandomforest":"Spark ML Random Forest", "sparklogisticregression": "Spark ML Logistic Regression", "sparknaivebayes": "Spark ML Naive Bayes",
+    "sparkxgboost": "Spark ML XGBoost"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
