@@ -413,7 +413,7 @@ def add_string_index(df,string_columns):
 ##################################Spark ML Pipelines ###########################
 
 def create_pyspark_ml_pipeline(numerical_columns,categorical_columns,target_column,algoName=None,algoType="classification"):
-    indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed') for x in categorical_columns ] #String Indexer
+    indexers = [StringIndexer(inputCol=x, outputCol=x+'_indexed', handleInvalid="keep") for x in categorical_columns ] #String Indexer
     encoders = [OneHotEncoder(dropLast=False, inputCol=x+"_indexed", outputCol=x+"_encoded") for x in categorical_columns] # one hot encoder
     # assembler_features = VectorAssembler(inputCols=[x+"_encoded" for x in sorted(categorical_columns)]+sorted(numerical_columns), outputCol='features')
 
@@ -575,7 +575,8 @@ def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
     algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine",
-    "sparkrandomforest":"Spark ML Random Forest", "sparklogisticregression": "Spark ML Logistic Regression"}
+    "sparkrandomforest":"Spark ML Random Forest", "sparklogisticregression": "Spark ML Logistic Regression", "naivebayes":"Naive Bayes",
+    "sparkperceptron": "Spark ML Multilayer Perceptron"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -734,7 +735,13 @@ def create_model_summary_para(modelSummaryClass):
         elif modelSummaryClass.get_algorithm_name() == 'Spark ML Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naivebayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Spark ML Naive Bayes. The model has an overall accuracy of <b>{}%</b>. The model using Spark ML Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100,
+            confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML Multilayer Perceptron':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Multilayer Perceptron. The model has an overall accuracy of <b>{}%</b>. The model using Multilayer Perceptron was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+
     else:
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
@@ -781,6 +788,11 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+        elif modelSummaryClass.get_algorithm_name() == 'Spark ML Multilayer Perceptron':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using Multilayer Perceptron. The model has an overall accuracy of <b>{}%</b>. The model using Multilayer Perceptron was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
 
         print "paragraph : ", paragraph
         print "-"*200
@@ -1019,6 +1031,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         spxgbModelSummary = result_setter.get_spark_xgboost_model_summary()
         svmModelSummary = result_setter.get_svm_model_summary()
         sparkRfModelSummary = result_setter.get_spark_random_forest_model_summary()
+        spmlpcModelSummary = result_setter.get_spark_multilayer_perceptron_model_summary()
 
         model_dropdowns = []
         model_hyperparameter_summary = []
@@ -1033,14 +1046,16 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         counter = 1
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary, sprfModelSummary, splrModelSummary, spnbModelSummary, spxgbModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,
+        sprfModelSummary, splrModelSummary, spnbModelSummary, spxgbModelSummary, spmlpcModelSummary]:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
                     hyperParameterFlagDict[obj["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["slug"]] = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary, sprfModelSummary, splrModelSummary, spnbModelSummary, spxgbModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,
+        sprfModelSummary, splrModelSummary, spnbModelSummary, spxgbModelSummary, spmlpcModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["slug"]] = obj["modelFeatureList"]
@@ -1114,7 +1129,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
         model_dropdowns = [x for x in model_dropdowns if x != None]
         modelJsonOutput.set_model_dropdown(model_dropdowns)
-        print model_dropdowns
+        print "DROPDOWN", model_dropdowns
         print "="*100
         modelJsonOutput.set_model_config(model_configs)
         if hyperParameterFlag == True:

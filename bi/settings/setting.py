@@ -128,9 +128,9 @@ APPS_ID_MAP = {
 
 SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"randomforest",
-
             ALGORITHMRANDOMSLUG+"sprf":"sparkrandomforest",
-            ALGORITHMRANDOMSLUG+"spxgb":"sparkxgbost",
+            ALGORITHMRANDOMSLUG+"spmlpc":"sparkmlpclassifier",
+            ALGORITHMRANDOMSLUG+"spxgb":"sparkxgboost",
             ALGORITHMRANDOMSLUG+"splr":"sparklogisticregression",
             ALGORITHMRANDOMSLUG+"nb":"naivebayesber",
             ALGORITHMRANDOMSLUG+"nb":"naivebayesgau",
@@ -147,8 +147,8 @@ SLUG_MODEL_MAPPING = {
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
-
             "sparkrandomforest":ALGORITHMRANDOMSLUG+"sprf",
+            "sparkmlpclassifier":ALGORITHMRANDOMSLUG+"spmlpc",
             "sparkxgboost":ALGORITHMRANDOMSLUG+"spxgb",
             "sparklogisticregression":ALGORITHMRANDOMSLUG+"splr",
             "naivebayesber":ALGORITHMRANDOMSLUG+"nb",
@@ -168,8 +168,8 @@ MODEL_SLUG_MAPPING = {
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"Random Forest",
-
             ALGORITHMRANDOMSLUG+"sprf":"Spark Random Forest",
+            ALGORITHMRANDOMSLUG+"spmlpc":"Spark MLP Classifier",
             ALGORITHMRANDOMSLUG+"spxgb":"Spark XGBoost",
             ALGORITHMRANDOMSLUG+"splr":"Spark Logistic Regression",
             ALGORITHMRANDOMSLUG+"nb":"Naive Bayes",
@@ -232,8 +232,8 @@ regressionAlgoRelativeWeight = {
 
 classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"rf"  : 1,
-
     ALGORITHMRANDOMSLUG+"sprf"  : 1,
+    ALGORITHMRANDOMSLUG+"spmlpc"  : 1,
     ALGORITHMRANDOMSLUG+"spxgb"  : 1,
     ALGORITHMRANDOMSLUG+"splr"  : 1,
     ALGORITHMRANDOMSLUG+"nb"  : 1,

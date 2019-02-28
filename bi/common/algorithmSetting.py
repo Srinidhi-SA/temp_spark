@@ -172,6 +172,20 @@ class AlgorithmParameters:
         print out
         return out
 
+    def thresholdsParser(self, stringObj):
+        out = []
+        blocks =  stringObj.split("#")
+        for val in blocks:
+            out.append(map(float, val.split(',')))
+        return out
+
+    def layersParser(self, stringObj):
+        out = []
+        blocks =  stringObj.split("#")
+        for val in blocks:
+            out.append(map(int, val.split(',')))
+        return out
+
 
     def get_param_value(self,hyperParams=True):
         output = None
@@ -180,19 +194,34 @@ class AlgorithmParameters:
             if self.hyperpatameterTuningCandidate != True:
                 if self.acceptedValue != None:
                     if self.name != "tol":
-                        output = {self.name:self.acceptedValue}
+                        if self.name == 'thresholds':
+                            output = {self.name: self.thresholdsParser(self.acceptedValue)}
+                        elif self.name == 'layers':
+                            output = {self.name: self.layersParser(self.acceptedValue)}
+                        else:
+                            output = {self.name:self.acceptedValue}
                     else:
                         output = {self.name:1.0/10**self.acceptedValue}
                 else:
                     if self.name != "tol":
-                        output = {self.name:defaultValue}
+                        if self.name == 'layers':
+                            output = {self.name: self.layersParser(defaultValue)}
+                        else:
+                            output = {self.name:defaultValue}
                     else:
                         output = {self.name:1.0/10**defaultValue}
             else:
                 if self.paramType != "list":
                     if self.acceptedValue != None:
-                        outRange = self.hyperParameterInputParser(str(self.acceptedValue))
+                        if self.name == 'thresholds':
+                            outRange = self.thresholdsParser(self.acceptedValue)
+                        elif self.name == 'layers':
+                            outRange = self.layersParser(self.acceptedValue)
+                        else:
+                            outRange = self.hyperParameterInputParser(str(self.acceptedValue))
                     else:
+                        if self.name == 'layers':
+                            outRange = self.layersParser(defaultValue)
                         outRange = [defaultValue]
                     if self.name != "tol":
                         output = {self.name:outRange}
@@ -208,9 +237,15 @@ class AlgorithmParameters:
                     elif "int" in self.expectedDataType:
                         self.acceptedValue = int(self.acceptedValue)
                 if self.name != "tol":
-                    output = {self.name:self.acceptedValue}
+                    if self.name == 'thresholds':
+                        output = {self.name: self.thresholdsParser(self.acceptedValue)}
+                    elif self.name == 'layers':
+                        output = {self.name: self.layersParser(self.acceptedValue)}
+                    else:
+                        output = {self.name:self.acceptedValue}
                 else:
                     output = {self.name:1.0/10**self.acceptedValue}
+
             else:
                 if self.expectedDataType != None:
                     if defaultValue != None:
@@ -219,7 +254,10 @@ class AlgorithmParameters:
                         elif "int" in self.expectedDataType:
                             self.acceptedValue = int(defaultValue)
                 if self.name != "tol":
-                    output = {self.name:defaultValue}
+                    if self.name == 'layers':
+                        output = {self.name: self.layersParser(self.acceptedValue)}
+                    else:
+                        output = {self.name:defaultValue}
                 else:
                     output = {self.name:1.0/10**defaultValue}
         return self.handle_boolean(output)

@@ -14,6 +14,7 @@ from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,Resul
 from bi.scripts.classification.random_forest import RFClassificationModelScript
 
 from bi.scripts.classification.random_forest_pyspark import RandomForestPysparkScript
+from bi.scripts.classification.multilayer_perceptron_pyspark import MultilayerPerceptronPysparkScript
 from bi.scripts.classification.xgboost_pyspark import XGBoostPysparkScript
 from bi.scripts.classification.logistic_regression_pyspark import LogisticRegressionPysparkScript
 from bi.scripts.classification.naive_bayes import NBBClassificationModelScript
@@ -315,12 +316,12 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkxgboost"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkmlpclassifier"]:
                 try:
                     st = time.time()
-                    spxgb_obj = XGBoostPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    spxgb_obj = MultilayerPerceptronPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     spxgb_obj.Train()
-                    print "XGBoost Model Done in ", time.time() - st,  " seconds."
+                    print "Spark ML Multilayer Perceptron Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkxgboost",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -390,7 +391,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
 
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
-    print modelJsonOutput
+    print "OUTPUT", modelJsonOutput
 
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
@@ -515,6 +516,17 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "sparknaivebayes" in selected_model_for_prediction:
+            # df = df.toPandas()
+            trainedModel = NaiveBayesPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"sparklogisticRegression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+
         else:
             print "Could Not Load the Model for Scoring"
 

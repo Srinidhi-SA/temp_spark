@@ -92,15 +92,6 @@ class LogisticRegressionPysparkScript:
     def Train(self):
         st_global = time.time()
 
-        print "="*100
-        try:
-            print self._spark.sparkContext.getConf().getAll()
-        except Py4JError as e:
-            print str(e)
-            pass
-
-        print "="*100
-
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,  self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
@@ -159,23 +150,32 @@ class LogisticRegressionPysparkScript:
             algoParams = algoSetting.get_params_dict_hyperparameter()
         clfParams = [prm.name for prm in clf.params]
         print algoParams
-        algoParams = {getattr(clf, k):v if type(v)=='list' else [v] for k,v in algoParams.items() if k in clfParams}
+        algoParams = {getattr(clf, k):v if isinstance(v, list) else [v] for k,v in algoParams.items() if k in clfParams}
 
         paramGrid = ParamGridBuilder()
-        if not algoSetting.is_hyperparameter_tuning_enabled():
-            for k,v in algoParams.items():
-                # print k.name, v, len(v)
-                if v == [None] * len(v):
-                    continue
-                paramGrid = paramGrid.addGrid(k,v)
-            paramGrid = paramGrid.build()
-        else:
-            for k,v in algoParams.items():
-                print k.name, v
-                if v[0] == [None] * len(v[0]):
-                    continue
-                paramGrid = paramGrid.addGrid(k,v[0])
-            paramGrid = paramGrid.build()
+        for k,v in algoParams.items():
+            print k, v
+            if v == [None] * len(v):
+                continue
+            paramGrid = paramGrid.addGrid(k,v)
+        paramGrid = paramGrid.build()
+        # algoParams = {getattr(clf, k):v if type(v)=='list' else [v] for k,v in algoParams.items() if k in clfParams}
+        #
+        # paramGrid = ParamGridBuilder()
+        # if not algoSetting.is_hyperparameter_tuning_enabled():
+        #     for k,v in algoParams.items():
+        #         # print k.name, v, len(v)
+        #         if v == [None] * len(v):
+        #             continue
+        #         paramGrid = paramGrid.addGrid(k,v)
+        #     paramGrid = paramGrid.build()
+        # else:
+        #     for k,v in algoParams.items():
+        #         print k.name, v
+        #         if v[0] == [None] * len(v[0]):
+        #             continue
+        #         paramGrid = paramGrid.addGrid(k,v[0])
+        #     paramGrid = paramGrid.build()
 
         if len(paramGrid) > 1:
             hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -353,13 +353,13 @@ class LogisticRegressionPysparkScript:
                 "name":self._model_summary.get_algorithm_name()
             }
 
-        rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        for card in rfCards:
+        lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in lrCards:
             self._prediction_narrative.add_a_card(card)
 
         self._result_setter.set_model_summary({"logistic":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_spark_logistic_regression_model_summary(modelSummaryJson)
-        self._result_setter.set_rf_cards(rfCards)
+        self._result_setter.set_lr_cards(lrCards)
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

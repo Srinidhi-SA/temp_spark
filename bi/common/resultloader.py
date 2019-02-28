@@ -20,6 +20,7 @@ class ResultSetter:
         self.regressionNode = None
         self.anovaNode = None
         self.headNode = None
+        self.sparkMultilayerPerceptronModelSummary = None
         self.randomForestModelSummary = None
         self.sparkRandomForestModelSummary = None
         self.sparkLogisticRegressionModelSummary = None
@@ -35,6 +36,7 @@ class ResultSetter:
         self.gbtRegressionModelSummary = None
         self.dtreeRegressionModelSummary = None
         self.rfRegressionModelSummary = None
+        self.mlpccards = []
         self.rfcards = []
         self.nbcards = []
         self.lrcards = []
@@ -120,14 +122,18 @@ class ResultSetter:
         self.xgbcards = data
     def set_svm_cards(self,data):
         self.svmcards = data
+    def set_mlpc_cards(self,data):
+        self.mlpccards = data
     def get_all_classification_cards(self):
-        return self.rfcards + self.lrcards + self.xgbcards+self.nbcards
+        return self.rfcards + self.lrcards + self.xgbcards + self.nbcards + self.mlpccards
 
     def get_all_regression_cards(self):
         return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
 
     def set_random_forest_model_summary(self,data):
         self.randomForestModelSummary = data
+    def set_spark_multilayer_perceptron_model_summary(self,data):
+        self.sparkMultilayerPerceptronModelSummary = data
     def set_spark_random_forest_model_summary(self, data):
         self.sparkRandomForestModelSummary = data
     def set_spark_logistic_regression_model_summary(self, data):
@@ -161,7 +167,8 @@ class ResultSetter:
         return self.randomForestModelSummary
     def get_spark_logistic_regression_model_summary(self):
         return self.sparkLogisticRegressionModelSummary
-
+    def get_spark_multilayer_perceptron_model_summary(self):
+        return self.sparkMultilayerPerceptronModelSummary
     def get_spark_random_forest_model_summary(self):
         return self.sparkRandomForestModelSummary
     def get_naive_bayes_model_summary(self):

@@ -80,9 +80,9 @@ class XGBoostPysparkScript:
 
     def Train(self):
         st_global = time.time()
-        os.environ['PYSPARK_SUBMIT_ARGS'] = "--jars xgboost4j-spark-0.72.jar,xgboost4j-0.72.jar pyspark-shell"
+        # os.environ['PYSPARK_SUBMIT_ARGS'] = "--jars xgboost4j-spark-0.72.jar,xgboost4j-0.72.jar pyspark-shell"
         ##################################################################################################
-        self._spark.sparkContext.addPyFile("/home/sumeet/SUMEET/Workplace/spark_ml/xgboost4j/sparkxgb.zip")
+        self._spark.sparkContext.addPyFile("/home/keshav/pysparkExternalJars/sparkxgb.zip")
         ##################################################################################################
 
         from sparkxgb import XGBoostEstimator
@@ -122,7 +122,7 @@ class XGBoostPysparkScript:
 
         appType = self._dataframe_context.get_app_type()
 
-        model_filepath = model_path+"/"+self._slug+"/model.pkl"
+        model_filepath = model_path+"/"+self._slug+"/model"
         pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
@@ -147,8 +147,12 @@ class XGBoostPysparkScript:
             algoParams = algoSetting.get_params_dict()
         else:
             algoParams = algoSetting.get_params_dict_hyperparameter()
+        for k, v in algoParams.items():
+            print k, v
         clfParams = [prm.name for prm in clf.params]
         algoParams = {getattr(clf, k):v if type(v)=='list' else [v] for k,v in algoParams.items() if k in clfParams}
+        for k, v in algoParams.items():
+            print k.name, v
 
         paramGrid = ParamGridBuilder()#.addGrid(clf.objective, ['binary:logistic']).build()
         if not algoSetting.is_hyperparameter_tuning_enabled():
@@ -214,7 +218,7 @@ class XGBoostPysparkScript:
                 pySparkHyperParameterResultObj = PySparkTrainTestResult(estimator, paramGrid, appType, modelFilepath, levels,
                 evaluationMetricDict, trainingData, validationData, train_test_ratio, self._targetLevel, labelMapping, inverseLabelMapping,
                 df)
-                print "PYSPARK-HYPERPARAMETER-RESULT-OBJECT - ", pySparkHyperParameterResultObj
+
                 resultArray = pySparkHyperParameterResultObj.train_and_save_classification_models()
                 self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                 self._result_setter.set_metadata_parallel_coordinates(self._slug,
@@ -260,7 +264,6 @@ class XGBoostPysparkScript:
         boost_obj = feature_importance_model._call_java('booster')
         scores = boost_obj.getFeatureScore('')
         featuresVec = str(scores.toVector())
-        print featuresVec
         # feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
         objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
         "probability":prediction.select('probabilities'),"feature_importance":None,
@@ -279,8 +282,9 @@ class XGBoostPysparkScript:
         if not algoSetting.is_hyperparameter_tuning_enabled():
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
             modelFilepathArr = model_filepath.split("/")[:-1]
-            modelFilepathArr.append(modelName+".pkl")
-            # objs["trained_model"].save(modelFilepathArr)
+            modelFilepathArr.append(modelName)
+            objs["trained_model"].save("/".join(modelFilepathArr))
+
         runtime = round((time.time() - st_global),2)
 
         cat_cols = list(set(categorical_columns) - {result_column})
