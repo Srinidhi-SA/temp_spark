@@ -284,7 +284,6 @@ class XGBoostPysparkScript:
             modelFilepathArr = model_filepath.split("/")[:-1]
             modelFilepathArr.append(modelName)
             objs["trained_model"].save("/".join(modelFilepathArr))
-
         runtime = round((time.time() - st_global),2)
 
         cat_cols = list(set(categorical_columns) - {result_column})

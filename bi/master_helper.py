@@ -477,6 +477,15 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "sparkrandomforest" in selected_model_for_prediction:
+            # df = df.toPandas()
+            trainedModel = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkrandomforest",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
         elif "xgboost" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -523,10 +532,18 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"sparklogisticRegression",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"sparknaivebayes",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
-
+        elif "sparkmlpclassifier" in selected_model_for_prediction:
+            # df = df.toPandas()
+            trainedModel = MultilayerPerceptronPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkmlpclassifier",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
         else:
             print "Could Not Load the Model for Scoring"
 

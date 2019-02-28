@@ -14,11 +14,13 @@ from bi.common import DataFrameHelper
 from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
 from bi.common import SklearnGridSearchResult, SkleanrKFoldResult
 from bi.common.mlmodelclasses import PySparkGridSearchResult, PySparkTrainTestResult
+from bi.algorithms import DecisionTrees
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
 from pyspark.ml.classification import NaiveBayes
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
@@ -141,6 +143,10 @@ class NaiveBayesPysparkScript:
         print algoParams
         print "="*100
 
+        print "="*143
+        print "ALGOPARAMS - ", algoParams
+        print "="*143
+
         paramGrid = ParamGridBuilder()
                 # if not algoSetting.is_hyperparameter_tuning_enabled():
                 #     for k,v in algoParams.items():
@@ -166,6 +172,10 @@ class NaiveBayesPysparkScript:
         #             continue
         #         paramGrid = paramGrid.addGrid(k,v[0])
         #     paramGrid = paramGrid.build()
+
+        print "="*143
+        print "PARAMGRID - ", paramGrid
+        print "="*143
 
         if len(paramGrid) > 1:
             hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -349,7 +359,7 @@ class NaiveBayesPysparkScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Logistic Regression Scripts",
+                "summary":"Initialized the Naive Bayes Scripts",
                 "weight":2
                 },
             "prediction":{
@@ -410,7 +420,6 @@ class NaiveBayesPysparkScript:
         label_indexer_dict = MLUtils.read_string_indexer_mapping(trained_model_path,SQLctx)
         prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
         transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
-        # transformed.show()
 
         if "probability" in transformed.columns:
             probability_dataframe = transformed.select([result_column,"probability"]).toPandas()

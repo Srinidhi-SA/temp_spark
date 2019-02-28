@@ -576,7 +576,7 @@ def get_model_comparison(collated_summary):
     algos = collated_summary.keys()
     algos_dict = {"randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine",
     "sparkrandomforest":"Spark ML Random Forest", "sparklogisticregression": "Spark ML Logistic Regression", "naivebayes":"Naive Bayes",
-    "sparkperceptron": "Spark ML Multilayer Perceptron"}
+    "sparkperceptron": "Spark ML Multilayer Perceptron", "sparknaivebayes": "Spark ML Naive Bayes"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
