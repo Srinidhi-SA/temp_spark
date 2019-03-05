@@ -33,6 +33,9 @@ class DataLoader:
             return DataLoader.create_dataframe_from_oracle_db(spark_session, dbConnectionParams)
         elif "hive" == datasource_type:
             return DataLoader.create_dataframe_from_hive(spark_session, dbConnectionParams)
+        elif "s3" == datasource_type:
+            print "inside s3"*10
+            return DataLoader.create_dataframe_from_s3(spark_session, dbConnectionParams)
 
     @staticmethod
     @accepts(SparkSession, dict)
@@ -115,6 +118,37 @@ class DataLoader:
             print("couldn't connect to hive")
             raise e
         return df
+
+    @staticmethod
+    @accepts(SparkSession, dict)
+    def create_dataframe_from_s3(spark_session, dbConnectionParams):
+        print "iside s3 function" *10
+        df = None
+        try:
+            myAccessKey = dbConnectionParams.get("access_key_id")
+            mySecretKey = dbConnectionParams.get("secret_key")
+            s3_bucket_name = dbConnectionParams.get("bucket_name")
+            file_name = dbConnectionParams.get("file_name")
+            datasetname = dbConnectionParams.get("new_dataset_name")
+
+            spark = SparkSession \
+                    .builder \
+                    .appName("using_s3") \
+                    .getOrCreate()
+
+            hadoopConf = spark.sparkContext._jsc.hadoopConfiguration()
+            hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+            hadoopConf.set("fs.s3a.access.key", myAccessKey)
+            hadoopConf.set("fs.s3a.secret.key", mySecretKey)
+
+            # s3 path with bucket
+            file_path = 's3a://{0}/{1}'.format(s3_bucket_name, file_name)
+            df = spark.read.csv(file_path)
+        except Exception as e:
+            print("couldn't connect to hive")
+            raise e
+        return df
+
 
     @staticmethod
     def get_db_name(dbConnectionParams):
