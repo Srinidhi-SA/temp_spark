@@ -37,7 +37,7 @@ from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-
+from bi.algorithms import GainLiftKS
 
 
 
@@ -208,11 +208,24 @@ class NBBClassificationModelScript:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
                 auc = metrics.roc_auc_score(y_test,y_score)
+                log_loss = metrics.log_loss(y_test,y_score)
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
+                log_loss = metrics.log_loss(y_test,y_score)
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
+            y_prob_for_evaluation = []
+            for i in range(len(y_prob)):
+                if len(y_prob[i]) == 1:
+                    y_prob_for_evaluation.append(float(y_prob[i][0]))
+                else:
+                    y_prob_for_evaluation.append(float(y_prob[i][int(y_score[i])]))
+
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
+            pys_df = self._spark.createDataFrame(temp_df)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
+            print gain_lift_ks_obj.Run().show()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -684,7 +697,6 @@ class NBGClassificationModelScript:
                 params_grid = {k:v for k,v in params_grid.items() if k in clf.get_params()}
                 print params_grid
                 if hyperParamAlgoName == "gridsearchcv":
-                    print "inside gridsearchcv"*100
                     clfGrid = GridSearchCV(clf,params_grid)
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
@@ -697,7 +709,6 @@ class NBGClassificationModelScript:
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
-                    print "Inside randomsearchcv"*100
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
                     bestEstimator = None

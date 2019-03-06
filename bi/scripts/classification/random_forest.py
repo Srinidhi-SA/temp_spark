@@ -34,6 +34,7 @@ from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
+from bi.algorithms import GainLiftKS
 
 
 
@@ -112,7 +113,6 @@ class RFClassificationModelScript:
             pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
             x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-            print type(y_train),type(y_test)
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
@@ -197,11 +197,24 @@ class RFClassificationModelScript:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
                 auc = metrics.roc_auc_score(y_test,y_score)
+                log_loss = metrics.log_loss(y_test,y_score)
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
+                log_loss = metrics.log_loss(y_test,y_score)
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
+            y_prob_for_evaluation = []
+            for i in range(len(y_prob)):
+                if len(y_prob[i]) == 1:
+                    y_prob_for_evaluation.append(float(y_prob[i][0]))
+                else:
+                    y_prob_for_evaluation.append(float(y_prob[i][int(y_score[i])]))
+
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
+            pys_df = self._spark.createDataFrame(temp_df)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
+            print gain_lift_ks_obj.Run().show()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)

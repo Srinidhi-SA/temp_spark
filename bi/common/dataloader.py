@@ -34,7 +34,6 @@ class DataLoader:
         elif "hive" == datasource_type:
             return DataLoader.create_dataframe_from_hive(spark_session, dbConnectionParams)
         elif "s3" == datasource_type:
-            print "inside s3"*10
             return DataLoader.create_dataframe_from_s3(spark_session, dbConnectionParams)
 
     @staticmethod
@@ -122,7 +121,6 @@ class DataLoader:
     @staticmethod
     @accepts(SparkSession, dict)
     def create_dataframe_from_s3(spark_session, dbConnectionParams):
-        print "iside s3 function" *10
         df = None
         try:
             myAccessKey = dbConnectionParams.get("access_key_id")
