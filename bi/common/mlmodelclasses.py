@@ -80,6 +80,8 @@ class MLModelSummary:
         self.precisionRecallStats = None
         self.modelAccuracy = None
         self.modelPrecision = None
+        self.F1_score = None
+        self.log_loss = None
         self.modelRecall = None
         self.targetVariable = None
         self.predictionSplit = None
@@ -100,6 +102,8 @@ class MLModelSummary:
         self.sampleData = None
         self.coefficinetsArray = []
         self.interceptValue = None
+        self.gain_lift_KS_data = None
+        self.modelAUC = None
 
     def set_intercept(self,data):
         self.interceptValue = data
@@ -219,6 +223,30 @@ class MLModelSummary:
 
     def get_model_accuracy(self):
         return self.modelAccuracy
+
+    def set_model_F1_score(self,data):
+        self.F1_score = data
+
+    def get_model_F1_score(self):
+        return self.F1_score
+
+    def set_model_log_loss(self,data):
+        self.log_loss = data
+
+    def get_model_log_loss(self):
+        return self.log_loss
+
+    def set_gain_lift_KS_data(self,data):
+        self.gain_lift_KS_data = data
+
+    def get_gain_lift_KS_data(self):
+        return self.gain_lift_KS_data
+
+    def set_AUC_score(self,data):
+        self.modelAUC =  data
+
+    def get_AUC_score(self):
+        return self.modelAUC
 
     def get_model_precision(self):
         return self.modelPrecision

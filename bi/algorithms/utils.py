@@ -753,7 +753,8 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard2Data.append(modelSummaryCard2Table)
         modelSummaryCard2.set_card_data(modelSummaryCard2Data)
         modelSummaryCard2.set_card_width(50)
-        return [modelSummaryCard1,modelSummaryCard2]
+        return [modelSummaryCard1, modelSummaryCard2]
+
     elif modelSummaryClass.get_model_type() == "regression":
         targetVariable = modelSummaryClass.get_target_variable()
         modelSummaryCard1 = NormalCard()
@@ -871,6 +872,108 @@ def create_model_summary_cards(modelSummaryClass):
         modelSummaryCard4.set_card_data([mapeDummyData,modelSummaryMapeChart])
         return [modelSummaryCard2,modelSummaryCard4,modelSummaryCard1,modelSummaryCard3]
         # return [modelSummaryCard1,modelSummaryCard2]
+
+def create_model_management_cards(modelSummaryClass):
+    if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
+        confusionMatrixCard = NormalCard()
+        confusionMatrixCardData = []
+        confusionMatrixCardData.append(HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>"))
+        confusionMatrixCardTable = TableData()
+        confusionMatrixCardTable.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
+        confusionMatrixCardTable.set_table_type("confusionMatrix")
+        confusionMatrixCardTable.set_table_top_header("Actual")
+        confusionMatrixCardTable.set_table_left_header("Predicted")
+        confusionMatrixCardData.append(confusionMatrixCardTable)
+        confusionMatrixCard.set_card_data(confusionMatrixCardData)
+        confusionMatrixCard.set_card_width(50)
+
+        summaryData = [
+            {
+              "name":"Accuracy",
+              "value":str(modelSummaryClass.get_model_accuracy())
+            },
+            {
+              "name": "Precision",
+              "value": str(modelSummaryClass.get_model_precision())
+            },
+            {
+              "name": "Recall",
+              "value": str(modelSummaryClass.get_model_recall())
+            },
+            {
+              "name": "F1 Score",
+              "value": str(modelSummaryClass.get_model_F1_score())
+            },
+            {
+              "name": "Log-Loss",
+              "value": str(modelSummaryClass.get_model_log_loss())
+            },
+            {
+              "name": "AUC",
+              "value": str(modelSummaryClass.get_AUC_score())
+            }
+        ]
+
+        modelManagementSummaryCard = NormalCard()
+        modelManagementSummaryCard1Data = []
+        modelManagementSummaryCardDataBox = DataBox(data=summaryData)
+        modelManagementSummaryCardDataBox.set_data(summaryData)
+        modelManagementSummaryCard1Data.append(modelManagementSummaryCardDataBox)
+        modelManagementSummaryCard.set_card_data(modelManagementSummaryCard1Data)
+        modelManagementSummaryCard.set_card_width(100)
+
+        gain_lift_KS_data =  modelSummaryClass.get_gain_lift_KS_data()
+
+        def chart_data_prep(df, column_names,label,chart_type,subchart):
+            ChartData = gain_lift_KS_data[column_names]
+            ChartData = ChartData.to_dict('record')
+            ChartData = NormalChartData(data=ChartData)
+            chart_json = ChartJson()
+            chart_json.set_data(ChartData.get_data())
+            chart_json.set_chart_type(chart_type)
+            if len(column_names) == 2:
+                chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                chart_json.set_label_text({"x":label[0],"y":label[1]})
+                chart_json.set_subchart(subchart)
+                chart_json.set_yaxis_number_format(".2f")
+            else:
+                chart_json.set_axes({"x":column_names[0],"y":column_names[1],"y2":column_names[2]})
+                chart_json.set_label_text({"x":label[0],"y":label[1],"y2":label[2]})
+                chart_json.set_subchart(subchart)
+                chart_json.set_yaxis_number_format(".2f")
+            return chart_json
+
+        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct'], ['Population','% Response'],'line',False)
+        GainChart = C3ChartData(data=chartjson)
+
+        GainCard = NormalCard()
+
+        GainCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")]
+        GainCardData.append(GainChart)
+        GainCard.set_card_data(GainCardData)
+        GainCard.set_card_width(50)
+
+        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct','cum_non_resp_pct'], ['Population','% Right','% Wrong'],'line',True)
+        KSChart = C3ChartData(data=chartjson)
+
+        KSCard = NormalCard()
+
+        KSCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>KS Chart</h4>")]
+        KSCardData.append(KSChart)
+        KSCard.set_card_data(KSCardData)
+        KSCard.set_card_width(50)
+
+        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','Lift at Decile'], ['Population','Lift@Decile'],'line',False)
+        liftChart = C3ChartData(data=chartjson)
+
+        liftCard = NormalCard()
+
+        liftCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")]
+        liftCardData.append(liftChart)
+        liftCard.set_card_data(liftCardData)
+        liftCard.set_card_width(50)
+
+        return [modelManagementSummaryCard, confusionMatrixCard,KSCard,GainCard,liftCard]
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
@@ -1039,7 +1142,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
 
             htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
-                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            and the following are the top performing models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
                             .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
@@ -1228,7 +1331,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
             bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
             htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
-                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            and the following are the top performing models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
                             .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
