@@ -4,6 +4,7 @@ import time
 import humanize
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -152,6 +153,7 @@ class RFClassificationModelScript:
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfGrid.get_params()
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
@@ -162,6 +164,7 @@ class RFClassificationModelScript:
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
@@ -170,6 +173,7 @@ class RFClassificationModelScript:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
+                modelmanagement_=clf.get_params()
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
@@ -290,6 +294,100 @@ class RFClassificationModelScript:
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                self.modelmanagement = MLModelSummary()
+                self.modelmanagement.set_criterion(data=modelmanagement_['criterion'])
+                self.modelmanagement.set_max_depth(data=modelmanagement_['max_depth'])
+                self.modelmanagement.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+                self.modelmanagement.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+                self.modelmanagement.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+                self.modelmanagement.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_split'])
+                self.modelmanagement.set_no_of_estimators(data=modelmanagement_['n_estimators'])
+                self.modelmanagement.set_bootstrap_sampling(data=modelmanagement_['bootstrap'])
+                self.modelmanagement.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                self.modelmanagement.set_warm_start(data=modelmanagement_['warm_start'])
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("RandomForest")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+            else:
+                self.modelmanagement = MLModelSummary()
+                self.modelmanagement.set_criterion(data=modelmanagement_['param_grid']['criterion'][0])
+                self.modelmanagement.set_max_depth(data=modelmanagement_['param_grid']['max_depth'][0])
+                self.modelmanagement.set_min_instance_for_split(data=modelmanagement_['param_grid']['min_samples_split'][0])
+                self.modelmanagement.set_min_instance_for_leaf_node(data=modelmanagement_['param_grid']['min_samples_leaf'][0])
+                self.modelmanagement.set_max_leaf_nodes(data=modelmanagement_['estimator__max_leaf_nodes'])
+                self.modelmanagement.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['estimator__min_impurity_split'])
+                self.modelmanagement.set_no_of_estimators(data=modelmanagement_['estimator__max_features'])
+                self.modelmanagement.set_bootstrap_sampling(data=modelmanagement_['estimator__bootstrap'])
+                self.modelmanagement.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                self.modelmanagement.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("RandomForest")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+            modelManagementSummaryJson = {
+
+                            "Project Name":self.modelmanagement.get_job_type(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Training Status":self.modelmanagement.get_training_status(),
+                            "Accuracy":self.modelmanagement.get_model_accuracy(),
+                            "RunTime":self.modelmanagement.get_training_time(),
+                            "Owner":None,
+                            "Created On":self.modelmanagement.get_creation_date()
+
+                                        }
+
+            modelManagementModelSettingsJson = {
+
+                            "Training Dataset":None,
+                            "Target Column":self.modelmanagement.get_target_variable(),
+                            "Target Column Value":self.modelmanagement.get_target_level(),
+                            "Number Of Independent Variables":self.modelmanagement.get_no_of_independent_variables(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Model Validation":self.modelmanagement.get_validation_method(),
+                            "Criterion":self.modelmanagement.get_criterion(),
+                            "Max Depth":self.modelmanagement.get_max_depth(),
+                            "Minimum Instances For Split":self.modelmanagement.get_min_instance_for_split(),
+                            "Minimum Instances For Leaf Node":self.modelmanagement.get_min_instance_for_leaf_node(),
+                            "Max Leaf Nodes":self.modelmanagement.get_max_leaf_nodes(),
+                            "Impurity Decrease cutoff for Split":self.modelmanagement.get_impurity_decrease_cutoff_for_split(),
+                            "No of Estimators":self.modelmanagement.get_no_of_estimators(),
+                            "Bootstrap Sampling":self.modelmanagement.get_bootstrap_sampling(),
+                            "No Of Jobs":self.modelmanagement.get_no_of_jobs()
+
+
+                                            }
+            for k, v in modelmanagement_.items():
+                del modelmanagement_[k]
+            print "=^-^"*100
+            outside1=[]
+            for k, v in modelManagementSummaryJson.items():
+                inside=[]
+                inside.append(k)
+                inside.append(v)
+                outside1.append(inside)
+            print outside1
+            outside2=[]
+            for k, v in modelManagementModelSettingsJson.items():
+                inside=[]
+                inside.append(k)
+                inside.append(v)
+                outside2.append(inside)
+            print outside2
+            print "=^-^"*100
 
             rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in rfCards:

@@ -5,6 +5,7 @@ import re
 import humanize
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -146,6 +147,7 @@ class XgboostScript:
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfGrid.get_params()
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
@@ -156,6 +158,7 @@ class XgboostScript:
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
@@ -164,6 +167,7 @@ class XgboostScript:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
+                modelmanagement_=clf.get_params()
                 print "!"*50
                 print clf.get_params()
                 print "!"*50
@@ -289,6 +293,105 @@ class XgboostScript:
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
+
+            self.modelmanagement = MLModelSummary()
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+
+                self.modelmanagement.set_booster_function(data=modelmanagement_['booster'])
+                self.modelmanagement.set_learning_rate(data=modelmanagement_['learning_rate'])
+                self.modelmanagement.set_minimum_loss_reduction(data=modelmanagement_['gamma'])
+                self.modelmanagement.set_max_depth(data=modelmanagement_['max_depth'])
+                self.modelmanagement.set_minimum_child_weight(data=modelmanagement_['min_child_weight'])
+                self.modelmanagement.set_subsampling_ratio(data=modelmanagement_['subsample'])
+                self.modelmanagement.set_subsample_for_each_tree(data=modelmanagement_['colsample_bytree'])
+                self.modelmanagement.set_subsample_for_each_split(data=modelmanagement_['colsample_bylevel'])
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("XG BOOST")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+
+            else:
+                self.modelmanagement.set_booster_function(data=modelmanagement_['param_grid']['booster'])
+                self.modelmanagement.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
+                self.modelmanagement.set_minimum_loss_reduction(data=modelmanagement_['param_grid']['gamma'][0])
+                self.modelmanagement.set_max_depth(data=modelmanagement_['param_grid']['max_depth'][0])
+                self.modelmanagement.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
+                self.modelmanagement.set_subsampling_ratio(data=modelmanagement_['param_grid']['subsample'][0])
+                self.modelmanagement.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
+                self.modelmanagement.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("XG BOOST")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+
+
+
+
+
+
+
+
+            modelManagementSummaryJson = {
+
+                            "Project Name":self.modelmanagement.get_job_type(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Training Status":self.modelmanagement.get_training_status(),
+                            "Accuracy":self.modelmanagement.get_model_accuracy(),
+                            "RunTime":self.modelmanagement.get_training_time(),
+                            "Owner":None,
+                            "Created On":self.modelmanagement.get_creation_date()
+
+                                        }
+
+            modelManagementModelSettingsJson = {
+
+                            "Training Dataset":None,
+                            "Target Column":self.modelmanagement.get_target_variable(),
+                            "Target Column Value":self.modelmanagement.get_target_level(),
+                            "Number Of Independent Variables":self.modelmanagement.get_no_of_independent_variables(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Model Validation":self.modelmanagement.get_validation_method(),
+                            "Booster Function":self.modelmanagement.get_booster_function(),
+                            "Learning Rate":self.modelmanagement.get_learning_rate(),
+                            "Minimum Loss Reduction":self.modelmanagement.get_minimum_loss_reduction(),
+                            "Maximum Depth":self.modelmanagement.get_max_depth(),
+                            "Minimum Child Weight":self.modelmanagement.get_minimum_child_weight(),
+                            "Subsampling Ratio":self.modelmanagement.get_subsampling_ratio(),
+                            "Subsample of Every Column by each tree":self.modelmanagement.get_subsample_for_each_tree(),
+                            "Subsample of Every Column by each split":self.modelmanagement.get_subsample_for_each_split()
+
+                                            }
+            for k, v in modelmanagement_.items():
+                del modelmanagement_[k]
+            print "=^-^"*100
+            outside1=[]
+            for k, v in modelManagementSummaryJson.items():
+                inside=[]
+                inside.append(k)
+                inside.append(v)
+                outside1.append(inside)
+            print outside1
+            outside2=[]
+            for k, v in modelManagementModelSettingsJson.items():
+                inside=[]
+                inside.append(k)
+                inside.append(v)
+                outside2.append(inside)
+            print outside2
+            #self.modelmanagement=outside
+            print "=^-^"*100
 
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in xgbCards:

@@ -4,6 +4,7 @@ import time
 import humanize
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -148,6 +149,7 @@ class LogisticRegressionScript:
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfGrid.get_params()
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
@@ -158,6 +160,7 @@ class LogisticRegressionScript:
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
@@ -170,6 +173,7 @@ class LogisticRegressionScript:
                     algoParams["multi_class"] = "multinomial"
                     algoParams["solver"] = "newton-cg"
                 clf.set_params(**algoParams)
+                modelmanagement_=clf.get_params()
                 print "!"*50
                 print algoParams
                 print clf.get_params()
@@ -288,6 +292,95 @@ class LogisticRegressionScript:
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
+
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                self.modelmanagement = MLModelSummary()
+                self.modelmanagement.set_fit_intercept(data=modelmanagement_['fit_intercept'])
+                self.modelmanagement.set_warm_start(data=modelmanagement_['warm_start'])
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("Logistic Regression")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self.modelmanagement.set_maximum_solver(data=modelmanagement_["max_iter"])#maximum solver
+                self.modelmanagement.set_inverse_regularization_strength(data=modelmanagement_['C'])#inverse regularization strength
+                self.modelmanagement.set_convergence_tolerence_iteration(data=modelmanagement_['tol'])#convergence tolerence iteration
+                self.modelmanagement.set_solver_used(data=modelmanagement_['solver'])#solver used
+                self.modelmanagement.set_multiclass_option(data=modelmanagement_['multi_class'])#multiclass option
+            else:
+                self.modelmanagement = MLModelSummary()
+                self.modelmanagement.set_fit_intercept(data=modelmanagement_['param_grid']['fit_intercept'][0])
+                self.modelmanagement.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("Logistic Regression")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self.modelmanagement.set_maximum_solver(data=modelmanagement_['param_grid']["max_iter"][0])#maximum solver
+                self.modelmanagement.set_inverse_regularization_strength(data=modelmanagement_['estimator__C'])#inverse regularization strength
+                self.modelmanagement.set_convergence_tolerence_iteration(data=modelmanagement_['param_grid']['tol'][0])#convergence tolerence iteration
+                self.modelmanagement.set_solver_used(data=modelmanagement_['param_grid']['solver'][0])#solver used
+                self.modelmanagement.set_multiclass_option(data=modelmanagement_['estimator__multi_class'])#multiclass option
+
+
+            modelManagementSummaryJson = {
+
+                            "Project Name":self.modelmanagement.get_job_type(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Training Status":self.modelmanagement.get_training_status(),
+                            "Accuracy":self.modelmanagement.get_model_accuracy(),
+                            "RunTime":self.modelmanagement.get_training_time(),
+                            "Owner":None,
+                            "Created On":self.modelmanagement.get_creation_date()
+
+                                        }
+
+            modelManagementModelSettingsJson = {
+
+                            "Training Dataset":None,
+                            "Target Column":self.modelmanagement.get_target_variable(),
+                            "Target Column Value":self.modelmanagement.get_target_level(),
+                            "Number Of Independent Variables":self.modelmanagement.get_no_of_independent_variables(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Model Validation":self.modelmanagement.get_validation_method(),
+                            "Fit Intercept":self.modelmanagement.get_fit_intercept(),
+                            "Solver Used":self.modelmanagement.get_solver_used(),
+                            "MultiClass Option":self.modelmanagement.get_multiclass_option(),
+                            "Maximum Solver Iterations":self.modelmanagement.get_maximum_solver(),
+                            "Warm Start":self.modelmanagement.get_warm_start(),
+                            "Convergence tolerance of iterations":self.modelmanagement.get_convergence_tolerence_iteration(),
+                            "Inverse regularization strength":self.modelmanagement.get_inverse_regularization_strength()
+
+                                            }
+
+            for k, v in modelmanagement_.items():
+                del modelmanagement_[k]
+            print "=^-^"*100
+            outside1=[]
+            for k, v in modelManagementSummaryJson.items():
+                inside=[]
+                inside.append(k)
+                inside.append(v)
+                outside1.append(inside)
+            print outside1
+            outside2=[]
+            for k, v in modelManagementModelSettingsJson.items():
+                inside=[]
+                inside.append(k)
+                inside.append(v)
+                outside2.append(inside)
+            print outside2
+            print "=^-^"*100
 
             lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in lrCards:
