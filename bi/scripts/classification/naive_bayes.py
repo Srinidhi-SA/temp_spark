@@ -4,6 +4,7 @@ import time
 import humanize
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -1232,6 +1233,7 @@ class NBMClassificationModelScript:
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfGrid.get_params()
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
@@ -1242,6 +1244,7 @@ class NBMClassificationModelScript:
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
@@ -1250,6 +1253,7 @@ class NBMClassificationModelScript:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
+                modelmanagement_=clf.get_params()
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
@@ -1370,6 +1374,57 @@ class NBMClassificationModelScript:
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                self.modelmanagement = MLModelSummary()
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("NaiveBayes")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self.modelmanagement.set_alpha(modelmanagement_['alpha'])
+            else:
+                self.modelmanagement = MLModelSummary()
+                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self.modelmanagement.set_training_status(data="completed")# training status
+                self.modelmanagement.set_target_level(self._targetLevel) # target column value
+                self.modelmanagement.set_training_time(runtime) # run time
+                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self.modelmanagement.set_algorithm_name("NaiveBayes")#algorithm name
+                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self.modelmanagement.set_target_variable(result_column)#target column name
+                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self.modelmanagement.set_alpha(modelmanagement_['param_grid']['alpha'][0])
+
+            modelManagementSummaryJson = {
+
+                            "Project Name":self.modelmanagement.get_job_type(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Training Status":self.modelmanagement.get_training_status(),
+                            "Accuracy":self.modelmanagement.get_model_accuracy(),
+                            "RunTime":self.modelmanagement.get_training_time(),
+                            "Owner":None,
+                            "Created On":self.modelmanagement.get_creation_date()
+
+                                        }
+
+            modelManagementModelSettingsJson = {
+
+                            "Training Dataset":None,
+                            "Target Column":self.modelmanagement.get_target_variable(),
+                            "Target Column Value":self.modelmanagement.get_target_level(),
+                            "Algorithm":self.modelmanagement.get_algorithm_name(),
+                            "Model Validation":self.modelmanagement.get_validation_method(),
+                            "Alpha":self.modelmanagement.get_alpha()
+
+                                            }
+            for k, v in modelmanagement_.items():
+                del modelmanagement_[k]
+            
+
 
             nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in nbCards:

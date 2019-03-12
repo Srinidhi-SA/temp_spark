@@ -1,7 +1,6 @@
 import time
 import re
 import pandas as pd
-inport numpy as np
 from sklearn import metrics
 from math import sqrt
 from sklearn.externals import joblib
