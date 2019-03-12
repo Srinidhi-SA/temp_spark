@@ -7,9 +7,10 @@ from pyspark.ml.feature import QuantileDiscretizer
 
 
 class GainLiftKS:
-    def __init__(self, df, proba_column, predicted_column, posLabel, spark):
+    def __init__(self, df, proba_column, predicted_column, target_col,posLabel, spark):
         self._df = df
         self._spark = spark
+        self._target_column = target_col
         self._proba_column = proba_column
         self._predicted_column = predicted_column
         self._posLabel = posLabel
