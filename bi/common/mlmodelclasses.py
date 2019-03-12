@@ -101,6 +101,33 @@ class MLModelSummary:
         self.sampleData = None
         self.coefficinetsArray = []
         self.interceptValue = None
+        self.fitIntercept = None
+        self.warmStart = None
+        self.trainingStatus = None
+        self.jobType = None
+        self.noOfIndependentVariables = None
+        self.creationDate = None
+        self.maximumSolver = None
+        self.inverseRegularizationStrength = None
+        self.convergenceTolerenceIteration = None
+        self.multiClassOption = None
+        self.criterion = None
+        self.maxDepth = None
+        self.minInstanceForSplit = None
+        self.minInstanceForLeafNode = None
+        self.maxLeafNodes = None
+        self.impurityDecreaseCutoffForSplit = None
+        self.noOfEstimators = None
+        self.bootstrapSampling = None
+        self.noOfJobs = None
+        self.alpha = None
+        self.boosterFunction = None
+        self.learningRate = None
+        self.minimumLossReduction = None
+        self.minimumChildWeight = None
+        self.subsamplingRatio = None
+        self.subsampleForEachTree = None
+        self.subsampleForEachSplit = None
 
     def set_fit_intercept(self,data):
         self.fitIntercept = data

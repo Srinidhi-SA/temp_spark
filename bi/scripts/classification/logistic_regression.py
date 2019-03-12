@@ -365,22 +365,7 @@ class LogisticRegressionScript:
 
             for k, v in modelmanagement_.items():
                 del modelmanagement_[k]
-            print "=^-^"*100
-            outside1=[]
-            for k, v in modelManagementSummaryJson.items():
-                inside=[]
-                inside.append(k)
-                inside.append(v)
-                outside1.append(inside)
-            print outside1
-            outside2=[]
-            for k, v in modelManagementModelSettingsJson.items():
-                inside=[]
-                inside.append(k)
-                inside.append(v)
-                outside2.append(inside)
-            print outside2
-            print "=^-^"*100
+
 
             lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in lrCards:
