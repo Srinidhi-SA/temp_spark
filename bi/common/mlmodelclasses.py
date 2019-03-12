@@ -1,7 +1,7 @@
 import time
 import re
 import pandas as pd
-import numpy as np
+inport numpy as np
 from sklearn import metrics
 from math import sqrt
 from sklearn.externals import joblib
@@ -81,8 +81,6 @@ class MLModelSummary:
         self.precisionRecallStats = None
         self.modelAccuracy = None
         self.modelPrecision = None
-        self.F1_score = None
-        self.log_loss = None
         self.modelRecall = None
         self.targetVariable = None
         self.predictionSplit = None
@@ -103,8 +101,167 @@ class MLModelSummary:
         self.sampleData = None
         self.coefficinetsArray = []
         self.interceptValue = None
-        self.gain_lift_KS_data = None
-        self.modelAUC = None
+        self.fitIntercept = None
+        self.warmStart = None
+        self.trainingStatus = None
+        self.jobType = None
+        self.noOfIndependentVariables = None
+        self.creationDate = None
+        self.maximumSolver = None
+        self.inverseRegularizationStrength = None
+        self.convergenceTolerenceIteration = None
+        self.multiClassOption = None
+        self.criterion = None
+        self.maxDepth = None
+        self.minInstanceForSplit = None
+        self.minInstanceForLeafNode = None
+        self.maxLeafNodes = None
+        self.impurityDecreaseCutoffForSplit = None
+        self.noOfEstimators = None
+        self.bootstrapSampling = None
+        self.noOfJobs = None
+        self.alpha = None
+        self.boosterFunction = None
+        self.learningRate = None
+        self.minimumLossReduction = None
+        self.minimumChildWeight = None
+        self.subsamplingRatio = None
+        self.subsampleForEachTree = None
+        self.subsampleForEachSplit = None
+
+    def set_fit_intercept(self,data):
+        self.fitIntercept = data
+
+    def get_fit_intercept(self):
+        return self.fitIntercept
+
+    def set_warm_start(self,data):
+        self.warmStart = data
+
+    def get_warm_start(self):
+        return self.warmStart
+
+    def set_training_status(self,data):
+        self.trainingStatus = data
+
+    def get_training_status(self):
+        return self.trainingStatus
+
+    def set_job_type(self,data):
+        self.jobType = data
+
+    def get_job_type(self):
+        return self.jobType
+
+    def set_no_of_independent_variables(self,data):
+        self.noOfIndependentVariables = len(data.columns)
+
+    def get_no_of_independent_variables(self):
+        return self.noOfIndependentVariables
+
+    def set_creation_date(self,data):
+        self.creationDate = data
+
+    def get_creation_date(self):
+        return self.creationDate
+
+    def set_maximum_solver(self,data):
+        self.maximumSolver = data
+
+    def get_maximum_solver(self):
+        return self.maximumSolver
+
+    def set_inverse_regularization_strength(self,data):
+        self.inverseRegularizationStrength = data
+
+    def get_inverse_regularization_strength(self):
+        return self.inverseRegularizationStrength
+
+    def set_convergence_tolerence_iteration(self,data):
+        self.convergenceTolerenceIteration = data
+
+    def get_convergence_tolerence_iteration(self):
+        return self.convergenceTolerenceIteration
+
+    def set_solver_used(self,data):
+        self.solverUsed = data
+
+    def get_solver_used(self):
+        return self.solverUsed
+
+    def set_multiclass_option(self,data):
+        self.multiClassOption = data
+
+    def get_multiclass_option(self):
+        return self.multiClassOption
+    def set_criterion(self,data):
+        self.criterion = data
+    def get_criterion(self):
+        return self.criterion
+    def set_max_depth(self,data):
+        self.maxDepth = data
+    def get_max_depth(self):
+        return self.maxDepth
+    def set_min_instance_for_split(self,data):
+        self.minInstanceForSplit = data
+    def get_min_instance_for_split(self):
+        return self.minInstanceForSplit
+    def set_min_instance_for_leaf_node(self,data):
+        self.minInstanceForLeafNode = data
+    def get_min_instance_for_leaf_node(self):
+        return self.minInstanceForLeafNode
+    def set_max_leaf_nodes(self,data):
+        self.maxLeafNodes = data
+    def get_max_leaf_nodes(self):
+        return self.maxLeafNodes
+    def set_impurity_decrease_cutoff_for_split(self,data):
+        self.impurityDecreaseCutoffForSplit = data
+    def get_impurity_decrease_cutoff_for_split(self):
+        return self.impurityDecreaseCutoffForSplit
+    def set_no_of_estimators(self,data):
+        self.noOfEstimators = data
+    def get_no_of_estimators(self):
+        return self.noOfEstimators
+    def set_bootstrap_sampling(self,data):
+        self.bootstrapSampling = data
+    def get_bootstrap_sampling(self):
+        return self.bootstrapSampling
+    def set_no_of_jobs(self,data):
+        self.noOfJobs = data
+    def get_no_of_jobs(self):
+        return self.noOfJobs
+    def set_alpha(self,data):
+        self.alpha = data
+    def get_alpha(self):
+        return self.alpha
+    def set_booster_function(self,data):
+        self.boosterFunction = data
+    def get_booster_function(self):
+        return self.boosterFunction
+    def set_learning_rate(self,data):
+        self.learningRate = data
+    def get_learning_rate(self):
+        return self.learningRate
+    def set_minimum_loss_reduction(self,data):
+        self.minimumLossReduction = data
+    def get_minimum_loss_reduction(self):
+        return self.minimumLossReduction
+    def set_minimum_child_weight(self,data):
+        self.minimumChildWeight = data
+    def get_minimum_child_weight(self):
+        return self.minimumChildWeight
+    def set_subsampling_ratio(self,data):
+        self.subsamplingRatio = data
+    def get_subsampling_ratio(self):
+        return self.subsamplingRatio
+    def set_subsample_for_each_tree(self,data):
+        self.subsampleForEachTree = data
+    def get_subsample_for_each_tree(self):
+        return self.subsampleForEachTree
+    def set_subsample_for_each_split(self,data):
+        self.subsampleForEachSplit = data
+    def get_subsample_for_each_split(self):
+        return self.subsampleForEachSplit
 
     def set_intercept(self,data):
         self.interceptValue = data
@@ -224,30 +381,6 @@ class MLModelSummary:
 
     def get_model_accuracy(self):
         return self.modelAccuracy
-
-    def set_model_F1_score(self,data):
-        self.F1_score = data
-
-    def get_model_F1_score(self):
-        return self.F1_score
-
-    def set_model_log_loss(self,data):
-        self.log_loss = np.round(data,4)
-
-    def get_model_log_loss(self):
-        return self.log_loss
-
-    def set_gain_lift_KS_data(self,data):
-        self.gain_lift_KS_data = data
-
-    def get_gain_lift_KS_data(self):
-        return self.gain_lift_KS_data
-
-    def set_AUC_score(self,data):
-        self.modelAUC =  data
-
-    def get_AUC_score(self):
-        return self.modelAUC
 
     def get_model_precision(self):
         return self.modelPrecision
