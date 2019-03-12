@@ -197,12 +197,12 @@ class RFClassificationModelScript:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
                 auc = metrics.roc_auc_score(y_test,y_score)
-                log_loss = metrics.log_loss(y_test,y_score)
+                log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
-                log_loss = metrics.log_loss(y_test,y_score)
+                log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None

@@ -1,6 +1,7 @@
 import time
 import re
 import pandas as pd
+import numpy as np
 from sklearn import metrics
 from math import sqrt
 from sklearn.externals import joblib
@@ -231,7 +232,7 @@ class MLModelSummary:
         return self.F1_score
 
     def set_model_log_loss(self,data):
-        self.log_loss = data
+        self.log_loss = np.round(data,4)
 
     def get_model_log_loss(self):
         return self.log_loss

@@ -209,10 +209,12 @@ class NBBClassificationModelScript:
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
                 auc = metrics.roc_auc_score(y_test,y_score)
                 log_loss = metrics.log_loss(y_test,y_score)
+                F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
                 log_loss = metrics.log_loss(y_test,y_score)
+                F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
             y_prob_for_evaluation = []
@@ -225,7 +227,7 @@ class NBBClassificationModelScript:
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
             pys_df = self._spark.createDataFrame(temp_df)
             gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
-            print gain_lift_ks_obj.Run().show()
+            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -271,10 +273,14 @@ class NBBClassificationModelScript:
             self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
             self._model_summary.set_model_precision(overall_precision_recall["precision"])
             self._model_summary.set_model_recall(overall_precision_recall["recall"])
+            self._model_summary.set_model_F1_score(F1_score)
+            self._model_summary.set_model_log_loss(log_loss)
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
             self._model_summary.set_validation_method("Train and Test")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
+            self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
+            self._model_summary.set_AUC_score(auc)
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
@@ -315,7 +321,7 @@ class NBBClassificationModelScript:
                     "name":self._model_summary.get_algorithm_name()
                 }
 
-            nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
 
