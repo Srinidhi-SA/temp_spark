@@ -134,7 +134,15 @@ class RFClassificationModelScript:
             inverseLabelMapping = dict(zip(classes,transformed))
             posLabel = inverseLabelMapping[self._targetLevel]
             appType = self._dataframe_context.get_app_type()
-            print appType,labelMapping,inverseLabelMapping,posLabel,self._targetLevel
+            print "="*150
+            print "LEVELS - ", levels
+            print "CLASSES - ", classes
+            print "LABEL MAPPING - ", labelMapping
+            print "INVERSE LABEL MAPPING - ", inverseLabelMapping
+            print "POSITIVE LABEL - ", posLabel
+            print "TARGET LEVEL - ", self._targetLevel
+            print "APP TYPE - ", appType
+            print "="*150
 
 
             if algoSetting.is_hyperparameter_tuning_enabled():
@@ -210,16 +218,19 @@ class RFClassificationModelScript:
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
-            y_prob_for_evaluation = []
+            y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_evaluation.append(float(y_prob[i][0]))
+                    if y_score[i] == posLabel:
+                        y_prob_for_eval.append(float(y_prob[i][0]))
+                    else:
+                        y_prob_for_eval.append(float(1 - y_prob[i][0]))
                 else:
-                    y_prob_for_evaluation.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(posLabel)]))
 
-            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
             pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score',posLabel,self._spark)
             gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
