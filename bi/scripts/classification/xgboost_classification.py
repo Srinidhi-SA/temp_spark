@@ -316,9 +316,7 @@ class XgboostScript:
                     "name":self._model_summary.get_algorithm_name()
                 }
 
-<<<<<<< HEAD
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
-=======
             self.modelmanagement = MLModelSummary()
             if not algoSetting.is_hyperparameter_tuning_enabled():
 
@@ -400,10 +398,9 @@ class XgboostScript:
                                             }
             for k, v in modelmanagement_.items():
                 del modelmanagement_[k]
-            
+
 
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
->>>>>>> alagappan_mm
             for card in xgbCards:
                 self._prediction_narrative.add_a_card(card)
 

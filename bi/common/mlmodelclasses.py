@@ -100,6 +100,8 @@ class MLModelSummary:
         self.sampleData = None
         self.coefficinetsArray = []
         self.interceptValue = None
+        self.gain_lift_KS_data = None
+        self.modelAUC = None
         self.fitIntercept = None
         self.warmStart = None
         self.trainingStatus = None
@@ -127,6 +129,18 @@ class MLModelSummary:
         self.subsamplingRatio = None
         self.subsampleForEachTree = None
         self.subsampleForEachSplit = None
+
+    def set_AUC_score(self,data):
+        self.modelAUC =  data
+
+    def get_AUC_score(self):
+        return self.modelAUC
+
+    def set_gain_lift_KS_data(self,data):
+        self.gain_lift_KS_data = data
+
+    def get_gain_lift_KS_data(self):
+        return self.gain_lift_KS_data
 
     def set_fit_intercept(self,data):
         self.fitIntercept = data
