@@ -35,6 +35,7 @@ from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.settings import setting as GLOBALSETTINGS
+from bi.algorithms import GainLiftKS
 
 
 class LogisticRegressionScript:
@@ -199,11 +200,25 @@ class LogisticRegressionScript:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
                 auc = metrics.roc_auc_score(y_test,y_score)
+                log_loss = metrics.log_loss(y_test,y_score)
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
+                log_loss = metrics.log_loss(y_test,y_score)
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
+            y_prob_for_evaluation = []
+            for i in range(len(y_prob)):
+                if len(y_prob[i]) == 1:
+                    y_prob_for_evaluation.append(float(y_prob[i][0]))
+                else:
+                    y_prob_for_evaluation.append(float(y_prob[i][int(y_score[i])]))
+
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
+            pys_df = self._spark.createDataFrame(temp_df)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
+            print gain_lift_ks_obj.Run().show()
+
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
 
