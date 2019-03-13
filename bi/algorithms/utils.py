@@ -1039,7 +1039,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
 
             htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
-                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            and following are the top performing models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
                             .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
@@ -1228,7 +1228,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
             bestAlgo = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Algorithm Name")]
             htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
-                            and the following are the top {} models based on chosen evaluation metric. {} which is \
+                            and following are the top performing models based on chosen evaluation metric. {} which is \
                             built using {} algorithm is the best performing model with an {} of {}."\
                             .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
