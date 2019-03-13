@@ -4,6 +4,7 @@ import time
 import humanize
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -149,6 +150,7 @@ class LogisticRegressionScript:
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfGrid.get_params()
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
@@ -159,6 +161,7 @@ class LogisticRegressionScript:
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
@@ -171,6 +174,7 @@ class LogisticRegressionScript:
                     algoParams["multi_class"] = "multinomial"
                     algoParams["solver"] = "newton-cg"
                 clf.set_params(**algoParams)
+                modelmanagement_=clf.get_params()
                 print "!"*50
                 print algoParams
                 print clf.get_params()
@@ -209,16 +213,16 @@ class LogisticRegressionScript:
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
-            y_prob_for_evaluation = []
+            y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_evaluation.append(float(y_prob[i][0]))
+                    y_prob_for_eval.append(float(y_prob[i][0]))
                 else:
-                    y_prob_for_evaluation.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
 
-            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
             pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
             gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
@@ -310,7 +314,91 @@ class LogisticRegressionScript:
                     "name":self._model_summary.get_algorithm_name()
                 }
 
-            lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
+            self._model_management = MLModelSummary()
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+
+                self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
+                self._model_management.set_solver_used(data=modelmanagement_['solver'])
+                self._model_management.set_multiclass_option(data=modelmanagement_['multi_class'])
+                self._model_management.set_maximum_solver(data=modelmanagement_['max_iter'])
+                self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
+                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['tol'])
+                self._model_management.set_inverse_regularization_strength(data=modelmanagement_['C'])
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+
+            else:
+                self._model_management.set_fit_intercept(data=modelmanagement_['param_grid']['fit_intercept'][0])
+                self._model_management.set_solver_used(data=modelmanagement_['param_grid']['solver'][0])
+                self._model_management.set_multiclass_option(data=modelmanagement_['estimator__multi_class'])
+                self._model_management.set_maximum_solver(data=modelmanagement_['param_grid']['max_iter'][0])
+                self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['param_grid']['tol'][0])
+                self._model_management.set_inverse_regularization_strength(data=modelmanagement_['param_grid']['C'][0])
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+
+
+
+
+
+
+
+
+            modelManagementSummaryJson =[
+
+                        ["Project Name",self._model_management.get_job_type()],
+                        ["Algorithm",self._model_management.get_algorithm_name()],
+                        ["Training Status",self._model_management.get_training_status()],
+                        ["Accuracy",self._model_management.get_model_accuracy()],
+                        ["RunTime",self._model_management.get_training_time()],
+                        ["Owner",None],
+                        ["Created On",self._model_management.get_creation_date()]
+
+                        ]
+
+            modelManagementModelSettingsJson =[
+
+                        ["Training Dataset",None],
+                        ["Target Column",self._model_management.get_target_variable()],
+                        ["Target Column Value",self._model_management.get_target_level()],
+                        ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                        ["Algorithm",self._model_management.get_algorithm_name()],
+                        ["Model Validation",self._model_management.get_validation_method()],
+                        ["Fit Intercept",str(self._model_management.get_fit_intercept())],
+                        ["SolverUsed",self._model_management.get_solver_used()],
+                        ["MultiClass Option",self._model_management.get_multiclass_option()],
+                        ["Maximum Solver Iterations",self._model_management.get_maximum_solver()],
+                        ["N jobs",self._model_management.get_no_of_jobs()],
+                        ["Warm Start",str(self._model_management.get_warm_start())],
+                        ["Convergence Tolerence Iterations",self._model_management.get_convergence_tolerence_iteration()],
+                        ["Inverse Regularization Strength",self._model_management.get_inverse_regularization_strength()]
+
+                        ]
+
+
+
+
+            lrMMCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in lrCards:
                 self._prediction_narrative.add_a_card(card)
 

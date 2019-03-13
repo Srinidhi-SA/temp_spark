@@ -211,16 +211,16 @@ class XgboostScript:
                 #auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
 
-            y_prob_for_evaluation = []
+            y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_evaluation.append(float(y_prob[i][0]))
+                    y_prob_for_eval.append(float(y_prob[i][0]))
                 else:
-                    y_prob_for_evaluation.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
 
-            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
             pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
             gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
@@ -317,47 +317,47 @@ class XgboostScript:
                 }
 
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
-            self.modelmanagement = MLModelSummary()
+            self._model_management = MLModelSummary()
             if not algoSetting.is_hyperparameter_tuning_enabled():
 
-                self.modelmanagement.set_booster_function(data=modelmanagement_['booster'])
-                self.modelmanagement.set_learning_rate(data=modelmanagement_['learning_rate'])
-                self.modelmanagement.set_minimum_loss_reduction(data=modelmanagement_['gamma'])
-                self.modelmanagement.set_max_depth(data=modelmanagement_['max_depth'])
-                self.modelmanagement.set_minimum_child_weight(data=modelmanagement_['min_child_weight'])
-                self.modelmanagement.set_subsampling_ratio(data=modelmanagement_['subsample'])
-                self.modelmanagement.set_subsample_for_each_tree(data=modelmanagement_['colsample_bytree'])
-                self.modelmanagement.set_subsample_for_each_split(data=modelmanagement_['colsample_bylevel'])
-                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self.modelmanagement.set_training_status(data="completed")# training status
-                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
-                self.modelmanagement.set_target_level(self._targetLevel) # target column value
-                self.modelmanagement.set_training_time(runtime) # run time
-                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self.modelmanagement.set_algorithm_name("XG BOOST")#algorithm name
-                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self.modelmanagement.set_target_variable(result_column)#target column name
-                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_booster_function(data=modelmanagement_['booster'])
+                self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
+                self._model_management.set_minimum_loss_reduction(data=modelmanagement_['gamma'])
+                self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+                self._model_management.set_minimum_child_weight(data=modelmanagement_['min_child_weight'])
+                self._model_management.set_subsampling_ratio(data=modelmanagement_['subsample'])
+                self._model_management.set_subsample_for_each_tree(data=modelmanagement_['colsample_bytree'])
+                self._model_management.set_subsample_for_each_split(data=modelmanagement_['colsample_bylevel'])
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("XG BOOST")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
 
             else:
-                self.modelmanagement.set_booster_function(data=modelmanagement_['param_grid']['booster'])
-                self.modelmanagement.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
-                self.modelmanagement.set_minimum_loss_reduction(data=modelmanagement_['param_grid']['gamma'][0])
-                self.modelmanagement.set_max_depth(data=modelmanagement_['param_grid']['max_depth'][0])
-                self.modelmanagement.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
-                self.modelmanagement.set_subsampling_ratio(data=modelmanagement_['param_grid']['subsample'][0])
-                self.modelmanagement.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
-                self.modelmanagement.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
-                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self.modelmanagement.set_training_status(data="completed")# training status
-                self.modelmanagement.set_no_of_independent_variables(data=x_train) #no of independent varables
-                self.modelmanagement.set_target_level(self._targetLevel) # target column value
-                self.modelmanagement.set_training_time(runtime) # run time
-                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self.modelmanagement.set_algorithm_name("XG BOOST")#algorithm name
-                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self.modelmanagement.set_target_variable(result_column)#target column name
-                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_booster_function(data=modelmanagement_['param_grid']['booster'])
+                self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
+                self._model_management.set_minimum_loss_reduction(data=modelmanagement_['param_grid']['gamma'][0])
+                self._model_management.set_max_depth(data=modelmanagement_['param_grid']['max_depth'][0])
+                self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
+                self._model_management.set_subsampling_ratio(data=modelmanagement_['param_grid']['subsample'][0])
+                self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
+                self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("XG BOOST")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
 
 
 
@@ -366,40 +366,42 @@ class XgboostScript:
 
 
 
-            modelManagementSummaryJson = {
+            modelManagementSummaryJson =[
 
-                            "Project Name":self.modelmanagement.get_job_type(),
-                            "Algorithm":self.modelmanagement.get_algorithm_name(),
-                            "Training Status":self.modelmanagement.get_training_status(),
-                            "Accuracy":self.modelmanagement.get_model_accuracy(),
-                            "RunTime":self.modelmanagement.get_training_time(),
-                            "Owner":None,
-                            "Created On":self.modelmanagement.get_creation_date()
+                            ["Project Name",self._model_management.get_job_type()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Training Status",self._model_management.get_training_status()],
+                            ["Accuracy",self._model_management.get_model_accuracy()],
+                            ["RunTime",self._model_management.get_training_time()],
+                            ["Owner",None],
+                            ["Created On",self._model_management.get_creation_date()]
 
-                                        }
+                            ]
 
-            modelManagementModelSettingsJson = {
+            modelManagementModelSettingsJson =[
 
-                            "Training Dataset":None,
-                            "Target Column":self.modelmanagement.get_target_variable(),
-                            "Target Column Value":self.modelmanagement.get_target_level(),
-                            "Number Of Independent Variables":self.modelmanagement.get_no_of_independent_variables(),
-                            "Algorithm":self.modelmanagement.get_algorithm_name(),
-                            "Model Validation":self.modelmanagement.get_validation_method(),
-                            "Booster Function":self.modelmanagement.get_booster_function(),
-                            "Learning Rate":self.modelmanagement.get_learning_rate(),
-                            "Minimum Loss Reduction":self.modelmanagement.get_minimum_loss_reduction(),
-                            "Maximum Depth":self.modelmanagement.get_max_depth(),
-                            "Minimum Child Weight":self.modelmanagement.get_minimum_child_weight(),
-                            "Subsampling Ratio":self.modelmanagement.get_subsampling_ratio(),
-                            "Subsample of Every Column by each tree":self.modelmanagement.get_subsample_for_each_tree(),
-                            "Subsample of Every Column by each split":self.modelmanagement.get_subsample_for_each_split()
+                            ["Training Dataset",None],
+                            ["Target Column",self._model_management.get_target_variable()],
+                            ["Target Column Value",self._model_management.get_target_level()],
+                            ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Model Validation",self._model_management.get_validation_method()],
+                            ["Booster Function",self._model_management.get_booster_function()],
+                            ["Learning Rate",self._model_management.get_learning_rate()],
+                            ["Minimum Loss Reduction",self._model_management.get_minimum_loss_reduction()],
+                            ["Maximum Depth",self._model_management.get_max_depth()],
+                            ["Minimum Child Weight",self._model_management.get_minimum_child_weight()],
+                            ["Subsampling Ratio",self._model_management.get_subsampling_ratio()],
+                            ["Subsample of Every Column by each tree",self._model_management.get_subsample_for_each_tree()],
+                            ["Subsample of Every Column by each split",self._model_management.get_subsample_for_each_split()]
 
-                                            }
-            for k, v in modelmanagement_.items():
-                del modelmanagement_[k]
+                            ]
 
 
+            
+
+
+            xgbMMCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in xgbCards:
                 self._prediction_narrative.add_a_card(card)

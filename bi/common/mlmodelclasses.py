@@ -129,6 +129,19 @@ class MLModelSummary:
         self.subsamplingRatio = None
         self.subsampleForEachTree = None
         self.subsampleForEachSplit = None
+        self.targetLevel = None
+    def set_model_F1_score(self,data):
+        self.F1_score = data
+
+    def get_model_F1_score(self):
+        return self.F1_score
+
+    def set_model_log_loss(self,data):
+        self.log_loss = data
+
+    def get_model_log_loss(self):
+        return self.log_loss
+
 
     def set_AUC_score(self,data):
         self.modelAUC =  data

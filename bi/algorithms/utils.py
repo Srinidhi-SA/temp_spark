@@ -873,6 +873,44 @@ def create_model_summary_cards(modelSummaryClass):
         return [modelSummaryCard2,modelSummaryCard4,modelSummaryCard1,modelSummaryCard3]
         # return [modelSummaryCard1,modelSummaryCard2]
 
+def create_model_management_card_overview(modelSummaryClass,summaryJsonDict,settingJsonDict):
+    if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
+        def model_mgmt_summary(model_summary_list):
+            return [list(x) for x in np.array(model_summary_list)]
+        modelManagementCard = NormalCard()
+        modelManagementCardData = []
+        modelManagementCardData.append(HtmlData(data="<h3>Summary</h3>"))
+        modelManagementCardTable = TableData()
+        modelManagementCardTable.set_table_data(model_mgmt_summary(summaryJsonDict))
+        modelManagementCardTable.set_table_type("normal")
+        modelManagementCardData.append(modelManagementCardTable)
+        modelManagementCard.set_card_data(modelManagementCardData)
+        modelManagementCard.set_card_width(50)
+
+        model1ManagementCard = NormalCard()
+        model1ManagementCardData = []
+        model1ManagementCardData.append(HtmlData(data="<h3>Settings</h3>"))
+        model1ManagementCardTable = TableData()
+        model1ManagementCardTable.set_table_data(model_mgmt_summary(settingJsonDict))
+        model1ManagementCardTable.set_table_type("normal")
+        model1ManagementCardData.append(model1ManagementCardTable)
+        model1ManagementCard.set_card_data(model1ManagementCardData)
+        model1ManagementCard.set_card_width(50)
+
+        return [modelManagementCard,model1ManagementCard]
+
+def create_model_management_deploy_empty_card(modelsummaryclass):
+    modelManagementdeployCard = NormalCard()
+    modelManagementdeployCardData = []
+    modelManagementdeployCardData.append(HtmlData(data="<h3>Deploy</h3>"))
+    modelManagementdeployCardTable = TableData()
+    modelManagementdeployCardTable.set_table_data([[None],[None],[None],[None],[None],[None],[None],[None]])
+    modelManagementdeployCardTable.set_table_type("normal")
+    modelManagementdeployCardData.append(modelManagementdeployCardTable)
+    modelManagementdeployCard.set_card_data(modelManagementdeployCardData)
+    modelManagementdeployCard.set_card_width(50)
+
+
 def create_model_management_cards(modelSummaryClass):
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
         confusionMatrixCard = NormalCard()

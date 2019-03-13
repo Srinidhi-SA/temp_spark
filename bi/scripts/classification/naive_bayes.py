@@ -218,16 +218,16 @@ class NBBClassificationModelScript:
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
-            y_prob_for_evaluation = []
+            y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_evaluation.append(float(y_prob[i][0]))
+                    y_prob_for_eval.append(float(y_prob[i][0]))
                 else:
-                    y_prob_for_evaluation.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
 
-            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_evaluation': y_prob_for_evaluation})
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
             pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_evaluation','y_score',self._spark)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
             gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
@@ -1281,11 +1281,27 @@ class NBMClassificationModelScript:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
                 auc = metrics.roc_auc_score(y_test,y_score)
+                log_loss = metrics.log_loss(y_test,y_prob)
+                F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
+                log_loss = metrics.log_loss(y_test,y_prob)
+                F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
+
+            y_prob_for_eval = []
+            for i in range(len(y_prob)):
+                if len(y_prob[i]) == 1:
+                    y_prob_for_eval.append(float(y_prob[i][0]))
+                else:
+                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
+
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
+            pys_df = self._spark.createDataFrame(temp_df)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
+            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -1331,15 +1347,20 @@ class NBMClassificationModelScript:
             self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
             self._model_summary.set_model_precision(overall_precision_recall["precision"])
             self._model_summary.set_model_recall(overall_precision_recall["recall"])
+            self._model_summary.set_model_F1_score(F1_score)
+            self._model_summary.set_model_log_loss(log_loss)
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
             self._model_summary.set_validation_method("Train and Test")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
+            self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
+            self._model_summary.set_AUC_score(auc)
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
-            # self._model_summary.set_num_trees(100)
-            # self._model_summary.set_num_rules(300)
+            self._model_summary.set_num_trees(100)
+            self._model_summary.set_num_rules(300)
+            self._model_summary.set_target_level(self._targetLevel)
             self._model_summary.set_target_level(self._targetLevel)
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
@@ -1375,57 +1396,56 @@ class NBMClassificationModelScript:
                     "name":self._model_summary.get_algorithm_name()
                 }
             if not algoSetting.is_hyperparameter_tuning_enabled():
-                self.modelmanagement = MLModelSummary()
-                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self.modelmanagement.set_training_status(data="completed")# training status
-                self.modelmanagement.set_target_level(self._targetLevel) # target column value
-                self.modelmanagement.set_training_time(runtime) # run time
-                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self.modelmanagement.set_algorithm_name("NaiveBayes")#algorithm name
-                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self.modelmanagement.set_target_variable(result_column)#target column name
-                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
-                self.modelmanagement.set_alpha(modelmanagement_['alpha'])
+                self._model_management = MLModelSummary()
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_alpha(modelmanagement_['alpha'])
             else:
-                self.modelmanagement = MLModelSummary()
-                self.modelmanagement.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self.modelmanagement.set_training_status(data="completed")# training status
-                self.modelmanagement.set_target_level(self._targetLevel) # target column value
-                self.modelmanagement.set_training_time(runtime) # run time
-                self.modelmanagement.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self.modelmanagement.set_algorithm_name("NaiveBayes")#algorithm name
-                self.modelmanagement.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self.modelmanagement.set_target_variable(result_column)#target column name
-                self.modelmanagement.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
-                self.modelmanagement.set_alpha(modelmanagement_['param_grid']['alpha'][0])
+                self._model_management = MLModelSummary()
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_alpha(modelmanagement_['param_grid']['alpha'][0])
 
-            modelManagementSummaryJson = {
+            modelManagementSummaryJson = [
 
-                            "Project Name":self.modelmanagement.get_job_type(),
-                            "Algorithm":self.modelmanagement.get_algorithm_name(),
-                            "Training Status":self.modelmanagement.get_training_status(),
-                            "Accuracy":self.modelmanagement.get_model_accuracy(),
-                            "RunTime":self.modelmanagement.get_training_time(),
-                            "Owner":None,
-                            "Created On":self.modelmanagement.get_creation_date()
+                                  ["Project Name",self._model_management.get_job_type()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Training Status",self._model_management.get_training_status()],
+                                  ["Accuracy",self._model_management.get_model_accuracy()],
+                                  ["RunTime",self._model_management.get_training_time()],
+                                  ["Owner",None],
+                                  ["Created On",self._model_management.get_creation_date()]
 
-                                        }
+                                              ]
+            modelManagementModelSettingsJson = [
 
-            modelManagementModelSettingsJson = {
+                                  ["Training Dataset",None],
+                                  ["Target Column",self._model_management.get_target_variable()],
+                                  ["Target Column Value",self._model_management.get_target_level()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Model Validation",self._model_management.get_validation_method()],
+                                  ["Alpha",self._model_management.get_alpha()]
 
-                            "Training Dataset":None,
-                            "Target Column":self.modelmanagement.get_target_variable(),
-                            "Target Column Value":self.modelmanagement.get_target_level(),
-                            "Algorithm":self.modelmanagement.get_algorithm_name(),
-                            "Model Validation":self.modelmanagement.get_validation_method(),
-                            "Alpha":self.modelmanagement.get_alpha()
-
-                                            }
-            for k, v in modelmanagement_.items():
-                del modelmanagement_[k]
+                                                  ]
             
 
 
+
+            nbMMCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
             nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
