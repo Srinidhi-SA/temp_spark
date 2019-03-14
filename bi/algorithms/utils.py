@@ -899,7 +899,7 @@ def create_model_management_card_overview(modelSummaryClass,summaryJsonDict,sett
 
         return [modelManagementCard,model1ManagementCard]
 
-def create_model_management_deploy_empty_card(modelsummaryclass):
+def create_model_management_deploy_empty_card():
     modelManagementdeployCard = NormalCard()
     modelManagementdeployCardData = []
     modelManagementdeployCardData.append(HtmlData(data="<h3>Deploy</h3>"))
@@ -1193,6 +1193,21 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["labelMappingDict"] = labelMappingDict
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
         model_dropdowns = [x for x in model_dropdowns if x != None]
+
+        # Adding Management Tree
+        modelManagement = NarrativesTree(name="Model Management")
+        rfManagementNode = NarrativesTree(name='Random Forest')
+        lrManagementNode = NarrativesTree(name='Logistic Regression')
+        xgbManagementNode = NarrativesTree(name='Xgboost')
+        nbManagementNode = NarrativesTree(name='Naive Bayes')
+        rfManagementNode.add_nodes(result_setter.get_all_rf_classification_nodes())
+        lrManagementNode.add_a_node(result_setter.get_all_lr_classification_nodes())
+        xgbManagementNode.add_a_node(result_setter.get_all_xgb_classification_nodes())
+        nbManagementNode.add_a_node(result_setter.get_all_nb_classification_nodes())
+        modelManagement.add_a_node(rfManagementNode)
+        modelManagement = json.loads(CommonUtils.convert_python_object_to_json(modelManagement))
+
+        modelJsonOutput.set_model_management_summary(modelManagement)
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         print model_dropdowns
         print "="*100

@@ -406,7 +406,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
     appid = str(dataframe_context.get_app_id())
     app_type = dataframe_context.get_app_type()
-    algorithm_name = dataframe_context.get_algorithm_slug()
+    algorithm_name = dataframe_context.get_algorithm_slug()[0]
     print "algorithm_name",algorithm_name
     print "score_file_path",score_file_path
     print "model_slug",model_slug
@@ -422,7 +422,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
     if app_type == "CLASSIFICATION":
-        model_path = score_file_path.split(basefoldername)+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
@@ -482,7 +482,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
     elif app_type == "REGRESSION":
-        model_path = score_file_path.split(basefoldername)+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
         dataframe_context.set_story_on_scored_data(True)

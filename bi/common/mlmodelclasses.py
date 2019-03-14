@@ -32,7 +32,7 @@ class ModelSummary:
                         }
                     }
     """
-    def __init__(self, model_summary=None, model_dropdown=None, modelConfig=None, modelHyperparameter=None):
+    def __init__(self, model_summary=None, model_dropdown=None, modelConfig=None, modelHyperparameter=None, model_management_summary=None):
         if model_summary is None:
             model_summary = {}
         if model_dropdown is None:
@@ -44,6 +44,7 @@ class ModelSummary:
         self.config = modelConfig
         self.model_hyperparameter_summary = modelHyperparameter
         self.modelSelectedByUser = False
+        self.model_management_summary = model_management_summary
 
     def set_model_summary(self,data):
         self.model_summary = data
@@ -61,13 +62,18 @@ class ModelSummary:
         return self.model_hyperparameter_summary
     def set_model_hyperparameter_summary(self,data):
         self.model_hyperparameter_summary = data
+    def get_model_management_summary(self):
+        return self.model_management_summary
+    def set_model_management_summary(self, data):
+        self.model_management_summary = data
     def get_json_data(self):
         output =  {
                 "model_summary":self.model_summary,
                 "model_dropdown":self.model_dropdown,
                 "config":self.config,
                 "model_hyperparameter":self.model_hyperparameter_summary,
-                "modelSelected":self.modelSelectedByUser
+                "modelSelected":self.modelSelectedByUser,
+                "model_management_summary": self.model_management_summary
                 }
         return output
 

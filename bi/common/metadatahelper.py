@@ -315,7 +315,7 @@ class MetaDataHelper():
                     levelCountBig = df.groupBy(column).count().sort(desc("count"))
                     col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
 
-                    nullcnt = df.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
+                    nullcnt = df.select(count(when(col(column).isNull(), column)).alias(column))
                     col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
                     col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
 

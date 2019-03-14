@@ -43,6 +43,10 @@ class ResultSetter:
         self.scorefreqcard = []
         self.scorechicards = []
         self.scoredtreecards = []
+        self.rfnodes = []
+        self.nbnodes = []
+        self.xgbnodes = []
+        self.lrnodes = []
         self.stockAdvisorNode = None
         self.uidTable = None
         self.pmmlObjects = {}
@@ -99,6 +103,14 @@ class ResultSetter:
         self.lrcards = data
     def set_rf_cards(self,data):
         self.rfcards = data
+    def set_rf_nodes(self,data):
+        self.rfnodes = data
+    def set_lr_nodes(self,data):
+        self.lrnodes = data
+    def set_nb_nodes(self,data):
+        self.nbnodes = data
+    def set_xgb_nodes(self,data):
+        self.xgbnodes = data
     def set_nb_cards(self,data):
         self.nbcards = data
     def set_linr_cards(self,data):
@@ -117,7 +129,14 @@ class ResultSetter:
         self.svmcards = data
     def get_all_classification_cards(self):
         return self.rfcards + self.lrcards + self.xgbcards+self.nbcards
-
+    def get_all_rf_classification_nodes(self):
+        return self.rfnodes
+    def get_all_lr_classification_nodes(self):
+        return self.lrnodes
+    def get_all_xgb_classification_nodes(self):
+        return self.xgbnodes
+    def get_all_nb_classification_nodes(self):
+        return self.nbnodes
     def get_all_regression_cards(self):
         return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
 

@@ -324,7 +324,7 @@ class RFClassificationModelScript:
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
-            
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 self._model_management = MLModelSummary()
                 self._model_management.set_criterion(data=modelmanagement_['criterion'])
@@ -402,14 +402,31 @@ class RFClassificationModelScript:
 
                                                   ]
 
-            rfMMCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            rfOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
+            # rfDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            from bi.common import NarrativesTree
+            RF_Overview_Node = NarrativesTree()
+            RF_Overview_Node.set_name("Overview")
+            RF_Performance_Node = NarrativesTree()
+            RF_Overview_Node.set_name("Performance")
+            # RF_Deployment_Node = NarrativesTree()
+            # RF_Deployment_Node.set_name("Deployment")
+            for card in rfOverviewCards:
+                RF_Overview_Node.add_a_card(card)
+            for card in rfPerformanceCards:
+                RF_Performance_Node.add_a_card(card)
+            # for card in rfDeploymentCards:
+            #     RF_Deployment_Node.add_a_card(card)
+            # self._prediction_narrative.add_a_node(RF_Overview_Node)
             for card in rfCards:
                 self._prediction_narrative.add_a_card(card)
 
             self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_random_forest_model_summary(modelSummaryJson)
             self._result_setter.set_rf_cards(rfCards)
+            self._result_setter.set_rf_nodes([RF_Overview_Node,RF_Performance_Node])
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
