@@ -153,11 +153,13 @@ class XgboostScript:
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    bestModelName = resultArray[0]['Model ID']
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
+                bestModelName = "M" + "0" * (GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH - 1) + "1"
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
@@ -256,6 +258,26 @@ class XgboostScript:
             self._model_summary.set_num_trees(100)
             self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
+
+            accuracy_value = 0
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                accuracy_value = self._model_summary.get_model_accuracy()
+            else:
+                accuracy_value = resultArray[0]["Accuracy"],
+
+            modelManagementJson = {
+                "Model ID": "XGB-" + bestModelName,
+                "Project Name": self._dataframe_context.get_job_name(),
+                "Algorithm": self._model_summary.get_algorithm_name(),
+                "Status": 'Completed',
+                "Accuracy": accuracy_value,
+                "Runtime": runtime,
+                "Created On": "",
+                "Owner": "",
+                "Deployment": 0,
+                "Action": ''
+            }
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
@@ -296,6 +318,7 @@ class XgboostScript:
 
             self._result_setter.set_model_summary({"xgboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_xgboost_model_summary(modelSummaryJson)
+            self._result_setter.set_xgboost_management_summary(modelManagementJson)
             self._result_setter.set_xgb_cards(xgbCards)
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")

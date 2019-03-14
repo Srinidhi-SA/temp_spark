@@ -194,13 +194,13 @@ def main(configJson):
 
         ################################ Model Training ############################
         elif jobType == 'training':
-            dataframe_context.set_ml_environment("spark")
+            dataframe_context.set_ml_environment("sklearn")
             MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance)
         ############################################################################
 
         ############################## Model Prediction ############################
         elif jobType == 'prediction':
-            dataframe_context.set_ml_environment("spark")
+            dataframe_context.set_ml_environment("sklearn")
             MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
 
         ############################################################################

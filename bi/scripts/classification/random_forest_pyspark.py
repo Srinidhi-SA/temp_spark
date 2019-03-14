@@ -140,6 +140,8 @@ class RandomForestPysparkScript:
 
         paramGrid = ParamGridBuilder()
         for k,v in algoParams.items():
+            if v == [None] * len(v):
+                continue
             paramGrid = paramGrid.addGrid(k,v)
         paramGrid = paramGrid.build()
 

@@ -23,8 +23,6 @@ class ResultSetter:
         self.sparkMultilayerPerceptronModelSummary = None
         self.randomForestModelSummary = None
         self.sparkRandomForestModelSummary = None
-        self.sparkLogisticRegressionModelSummary = None
-        self.sparkMultilayerPerceptronModelSummary = None
         self.naiveBayesModelSummary = None
         self.sparknaiveBayesModelSummary = None
         self.xgboostModelSummary = None
@@ -37,6 +35,18 @@ class ResultSetter:
         self.gbtRegressionModelSummary = None
         self.dtreeRegressionModelSummary = None
         self.rfRegressionModelSummary = None
+
+        self.sparkMultilayerPerceptronManagementSummary = None
+        self.randomForestManagementSummary = None
+        self.sparkRandomForestManagementSummary = None
+        self.naiveBayesManagementSummary = None
+        self.sparknaiveBayesManagementSummary = None
+        self.xgboostManagementSummary = None
+        self.sparkxgboostManagementSummary = None
+        self.logisticRegressionManagementSummary = None
+        self.sparklogisticRegressionManagementSummary = None
+        self.svmManagementSummary = None
+
         self.mlpccards = []
         self.rfcards = []
         self.nbcards = []
@@ -296,3 +306,63 @@ class ResultSetter:
 
     def set_coeff_card_regression_score(self,coeffCardScore):
         self.coeffCardScore = coeffCardScore
+
+    def set_random_forest_management_summary(self, data):
+        self.randomForestManagementSummary = data
+
+    def get_random_forest_management_summary(self):
+        return self.randomForestManagementSummary
+
+    def set_xgboost_management_summary(self, data):
+        self.xgboostManagementSummary = data
+
+    def get_xgboost_management_summary(self):
+        return self.xgboostManagementSummary
+
+    def set_logistic_regression_management_summary(self, data):
+        self.logisticRegressionManagementSummary = data
+
+    def get_logistic_regression_management_summary(self):
+        return self.logisticRegressionManagementSummary
+
+    def set_naive_bayes_management_summary(self, data):
+        self.naiveBayesManagementSummary = data
+
+    def get_naive_bayes_management_summary(self):
+        return self.naiveBayesManagementSummary
+
+    def set_svm_management_summary(self, data):
+        self.svmManagementSummary = data
+
+    def get_svm_management_summary(self):
+        return self.svmManagementSummary
+
+    def set_spark_random_forest_management_summary(self, data):
+        self.sparkRandomForestManagementSummary = data
+
+    def get_spark_random_forest_management_summary(self):
+        return self.sparkRandomForestManagementSummary
+
+    def set_spark_naive_bayes_management_summary(self, data):
+        self.sparknaiveBayesManagementSummary = data
+
+    def get_spark_naive_bayes_management_summary(self):
+        return self.sparknaiveBayesManagementSummary
+
+    def set_spark_logistic_regression_management_summary(self, data):
+        self.sparklogisticRegressionManagementSummary = data
+
+    def get_spark_logistic_regression_management_summary(self):
+        return self.sparklogisticRegressionManagementSummary
+
+    def set_spark_multilayer_perceptron_management_summary(self, data):
+        self.sparkMultilayerPerceptronManagementSummary = data
+
+    def get_spark_multilayer_perceptron_management_summary(self):
+        return self.sparkMultilayerPerceptronManagementSummary
+
+    def set_spark_xgboost_management_summary(self, data):
+        self.sparkxgboostManagementSummary = data
+
+    def get_spark_xgboost_management_summary(self):
+        return self.sparkxgboostManagementSummary
