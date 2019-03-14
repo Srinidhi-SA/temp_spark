@@ -37,6 +37,7 @@ from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.narratives import utils as NarrativesUtils
+from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
@@ -1441,19 +1442,32 @@ class NBMClassificationModelScript:
                                   ["Alpha",self._model_management.get_alpha()]
 
                                                   ]
-            
 
 
-
-            nbMMCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            nbOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            nbPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
+            nbDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            NB_Overview_Node = NarrativesTree()
+            NB_Overview_Node.set_name("Overview")
+            NB_Performance_Node = NarrativesTree()
+            NB_Performance_Node.set_name("Performance")
+            NB_Deployment_Node = NarrativesTree()
+            NB_Deployment_Node.set_name("Deployment")
+            for card in nbOverviewCards:
+                NB_Overview_Node.add_a_card(card)
+            for card in nbPerformanceCards:
+                NB_Performance_Node.add_a_card(card)
+            for card in nbDeploymentCards:
+                NB_Deployment_Node.add_a_card(card)
+            
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
 
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
             self._result_setter.set_nb_cards(nbCards)
-
+            self._result_setter.set_nb_nodes([NB_Overview_Node, NB_Performance_Node, NB_Deployment_Node])
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 

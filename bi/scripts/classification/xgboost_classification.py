@@ -34,6 +34,7 @@ from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
@@ -398,17 +399,32 @@ class XgboostScript:
                             ]
 
 
-            
 
 
-            xgbMMCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+
+            xgbOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            xgbPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
+            xgbDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            XGB_Overview_Node = NarrativesTree()
+            XGB_Overview_Node.set_name("Overview")
+            XGB_Performance_Node = NarrativesTree()
+            XGB_Performance_Node.set_name("Performance")
+            XGB_Deployment_Node = NarrativesTree()
+            XGB_Deployment_Node.set_name("Deployment")
+            for card in xgbOverviewCards:
+                XGB_Overview_Node.add_a_card(card)
+            for card in xgbPerformanceCards:
+                XGB_Performance_Node.add_a_card(card)
+            for card in xgbDeploymentCards:
+                XGB_Deployment_Node.add_a_card(card)
             for card in xgbCards:
                 self._prediction_narrative.add_a_card(card)
 
             self._result_setter.set_model_summary({"xgboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_xgboost_model_summary(modelSummaryJson)
             self._result_setter.set_xgb_cards(xgbCards)
+            self._result_setter.set_xgb_nodes([XGB_Overview_Node,XGB_Performance_Node,XGB_Deployment_Node])
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

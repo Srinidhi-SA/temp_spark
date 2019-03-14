@@ -39,6 +39,8 @@ class ModelSummary:
             model_dropdown = []
         if modelConfig is None:
             modelConfig = {}
+        if model_management_summary is None:
+            model_management_summary = []
         self.model_summary = model_summary
         self.model_dropdown = model_dropdown
         self.config = modelConfig

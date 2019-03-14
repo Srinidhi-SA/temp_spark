@@ -900,15 +900,18 @@ def create_model_management_card_overview(modelSummaryClass,summaryJsonDict,sett
         return [modelManagementCard,model1ManagementCard]
 
 def create_model_management_deploy_empty_card():
+    def model_mgmt_summary(model_summary_list):
+        return [list(x) for x in np.array(model_summary_list)]
     modelManagementdeployCard = NormalCard()
     modelManagementdeployCardData = []
     modelManagementdeployCardData.append(HtmlData(data="<h3>Deploy</h3>"))
     modelManagementdeployCardTable = TableData()
-    modelManagementdeployCardTable.set_table_data([[None],[None],[None],[None],[None],[None],[None],[None]])
+    modelManagementdeployCardTable.set_table_data(model_mgmt_summary([[],[],[],[],[],[],[],[]]))
     modelManagementdeployCardTable.set_table_type("normal")
     modelManagementdeployCardData.append(modelManagementdeployCardTable)
     modelManagementdeployCard.set_card_data(modelManagementdeployCardData)
-    modelManagementdeployCard.set_card_width(50)
+    modelManagementdeployCard.set_card_width(100)
+    return [modelManagementdeployCard]
 
 
 def create_model_management_cards(modelSummaryClass):
@@ -1195,7 +1198,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_dropdowns = [x for x in model_dropdowns if x != None]
 
         # Adding Management Tree
-        modelManagement = NarrativesTree(name="Model Management")
+        modelManagement = []
         rfManagementNode = NarrativesTree(name='Random Forest')
         lrManagementNode = NarrativesTree(name='Logistic Regression')
         xgbManagementNode = NarrativesTree(name='Xgboost')
@@ -1204,7 +1207,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrManagementNode.add_a_node(result_setter.get_all_lr_classification_nodes())
         xgbManagementNode.add_a_node(result_setter.get_all_xgb_classification_nodes())
         nbManagementNode.add_a_node(result_setter.get_all_nb_classification_nodes())
-        modelManagement.add_a_node(rfManagementNode)
+        modelManagement = [rfManagementNode,lrManagementNode,xgbManagementNode,nbManagementNode]
         modelManagement = json.loads(CommonUtils.convert_python_object_to_json(modelManagement))
 
         modelJsonOutput.set_model_management_summary(modelManagement)
