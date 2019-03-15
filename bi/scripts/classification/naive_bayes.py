@@ -117,7 +117,6 @@ class NBBClassificationModelScript:
             pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
             x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-            print type(y_train),type(y_test)
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
@@ -669,7 +668,7 @@ class NBGClassificationModelScript:
             pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
             x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-            print type(y_train),type(y_test)
+
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
@@ -1194,7 +1193,6 @@ class NBMClassificationModelScript:
             pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
 
             x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
-            print type(y_train),type(y_test)
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
@@ -1460,9 +1458,13 @@ class NBMClassificationModelScript:
                 NB_Performance_Node.add_a_card(card)
             for card in nbDeploymentCards:
                 NB_Deployment_Node.add_a_card(card)
-            
+
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
+            print self._model_summary
+            print "Model SUmmary Dict"*10
+
+            print self._model_summary.__dict__
 
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
