@@ -1060,6 +1060,11 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
             else:
                 narrative = 'When ' +temp_narrative+ ' then there is  <b>' + str(round_number(success_percent)) + '% ' + \
                             ' <b>chance that '+ colname + 'range would be ' + target +'.'
+        print "<>"*76
+        print "NARRATIVE - ", narrative
+        print "?"*76
+        print "CRUDE NARRATIVE - ", crude_narrative
+        print "<>"*76
         return narrative,crude_narrative
 
 def statistical_info_array_formatter(st_array):
