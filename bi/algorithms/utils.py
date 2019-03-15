@@ -1204,9 +1204,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         xgbManagementNode = NarrativesTree(name='Xgboost')
         nbManagementNode = NarrativesTree(name='Naive Bayes')
         rfManagementNode.add_nodes(result_setter.get_all_rf_classification_nodes())
-        lrManagementNode.add_a_node(result_setter.get_all_lr_classification_nodes())
-        xgbManagementNode.add_a_node(result_setter.get_all_xgb_classification_nodes())
-        nbManagementNode.add_a_node(result_setter.get_all_nb_classification_nodes())
+        lrManagementNode.add_nodes(result_setter.get_all_lr_classification_nodes())
+        xgbManagementNode.add_nodes(result_setter.get_all_xgb_classification_nodes())
+        nbManagementNode.add_nodes(result_setter.get_all_nb_classification_nodes())
         modelManagement = [rfManagementNode,lrManagementNode,xgbManagementNode,nbManagementNode]
         modelManagement = json.loads(CommonUtils.convert_python_object_to_json(modelManagement))
 
