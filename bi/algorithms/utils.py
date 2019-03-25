@@ -914,7 +914,7 @@ def create_model_management_deploy_empty_card():
     return [modelManagementdeployCard]
 
 
-def create_model_management_cards(modelSummaryClass, roc_df):
+def create_model_management_cards(modelSummaryClass, final_roc_df):
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
         confusionMatrixCard = NormalCard()
         confusionMatrixCardData = []
@@ -1015,7 +1015,7 @@ def create_model_management_cards(modelSummaryClass, roc_df):
         liftCard.set_card_width(50)
 
 
-        chartjson = chart_data_prep(roc_df,['fpr','tpr'], ['X','Y'],'line',False)
+        chartjson = chart_data_prep(final_roc_df,['fpr','tpr'], ['False Positive Rate','True Positive Rate'],'line',False)
         ROCChart = C3ChartData(data=chartjson)
 
         ROCCard = NormalCard()
