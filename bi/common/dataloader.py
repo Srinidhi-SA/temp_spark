@@ -160,10 +160,6 @@ class DataLoader:
                     .appName("using_s3") \
                     .getOrCreate()
 
-            hadoopConf = spark.sparkContext._jsc.hadoopConfiguration()
-            hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-            hadoopConf.set("fs.s3a.access.key", myAccessKey)
-            hadoopConf.set("fs.s3a.secret.key", mySecretKey)
 
             df = spark.read.csv('/tmp/'+dst_file_name)
         except Exception as e:
