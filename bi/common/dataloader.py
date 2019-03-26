@@ -4,7 +4,7 @@ functions to load data from various sources to create a dataframe
 
 from pyspark.sql import SparkSession, HiveContext
 from pyspark import SparkContext, SparkConf
-
+import random
 from decorators import accepts
 
 
@@ -152,8 +152,8 @@ class DataLoader:
 
             def read_file(src_name):
             	bucket = get_boto_bucket()
-
-            download_file(file_name,file_name)
+            dst_file_name = str(random.randint(10000,99999)) + '_' + file_name
+            download_file(file_name,'/tmp/'+dst_file_name)
 
             spark = SparkSession \
                     .builder \
@@ -165,7 +165,7 @@ class DataLoader:
             hadoopConf.set("fs.s3a.access.key", myAccessKey)
             hadoopConf.set("fs.s3a.secret.key", mySecretKey)
 
-            df = spark.read.csv(file_name)
+            df = spark.read.csv('/tmp/'+dst_file_name)
         except Exception as e:
             print("couldn't connect to hive")
             raise e
