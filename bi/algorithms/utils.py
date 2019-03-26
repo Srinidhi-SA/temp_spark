@@ -914,7 +914,7 @@ def create_model_management_deploy_empty_card():
     return [modelManagementdeployCard]
 
 
-def create_model_management_cards(modelSummaryClass):
+def create_model_management_cards(modelSummaryClass, final_roc_df):
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
         confusionMatrixCard = NormalCard()
         confusionMatrixCardData = []
@@ -966,7 +966,7 @@ def create_model_management_cards(modelSummaryClass):
         gain_lift_KS_data =  modelSummaryClass.get_gain_lift_KS_data()
 
         def chart_data_prep(df, column_names,label,chart_type,subchart):
-            ChartData = gain_lift_KS_data[column_names]
+            ChartData = df[column_names]
             ChartData = ChartData.to_dict('record')
             ChartData = NormalChartData(data=ChartData)
             chart_json = ChartJson()
@@ -1014,7 +1014,20 @@ def create_model_management_cards(modelSummaryClass):
         liftCard.set_card_data(liftCardData)
         liftCard.set_card_width(50)
 
-        return [modelManagementSummaryCard, confusionMatrixCard,KSCard,GainCard,liftCard]
+
+        chartjson = chart_data_prep(final_roc_df,['fpr','tpr'], ['False Positive Rate','True Positive Rate'],'line',False)
+        ROCChart = C3ChartData(data=chartjson)
+
+        ROCCard = NormalCard()
+
+        ROCCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")]
+        ROCCardData.append(ROCChart)
+        ROCCard.set_card_data(ROCCardData)
+        ROCCard.set_card_width(50)
+
+        print "ROC CARD CREATED SUCCESSFULLY ........"
+
+        return [modelManagementSummaryCard, confusionMatrixCard,KSCard,GainCard,liftCard, ROCCard]
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):

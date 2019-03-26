@@ -20,6 +20,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import roc_curve, auc, roc_auc_score
 
 
 
@@ -229,6 +230,55 @@ class RFClassificationModelScript:
                 else:
                     y_prob_for_eval.append(float(y_prob[i][int(posLabel)]))
 
+
+            '''ROC CURVE IMPLEMENTATION'''
+
+            positive_label_probs = []
+
+            for val in y_prob:
+                positive_label_probs.append(val[posLabel])
+
+            roc_data_dict = {
+                                "y_score" : y_score,
+                                "y_test" : y_test,
+                                "positive_label_probs" : positive_label_probs,
+                                "y_prob" : y_prob,
+                                "positive_label" : posLabel
+                            }
+
+            roc_dataframe = pd.DataFrame(
+                                            {
+                                                "y_score" : y_score,
+                                                "y_test" : y_test,
+                                                "positive_label_probs" : positive_label_probs
+                                            }
+                                        )
+
+            fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+
+            roc_df = pd.DataFrame({"fpr" : fpr, "tpr" : tpr, "thresholds" : thresholds})
+            roc_df["tpr-fpr"] = roc_df["tpr"] - roc_df["fpr"]
+
+            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "fpr"]
+            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "tpr"]
+
+            rounded_roc_df = roc_df.round({'fpr': 2, 'tpr': 4})
+
+            unique_fpr = rounded_roc_df["fpr"].unique()
+
+            final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
+
+            '''
+            roc_data_list = []
+            for i in range(1, len(fpr)):
+                roc_dict = {}
+                roc_dict["fpr"] = fpr[i]
+                roc_dict["tpr"] = tpr[i]
+                roc_data_list.append(roc_dict)
+            '''
+
+
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
             pys_df = self._spark.createDataFrame(temp_df)
             gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
@@ -404,9 +454,10 @@ class RFClassificationModelScript:
                                                   ]
 
             rfOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
+            rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
             rfDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            #rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
             RF_Overview_Node = NarrativesTree()
             RF_Overview_Node.set_name("Overview")
             RF_Performance_Node = NarrativesTree()
