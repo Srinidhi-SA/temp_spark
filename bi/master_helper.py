@@ -44,7 +44,6 @@ def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-        df = df.select([c for c in df.columns if c not in {'0x3567e0','0x2d461c62a0674c00','0x24f21c22f0e641e2371f04a7bb8d713f89f53550'}])
     else:
         dbConnectionParams = dataframe_context.get_dbconnection_params()
         df = DataLoader.create_dataframe_from_jdbc_connector(spark, datasource_type, dbConnectionParams)

@@ -1461,11 +1461,6 @@ class NBMClassificationModelScript:
 
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
-            print self._model_summary
-            print "Model SUmmary Dict"*10
-
-            print self._model_summary.__dict__
-
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
             self._result_setter.set_nb_cards(nbCards)
