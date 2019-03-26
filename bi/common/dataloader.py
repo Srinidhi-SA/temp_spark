@@ -161,7 +161,7 @@ class DataLoader:
                     .getOrCreate()
 
 
-            df = spark.read.csv('/tmp/'+dst_file_name)
+            df = spark.read.csv('file:///tmp/'+dst_file_name)
         except Exception as e:
             print("couldn't connect to hive")
             raise e
