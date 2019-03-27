@@ -4,7 +4,7 @@ functions to load data from various sources to create a dataframe
 
 from pyspark.sql import SparkSession, HiveContext
 from pyspark import SparkContext, SparkConf
-
+import random
 from decorators import accepts
 
 
@@ -123,25 +123,45 @@ class DataLoader:
     def create_dataframe_from_s3(spark_session, dbConnectionParams):
         df = None
         try:
+            import boto3
+
             myAccessKey = dbConnectionParams.get("access_key_id")
             mySecretKey = dbConnectionParams.get("secret_key")
             s3_bucket_name = dbConnectionParams.get("bucket_name")
             file_name = dbConnectionParams.get("file_name")
             datasetname = dbConnectionParams.get("new_dataset_name")
 
+            def get_boto_session():
+            	return boto3.Session(aws_access_key_id=myAccessKey, aws_secret_access_key=mySecretKey)
+
+            def get_boto_resourse():
+            	session = get_boto_session()
+            	return session.resource('s3')
+
+            def get_boto_bucket():
+            	resource = get_boto_resourse()
+            	return resource.Bucket(s3_bucket_name)
+
+            def upload_file(src_path, dest_name):
+            	bucket = get_boto_bucket()
+            	bucket.upload_file(src_path, dest_name)
+
+            def download_file(file_name, dest_name):
+            	bucket = get_boto_bucket()
+            	bucket.download_file(file_name, dest_name)
+
+            def read_file(src_name):
+            	bucket = get_boto_bucket()
+            dst_file_name = str(random.randint(10000,99999)) + '_' + file_name
+            download_file(file_name,'/tmp/'+dst_file_name)
+
             spark = SparkSession \
                     .builder \
                     .appName("using_s3") \
                     .getOrCreate()
 
-            hadoopConf = spark.sparkContext._jsc.hadoopConfiguration()
-            hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-            hadoopConf.set("fs.s3a.access.key", myAccessKey)
-            hadoopConf.set("fs.s3a.secret.key", mySecretKey)
 
-            # s3 path with bucket
-            file_path = 's3a://{0}/{1}'.format(s3_bucket_name, file_name)
-            df = spark.read.csv(file_path)
+            df = spark.read.csv('file:///tmp/'+dst_file_name)
         except Exception as e:
             print("couldn't connect to hive")
             raise e
