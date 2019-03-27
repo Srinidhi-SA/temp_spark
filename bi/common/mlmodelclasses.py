@@ -139,20 +139,20 @@ class MLModelSummary:
         self.subsampleForEachSplit = None
         self.targetLevel = None
     def set_model_F1_score(self,data):
-        self.F1_score = data
+        self.F1_score = round(data,3)
 
     def get_model_F1_score(self):
         return self.F1_score
 
     def set_model_log_loss(self,data):
-        self.log_loss = data
+        self.log_loss = round(data,3)
 
     def get_model_log_loss(self):
         return self.log_loss
 
 
     def set_AUC_score(self,data):
-        self.modelAUC =  data
+        self.modelAUC =  round(data,3)
 
     def get_AUC_score(self):
         return self.modelAUC
@@ -357,13 +357,13 @@ class MLModelSummary:
         self.precisionRecallStats = data
 
     def set_model_accuracy(self,data):
-        self.modelAccuracy = data
+        self.modelAccuracy = round(data,3)
 
     def set_model_precision(self,data):
-        self.modelPrecision = data
+        self.modelPrecision = round(data,3)
 
     def set_model_recall(self,data):
-        self.modelRecall = data
+        self.modelRecall = round(data,3)
 
     def set_target_variable(self,data):
         self.targetVariable = data

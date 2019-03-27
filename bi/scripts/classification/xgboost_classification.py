@@ -130,12 +130,23 @@ class XgboostScript:
             y_test = labelEncoder.transform(y_test)
             classes = labelEncoder.classes_
             transformed = labelEncoder.transform(classes)
+            transformed_classes_list = list(transformed)
             labelMapping = dict(zip(transformed,classes))
             inverseLabelMapping = dict(zip(classes,transformed))
             posLabel = inverseLabelMapping[self._targetLevel]
             appType = self._dataframe_context.get_app_type()
 
-            print appType,labelMapping,inverseLabelMapping,posLabel,self._targetLevel
+            print "="*150
+            print "TRANSFORMED CLASSES - ", transformed_classes_list
+            print "LEVELS - ", levels
+            print "NUMBER OF LEVELS - ", len(levels)
+            print "CLASSES - ", classes
+            print "LABEL MAPPING - ", labelMapping
+            print "INVERSE LABEL MAPPING - ", inverseLabelMapping
+            print "POSITIVE LABEL - ", posLabel
+            print "TARGET LEVEL - ", self._targetLevel
+            print "APP TYPE - ", appType
+            print "="*150
 
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -222,51 +233,91 @@ class XgboostScript:
 
 
             '''ROC CURVE IMPLEMENTATION'''
+            if len(levels) <= 2:
+                positive_label_probs = []
+                for val in y_prob:
+                    positive_label_probs.append(val[posLabel])
 
-            positive_label_probs = []
+                roc_data_dict = {
+                                    "y_score" : y_score,
+                                    "y_test" : y_test,
+                                    "positive_label_probs" : positive_label_probs,
+                                    "y_prob" : y_prob,
+                                    "positive_label" : posLabel
+                                }
 
-            for val in y_prob:
-                positive_label_probs.append(val[posLabel])
+                roc_dataframe = pd.DataFrame(
+                                                {
+                                                    "y_score" : y_score,
+                                                    "y_test" : y_test,
+                                                    "positive_label_probs" : positive_label_probs
+                                                }
+                                            )
+                #roc_dataframe.to_csv("binary_roc_data.csv")
+                fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+                roc_df = pd.DataFrame({"fpr" : fpr, "tpr" : tpr, "thresholds" : thresholds})
+                roc_df["tpr-fpr"] = roc_df["tpr"] - roc_df["fpr"]
 
-            roc_data_dict = {
-                                "y_score" : y_score,
-                                "y_test" : y_test,
-                                "positive_label_probs" : positive_label_probs,
-                                "y_prob" : y_prob,
-                                "positive_label" : posLabel
-                            }
+                optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "fpr"]
+                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "tpr"]
 
-            roc_dataframe = pd.DataFrame(
-                                            {
-                                                "y_score" : y_score,
-                                                "y_test" : y_test,
-                                                "positive_label_probs" : positive_label_probs
-                                            }
-                                        )
+                rounded_roc_df = roc_df.round({'fpr': 2, 'tpr': 4})
 
-            fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+                unique_fpr = rounded_roc_df["fpr"].unique()
 
-            roc_df = pd.DataFrame({"fpr" : fpr, "tpr" : tpr, "thresholds" : thresholds})
-            roc_df["tpr-fpr"] = roc_df["tpr"] - roc_df["fpr"]
+                final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
+                '''
+                roc_data_list = []
+                for i in range(1, len(fpr)):
+                    roc_dict = {}
+                    roc_dict["fpr"] = fpr[i]
+                    roc_dict["tpr"] = tpr[i]
+                    roc_data_list.append(roc_dict)
+                '''
+            elif len(levels) > 2:
+                positive_label_probs = []
+                for val in y_prob:
+                    positive_label_probs.append(val[posLabel])
 
-            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
-            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "fpr"]
-            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "tpr"]
+                y_test_roc_multi = []
+                for val in y_test:
+                    if val != posLabel:
+                        val = posLabel + 1
+                        y_test_roc_multi.append(val)
+                    else:
+                        y_test_roc_multi.append(val)
 
-            rounded_roc_df = roc_df.round({'fpr': 2, 'tpr': 4})
+                y_score_roc_multi = []
+                for val in y_score:
+                    if val != posLabel:
+                        val = posLabel + 1
+                        y_score_roc_multi.append(val)
+                    else:
+                        y_score_roc_multi.append(val)
 
-            unique_fpr = rounded_roc_df["fpr"].unique()
+                auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
 
-            final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
+                fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
+                roc_df = pd.DataFrame({"fpr" : fpr, "tpr" : tpr, "thresholds" : thresholds})
+                roc_df["tpr-fpr"] = roc_df["tpr"] - roc_df["fpr"]
 
-            '''
-            roc_data_list = []
-            for i in range(1, len(fpr)):
-                roc_dict = {}
-                roc_dict["fpr"] = fpr[i]
-                roc_dict["tpr"] = tpr[i]
-                roc_data_list.append(roc_dict)
-            '''
+                optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "fpr"]
+                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "tpr"]
+
+                rounded_roc_df = roc_df.round({'fpr': 2, 'tpr': 4})
+                unique_fpr = rounded_roc_df["fpr"].unique()
+                #final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
+                final_roc_df = roc_df
+                '''
+                predicted_prob_dict = {}
+                for transformed_class in transformed_classes_list:
+                    predicted_prob = []
+                    for val in y_prob:
+                        predicted_prob.append(val[transformed_class])
+                    predicted_prob_dict[transformed_class] = predicted_prob
+                '''
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
             pys_df = self._spark.createDataFrame(temp_df)
@@ -366,7 +417,7 @@ class XgboostScript:
                     "name":self._model_summary.get_algorithm_name()
                 }
 
-            xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
+            #xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
             self._model_management = MLModelSummary()
             if not algoSetting.is_hyperparameter_tuning_enabled():
 
@@ -455,6 +506,7 @@ class XgboostScript:
             xgbPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
             xgbDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            #xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
             XGB_Overview_Node = NarrativesTree()
             XGB_Overview_Node.set_name("Overview")
             XGB_Performance_Node = NarrativesTree()
