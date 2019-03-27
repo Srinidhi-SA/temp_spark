@@ -322,7 +322,7 @@ class NBBClassificationModelScript:
                     "name":self._model_summary.get_algorithm_name()
                 }
 
-            nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary)]
+            nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary,final_roc_df)]
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
 
