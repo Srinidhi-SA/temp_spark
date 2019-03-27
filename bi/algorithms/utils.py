@@ -1020,11 +1020,11 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
 
         ROCCard = NormalCard()
 
-        ROCCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart (AUC = {})</h4>".format(str(modelSummaryClass.get_AUC_score())))]
+        ROCCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")]
         ROCCardData.append(ROCChart)
         ROCCard.set_card_data(ROCCardData)
         ROCCard.set_card_width(50)
-        
+
         return [modelManagementSummaryCard, confusionMatrixCard,KSCard,GainCard,liftCard, ROCCard]
 
 
