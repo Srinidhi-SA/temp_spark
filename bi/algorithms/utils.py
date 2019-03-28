@@ -976,11 +976,13 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
                 chart_json.set_label_text({"x":label[0],"y":label[1]})
                 chart_json.set_subchart(subchart)
+                chart_json.set_xaxis_number_format(".2f")
                 chart_json.set_yaxis_number_format(".2f")
             else:
                 chart_json.set_axes({"x":column_names[0],"y":column_names[1],"y2":column_names[2]})
                 chart_json.set_label_text({"x":label[0],"y":label[1],"y2":label[2]})
                 chart_json.set_subchart(subchart)
+                chart_json.set_xaxis_number_format(".2f")
                 chart_json.set_yaxis_number_format(".2f")
             return chart_json
 
