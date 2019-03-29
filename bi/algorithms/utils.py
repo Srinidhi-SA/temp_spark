@@ -945,6 +945,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
             return chart_json
 
         modelPerformanceCardData = []
+        gain_lift_KS_data =  modelSummaryClass.get_gain_lift_KS_data()
 
         '''SUMMARY DATA'''
         summaryData = [
@@ -1014,7 +1015,6 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         modelPerformanceCardData.append(KSChart)
 
         '''GAIN CHART'''
-        gain_lift_KS_data =  modelSummaryClass.get_gain_lift_KS_data()
         chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)','% Responders(Cumulative)'], ['% Population(Cumulative)','% Responders(Cumulative)'],'line',False)
         GainChart = C3ChartData(data=chartjson)
         GainChart.set_width_percent(50)
