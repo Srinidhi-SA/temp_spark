@@ -31,6 +31,8 @@ class MetaDataHelper():
 
         splits  = CommonUtils.frange(col_stat["min"],col_stat["max"],num_steps=n_split)
         splits = sorted(splits)
+        splits[0] = splits[0] - 1
+        splits[-1] = splits[-1] + 1
         splits_range = [(splits[idx],splits[idx+1]) for idx in range(len(splits)-1)]
 
         splits_data = {"splits":splits,"splits_range":splits_range}

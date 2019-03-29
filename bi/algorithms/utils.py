@@ -916,18 +916,31 @@ def create_model_management_deploy_empty_card():
 
 def create_model_management_cards(modelSummaryClass, final_roc_df):
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
-        confusionMatrixCard = NormalCard()
-        confusionMatrixCardData = []
-        confusionMatrixCardData.append(HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>"))
-        confusionMatrixCardTable = TableData()
-        confusionMatrixCardTable.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
-        confusionMatrixCardTable.set_table_type("confusionMatrix")
-        confusionMatrixCardTable.set_table_top_header("Actual")
-        confusionMatrixCardTable.set_table_left_header("Predicted")
-        confusionMatrixCardData.append(confusionMatrixCardTable)
-        confusionMatrixCard.set_card_data(confusionMatrixCardData)
-        confusionMatrixCard.set_card_width(50)
+        def chart_data_prep(df, column_names,label,chart_type,subchart):
+            ChartData = df[column_names]
+            print df.head()
+            ChartData = ChartData.to_dict('record')
+            ChartData = NormalChartData(data=ChartData)
+            chart_json = ChartJson()
+            chart_json.set_data(ChartData.get_data())
+            chart_json.set_chart_type(chart_type)
+            if len(column_names) == 2:
+                chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                chart_json.set_label_text({"x":label[0],"y":label[1]})
+                chart_json.set_subchart(subchart)
+                chart_json.set_xaxis_number_format(".2f")
+                chart_json.set_yaxis_number_format(".2f")
+            else:
+                chart_json.set_axes({"x":column_names[0],"y":column_names[1],"y2":column_names[2]})
+                chart_json.set_label_text({"x":label[0],"y":label[1],"y2":label[2]})
+                chart_json.set_subchart(subchart)
+                chart_json.set_xaxis_number_format(".2f")
+                chart_json.set_yaxis_number_format(".2f")
+            return chart_json
 
+        modelPerformanceCardData = []
+
+        '''SUMMARY DATA'''
         summaryData = [
             {
               "name":"Accuracy",
@@ -955,79 +968,69 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
             }
         ]
 
-        modelManagementSummaryCard = NormalCard()
-        modelManagementSummaryCard1Data = []
-        modelManagementSummaryCardDataBox = DataBox(data=summaryData)
-        modelManagementSummaryCardDataBox.set_data(summaryData)
-        modelManagementSummaryCard1Data.append(modelManagementSummaryCardDataBox)
-        modelManagementSummaryCard.set_card_data(modelManagementSummaryCard1Data)
-        modelManagementSummaryCard.set_card_width(100)
+        modelPerformanceCardDataBox = DataBox(data=summaryData)
+        modelPerformanceCardDataBox.set_data(summaryData)
 
+        modelPerformanceCardData.append(modelPerformanceCardDataBox)
+
+        '''CONFUSION MATRIX'''
+        confusionMatrixTableName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>")]
+
+
+        confusionMatrixCardTable = TableData()
+        confusionMatrixCardTable.set_table_width(50)
+        confusionMatrixCardTable.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
+        confusionMatrixCardTable.set_table_type("confusionMatrix")
+        confusionMatrixCardTable.set_table_top_header("Actual")
+        confusionMatrixCardTable.set_table_left_header("Predicted")
+
+        modelPerformanceCardData.append(confusionMatrixTableName)
+        modelPerformanceCardData.append(confusionMatrixCardTable)
+
+        '''GAIN CHART'''
         gain_lift_KS_data =  modelSummaryClass.get_gain_lift_KS_data()
-
-        def chart_data_prep(df, column_names,label,chart_type,subchart):
-            ChartData = df[column_names]
-            ChartData = ChartData.to_dict('record')
-            ChartData = NormalChartData(data=ChartData)
-            chart_json = ChartJson()
-            chart_json.set_data(ChartData.get_data())
-            chart_json.set_chart_type(chart_type)
-            if len(column_names) == 2:
-                chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
-                chart_json.set_label_text({"x":label[0],"y":label[1]})
-                chart_json.set_subchart(subchart)
-                chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".2f")
-            else:
-                chart_json.set_axes({"x":column_names[0],"y":column_names[1],"y2":column_names[2]})
-                chart_json.set_label_text({"x":label[0],"y":label[1],"y2":label[2]})
-                chart_json.set_subchart(subchart)
-                chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".2f")
-            return chart_json
-
-        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct'], ['Population','% Response'],'line',False)
+        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct'], ['% Population','% Responders'],'line',False)
         GainChart = C3ChartData(data=chartjson)
+        GainChart.set_width_percent(50)
+        GainChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")]
 
-        GainCard = NormalCard()
+        modelPerformanceCardData.append(GainChartName)
+        modelPerformanceCardData.append(GainChart)
 
-        GainCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")]
-        GainCardData.append(GainChart)
-        GainCard.set_card_data(GainCardData)
-        GainCard.set_card_width(50)
-
-        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct','cum_non_resp_pct'], ['Population','% Right','% Wrong'],'line',True)
+        '''KS CHART'''
+        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct','cum_non_resp_pct'], ['% Population','% Right','% Wrong'],'line',True)
         KSChart = C3ChartData(data=chartjson)
+        KSChart.set_width_percent(50)
+        KSChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")]
 
-        KSCard = NormalCard()
+        modelPerformanceCardData.append(KSChartName)
+        modelPerformanceCardData.append(KSChart)
 
-        KSCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>KS Chart</h4>")]
-        KSCardData.append(KSChart)
-        KSCard.set_card_data(KSCardData)
-        KSCard.set_card_width(50)
-
+        '''LIFT CHART'''
         chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','Lift at Decile'], ['Population','Lift@Decile'],'line',False)
         liftChart = C3ChartData(data=chartjson)
+        liftChart.set_width_percent(50)
+        liftChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")]
 
-        liftCard = NormalCard()
+        modelPerformanceCardData.append(liftChartName)
+        modelPerformanceCardData.append(liftChart)
 
-        liftCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")]
-        liftCardData.append(liftChart)
-        liftCard.set_card_data(liftCardData)
-        liftCard.set_card_width(50)
-
-
+        '''ROC CHART'''
         chartjson = chart_data_prep(final_roc_df,['fpr','tpr'], ['False Positive Rate','True Positive Rate'],'line',False)
         ROCChart = C3ChartData(data=chartjson)
+        ROCChart.set_width_percent(50)
+        ROCChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")]
 
-        ROCCard = NormalCard()
+        modelPerformanceCardData.append(ROCChartName)
+        modelPerformanceCardData.append(ROCChart)
 
-        ROCCardData = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")]
-        ROCCardData.append(ROCChart)
-        ROCCard.set_card_data(ROCCardData)
-        ROCCard.set_card_width(50)
+        '''SINGLE CARD TO RULE THEM ALL'''
+        modelPerformanceCard = NormalCard()
+        modelPerformanceCard.set_card_name("Model Performance")
+        modelPerformanceCard.set_card_width(100)
+        modelPerformanceCard.set_card_data(modelPerformanceCardData)
 
-        return [modelManagementSummaryCard, confusionMatrixCard,KSCard,GainCard,liftCard, ROCCard]
+        return modelPerformanceCard
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
