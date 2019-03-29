@@ -258,18 +258,20 @@ class RFClassificationModelScript:
                                             )
                 #roc_dataframe.to_csv("binary_roc_data.csv")
                 fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
-                roc_df = pd.DataFrame({"fpr" : fpr, "tpr" : tpr, "thresholds" : thresholds})
-                roc_df["tpr-fpr"] = roc_df["tpr"] - roc_df["fpr"]
+                roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+                roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
 
                 optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
-                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "fpr"]
-                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "tpr"]
+                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
 
-                rounded_roc_df = roc_df.round({'fpr': 2, 'tpr': 4})
+                rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
 
-                unique_fpr = rounded_roc_df["fpr"].unique()
+                unique_fpr = rounded_roc_df["FPR"].unique()
 
-                final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
+                final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+                final_roc_df["Reference Line"] = final_roc_df["FPR"]
+
                 '''
                 roc_data_list = []
                 for i in range(1, len(fpr)):
@@ -278,6 +280,7 @@ class RFClassificationModelScript:
                     roc_dict["tpr"] = tpr[i]
                     roc_data_list.append(roc_dict)
                 '''
+
             elif len(levels) > 2:
                 positive_label_probs = []
                 for val in y_prob:
@@ -302,17 +305,19 @@ class RFClassificationModelScript:
                 auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
 
                 fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
-                roc_df = pd.DataFrame({"fpr" : fpr, "tpr" : tpr, "thresholds" : thresholds})
-                roc_df["tpr-fpr"] = roc_df["tpr"] - roc_df["fpr"]
+                roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+                roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
 
                 optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
-                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "fpr"]
-                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "tpr"]
+                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
 
-                rounded_roc_df = roc_df.round({'fpr': 2, 'tpr': 4})
-                unique_fpr = rounded_roc_df["fpr"].unique()
+                rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+                unique_fpr = rounded_roc_df["FPR"].unique()
                 #final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
                 final_roc_df = roc_df
+                final_roc_df["Reference Line"] = final_roc_df["FPR"]
+
                 '''
                 predicted_prob_dict = {}
                 for transformed_class in transformed_classes_list:

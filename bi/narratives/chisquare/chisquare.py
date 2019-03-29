@@ -384,7 +384,7 @@ class ChiSquareAnalysis:
                   distribution_second = []
                   for d in self._second_level_dimensions:
 
-                    grouped = df_second_target.groupby(d).agg({d:'count'}).sort_values(d,ascending=False)
+                    grouped = df_second_target.sort_values(d,ascending=False,axis = 0).groupby(d).agg({d:'count'})
                     contributions = df_second_dim.groupby(d).agg({d:'count'})
                     contribution_index = list(contributions.index)
                     contributions_val = contributions[d].tolist()

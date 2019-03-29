@@ -916,9 +916,8 @@ def create_model_management_deploy_empty_card():
 
 def create_model_management_cards(modelSummaryClass, final_roc_df):
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
-        def chart_data_prep(df, column_names,label,chart_type,subchart):
+        def chart_data_prep(df,column_names,label,chart_type,subchart):
             ChartData = df[column_names]
-            print df.head()
             ChartData = ChartData.to_dict('record')
             ChartData = NormalChartData(data=ChartData)
             chart_json = ChartJson()
@@ -931,11 +930,18 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_xaxis_number_format(".2f")
                 chart_json.set_yaxis_number_format(".2f")
             else:
-                chart_json.set_axes({"x":column_names[0],"y":column_names[1],"y2":column_names[2]})
-                chart_json.set_label_text({"x":label[0],"y":label[1],"y2":label[2]})
-                chart_json.set_subchart(subchart)
-                chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".2f")
+                if "Reference Line" in column_names:
+                    chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                    chart_json.set_label_text({"x":label[0],"y":label[1]})
+                    chart_json.set_subchart(subchart)
+                    chart_json.set_xaxis_number_format(".2f")
+                    chart_json.set_yaxis_number_format(".2f")
+                else:
+                    chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                    chart_json.set_label_text({"x":label[0],"y":label[1]})
+                    chart_json.set_subchart(subchart)
+                    chart_json.set_xaxis_number_format(".2f")
+                    chart_json.set_yaxis_number_format(".2f")
             return chart_json
 
         modelPerformanceCardData = []
@@ -974,7 +980,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         modelPerformanceCardData.append(modelPerformanceCardDataBox)
 
         '''CONFUSION MATRIX'''
-        confusionMatrixTableName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>")]
+        confusionMatrixTableName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>")
 
 
         confusionMatrixCardTable = TableData()
@@ -987,44 +993,49 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         modelPerformanceCardData.append(confusionMatrixTableName)
         modelPerformanceCardData.append(confusionMatrixCardTable)
 
-        '''GAIN CHART'''
-        gain_lift_KS_data =  modelSummaryClass.get_gain_lift_KS_data()
-        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct'], ['% Population','% Responders'],'line',False)
-        GainChart = C3ChartData(data=chartjson)
-        GainChart.set_width_percent(50)
-        GainChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")]
-
-        modelPerformanceCardData.append(GainChartName)
-        modelPerformanceCardData.append(GainChart)
-
-        '''KS CHART'''
-        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','cum_resp_pct','cum_non_resp_pct'], ['% Population','% Right','% Wrong'],'line',True)
-        KSChart = C3ChartData(data=chartjson)
-        KSChart.set_width_percent(50)
-        KSChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")]
-
-        modelPerformanceCardData.append(KSChartName)
-        modelPerformanceCardData.append(KSChart)
-
-        '''LIFT CHART'''
-        chartjson = chart_data_prep(gain_lift_KS_data,['cum_population_pct','Lift at Decile'], ['Population','Lift@Decile'],'line',False)
-        liftChart = C3ChartData(data=chartjson)
-        liftChart.set_width_percent(50)
-        liftChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")]
-
-        modelPerformanceCardData.append(liftChartName)
-        modelPerformanceCardData.append(liftChart)
 
         '''ROC CHART'''
-        chartjson = chart_data_prep(final_roc_df,['fpr','tpr'], ['False Positive Rate','True Positive Rate'],'line',False)
+        chartjson = chart_data_prep(final_roc_df,['FPR', 'TPR', 'Reference Line'], ['False Positive Rate','True Positive Rate'],'line',False)
         ROCChart = C3ChartData(data=chartjson)
         ROCChart.set_width_percent(50)
-        ROCChartName = [HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")]
+        ROCChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")
 
         modelPerformanceCardData.append(ROCChartName)
         modelPerformanceCardData.append(ROCChart)
 
-        '''SINGLE CARD TO RULE THEM ALL'''
+        '''KS CHART'''
+        chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)', '% Responders(Cumulative)', '% Non-Responders(Cumulative)'], ['% Population(Cumulative)','% Count'],'line',True)
+        chartjson.set_legend({"% Responders(Cumulative)" : "Percentage of Responders(Cumulative)", "% Non-Responders(Cumulative)" : "Percentage of Non-Responders(Cumulative)"})
+        KSChart = C3ChartData(data=chartjson)
+        KSChart.set_width_percent(50)
+        KSChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>KS Chart</h4>")
+
+        modelPerformanceCardData.append(KSChartName)
+        modelPerformanceCardData.append(KSChart)
+
+        '''GAIN CHART'''
+        gain_lift_KS_data =  modelSummaryClass.get_gain_lift_KS_data()
+        chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)','% Responders(Cumulative)'], ['% Population(Cumulative)','% Responders(Cumulative)'],'line',False)
+        GainChart = C3ChartData(data=chartjson)
+        GainChart.set_width_percent(50)
+        GainChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")
+
+        modelPerformanceCardData.append(GainChartName)
+        modelPerformanceCardData.append(GainChart)
+
+
+        '''LIFT CHART'''
+        chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)','Lift at Decile'], ['% Population(Cumulative)','Lift @ Decile'],'line',False)
+        liftChart = C3ChartData(data=chartjson)
+        liftChart.set_width_percent(50)
+        liftChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")
+
+        #modelPerformanceCardData.append(liftChartName)
+        #modelPerformanceCardData.append(liftChart)
+        '''
+        ONE CARD TO RULE THEM ALL, ONE CARD TO FIND THEM,
+        ONE CARD TO BRING THEM ALL AND THE FUNCTION BIND THEM.
+        '''
         modelPerformanceCard = NormalCard()
         modelPerformanceCard.set_card_name("Model Performance")
         modelPerformanceCard.set_card_width(100)

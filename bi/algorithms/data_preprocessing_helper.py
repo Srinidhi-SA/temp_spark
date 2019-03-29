@@ -14,6 +14,7 @@ class DataPreprocessingHelper():
 
     def __init__(self, df):
         self._data_frame = df
+        self.removed_col = []
 
     def drop_duplicate_rows(self):
         self._data_frame = self._data_frame.dropDuplicates()
