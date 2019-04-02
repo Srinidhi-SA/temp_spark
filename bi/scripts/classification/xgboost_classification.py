@@ -498,7 +498,8 @@ class XgboostScript:
 
 
             xgbOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            xgbPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
+            xgbPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
+            #xgbPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
             xgbDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             #xgbCards = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
@@ -510,8 +511,8 @@ class XgboostScript:
             XGB_Deployment_Node.set_name("Deployment")
             for card in xgbOverviewCards:
                 XGB_Overview_Node.add_a_card(card)
-            #for card in xgbPerformanceCards:
-            XGB_Performance_Node.add_a_card(xgbPerformanceCard)
+            for card in xgbPerformanceCards:
+                XGB_Performance_Node.add_a_card(card)
             for card in xgbDeploymentCards:
                 XGB_Deployment_Node.add_a_card(card)
             for card in xgbCards:

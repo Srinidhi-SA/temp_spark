@@ -500,7 +500,8 @@ class LogisticRegressionScript:
 
 
             lrOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            lrPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
+            lrPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
+            #lrPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
             lrDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             #lrCards = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
@@ -512,8 +513,8 @@ class LogisticRegressionScript:
             LR_Deployment_Node.set_name("Deployment")
             for card in lrOverviewCards:
                 LR_Overview_Node.add_a_card(card)
-            #for card in lrPerformanceCards:
-            LR_Performance_Node.add_a_card(lrPerformanceCard)
+            for card in lrPerformanceCards:
+                LR_Performance_Node.add_a_card(card)
             for card in lrDeploymentCards:
                 LR_Deployment_Node.add_a_card(card)
             for card in lrCards:
