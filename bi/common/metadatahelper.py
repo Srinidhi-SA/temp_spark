@@ -78,10 +78,9 @@ class MetaDataHelper():
                             "LevelCount":"Unique Values",
                             "Outliers":"Outliers",
                             "OutlierLR":"OutlierLR",
-                            "OutlierUR":"OutlierUR",
-                            "PercentageMissingValue":"PercentageMissingValue"
+                            "OutlierUR":"OutlierUR"
                             }
-        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7,"LevelCount":8,"Outliers":9,"OutlierLR":10,"OutlierUR":11,"PercentageMissingValue":12}
+        displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,"numberOfNotNulls":6,"count":7,"LevelCount":8,"Outliers":9,"OutlierLR":10,"OutlierUR":11}
 
         for column in measure_columns:
             outlier, outlier_LR, outlier_UR = Stats.detect_outliers_z(df,column)
@@ -95,7 +94,6 @@ class MetaDataHelper():
                     col_stat[k] = v
             col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
             col_stat["numberOfNotNulls"] = col_stat["count"]
-            col_stat["PercentageMissingValue"] = (col_stat["numberOfNulls"]/total_count)*100
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             col_stat["Outliers"] = outlier
             col_stat["OutlierLR"] = outlier_LR
@@ -152,13 +150,12 @@ class MetaDataHelper():
                             "numberOfNotNulls":"Not Nulls",
                             "MaxLevel":"Max Level",
                             "MinLevel":"Min Level",
-                            "LevelCount":"LevelCount",
-                            "PercentageMissingValue":"PercentageMissingValue"
+                            "LevelCount":"LevelCount"
                             }
 
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 4, "numberOfNotNulls": 5, "count": 6, "min": 7, "max": 8,
-                            "stddev": 9, "mean": 10, "LevelCount": 11,"PercentageMissingValue":12}
+                            "stddev": 9, "mean": 10, "LevelCount": 11}
         for column in dimension_columns:
             st = time.time()
             col_stat = {}
@@ -194,7 +191,6 @@ class MetaDataHelper():
                 nullcnt = df.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
                 col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
                 col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                col_stat["PercentageMissingValue"] = (col_stat["numberOfNulls"]/total_count)*100
                 dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
                 dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
                 dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
