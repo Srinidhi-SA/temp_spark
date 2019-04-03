@@ -330,7 +330,10 @@ class XgboostScript:
             y_test = labelEncoder.inverse_transform(y_test)
 
             featureImportance={}
-            feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+            try:
+                feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+            except:
+                pass
             for k, v in feature_importance.iteritems():
                 feature_importance[k] = CommonUtils.round_sig(v)
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
@@ -442,7 +445,7 @@ class XgboostScript:
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
 
             else:
-                self._model_management.set_booster_function(data=modelmanagement_['param_grid']['booster'])
+                self._model_management.set_booster_function(data=modelmanagement_['param_grid']['booster'][0])
                 self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
                 self._model_management.set_minimum_loss_reduction(data=modelmanagement_['param_grid']['gamma'][0])
                 self._model_management.set_max_depth(data=modelmanagement_['param_grid']['max_depth'][0])
