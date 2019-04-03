@@ -990,7 +990,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         confusionMatrixTableName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Confusion Matrix</h4>")
 
         confusionMatrixCardTable = TableData()
-        confusionMatrixCardTable.set_table_width(50)
+        confusionMatrixCardTable.set_table_width(100)
         confusionMatrixCardTable.set_table_data(reformat_confusion_matrix(modelSummaryClass.get_confusion_matrix()))
         confusionMatrixCardTable.set_table_type("confusionMatrix")
         confusionMatrixCardTable.set_table_top_header("Actual")
@@ -1008,7 +1008,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         ROCCardData = []
         chartjson = chart_data_prep(final_roc_df,['FPR', 'TPR', 'Reference Line'], ['False Positive Rate','True Positive Rate'],'line',False)
         ROCChart = C3ChartData(data=chartjson)
-        ROCChart.set_width_percent(50)
+        ROCChart.set_width_percent(100)
         ROCChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")
 
         ROCCardData.append(ROCChartName)
@@ -1024,7 +1024,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)', '% Responders(Cumulative)', '% Non-Responders(Cumulative)'], ['% Population(Cumulative)','% Count'],'line',True)
         chartjson.set_legend({"% Responders(Cumulative)" : "Percentage of Responders(Cumulative)", "% Non-Responders(Cumulative)" : "Percentage of Non-Responders(Cumulative)"})
         KSChart = C3ChartData(data=chartjson)
-        KSChart.set_width_percent(50)
+        KSChart.set_width_percent(100)
         KSChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>KS Chart</h4>")
 
         KSCardData.append(KSChartName)
@@ -1039,7 +1039,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         GainCardData = []
         chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)','% Responders(Cumulative)'], ['% Population(Cumulative)','% Responders(Cumulative)'],'line',False)
         GainChart = C3ChartData(data=chartjson)
-        GainChart.set_width_percent(50)
+        GainChart.set_width_percent(100)
         GainChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Gain Chart</h4>")
 
         GainCardData.append(GainChartName)
@@ -1053,7 +1053,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         LiftCardData = []
         chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)','Lift at Decile'], ['% Population(Cumulative)','Lift @ Decile'],'line',False)
         liftChart = C3ChartData(data=chartjson)
-        liftChart.set_width_percent(50)
+        liftChart.set_width_percent(100)
         liftChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")
         LiftCardData.append(liftChartName)
         LiftCardData.append(liftChart)
