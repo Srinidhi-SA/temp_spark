@@ -403,7 +403,7 @@ def add_string_index(df,string_columns):
     column_name_maps = {}
     mapping_dict = {}
     for c in string_columns:
-        my_df = StringIndexer(inputCol=c, outputCol=c+'_index').fit(my_df).transform(my_df)
+        my_df = StringIndexer(inputCol=c, outputCol=c+'_index',handleInvalid="keep").fit(my_df).transform(my_df)
         column_name_maps[c+'_index'] = c
         mapping_dict[c] = dict(enumerate(my_df[[c+'_index']].schema[0].metadata['ml_attr']['vals']))
     my_df = my_df.select([c for c in my_df.columns if c not in string_columns])
@@ -592,7 +592,7 @@ def get_model_comparison(collated_summary):
     runtime = []
     for val in algos:
         runtime.append(collated_summary[val]["trainingTime"])
-    max_runtime_index = __builtin__.max(xrange(len(runtime)), key = lambda x: runtime[x])
+    max_runtime_index = __builtin__.min(xrange(len(runtime)), key = lambda x: runtime[x])
     summary.append(["Best Runtime",algos_dict[algos[max_runtime_index]]])
     inner_html = []
     for val in summary:
