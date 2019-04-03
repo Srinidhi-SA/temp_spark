@@ -240,7 +240,7 @@ class MeasureColumnNarrative:
                     "blockSplitter":self._blockSplitter
         }
         try:
-            data_dict["q4_q1_mean"] = round(quartile_means['q4']*1.0/quartile_means['q1'] - 1, 1)
+            data_dict["q4_q1_mean"] = round(quartile_means['q4']*1.0/quartile_means['q1'], 1)
         except:
             data_dict["q4_q1_mean"] = None
 
