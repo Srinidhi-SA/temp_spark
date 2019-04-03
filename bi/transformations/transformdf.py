@@ -191,8 +191,8 @@ class DataFrameTransformer:
             mappingDict = dict([(tup[0],tup[0]) if idx <= topnLevel-1 else (tup[0],defaltName) for idx,tup in enumerate(levelCountArray)])
             mapping_expr = create_map([lit(x) for x in chain(*mappingDict.items())])
             existingCols = self._data_frame.columns
-            self._data_frame = self._data_frame.withColumnRenamed(colName,str(colName)+"JJJLLLLKJJ")
-            self._data_frame = self._data_frame.withColumn(colName,mapping_expr.getItem(col(str(colName)+"JJJLLLLKJJ")))
+            # self._data_frame = self._data_frame.withColumnRenamed(colName,str(colName)+"JJJLLLLKJJ")
+            # self._data_frame = self._data_frame.withColumn(colName,mapping_expr.getItem(col(str(colName)+"JJJLLLLKJJ")))
             self._data_frame = self._data_frame.select(existingCols)
             self._dataframe_helper.set_dataframe(self._data_frame)
             self._metaParser.update_level_counts(colName,dict(newLevelCount))

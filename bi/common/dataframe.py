@@ -228,7 +228,7 @@ class DataFrameHelper:
                 bucketizer.setSplits(splits)
                 self._data_frame = bucketizer.transform(self._data_frame)
                 mapping_expr = create_map([lit(x) for x in chain(*splitsData["bin_mapping"].items())])
-                self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
+                # self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
                 self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
                 self._data_frame = self._data_frame.select(self.columns)
             except Exception, e:
