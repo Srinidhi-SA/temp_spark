@@ -426,7 +426,7 @@ class OneWayAnovaNarratives:
         if math.isnan(overall_df['prev'].ix[overall_peak_index]):
             overall_peak_increase = 0
         else:
-            overall_peak_increase = (subset_df[subset_measure].ix[subset_peak_index]/subset_df['prev'].ix[subset_peak_index])*100 - 100
+            overall_peak_increase = (overall_df[total_measure].ix[overall_peak_index]/overall_df['prev'].ix[overall_peak_index])*100 - 100
         if math.isnan(subset_df['prev'].ix[subset_peak_index]):
             subset_peak_increase = 0
         else:
@@ -618,12 +618,7 @@ class OneWayAnovaNarratives:
 
         modified_category_legend = []
         for val in category_legend:
-            if val == "Playing Safe":
-                modified_category_legend.append("Opportunity Bay")
-            elif val == "Opportunity Bay":
-                modified_category_legend.append("Playing Safe")
-            else:
-                modified_category_legend.append(val)
+            modified_category_legend.append(val)
         category_legend = modified_category_legend
         data_c3 = [['Growth'] + growth,
                     ['Share'] + share,
