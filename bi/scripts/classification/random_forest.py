@@ -502,7 +502,8 @@ class RFClassificationModelScript:
                                                   ]
 
             rfOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            rfPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
+            rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
+            #rfPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
             rfDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
             #rfCards = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
@@ -514,8 +515,8 @@ class RFClassificationModelScript:
             RF_Deployment_Node.set_name("Deployment")
             for card in rfOverviewCards:
                 RF_Overview_Node.add_a_card(card)
-            #for card in rfPerformanceCards:
-            RF_Performance_Node.add_a_card(rfPerformanceCard)
+            for card in rfPerformanceCards:
+                RF_Performance_Node.add_a_card(card)
             for card in rfDeploymentCards:
                 RF_Deployment_Node.add_a_card(card)
             for card in rfCards:
