@@ -1055,12 +1055,12 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         liftChart = C3ChartData(data=chartjson)
         liftChart.set_width_percent(50)
         liftChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")
-        #LiftCardData.append(liftChartName)
-        #LiftCardData.append(liftChart)
+        LiftCardData.append(liftChartName)
+        LiftCardData.append(liftChart)
 
-        #LiftCard = NormalCard()
-        #LiftCard.set_card_data(LiftCardData)
-        #LiftCard.set_card_width(50)
+        LiftCard = NormalCard()
+        LiftCard.set_card_data(LiftCardData)
+        LiftCard.set_card_width(50)
         '''
         #ONE CARD TO RULE THEM ALL, ONE CARD TO FIND THEM,
         #ONE CARD TO BRING THEM ALL AND THE FUNCTION BIND THEM.
@@ -1070,7 +1070,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         modelPerformanceCard.set_card_data(modelPerformanceCardData)
         '''
 
-        return [summaryCard, confusionMatrixCard, ROCCard, KSCard, GainCard]
+        return [summaryCard, confusionMatrixCard,KSCard,GainCard,LiftCard,ROCCard]
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):
