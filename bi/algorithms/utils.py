@@ -728,8 +728,6 @@ def create_model_summary_para(modelSummaryClass):
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
 
-        print "paragraph : ", paragraph
-        print "-"*200
     return paragraph
 
 def create_model_summary_cards(modelSummaryClass):
@@ -1209,7 +1207,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             counter += 1
 
                         allAlgorithmTable += algoRows
-
                         algoCard = NormalCard(name=obj["name"],slug=obj["slug"])
                         parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["slug"])
                         masterIgnoreList = parallelCoordinateMetaData["ignoreList"]
@@ -1240,7 +1237,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
             htmlData = HtmlData(data = "mAdvisor has built predictive models by changing the input parameter specifications \
                             and the following are the top performing models based on chosen evaluation metric. {} which is \
-                            built using {} algorithm is the best performing model with an {} of {}."\
+                            built using {} algorithm is the best performing model with {} value of {}."\
                             .format(bestModel,bestAlgo,evalMetric,bestMetric))
             allAlgorithmTable = TableData({'tableType':'normal','tableData':allAlgorithmTable})
             algoSummaryCard.set_card_data([htmlData,allAlgorithmTable])
