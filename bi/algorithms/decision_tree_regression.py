@@ -266,10 +266,10 @@ class DecisionTreeRegression:
             dimensions = self._dimension_columns
         self._target_dimension = measure_columns[0]
         dimension = self._target_dimension
-        max_num_levels = GLOBALSETTINGS.DTREE_TARGET_DIMENSION_MAX_LEVEL
+        max_num_levels = GLOBALSETTINGS.DTREE_OTHER_DIMENSION_MAX_LEVEL
         max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
-        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
-        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
+        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        # all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = [x for x in self._measure_columns if x!=self._target_dimension]
         self.transform_data_frames()
         decision_tree_result = DecisionTreeResult()

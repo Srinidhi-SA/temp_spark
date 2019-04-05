@@ -6,6 +6,8 @@ from pyspark.mllib.tree import DecisionTree
 
 from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
+from bi.common import dataframe as dataframe
+
 from bi.common.datafilterer import DataFrameFilterer
 from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
@@ -221,11 +223,11 @@ class DecisionTrees:
         self._target_dimension = dimension_columns[0]
         dimension = self._target_dimension
 
-        #####Look into it for Issue 947################# 
-        max_num_levels = GLOBALSETTINGS.DTREE_TARGET_DIMENSION_MAX_LEVEL
-        max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
-        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
-        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
+        #####Look into it for Issue 947#################
+        max_num_levels = GLOBALSETTINGS.DTREE_OTHER_DIMENSION_MAX_LEVEL
+        # max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
+        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        # all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
         cat_feature_info = []
         columns_without_dimension = [x for x in all_dimensions if x != dimension]
@@ -260,10 +262,7 @@ class DecisionTrees:
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
-        try:
-            dimension_classes = self._metaParser.get_num_unique_values(dimension)
-        except:
-            dimension_classes = self._data_frame.select(dimension).distinct().count()
+        dimension_classes = self._data_frame.select(dimension).distinct().count()
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         print "="*200
         # print self._data_frame.rdd.first()

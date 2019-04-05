@@ -61,7 +61,7 @@ class BusinessCard:
             for each in self._story_result['listOfNodes']:
                 if each['name'] == 'Performance':
                     for node in each['listOfNodes']:
-                        significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
+                        significant_variables_levels[node['name']] = [self._dataframe_helper.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
             self.number_analysis_dict = {}
             self.number_analysis_dict["overview_rules"] = self.target_levels*2
             self.number_analysis_dict["performance_summary"] = (self.number_dimensions+self.number_measures)*2
