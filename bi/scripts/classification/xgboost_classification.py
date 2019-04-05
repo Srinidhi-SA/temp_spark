@@ -163,10 +163,53 @@ class XgboostScript:
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
                     clfGrid.fit(x_train,y_train)
-                    bestEstimator = clfGrid.best_estimator_
+                    #bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    #print resultArray
+
+                    resultArrayDict = {
+                                        "Model_Id" : [],
+                                        "Algorithm_Name": [],
+                                        "Metric_Selected": [],
+                                        "Accuracy": [],
+                                        "Precision": [],
+                                        "Recall": [],
+                                        "ROC_AUC": [],
+                                        "Run_Time": []
+                                        }
+                    for val in resultArray:
+                        resultArrayDict["Model_Id"].append(val["Model Id"])
+                        resultArrayDict["Algorithm_Name"].append(val["algorithmName"])
+                        resultArrayDict["Metric_Selected"].append(val["comparisonMetricUsed"])
+                        resultArrayDict["Accuracy"].append(val["Accuracy"])
+                        resultArrayDict["Precision"].append(val["Precision"])
+                        resultArrayDict["Recall"].append(val["Recall"])
+                        resultArrayDict["ROC_AUC"].append(val["ROC-AUC"])
+                        resultArrayDict["Run_Time"].append(val["Run Time(Secs)"])
+                        comparison_metric_used = val["comparisonMetricUsed"]
+
+                    resultArraydf = pd.DataFrame.from_dict(resultArrayDict)
+
+                    if comparison_metric_used == "Accuracy":
+                        resultArraydf = resultArraydf.sort_values(by = ['Accuracy'], ascending = False)
+                        best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
+                    elif comparison_metric_used == "Recall":
+                        resultArraydf = resultArraydf.sort_values(by = ['Recall'], ascending = False)
+                        best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
+                    elif comparison_metric_used == "Precision":
+                        resultArraydf = resultArraydf.sort_values(by = ['Precision'], ascending = False)
+                        best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
+
+                    print "BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen
+                    print resultArraydf.head(20)
+
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
+
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
@@ -329,7 +372,7 @@ class XgboostScript:
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
 
-            featureImportance={}
+            feature_importance={}
             try:
                 feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
             except:
@@ -378,7 +421,7 @@ class XgboostScript:
             self._model_summary.set_model_log_loss(log_loss)
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
-            self._model_summary.set_validation_method("Train and Test")
+            self._model_summary.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
             self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
             self._model_summary.set_AUC_score(auc)
@@ -495,9 +538,6 @@ class XgboostScript:
                             ["Subsample of Every Column by each split",self._model_management.get_subsample_for_each_split()]
 
                             ]
-
-
-
 
 
             xgbOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]

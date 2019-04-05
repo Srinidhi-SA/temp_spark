@@ -494,6 +494,8 @@ class SklearnGridSearchResult:
         self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName"]
         self.metricColName = "comparisonMetricUsed"
         self.keepColumns = ["Model Id"]
+        self.bestModel = None
+        self.bestParam = None
 
     def get_ignore_list(self):
         return self.ignoreList
@@ -509,13 +511,17 @@ class SklearnGridSearchResult:
 
     def train_and_save_models(self):
         tableOutput = []
-        evaluationMetric = self.evaluationMetricDict["name"]
+        evaluationMetric = self.evaluationMetricDict["name"].capitalize()
+        if evaluationMetric == "Roc_auc":
+            evaluationMetric = "ROC-AUC"
+        evalMetricVal = -1
         for idx,paramsObj in enumerate(self.resultDf["params"]):
             st = time.time()
             estimator = self.estimator.set_params(**paramsObj)
             estimator.fit(self.x_train, self.y_train)
             y_score = estimator.predict(self.x_test)
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx+1)))+str(idx+1)
+
             print "#"*100
             print "Feature Importance ",modelName
             try:
@@ -548,6 +554,11 @@ class SklearnGridSearchResult:
                     algoEvaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
                     algoEvaluationMetrics["ROC-AUC"] = "NA"
 
+            if algoEvaluationMetrics[evaluationMetric] > evalMetricVal:
+                self.bestModel = estimator
+                self.bestParam = paramsObj
+                evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+
             algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in algoEvaluationMetrics.items()}
             # algoEvaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in algoEvaluationMetrics.items()}
             row.update(algoEvaluationMetrics)
@@ -576,7 +587,13 @@ class SklearnGridSearchResult:
         bestMod["Selected"] = "True"
         bestMod["alwaysSelected"] = "True"
         tableOutput[0] = bestMod
-        return tableOutput
+        return tableOutput 
+
+    def getBestModel(self):
+        return self.bestModel
+
+    def getBestParam(self):
+        return self.bestParam
 
 class SkleanrKFoldResult:
     """
