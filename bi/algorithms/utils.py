@@ -632,8 +632,12 @@ def get_total_models_classification(collated_summary):
         algorithm_name.append(collated_summary[val].get("algorithmName"))
         if trees:
             n_model += trees
-    output = "<p>mAdvisor has built predictive models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    if len(algos) > 1:
+        output = "<p>mAdvisor has built predictive models using {} algorithms ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    else:
+        output = "<p>mAdvisor has built predictive models using {} algorithm ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def get_total_models_regression(collated_summary):
@@ -644,8 +648,12 @@ def get_total_models_regression(collated_summary):
         trees = collated_summary[val].get("nTrees")
         algorithm_name.append(collated_summary[val].get("algorithmDisplayName"))
     n_model = len(algorithm_name)
-    output = "<p>mAdvisor has built predictive regression models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    if len(algos) > 1:
+        output = "<p>mAdvisor has built predictive regression models using {} algorithms ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    else:
+        output = "<p>mAdvisor has built predictive regression models using {} algorithm ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def create_model_folders(model_slug, basefoldername, subfolders=None):
