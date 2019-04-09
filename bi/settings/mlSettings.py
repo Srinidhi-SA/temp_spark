@@ -346,7 +346,7 @@ else:
                 classifications and also to control overfitting."""
             },
             {
-                "algorithmName": "Naive Bayes",
+                "algorithmName": "naive bayes",
                 "selected": True,
                 "parameters": SKLEANR_ML_RF_CLASSIFICATION_PARAMS,
                 "algorithmSlug": ALGORITHMRANDOMSLUG + "nb",

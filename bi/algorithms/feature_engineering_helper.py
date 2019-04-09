@@ -246,7 +246,7 @@ class FeatureEngineeringHelper:
         if operation == "exponential":
             return udf(lambda x: x**value)
         if operation == "logTransform":
-            return udf(lambda x: math.log(x, 10))
+            return udf(lambda x: math.log(x, 10) if x!=0 else x)
         if operation == "modulus":
             return udf(lambda x: abs(x))
 
