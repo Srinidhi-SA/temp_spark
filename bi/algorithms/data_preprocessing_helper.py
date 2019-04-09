@@ -221,6 +221,14 @@ class DataPreprocessingHelper():
         return self._data_frame
 
 
+    def cap_outliers(self, outlier_replacement_col):
+        outlier_count, ol_lower_range, ol_upper_range = Stats.detect_outliers_z(self._data_frame, outlier_replacement_col)
+        df_dup = self._data_frame
+        self._data_frame = df_dup.withColumn(outlier_replacement_col, when((df_dup[outlier_replacement_col] < ol_lower_range), ol_lower_range).otherwise(df_dup[outlier_replacement_col]))
+        self._data_frame = self._data_frame.withColumn(outlier_replacement_col, when((self._data_frame[outlier_replacement_col] > ol_upper_range), ol_upper_range).otherwise(self._data_frame[outlier_replacement_col]))
+        return self._data_frame
+
+
     def mean_impute_outliers(self, outlier_imputation_col):
         outlier_count, ol_lower_range, ol_upper_range = Stats.detect_outliers_z(self._data_frame, outlier_imputation_col)
         df_dup = self._data_frame

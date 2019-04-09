@@ -1213,7 +1213,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                                     row.append(rowDict[key])
                             algoRows.append(row)
                             counter += 1
-
                         allAlgorithmTable += algoRows
                         algoCard = NormalCard(name=obj["name"],slug=obj["slug"])
                         parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["slug"])
@@ -1227,7 +1226,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                         model_hyperparameter_summary.append(json.loads(algoCardJson))
         if hyperParameterFlag == True:
             algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
-            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("Accuracy")] ,reverse=True)
+            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index(hyperParamSummary[0]["comparisonMetricUsed"])] ,reverse=True)
             totalModels = len(allAlgorithmTable) - 1
             allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
             allAlgorithmTableModified = [allAlgorithmTable[0]]

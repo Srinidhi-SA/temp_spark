@@ -23,7 +23,7 @@ class DataPreprocessing:
 
         data_preprocessing_helper_obj.get_removed_columns()
         self.removed_col=data_preprocessing_helper_obj.removed_col
-        
+
         for key in self._dataCleansingDict['columns_wise_settings'].keys():
             if self._dataCleansingDict['columns_wise_settings'][key]['selected']:
                 if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "missing_value_treatment":
@@ -53,6 +53,9 @@ class DataPreprocessing:
                             if operation['name'] == 'remove_outliers':
                                 for column in operation['columns']:
                                     self._df = data_preprocessing_helper_obj.remove_outliers(column["name"])
+                            if operation['name'] == 'cap_outliers':
+                                for column in operation['columns']:
+                                    self._df = data_preprocessing_helper_obj.cap_outliers(column["name"])
                             if operation['name'] == 'replace_with_mean':
                                 for column in operation['columns']:
                                     self._df = data_preprocessing_helper_obj.mean_impute_outliers(column["name"])

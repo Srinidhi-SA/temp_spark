@@ -201,6 +201,9 @@ class XgboostScript:
                     elif comparison_metric_used == "Precision":
                         resultArraydf = resultArraydf.sort_values(by = ['Precision'], ascending = False)
                         best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
+                    elif comparison_metric_used == "ROC-AUC":
+                        resultArraydf = resultArraydf.sort_values(by = ['ROC_AUC'], ascending = False)
+                        best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
 
                     print "BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen
                     print resultArraydf.head(20)

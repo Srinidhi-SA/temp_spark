@@ -99,6 +99,8 @@ class FeatureEngineeringHelper:
             for key in dict.keys():
                 if x in dict[key]:
                     return key
+                else:
+                    return x
         return udf(lambda x: check_key(x,dict))
 
     def create_new_levels_dimension(self, column_name, dict):
