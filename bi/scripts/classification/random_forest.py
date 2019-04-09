@@ -161,6 +161,7 @@ class RFClassificationModelScript:
                     if k not in clf.get_params():
                         print k,v
                 params_grid = {k:v for k,v in params_grid.items() if k in clf.get_params()}
+                params_grid["random_state"] = [42]
                 print params_grid
                 if hyperParamAlgoName == "gridsearchcv":
                     clfGrid = GridSearchCV(clf,params_grid)
@@ -207,6 +208,9 @@ class RFClassificationModelScript:
                     elif comparison_metric_used == "Precision":
                         resultArraydf = resultArraydf.sort_values(by = ['Precision'], ascending = False)
                         best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
+                    elif comparison_metric_used == "ROC-AUC":
+                        resultArraydf = resultArraydf.sort_values(by = ['ROC_AUC'], ascending = False)
+                        best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
 
                     print "BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen
                     print resultArraydf.head(20)
@@ -228,6 +232,7 @@ class RFClassificationModelScript:
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
+                algoParams["random_state"] = [42]
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
                 modelmanagement_=clf.get_params()

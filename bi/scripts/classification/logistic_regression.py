@@ -202,6 +202,9 @@ class LogisticRegressionScript:
                     elif comparison_metric_used == "Precision":
                         resultArraydf = resultArraydf.sort_values(by = ['Precision'], ascending = False)
                         best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
+                    elif comparison_metric_used == "ROC-AUC":
+                        resultArraydf = resultArraydf.sort_values(by = ['ROC_AUC'], ascending = False)
+                        best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
 
                     print "BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen
                     print resultArraydf.head(20)
@@ -210,7 +213,7 @@ class LogisticRegressionScript:
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
                     bestEstimator.fit(x_train,y_train)
-                    
+
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
