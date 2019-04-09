@@ -632,8 +632,12 @@ def get_total_models_classification(collated_summary):
         algorithm_name.append(collated_summary[val].get("algorithmName"))
         if trees:
             n_model += trees
-    output = "<p>mAdvisor has built predictive models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    if len(algos) > 1:
+        output = "<p>mAdvisor has built predictive models using {} algorithms ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    else:
+        output = "<p>mAdvisor has built predictive models using {} algorithm ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def get_total_models_regression(collated_summary):
@@ -644,8 +648,12 @@ def get_total_models_regression(collated_summary):
         trees = collated_summary[val].get("nTrees")
         algorithm_name.append(collated_summary[val].get("algorithmDisplayName"))
     n_model = len(algorithm_name)
-    output = "<p>mAdvisor has built predictive regression models using {} algorithms ({}) to predict {} and \
-        has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    if len(algos) > 1:
+        output = "<p>mAdvisor has built predictive regression models using {} algorithms ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+    else:
+        output = "<p>mAdvisor has built predictive regression models using {} algorithm ({}) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def create_model_folders(model_slug, basefoldername, subfolders=None):
@@ -1205,7 +1213,6 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                                     row.append(rowDict[key])
                             algoRows.append(row)
                             counter += 1
-
                         allAlgorithmTable += algoRows
                         algoCard = NormalCard(name=obj["name"],slug=obj["slug"])
                         parallelCoordinateMetaData = result_setter.get_metadata_parallel_coordinates(obj["slug"])
@@ -1219,7 +1226,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                         model_hyperparameter_summary.append(json.loads(algoCardJson))
         if hyperParameterFlag == True:
             algoSummaryCard = NormalCard(name="Top Performing Models",slug="FIRSTCARD")
-            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index("Accuracy")] ,reverse=True)
+            allAlgorithmTable = [allAlgorithmTable[0]] + sorted(allAlgorithmTable[1:],key=lambda x: x[allAlgorithmTableHeaderRow.index(hyperParamSummary[0]["comparisonMetricUsed"])] ,reverse=True)
             totalModels = len(allAlgorithmTable) - 1
             allAlgorithmTable = allAlgorithmTable[:GLOBALSETTINGS.MAX_NUMBER_OF_MODELS_IN_SUMMARY+1]
             allAlgorithmTableModified = [allAlgorithmTable[0]]
