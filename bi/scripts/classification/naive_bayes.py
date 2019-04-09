@@ -708,16 +708,22 @@ class NBGClassificationModelScript:
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfGrid.get_params()
                     clfGrid.fit(x_train,y_train)
                     bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
                 evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
@@ -726,6 +732,7 @@ class NBGClassificationModelScript:
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
                 clf.set_params(**algoParams)
+                modelmanagement_=clf.get_params()
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
@@ -752,12 +759,117 @@ class NBGClassificationModelScript:
             if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
+                log_loss = metrics.log_loss(y_test,y_prob)
+                F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
                 auc = metrics.roc_auc_score(y_test,y_score)
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
+                log_loss = metrics.log_loss(y_test,y_prob)
+                F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 auc = None
+
+            y_prob_for_eval = []
+            for i in range(len(y_prob)):
+                if len(y_prob[i]) == 1:
+                    y_prob_for_eval.append(float(y_prob[i][0]))
+                else:
+                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
+
+            '''ROC CURVE IMPLEMENTATION'''
+            if len(levels) <= 2:
+                positive_label_probs = []
+                for val in y_prob:
+                    positive_label_probs.append(val[posLabel])
+
+                roc_data_dict = {
+                                    "y_score" : y_score,
+                                    "y_test" : y_test,
+                                    "positive_label_probs" : positive_label_probs,
+                                    "y_prob" : y_prob,
+                                    "positive_label" : posLabel
+                                }
+
+                roc_dataframe = pd.DataFrame(
+                                                {
+                                                    "y_score" : y_score,
+                                                    "y_test" : y_test,
+                                                    "positive_label_probs" : positive_label_probs
+                                                }
+                                            )
+                #roc_dataframe.to_csv("binary_roc_data.csv")
+                fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+                roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+                roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+                optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+                rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+
+                unique_fpr = rounded_roc_df["FPR"].unique()
+
+                final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+                final_roc_df["Reference Line"] = final_roc_df["FPR"]
+                '''
+                roc_data_list = []
+                for i in range(1, len(fpr)):
+                    roc_dict = {}
+                    roc_dict["fpr"] = fpr[i]
+                    roc_dict["tpr"] = tpr[i]
+                    roc_data_list.append(roc_dict)
+                '''
+            elif len(levels) > 2:
+                positive_label_probs = []
+                for val in y_prob:
+                    positive_label_probs.append(val[posLabel])
+
+                y_test_roc_multi = []
+                for val in y_test:
+                    if val != posLabel:
+                        val = posLabel + 1
+                        y_test_roc_multi.append(val)
+                    else:
+                        y_test_roc_multi.append(val)
+
+                y_score_roc_multi = []
+                for val in y_score:
+                    if val != posLabel:
+                        val = posLabel + 1
+                        y_score_roc_multi.append(val)
+                    else:
+                        y_score_roc_multi.append(val)
+
+                auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+
+                fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
+                roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+                roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+                optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+                fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+                tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+                rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+                unique_fpr = rounded_roc_df["FPR"].unique()
+                #final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
+                final_roc_df = roc_df
+                final_roc_df["Reference Line"] = final_roc_df["FPR"]
+                '''
+                predicted_prob_dict = {}
+                for transformed_class in transformed_classes_list:
+                    predicted_prob = []
+                    for val in y_prob:
+                        predicted_prob.append(val[transformed_class])
+                    predicted_prob_dict[transformed_class] = predicted_prob
+                '''
+
+            temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
+            pys_df = self._spark.createDataFrame(temp_df)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
+            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -803,10 +915,14 @@ class NBGClassificationModelScript:
             self._model_summary.set_precision_recall_stats(overall_precision_recall["classwise_stats"])
             self._model_summary.set_model_precision(overall_precision_recall["precision"])
             self._model_summary.set_model_recall(overall_precision_recall["recall"])
+            self._model_summary.set_model_F1_score(F1_score)
+            self._model_summary.set_model_log_loss(log_loss)
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_prediction_split(overall_precision_recall["prediction_split"])
             self._model_summary.set_validation_method("Train and Test")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
+            self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
+            self._model_summary.set_AUC_score(auc)
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
@@ -846,14 +962,82 @@ class NBGClassificationModelScript:
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                self._model_management = MLModelSummary()
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                #self._model_management.set_var_smoothing(modelmanagement_['var_smoothing']) #var smoothing
+                #self._model_management.set_priors(modelmanagement_['priors']) #priors used
+            else:
+                self._model_management = MLModelSummary()
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_target_level(self._targetLevel) # target column value
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                #self._model_management.set_priors(modelmanagement_['param_grid']['priors'][0]) #priors used
+                #self._model_management.set_var_smoothing(modelmanagement_['param_grid']['var_smoothing'][0]) #var smoothing
+
+            modelManagementSummaryJson = [
+
+                                  ["Project Name",self._model_management.get_job_type()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Training Status",self._model_management.get_training_status()],
+                                  ["Accuracy",self._model_management.get_model_accuracy()],
+                                  ["RunTime",self._model_management.get_training_time()],
+                                  ["Owner",None],
+                                  ["Created On",self._model_management.get_creation_date()]
+
+                                              ]
+            modelManagementModelSettingsJson = [
+
+                                  ["Training Dataset",None],
+                                  ["Target Column",self._model_management.get_target_variable()],
+                                  ["Target Column Value",self._model_management.get_target_level()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Model Validation",self._model_management.get_validation_method()]
+                                  #,["priors",self._model_management.get_priors()]
+                                  #,["var_smoothing",self._model_management.get_var_smoothing()]
+
+                                                  ]
+
+
+            nbOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            nbPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
+            #nbPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
+            nbDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
 
             nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            NB_Overview_Node = NarrativesTree()
+            NB_Overview_Node.set_name("Overview")
+            NB_Performance_Node = NarrativesTree()
+            NB_Performance_Node.set_name("Performance")
+            NB_Deployment_Node = NarrativesTree()
+            NB_Deployment_Node.set_name("Deployment")
+            for card in nbOverviewCards:
+                NB_Overview_Node.add_a_card(card)
+            for card in nbPerformanceCards:
+                NB_Performance_Node.add_a_card(card)
+            for card in nbDeploymentCards:
+                NB_Deployment_Node.add_a_card(card)
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
 
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
             self._result_setter.set_nb_cards(nbCards)
+            self._result_setter.set_nb_nodes([NB_Overview_Node, NB_Performance_Node, NB_Deployment_Node])
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -1132,7 +1316,7 @@ class NBMClassificationModelScript:
         self._spark = spark
         self._model_summary =  MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesmul"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["naive bayes"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()

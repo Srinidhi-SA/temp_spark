@@ -138,6 +138,17 @@ class MLModelSummary:
         self.subsampleForEachTree = None
         self.subsampleForEachSplit = None
         self.targetLevel = None
+        self.priors = None 
+        self.varSmoothing = None
+
+    def set_priors(self,data):
+        self.priors = data
+    def get_priors(self):
+        return self.priors
+    def set_var_smoothing(self,data):
+        self.varSmoothing = data
+    def get_var_smoothing(self):
+        return self.varSmoothing
     def set_model_F1_score(self,data):
         self.F1_score = round(data,3)
 
@@ -587,7 +598,7 @@ class SklearnGridSearchResult:
         bestMod["Selected"] = "True"
         bestMod["alwaysSelected"] = "True"
         tableOutput[0] = bestMod
-        return tableOutput 
+        return tableOutput
 
     def getBestModel(self):
         return self.bestModel
