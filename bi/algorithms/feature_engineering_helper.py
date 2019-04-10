@@ -252,8 +252,16 @@ class FeatureEngineeringHelper:
 
 
     def logTransform_column(self, column_name):
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self.replacerUDF(10, "logTransform")(col(column_name)))
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
+        column_min = self._data_frame.select(F.min(column_name)).collect()[0][0]
+        value_to_be_added = abs(column_min) + 1
+        if column_min > 0:
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self.replacerUDF(10, "logTransform")(col(column_name)))
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
+        else:
+            self._data_frame = self._data_frame.withColumn(column_name + "_temp_transformed", replacerUDF(value_to_be_added, "add")(col(column_name)))
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", replacerUDF(10, "logTransform")(col(column_name + "_temp_transformed")))
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
+            self._data_frame = self._data_frame.drop(column_name+"_temp_transformed")
         return self._data_frame
 
     def modulus_transform_column(self, column_name):
@@ -267,8 +275,12 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
     def squareroot_transform_column(self, column_name):
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_squareroot_transformed", self.replacerUDF(2, "NthRoot")(col(column_name)))
-        self._data_frame = self._data_frame.withColumn(column_name + "_vt_squareroot_transformed", self._data_frame[column_name + "_vt_squareroot_transformed"].cast('float'))
+        column_min = self._data_frame.select(F.min(column_name)).collect()[0][0]
+        if column_min >= 0:
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_squareroot_transformed", self.replacerUDF(2, "NthRoot")(col(column_name)))
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_squareroot_transformed", self._data_frame[column_name + "_vt_squareroot_transformed"].cast('float'))
+        else:
+            pass
         return self._data_frame
 
 
