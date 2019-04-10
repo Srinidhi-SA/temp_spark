@@ -212,6 +212,7 @@ class ContextSetter:
                 self.considercolumns = []
                 for colSetting in varSelectionArr:
                     if colSetting["selected"] == True:
+                        GLOBALSETTINGS.CONSIDERED_COLUMNS.append(str(colSetting["name"]))
                         self.considercolumns.append(str(colSetting["name"]))
                     if colSetting["targetColumn"] == True:
                         self.resultcolumn = str(colSetting["name"])
@@ -376,7 +377,8 @@ class ContextSetter:
     @accepts(object,(list))
     def set_ignore_column_suggestions(self,ignoreSuggestions):
         for x in ignoreSuggestions:
-            self.ignorecolumns.append(x)
+            if x not in GLOBALSETTINGS.CONSIDERED_COLUMNS:
+                self.ignorecolumns.append(x)
 
     @accepts(object,(list))
     def set_utf8_columns(self,utf8Cols):
