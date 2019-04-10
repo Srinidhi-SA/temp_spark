@@ -95,13 +95,18 @@ class FeatureEngineeringHelper:
 
 
     def create_level_udf(self, dict):
+        selected_list = []
+        for key in dict.keys():
+            selected_list = selected_list + dict[key]
         def check_key(x, dict):
             for key in dict.keys():
-                if x in dict[key]:
-                    return key
+                if x in selected_list:
+                    if x in dict[key]:
+                        return key
                 else:
                     return x
         return udf(lambda x: check_key(x,dict))
+
 
     def create_new_levels_dimension(self, column_name, dict):
         self._data_frame = self._data_frame.withColumn(column_name+"_level", self.create_level_udf(dict)(col(column_name)))

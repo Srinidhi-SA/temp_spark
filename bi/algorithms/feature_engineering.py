@@ -14,8 +14,6 @@ class FeatureEngineering:
 
     def feature_engineering(self):
         print "Performing Feature Engineering Operations"
-        self._df.show()
-        self._df.to_csv("before_fe.csv")
         feature_engineering_helper_obj = FeatureEngineeringHelper(self._df)
         for settings in self._featureEngineeringDict['overall_settings']:
             if settings['name'] == "binning_all_measures" and settings['selected'] == True:
@@ -85,6 +83,4 @@ class FeatureEngineering:
                                         self._df = feature_engineering_helper_obj.normalize_column(column["name"])
 
         print "Feature Engineering Operations successfully Performed"
-        self._df.show()
-        self._df.to_csv("after_fe.csv")
         return self._df
