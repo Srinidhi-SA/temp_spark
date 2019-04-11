@@ -1,5 +1,5 @@
 import json
-import json
+import pandas as pd
 
 import humanize
 
@@ -237,6 +237,13 @@ class DecisionTreeNarrative:
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
+        tableArray_columns = tableArray[0]
+        tableArray_data = tableArray[1:]
+        tableArray_df = pd.DataFrame(tableArray_data, columns = tableArray_columns)
+        unique_predictions = list(tableArray_df["Prediction"].unique())
+        grouped_table = tableArray_df.groupby("Prediction")["Freq"].sum()
+
+
         donutChartMaxLevel = 10
         if self._dataframe_context.get_story_on_scored_data() == True:
             chartDict = {}
@@ -248,8 +255,11 @@ class DecisionTreeNarrative:
                         chartDict[grps] = chartDict[grps]+1
             chartDict = {k:v for k,v in chartDict.items() if v != 0}
         else:
-            chartDict = dict([(k,sum(v)) for k,v in self.total_predictions.items()])
-            chartDict = {k:v for k,v in chartDict.items() if v != 0}
+            #chartDict = dict([(k,sum(v)) for k,v in self.total_predictions.items()])
+            #chartDict = {k:v for k,v in chartDict.items() if v != 0}
+            chartDict = {}
+            for val in unique_predictions:
+                chartDict[val] = grouped_table[val]
         if len(chartDict) > donutChartMaxLevel:
             chartDict = NarrativesUtils.restructure_donut_chart_data(chartDict,nLevels=donutChartMaxLevel)
         chartData = NormalChartData([chartDict]).get_data()
