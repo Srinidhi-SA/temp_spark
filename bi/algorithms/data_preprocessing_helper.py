@@ -23,6 +23,9 @@ class DataPreprocessingHelper():
 
 
     def drop_duplicate_cols(self):
+        '''
+        Needs optimization
+        '''
 
     	numerical_col = [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'int' or i_type == 'double' or i_type == 'float' ]
         categorical_col = [i_val for (i_val,i_type) in self._data_frame.dtypes if i_type == 'string' ]
@@ -169,7 +172,8 @@ class DataPreprocessingHelper():
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         mean_value = self._data_frame.agg(avg(col_to_impute)).first()[0]
         df_copy = df_copy.fillna({col_to_impute : mean_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def median_impute_missing_values(self, col_to_impute):
@@ -177,7 +181,8 @@ class DataPreprocessingHelper():
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         median_value = self.get_median(col_to_impute)
         df_copy = df_copy.fillna({col_to_impute : median_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def mode_impute_missing_values(self, col_to_impute):
@@ -185,14 +190,16 @@ class DataPreprocessingHelper():
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         mode_value = self.get_mode(col_to_impute)
         df_copy = df_copy.fillna({col_to_impute : mode_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def user_impute_missing_values(self, col_to_impute, mvt_value):
         df_copy = self._data_frame
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         df_copy = df_copy.fillna({col_to_impute : mvt_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def remove_missing_values(self, null_removal_col):
@@ -201,15 +208,17 @@ class DataPreprocessingHelper():
 
 
     def detect_outliers(self, outlier_detection_col):
+        '''
+        for optimization purpose need to get the outlier information
+        for given column from front end only in traning config as generated
+        and shared in metadata optimization
+        '''
         df_stats = self._data_frame.select(mean(col(outlier_detection_col)).alias('mean'), stddev(col(outlier_detection_col)).alias('std')).collect()
         mean_val = df_stats[0]['mean']
         std_val = df_stats[0]['std']
         upper_val = mean_val + (3*std_val)
         lower_val = mean_val - (3*std_val)
         outliers = [lower_val, upper_val]
-        #print mean_val
-        #print std_val
-        #print outliers
         return outliers
 
 
