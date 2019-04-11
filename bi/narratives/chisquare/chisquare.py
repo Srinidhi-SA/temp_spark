@@ -12,6 +12,8 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.transformations import Binner
 from pyspark.sql import functions as F
 
+import pandas as pd
+
 class ChiSquareAnalysis:
     def __init__ (self, df_context, df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns,base_dir,appid=None,target_chisquare_result=None):
         self._blockSplitter = "|~NEWBLOCK~|"
@@ -395,7 +397,72 @@ class ChiSquareAnalysis:
                     sum_ = grouped[d].sum()
                     diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
                     max_diff = diffs.index(max(diffs))
+                    print "="*70
+                    print "GROUPED - ", grouped
+                    print "CONTRIBUTIONS - ", contributions
+                    print "CONTRIBUTION INDEX - ", contribution_index
+                    print "CONTRIBUTIONS VAL - ", contributions_val
+                    print "CONTRIBUTIONS LIST - ", contributions_list
+                    print "INDEX LIST - ", index_list
+                    print "GROUPED LIST - ", grouped_list
+                    print "CONTRIBUTIONS PERCENT LIST - ", contributions_percent_list
+                    print "SUM - ", sum_
+                    print "DIFFS - ", diffs
+                    print "MAX DIFF - ", max_diff
+                    print "="*70
 
+                    informative_dict = {
+                                        "levels" : index_list,
+                                        "positive_class_contribution" : grouped_list,
+                                        "positive_plus_others" : contributions_val,
+                                        "percentage_horizontal" : contributions_percent_list
+                                        }
+
+                    informative_df = pd.DataFrame(informative_dict)
+                    informative_df["percentage_vertical"] = informative_df["positive_class_contribution"]*100/sum_
+                    informative_df.sort_values(["percentage_vertical"], inplace = True, ascending = False)
+                    informative_df = informative_df.reset_index(drop = True)
+
+                    percentage_vertical_sorted = list(informative_df["percentage_vertical"])
+                    percentage_horizontal_sorted = list(informative_df["percentage_horizontal"])
+                    levels_sorted = list(informative_df["levels"])
+
+
+                    differences_list = []
+                    for i in range(1, len(percentage_vertical_sorted)):
+                        difference = percentage_vertical_sorted[i - 1] - percentage_vertical_sorted[i]
+                        differences_list.append(round(difference, 2))
+
+                    index_txt = ''
+                    if differences_list[0] >= 30:
+                        print "showing 1st case"
+                        index_txt = levels_sorted[0]
+                        max_diff_equivalent = 1
+                    else:
+                        if differences_list[1] >= 10:
+                            print "showing 1st and 2nd case"
+                            index_txt = levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
+                            max_diff_equivalent = 2
+                        else:
+                            print "showing 3rd case"
+                            index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
+                            max_diff_equivalent = 3
+
+
+
+                    print "DIFFERENCES LIST - ", differences_list
+                    print percentage_vertical_sorted
+                    print informative_df.head(25)
+
+                    distribution_second.append({
+                                                'contributions' : [round(i, 2) for i in percentage_vertical_sorted[:max_diff_equivalent]],
+                                                'levels' : levels_sorted[:max_diff_equivalent],
+                                                'variation':random.randint(1,100),
+                                                'index_txt' : index_txt,
+                                                'd' : d,
+                                                'contributions_percent' : percentage_horizontal_sorted
+                                                })
+                    '''
                     index_txt=''
                     if max_diff == 1:
                         index_txt = index_list[0]
@@ -403,10 +470,19 @@ class ChiSquareAnalysis:
                         index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
                     elif max_diff>2:
                         index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-                    distribution_second.append({'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],\
-                                            'levels': index_list[:max_diff],'variation':random.randint(1,100),\
-                                            'index_txt': index_txt, 'd':d,'contributions_percent':contributions_percent_list})
 
+                    distribution_second.append({
+                                                'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],
+                                                'levels': index_list[:max_diff],
+                                                'variation':random.randint(1,100),\
+                                                'index_txt': index_txt,
+                                                'd':d,
+                                                'contributions_percent':contributions_percent_list
+                                                })
+                    '''
+
+                  print "DISTRIBUTION SECOND - ", distribution_second
+                  print "-"*70
                   targetCardDataDict['distribution_second'] = distribution_second
                   targetCardDataDict['second_target']=targetLevel
                   targetCardDataDict['second_target_top_dims'] = second_target_top_dims
