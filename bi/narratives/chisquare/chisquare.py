@@ -248,6 +248,9 @@ class ChiSquareAnalysis:
           data_dict["binAnalyzedCol"] = self._binAnalyzedCol
           data_dict['highlightFlag'] = self._highlightFlag
 
+          print "_"*60
+          print "DATA DICT - ", data_dict
+          print "_"*60
 
           ###############
           #     CARD1   #
@@ -397,28 +400,48 @@ class ChiSquareAnalysis:
                     sum_ = grouped[d].sum()
                     diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
                     max_diff = diffs.index(max(diffs))
+                    grouped_dict = dict(zip(index_list, grouped_list))
+
+                    for val in contribution_index:
+                        if val not in grouped_dict.keys():
+                            grouped_dict[val] = 0
+                        else:
+                            pass
+
+                    index_list = []
+                    grouped_list = []
+                    contributions_val = []
+
+                    for key in grouped_dict.keys():
+                        index_list.append(key)
+                        grouped_list.append(grouped_dict[key])
+                        contributions_val.append(contributions_list[key])
+                    '''
                     print "="*70
                     print "GROUPED - ", grouped
+                    print "INDEX LIST - ", index_list
+                    print "GROUPED LIST - ", grouped_list
+                    print "GROUPED DICT - ", grouped_dict
                     print "CONTRIBUTIONS - ", contributions
                     print "CONTRIBUTION INDEX - ", contribution_index
                     print "CONTRIBUTIONS VAL - ", contributions_val
                     print "CONTRIBUTIONS LIST - ", contributions_list
-                    print "INDEX LIST - ", index_list
-                    print "GROUPED LIST - ", grouped_list
                     print "CONTRIBUTIONS PERCENT LIST - ", contributions_percent_list
                     print "SUM - ", sum_
                     print "DIFFS - ", diffs
                     print "MAX DIFF - ", max_diff
                     print "="*70
+                    '''
+
 
                     informative_dict = {
                                         "levels" : index_list,
                                         "positive_class_contribution" : grouped_list,
-                                        "positive_plus_others" : contributions_val,
-                                        "percentage_horizontal" : contributions_percent_list
+                                        "positive_plus_others" : contributions_val
                                         }
 
                     informative_df = pd.DataFrame(informative_dict)
+                    informative_df["percentage_horizontal"] = informative_df["positive_class_contribution"]*100/informative_df["positive_plus_others"]
                     informative_df["percentage_vertical"] = informative_df["positive_class_contribution"]*100/sum_
                     informative_df.sort_values(["percentage_vertical"], inplace = True, ascending = False)
                     informative_df = informative_df.reset_index(drop = True)
@@ -432,6 +455,11 @@ class ChiSquareAnalysis:
                     for i in range(1, len(percentage_vertical_sorted)):
                         difference = percentage_vertical_sorted[i - 1] - percentage_vertical_sorted[i]
                         differences_list.append(round(difference, 2))
+                    '''
+                    print "-"*70
+                    print "DIFFERENCES LIST - ", differences_list
+                    print "-"*70
+                    '''
 
                     index_txt = ''
                     if differences_list[0] >= 30:
@@ -447,12 +475,11 @@ class ChiSquareAnalysis:
                             print "showing 3rd case"
                             index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
                             max_diff_equivalent = 3
-
-
-
-                    print "DIFFERENCES LIST - ", differences_list
-                    print percentage_vertical_sorted
+                    '''
+                    print "-"*70
                     print informative_df.head(25)
+                    print "-"*70
+                    '''
 
                     distribution_second.append({
                                                 'contributions' : [round(i, 2) for i in percentage_vertical_sorted[:max_diff_equivalent]],
@@ -462,27 +489,10 @@ class ChiSquareAnalysis:
                                                 'd' : d,
                                                 'contributions_percent' : percentage_horizontal_sorted
                                                 })
-                    '''
-                    index_txt=''
-                    if max_diff == 1:
-                        index_txt = index_list[0]
-                    elif max_diff == 2:
-                        index_txt = index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-                    elif max_diff>2:
-                        index_txt = 'including ' + index_list[0]+'('+str(round(grouped_list[0]*100.0/sum_,1))+'%)' + ' and ' + index_list[1]+'('+str(round(grouped_list[1]*100.0/sum_,1))+'%)'
-
-                    distribution_second.append({
-                                                'contributions':[round(i*100.0/sum_,2) for i in grouped_list[:max_diff]],
-                                                'levels': index_list[:max_diff],
-                                                'variation':random.randint(1,100),\
-                                                'index_txt': index_txt,
-                                                'd':d,
-                                                'contributions_percent':contributions_percent_list
-                                                })
-                    '''
-
+                  '''
                   print "DISTRIBUTION SECOND - ", distribution_second
-                  print "-"*70
+                  print "<>"*50
+                  '''
                   targetCardDataDict['distribution_second'] = distribution_second
                   targetCardDataDict['second_target']=targetLevel
                   targetCardDataDict['second_target_top_dims'] = second_target_top_dims
