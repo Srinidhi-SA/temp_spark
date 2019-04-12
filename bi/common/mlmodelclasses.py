@@ -138,7 +138,7 @@ class MLModelSummary:
         self.subsampleForEachTree = None
         self.subsampleForEachSplit = None
         self.targetLevel = None
-        self.priors = None 
+        self.priors = None
         self.varSmoothing = None
 
     def set_priors(self,data):
@@ -525,6 +525,13 @@ class SklearnGridSearchResult:
         evaluationMetric = self.evaluationMetricDict["name"].capitalize()
         if evaluationMetric == "Roc_auc":
             evaluationMetric = "ROC-AUC"
+        if evaluationMetric == "R2":
+            evaluationMetric = "R-Squared"
+        if evaluationMetric == "Neg_mean_absolute_error":
+            evaluationMetric = "MAE"
+        if evaluationMetric == "Neg_mean_squared_error":
+            evaluationMetric = "MSE"
+
         evalMetricVal = -1
         for idx,paramsObj in enumerate(self.resultDf["params"]):
             st = time.time()
