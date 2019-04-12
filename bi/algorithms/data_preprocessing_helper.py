@@ -169,7 +169,8 @@ class DataPreprocessingHelper():
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         mean_value = self._data_frame.agg(avg(col_to_impute)).first()[0]
         df_copy = df_copy.fillna({col_to_impute : mean_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def median_impute_missing_values(self, col_to_impute):
@@ -177,7 +178,8 @@ class DataPreprocessingHelper():
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         median_value = self.get_median(col_to_impute)
         df_copy = df_copy.fillna({col_to_impute : median_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def mode_impute_missing_values(self, col_to_impute):
@@ -185,14 +187,16 @@ class DataPreprocessingHelper():
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         mode_value = self.get_mode(col_to_impute)
         df_copy = df_copy.fillna({col_to_impute : mode_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def user_impute_missing_values(self, col_to_impute, mvt_value):
         df_copy = self._data_frame
         self._data_frame = self._data_frame.filter(self._data_frame[col_to_impute].isNotNull())
         df_copy = df_copy.fillna({col_to_impute : mvt_value})
-        return df_copy
+        self._data_frame = df_copy
+        return self._data_frame
 
 
     def remove_missing_values(self, null_removal_col):

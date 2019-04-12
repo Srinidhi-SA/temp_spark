@@ -299,8 +299,9 @@ class GBTRegressionModelScript:
             else:
                 sampleData = transformed
             print sampleData.head()
-
+            GLOBALSETTINGS.MAPEBINS.append(transformed["mape"].max())
             mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
+            GLOBALSETTINGS.MAPEBINS.pop(5)
             mapeStatsArr = [(str(idx),dictObj) for idx,dictObj in enumerate(sorted([{"count":x[1],"splitRange":(x[0].left,x[0].right)} for x in mapeCountArr],key = lambda x:x["splitRange"][0]))]
 
             predictionColSummary = transformed["prediction"].describe().to_dict()

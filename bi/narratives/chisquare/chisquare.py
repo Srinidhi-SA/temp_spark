@@ -383,8 +383,7 @@ class ChiSquareAnalysis:
 
                   distribution_second = []
                   for d in self._second_level_dimensions:
-                    grouped = df_second_target.sort_values(d,ascending=False,axis = 0).groupby(d).agg({d:'count'})
-                    contributions = df_second_dim.groupby(d).agg({d:'count'})
+
                     contribution_index = list(contributions.index)
                     contributions_val = contributions[d].tolist()
                     contributions_list = dict(zip(contribution_index,contributions_val))
@@ -420,8 +419,9 @@ class ChiSquareAnalysis:
 
                   card2Data = []
                   targetLevelContributions = [table.get_value(targetLevel,i) for i in levels]
+                  impact_target_thershold= sum(targetLevelContributions)*0.02/len(targetLevelContributions)
                   card2Heading = '<h3>Key Drivers of ' + self._target_dimension + ' (' + targetLevel + ')'+"</h3>"
-                  chart,bubble = self.generate_distribution_card_chart(targetLevel, targetLevelContributions, levels, level_counts, total)
+                  chart,bubble = self.generate_distribution_card_chart(targetLevel, targetLevelContributions, levels, level_counts, total,impact_target_thershold)
                   card2ChartData = NormalChartData(data=chart["data"])
                   card2ChartJson = ChartJson()
                   card2ChartJson.set_data(card2ChartData.get_data())
@@ -466,7 +466,7 @@ class ChiSquareAnalysis:
 
     # def generate_card2_narratives(self):
 
-    def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total):
+    def generate_distribution_card_chart(self, __target, __target_contributions, levels, levels_count, total,thershold):
         chart = {}
         label = {'total' : '# of '+__target,
                   'percentage': '% of '+__target}
@@ -488,11 +488,14 @@ class ChiSquareAnalysis:
         bubble_data1['value'] = str(round(max(__target_contributions)*100.0/sum(__target_contributions),1))+'%'
         m_index = __target_contributions.index(max(__target_contributions))
         bubble_data1['text'] = 'Overall '+__target+' comes from '+ levels[m_index]
-
-        bubble_data2['value'] = str(round(max(__target_percentages),1))+'%'
-        m_index = __target_percentages.index(max(__target_percentages))
-        bubble_data2['text'] = levels[m_index] + ' has the highest rate of '+__target
-
+        intial=-1
+        for k,v,i in zip(__target_contributions,__target_percentages,range(len(__target_contributions))):
+            if k > thershold:
+                if intial < v:
+                    intial = v
+                    bubble_data2['value'] = str(round(intial))+'%'
+                    #m_index = __target_percentages.index(i)
+                    bubble_data2['text'] = levels[i] + ' has the highest rate of '+__target
         bubble_data = [bubble_data1,bubble_data2]
         return chart_data, bubble_data
 

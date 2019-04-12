@@ -822,7 +822,7 @@ def create_model_summary_cards(modelSummaryClass):
             chartDataValues.append(val[1]["count"])
             if val[1]["splitRange"][0] == 0:
                 mapeChartData.append({"key":"<{}%".format(val[1]["splitRange"][1]),"value":val[1]["count"]})
-            elif val[1]["splitRange"][1] == 100:
+            elif val[1]["splitRange"][1] >100:
                 mapeChartData.append({"key":">{}%".format(val[1]["splitRange"][0]),"value":val[1]["count"]})
             else:
                 mapeChartData.append({"key":"{}-{}%".format(val[1]["splitRange"][0],val[1]["splitRange"][1]),"value":val[1]["count"]})
