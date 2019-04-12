@@ -5,6 +5,7 @@ import traceback
 import uuid
 import math
 from re import sub
+import re
 
 import matplotlib
 import numpy as np
@@ -471,6 +472,12 @@ def humanize_time(time_in_secs):
     if time_in_secs < 60:
         return "{} Seconds".format(time_in_secs)
     return "{} Hours {} Minutes".format(hours, minutes)
+
+def get_dataset_name(filepath):
+    filelist = filepath.split('/')
+    filename = filelist[-1]
+    return filename
+
 
 
 if __name__ == '__main__':

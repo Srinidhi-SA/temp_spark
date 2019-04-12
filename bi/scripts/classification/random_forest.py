@@ -64,6 +64,7 @@ class RFClassificationModelScript:
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._scriptStages = {
             "initialization":{
@@ -494,6 +495,7 @@ class RFClassificationModelScript:
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_datasetName(self._datasetName)
             else:
                 self._model_management = MLModelSummary()
                 self._model_management.set_criterion(data=modelmanagement_['param_grid']['criterion'][0])
@@ -516,6 +518,7 @@ class RFClassificationModelScript:
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_datasetName(self._datasetName)
             modelManagementSummaryJson = [
 
                             ["Project Name",self._model_management.get_job_type()],
@@ -530,7 +533,7 @@ class RFClassificationModelScript:
 
             modelManagementModelSettingsJson = [
 
-                                  ["Training Dataset",None],
+                                  ["Training Dataset",self._model_management.get_datasetName()],
                                   ["Target Column",self._model_management.get_target_variable()],
                                   ["Target Column Value",self._model_management.get_target_level()],
                                   ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],

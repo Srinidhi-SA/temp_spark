@@ -325,7 +325,6 @@ class NBBClassificationModelScript:
             nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary,final_roc_df)]
             for card in nbCards:
                 self._prediction_narrative.add_a_card(card)
-
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
             self._result_setter.set_nb_cards(nbCards)
@@ -616,6 +615,7 @@ class NBGClassificationModelScript:
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._scriptStages = {
             "initialization":{
@@ -973,6 +973,7 @@ class NBGClassificationModelScript:
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_datasetName(self._datasetName)
                 #self._model_management.set_var_smoothing(modelmanagement_['var_smoothing']) #var smoothing
                 #self._model_management.set_priors(modelmanagement_['priors']) #priors used
             else:
@@ -986,6 +987,7 @@ class NBGClassificationModelScript:
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_datasetName(self._datasetName)
                 #self._model_management.set_priors(modelmanagement_['param_grid']['priors'][0]) #priors used
                 #self._model_management.set_var_smoothing(modelmanagement_['param_grid']['var_smoothing'][0]) #var smoothing
 
@@ -1002,7 +1004,7 @@ class NBGClassificationModelScript:
                                               ]
             modelManagementModelSettingsJson = [
 
-                                  ["Training Dataset",None],
+                                  ["Training Dataset",self._model_management.get_datasetName()],
                                   ["Target Column",self._model_management.get_target_variable()],
                                   ["Target Column Value",self._model_management.get_target_level()],
                                   ["Algorithm",self._model_management.get_algorithm_name()],
@@ -1318,6 +1320,7 @@ class NBMClassificationModelScript:
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["naive bayes"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -1737,6 +1740,7 @@ class NBMClassificationModelScript:
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
                 self._model_management.set_alpha(modelmanagement_['alpha'])
+                self._model_management.set_datasetName(self._datasetName)
             else:
                 self._model_management = MLModelSummary()
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
@@ -1749,7 +1753,7 @@ class NBMClassificationModelScript:
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
                 self._model_management.set_alpha(modelmanagement_['param_grid']['alpha'][0])
-
+                self._model_management.set_datasetName(self._datasetName)
             modelManagementSummaryJson = [
 
                                   ["Project Name",self._model_management.get_job_type()],
@@ -1763,7 +1767,7 @@ class NBMClassificationModelScript:
                                               ]
             modelManagementModelSettingsJson = [
 
-                                  ["Training Dataset",None],
+                                  ["Training Dataset",self._model_management.get_datasetName()],
                                   ["Target Column",self._model_management.get_target_variable()],
                                   ["Target Column Value",self._model_management.get_target_level()],
                                   ["Algorithm",self._model_management.get_algorithm_name()],

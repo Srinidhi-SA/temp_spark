@@ -55,6 +55,7 @@ class LogisticRegressionScript:
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
         self._slug = self._model_slug_map["logisticregression"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -484,7 +485,7 @@ class LogisticRegressionScript:
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
-
+                self._model_management.set_datasetName(self._datasetName)
             else:
                 self._model_management.set_fit_intercept(data=modelmanagement_['param_grid']['fit_intercept'][0])
                 self._model_management.set_solver_used(data=modelmanagement_['param_grid']['solver'][0])
@@ -504,12 +505,7 @@ class LogisticRegressionScript:
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
-
-
-
-
-
-
+                self._model_management.set_datasetName(self._datasetName)
 
 
             modelManagementSummaryJson =[
@@ -526,7 +522,7 @@ class LogisticRegressionScript:
 
             modelManagementModelSettingsJson =[
 
-                        ["Training Dataset",None],
+                        ["Training Dataset",self._model_management.get_datasetName()],
                         ["Target Column",self._model_management.get_target_variable()],
                         ["Target Column Value",self._model_management.get_target_level()],
                         ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],

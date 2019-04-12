@@ -138,9 +138,14 @@ class MLModelSummary:
         self.subsampleForEachTree = None
         self.subsampleForEachSplit = None
         self.targetLevel = None
-        self.priors = None 
+        self.priors = None
         self.varSmoothing = None
+        self.datasetName = None
 
+    def set_datasetName(self,data):
+        self.datasetName = data
+    def get_datasetName(self):
+        return self.datasetName
     def set_priors(self,data):
         self.priors = data
     def get_priors(self):
