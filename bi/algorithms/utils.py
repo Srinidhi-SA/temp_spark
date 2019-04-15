@@ -612,7 +612,7 @@ def get_feature_importance(collated_summary):
     feature_importance = collated_summary["randomforest"]["featureImportance"]
     feature_importance_list = [[k,v] for k,v in feature_importance.items()]
     sorted_feature_importance_list = sorted(feature_importance_list,key = lambda x:x[1],reverse=True)
-    feature_importance_data = [{"name":x[0],"value":x[1]} for x in sorted_feature_importance_list]
+    feature_importance_data = [{"name":x[0],"value":x[1]} for x in sorted_feature_importance_list if x[1] != 0 ]
     mapeChartData = NormalChartData(data=feature_importance_data)
     chart_json = ChartJson()
     chart_json.set_data(mapeChartData.get_data())

@@ -414,7 +414,7 @@ class MetaDataHelper():
         return detectedFormat
 
 
-    def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
+    def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100000):
         ignore = False
         reason = None
         total_rows = df.count()

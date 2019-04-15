@@ -113,8 +113,11 @@ class FeatureEngineeringHelper:
         return self._data_frame
 
     def create_level_udf_time(self, dict):
-        def convert_to_date( value):
-            value = datetime.strptime(value, "%d/%m/%Y")
+        def convert_to_date(value):
+            if len(str(value))>10:
+                value = value
+            else:
+                value=datetime.strptime(value, '%d/%m/%Y')
             return value
         def check_key(date, dict):
             date = convert_to_date(date)
