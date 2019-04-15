@@ -6,7 +6,7 @@ from pyspark.sql import SparkSession, HiveContext
 from pyspark import SparkContext, SparkConf
 import random
 from decorators import accepts
-
+import time
 
 class DataLoader:
 
@@ -154,21 +154,28 @@ class DataLoader:
             	bucket = get_boto_bucket()
             dst_file_name = str(random.randint(10000,99999)) + '_' + file_name
             download_file(file_name,'/tmp/'+dst_file_name)
-
-
-
         except Exception as e:
             print("couldn't connect to S3")
             raise e
         try:
+
             spark = SparkSession \
                     .builder \
                     .appName("using_s3") \
                     .getOrCreate()
             df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
         except Exception as e:
-            print ("S3 file not found")
-            raise e
+            print "tried once, will wait for 3 second before next try"
+            time.sleep(3)
+            try:
+                spark = SparkSession \
+                        .builder \
+                        .appName("using_s3") \
+                        .getOrCreate()
+                df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
+            except Exception as e:
+                print ("S3 file not found")
+                raise e
         return df
 
 
