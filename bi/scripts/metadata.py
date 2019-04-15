@@ -80,7 +80,8 @@ class MetaDataScript:
         self._spark = spark
         self._total_columns = len([field.name for field in self._data_frame.schema.fields])
         self._total_rows = self._data_frame.count()
-        self._max_levels = min(200, round(self._total_rows**0.5))
+        # self._max_levels = min(200, round(self._total_rows**0.5))
+        self._max_levels = 100000
 
         self._percentage_columns = []
         self._numeric_columns = [field.name for field in self._data_frame.schema.fields if
@@ -281,6 +282,31 @@ class MetaDataScript:
                     data.set_level_count_to_null()
                     data.set_chart_data_to_null()
                     data.set_date_suggestion_flag(True)
+                    data.set_abstract_datatype("datetime")
+                    data.set_actual_datatype("datetime")
+                    self._timestamp_columns.append(column)
+                    self._string_columns = list(set(self._string_columns)-set(self._timestamp_columns))
+                    self.update_column_type_dict()
+                    # timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+
+                for i, o in enumerate(metaData):
+                    if o.name == "dimensions":
+                        del metaData[i]
+                        if len(self._string_columns)>1:
+                            metaData.insert(i,MetaData(name="dimensions",value = len(self._string_columns),display=True,displayName="Dimensions"))
+                        else:
+                            metaData.insert(i,MetaData(name="dimensions",value = len(self._string_columns),display=True,displayName="Dimension"))
+                    elif o.name=="dimensionColumns":
+                        del metaData[i]
+                        metaData.insert(i,MetaData(name="dimensionColumns",value = self._string_columns,display=True))
+                    elif o.name == "timeDimension":
+                            del metaData[i]
+                            if len(self._timestamp_columns) > 1:
+                                metaData.insert(i,MetaData(name="timeDimension",value = len(self._timestamp_columns),display=True,displayName="Time Dimensions"))
+                            else:
+                                metaData.insert(i,MetaData(name="timeDimension",value = len(self._timestamp_columns),display=True,displayName="Time Dimension"))
+                            break
+
 
                 if utf8Suggestion:
                     utf8ColumnSuggestion.append(column)
