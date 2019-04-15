@@ -50,6 +50,7 @@ def load_dataset(spark,dataframe_context):
     if df != None:
         # Dropping blank rows
         df = df.dropna(how='all', thresh=None, subset=None)
+
     if df != None:
         print "Dataset Loaded"
         print df.printSchema()
@@ -659,7 +660,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
         if filtered_df.count() > 0 and transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print "output_filepath",output_filepath
-            transformed_df.write.csv(output_filepath,mode="overwrite",header=True)
+            transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
             print "starting Metadata for the Filtered Dataframe"
             meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
             meta_data_object = meta_data_class.run()

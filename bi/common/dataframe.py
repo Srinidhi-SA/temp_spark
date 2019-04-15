@@ -51,6 +51,7 @@ class DataFrameHelper:
         self.string_columns = []
         self.timestamp_columns = []
         self.boolean_columns = []
+        self.cols_ignored = []
 
         self.num_rows = 0
         self.num_columns = 0
@@ -88,6 +89,7 @@ class DataFrameHelper:
             colsToKeep = list(set(self.consider_columns))
             colsToKeep=list(set(colsToKeep)-set(self.ignorecolumns))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
+        self.cols_ignored = list(set(self.columns) - set(colsToKeep))
         print "colsToKeep:-",colsToKeep
         print "colsToBin:-",colsToBin
         self.colsToBin = colsToBin
@@ -105,9 +107,10 @@ class DataFrameHelper:
                         if self._dataframe_context.get_story_on_scored_data() == False:
                             result_column = self._dataframe_context.get_result_column()
                             updatedColsToKeep = list(set(colsToKeep) - {result_column})
-                            self._data_frame = self._data_frame.select(updatedColsToKeep)
+                            # self._data_frame = self._data_frame.select(updatedColsToKeep)
                         elif self._dataframe_context.get_story_on_scored_data() == True:
-                            self._data_frame = self._data_frame.select(colsToKeep)
+                            # self._data_frame = self._data_frame.select(colsToKeep)
+                            pass
                     elif app_type == "REGRESSION":
                         self._data_frame = self._data_frame.select(colsToKeep)
         self.columns = self._data_frame.columns
@@ -242,6 +245,9 @@ class DataFrameHelper:
 
     def get_columns(self):
         return self.columns
+
+    def get_ignored_cols(self):
+        return self.cols_ignored
 
     @accepts(object, basestring)
     def has_column(self, column_name):
