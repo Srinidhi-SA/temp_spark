@@ -257,7 +257,7 @@ class RFClassificationModelScript:
             if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
-                auc = metrics.roc_auc_score(y_test,y_score)
+                roc_auc = metrics.roc_auc_score(y_test,y_score)
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
             elif len(levels) > 2:
@@ -266,7 +266,7 @@ class RFClassificationModelScript:
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
-                auc = None
+                roc_auc = None
             y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
@@ -345,7 +345,7 @@ class RFClassificationModelScript:
                     else:
                         y_score_roc_multi.append(val)
 
-                auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+                roc_auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
 
                 fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
                 roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
@@ -426,7 +426,7 @@ class RFClassificationModelScript:
             self._model_summary.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
             self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
-            self._model_summary.set_AUC_score(auc)
+            self._model_summary.set_AUC_score(roc_auc)
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
@@ -436,8 +436,8 @@ class RFClassificationModelScript:
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
-                            "evaluationMetricValue":self._model_summary.get_model_accuracy(),
-                            "evaluationMetricName":"accuracy",
+                            "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
                             "Model Id":modelName
                             }
@@ -648,6 +648,7 @@ class RFClassificationModelScript:
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
 
+            shape = (self._data_frame.count(), len(self._data_frame.columns))
             df = self._data_frame.toPandas()
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
@@ -728,7 +729,7 @@ class RFClassificationModelScript:
             columns_to_drop += ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         print "columns_to_drop",columns_to_drop
-        df.drop(columns_to_drop, axis=1, inplace=True)
+        # df.drop(columns_to_drop, axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
         print "resultColLevelCount",resultColLevelCount
@@ -736,13 +737,15 @@ class RFClassificationModelScript:
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
         self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        spark_scored_df = SQLctx.createDataFrame(df)
+        spark_scored_df = SQLctx.createDataFrame(df.drop(columns_to_drop, axis=1))
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
         # TODO update metadata for the newly created dataframe
         self._dataframe_context.update_consider_columns(columns_to_keep)
+
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
-        spark_scored_df = df_helper.get_data_frame()
+        # spark_scored_df = df_helper.get_data_frame()
+
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"

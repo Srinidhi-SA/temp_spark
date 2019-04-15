@@ -258,7 +258,7 @@ class LogisticRegressionScript:
             if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
-                auc = metrics.roc_auc_score(y_test,y_score)
+                roc_auc = metrics.roc_auc_score(y_test,y_score)
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
             elif len(levels) > 2:
@@ -267,7 +267,7 @@ class LogisticRegressionScript:
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
-                auc = None
+                roc_auc = None
 
             y_prob_for_eval = []
             for i in range(len(y_prob)):
@@ -342,7 +342,7 @@ class LogisticRegressionScript:
                     else:
                         y_score_roc_multi.append(val)
 
-                auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+                roc_auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
 
                 fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
                 roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
@@ -420,7 +420,7 @@ class LogisticRegressionScript:
             self._model_summary.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
             self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
-            self._model_summary.set_AUC_score(auc)
+            self._model_summary.set_AUC_score(roc_auc)
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
@@ -429,8 +429,8 @@ class LogisticRegressionScript:
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
-                            "evaluationMetricValue":self._model_summary.get_model_accuracy(),
-                            "evaluationMetricName":"accuracy",
+                            "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
                             "Model Id":modelName
                             }

@@ -44,7 +44,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "story"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -144,6 +144,7 @@ def main(configJson):
             ########################## Load the dataframe ##############################
             df = MasterHelper.load_dataset(spark,dataframe_context)
             df = df.persist()
+            rowscols = (df.count(), len(df.columns))
             removed_col=[]
             new_cols_added = None
             if jobType != "metaData":
