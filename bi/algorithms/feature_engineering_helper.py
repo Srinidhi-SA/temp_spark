@@ -336,7 +336,7 @@ class FeatureEngineeringHelper:
         # print "COUNT TIME SINCE - "
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
-        self._data_frame = self._data_frame.withColumn("_time_since", datediff(self._data_frame[col_for_time_since], self._data_frame["TIME_SINCE_DATE(Timestamped)"]))
+        self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"], self._data_frame[col_for_time_since]))
         self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
         # print "-"*70
         # self._data_frame.show()
@@ -350,7 +350,8 @@ class FeatureEngineeringHelper:
             for key in dict.keys():
                 if int(x) == key:
                     return dict[key]
-        return udf(lambda x: dict_for_month_helper(x,dict))
+        #return udf(lambda x: dict_for_month_helper(x,dict))
+        return udf(lambda x: month_to_string_helper(x,dict))
 
 
 #Timeformat is hardcoded as "dd/MM/yyyy"
