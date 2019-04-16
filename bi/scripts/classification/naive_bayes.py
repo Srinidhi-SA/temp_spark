@@ -221,9 +221,12 @@ class NBBClassificationModelScript:
             y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_eval.append(float(y_prob[i][0]))
+                    if y_score[i] == posLabel:
+                        y_prob_for_eval.append(float(y_prob[i][1]))
+                    else:
+                        y_prob_for_eval.append(float(1 - y_prob[i][1]))
                 else:
-                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(posLabel)]))
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
             pys_df = self._spark.createDataFrame(temp_df)
@@ -773,9 +776,12 @@ class NBGClassificationModelScript:
             y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_eval.append(float(y_prob[i][0]))
+                    if y_score[i] == posLabel:
+                        y_prob_for_eval.append(float(y_prob[i][1]))
+                    else:
+                        y_prob_for_eval.append(float(1 - y_prob[i][1]))
                 else:
-                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(posLabel)]))
 
             '''ROC CURVE IMPLEMENTATION'''
             if len(levels) <= 2:
@@ -1534,9 +1540,12 @@ class NBMClassificationModelScript:
             y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_eval.append(float(y_prob[i][0]))
+                    if y_score[i] == posLabel:
+                        y_prob_for_eval.append(float(y_prob[i][1]))
+                    else:
+                        y_prob_for_eval.append(float(1 - y_prob[i][1]))
                 else:
-                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(posLabel)]))
 
 
             '''ROC CURVE IMPLEMENTATION'''

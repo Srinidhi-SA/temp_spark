@@ -210,7 +210,7 @@ class LogisticRegressionScript:
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
                     bestEstimator.fit(x_train,y_train)
-                    
+
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
@@ -272,9 +272,12 @@ class LogisticRegressionScript:
             y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
-                    y_prob_for_eval.append(float(y_prob[i][0]))
+                    if y_score[i] == posLabel:
+                        y_prob_for_eval.append(float(y_prob[i][1]))
+                    else:
+                        y_prob_for_eval.append(float(1 - y_prob[i][1]))
                 else:
-                    y_prob_for_eval.append(float(y_prob[i][int(y_score[i])]))
+                    y_prob_for_eval.append(float(y_prob[i][int(posLabel)]))
 
 
             '''ROC CURVE IMPLEMENTATION'''
