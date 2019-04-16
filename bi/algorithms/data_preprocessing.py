@@ -50,9 +50,9 @@ class DataPreprocessing:
                 if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "outlier_treatment":
                     for operation in self._dataCleansingDict['columns_wise_settings'][key]['operations']:
                         if operation['selected']:
-                            if operation['name'] == 'remove_outliers':
-                                for column in operation['columns']:
-                                    self._df = data_preprocessing_helper_obj.remove_outliers(column["name"])
+                            # if operation['name'] == 'remove_outliers':
+                            #     for column in operation['columns']:
+                            #         self._df = data_preprocessing_helper_obj.remove_outliers(column["name"])
                             if operation['name'] == 'cap_outliers':
                                 for column in operation['columns']:
                                     self._df = data_preprocessing_helper_obj.cap_outliers(column["name"])

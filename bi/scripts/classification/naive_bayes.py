@@ -291,8 +291,8 @@ class NBBClassificationModelScript:
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
-                            "evaluationMetricValue":self._model_summary.get_model_accuracy(),
-                            "evaluationMetricName":"accuracy",
+                            "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
                             "Model Id":modelName
                             }
@@ -308,8 +308,8 @@ class NBBClassificationModelScript:
             else:
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
-                            "evaluationMetricValue":resultArray[0]["Accuracy"],
-                            "evaluationMetricName":"accuracy",
+                            "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
                             "Model Id":resultArray[0]["Model Id"]
                             }
@@ -932,8 +932,8 @@ class NBGClassificationModelScript:
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
-                            "evaluationMetricValue":self._model_summary.get_model_accuracy(),
-                            "evaluationMetricName":"accuracy",
+                            "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
                             "Model Id":modelName
                             }
@@ -949,8 +949,8 @@ class NBGClassificationModelScript:
             else:
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
-                            "evaluationMetricValue":resultArray[0]["Accuracy"],
-                            "evaluationMetricName":"accuracy",
+                            "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
                             "Model Id":resultArray[0]["Model Id"]
                             }
@@ -1715,8 +1715,8 @@ class NBMClassificationModelScript:
             else:
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
-                            "evaluationMetricValue":resultArray[0]["Accuracy"],
-                            "evaluationMetricName":"accuracy",
+                            "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
+                            "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
                             "Model Id":resultArray[0]["Model Id"]
                             }
