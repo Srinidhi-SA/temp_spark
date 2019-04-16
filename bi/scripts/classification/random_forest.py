@@ -320,6 +320,78 @@ class RFClassificationModelScript:
                 final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
                 final_roc_df["Reference Line"] = final_roc_df["FPR"]
 
+
+                fpr_tpr_list = ["FPR", "TPR"]
+                fpr_tpr_dict = {}
+                for val in fpr_tpr_list:
+                    temp_list = list(final_roc_df[val])
+                    if val == "FPR":
+                        temp_list = [round(x, 2) for x in temp_list]
+                    else:
+                        temp_list = [round(x, 4) for x in temp_list]
+                    temp_list = temp_list[1:-1]
+                    fpr_tpr_dict[val] = temp_list
+
+
+                new_reference = (list(np.arange(0.0, 1.0, 0.01)))
+                new_reference = [round(x, 2) for x in new_reference]
+
+                # print "-"*70
+                # print "NEW REFERENCE - ", new_reference
+                # print "-"*70
+                # print "ORIGINAL FPR - ", fpr_tpr_dict["FPR"]
+                # print "-"*70
+                # print "ORIGINAL TPR - ", fpr_tpr_dict["TPR"]
+
+                fpr_temp = fpr_tpr_dict["FPR"]
+                tpr_temp = fpr_tpr_dict["TPR"]
+
+                master_dict = {}
+                for i in range(0, len(fpr_temp)):
+                   master_dict[fpr_temp[i]] = tpr_temp[i]
+
+                master_dict[0.0] = 0.0
+                master_dict[1.0] = 1.0
+
+                # print "-"*70
+                # print "MASTER DICT - ", master_dict
+
+                fpr_final = []
+                tpr_final = []
+                for val in new_reference:
+                    if val in master_dict.keys():
+                        previous_val = master_dict[val]
+                        fpr_final.append(val)
+                        tpr_final.append(master_dict[val])
+                    else:
+                        fpr_final.append(val)
+                        tpr_final.append(previous_val)
+
+                fpr_final[0] = 0.0
+                tpr_final[0] = 0.0
+                fpr_final[-1] = 1.0
+                tpr_final[-1] = 1.0
+
+                ultimate_roc_df = pd.DataFrame({
+                                                'FPR' : fpr_final,
+                                                'TPR' : tpr_final,
+                                                'Reference Line' : new_reference
+                                                }, columns=['FPR','TPR', 'Reference Line'])
+                # print "-"*70
+                # print "FPR FINAL - ", fpr_final
+                # print "-"*70
+                # print "LENGTH FPR - ", len(fpr_final)
+                # print "-"*70
+                # print "TPR FINAL - ", tpr_final
+                # print "-"*70
+                # print "LENGTH TPR - ", len(tpr_final)
+                # print "-"*70
+                # print "REFERENCE LINE - ", new_reference
+                # print "-"*70
+                # print "LENGTH REFERENCE - ", len(new_reference)
+                #ultimate_roc_df.to_csv("ultimate_roc_df.csv")
+
+
                 '''
                 roc_data_list = []
                 for i in range(1, len(fpr)):
@@ -363,8 +435,79 @@ class RFClassificationModelScript:
                 rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
                 unique_fpr = rounded_roc_df["FPR"].unique()
                 #final_roc_df = rounded_roc_df.groupby("fpr", as_index = False)[["tpr"]].mean()
-                final_roc_df = roc_df
+                final_roc_df = rounded_roc_df
                 final_roc_df["Reference Line"] = final_roc_df["FPR"]
+
+                fpr_tpr_list = ["FPR", "TPR"]
+                fpr_tpr_dict = {}
+                for val in fpr_tpr_list:
+                    temp_list = list(final_roc_df[val])
+                    if val == "FPR":
+                        temp_list = [round(x, 2) for x in temp_list]
+                    else:
+                        temp_list = [round(x, 4) for x in temp_list]
+                    temp_list = temp_list[1:-1]
+                    fpr_tpr_dict[val] = temp_list
+
+
+                new_reference = (list(np.arange(0.0, 1.0, 0.01)))
+                new_reference = [round(x, 2) for x in new_reference]
+
+                # print "-"*70
+                # print "NEW REFERENCE - ", new_reference
+                # print "-"*70
+                # print "ORIGINAL FPR - ", fpr_tpr_dict["FPR"]
+                # print "-"*70
+                # print "ORIGINAL TPR - ", fpr_tpr_dict["TPR"]
+
+                fpr_temp = fpr_tpr_dict["FPR"]
+                tpr_temp = fpr_tpr_dict["TPR"]
+
+                master_dict = {}
+                for i in range(0, len(fpr_temp)):
+                   master_dict[fpr_temp[i]] = tpr_temp[i]
+
+                master_dict[0.0] = 0.0
+                master_dict[1.0] = 1.0
+
+                # print "-"*70
+                # print "MASTER DICT - ", master_dict
+
+                fpr_final = []
+                tpr_final = []
+                for val in new_reference:
+                    if val in master_dict.keys():
+                        previous_val = master_dict[val]
+                        fpr_final.append(val)
+                        tpr_final.append(master_dict[val])
+                    else:
+                        fpr_final.append(val)
+                        tpr_final.append(previous_val)
+
+                fpr_final[0] = 0.0
+                tpr_final[0] = 0.0
+                fpr_final[-1] = 1.0
+                tpr_final[-1] = 1.0
+
+                ultimate_roc_df = pd.DataFrame({
+                                                'FPR' : fpr_final,
+                                                'TPR' : tpr_final,
+                                                'Reference Line' : new_reference
+                                                }, columns=['FPR','TPR', 'Reference Line'])
+                # print "-"*70
+                # print "FPR FINAL - ", fpr_final
+                # print "-"*70
+                # print "LENGTH FPR - ", len(fpr_final)
+                # print "-"*70
+                # print "TPR FINAL - ", tpr_final
+                # print "-"*70
+                # print "LENGTH TPR - ", len(tpr_final)
+                # print "-"*70
+                # print "REFERENCE LINE - ", new_reference
+                # print "-"*70
+                # print "LENGTH REFERENCE - ", len(new_reference)
+
+                #ultimate_roc_df.to_csv("ultimate_roc_df.csv")
 
                 '''
                 predicted_prob_dict = {}
@@ -550,11 +693,11 @@ class RFClassificationModelScript:
                                                   ]
 
             rfOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, final_roc_df)]
+            rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, ultimate_roc_df)]
             #rfPerformanceCard = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
             rfDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
             rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-            #rfCards = MLUtils.create_model_management_cards(self._model_summary, final_roc_df)
+            #rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, ultimate_roc_df)]
             RF_Overview_Node = NarrativesTree()
             RF_Overview_Node.set_name("Overview")
             RF_Performance_Node = NarrativesTree()
