@@ -336,10 +336,14 @@ class FeatureEngineeringHelper:
     def count_time_since(self, col_for_time_since, time_since_date):
         '''Columns to be passed for calculating duration need to be in TimeStamped format'''
         '''time_since_date should be in dd/MM/yyyy format'''
+        # print "COUNT TIME SINCE - "
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
         self._data_frame = self._data_frame.withColumn("TIME_SINCE", datediff(self._data_frame[col_for_time_since], self._data_frame["TIME_SINCE_DATE(Timestamped)"]))
         self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
+        # print "-"*70
+        # self._data_frame.show()
+        # print "-"*70
         return self._data_frame
 
 #TODO - Check for timestamp conversion related issues if any
@@ -355,6 +359,7 @@ class FeatureEngineeringHelper:
 #Timeformat is hardcoded as "dd/MM/yyyy"
     def extract_datetime_info(self, datetime_col, info_to_extract):
         timestamped = datetime_col + "_timestamped"
+        # print "EXTRACT DATETIME INFO - "
         self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
         if info_to_extract == "year":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_year", year(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
@@ -377,6 +382,9 @@ class FeatureEngineeringHelper:
             self._data_frame = self._data_frame.withColumn(datetime_col + "_minute", minute(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
         if info_to_extract == "date":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_date", to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").cast("date").alias(datetime_col))
+        # print "-"*70
+        # self._data_frame.show()
+        # print "-"*70
         return self._data_frame
 
 
@@ -385,7 +393,11 @@ class FeatureEngineeringHelper:
 
 #Timeformat is hardcoded as "dd/MM/yyyy"
     def is_weekend(self, datetime_col):
+        # print "IS WEEKEND - "
         self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
         self._data_frame = self._data_frame.withColumn(datetime_col + "_day", date_format(datetime_col, 'u').alias(datetime_col))
         self._data_frame = self._data_frame.withColumn(datetime_col + "_is_weekend", self.is_weekend_helper()(col(datetime_col + "_day")))
+        # print "-"*70
+        # self._data_frame.show()
+        # print "-"*70
         return self._data_frame
