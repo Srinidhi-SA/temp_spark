@@ -126,8 +126,16 @@ class AnovaNarratives:
                 data_c3 = NormalChartData(data_c3)
                 chart_data = data_c3.get_data()
                 chartDataValues = []
+                effect_size_values = []
                 for obj in chart_data:
-                    chartDataValues.append(obj["effect_size"])
+                    effect_size_values.append(obj["effect_size"])
+                chart_data_min = min(effect_size_values)
+                if chart_data_min < 0.00001:
+                    for obj in chart_data:
+                        chartDataValues.append(str(obj["effect_size"]))
+                else:
+                    for obj in chart_data:
+                        chartDataValues.append(obj["effect_size"])
                 chart_json = ChartJson(data = chart_data,axes={'x':'dimension','y':'effect_size'},
                                         label_text={'x':'','y':'Effect Size'},chart_type='bar')
                 chart_json.set_axis_rotation(True)
