@@ -339,7 +339,7 @@ class FeatureEngineeringHelper:
         # print "COUNT TIME SINCE - "
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
-        self._data_frame = self._data_frame.withColumn("TIME_SINCE", datediff(self._data_frame[col_for_time_since], self._data_frame["TIME_SINCE_DATE(Timestamped)"]))
+        self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"], self._data_frame[col_for_time_since]))
         self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
         # print "-"*70
         # self._data_frame.show()
@@ -353,7 +353,8 @@ class FeatureEngineeringHelper:
             for key in dict.keys():
                 if int(x) == key:
                     return dict[key]
-        return udf(lambda x: dict_for_month_helper(x,dict))
+        #return udf(lambda x: dict_for_month_helper(x,dict))
+        return udf(lambda x: month_to_string_helper(x,dict))
 
 
 #Timeformat is hardcoded as "dd/MM/yyyy"
@@ -363,17 +364,17 @@ class FeatureEngineeringHelper:
         self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
         if info_to_extract == "year":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_year", year(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "month":
+        if info_to_extract == "month_of_year":
             dict = {1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"}
             self._data_frame = self._data_frame.withColumn(datetime_col + "_month", month(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_month", self.month_to_string(dict)(col(datetime_col + "_month")))
+            self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_month_of_year", self.month_to_string(dict)(col(datetime_col + "_month")))
         if info_to_extract == "day_of_month":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_month", dayofmonth(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
         if info_to_extract == "day_of_year":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_year", dayofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "day":
+        if info_to_extract == "day_of_week":
             self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_day", date_format(datetime_col, 'E').alias(datetime_col))
+            self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_day_of_week", date_format(datetime_col, 'E').alias(datetime_col))
         if info_to_extract == "week_of_year":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_week_of_year", weekofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
         if info_to_extract == "hour":
