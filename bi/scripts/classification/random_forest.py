@@ -277,9 +277,9 @@ class RFClassificationModelScript:
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
                     if y_score[i] == posLabel:
-                        y_prob_for_eval.append(float(y_prob[i][0]))
+                        y_prob_for_eval.append(float(y_prob[i][1]))
                     else:
-                        y_prob_for_eval.append(float(1 - y_prob[i][0]))
+                        y_prob_for_eval.append(float(1 - y_prob[i][1]))
                 else:
                     y_prob_for_eval.append(float(y_prob[i][int(posLabel)]))
 

@@ -305,10 +305,15 @@ class DTREERegressionModelScript:
             else:
                 sampleData = transformed
             print sampleData.head()
-
-            mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
+            if transformed["mape"].max() > 100:
+                GLOBALSETTINGS.MAPEBINS.append(transformed["mape"].max())
+                mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
+                GLOBALSETTINGS.MAPEBINS.pop(5)
+            else:
+                mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
             mapeStatsArr = [(str(idx),dictObj) for idx,dictObj in enumerate(sorted([{"count":x[1],"splitRange":(x[0].left,x[0].right)} for x in mapeCountArr],key = lambda x:x["splitRange"][0]))]
-
+            print mapeStatsArr
+            print mapeCountArr
             predictionColSummary = transformed["prediction"].describe().to_dict()
             quantileBins = [predictionColSummary["min"],predictionColSummary["25%"],predictionColSummary["50%"],predictionColSummary["75%"],predictionColSummary["max"]]
             print quantileBins

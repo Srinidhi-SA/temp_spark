@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 
 import pandas as pd
+import math
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.functions import col
 from pyspark.sql.functions import monotonically_increasing_id
@@ -100,8 +101,14 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             col_stat["Outliers"] = outlier
-            col_stat["OutlierLR"] = outlier_LR
-            col_stat["OutlierUR"] = outlier_UR
+            if math.isnan(outlier_LR):
+                col_stat["OutlierLR"] = None
+            else:
+                col_stat["OutlierLR"] = outlier_LR
+            if math.isnan(outlier_UR):
+                col_stat["OutlierUR"] = None
+            else:
+                col_stat["OutlierUR"] = outlier_UR
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 fs1 = time.time()
                 levelCount = df.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
