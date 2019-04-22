@@ -3,7 +3,7 @@ import time
 from pyspark.sql.functions import col, udf
 from pyspark.sql.types import StringType
 from bi.settings import setting as GLOBALSETTINGS
-from pyspark.sql.functions import col, create_map, lit
+from pyspark.sql.functions import col, create_map, lit, when
 from itertools import chain
 from bi.common.decorators import accepts
 
@@ -136,8 +136,10 @@ class DataFrameTransformer:
                         replace_values = udf(lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x,StringType())
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
                     if replace_type == "equals":
-                        replace_values = udf(lambda x: x.replace(key,value) if x==replace_obj["valueToReplace"] else x,StringType())
-                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                        # replace_values = udf(lambda x: x.replace(key,value) if x==replace_obj["valueToReplace"] else x,StringType())
+                        # self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                        self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == key, value)
+                                                                       .otherwise(self._data_frame[column_name]))
 
     def update_column_datatype(self,column_name,data_type):
         print "Updating column data type"

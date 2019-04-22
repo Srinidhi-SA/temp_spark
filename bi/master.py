@@ -4,6 +4,7 @@ import time
 import json
 import pyhocon
 import unittest
+import requests
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -44,7 +45,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "story"
+            jobType = "subSetting"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -252,6 +253,49 @@ def main(configJson):
         print "Scripts Time : ", scriptEndTime - scriptStartTime, " seconds."
         #spark.stop()
 
+
+def killer_setting(configJson):
+    LOGGER = {}
+    deployEnv = False  # running the scripts from job-server env
+    debugMode = True   # runnning the scripts for local testing and development
+    cfgMode = False    # runnning the scripts by passing config.cfg path
+    scriptStartTime = time.time()
+    if isinstance(configJson,pyhocon.config_tree.ConfigTree) or isinstance(configJson,dict):
+        deployEnv = True
+        debugMode = False
+        ignoreMsg = False
+    elif isinstance(configJson,basestring):
+        if configJson.endswith(".cfg"):
+            print "######################## Running in cfgMode ########################"
+            cfgMode = True
+            debugMode = False
+            ignoreMsg = False
+        else:
+            print "######################## Running in debugMode ######################"
+            cfgMode = False
+            debugMode = True
+            ignoreMsg = True
+            # Test Configs are defined in bi/settings/configs/localConfigs
+            jobType = "subSetting"
+            if jobType == "testCase":
+                configJson = get_test_configs(jobType,testFor = "chisquare")
+            else:
+                configJson = get_test_configs(jobType)
+
+    print "######################### Parsing the configs #############################"
+
+    config = configJson["config"]
+    jobConfig = configJson["job_config"]
+    jobName = jobConfig["job_name"]
+    jobURL = jobConfig["job_url"]
+    killURL = jobConfig["kill_url"]
+    return jobURL, killURL
+
+
+def send_kill_command(url, jsonData):
+    res = requests.put(url=url,data=jsonData)
+    return res
+
 def submit_job_through_yarn():
     # print sys.argv
     # print json.loads(sys.argv[1])
@@ -261,5 +305,11 @@ def submit_job_through_yarn():
     main(json_config["job_config"])
 
 if __name__ == '__main__':
-    main(sys.argv[1])
-    print 'Main Method End .....'
+    jobURL, killURL = killer_setting(sys.argv[1])
+    try:
+        main(sys.argv[1])
+        print 'Main Method End .....'
+    except:
+        data = json.loads({"status": "failed", "jobURL": jobURL})
+        resp = send_kill_command(killURL, data)
+        print 'Main Method Did Not End .....'
