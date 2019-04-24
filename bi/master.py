@@ -44,7 +44,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "story"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -166,6 +166,7 @@ def main(configJson):
 
                         if featureEngineeringDict['selected']:
                             feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
+                            feature_engineering_obj.consider_columns =dataframe_context.get_consider_columns()
                             df = feature_engineering_obj.feature_engineering()
                         new_cols_list = df.columns
                         old_cols_list = list(set(old_cols_list) - set(removed_col))
