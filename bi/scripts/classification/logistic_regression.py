@@ -209,7 +209,7 @@ class LogisticRegressionScript:
 
                     print "BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen
                     print resultArraydf.head(20)
-
+                    hyper_st=time.time()
                     bestEstimator = sklearnHyperParameterResultObj.getBestModel()
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
@@ -218,6 +218,7 @@ class LogisticRegressionScript:
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
+                    hyper_st=time.time()
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
@@ -587,7 +588,9 @@ class LogisticRegressionScript:
                 modelFilepathArr = model_filepath.split("/")[:-1]
                 modelFilepathArr.append(modelName+".pkl")
                 joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
-            runtime = round((time.time() - st_global),2)
+                runtime = round((time.time() - st),2)
+            else:
+                runtime = round((time.time() - hyper_st),2)
 
             try:
                 modelPmmlPipeline = PMMLPipeline([
@@ -685,7 +688,7 @@ class LogisticRegressionScript:
                 self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
             else:
                 self._model_management.set_fit_intercept(data=modelmanagement_['param_grid']['fit_intercept'][0])
@@ -705,7 +708,7 @@ class LogisticRegressionScript:
                 self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
 
 
