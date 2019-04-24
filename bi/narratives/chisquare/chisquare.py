@@ -467,19 +467,22 @@ class ChiSquareAnalysis:
                     '''
 
                     index_txt = ''
-                    if differences_list[0] >= 30:
-                        print "showing 1st case"
-                        index_txt = levels_sorted[0]
-                        max_diff_equivalent = 1
-                    else:
-                        if differences_list[1] >= 10:
-                            print "showing 1st and 2nd case"
-                            index_txt = levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
-                            max_diff_equivalent = 2
+                    if differences_list:
+                        if differences_list[0] >= 30:
+                            print "showing 1st case"
+                            index_txt = levels_sorted[0]
+                            max_diff_equivalent = 1
                         else:
-                            print "showing 3rd case"
-                            index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
-                            max_diff_equivalent = 3
+                            if differences_list[1] >= 10:
+                                print "showing 1st and 2nd case"
+                                index_txt = levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
+                                max_diff_equivalent = 2
+                            else:
+                                print "showing 3rd case"
+                                index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
+                                max_diff_equivalent = 3
+                    else:
+                        max_diff_equivalent = 0
                     '''
                     print "-"*70
                     print informative_df.head(25)
