@@ -712,7 +712,7 @@ def create_model_summary_para(modelSummaryClass):
         elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naivebayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naive bayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
     else:
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
