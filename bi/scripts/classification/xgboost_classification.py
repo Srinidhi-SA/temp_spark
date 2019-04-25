@@ -405,7 +405,7 @@ class XgboostScript:
             cat_cols = list(set(categorical_columns) - {result_column})
             overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("Xgboost")
+            self._model_summary.set_algorithm_name("XGBoost")
             self._model_summary.set_algorithm_display_name("XGBoost")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
