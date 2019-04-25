@@ -6,6 +6,7 @@ from pyspark.sql import SparkSession, HiveContext
 from pyspark import SparkContext, SparkConf
 import random
 from decorators import accepts
+import re
 
 
 class DataLoader:
@@ -162,7 +163,9 @@ class DataLoader:
                     .getOrCreate()
 
 
-            df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True)
+            df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
+            cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
+            df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
         except Exception as e:
             print("couldn't connect to hive")
             raise e
