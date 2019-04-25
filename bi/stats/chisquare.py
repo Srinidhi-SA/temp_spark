@@ -4,7 +4,7 @@ from itertools import chain
 from pyspark.ml.feature import Bucketizer
 from pyspark.mllib.linalg import Matrices
 from pyspark.mllib.stat import Statistics
-from pyspark.sql.types import DoubleType
+from pyspark.sql.types import DoubleType, IntegerType
 
 from bi.common import BIException
 from bi.common import utils as CommonUtils
@@ -126,19 +126,39 @@ class ChiSquare:
     @accepts(object, basestring, basestring)
     def test_measures(self, targetDimension, testMeasure):
         chisquare_result = ChiSquareResult()
-        df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
-        measureSummaryDict = dict(df.describe([testMeasure]).toPandas().values)
-        if float(measureSummaryDict["count"]) > 10:
-            maxval = float(measureSummaryDict["max"])
-            minval = float(measureSummaryDict["min"])
-            step = (maxval - minval) / 5.0
-            splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3), minval + (step * 4), math.ceil(maxval)]
-            bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
-            # bucketedData = bucketizer.transform(df)
-            bucketedData = bucketizer.transform(df.na.drop(subset=testMeasure))
-            pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
+        dtype = self._data_frame.schema[testMeasure].dataType
+        if dtype is IntegerType():
+            # df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
+            measureSummaryDict = dict(self._data_frame.describe([testMeasure]).toPandas().values)
+            if float(measureSummaryDict["count"]) > 10:
+                maxval = int(measureSummaryDict["max"])
+                minval = int(measureSummaryDict["min"])
+                step = (maxval - minval) / 5.0
+                splits = [round(math.floor(minval)), round(minval + step), round(minval + (step * 2)), round(minval + (step * 3)), round(minval + (step * 4)), round(math.ceil(maxval))]
+                splits = list(set(splits))
+                splits.sort()
+                bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
+                # bucketedData = bucketizer.transform(df)
+                bucketedData = bucketizer.transform(self._data_frame.na.drop(subset=testMeasure))
+                pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
+                keshav = pivot_table.toPandas()
+            else:
+                pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testMeasure)
         else:
-            pivot_table = df.stat.crosstab("{}".format(targetDimension), testMeasure)
+            df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
+            measureSummaryDict = dict(df.describe([testMeasure]).toPandas().values)
+            if float(measureSummaryDict["count"]) > 10:
+                maxval = float(measureSummaryDict["max"])
+                minval = float(measureSummaryDict["min"])
+                step = (maxval - minval) / 5.0
+                splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3),
+                          minval + (step * 4), math.ceil(maxval)]
+                bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
+                # bucketedData = bucketizer.transform(df)
+                bucketedData = bucketizer.transform(df.na.drop(subset=testMeasure))
+                pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
+            else:
+                pivot_table = df.stat.crosstab("{}".format(targetDimension), testMeasure)
 
         rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
