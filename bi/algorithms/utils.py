@@ -612,12 +612,12 @@ def get_feature_importance(collated_summary):
     feature_importance = collated_summary["randomforest"]["featureImportance"]
     feature_importance_list = [[k,v] for k,v in feature_importance.items()]
     sorted_feature_importance_list = sorted(feature_importance_list,key = lambda x:x[1],reverse=True)
-    feature_importance_data = [{"name":x[0],"value":x[1]} for x in sorted_feature_importance_list if x[1] != 0]
+    feature_importance_data = [{"Variable name":x[0],"Relative Importance":round(x[1],4)} for x in sorted_feature_importance_list if x[1] != 0]
     mapeChartData = NormalChartData(data=feature_importance_data)
     chart_json = ChartJson()
     chart_json.set_data(mapeChartData.get_data())
     chart_json.set_chart_type("bar")
-    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_axes({"x":"Variable name","y":"Relative Importance"})
     chart_json.set_subchart(False)
     chart_json.set_yaxis_number_format(".2f")
     card3Chart = C3ChartData(data=chart_json)
