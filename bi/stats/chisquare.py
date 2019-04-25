@@ -5,6 +5,7 @@ from pyspark.ml.feature import Bucketizer
 from pyspark.mllib.linalg import Matrices
 from pyspark.mllib.stat import Statistics
 from pyspark.sql.types import DoubleType
+import pyspark.sql.functions as F
 
 from bi.common import BIException
 from bi.common import utils as CommonUtils
@@ -91,8 +92,9 @@ class ChiSquare:
                 continue
         for m in all_measures:
             try:
-                chisquare_result = self.test_measures(targetDimension, m)
-                df_chisquare_result.add_chisquare_result(targetDimension, m, chisquare_result)
+                if self._data_frame.select(F.countDistinct(m)).collect()[0][0]>self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
+                    chisquare_result = self.test_measures(targetDimension, m)
+                    df_chisquare_result.add_chisquare_result(targetDimension, m, chisquare_result)
             except Exception, e:
                 print str(e), m
                 continue
