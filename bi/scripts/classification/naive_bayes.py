@@ -982,7 +982,7 @@ class NBGClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
                 #self._model_management.set_var_smoothing(modelmanagement_['var_smoothing']) #var smoothing
                 #self._model_management.set_priors(modelmanagement_['priors']) #priors used
@@ -996,7 +996,7 @@ class NBGClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
                 #self._model_management.set_priors(modelmanagement_['param_grid']['priors'][0]) #priors used
                 #self._model_management.set_var_smoothing(modelmanagement_['param_grid']['var_smoothing'][0]) #var smoothing
@@ -1953,7 +1953,7 @@ class NBMClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_alpha(modelmanagement_['alpha'])
                 self._model_management.set_datasetName(self._datasetName)
             else:
@@ -1966,7 +1966,7 @@ class NBMClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_alpha(modelmanagement_['param_grid']['alpha'][0])
                 self._model_management.set_datasetName(self._datasetName)
             modelManagementSummaryJson = [

@@ -688,7 +688,7 @@ class LogisticRegressionScript:
                 self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
             else:
                 self._model_management.set_fit_intercept(data=modelmanagement_['param_grid']['fit_intercept'][0])
@@ -708,7 +708,7 @@ class LogisticRegressionScript:
                 self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b,%d %Y %H.%M hrs %S sec')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
 
 
