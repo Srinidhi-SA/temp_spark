@@ -287,6 +287,9 @@ class MetaDataScript:
                     self._timestamp_columns.append(column)
                     self._string_columns = list(set(self._string_columns)-set(self._timestamp_columns))
                     self.update_column_type_dict()
+                    timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,[column],level_count_flag=self._level_count_flag)
+                    data.set_column_stats(timeDimensionColumnStat[column])
+                    data.set_column_chart(timeDimensionCharts[column])
                     # timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
 
                 for i, o in enumerate(metaData):
