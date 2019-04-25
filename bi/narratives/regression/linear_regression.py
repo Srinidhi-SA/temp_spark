@@ -428,9 +428,9 @@ class LinearRegressionNarrative:
             temp_dict["highest_impact_level"] = highest_coeff[val]
             temp_dict["lowest_impact_level"] = lowest_coeff[val]
             dimension_data_dict[val] = temp_dict
-        print '*'*100
+        # print '*'*100
         print 'TOP 2 DIMS  :  ',top2_dims
-        print 'Dimension Data Dict  :  ',dimension_data_dict
+        # print 'Dimension Data Dict  :  ',dimension_data_dict
         dimension_data_dict[top2_dims[0]]["rank"] = 1
         if len(top2_dims)>1:
             dimension_data_dict[top2_dims[1]]["rank"] = 2

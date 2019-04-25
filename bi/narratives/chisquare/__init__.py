@@ -42,7 +42,7 @@ class ChiSquareNarratives:
         for col in self._measure_columns:
             chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension[0],col)
             bin_data[col] = chisquare_result.get_contingency_table().get_column_two_levels()
-
+            
         for bin_col in bin_data.keys():
             for split in bin_data[bin_col]:
                 val = split.split('to')

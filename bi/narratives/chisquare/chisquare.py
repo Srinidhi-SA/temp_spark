@@ -254,9 +254,9 @@ class ChiSquareAnalysis:
           data_dict["binAnalyzedCol"] = self._binAnalyzedCol
           data_dict['highlightFlag'] = self._highlightFlag
 
-          print "_"*60
-          print "DATA DICT - ", data_dict
-          print "_"*60
+          # print "_"*60
+          # print "DATA DICT - ", data_dict
+          # print "_"*60
 
           ###############
           #     CARD1   #
@@ -473,14 +473,20 @@ class ChiSquareAnalysis:
                             index_txt = levels_sorted[0]
                             max_diff_equivalent = 1
                         else:
-                            if differences_list[1] >= 10:
-                                print "showing 1st and 2nd case"
-                                index_txt = levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
-                                max_diff_equivalent = 2
+                            if len(differences_list)>=2:
+                                if differences_list[1] >= 10:
+                                    print "showing 1st and 2nd case"
+                                    index_txt = levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
+                                    max_diff_equivalent = 2
+                                else:
+                                    print "showing 3rd case"
+                                    index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
+                                    max_diff_equivalent = 3
                             else:
                                 print "showing 3rd case"
                                 index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
                                 max_diff_equivalent = 3
+
                     else:
                         max_diff_equivalent = 0
                     '''
