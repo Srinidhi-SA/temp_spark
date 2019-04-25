@@ -271,15 +271,18 @@ class MetaDataHelper():
                             "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "min": 8,
                             "max": 9, "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
         for column in td_columns:
+            uniqueVals = df.select(column).distinct().na.drop().limit(1000).collect()
             col_stat = {}
             notNullDf = df.select(column).distinct().na.drop()
             notNullDf = notNullDf.orderBy([column],ascending=[True])
             notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
+            id_max=notNullDf.select("_id_").rdd.max()[0]
             first_date = notNullDf.select(column).first()[0]
-            first_date = str(pd.to_datetime(first_date).date())
+            first_date = pd.to_datetime(first_date).date()
             try:
                 print "TRY BLOCK STARTED"
                 last_date = notNullDf.where(col("_id_") == id_max).select(column).first()[0]
+                last_date = pd.to_datetime(last_date).date()
             except:
                 print "ENTERING EXCEPT BLOCK"
                 pandas_df = notNullDf.select(["_id_",column]).toPandas()
@@ -326,10 +329,11 @@ class MetaDataHelper():
                     levelCount = {str(k):v for k,v in levelCount.items()}
                     col_stat["LevelCount"] = levelCount
                     levelCountBig = df.groupBy(column).count().sort(("count"))
-
                     col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    #col_stat["MinLevel"]=first_date
                     levelCountBig = df.groupBy(column).count().sort(desc("count"))
                     col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    #col_stat["MaxLevel"]=last_date
 
                     nullcnt = df.select(count(when(col(column).isNull(), column)).alias(column))
                     col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()

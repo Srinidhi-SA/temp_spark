@@ -266,18 +266,6 @@ def killer_setting(configJson):
         debugMode = False
         ignoreMsg = False
     elif isinstance(configJson,basestring):
-        if configJson.endswith(".cfg"):
-            print "######################## Running in cfgMode ########################"
-            cfgMode = True
-            debugMode = False
-            ignoreMsg = False
-        else:
-            print "######################## Running in debugMode ######################"
-            cfgMode = False
-            debugMode = True
-            ignoreMsg = True
-            # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
