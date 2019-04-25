@@ -633,11 +633,11 @@ def get_total_models_classification(collated_summary):
         if trees:
             n_model += trees
     if len(algos) > 1:
-        output = "<p>mAdvisor has built predictive models using {} algorithms ({}) to predict {} and \
-            has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+        output = "<p>mAdvisor has built predictive models using {} algorithms (<b>{}</b>) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     else:
-        output = "<p>mAdvisor has built predictive models using {} algorithm ({}) to predict {} and \
-            has come up with the following results:</p>".format(len(algos),",".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
+        output = "<p>mAdvisor has built predictive models using {} algorithm (<b>{}</b>) to predict {} and \
+            has come up with the following results:</p>".format(len(algos),", ".join(algorithm_name),collated_summary[algos[0]]["targetVariable"])
     return output
 
 def get_total_models_regression(collated_summary):
@@ -730,7 +730,7 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
-        elif modelSummaryClass.get_algorithm_name() == 'Xgboost':
+        elif modelSummaryClass.get_algorithm_name() == 'XGBoost':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]

@@ -7,6 +7,7 @@ from pyspark import SparkContext, SparkConf
 import random
 from decorators import accepts
 import time
+import re
 
 class DataLoader:
 
@@ -164,7 +165,11 @@ class DataLoader:
                     .builder \
                     .appName("using_s3") \
                     .getOrCreate()
-            df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
+
+
+            df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
+            cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
+            df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
         except Exception as e:
             print "tried once, will wait for 3 second before next try"
             time.sleep(3)
