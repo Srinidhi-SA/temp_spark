@@ -151,7 +151,7 @@ class FeatureEngineeringHelper:
             dict = {}
             temp = min_value
             while temp <=max_value:
-                dict[str(temp)+"-"+str(temp+interval_size)] = [temp, temp+interval_size]
+                dict[str(round(temp,3))+"-"+str(round(temp+interval_size,3))] = [temp, temp+interval_size]
                 temp = temp+interval_size
             return dict
         dict = create_dict_for_bin()
