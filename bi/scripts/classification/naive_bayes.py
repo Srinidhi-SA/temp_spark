@@ -717,6 +717,7 @@ class NBGClassificationModelScript:
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    hyper_st = time.time()
                     bestEstimator = sklearnHyperParameterResultObj.getBestModel()
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
@@ -724,6 +725,7 @@ class NBGClassificationModelScript:
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
+                    hyper_st = time.time()
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
@@ -891,7 +893,9 @@ class NBGClassificationModelScript:
                 modelFilepathArr = model_filepath.split("/")[:-1]
                 modelFilepathArr.append(modelName+".pkl")
                 joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
-            runtime = round((time.time() - st_global),2)
+                runtime = round((time.time() - st),2)
+            else:
+                runtime = round((time.time() - hyper_st),2)
 
             try:
                 modelPmmlPipeline = PMMLPipeline([
@@ -978,7 +982,7 @@ class NBGClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
                 #self._model_management.set_var_smoothing(modelmanagement_['var_smoothing']) #var smoothing
                 #self._model_management.set_priors(modelmanagement_['priors']) #priors used
@@ -992,7 +996,7 @@ class NBGClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
                 #self._model_management.set_priors(modelmanagement_['param_grid']['priors'][0]) #priors used
                 #self._model_management.set_var_smoothing(modelmanagement_['param_grid']['var_smoothing'][0]) #var smoothing
@@ -1482,7 +1486,7 @@ class NBMClassificationModelScript:
 
                     print "BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen
                     print resultArraydf.head(20)
-
+                    hyper_st = time.time()
                     bestEstimator = sklearnHyperParameterResultObj.getBestModel()
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
@@ -1491,6 +1495,7 @@ class NBMClassificationModelScript:
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
+                    hyper_st = time.time()
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
@@ -1858,7 +1863,9 @@ class NBMClassificationModelScript:
                 modelFilepathArr = model_filepath.split("/")[:-1]
                 modelFilepathArr.append(modelName+".pkl")
                 joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
-            runtime = round((time.time() - st_global),2)
+                runtime = round((time.time() - st),2)
+            else:
+                runtime = round((time.time() - hyper_st),2)
 
             try:
                 modelPmmlPipeline = PMMLPipeline([
@@ -1946,7 +1953,7 @@ class NBMClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_alpha(modelmanagement_['alpha'])
                 self._model_management.set_datasetName(self._datasetName)
             else:
@@ -1959,7 +1966,7 @@ class NBMClassificationModelScript:
                 self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.date(datetime.now()))+" "+str(datetime.time(datetime.now())))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_alpha(modelmanagement_['param_grid']['alpha'][0])
                 self._model_management.set_datasetName(self._datasetName)
             modelManagementSummaryJson = [

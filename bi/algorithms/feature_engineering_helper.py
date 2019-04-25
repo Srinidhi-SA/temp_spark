@@ -31,7 +31,7 @@ class FeatureEngineeringHelper:
         for field in dfSchemaFields:
             if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
                 numeric_columns.append(field.name)
-        for column_name in numeric_columns:
+        for column_name in [column_name for column_name in numeric_columns if column_name in self.consider_columns]:
             self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
         return self._data_frame
 
@@ -151,7 +151,7 @@ class FeatureEngineeringHelper:
             dict = {}
             temp = min_value
             while temp <=max_value:
-                dict[str(temp)+"-"+str(temp+interval_size)] = [temp, temp+interval_size]
+                dict[str(round(temp,3))+"-"+str(round(temp+interval_size,3))] = [temp, temp+interval_size]
                 temp = temp+interval_size
             return dict
         dict = create_dict_for_bin()

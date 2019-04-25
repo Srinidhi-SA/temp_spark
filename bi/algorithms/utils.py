@@ -612,12 +612,12 @@ def get_feature_importance(collated_summary):
     feature_importance = collated_summary["randomforest"]["featureImportance"]
     feature_importance_list = [[k,v] for k,v in feature_importance.items()]
     sorted_feature_importance_list = sorted(feature_importance_list,key = lambda x:x[1],reverse=True)
-    feature_importance_data = [{"name":x[0],"value":round(x[1],4)} for x in sorted_feature_importance_list if x[1] != 0]
+    feature_importance_data = [{"Variable name":x[0],"Relative Importance":round(x[1],4)} for x in sorted_feature_importance_list if x[1] != 0]
     mapeChartData = NormalChartData(data=feature_importance_data)
     chart_json = ChartJson()
     chart_json.set_data(mapeChartData.get_data())
     chart_json.set_chart_type("bar")
-    chart_json.set_axes({"x":"name","y":"value"})
+    chart_json.set_axes({"x":"Variable name","y":"Relative Importance"})
     chart_json.set_subchart(False)
     chart_json.set_yaxis_number_format(".2f")
     card3Chart = C3ChartData(data=chart_json)
@@ -712,7 +712,7 @@ def create_model_summary_para(modelSummaryClass):
         elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naivebayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naive bayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
     else:
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
