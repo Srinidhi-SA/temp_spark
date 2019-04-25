@@ -4,7 +4,7 @@ from itertools import chain
 from pyspark.ml.feature import Bucketizer
 from pyspark.mllib.linalg import Matrices
 from pyspark.mllib.stat import Statistics
-from pyspark.sql.types import DoubleType,, IntegerType
+from pyspark.sql.types import DoubleType, IntegerType
 import pyspark.sql.functions as F
 
 from bi.common import BIException

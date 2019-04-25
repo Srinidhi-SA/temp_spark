@@ -266,10 +266,11 @@ def killer_setting(configJson):
         debugMode = False
         ignoreMsg = False
     elif isinstance(configJson,basestring):
-            if jobType == "testCase":
-                configJson = get_test_configs(jobType,testFor = "chisquare")
-            else:
-                configJson = get_test_configs(jobType)
+        jobType = "training"
+        if jobType == "testCase":
+            configJson = get_test_configs(jobType,testFor = "chisquare")
+        else:
+            configJson = get_test_configs(jobType)
 
     print "######################### Parsing the configs #############################"
 

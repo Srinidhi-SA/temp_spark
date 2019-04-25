@@ -1,10 +1,9 @@
 import json
-import json
 import random
 
 from pyspark.sql.functions import col
 
-from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ToggleData,DataFrameHelper
+from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ToggleData, DataFrameHelper
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
