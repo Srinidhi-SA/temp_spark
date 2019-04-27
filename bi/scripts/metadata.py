@@ -80,8 +80,8 @@ class MetaDataScript:
         self._spark = spark
         self._total_columns = len([field.name for field in self._data_frame.schema.fields])
         self._total_rows = self._data_frame.count()
-        # self._max_levels = min(200, round(self._total_rows**0.5))
-        self._max_levels = 100000
+        self._max_levels = min(200, round(self._total_rows**0.5))
+        #self._max_levels = 100000
 
         self._percentage_columns = []
         self._numeric_columns = [field.name for field in self._data_frame.schema.fields if
@@ -96,20 +96,14 @@ class MetaDataScript:
                 ColumnType(type(field.dataType)).get_actual_data_type() == ColumnType.REAL]
         self._column_type_dict = {}
         self._dataSize = {"nRows":self._total_rows,"nCols":self._total_columns,"nBooleans":None,"nMeasures":None,"nDimensions":None,"nTimeDimensions":None,"dimensionLevelCountDict":{},"totalLevels":None}
-        self.update_column_type_dict()
 
+        self.update_column_type_dict()
         time_taken_schema = time.time()-self._start_time
         print "schema rendering takes",time_taken_schema
 
-        self._completionStatus += self._scriptStages["schema"]["weight"]
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "schema",\
-                                    "info",\
-                                    self._scriptStages["schema"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
-        self._dataframe_context.update_completion_status(self._completionStatus)
+
+
+
 
     def update_column_type_dict(self):
         self._column_type_dict = dict(\
@@ -145,6 +139,35 @@ class MetaDataScript:
         metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
         metaData.append(MetaData(name="noOfColumns",value=self._total_columns,display=True,displayName="Columns"))
         self._percentage_columns = metaHelperInstance.get_percentage_columns(self._string_columns)
+        separation_time=time.time()
+        self._timestamp_string_columns=[]
+        uniqueVals = []
+        dateTimeSuggestions = {}
+        for column in self._string_columns:
+            if self._column_type_dict[column]["actual"] != "boolean":
+                uniqueVals = self._data_frame.select(column).distinct().na.drop().limit(1000).collect()
+            else:
+                uniqueVals = []
+            if len(uniqueVals) > 0:
+                dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
+            else:
+                dateColumnFormat = None
+            if dateColumnFormat:
+                dateTimeSuggestions.update({column:dateColumnFormat})
+                data=ColumnData()
+                data.set_level_count_to_null()
+                data.set_chart_data_to_null()
+                data.set_date_suggestion_flag(True)
+                data.set_abstract_datatype("datetime")
+                data.set_actual_datatype("datetime")
+                self._timestamp_string_columns.append(column)
+        self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
+        self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
+        self.update_column_type_dict()
+
+        print "time taken for separating date columns from string is :", time.time()-separation_time
+
+
         if len(self._percentage_columns)>0:
             self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame,self._percentage_columns)
             self._numeric_columns = self._numeric_columns + self._percentage_columns
@@ -212,10 +235,14 @@ class MetaDataScript:
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
-        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        time_columns=self._timestamp_columns
+        time_string_columns=self._timestamp_string_columns
+        original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
+        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,original_timestamp_columns,level_count_flag=self._level_count_flag)
+        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,time_string_columns,level_count_flag=self._level_count_flag)
         time_taken_tdstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["timedimensionstats"]["weight"]
-        # print "time dimension stats takes",time_taken_tdstats
+        print "time dimension stats takes",time_taken_tdstats
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "timedimensionstats",\
                                     "info",\
@@ -228,7 +255,7 @@ class MetaDataScript:
         ignoreColumnSuggestions = []
         ignoreColumnReason = []
         utf8ColumnSuggestion = []
-        dateTimeSuggestions = {}
+
         for column in self._data_frame.columns:
             random_slug = uuid.uuid4().hex
             headers.append(ColumnHeader(name=column,slug=random_slug))
@@ -251,83 +278,56 @@ class MetaDataScript:
                 data.set_column_stats(timeDimensionColumnStat[column])
                 data.set_column_chart(timeDimensionCharts[column])
                 data.set_actual_datatype(self._column_type_dict[column]["actual"])
-
-
             if self._column_type_dict[column]["abstract"] == "measure":
                 if column not in self._real_columns:
                     ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
                     if ignoreSuggestion:
                         ignoreColumnSuggestions.append(column)
                         ignoreColumnReason.append(ignoreReason)
-                        data.set_level_count_to_null()
-                        data.set_chart_data_to_null()
+                        #data.set_level_count_to_null()
+                        #data.set_chart_data_to_null()
                         data.set_ignore_suggestion_flag(True)
                         data.set_ignore_suggestion_message(ignoreReason)
-
             elif self._column_type_dict[column]["abstract"] == "dimension":
-                if self._level_count_flag:
-                    utf8Suggestion = metaHelperInstance.get_utf8_suggestions(dimensionColumnStat[column])
-                else:
-                    utf8Suggestion = False
-                if self._column_type_dict[column]["actual"] != "boolean":
-                    uniqueVals = self._data_frame.select(column).distinct().na.drop().limit(1000).collect()
-                else:
-                    uniqueVals = []
-                if len(uniqueVals) > 0:
-                    dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
-                else:
-                    dateColumnFormat = None
-                if dateColumnFormat:
-                    dateTimeSuggestions.update({column:dateColumnFormat})
-                    data.set_level_count_to_null()
-                    data.set_chart_data_to_null()
-                    data.set_date_suggestion_flag(True)
-                    data.set_abstract_datatype("datetime")
-                    data.set_actual_datatype("datetime")
-                    self._timestamp_columns.append(column)
-                    self._string_columns = list(set(self._string_columns)-set(self._timestamp_columns))
-                    self.update_column_type_dict()
-                    timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,[column],level_count_flag=self._level_count_flag)
-                    data.set_column_stats(timeDimensionColumnStat[column])
-                    data.set_column_chart(timeDimensionCharts[column])
-                    # timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
-
-                for i, o in enumerate(metaData):
-                    if o.name == "dimensions":
-                        del metaData[i]
-                        if len(self._string_columns)>1:
-                            metaData.insert(i,MetaData(name="dimensions",value = len(self._string_columns),display=True,displayName="Dimensions"))
-                        else:
-                            metaData.insert(i,MetaData(name="dimensions",value = len(self._string_columns),display=True,displayName="Dimension"))
-                    elif o.name=="dimensionColumns":
-                        del metaData[i]
-                        metaData.insert(i,MetaData(name="dimensionColumns",value = self._string_columns,display=True))
-                    elif o.name == "timeDimension":
-                            del metaData[i]
-                            if len(self._timestamp_columns) > 1:
-                                metaData.insert(i,MetaData(name="timeDimension",value = len(self._timestamp_columns),display=True,displayName="Time Dimensions"))
-                            else:
-                                metaData.insert(i,MetaData(name="timeDimension",value = len(self._timestamp_columns),display=True,displayName="Time Dimension"))
-                            break
-
-
-                if utf8Suggestion:
-                    utf8ColumnSuggestion.append(column)
                 ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
-                    data.set_level_count_to_null()
-                    data.set_chart_data_to_null()
+                    #data.set_level_count_to_null()
+                    #data.set_chart_data_to_null()
                     data.set_ignore_suggestion_flag(True)
                     data.set_ignore_suggestion_message(ignoreReason)
+                if self._level_count_flag:
+                    utf8Suggestion = metaHelperInstance.get_utf8_suggestions(dimensionColumnStat[column])
+                else:
+                    utf8Suggestion = False
+                if utf8Suggestion:
+                    utf8ColumnSuggestion.append(column)
+                    ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
+                    if ignoreSuggestion:
+                        ignoreColumnSuggestions.append(column)
+                        ignoreColumnReason.append(ignoreReason)
+                        #data.set_level_count_to_null()
+                        #data.set_chart_data_to_null()
+                        data.set_ignore_suggestion_flag(True)
+                        data.set_ignore_suggestion_message(ignoreReason)
 
+            elif self._column_type_dict[column]["abstract"] == "datetime":
+                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",timeDimensionColumnStat[column],max_levels=self._max_levels)
+                if ignoreSuggestion:
+                    ignoreColumnSuggestions.append(column)
+                    ignoreColumnReason.append(ignoreReason)
+                    #data.set_level_count_to_null()
+                    #data.set_chart_data_to_null()
+                    data.set_ignore_suggestion_flag(True)
+                    data.set_ignore_suggestion_message(ignoreReason)
             columnData.append(data)
-        for dateColumn in dateTimeSuggestions.keys():
-            if dateColumn in ignoreColumnSuggestions:
-                ignoreColIdx = ignoreColumnSuggestions.index(dateColumn)
-                ignoreColumnSuggestions.remove(dateColumn)
-                del(ignoreColumnReason[ignoreColIdx])
+            if len(uniqueVals) > 0:
+                dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
+            else:
+                dateColumnFormat = None
+            if dateColumnFormat:
+                dateTimeSuggestions.update({column:dateColumnFormat})
         for utfCol in utf8ColumnSuggestion:
             ignoreColumnSuggestions.append(utfCol)
             ignoreColumnReason.append("utf8 values present")
