@@ -99,7 +99,7 @@ class MetaDataHelper():
                 else:
                     col_stat[k] = v
             col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
-            col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"] / (total_count * 1.0)), 3) * 100) + "%"
+            col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) ) + "%"
             col_stat["numberOfNotNulls"] = col_stat["count"]
             col_stat["numberOfUniqueValues"] = df.select(column).distinct().count()
             col_stat["Outliers"] = outlier
@@ -204,7 +204,7 @@ class MetaDataHelper():
 
                 nullcnt = df.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
                 col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
-                col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"] / (total_count) * 1.0), 3) * 100) + "%"
+                col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
                 col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
                 dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
                 dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
@@ -218,7 +218,7 @@ class MetaDataHelper():
                 col_stat = dict(zip(summary_df["summary"],summary_df[column]))
                 # print col_stat
                 col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
-                col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"] / (total_count * 1.0)), 3) * 100) + "%"
+                col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3)) + "%"
                 col_stat["numberOfNotNulls"] = total_count - int(col_stat["count"])
                 col_stat["numberOfUniqueValues"] = None
                 col_stat["MaxLevel"] = col_stat["max"]
@@ -314,7 +314,7 @@ class MetaDataHelper():
                         col_stat["numberOfNulls"] = 0
                         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
 
-                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"] / total_count * 1.0), 3) * 100) + "%"
+                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
                     levelCountWithoutNull = levelCount
                     if None in levelCount:
                         levelCountWithoutNull.pop(None)
@@ -338,7 +338,7 @@ class MetaDataHelper():
                     nullcnt = df.select(count(when(col(column).isNull(), column)).alias(column))
                     col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
                     col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"] / total_count * 1.0), 3) * 100) + "%"
+                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0/ total_count), 3)) + "%"
 
 
                 dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
@@ -437,7 +437,7 @@ class MetaDataHelper():
         return detectedFormat
 
 
-    def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100000):
+    def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
         ignore = False
         reason = None
         total_rows = df.count()
@@ -482,7 +482,7 @@ class MetaDataHelper():
                     ignore = True
                     reason = "Only one Not Null value"
                 elif colStat["numberOfUniqueValues"] > max_levels:
-                    ignore = True
+                    ignore = False
                     reason = "Number of Levels are more than the defined thershold"
         return ignore,reason
 
@@ -630,7 +630,7 @@ class MetaDataHelper():
                         col_stat["numberOfNulls"] = 0
                         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
 
-                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"] / total_count * 1.0), 3) * 100) + "%"
+                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count ), 3)) + "%"
                     levelCountWithoutNull = levelCount
                     if None in levelCount:
                         levelCountWithoutNull.pop(None)
@@ -650,7 +650,7 @@ class MetaDataHelper():
                     nullcnt = df.select(count(when(col(column).isNull(), column)).alias(column))
                     col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
                     col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"] / total_count * 1.0), 3) * 100) + "%"
+                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
 
 
                 dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
