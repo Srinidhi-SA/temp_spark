@@ -219,7 +219,7 @@ class FeatureEngineeringHelper:
 
     def standardize_column(self, column_name):
         def standardize_column_helper(mean, sd):
-            return udf(lambda x: (x-mean)*1.0/sd)
+            return udf(lambda x: (x-mean)*1.0/sd if x!=None else x)
         mean = self._data_frame.select(F.mean(column_name)).collect()[0][0]
         StdDev = self._data_frame.select(F.stddev_samp(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_fs_standardized", standardize_column_helper(mean,StdDev)(col(column_name)))
@@ -230,7 +230,7 @@ class FeatureEngineeringHelper:
     '''Rounds off the returned value ==> values formed are either 0 or 1'''
     def normalize_column(self, column_name):
         def normalize_column_helper(min, max):
-            return udf(lambda x: (x - min)*1.0/(max - min))
+            return udf(lambda x: (x - min)*1.0/(max - min) if x!=None else x )
         max = self._data_frame.select(F.max(column_name)).collect()[0][0]
         min = self._data_frame.select(F.min(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_fs_normalized", normalize_column_helper(min, max)(col(column_name)))
@@ -240,23 +240,23 @@ class FeatureEngineeringHelper:
 
     def replacerUDF(self, value, operation):
         if operation == "prod":
-            return udf(lambda x: x*value)
+            return udf(lambda x: x*value if x!=None else x)
         if operation == "add":
-            return udf(lambda x: x+value)
+            return udf(lambda x: x+value if x!=None else x)
         if operation == "subs":
-            return udf(lambda x: x - value)
+            return udf(lambda x: x - value if x!=None else x)
         if operation == "divide":
-            return udf(lambda x: x/value)
+            return udf(lambda x: x/value if x!=None else x)
         if operation == "Reciprocal":
-            return udf(lambda x: 1/x)
+            return udf(lambda x: 1/x if x!=None else x)
         if operation == "NthRoot":
-            return udf(lambda x: x**(1.0/value))
+            return udf(lambda x: x**(1.0/value) if x!=None else x)
         if operation == "exponential":
-            return udf(lambda x: x**value)
+            return udf(lambda x: x**value if x!=None else x)
         if operation == "logTransform":
-            return udf(lambda x: math.log(x, 10) if x!=0 else x)
+            return udf(lambda x: math.log(x, 10) if x!=None else x)
         if operation == "modulus":
-            return udf(lambda x: abs(x))
+            return udf(lambda x: abs(x) if x!=None else x)
 
 
     def logTransform_column(self, column_name):
@@ -266,8 +266,8 @@ class FeatureEngineeringHelper:
             self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self.replacerUDF(10, "logTransform")(col(column_name)))
             self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
         else:
-            self._data_frame = self._data_frame.withColumn(column_name + "_temp_transformed", replacerUDF(value_to_be_added, "add")(col(column_name)))
-            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", replacerUDF(10, "logTransform")(col(column_name + "_temp_transformed")))
+            self._data_frame = self._data_frame.withColumn(column_name + "_temp_transformed", self.replacerUDF(value_to_be_added, "add")(col(column_name)))
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self.replacerUDF(10, "logTransform")(col(column_name + "_temp_transformed")))
             self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
             self._data_frame = self._data_frame.drop(column_name+"_temp_transformed")
         return self._data_frame
