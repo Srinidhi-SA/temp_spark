@@ -356,27 +356,14 @@ class FeatureEngineeringHelper:
         # print "COUNT TIME SINCE - "
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
         uniqueVals = self._data_frame.select(col_for_time_since).distinct().na.drop().limit(10).collect()
-        if isinstance(uniqueVals,str):
-            date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
-            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
-            to_date_udf= udf (lambda x: datetime.strptime(x,date_format),DateType())
-            self._data_frame = self._data_frame.withColumn(col_for_time_since+"(Timestamped)", to_date_udf(col(col_for_time_since)))
-            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
-            self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since+"(Timestamped)"]))
-            self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)",col_for_time_since+"(Timestamped)")
-        elif isinstance(uniqueVals,unicode):
-            date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
-            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
-            to_date_udf= udf (lambda x: datetime.strptime(x,date_format),DateType())
-            self._data_frame = self._data_frame.withColumn(col_for_time_since+"(Timestamped)", to_date_udf(col(col_for_time_since)))
-            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
-            self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since+"(Timestamped)"]))
-            self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)",col_for_time_since+"(Timestamped)")
-        else:
-            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
-            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
-            self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since]))
-            self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
+        date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
+        self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
+        to_date_udf= udf (lambda x: datetime.strptime(x,date_format),DateType())
+        self._data_frame = self._data_frame.withColumn(col_for_time_since+"(Timestamped)", to_date_udf(col(col_for_time_since)))
+        self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
+        self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since+"(Timestamped)"]))
+        self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)",col_for_time_since+"(Timestamped)")
+
         # print "-"*70
         # print "-"*70
         return self._data_frame
