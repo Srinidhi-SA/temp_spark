@@ -231,8 +231,8 @@ class DecisionTrees:
         #####Look into it for Issue 947#################
         max_num_levels = GLOBALSETTINGS.DTREE_OTHER_DIMENSION_MAX_LEVEL
         # max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
-        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
-        # all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
+        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
         cat_feature_info = []
         columns_without_dimension = [x for x in all_dimensions if x != dimension]
