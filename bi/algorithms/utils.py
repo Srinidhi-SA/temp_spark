@@ -1004,27 +1004,33 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         summaryData = [
             {
               "name":"Accuracy",
-              "value":str(modelSummaryClass.get_model_accuracy())
+              "value":str(modelSummaryClass.get_model_accuracy()),
+              "description":"Proportion of the total number of predictions that were correct"
             },
             {
               "name": "Precision",
-              "value": str(modelSummaryClass.get_model_precision())
+              "value": str(modelSummaryClass.get_model_precision()),
+              "description":"Proportion of positive classes that were correctly identified"
             },
             {
               "name": "Recall",
-              "value": str(modelSummaryClass.get_model_recall())
+              "value": str(modelSummaryClass.get_model_recall()),
+              "description":"Proportion of actual positive cases which were correct"
             },
             {
               "name": "F1 Score",
-              "value": str(modelSummaryClass.get_model_F1_score())
+              "value": str(modelSummaryClass.get_model_F1_score()),
+              "description":"Accuracy of the model balanced for precision and recall"
             },
             {
               "name": "Log-Loss",
-              "value": str(modelSummaryClass.get_model_log_loss())
+              "value": str(modelSummaryClass.get_model_log_loss()),
+              "description":"Accuracy of the model by penalizing false classification"
             },
             {
               "name": "AUC",
-              "value": str(modelSummaryClass.get_AUC_score())
+              "value": str(modelSummaryClass.get_AUC_score()),
+              "description":"Area Under the ROC curve"
             }
         ]
 

@@ -67,11 +67,11 @@ class DecisionTreeNarrative:
             self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "dtreeNarrativeStart":{
-                "summary":"Started the Decision Tree Narratives",
+                "summary":"Started The Decision Tree Narratives",
                 "weight":0
                 },
             "dtreeNarrativeEnd":{
-                "summary":"Narratives for Decision Tree Finished",
+                "summary":"Narratives For Decision Tree Finished",
                 "weight":10
                 },
             }
@@ -190,7 +190,7 @@ class DecisionTreeNarrative:
         probabilityArrayAll = []
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Generating Prediction rules",self._completionStatus,self._completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Generating Prediction Rules",self._completionStatus,self._completionStatus,display=True)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
         self._dataframe_context.update_completion_status(self._completionStatus)
         targetValues = [x for x in rules_dict.keys() if x==targetLevel]+[x for x in rules_dict.keys() if x!=targetLevel]

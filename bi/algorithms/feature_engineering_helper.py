@@ -250,7 +250,10 @@ class FeatureEngineeringHelper:
         if operation == "Reciprocal":
             return udf(lambda x: 1/x if x!=None else x)
         if operation == "NthRoot":
-            return udf(lambda x: x**(1.0/value) if x!=None else x)
+            try:
+                return udf(lambda x: x**(1.0/value) if x!=None else x)
+            except:
+                return udf(lambda x: x)
         if operation == "exponential":
             return udf(lambda x: x**value if x!=None else x)
         if operation == "logTransform":

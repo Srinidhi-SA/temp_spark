@@ -21,54 +21,54 @@ class MetaDataScript:
         if dataframe_context.get_job_type()== "training" or dataframe_context.get_job_type()== "prediction" :
             self._scriptStages = {
                 "schema":{
-                    "summary":"Preparing the data for model creation",
+                    "summary":"Preparing The Data For Model Creation",
                     "weight":10
                     },
                 "sampling":{
-                    "summary":"Sampling the dataframe",
+                    "summary":"Sampling The Dataframe",
                     "weight":2
                     },
                 "measurestats":{
-                    "summary":"calculating stats for measure columns",
+                    "summary":"Calculating Stats For Measure Columns",
                     "weight":2
                     },
                 "dimensionstats":{
-                    "summary":"calculating stats for dimension columns",
+                    "summary":"Calculating Stats For Dimension Columns",
                     "weight":2
                     },
                 "timedimensionstats":{
-                    "summary":"calculating stats for time dimension columns",
+                    "summary":"Calculating Stats For Time Dimension Columns",
                     "weight":2
                     },
                 "suggestions":{
-                    "summary":"Ignore and Date Suggestions",
+                    "summary":"Ignore And Date Suggestions",
                     "weight":2
                     },
                 }
         else:
             self._scriptStages = {
                 "schema":{
-                    "summary":"Loaded the data and Schema is Run",
+                    "summary":"Loaded The Data and Schema Is Run",
                     "weight":12
                     },
                 "sampling":{
-                    "summary":"Sampling the dataframe",
+                    "summary":"Sampling The Dataframe",
                     "weight":5
                     },
                 "measurestats":{
-                    "summary":"calculating stats for measure columns",
+                    "summary":"Calculating Stats For Measure Columns",
                     "weight":25
                     },
                 "dimensionstats":{
-                    "summary":"calculating stats for dimension columns",
+                    "summary":"Calculating Stats For Dimension Columns",
                     "weight":25
                     },
                 "timedimensionstats":{
-                    "summary":"calculating stats for time dimension columns",
+                    "summary":"Calculating Stats For Time Dimension Columns",
                     "weight":5
                     },
                 "suggestions":{
-                    "summary":"Ignore and Date Suggestions",
+                    "summary":"Ignore And Date Suggestions",
                     "weight":25
                     },
                 }

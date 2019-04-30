@@ -55,15 +55,15 @@ class DimensionColumnNarrative:
             self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Frequency Narratives",
+                "summary":"Initialized The Frequency Narratives",
                 "weight":2
                 },
             "summarygeneration":{
-                "summary":"summary generation finished",
+                "summary":"Summary Generation Finished",
                 "weight":8
                 },
             "completion":{
-                "summary":"Frequency Stats Narratives done",
+                "summary":"Frequency Stats Narratives Done",
                 "weight":0
                 },
             }

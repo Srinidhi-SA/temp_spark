@@ -55,11 +55,11 @@ class MeasureColumnNarrative:
             self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "statNarrativeStart":{
-                "summary":"Started the Descriptive Stats Narratives",
+                "summary":"Started The Descriptive Stats Narratives",
                 "weight":0
                 },
             "statNarrativeEnd":{
-                "summary":"Narratives for descriptive Stats Finished",
+                "summary":"Narratives For Descriptive Stats Finished",
                 "weight":10
                 },
             }

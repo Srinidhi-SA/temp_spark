@@ -65,7 +65,7 @@ class XgboostScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Xgboost Scripts",
+                "summary":"Initialized The Xgboost Scripts",
                 "weight":4
                 },
             "training":{
@@ -567,7 +567,7 @@ class XgboostScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Xgboost Scripts",
+                "summary":"Initialized The Xgboost Scripts",
                 "weight":2
                 },
             "prediction":{
@@ -575,15 +575,15 @@ class XgboostScript:
                 "weight":2
                 },
             "frequency":{
-                "summary":"descriptive analysis finished",
+                "summary":"Descriptive Analysis Finished",
                 "weight":2
                 },
             "chisquare":{
-                "summary":"chi Square analysis finished",
+                "summary":"Chi Square Analysis Finished",
                 "weight":4
                 },
             "completion":{
-                "summary":"all analysis finished",
+                "summary":"All Analysis Finished",
                 "weight":4
                 },
             }

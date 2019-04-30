@@ -20,19 +20,19 @@ class DataFrameFilterer:
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptStages = {
             "initialization":{
-                "summary":"initialized the filter parameters",
+                "summary":"Initialized The Filter Parameters",
                 "weight":3
                 },
             "dimensionfilters":{
-                "summary":"dimensionfilters is Run",
+                "summary":"Dimensionfilters Is Run",
                 "weight":3
                 },
             "measurefilters":{
-                "summary":"measurefilters is run",
+                "summary":"Measurefilters Is Run",
                 "weight":6
                 },
             "datetimefilters":{
-                "summary":"Datetimefilter is run",
+                "summary":"Datetimefilter Is Run",
                 "weight":3
                 }
             }

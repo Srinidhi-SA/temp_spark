@@ -471,7 +471,7 @@ def humanize_time(time_in_secs):
     minutes = (time_in_secs - (hours*3600))/60
     if time_in_secs < 60:
         return "{} Seconds".format(time_in_secs)
-    return "{} Hours {} Minutes".format(hours, minutes)
+    return "{} Hrs {} Mins".format(hours, minutes)
 
 def get_dataset_name(filepath):
     filelist = filepath.split('/')

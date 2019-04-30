@@ -78,7 +78,7 @@ class GBTRegressionModelScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Gradient Boosted Tree Regression Scripts",
+                "summary":"Initialized The Gradient Boosted Tree Regression Scripts",
                 "weight":4
                 },
             "training":{
@@ -404,7 +404,7 @@ class GBTRegressionModelScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Gradient Boosted Tree Regression Scripts",
+                "summary":"Initialized The Gradient Boosted Tree Regression Scripts",
                 "weight":2
                 },
             "predictionStart":{
