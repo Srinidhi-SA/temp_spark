@@ -203,7 +203,7 @@ class BusinessCard:
 
         para_concatinated = """
         <div class="row">
-            <div class="col-md-10 col-md-offset-2 xs-mt-20">
+            <div class="col-md-8 col-md-offset-2 xs-mt-20">
                 {}{}
             </div>
         </div>

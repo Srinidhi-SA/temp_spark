@@ -115,7 +115,7 @@ class TwoWayAnova:
             self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "anovaStart":{
-                "summary":"Initialized the Anova Scripts",
+                "summary":"Initialized The Anova Scripts",
                 "weight":0
                 },
             "anovaEnd":{

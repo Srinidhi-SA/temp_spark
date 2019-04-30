@@ -70,15 +70,15 @@ class TimeSeriesNarrative:
             self._scriptWeightDict = self._dataframe_context.get_dimension_analysis_weight()
             self._scriptStages = {
                 "initialization":{
-                    "summary":"Initialized the Frequency Narratives",
+                    "summary":"Initialized The Frequency Narratives",
                     "weight":0
                     },
                 "summarygeneration":{
-                    "summary":"summary generation finished",
+                    "summary":"Summary Generation Finished",
                     "weight":10
                     },
                 "completion":{
-                    "summary":"Frequency Stats Narratives done",
+                    "summary":"Frequency Stats Narratives Done",
                     "weight":0
                     },
                 }
@@ -89,11 +89,11 @@ class TimeSeriesNarrative:
                 self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
             self._scriptStages = {
                 "trendNarrativeStart":{
-                    "summary":"Started the Descriptive Stats Narratives",
+                    "summary":"Started The Descriptive Stats Narratives",
                     "weight":1
                     },
                 "trendNarrativeEnd":{
-                    "summary":"Narratives for descriptive Stats Finished",
+                    "summary":"Narratives For Descriptive Stats Finished",
                     "weight":0
                     },
                 }
@@ -350,7 +350,7 @@ class TimeSeriesNarrative:
                         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
                         self._dataframe_context.update_completion_status(completionStatus)
                         progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
-                                        "Trend failed as "+"No date format for the date column %s was detected." %(self._date_column_suggested),\
+                                        "Trend Failed As "+"No Date Format For The Date Column %s Was Detected !!!" %(self._date_column_suggested),\
                                         completionStatus,completionStatus)
                         CommonUtils.save_progress_message(messageURL,progressMessage)
                         self._dataframe_context.update_completion_status(self._completionStatus)
@@ -541,7 +541,7 @@ class TimeSeriesNarrative:
                     self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
                     self._dataframe_context.update_completion_status(self._completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
-                                    "Trend failed as "+"No date format for the date column %s was detected." %(self._date_column_suggested),\
+                                    "Trend Failed As "+"No Date Format For The Date Column %s Was Detected !!!" %(self._date_column_suggested),\
                                     self._completionStatus,self._completionStatus)
                     CommonUtils.save_progress_message(messageURL,progressMessage)
                     self._dataframe_context.update_completion_status(self._completionStatus)
@@ -555,7 +555,7 @@ class TimeSeriesNarrative:
                 self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
                 self._dataframe_context.update_completion_status(self._completionStatus)
                 progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
-                                "No date column present",\
+                                "No Date Column Present",\
                                 self._completionStatus,self._completionStatus)
                 CommonUtils.save_progress_message(messageURL,progressMessage)
                 self._dataframe_context.update_completion_status(self._completionStatus)

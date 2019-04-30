@@ -63,7 +63,7 @@ class DecisionTreeRegression:
             self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "dtreeTrainingStart":{
-                "summary":"Started the Decision Tree Regression Script",
+                "summary":"Started The Decision Tree Regression Script",
                 "weight":0
                 },
             "dtreeTrainingEnd":{

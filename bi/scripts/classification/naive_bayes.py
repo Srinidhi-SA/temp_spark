@@ -68,7 +68,7 @@ class NBBClassificationModelScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Naive Bayes Scripts",
+                "summary":"Initialized The Naive Bayes Scripts",
                 "weight":4
                 },
             "training":{
@@ -343,7 +343,7 @@ class NBBClassificationModelScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Naive Bayes Scripts",
+                "summary":"Initialized The Naive Bayes Scripts",
                 "weight":2
                 },
             "prediction":{
@@ -351,15 +351,15 @@ class NBBClassificationModelScript:
                 "weight":2
                 },
             "frequency":{
-                "summary":"descriptive analysis finished",
+                "summary":"Descriptive Analysis Finished",
                 "weight":2
                 },
             "chisquare":{
-                "summary":"chi Square analysis finished",
+                "summary":"Chi Square Analysis Finished",
                 "weight":4
                 },
             "completion":{
-                "summary":"all analysis finished",
+                "summary":"All Analysis Finished",
                 "weight":4
                 },
             }
@@ -622,7 +622,7 @@ class NBGClassificationModelScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Naive Bayes Scripts",
+                "summary":"Initialized The Naive Bayes Scripts",
                 "weight":4
                 },
             "training":{
@@ -1044,7 +1044,7 @@ class NBGClassificationModelScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Naive Bayes Scripts",
+                "summary":"Initialized The Naive Bayes Scripts",
                 "weight":2
                 },
             "prediction":{
@@ -1052,15 +1052,15 @@ class NBGClassificationModelScript:
                 "weight":2
                 },
             "frequency":{
-                "summary":"descriptive analysis finished",
+                "summary":"Descriptive Analysis Finished",
                 "weight":2
                 },
             "chisquare":{
-                "summary":"chi Square analysis finished",
+                "summary":"Chi Square Analysis Finished",
                 "weight":4
                 },
             "completion":{
-                "summary":"all analysis finished",
+                "summary":"All Analysis Finished",
                 "weight":4
                 },
             }
@@ -1323,7 +1323,7 @@ class NBMClassificationModelScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Naive Bayes Scripts",
+                "summary":"Initialized The Naive Bayes Scripts",
                 "weight":4
                 },
             "training":{
@@ -1789,7 +1789,7 @@ class NBMClassificationModelScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Naive Bayes Scripts",
+                "summary":"Initialized The Naive Bayes Scripts",
                 "weight":2
                 },
             "prediction":{
@@ -1797,15 +1797,15 @@ class NBMClassificationModelScript:
                 "weight":2
                 },
             "frequency":{
-                "summary":"descriptive analysis finished",
+                "summary":"Descriptive Analysis Finished",
                 "weight":2
                 },
             "chisquare":{
-                "summary":"chi Square analysis finished",
+                "summary":"Chi Square Analysis Finished",
                 "weight":4
                 },
             "completion":{
-                "summary":"all analysis finished",
+                "summary":"All Analysis Finished",
                 "weight":4
                 },
             }

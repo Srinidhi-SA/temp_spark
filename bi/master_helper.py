@@ -360,7 +360,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Evaluating and comparing performance of all predictive models",85,85,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Evaluating And Comparing Performance Of All Predictive Models",85,85,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
@@ -369,7 +369,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
 
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
-    progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor has successfully completed building machine learning models",100,100,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor Has Successfully Completed Building Machine Learning Models",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     print "Model Training Completed in ", time.time() - st, " seconds."
 
@@ -498,7 +498,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         print scoreSummary
         jobUrl = dataframe_context.get_job_url()
         response = CommonUtils.save_result_json(jobUrl,scoreSummary)
-        progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor has successfully completed building machine learning models",100,100,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor Has Successfully Completed Building Machine Learning Models",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         print "Model Scoring Completed in ", time.time() - st, " seconds."
     elif app_type == "REGRESSION":
@@ -623,7 +623,7 @@ def run_metadata(spark,df,dataframe_context):
 
     meta_data_class = MetaDataScript(df,spark,dataframe_context)
     completionStatus = dataframe_context.get_completion_status()
-    progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Meta data for the dataset",completionStatus,completionStatus,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Metadata For The Dataset",completionStatus,completionStatus,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     try:
         meta_data_object = meta_data_class.run()
@@ -632,7 +632,7 @@ def run_metadata(spark,df,dataframe_context):
         print "metaData Analysis Done in ", time.time() - fs, " seconds."
         response = CommonUtils.save_result_json(jobUrl,metaDataJson)
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Your data is uploaded",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Your Data Is Uploaded",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
@@ -710,7 +710,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     if ('Descriptive analysis' in scripts_to_run):
         dataframe_context.set_analysis_name("Descriptive analysis")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Choosing statistical and Machine Learning techniques for analysis",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Choosing Statistical And Machine Learning Techniques For Analysis",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -723,13 +723,13 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Frequency analysis","failedState","error","Descriptive Stats Failed",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     if ((len(dimension_columns)>=2 or len(measure_columns)>=1) and 'Dimension vs. Dimension' in scripts_to_run):
         dataframe_context.set_analysis_name("Dimension vs. Dimension")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Evaluating variables for Statistical Association",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Evaluating Variables For Statistical Association",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -748,7 +748,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     if ('Trend' in scripts_to_run):
         dataframe_context.set_analysis_name("Trend")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing trend for {}".format(targetVal),completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Analyzing Trend For {}".format(targetVal),completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -762,13 +762,13 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Trend"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend Failed !!!",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     if ('Predictive modeling' in scripts_to_run):
         dataframe_context.set_analysis_name("Predictive modeling")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Creating Prediction Model for {}".format(targetVal),completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Creating Prediction Model For {}".format(targetVal),completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -783,10 +783,10 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Predictive modeling"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive Modeling Failed",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     completionStatus = dataframe_context.get_completion_status()
-    progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Validating analysis results",completionStatus,completionStatus,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Validating Analysis Results",completionStatus,completionStatus,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     time.sleep(3)
     progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Creating Visualizations",completionStatus,completionStatus,display=True)
@@ -842,7 +842,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     # print json.dumps(headNode,indent=2)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Dimension Analysis Completed in", time.time()-st," Seconds"
-    progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your signal is ready",100,100,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your Signal Is Ready",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
 def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
@@ -877,7 +877,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     if ('Descriptive analysis' in scripts_to_run):
         dataframe_context.set_analysis_name("Descriptive analysis")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Choosing statistical and Machine Learning techniques for analysis",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Choosing Statistical And Machine Learning Techniques For Analysis",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -890,13 +890,13 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Descriptive analysis"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","descriptive Stats failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Descriptive analysis","failedState","error","Descriptive Stats Failed !!!",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     if len(dimension_columns)>0 and 'Measure vs. Dimension' in scripts_to_run:
         dataframe_context.set_analysis_name("Measure vs. Dimension")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Evaluating variables for Performance Analysis",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Evaluating Variables For Performance Analysis",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -909,13 +909,13 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Measure vs. Dimension"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Measure vs. Dimension","failedState","error","Anova Failed",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     if len(measure_columns)>1 and 'Measure vs. Measure' in scripts_to_run:
         dataframe_context.set_analysis_name("Measure vs. Measure")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Finding factors that influence target variable",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Finding Factors That Influence Target Variable",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -937,13 +937,13 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Measure vs. Measure"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Measure vs. Measure","failedState","error","Regression failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Measure vs. Measure","failedState","error","Regression Failed !!!",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     if ('Trend' in scripts_to_run):
         dataframe_context.set_analysis_name("Trend")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing trend for {}".format(targetVal),completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Analyzing Trend For {}".format(targetVal),completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -957,13 +957,13 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Trend"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error","Trend Failed !!!",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     if ('Predictive modeling' in scripts_to_run):
         dataframe_context.set_analysis_name("Predictive modeling")
         completionStatus = dataframe_context.get_completion_status()
-        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Creating Prediction Model for {}".format(targetVal),completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Creating Prediction Model For {}".format(targetVal),completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         try:
             fs = time.time()
@@ -978,7 +978,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             completionStatus = dataframe_context.get_completion_status()
             completionStatus += scriptWeightDict["Predictive modeling"]["total"]
             dataframe_context.update_completion_status(completionStatus)
-            progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive modeling failed",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("Predictive modeling","failedState","error","Predictive Modeling Failed",completionStatus,completionStatus)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     # try:
@@ -990,7 +990,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     #     CommonUtils.print_errors_and_store_traceback(LOGGER,"Executive Summary",e)
 
     completionStatus = dataframe_context.get_completion_status()
-    progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Validating analysis results",completionStatus,completionStatus,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Validating Analysis Results",completionStatus,completionStatus,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     # time.sleep(3)
     progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Creating Visualizations",completionStatus,completionStatus,display=True)
@@ -1042,5 +1042,5 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     # print json.dumps(headNode)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
     print "Measure Analysis Completed in :", time.time()-st," Seconds"
-    progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Your signal is ready",100,100,display=True)
+    progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Your Signal Is Ready",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)

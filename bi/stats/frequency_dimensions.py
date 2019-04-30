@@ -33,7 +33,7 @@ class FreqDimensions:
                 "weight":4
                 },
             "groupby":{
-                "summary":"running groupby operations",
+                "summary":"Running Groupby Operations",
                 "weight":6
                 },
             "completion":{

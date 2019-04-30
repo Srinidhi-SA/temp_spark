@@ -26,15 +26,15 @@ class DataFrameTransformer:
         self._replaceTypeList = ["equals","contains","startsWith","endsWith"]
         self._scriptStages = {
             "initialization":{
-                "summary":"initialized the filter parameters",
+                "summary":"Initialized The Filter Parameters",
                 "weight":3
                 },
             "dimensionfilters":{
-                "summary":"dimensionfilters is Run",
+                "summary":"Dimensionfilters Is Run",
                 "weight":3
                 },
             "measurefilters":{
-                "summary":"measurefilters is run",
+                "summary":"Measurefilters Is Run",
                 "weight":6
                 },
             "datetimefilters":{

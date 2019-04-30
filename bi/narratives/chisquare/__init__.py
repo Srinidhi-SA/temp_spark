@@ -87,11 +87,11 @@ class ChiSquareNarratives:
                 "weight":0
                 },
             "summarygeneration":{
-                "summary":"summary generation finished",
+                "summary":"Summary Generation Finished",
                 "weight":10
                 },
             "completion":{
-                "summary":"Frequency Stats Narratives done",
+                "summary":"Frequency Stats Narratives Done",
                 "weight":0
                 },
             }

@@ -32,7 +32,7 @@ class DescriptiveStats:
             self._scriptWeightDict = scriptWeight
         self._scriptStages = {
             "statCalculationStart":{
-                "summary":"Initialized the Descriptive Stats Scripts",
+                "summary":"Initialized The Descriptive Stats Scripts",
                 "weight":0
                 },
             "statCalculationEnd":{
