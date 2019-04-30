@@ -269,8 +269,8 @@ class FeatureEngineeringHelper:
             self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self.replacerUDF(10, "logTransform")(col(column_name)))
             self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
         else:
-            self._data_frame = self._data_frame.withColumn(column_name + "_temp_transformed", replacerUDF(value_to_be_added, "add")(col(column_name)))
-            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", replacerUDF(10, "logTransform")(col(column_name + "_temp_transformed")))
+            self._data_frame = self._data_frame.withColumn(column_name + "_temp_transformed", self.replacerUDF(value_to_be_added, "add")(col(column_name)))
+            self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self.replacerUDF(10, "logTransform")(col(column_name + "_temp_transformed")))
             self._data_frame = self._data_frame.withColumn(column_name + "_vt_log_transformed", self._data_frame[column_name + "_vt_log_transformed"].cast('float'))
             self._data_frame = self._data_frame.drop(column_name+"_temp_transformed")
         return self._data_frame
