@@ -199,6 +199,7 @@ class ChartJson:
         self.show_legend = True
         self.hide_xtick = False
         self.title = None
+        self.point = 1
 
 
     def get_dict_object(self):
@@ -214,10 +215,12 @@ class ChartJson:
             "y2AxisNumberFormat":self.y2AxisNumberFormat,
             "subchart":self.subchart,
             "show_legend":self.show_legend,
-            "hide_xtick":self.hide_xtick,
-            "title":self.title,
+            "hide_xtick" : self.hide_xtick,
+            "title" : self.title,
+            "point" : self.point
         }
         return out
+
     def set_data(self,data):
         """
             data can be of array type or dictionary
@@ -263,3 +266,6 @@ class ChartJson:
 
     def set_title(self,data):
         self.title=data
+
+    def set_point_radius(self,data):
+        self.point = data
