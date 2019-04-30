@@ -28,7 +28,7 @@ from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
 
 from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData,DataBox,WordCloud
-from bi.common import NormalChartData, ChartJson
+from bi.common import NormalChartData, ChartJson, ScatterChartData
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
 
@@ -705,7 +705,7 @@ def create_model_summary_para(modelSummaryClass):
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
-        elif modelSummaryClass.get_algorithm_name() == 'Xgboost':
+        elif modelSummaryClass.get_algorithm_name() == 'XGBoost':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
@@ -925,29 +925,75 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         def chart_data_prep(df,column_names,label,chart_type,subchart):
             ChartData = df[column_names]
             ChartData = ChartData.to_dict('record')
-            ChartData = NormalChartData(data=ChartData)
-            chart_json = ChartJson()
-            chart_json.set_data(ChartData.get_data())
-            chart_json.set_chart_type(chart_type)
-            if len(column_names) == 2:
+            if "False Positive Rate" in label:
+                data = {}
+                data["ROC Curve"] = ChartData
+                data["Reference Line"] = [{"FPR" : 0.0, "TPR" : 0.0}, {"FPR" : 1.0, "TPR" : 1.0}]
+                ChartData = ScatterChartData(data=data)
+                chart_json = ChartJson()
+                chart_json.set_data(ChartData.get_data())
+                chart_json.set_chart_type(chart_type)
+                chart_json.set_axes({"x" : "FPR", "y" : "TPR"})
+                chart_json.set_label_text({"x":label[0],"y":label[1]})
+                chart_json.set_subchart(subchart)
+                chart_json.set_xaxis_number_format(".2f")
+                chart_json.set_yaxis_number_format(".3f")
+                chart_json.set_legend({"a1":"ROC Curve","b1":"Reference Line"})
+                chart_json.set_point_radius(2.0)
+            elif "% Responders(Cumulative)" in label:
+                # data = {}
+                # ChartData.insert(0, {"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0})
+                # data["Gain Chart"] = ChartData
+                # data["Reference Line"] = [{"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0}, {"% Population(Cumulative)" : 100.0, "% Responders(Cumulative)" : 100.0}]
+                # print "^_^"*20
+                # print "GAIN CHART DATA - ", data
+                # print "^_^"*20
+                # ChartData = ScatterChartData(data=data)
+                # chart_json = ChartJson()
+                # chart_json.set_data(ChartData.get_data())
+                # chart_json.set_chart_type(chart_type)
+                # chart_json.set_axes({"x" : "% Population(Cumulative)", "y" : "% Responders(Cumulative)"})
+                # chart_json.set_label_text({"x":label[0],"y":label[1]})
+                # chart_json.set_subchart(subchart)
+                # chart_json.set_xaxis_number_format(".2f")
+                # chart_json.set_yaxis_number_format(".4f")
+                # chart_json.set_legend({"a1":"Gain Chart","b1":"Reference Line"})
+                # chart_json.set_point_radius(5.0)
+                ChartData = NormalChartData(data=ChartData)
+                chart_json = ChartJson()
+                chart_json.set_data(ChartData.get_data())
+                chart_json.set_chart_type(chart_type)
                 chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
                 chart_json.set_label_text({"x":label[0],"y":label[1]})
                 chart_json.set_subchart(subchart)
                 chart_json.set_xaxis_number_format(".2f")
                 chart_json.set_yaxis_number_format(".4f")
+            elif "Lift @ Decile" in label:
+                data = {}
+                data["Lift Chart"] = ChartData
+                data["Reference Line"] = [{"% Population(Cumulative)" : 10.0, "Lift at Decile" : 100.0}, {"% Population(Cumulative)" : 100.0, "Lift at Decile" : 100.0}]
+                ChartData = ScatterChartData(data=data)
+                chart_json = ChartJson()
+                chart_json.set_data(ChartData.get_data())
+                chart_json.set_chart_type(chart_type)
+                chart_json.set_axes({"x" : "% Population(Cumulative)", "y" : "Lift at Decile"})
+                chart_json.set_label_text({"x":label[0],"y":label[1]})
+                chart_json.set_subchart(subchart)
+                chart_json.set_xaxis_number_format(".2f")
+                chart_json.set_yaxis_number_format(".4f")
+                chart_json.set_legend({"a1":"Lift Chart","b1":"Reference Line"})
+                chart_json.set_point_radius(5.0)
             else:
-                if "Reference Line" in column_names:
-                    chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
-                    chart_json.set_label_text({"x":label[0],"y":label[1]})
-                    chart_json.set_subchart(subchart)
-                    chart_json.set_xaxis_number_format(".2f")
-                    chart_json.set_yaxis_number_format(".4f")
-                else:
-                    chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
-                    chart_json.set_label_text({"x":label[0],"y":label[1]})
-                    chart_json.set_subchart(subchart)
-                    chart_json.set_xaxis_number_format(".2f")
-                    chart_json.set_yaxis_number_format(".4f")
+                ChartData = NormalChartData(data=ChartData)
+                chart_json = ChartJson()
+                chart_json.set_data(ChartData.get_data())
+                chart_json.set_chart_type(chart_type)
+                chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                chart_json.set_label_text({"x":label[0],"y":label[1]})
+                chart_json.set_subchart(subchart)
+                chart_json.set_xaxis_number_format(".2f")
+                chart_json.set_yaxis_number_format(".4f")
+
             return chart_json
 
         #modelPerformanceCardData = []
@@ -1012,7 +1058,8 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
 
         '''ROC CHART'''
         ROCCardData = []
-        chartjson = chart_data_prep(final_roc_df,['FPR', 'TPR', 'Reference Line'], ['False Positive Rate','True Positive Rate'],'line',False)
+        # chartjson = chart_data_prep(final_roc_df,['FPR', 'TPR', 'Reference Line'], ['False Positive Rate','True Positive Rate'],'line',False)
+        chartjson = chart_data_prep(final_roc_df,['FPR', 'TPR'], ['False Positive Rate','True Positive Rate'],'scatter_line',False)
         ROCChart = C3ChartData(data=chartjson)
         ROCChart.set_width_percent(100)
         ROCChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>ROC Chart</h4>")
@@ -1057,7 +1104,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
 
         '''LIFT CHART'''
         LiftCardData = []
-        chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)','Lift at Decile'], ['% Population(Cumulative)','Lift @ Decile'],'line',False)
+        chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)','Lift at Decile'], ['% Population(Cumulative)','Lift @ Decile'],'scatter_line',False)
         liftChart = C3ChartData(data=chartjson)
         liftChart.set_width_percent(100)
         liftChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Lift Chart</h4>")
@@ -1076,7 +1123,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         modelPerformanceCard.set_card_data(modelPerformanceCardData)
         '''
 
-        return [summaryCard, confusionMatrixCard,KSCard,GainCard,LiftCard,ROCCard]
+        return [summaryCard, confusionMatrixCard, ROCCard, KSCard, GainCard]
 
 
 def collated_model_summary_card(result_setter,prediction_narrative,appType,appid=None):

@@ -239,7 +239,9 @@ class MetaDataScript:
         time_string_columns=self._timestamp_string_columns
         original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
         timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,original_timestamp_columns,level_count_flag=self._level_count_flag)
-        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,time_string_columns,level_count_flag=self._level_count_flag)
+        timeDimensionColumnStat2,timeDimensionCharts2 = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,time_string_columns,level_count_flag=self._level_count_flag)
+        timeDimensionColumnStat.update(timeDimensionColumnStat2)
+        timeDimensionCharts.update(timeDimensionCharts2)
         time_taken_tdstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["timedimensionstats"]["weight"]
         print "time dimension stats takes",time_taken_tdstats

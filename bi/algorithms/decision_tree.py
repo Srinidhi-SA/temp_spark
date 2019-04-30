@@ -30,9 +30,10 @@ class DecisionTrees:
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._analysisDict = self._dataframe_context.get_analysis_dict()
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
-        for m in self._measure_columns:
-            if data_frame.select(F.countDistinct(m)).collect()[0][0]<self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
-                self._measure_columns.remove(m)
+        if self._analysisDict:
+            for m in self._measure_columns:
+                if data_frame.select(F.countDistinct(m)).collect()[0][0]<self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
+                    self._measure_columns.remove(m)
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
@@ -231,8 +232,8 @@ class DecisionTrees:
         #####Look into it for Issue 947#################
         max_num_levels = GLOBALSETTINGS.DTREE_OTHER_DIMENSION_MAX_LEVEL
         # max_num_levels = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
-        all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
-        # all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
+        # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
+        all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
         cat_feature_info = []
         columns_without_dimension = [x for x in all_dimensions if x != dimension]
