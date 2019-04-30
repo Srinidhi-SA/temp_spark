@@ -238,6 +238,7 @@ class MetaDataHelper():
 
 
     def calculate_time_dimension_column_stats(self,df,td_columns,**kwargs):
+        print(df.toPandas().head(),td_columns)
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -319,8 +320,8 @@ class MetaDataHelper():
                     if None in levelCount:
                         levelCountWithoutNull.pop(None)
                     if levelCountWithoutNull != {}:
-                        col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
-                        col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
+                        col_stat["MaxLevel"] = last_date
+                        col_stat["MinLevel"] = first_date
                     else:
                         col_stat["MaxLevel"] = None
                         col_stat["MinLevel"] = None
@@ -329,11 +330,11 @@ class MetaDataHelper():
                     levelCount = {str(k):v for k,v in levelCount.items()}
                     col_stat["LevelCount"] = levelCount
                     levelCountBig = df.groupBy(column).count().sort(("count"))
-                    col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
-                    #col_stat["MinLevel"]=first_date
+                    #col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    col_stat["MinLevel"]=first_date
                     levelCountBig = df.groupBy(column).count().sort(desc("count"))
-                    col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
-                    #col_stat["MaxLevel"]=last_date
+                    #col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    col_stat["MaxLevel"]=last_date
 
                     nullcnt = df.select(count(when(col(column).isNull(), column)).alias(column))
                     col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
