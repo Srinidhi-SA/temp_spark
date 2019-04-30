@@ -230,7 +230,7 @@ class FeatureEngineeringHelper:
     '''Rounds off the returned value ==> values formed are either 0 or 1'''
     def normalize_column(self, column_name):
         def normalize_column_helper(min, max):
-            return udf(lambda x: (x - min)*1.0/(max - min) if x!=None else x )
+            return udf(lambda x: (x - min)*1.0/(max - min) if x!=None else x)
         max = self._data_frame.select(F.max(column_name)).collect()[0][0]
         min = self._data_frame.select(F.min(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_fs_normalized", normalize_column_helper(min, max)(col(column_name)))
