@@ -81,7 +81,7 @@ class RFRegressionModelScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Regression Scripts",
+                "summary":"Initialized The Random Forest Regression Scripts",
                 "weight":4
                 },
             "training":{
@@ -406,7 +406,7 @@ class RFRegressionModelScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Regression Scripts",
+                "summary":"Initialized The Random Forest Regression Scripts",
                 "weight":2
                 },
             "predictionStart":{

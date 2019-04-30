@@ -56,7 +56,7 @@ class ChiSquare:
                 "weight":1
                 },
             "chisquareStats":{
-                "summary":"running chisquare for relevant dimension columns",
+                "summary":"Running Chisquare For Relevant Dimension Columns",
                 "weight":2
                 },
             "completion":{

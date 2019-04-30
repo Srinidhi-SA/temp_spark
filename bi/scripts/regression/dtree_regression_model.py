@@ -80,7 +80,7 @@ class DTREERegressionModelScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Decision Tree Regression Scripts",
+                "summary":"Initialized The Decision Tree Regression Scripts",
                 "weight":4
                 },
             "training":{
@@ -408,7 +408,7 @@ class DTREERegressionModelScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Decision Tree Regression Scripts",
+                "summary":"Initialized The Decision Tree Regression Scripts",
                 "weight":2
                 },
             "predictionStart":{

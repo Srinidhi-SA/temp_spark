@@ -63,11 +63,11 @@ class DecisionTrees:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Decision Tree Script",
+                "summary":"Initialized The Decision Tree Script",
                 "weight":0
                 },
             "treegeneration":{
-                "summary":"Decision tree generation finished",
+                "summary":"Decision Tree Generation Finished",
                 "weight":10
                 }
             }

@@ -33,11 +33,11 @@ class LinearRegression:
         self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
         self._scriptStages = {
             "regressionTrainingStart":{
-                "summary":"Started the Regression Script",
+                "summary":"Started The Regression Script",
                 "weight":0
                 },
             "regressionTrainingEnd":{
-                "summary":"Regression coefficients calculated",
+                "summary":"Regression Coefficients Calculated",
                 "weight":10
                 },
             }

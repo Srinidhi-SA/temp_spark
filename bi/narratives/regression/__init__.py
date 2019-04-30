@@ -56,11 +56,11 @@ class RegressionNarrative:
         self._scriptWeightDict = self._dataframe_context.get_measure_analysis_weight()
         self._scriptStages = {
             "regressionNarrativeStart":{
-                "summary":"Started the Regression Narratives",
+                "summary":"Started The Regression Narratives",
                 "weight":1
                 },
             "regressionNarrativeEnd":{
-                "summary":"Narratives for Regression Finished",
+                "summary":"Narratives For Regression Finished",
                 "weight":0
                 },
             }
@@ -232,7 +232,7 @@ class RegressionNarrative:
             #
             #
             # card3 = {}
-            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing key influencers",self._completionStatus,self._completionStatus,display=True)
+            progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing Key Influencers",self._completionStatus,self._completionStatus,display=True)
             CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)
             card4data = regression_narrative_obj.generate_card4_data(self.result_column,measure_column)
             card4data.update({"blockSplitter":self._blockSplitter})

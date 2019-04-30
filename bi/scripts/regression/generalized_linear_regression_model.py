@@ -204,7 +204,7 @@ class GeneralizedLinearRegressionModelScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Generalized Linear Regression Scripts",
+                "summary":"Initialized The Generalized Linear Regression Scripts",
                 "weight":2
                 },
             "predictionStart":{

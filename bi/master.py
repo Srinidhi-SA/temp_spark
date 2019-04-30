@@ -35,12 +35,12 @@ def main(configJson):
         ignoreMsg = False
     elif isinstance(configJson,basestring):
         if configJson.endswith(".cfg"):
-            print "######################## Running in cfgMode ########################"
+            print "||############################## Running in cfgMode ##############################||"
             cfgMode = True
             debugMode = False
             ignoreMsg = False
         else:
-            print "######################## Running in debugMode ######################"
+            print "||############################## Running in debugMode ##############################||"
             cfgMode = False
             debugMode = True
             ignoreMsg = True
@@ -51,7 +51,7 @@ def main(configJson):
             else:
                 configJson = get_test_configs(jobType)
 
-    print "######################## Creating Spark Session ###########################"
+    print "||############################## Creating Spark Session ##############################||"
     if debugMode:
         APP_NAME = "mAdvisor_running_in_debug_mode"
     else:
@@ -69,7 +69,7 @@ def main(configJson):
 
     # spark.conf.set("spark.sql.execution.arrow.enabled", "true")
 
-    print "######################### Parsing the configs #############################"
+    print "||############################## Parsing Config file ##############################||"
 
     config = configJson["config"]
     jobConfig = configJson["job_config"]
@@ -109,12 +109,12 @@ def main(configJson):
     result_setter = ResultSetter(dataframe_context)
     appid = dataframe_context.get_app_id()
     completionStatus = 0
-    print "########################## Validate the Config ###############################"
+    print "||############################## Validating the Config ##############################||"
     configValidator = ConfigValidator(dataframe_context)
     configValid = configValidator.get_sanity_check()
 
     if not configValid:
-        progressMessage = CommonUtils.create_progress_message_object("mAdvisor Job","custom","info","Please Provide a Valid Configuration",completionStatus,completionStatus,display=True)
+        progressMessage = CommonUtils.create_progress_message_object("mAdvisor Job","custom","info","Please Provide A Valid Configuration",completionStatus,completionStatus,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
         response = CommonUtils.save_result_json(dataframe_context.get_job_url(),json.dumps({}))
         CommonUtils.save_error_messages(errorURL,APP_NAME,"Invalid Config Provided",ignore=ignoreMsg)
@@ -128,17 +128,17 @@ def main(configJson):
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
             dataframe_context.update_completion_status(completionStatus)
         elif jobType == "metaData":
-            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Preparing data for loading",completionStatus,completionStatus,display=True)
+            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Preparing Data For Loading",completionStatus,completionStatus,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Initializing the loading process",completionStatus,completionStatus,display=True)
+            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Initializing The Loading Process",completionStatus,completionStatus,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Data Upload in progress",completionStatus,completionStatus,display=True)
+            progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Uploading Data",completionStatus,completionStatus,display=True)
             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
             dataframe_context.update_completion_status(completionStatus)
         if jobType != "stockAdvisor":
             df = None
             data_loading_st = time.time()
-            progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading the Dataset",completionStatus,completionStatus)
+            progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Loading The Dataset",completionStatus,completionStatus)
             if jobType != "story" and jobType != "metaData":
                 CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                 dataframe_context.update_completion_status(completionStatus)
@@ -156,7 +156,7 @@ def main(configJson):
                     if dataCleansingDict['selected'] or featureEngineeringDict['selected']:
                         old_cols_list = df.columns
                         completionStatus = 10
-                        progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Performing required data preprocessing and feature transformation tasks",completionStatus,completionStatus)
+                        progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Performing Required Data Preprocessing And Feature Transformation Tasks",completionStatus,completionStatus)
                         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                         dataframe_context.update_completion_status(completionStatus)
                         if dataCleansingDict['selected']:
@@ -272,7 +272,7 @@ def killer_setting(configJson):
         else:
             configJson = get_test_configs(jobType)
 
-    print "######################### Parsing the configs #############################"
+    print "||############################## Parsing Config File ##############################||"
 
     config = configJson["config"]
     jobConfig = configJson["job_config"]
