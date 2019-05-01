@@ -15,7 +15,7 @@ class DecisionTreeScript:
 
     def Run(self):
         targetDimension = self._dataframe_context.get_result_column()
-        targetDimensionLevelCount = self._dataframe_helper.get_num_unique_values(targetDimension)
+        targetDimensionLevelCount = self._metaParser.get_num_unique_values(targetDimension)
         # max_num_levels  = min(max_num_levels, round(self._dataframe_helper.get_num_rows()**0.5))
 
 
