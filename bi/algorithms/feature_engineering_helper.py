@@ -37,7 +37,7 @@ class FeatureEngineeringHelper:
         for field in dfSchemaFields:
             if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
                 numeric_columns.append(field.name)
-        for column_name in [column_name for column_name in numeric_columns if column_name in self.consider_columns]:
+        for column_name in numeric_columns:
             self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
         return self._data_frame
 
