@@ -118,7 +118,7 @@ class FeatureEngineeringHelper:
         self._data_frame = self._data_frame.withColumn(column_name+"_level", self.create_level_udf(dict)(col(column_name)))
         return self._data_frame
 
-    def create_level_udf_time(self, dict,date_format):
+    def create_level_udf_time(self, dict, date_format):
         def convert_to_date(value):
                 if isinstance(value, str):
                     value=datetime.strptime(value, date_format)
@@ -145,7 +145,7 @@ class FeatureEngineeringHelper:
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
         uniqueVals = self._data_frame.select(col_for_timelevels).distinct().na.drop().limit(10).collect()
         date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
-        self._data_frame = self._data_frame.withColumn(col_for_timelevels+"_t_level", self.create_level_udf_time(dict,date_format)(col(col_for_timelevels)))
+        self._data_frame = self._data_frame.withColumn(col_for_timelevels+"_t_level", self.create_level_udf_time(dict, date_format)(col(col_for_timelevels)))
         return self._data_frame
 
     def create_bin_udf(self,dict):
@@ -356,16 +356,16 @@ class FeatureEngineeringHelper:
         # print "COUNT TIME SINCE - "
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
         uniqueVals = self._data_frame.select(col_for_time_since).distinct().na.drop().limit(10).collect()
-        date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
+        date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
-        to_date_udf= udf (lambda x: datetime.strptime(x,date_format),DateType())
-        self._data_frame = self._data_frame.withColumn(col_for_time_since+"(Timestamped)", to_date_udf(col(col_for_time_since)))
+        to_date_udf= udf(lambda x: datetime.strptime(x, date_format),DateType())
+        self._data_frame = self._data_frame.withColumn(col_for_time_since, to_date_udf(col(col_for_time_since)))
         self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
-        self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since+"(Timestamped)"]))
-        self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)",col_for_time_since+"(Timestamped)")
+        self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since]))
+        self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
 
-        # print "-"*70
-        # print "-"*70
+        self._data_frame = self._data_frame.withColumn(col_for_time_since, to_timestamp(self._data_frame[col_for_time_since], "dd/MM/yyyy").alias(col_for_time_since))
+        self._data_frame = self._data_frame.withColumn(col_for_time_since, F.from_unixtime(F.unix_timestamp(self._data_frame[col_for_time_since]), "dd/MM/yyyy").alias(col_for_time_since))
         return self._data_frame
 
 #TODO - Check for timestamp conversion related issues if any
@@ -382,11 +382,10 @@ class FeatureEngineeringHelper:
 #Timeformat is hardcoded as "dd/MM/yyyy"
     def extract_datetime_info(self, datetime_col, info_to_extract):
         timestamped = datetime_col + "_timestamped"
-        # print "EXTRACT DATETIME INFO - "
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
         uniqueVals = self._data_frame.select(datetime_col).distinct().na.drop().limit(10).collect()
-        date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
-        to_date_udf= udf (lambda x: datetime.strptime(x,date_format),DateType())
+        date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
+        to_date_udf= udf(lambda x: datetime.strptime(x, date_format),DateType())
         self._data_frame = self._data_frame.withColumn(datetime_col, to_date_udf(self._data_frame[datetime_col]).alias(datetime_col))
         if info_to_extract == "year":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_year", year(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
@@ -408,9 +407,10 @@ class FeatureEngineeringHelper:
             self._data_frame = self._data_frame.withColumn(datetime_col + "_minute", minute(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
         if info_to_extract == "date":
             self._data_frame = self._data_frame.withColumn(datetime_col + "_date", to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").cast("date").alias(datetime_col))
-        # print "-"*70
-        # self._data_frame.show()
-        # print "-"*70
+        else:
+            pass
+        self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
+        self._data_frame = self._data_frame.withColumn(datetime_col, F.from_unixtime(F.unix_timestamp(self._data_frame[datetime_col]), "dd/MM/yyyy").alias(datetime_col))
         return self._data_frame
 
 
@@ -419,17 +419,15 @@ class FeatureEngineeringHelper:
 
 #Timeformat is hardcoded as "dd/MM/yyyy"
     def is_weekend(self, datetime_col):
-        # print "IS WEEKEND - "
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
         uniqueVals = self._data_frame.select(datetime_col).distinct().na.drop().limit(10).collect()
-        date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
-        to_date_udf= udf (lambda x: datetime.strptime(x,date_format),DateType())
-        self._data_frame = self._data_frame.withColumn(datetime_col+"new", to_date_udf(col(datetime_col)))
-        self._data_frame = self._data_frame.withColumn(datetime_col + "_day", dayofmonth(datetime_col+"new"))
+        date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
+        to_date_udf = udf(lambda x: datetime.strptime(x, date_format),DateType())
+        self._data_frame = self._data_frame.withColumn(datetime_col, to_date_udf(col(datetime_col)))
+        self._data_frame = self._data_frame.withColumn(datetime_col + "_day", dayofmonth(datetime_col))
         self._data_frame = self._data_frame.withColumn(datetime_col + "_is_weekend", self.is_weekend_helper()(col(datetime_col + "_day")))
-        self._data_frame = self._data_frame.drop(datetime_col + "_day",datetime_col+"new")
+        self._data_frame = self._data_frame.drop(datetime_col + "_day")
 
-        # print "-"*70
-        # self._data_frame.show()
-        # print "-"*70
+        self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
+        self._data_frame = self._data_frame.withColumn(datetime_col, F.from_unixtime(F.unix_timestamp(self._data_frame[datetime_col]), "dd/MM/yyyy").alias(datetime_col))
         return self._data_frame
