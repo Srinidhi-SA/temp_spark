@@ -167,7 +167,7 @@ class DataLoader:
                     .getOrCreate()
 
 
-            df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
+            df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
             cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
             df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
         except Exception as e:
@@ -178,7 +178,7 @@ class DataLoader:
                         .builder \
                         .appName("using_s3") \
                         .getOrCreate()
-                df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
+                df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
             except Exception as e:
                 print ("S3 file not found")
                 raise e

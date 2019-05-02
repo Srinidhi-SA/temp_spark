@@ -277,7 +277,7 @@ class MetaDataHelper():
             notNullDf = df.select(column).distinct().na.drop()
             notNullDf = notNullDf.orderBy([column],ascending=[True])
             notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
-            id_max=notNullDf.select("_id_").rdd.max()[0]
+            id_max = notNullDf.select("_id_").rdd.max()[0]
             first_date = notNullDf.select(column).first()[0]
             first_date = pd.to_datetime(first_date).date()
             try:
