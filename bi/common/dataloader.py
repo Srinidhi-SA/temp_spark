@@ -170,7 +170,8 @@ class DataLoader:
                     .getOrCreate()
 
 
-            df = spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True )
+            #df = spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True )
+            df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
             cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
             df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
         except Exception as e:
