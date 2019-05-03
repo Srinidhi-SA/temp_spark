@@ -45,7 +45,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "story"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -59,7 +59,7 @@ def main(configJson):
         if config is None:
             configJson = requests.get(configJson["job_config"]["config_url"])
             configJson = configJson.json()
-    
+
         if "job_config" in configJson.keys() and "job_name" in configJson["job_config"]:
             APP_NAME = configJson["job_config"]["job_name"]
         else:

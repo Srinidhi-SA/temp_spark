@@ -155,7 +155,7 @@ class DataLoader:
             	bucket.download_file(file_name, dest_name)
 		import subprocess
 		subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
-	
+
             def read_file(src_name):
             	bucket = get_boto_bucket()
             download_file(file_name,'/tmp/'+dst_file_name)
@@ -182,7 +182,8 @@ class DataLoader:
                         .builder \
                         .appName("using_s3") \
                         .getOrCreate()
-                df = spark.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
+                # df = spark.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
+                df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
                 cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
                 df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
             except Exception as e:
