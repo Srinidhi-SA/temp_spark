@@ -55,6 +55,11 @@ def main(configJson):
     if debugMode:
         APP_NAME = "mAdvisor_running_in_debug_mode"
     else:
+        config = configJson["config"]
+        if config is None:
+            configJson = requests.get(configJson["job_config"]["config_url"])
+            configJson = configJson.json()
+    
         if "job_config" in configJson.keys() and "job_name" in configJson["job_config"]:
             APP_NAME = configJson["job_config"]["job_name"]
         else:
