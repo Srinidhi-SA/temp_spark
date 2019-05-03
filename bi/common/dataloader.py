@@ -124,13 +124,15 @@ class DataLoader:
     @accepts(SparkSession, dict)
     def create_dataframe_from_s3(spark_session, dbConnectionParams):
         df = None
+
+        file_name = dbConnectionParams.get("file_name")
+        dst_file_name = str(random.randint(10000,99999)) + '_' + file_name
         try:
             import boto3
 
             myAccessKey = dbConnectionParams.get("access_key_id")
             mySecretKey = dbConnectionParams.get("secret_key")
             s3_bucket_name = dbConnectionParams.get("bucket_name")
-            file_name = dbConnectionParams.get("file_name")
             datasetname = dbConnectionParams.get("new_dataset_name")
 
             def get_boto_session():
@@ -151,10 +153,11 @@ class DataLoader:
             def download_file(file_name, dest_name):
             	bucket = get_boto_bucket()
             	bucket.download_file(file_name, dest_name)
-
+		import subprocess
+		subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
+	
             def read_file(src_name):
             	bucket = get_boto_bucket()
-            dst_file_name = str(random.randint(10000,99999)) + '_' + file_name
             download_file(file_name,'/tmp/'+dst_file_name)
         except Exception as e:
             print("couldn't connect to S3")
@@ -167,7 +170,7 @@ class DataLoader:
                     .getOrCreate()
 
 
-            df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
+            df = spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True )
             cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
             df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
         except Exception as e:
@@ -178,7 +181,7 @@ class DataLoader:
                         .builder \
                         .appName("using_s3") \
                         .getOrCreate()
-                df = spark.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
+                df = spark.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
                 cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
                 df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
             except Exception as e:
