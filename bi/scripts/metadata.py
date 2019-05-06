@@ -138,14 +138,15 @@ class MetaDataScript:
         metaData = []
         metaData.append(MetaData(name="noOfRows",value=self._total_rows,display=True,displayName="Rows"))
         metaData.append(MetaData(name="noOfColumns",value=self._total_columns,display=True,displayName="Columns"))
-        self._percentage_columns = metaHelperInstance.get_percentage_columns(self._string_columns)
+        # self._percentage_columns = metaHelperInstance.get_percentage_columns(self._string_columns)
         separation_time=time.time()
         self._timestamp_string_columns=[]
         uniqueVals = []
         dateTimeSuggestions = {}
         for column in self._string_columns:
+            print column
             if self._column_type_dict[column]["actual"] != "boolean":
-                uniqueVals = self._data_frame.select(column).distinct().na.drop().limit(1000).collect()
+                uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(1000).collect()
             else:
                 uniqueVals = []
             if len(uniqueVals) > 0:
@@ -168,18 +169,18 @@ class MetaDataScript:
         print "time taken for separating date columns from string is :", time.time()-separation_time
 
 
-        if len(self._percentage_columns)>0:
-            self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame,self._percentage_columns)
-            self._numeric_columns = self._numeric_columns + self._percentage_columns
-            self._string_columns = list(set(self._string_columns)-set(self._percentage_columns))
-            self.update_column_type_dict()
+        # if len(self._percentage_columns)>0:
+        #     self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame,self._percentage_columns)
+        #     self._numeric_columns = self._numeric_columns + self._percentage_columns
+        #     self._string_columns = list(set(self._string_columns)-set(self._percentage_columns))
+        #     self.update_column_type_dict()
 
-        self._dollar_columns = metaHelperInstance.get_dollar_columns(self._string_columns)
-        if len(self._dollar_columns)>0:
-            self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame,self._dollar_columns)
-            self._numeric_columns = self._numeric_columns + self._dollar_columns
-            self._string_columns = list(set(self._string_columns)-set(self._dollar_columns))
-            self.update_column_type_dict()
+        # self._dollar_columns = metaHelperInstance.get_dollar_columns(self._string_columns)
+        # if len(self._dollar_columns)>0:
+        #     self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame,self._dollar_columns)
+        #     self._numeric_columns = self._numeric_columns + self._dollar_columns
+        #     self._string_columns = list(set(self._string_columns)-set(self._dollar_columns))
+        #     self.update_column_type_dict()
 
         if len(self._numeric_columns) > 1:
             # print "self._numeric_columns : ", self._numeric_columns
@@ -198,8 +199,8 @@ class MetaDataScript:
         metaData.append(MetaData(name="measureColumns",value = self._numeric_columns,display=False))
         metaData.append(MetaData(name="dimensionColumns",value = self._string_columns+self._boolean_columns,display=False))
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
-        metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
-        metaData.append(MetaData(name="dollarColumns",value = self._dollar_columns,display=False))
+        # metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
+        # metaData.append(MetaData(name="dollarColumns",value = self._dollar_columns,display=False))
         columnData = []
         headers = []
 

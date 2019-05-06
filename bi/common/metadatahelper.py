@@ -120,7 +120,7 @@ class MetaDataHelper():
             if binned_stat_flag:
                 st = time.time()
                 measure_chart_data = self.get_binned_stat(df,column,col_stat)
-                print "Binned Stat",time.time()-st
+                print "Binned Stat for "+column,time.time()-st
                 measure_chart_data = sorted(measure_chart_data,key=lambda x:x["value"],reverse=True)
                 measure_chart_obj = ChartJson(NormalChartData(measure_chart_data).get_data(),chart_type="bar")
                 measure_chart_obj.set_axes({"x":"name","y":"value"})
@@ -154,10 +154,6 @@ class MetaDataHelper():
         summary_df = df.describe().toPandas()
         # print summary_df
         displayNameDict = {"count":"Count",
-                            "mean":"Mean",
-                            "stddev":"Standard Deviation",
-                            "min":"Min",
-                            "max":"Max",
                             "numberOfNulls":"Null Values",
                             "numberOfUniqueValues":"Unique Values",
                             "numberOfNotNulls":"Not Nulls",
@@ -168,8 +164,7 @@ class MetaDataHelper():
                             }
 
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
-                            "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "min": 8, "max": 9,
-                            "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
+                            "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in dimension_columns:
             st = time.time()
             col_stat = {}
@@ -227,7 +222,7 @@ class MetaDataHelper():
 
             modified_col_stat = []
             for k,v in col_stat.items():
-                if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls"]:
+                if k not in ["LevelCount","numberOfNotNulls"]:
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
@@ -238,7 +233,7 @@ class MetaDataHelper():
 
 
     def calculate_time_dimension_column_stats(self,df,td_columns,**kwargs):
-        print(df.toPandas().head(),td_columns)
+        # print(df.toPandas().head(),td_columns)
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -253,10 +248,6 @@ class MetaDataHelper():
         # summary_df = df.describe().toPandas()
         # print summary_df
         displayNameDict = {"count":"Count",
-                            "mean":"Mean",
-                            "stddev":"Standard Deviation",
-                            "min":"Min",
-                            "max":"Max",
                             "numberOfNulls":"Null Values",
                             "numberOfUniqueValues":"Unique Values",
                             "numberOfNotNulls":"Not Nulls",
@@ -268,9 +259,8 @@ class MetaDataHelper():
                             "percentOfNulls": "Percent Nulls"
                             }
         # TODO: FIX copy paste error numberOfUniqueValues
-        displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 13, "MaxLevel": 14, "numberOfUniqueValues": 2,
-                            "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "min": 8,
-                            "max": 9, "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
+        displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 9, "MaxLevel": 10, "numberOfUniqueValues": 2,
+                            "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in td_columns:
             uniqueVals = df.select(column).distinct().na.drop().limit(1000).collect()
             col_stat = {}
@@ -361,7 +351,7 @@ class MetaDataHelper():
 
             modified_col_stat = []
             for k,v in col_stat.items():
-                if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls","MaxLevel","MinLevel"]:
+                if k not in ["LevelCount","numberOfNotNulls","MaxLevel","MinLevel"]:
                     modified_col_stat.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
                 else:
                     modified_col_stat.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
