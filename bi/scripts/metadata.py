@@ -144,7 +144,6 @@ class MetaDataScript:
         uniqueVals = []
         dateTimeSuggestions = {}
         for column in self._string_columns:
-            print column
             if self._column_type_dict[column]["actual"] != "boolean":
                 uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(1000).collect()
             else:
