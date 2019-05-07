@@ -705,7 +705,7 @@ class MetaDataHelper():
             except:
                 print "could not process column: ",column
                 unprocessed_columns.append(column)
-            chart_data[column] = {}
+                chart_data[column] = {}
 
             output[column] = []
             for k,v in col_stat.items():
