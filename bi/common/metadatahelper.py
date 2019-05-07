@@ -124,6 +124,7 @@ class MetaDataHelper():
         return output,chart_data
 
     def calculate_measure_column_stats(self,df,measure_columns,**kwargs):
+        i = 0
         binned_stat_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -155,10 +156,13 @@ class MetaDataHelper():
                             "percentOfNulls": 6}
 
         for column in measure_columns:
+            print "column number in measure ", i
+            i+=1
             output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df,column,summary_df,total_count,binned_stat_flag,displayNameDict,displayOrderDict)
         return output,chart_data
 
     def calculate_dimension_column_stats(self,df,dimension_columns,**kwargs):
+        i = 0
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -184,6 +188,8 @@ class MetaDataHelper():
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in dimension_columns:
+            print "column number in dimesion ", i
+            i+=1
             df1 = df.select(column)
             st = time.time()
             col_stat = {}
@@ -252,6 +258,7 @@ class MetaDataHelper():
 
 
     def calculate_time_dimension_column_stats(self,df,td_columns,**kwargs):
+        i = 0
         # print(df.toPandas().head(),td_columns)
         level_count_flag = True
         xtraArgs = {}
@@ -281,6 +288,8 @@ class MetaDataHelper():
         displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 9, "MaxLevel": 10, "numberOfUniqueValues": 2,
                             "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in td_columns:
+            print "column number in time dimesion ", i
+            i+=1
             df1 = df.select(column)
             uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
             col_stat = {}
@@ -291,11 +300,11 @@ class MetaDataHelper():
             first_date = notNullDf.select(column).first()[0]
             first_date = pd.to_datetime(first_date).date()
             try:
-                print "TRY BLOCK STARTED"
+                print "TRY BLOCK STARTED for column ", column
                 last_date = notNullDf.where(col("_id_") == id_max).select(column).first()[0]
                 last_date = pd.to_datetime(last_date).date()
             except:
-                print "ENTERING EXCEPT BLOCK"
+                print "ENTERING EXCEPT BLOCK for column ", column
                 pandas_df = notNullDf.select(["_id_",column]).toPandas()
                 pandas_df.sort_values(by=column,ascending=True,inplace=True)
                 last_date = str(pandas_df[column].iloc[-1].date())
@@ -568,6 +577,7 @@ class MetaDataHelper():
         return dollar_columns
 
     def calculate_time_dimension_column_stats_from_string(self,df,td_columns,**kwargs):
+        i = 0
         metaHelperInstance = MetaDataHelper(df, df.count())
         level_count_flag = True
         xtraArgs = {}
@@ -600,6 +610,13 @@ class MetaDataHelper():
                             "max": 9, "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
         unprocessed_columns = []
         for column in td_columns:
+            print "column number in time dimesion string ", i
+            i+=1
+            nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
+            col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
+            col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+            col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
+            col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
             try:
                 df1 = df.select(column)
                 uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
@@ -614,10 +631,10 @@ class MetaDataHelper():
                 first_date = notNullDf.select("timestampCol").first()[0]
                 first_date = str(pd.to_datetime(first_date).date())
                 try:
-                    print "TRY BLOCK STARTED"
+                    print "TRY BLOCK STARTED for column ", column
                     last_date = str(notNullDf.where(col("_id_") == id_max).select("timestampCol").first()[0])
                 except:
-                    print "ENTERING EXCEPT BLOCK"
+                    print "ENTERING EXCEPT BLOCK for column ", column
                     pandas_df = notNullDf.select(["_id_",column]).toPandas()
                     pandas_df.sort_values(by=column,ascending=True,inplace=True)
                     last_date = str(pandas_df[column].iloc[-1].date())
@@ -626,7 +643,6 @@ class MetaDataHelper():
                 col_stat["count"] = notNullDf.count()
                 if level_count_flag:
                     fs1 = time.time()
-                    col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
                     levelCount = {}
                     # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
                     #     tdLevelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
@@ -661,11 +677,6 @@ class MetaDataHelper():
                     levelCountBig = df1.groupBy(column).count().sort(("count"))
                     col_stat["MinLevel"]=first_date
                     col_stat["MaxLevel"]=last_date
-                    nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
-                    col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
-                    col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                    col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
-
 
                     dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
                     dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
@@ -694,5 +705,14 @@ class MetaDataHelper():
             except:
                 print "could not process column: ",column
                 unprocessed_columns.append(column)
+            chart_data[column] = {}
+
+            output[column] = []
+            for k,v in col_stat.items():
+                if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls","MaxLevel","MinLevel"]:
+                    output[column].append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
+                else:
+                    output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+            output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
             #output[column] = output[column]
         return output,chart_data,unprocessed_columns
