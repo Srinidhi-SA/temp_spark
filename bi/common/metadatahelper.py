@@ -91,7 +91,7 @@ class MetaDataHelper():
 
         for column in measure_columns:
             df1 = df.select(column)
-            outlier, outlier_LR, outlier_UR = Stats.detect_outliers_z(df1,column)
+            # outlier, outlier_LR, outlier_UR = Stats.detect_outliers_z(df1,column)
             col_stat = dict(zip(summary_df["summary"],summary_df[column]))
             for k,v in col_stat.items():
                 if "." in v:
