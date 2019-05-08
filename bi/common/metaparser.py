@@ -29,8 +29,8 @@ class MetaParser:
 
         self.noOfRows = [obj.get_value() for obj in self.metaData if obj.get_name() == "noOfRows"][0]
         self.noOfColumns = [obj.get_value() for obj in self.metaData if obj.get_name() == "noOfColumns"][0]
-        self.percentage_columns = [obj.get_value() for obj in self.metaData if obj.get_name() == "percentageColumns"][0]
-        self.dollar_columns = [obj.get_value() for obj in self.metaData if obj.get_name() == "dollarColumns"][0]
+        self.percentage_columns = [obj.get_value() for obj in self.metaData if obj.get_name() == "percentageColumns"]
+        self.dollar_columns = [obj.get_value() for obj in self.metaData if obj.get_name() == "dollarColumns"]
         self.ignoreColumnSuggestions = [obj.get_value() for obj in self.metaData if obj.get_name() == "ignoreColumnSuggestions"][0]
         self.ignoreReason = [obj.get_value() for obj in self.metaData if obj.get_name() == "ignoreColumnReason"][0]
         self.ignoreColDict = dict(zip(self.ignoreColumnSuggestions,self.ignoreReason))
