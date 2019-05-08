@@ -117,7 +117,7 @@ class MetaDataHelper():
         df1 = df.select(column)
         col_stat = dict(zip(summary_df["summary"],summary_df[column]))
         col_stat = self.calculate_measure_column_stats_col_stat(col_stat,df1,column,total_count)
-        if round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) <90:
+        if round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) >=90:
             print round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3)
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 col_stat["LevelCount"] = self.calculate_measure_column_stats_level(df1,column)
@@ -240,6 +240,7 @@ class MetaDataHelper():
                     for level in levelCount:
                         l[level[column]] = level['count']
                     levelCount =  l
+                    col_stat["LevelCount"] = levelCount
                     levelCountBig = df1.groupBy(column).count().sort(("count"))
 
                     col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
@@ -319,7 +320,7 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0/ total_count), 3)) + "%"
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-            if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) > 90:
+            if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) >=90:
                 uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
                 col_stat = {}
                 notNullDf = df1.select(column).distinct().na.drop()
@@ -545,11 +546,12 @@ class MetaDataHelper():
             modifiedColStat[obj["name"]] = obj["value"]
         colStat = modifiedColStat
         levels = colStat["LevelCount"].keys()
-        for val in levels:
-            if val:
-                if any([ord(char)>127 for char in val]):
-                    utf8 = True
-                    break
+        if len(levels)>0:
+            for val in levels:
+                if val:
+                    if any([ord(char)>127 for char in val]):
+                        utf8 = True
+                        break
         return utf8
 
     @accepts(object,pd.DataFrame,(tuple,list),bool)
