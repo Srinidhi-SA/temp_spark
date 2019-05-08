@@ -320,8 +320,8 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0/ total_count), 3)) + "%"
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-            if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <=90:
-                uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
+            if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <=80:
+                uniqueVals = df1.select(column).distinct().na.drop().limit(100).collect()
                 col_stat = {}
                 notNullDf = df1.select(column).distinct().na.drop()
                 notNullDf = notNullDf.orderBy([column],ascending=[True])
@@ -374,7 +374,7 @@ class MetaDataHelper():
                     #         col_stat["MaxLevel"] = None
                     #         col_stat["MinLevel"] = None
                     # else:
-                    levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20).toPandas().set_index(column).to_dict().values()[0]
+                    levelCount = df1.groupBy(column).count().sort(desc("count")).limit(12).toPandas().set_index(column).to_dict().values()[0]
                     levelCount = {str(k):v for k,v in levelCount.items()}
                     col_stat["LevelCount"] = levelCount
                     levelCountBig = df1.groupBy(column).count().sort(("count"))
