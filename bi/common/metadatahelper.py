@@ -613,15 +613,15 @@ class MetaDataHelper():
             df1 = df.select(column)
             print "column number in time dimesion string ", i
             i+=1
+            uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
+            date_format=metaHelperInstance.get_datetime_format(uniqueVals)
+            col_stat = {}
             nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
             col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
             col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
             try:
-                uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
-                date_format=metaHelperInstance.get_datetime_format(uniqueVals)
-                col_stat = {}
                 notNullDf = df1.select(column).distinct().na.drop()
                 func =  udf (lambda x: datetime.strptime(x, date_format), DateType())
                 notNullDf = notNullDf.withColumn("timestampCol", func(col(column)))
