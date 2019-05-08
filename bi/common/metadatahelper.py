@@ -61,7 +61,6 @@ class MetaDataHelper():
 
     def calculate_measure_column_stats_col_stat(self,col_stat,df1,column,total_count):
         # outlier, outlier_LR, outlier_UR = Stats.detect_outliers_z(df1,column)
-
         for k,v in col_stat.items():
             if "." in v:
                 col_stat[k] = round(float(v),2)
@@ -69,10 +68,11 @@ class MetaDataHelper():
                 col_stat[k] = int(v)
             else:
                 col_stat[k] = v
-        col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
-        col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) ) + "%"
-        col_stat["numberOfNotNulls"] = col_stat["count"]
-        col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
+            col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
+            col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) ) + "%"
+            col_stat["numberOfNotNulls"] = col_stat["count"]
+            col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
+
         # col_stat["Outliers"] = outlier
         # if math.isnan(outlier_LR):
         #     col_stat["OutlierLR"] = None
@@ -448,7 +448,7 @@ class MetaDataHelper():
                         try:
                             t = datetime.strptime(x,format1)
                         except ValueError as err:
-                            format1 = '%m'+format1[2]+'%d'+format1[5:]
+                            format1 = '%d'+format1[2]+'%m'+format1[5:]
                             break
                 detectedFormat = format1
                 break

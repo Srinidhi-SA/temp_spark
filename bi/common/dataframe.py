@@ -74,8 +74,8 @@ class DataFrameHelper:
 
     def set_params(self):
         print "Setting the dataframe"
-        self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
-        self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame, self.dollar_columns)
+        #self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
+        #self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame, self.dollar_columns)
         colsToBin = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
         print "ignorecolumns:-",self.ignorecolumns
         # removing any columns which comes in customDetails from ignore columns
