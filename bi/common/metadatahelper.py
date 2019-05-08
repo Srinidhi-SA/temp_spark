@@ -117,7 +117,7 @@ class MetaDataHelper():
         df1 = df.select(column)
         col_stat = dict(zip(summary_df["summary"],summary_df[column]))
         col_stat = self.calculate_measure_column_stats_col_stat(col_stat,df1,column,total_count)
-        if round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) >=90:
+        if round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) <=90:
             print round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3)
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 col_stat["LevelCount"] = self.calculate_measure_column_stats_level(df1,column)
@@ -211,7 +211,7 @@ class MetaDataHelper():
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
             col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-            if round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3) >=90:
+            if round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3) <=90:
                 if level_count_flag:
                     fs1 = time.time()
                     levelCount = {}
@@ -320,7 +320,7 @@ class MetaDataHelper():
             col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0/ total_count), 3)) + "%"
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-            if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) >=90:
+            if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <=90:
                 uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
                 col_stat = {}
                 notNullDf = df1.select(column).distinct().na.drop()
