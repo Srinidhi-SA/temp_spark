@@ -550,12 +550,14 @@ class MetaDataHelper():
         for obj in colStat:
             modifiedColStat[obj["name"]] = obj["value"]
         colStat = modifiedColStat
-        levels = colStat["LevelCount"].keys()
-        for val in levels:
-            if val:
-                if any([ord(char)>127 for char in val]):
-                    utf8 = True
-                    break
+        if (int(colStat['percentOfNulls'].replace('%','').strip()) < 90):
+
+            levels = colStat["LevelCount"].keys()
+            for val in levels:
+                if val:
+                    if any([ord(char)>127 for char in val]):
+                        utf8 = True
+                        break
         return utf8
 
     @accepts(object,pd.DataFrame,(tuple,list),bool)
