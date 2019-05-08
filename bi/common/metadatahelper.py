@@ -610,6 +610,7 @@ class MetaDataHelper():
                             "max": 9, "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
         unprocessed_columns = []
         for column in td_columns:
+            df1 = df.select(column)
             print "column number in time dimesion string ", i
             i+=1
             nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
@@ -618,7 +619,6 @@ class MetaDataHelper():
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
             try:
-                df1 = df.select(column)
                 uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
                 date_format=metaHelperInstance.get_datetime_format(uniqueVals)
                 col_stat = {}

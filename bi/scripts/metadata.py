@@ -145,7 +145,7 @@ class MetaDataScript:
         dateTimeSuggestions = {}
         for column in self._string_columns:
             if self._column_type_dict[column]["actual"] != "boolean":
-                uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(1000).collect()
+                uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(500).collect()
             else:
                 uniqueVals = []
             if len(uniqueVals) > 0:
@@ -240,8 +240,8 @@ class MetaDataScript:
         self._start_time = time.time()
         dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
         # print dimensionColumnStat
-        # self._dataSize["dimensionLevelCountDict"] = {k:filter(lambda x:x["name"]=="numberOfUniqueValues",v)[0]["value"] for k,v in dimensionColumnStat.items()}
-        # self._dataSize["totalLevels"] = sum(self._dataSize["dimensionLevelCountDict"].values())
+        self._dataSize["dimensionLevelCountDict"] = {k:filter(lambda x:x["name"]=="numberOfUniqueValues",v)[0]["value"] for k,v in dimensionColumnStat.items()}
+        self._dataSize["totalLevels"] = sum(self._dataSize["dimensionLevelCountDict"].values())
 
         time_taken_dimensionstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["dimensionstats"]["weight"]
