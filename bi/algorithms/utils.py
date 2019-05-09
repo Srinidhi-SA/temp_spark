@@ -46,24 +46,22 @@ def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=N
     if target_measure is None:
         target_measure = []
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
+
+    measures_with_same_val = []
     for measure_column in measure_columns:
-        # quantile_discretizer = QuantileDiscretizer(numBuckets=4, inputCol=measure_column,
-        #                                                outputCol='quantile',
-        #                                                relativeError=0.01)
-        # splits = quantile_discretizer.fit(df).getSplits()
-        min_,max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
-        # if len(splits)<5:
-        #     diff = (max_ - min_)*1.0
-        #     splits = [None,min_+diff*0.25,min_+diff*0.5,min_+diff*0.75,None]
-        # print measure_column, min_, max_,splits
-        # splits_new = [min_,splits[1],splits[3],max_]
+        min_, max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
         diff = (max_ - min_)*1.0
-        splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
-        bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
-        bucketizer.setSplits(splits_new)
-        df = bucketizer.transform(df)
-        df = df.select([c for c in df.columns if c!=measure_column])
-        df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
+
+        if diff == 0.0:
+            measures_with_same_val.append(measure_column)
+            measure_columns.remove(measure_column)
+        else:
+            splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
+            bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+            bucketizer.setSplits(splits_new)
+            df = bucketizer.transform(df)
+            df = df.select([c for c in df.columns if c!=measure_column])
+            df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
     return df
 
 def generate_random_number_array(df):
