@@ -1030,7 +1030,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
             {
               "name": "AUC",
               "value": str(modelSummaryClass.get_AUC_score()),
-              "description":"Area Under the ROC curve"
+              "description":"Area under the curve that shows the model's goodness of fit"
             }
         ]
 
