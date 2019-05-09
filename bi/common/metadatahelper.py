@@ -472,7 +472,7 @@ class MetaDataHelper():
                         try:
                             t = datetime.strptime(x,format1)
                         except ValueError as err:
-                            format1 = '%m'+format1[2]+'%d'+format1[5:]
+                            format1 = '%d'+format1[2]+'%m'+format1[5:]
                             break
                 detectedFormat = format1
                 break

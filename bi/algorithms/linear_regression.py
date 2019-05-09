@@ -116,7 +116,7 @@ class LinearRegression:
             p_values = [None]*len(coefficients)
         # print p_values
         # print coefficients
-        regression_result = RegressionResult(output_column, list(set(input_columns)))
+        regression_result = RegressionResult(output_column, sorted(list(set(input_columns))))
         regression_result.set_params(intercept=float(lr_model.intercept),\
                                      coefficients=coefficients,\
                                      p_values = p_values,\

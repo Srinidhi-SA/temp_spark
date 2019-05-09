@@ -138,13 +138,16 @@ class FeatureEngineeringHelper:
                 date_range = [val1_date, val2_date]
                 if (date >= date_range[0] and date <= date_range[1]):
                     return key
-        return udf(lambda x: check_key(x, dict))
+        return udf(lambda x: check_key(x, dict) if x!=None else x)
 
 
     def create_new_levels_datetimes(self, col_for_timelevels, dict):
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
-        uniqueVals = self._data_frame.select(col_for_timelevels).distinct().na.drop().limit(10).collect()
-        date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
+        uniqueVals = self._data_frame.select(col_for_timelevels).distinct().na.drop().limit(1000).collect()
+        try:
+            date_format=self._metaHelperInstance.get_datetime_format(uniqueVals)
+        except TypeError:
+            date_format=None
         self._data_frame = self._data_frame.withColumn(col_for_timelevels+"_t_level", self.create_level_udf_time(dict, date_format)(col(col_for_timelevels)))
         return self._data_frame
 
@@ -355,15 +358,20 @@ class FeatureEngineeringHelper:
         '''time_since_date should be in dd/MM/yyyy format'''
         # print "COUNT TIME SINCE - "
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
-        uniqueVals = self._data_frame.select(col_for_time_since).distinct().na.drop().limit(10).collect()
-        date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
-        self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
-        to_date_udf= udf(lambda x: datetime.strptime(x, date_format),DateType())
-        self._data_frame = self._data_frame.withColumn(col_for_time_since, to_date_udf(col(col_for_time_since)))
-        self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
-        self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since]))
-        self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
-
+        uniqueVals = self._data_frame.select(col_for_time_since).distinct().na.drop().limit(1000).collect()
+        try:
+            date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
+            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
+            to_date_udf= udf(lambda x: datetime.strptime(x, date_format) if x!= None else x,DateType())
+            self._data_frame = self._data_frame.withColumn(col_for_time_since, to_date_udf(col(col_for_time_since)))
+            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
+            self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since]))
+            self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
+        except TypeError:
+            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE", F.lit(time_since_date))
+            self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
+            self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since]))
+            self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
         self._data_frame = self._data_frame.withColumn(col_for_time_since, to_timestamp(self._data_frame[col_for_time_since], "dd/MM/yyyy").alias(col_for_time_since))
         self._data_frame = self._data_frame.withColumn(col_for_time_since, F.from_unixtime(F.unix_timestamp(self._data_frame[col_for_time_since]), "dd/MM/yyyy").alias(col_for_time_since))
         return self._data_frame
@@ -376,7 +384,7 @@ class FeatureEngineeringHelper:
                 if int(x) == key:
                     return dict[key]
         #return udf(lambda x: dict_for_month_helper(x,dict))
-        return udf(lambda x: month_to_string_helper(x,dict))
+        return udf(lambda x: month_to_string_helper(x,dict) if x!= None else x)
 
 
 #Timeformat is hardcoded as "dd/MM/yyyy"
@@ -384,49 +392,85 @@ class FeatureEngineeringHelper:
         timestamped = datetime_col + "_timestamped"
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
         uniqueVals = self._data_frame.select(datetime_col).distinct().na.drop().limit(10).collect()
-        date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
-        to_date_udf= udf(lambda x: datetime.strptime(x, date_format),DateType())
-        self._data_frame = self._data_frame.withColumn(datetime_col, to_date_udf(self._data_frame[datetime_col]).alias(datetime_col))
-        if info_to_extract == "year":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_year", year(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "month_of_year":
-            dict = {1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"}
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_month", month(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_month_of_year", self.month_to_string(dict)(col(datetime_col + "_month")))
-        if info_to_extract == "day_of_month":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_month", dayofmonth(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "day_of_year":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_year", dayofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "day_of_week":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_day_of_week", dayofweek(datetime_col).alias(datetime_col))
-        if info_to_extract == "week_of_year":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_week_of_year", weekofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "hour":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_hour", hour(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "minute":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_minute", minute(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
-        if info_to_extract == "date":
-            self._data_frame = self._data_frame.withColumn(datetime_col + "_date", to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").cast("date").alias(datetime_col))
-        else:
-            pass
+        try:
+            date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
+            to_date_udf= udf(lambda x: datetime.strptime(x, date_format) if x!= None else x,DateType())
+            self._data_frame = self._data_frame.withColumn(datetime_col, to_date_udf(self._data_frame[datetime_col]).alias(datetime_col))
+            if info_to_extract == "year":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_year", year(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "month_of_year":
+                dict = {1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"}
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_month", month(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_month_of_year", self.month_to_string(dict)(col(datetime_col + "_month")))
+            if info_to_extract == "day_of_month":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_month", dayofmonth(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "day_of_year":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_year", dayofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "day_of_week":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_day_of_week", dayofweek(datetime_col).alias(datetime_col))
+            if info_to_extract == "week_of_year":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_week_of_year", weekofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "hour":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_hour", hour(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "minute":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_minute", minute(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "date":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_date", to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").cast("date").alias(datetime_col))
+            else:
+                pass
+        except TypeError:
+            if info_to_extract == "year":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_year", year(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "month_of_year":
+                dict = {1:"January",2:"February",3:"March",4:"April",5:"May",6:"June",7:"July",8:"August",9:"September",10:"October",11:"November",12:"December"}
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_month", month(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_month_of_year", self.month_to_string(dict)(col(datetime_col + "_month")))
+            if info_to_extract == "day_of_month":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_month", dayofmonth(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "day_of_year":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_day_of_year", dayofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "day_of_week":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_etf_day_of_week", dayofweek(datetime_col).alias(datetime_col))
+            if info_to_extract == "week_of_year":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_week_of_year", weekofyear(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "hour":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_hour", hour(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "minute":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_minute", minute(to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col)))
+            if info_to_extract == "date":
+                self._data_frame = self._data_frame.withColumn(datetime_col + "_date", to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").cast("date").alias(datetime_col))
+            else:
+                pass
+
         self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
         self._data_frame = self._data_frame.withColumn(datetime_col, F.from_unixtime(F.unix_timestamp(self._data_frame[datetime_col]), "dd/MM/yyyy").alias(datetime_col))
         return self._data_frame
 
 
     def is_weekend_helper(self):
-        return udf(lambda x:False if (int(x) < 6) else True)
+        def weekend_checker(x):
+            if (int(x) < 6):
+                return False
+            else:
+                return True
+
+        return udf(lambda x:weekend_checker(x) if x!= None else x)
 
 #Timeformat is hardcoded as "dd/MM/yyyy"
     def is_weekend(self, datetime_col):
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
         uniqueVals = self._data_frame.select(datetime_col).distinct().na.drop().limit(10).collect()
-        date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
-        to_date_udf = udf(lambda x: datetime.strptime(x, date_format),DateType())
-        self._data_frame = self._data_frame.withColumn(datetime_col, to_date_udf(col(datetime_col)))
-        self._data_frame = self._data_frame.withColumn(datetime_col + "_day", dayofmonth(datetime_col))
-        self._data_frame = self._data_frame.withColumn(datetime_col + "_is_weekend", self.is_weekend_helper()(col(datetime_col + "_day")))
-        self._data_frame = self._data_frame.drop(datetime_col + "_day")
+        try:
+            date_format = self._metaHelperInstance.get_datetime_format(uniqueVals)
+            to_date_udf = udf(lambda x: datetime.strptime(x, date_format) if x!=None else x,DateType())
+            self._data_frame = self._data_frame.withColumn(datetime_col, to_date_udf(col(datetime_col)))
+            self._data_frame = self._data_frame.withColumn(datetime_col + "_day", dayofmonth(datetime_col))
+            self._data_frame = self._data_frame.withColumn(datetime_col + "_is_weekend", self.is_weekend_helper()(col(datetime_col + "_day")))
+            self._data_frame = self._data_frame.drop(datetime_col + "_day")
+        except TypeError:
+            self._data_frame = self._data_frame.withColumn(datetime_col + "_day", dayofmonth(datetime_col))
+            self._data_frame = self._data_frame.withColumn(datetime_col + "_is_weekend", self.is_weekend_helper()(col(datetime_col + "_day")))
+            self._data_frame = self._data_frame.drop(datetime_col + "_day")
 
         self._data_frame = self._data_frame.withColumn(datetime_col, to_timestamp(self._data_frame[datetime_col], "dd/MM/yyyy").alias(datetime_col))
         self._data_frame = self._data_frame.withColumn(datetime_col, F.from_unixtime(F.unix_timestamp(self._data_frame[datetime_col]), "dd/MM/yyyy").alias(datetime_col))
