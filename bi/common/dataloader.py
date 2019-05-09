@@ -127,38 +127,68 @@ class DataLoader:
 
         file_name = dbConnectionParams.get("file_name")
         dst_file_name = str(random.randint(10000,99999)) + '_' + file_name
+        #try:
+        import boto3
+
+        myAccessKey = dbConnectionParams.get("access_key_id")
+        mySecretKey = dbConnectionParams.get("secret_key")
+        s3_bucket_name = dbConnectionParams.get("bucket_name")
+        datasetname = dbConnectionParams.get("new_dataset_name")
+
+        def get_boto_session():
+            return boto3.Session(aws_access_key_id=myAccessKey, aws_secret_access_key=mySecretKey)
+
+        def get_boto_resourse():
+            session = get_boto_session()
+            return session.resource('s3')
+
+        def get_boto_bucket():
+            resource = get_boto_resourse()
+            return resource.Bucket(s3_bucket_name)
+
+        def upload_file(src_path, dest_name):
+            bucket = get_boto_bucket()
+            bucket.upload_file(src_path, dest_name)
+
+        def download_file(file_name, dest_name):
+            bucket = get_boto_bucket()
+            bucket.download_file(file_name, dest_name)
+	    import subprocess
+	    subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
+
+        def read_file(src_name):
+            bucket = get_boto_bucket()
+
+        download_file(file_name,'/tmp/'+dst_file_name)
+
+	try:
+	    if df is None:
+            	df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
+	except Exception as e:
+	    print(e)
+
         try:
-            import boto3
+	    if df is None:
+            	df = spark_session.read.csv('/tmp/'+dst_file_name,header=True, inferSchema=True ) 
+        except Exception as e:
+            print(e)
 
-            myAccessKey = dbConnectionParams.get("access_key_id")
-            mySecretKey = dbConnectionParams.get("secret_key")
-            s3_bucket_name = dbConnectionParams.get("bucket_name")
-            datasetname = dbConnectionParams.get("new_dataset_name")
+        try:
+	    if df is None:
+            	df = spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True )
+        except Exception as e:
+            print(e)
 
-            def get_boto_session():
-            	return boto3.Session(aws_access_key_id=myAccessKey, aws_secret_access_key=mySecretKey)
 
-            def get_boto_resourse():
-            	session = get_boto_session()
-            	return session.resource('s3')
+	try:
+	    if df is None:
+	    	df = spark_session.read.csv('/dev/dataset/'+dst_file_name,header=True, inferSchema=True)
+	except Exception as e:
+	    print(e)
+        cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
+        df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
 
-            def get_boto_bucket():
-            	resource = get_boto_resourse()
-            	return resource.Bucket(s3_bucket_name)
-
-            def upload_file(src_path, dest_name):
-            	bucket = get_boto_bucket()
-            	bucket.upload_file(src_path, dest_name)
-
-            def download_file(file_name, dest_name):
-            	bucket = get_boto_bucket()
-            	bucket.download_file(file_name, dest_name)
-		import subprocess
-		subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
-
-            def read_file(src_name):
-            	bucket = get_boto_bucket()
-            download_file(file_name,'/tmp/'+dst_file_name)
+        '''
         except Exception as e:
             print("couldn't connect to S3")
             raise e
@@ -189,6 +219,7 @@ class DataLoader:
             except Exception as e:
                 print ("S3 file not found")
                 raise e
+	'''
         return df
 
 
