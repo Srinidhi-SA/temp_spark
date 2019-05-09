@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-
+import gc
 import pandas as pd
 import math
 from pyspark.ml.feature import Bucketizer
@@ -60,7 +60,7 @@ class MetaDataHelper():
 
 
     def calculate_measure_column_stats_col_stat(self,col_stat,df1,column,total_count):
-        # outlier, outlier_LR, outlier_UR = Stats.detect_outliers_z(df1,column)
+        outlier, outlier_LR, outlier_UR = Stats.detect_outliers_z(df1,column)
 
         for k,v in col_stat.items():
             if "." in v:
@@ -73,15 +73,15 @@ class MetaDataHelper():
         col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) ) + "%"
         col_stat["numberOfNotNulls"] = col_stat["count"]
         col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-        # col_stat["Outliers"] = outlier
-        # if math.isnan(outlier_LR):
-        #     col_stat["OutlierLR"] = None
-        # else:
-        #     col_stat["OutlierLR"] = outlier_LR
-        # if math.isnan(outlier_UR):
-        #     col_stat["OutlierUR"] = None
-        # else:
-        #     col_stat["OutlierUR"] = outlier_UR
+        col_stat["Outliers"] = outlier
+        if math.isnan(outlier_LR):
+            col_stat["OutlierLR"] = None
+        else:
+            col_stat["OutlierLR"] = outlier_LR
+        if math.isnan(outlier_UR):
+            col_stat["OutlierUR"] = None
+        else:
+            col_stat["OutlierUR"] = outlier_UR
         return col_stat
 
     def calculate_measure_column_stats_level(self,df1,column):
@@ -158,14 +158,13 @@ class MetaDataHelper():
                             "numberOfUniqueValues":"Unique Values",
                             "numberOfNotNulls":"Not Nulls",
                             "LevelCount":"Unique Values",
-                            # "Outliers":"Outliers",
-                            # "OutlierLR":"OutlierLR",
-                            # "OutlierUR":"OutlierUR",
+                            "Outliers":"Outliers",
+                            "OutlierLR":"OutlierLR",
+                            "OutlierUR":"OutlierUR",
                             "percentOfNulls": "Percent Nulls"
                             }
         displayOrderDict = {"min":0,"max":1,"mean":2,"stddev":3,"numberOfUniqueValues":4,"numberOfNulls":5,
-                            "numberOfNotNulls":7,"count":8,"LevelCount":9,
-                            # "Outliers":10,"OutlierLR":11,"OutlierUR":12,
+                            "numberOfNotNulls":7,"count":8,"LevelCount":9,"Outliers":10,"OutlierLR":11,"OutlierUR":12,
                             "percentOfNulls": 6}
 
         for column in measure_columns:
@@ -322,7 +321,6 @@ class MetaDataHelper():
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
             if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <=80:
                 uniqueVals = df1.select(column).distinct().na.drop().limit(100).collect()
-                col_stat = {}
                 notNullDf = df1.select(column).distinct().na.drop()
                 notNullDf = notNullDf.orderBy([column],ascending=[True])
                 notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())

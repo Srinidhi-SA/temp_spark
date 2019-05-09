@@ -1,6 +1,6 @@
 import time
 import uuid
-
+import gc
 from bi.common import ColumnType
 from bi.common import MetaDataHelper
 from bi.common import utils as CommonUtils
@@ -206,6 +206,7 @@ class MetaDataScript:
         self._start_time = time.time()
         print "Count of Numeric columns",len(self._numeric_columns)
         measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
+
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
         print "measure stats takes",time_taken_measurestats
@@ -224,6 +225,7 @@ class MetaDataScript:
         original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
         timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,original_timestamp_columns,level_count_flag=self._level_count_flag)
         timeDimensionColumnStat2,timeDimensionCharts2,unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,time_string_columns,level_count_flag=self._level_count_flag)
+
         timeDimensionColumnStat.update(timeDimensionColumnStat2)
         timeDimensionCharts.update(timeDimensionCharts2)
         time_taken_tdstats = time.time()-self._start_time
@@ -239,6 +241,7 @@ class MetaDataScript:
 
         self._start_time = time.time()
         dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
+
         # print dimensionColumnStat
         self._dataSize["dimensionLevelCountDict"] = {k:filter(lambda x:x["name"]=="numberOfUniqueValues",v)[0]["value"] for k,v in dimensionColumnStat.items()}
         self._dataSize["totalLevels"] = sum(self._dataSize["dimensionLevelCountDict"].values())
