@@ -543,6 +543,10 @@ class SklearnGridSearchResult:
             estimator = self.estimator.set_params(**paramsObj)
             estimator.fit(self.x_train, self.y_train)
             y_score = estimator.predict(self.x_test)
+            try:
+                y_prob = estimator.predict_proba(self.x_test)
+            except:
+                y_prob = [0]*len(y_score)
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx+1)))+str(idx+1)
 
             print "#"*100
@@ -575,7 +579,8 @@ class SklearnGridSearchResult:
                 elif len(self.levels) > 2:
                     algoEvaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
                     algoEvaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
-                    algoEvaluationMetrics["ROC-AUC"] = "NA"
+
+                    algoEvaluationMetrics["ROC-AUC"] = self.getMultiClassAucRoc(y_prob,y_score)
 
             if algoEvaluationMetrics[evaluationMetric] > evalMetricVal:
                 self.bestModel = estimator
@@ -617,6 +622,30 @@ class SklearnGridSearchResult:
 
     def getBestParam(self):
         return self.bestParam
+
+    def getMultiClassAucRoc(self,y_prob,y_score):
+        positive_label_probs = []
+        for val in y_prob:
+            positive_label_probs.append(val[self.posLabel])
+
+        y_test_roc_multi = []
+        for val in self.y_test:
+            if val != self.posLabel:
+                val = self.posLabel + 1
+                y_test_roc_multi.append(val)
+            else:
+                y_test_roc_multi.append(val)
+
+        y_score_roc_multi = []
+        for val in y_score:
+            if val != self.posLabel:
+                val = self.posLabel + 1
+                y_score_roc_multi.append(val)
+            else:
+                y_score_roc_multi.append(val)
+
+        roc_auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+        return roc_auc
 
 class SkleanrKFoldResult:
     """
