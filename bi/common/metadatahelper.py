@@ -177,6 +177,7 @@ class MetaDataHelper():
         df1 = df.select(column)
         st = time.time()
         col_stat = {}
+        chart_data = {}
         nullcnt = df1.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
         col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
         col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
@@ -238,13 +239,13 @@ class MetaDataHelper():
             levelCount = {}
             col_stat["LevelCount"] = levelCount
 
-        output[column] = []
+        output = []
         for k,v in col_stat.items():
             if k not in ["LevelCount","numberOfNotNulls"]:
-                output[column].append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
+                output.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
             else:
-                output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
-        output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
+                output.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+        output = sorted(output,key=lambda x:displayOrderDict[x["name"]])
         print "dimension stats for column "+column,time.time()-st
         return output, chart_data
 
@@ -633,7 +634,7 @@ class MetaDataHelper():
                             "max": 9, "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
         unprocessed_columns = []
         for column in td_columns:
-            print "column number in time dimesion string ", i
+            print "column number in time dimension string ", i
             i+=1
             df1 = df.select(column)
             col_stat = {}
