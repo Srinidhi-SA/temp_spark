@@ -337,7 +337,7 @@ class FeatureEngineeringHelper:
 
 
     def contains_word_helper(self, word):
-        return udf(lambda x:False if x.lower().find(word) == -1 else True)
+        return udf(lambda x:False if x==None or x.lower().find(word) == -1  else True)
 
 
     def contains_word(self, column_name, word):
