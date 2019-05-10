@@ -313,7 +313,7 @@ class FeatureEngineeringHelper:
 
 
     def label_encoding_column(self, column_name):
-        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_ed_label_encoded").fit(self._data_frame)]
+        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_ed_label_encoded",handleInvalid="keep").fit(self._data_frame)]
         pipeline = Pipeline(stages=indexers)
         self._data_frame = pipeline.fit(self._data_frame).transform(self._data_frame)
         return self._data_frame
@@ -330,7 +330,7 @@ class FeatureEngineeringHelper:
 
     def character_count_string(self, column_name):
         def character_count_string_helper():
-            return udf(lambda x:x.count("")-1)
+            return udf(lambda x:x.count("")-1 if x else 0)
         self._data_frame = self._data_frame.withColumn(column_name+"_character_count", character_count_string_helper()(col(column_name)))
         self._data_frame = self._data_frame.withColumn(column_name + "_character_count", self._data_frame[column_name + "_character_count"].cast('float'))
         return self._data_frame
@@ -372,6 +372,7 @@ class FeatureEngineeringHelper:
             self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
             self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since]))
             self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
+
         self._data_frame = self._data_frame.withColumn(col_for_time_since, to_timestamp(self._data_frame[col_for_time_since], "dd/MM/yyyy").alias(col_for_time_since))
         self._data_frame = self._data_frame.withColumn(col_for_time_since, F.from_unixtime(F.unix_timestamp(self._data_frame[col_for_time_since]), "dd/MM/yyyy").alias(col_for_time_since))
         return self._data_frame
