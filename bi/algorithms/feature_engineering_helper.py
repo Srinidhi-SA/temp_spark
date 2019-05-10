@@ -313,7 +313,7 @@ class FeatureEngineeringHelper:
 
 
     def label_encoding_column(self, column_name):
-        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_ed_label_encoded").fit(self._data_frame)]
+        indexers = [StringIndexer(inputCol=column_name, outputCol=column_name+"_ed_label_encoded",handleInvalid="keep").fit(self._data_frame)]
         pipeline = Pipeline(stages=indexers)
         self._data_frame = pipeline.fit(self._data_frame).transform(self._data_frame)
         return self._data_frame
@@ -330,7 +330,7 @@ class FeatureEngineeringHelper:
 
     def character_count_string(self, column_name):
         def character_count_string_helper():
-            return udf(lambda x:x.count("")-1)
+            return udf(lambda x:x.count("")-1 if x!=None else 0)
         self._data_frame = self._data_frame.withColumn(column_name+"_character_count", character_count_string_helper()(col(column_name)))
         self._data_frame = self._data_frame.withColumn(column_name + "_character_count", self._data_frame[column_name + "_character_count"].cast('float'))
         return self._data_frame
