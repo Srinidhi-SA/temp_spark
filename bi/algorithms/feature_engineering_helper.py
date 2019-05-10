@@ -47,7 +47,7 @@ class FeatureEngineeringHelper:
               for key in dict.keys():
                   if (x >= dict[key][0] and x <= dict[key][1]):
                       return key
-          return udf(lambda x: check_key(x,dict))
+          return udf(lambda x: check_key(x,dict) if x != None else "None")
 
 
 
@@ -111,7 +111,7 @@ class FeatureEngineeringHelper:
                         return key
                 else:
                     return x
-        return udf(lambda x: check_key(x,dict))
+        return udf(lambda x: check_key(x,dict) if x != None else "None")
 
 
     def create_new_levels_dimension(self, column_name, dict):
@@ -156,7 +156,7 @@ class FeatureEngineeringHelper:
             for key in dict.keys():
                 if (x >= dict[key][0] and x <= dict[key][1]):
                     return key
-        return udf(lambda x: check_key(x,dict))
+        return udf(lambda x: check_key(x,dict) if x != None else "None")
 
 
     def create_equal_sized_measure_bins(self, column_name,number_of_bins):
