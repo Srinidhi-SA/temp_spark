@@ -337,7 +337,7 @@ class FeatureEngineeringHelper:
 
 
     def contains_word_helper(self, word):
-        return udf(lambda x:False if x.lower().find(word) == -1 else True)
+        return udf(lambda x:False if x==None or x.lower().find(word) == -1  else True)
 
 
     def contains_word(self, column_name, word):
@@ -372,6 +372,7 @@ class FeatureEngineeringHelper:
             self._data_frame = self._data_frame.withColumn("TIME_SINCE_DATE(Timestamped)", to_timestamp(self._data_frame["TIME_SINCE_DATE"], "dd/MM/yyyy"))
             self._data_frame = self._data_frame.withColumn(col_for_time_since + "_time_since", datediff(self._data_frame["TIME_SINCE_DATE(Timestamped)"],self._data_frame[col_for_time_since]))
             self._data_frame = self._data_frame.drop("TIME_SINCE_DATE", "TIME_SINCE_DATE(Timestamped)")
+
         self._data_frame = self._data_frame.withColumn(col_for_time_since, to_timestamp(self._data_frame[col_for_time_since], "dd/MM/yyyy").alias(col_for_time_since))
         self._data_frame = self._data_frame.withColumn(col_for_time_since, F.from_unixtime(F.unix_timestamp(self._data_frame[col_for_time_since]), "dd/MM/yyyy").alias(col_for_time_since))
         return self._data_frame
