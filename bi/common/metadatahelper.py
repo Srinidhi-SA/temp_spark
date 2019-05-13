@@ -213,7 +213,7 @@ class MetaDataHelper():
             if round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3) <=90:
                 if level_count_flag:
                     fs1 = time.time()
-                    levelCount = {}
+                    col_stat["LevelCount"] = {}
                     # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
                     #     levelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
                     #     levelCount = {str(k):v for k,v in levelCount.items()}
@@ -233,20 +233,18 @@ class MetaDataHelper():
                     # levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20).toPandas().set_index(column).to_dict().values()[0]
                     # levelCount = {str(k):v for k,v in levelCount.items()}
                     # col_stat["LevelCount"] = levelCount
-                    levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20)
-                    levelCount = map(lambda row: row.asDict(), levelCount.collect())
-                    l = {}
-                    for level in levelCount:
-                        l[level[column]] = level['count']
-                    levelCount =  l
-                    col_stat["LevelCount"] = levelCount
-                    levelCountBig = df1.groupBy(column).count().sort(("count"))
+                    levelCountAll = df1.groupBy(column).count()
+                    # levelCount = map(lambda row: row.asDict(), levelCountAll.sort(desc("count")).collect())
+                    # l = {}
+                    for level in map(lambda row: row.asDict(), levelCountAll.collect()):
+                        col_stat["LevelCount"][level[column]] = level['count']
+                    # levelCount =  l
+                    # col_stat["LevelCount"] = levelCount
 
-                    col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
-                    levelCountBig = df1.groupBy(column).count().sort(desc("count"))
-                    col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    col_stat["MinLevel"] = levelCountAll.sort(("count")).select(column).rdd.take(1)[0][0]
+                    col_stat["MaxLevel"] = levelCountAll.sort(desc("count")).select(column).rdd.take(1)[0][0]
                     print "time for levelCount "+column,time.time()-fs1,"Seconds"
-                    dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
+                    dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in col_stat["LevelCount"].items()]
                     dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
                     dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
                     dimension_chart_obj.set_axes({"x":"name","y":"value"})
@@ -264,8 +262,7 @@ class MetaDataHelper():
                     chart_data[column] = {}
             else:
                 chart_data[column] = {}
-                levelCount = {}
-                col_stat["LevelCount"] = levelCount
+                col_stat["LevelCount"] = {}
 
             output[column] = []
             for k,v in col_stat.items():
@@ -276,6 +273,7 @@ class MetaDataHelper():
             output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
             ##output[column] = output[column]
             print "dimension stats for column "+column,time.time()-st
+            gc.collect()
         return output,chart_data
 
 

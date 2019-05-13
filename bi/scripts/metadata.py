@@ -123,10 +123,8 @@ class MetaDataScript:
         metaHelperInstance = MetaDataHelper(self._data_frame, self._total_rows)
         sampleData = metaHelperInstance.get_sample_data()
         sampleData = sampleData.toPandas()
-        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
         time_taken_sampling = time.time()-self._start_time
         self._completionStatus += self._scriptStages["sampling"]["weight"]
-        print "sampling takes",time_taken_sampling
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "sampling",\
                                     "info",\
@@ -145,7 +143,8 @@ class MetaDataScript:
         dateTimeSuggestions = {}
         for column in self._string_columns:
             if self._column_type_dict[column]["actual"] != "boolean":
-                uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(500).collect()
+                # uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(10).collect()
+                uniqueVals = sampleData[column].unique().tolist()
             else:
                 uniqueVals = []
             if len(uniqueVals) > 0:
@@ -153,6 +152,7 @@ class MetaDataScript:
             else:
                 dateColumnFormat = None
             if dateColumnFormat:
+                print "inside"
                 dateTimeSuggestions.update({column:dateColumnFormat})
                 data=ColumnData()
                 data.set_level_count_to_null()
@@ -161,6 +161,8 @@ class MetaDataScript:
                 data.set_abstract_datatype("datetime")
                 data.set_actual_datatype("datetime")
                 self._timestamp_string_columns.append(column)
+        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
+        print "sampling takes",time_taken_sampling
         self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
         self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
         self.update_column_type_dict()
@@ -206,7 +208,7 @@ class MetaDataScript:
         self._start_time = time.time()
         print "Count of Numeric columns",len(self._numeric_columns)
         measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
-
+        gc.collect()
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
         print "measure stats takes",time_taken_measurestats
@@ -225,7 +227,7 @@ class MetaDataScript:
         original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
         timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,original_timestamp_columns,level_count_flag=self._level_count_flag)
         timeDimensionColumnStat2,timeDimensionCharts2,unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,time_string_columns,level_count_flag=self._level_count_flag)
-
+        gc.collect()
         timeDimensionColumnStat.update(timeDimensionColumnStat2)
         timeDimensionCharts.update(timeDimensionCharts2)
         time_taken_tdstats = time.time()-self._start_time
@@ -241,6 +243,7 @@ class MetaDataScript:
 
         self._start_time = time.time()
         dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
+        gc.collect()
 
         # print dimensionColumnStat
         self._dataSize["dimensionLevelCountDict"] = {k:filter(lambda x:x["name"]=="numberOfUniqueValues",v)[0]["value"] for k,v in dimensionColumnStat.items()}
