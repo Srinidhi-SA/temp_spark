@@ -47,7 +47,7 @@ class FeatureEngineeringHelper:
               for key in dict.keys():
                   if (x >= dict[key][0] and x <= dict[key][1]):
                       return key
-          return udf(lambda x: check_key(x,dict))
+          return udf(lambda x: check_key(x,dict) if x != None else "None")
 
 
 
@@ -111,7 +111,7 @@ class FeatureEngineeringHelper:
                         return key
                 else:
                     return x
-        return udf(lambda x: check_key(x,dict))
+        return udf(lambda x: check_key(x,dict) if x != None else "None")
 
 
     def create_new_levels_dimension(self, column_name, dict):
@@ -156,7 +156,7 @@ class FeatureEngineeringHelper:
             for key in dict.keys():
                 if (x >= dict[key][0] and x <= dict[key][1]):
                     return key
-        return udf(lambda x: check_key(x,dict))
+        return udf(lambda x: check_key(x,dict) if x != None else "None")
 
 
     def create_equal_sized_measure_bins(self, column_name,number_of_bins):
@@ -201,12 +201,12 @@ class FeatureEngineeringHelper:
         if False:
             if value == "median":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
-                median_val = dp_helper_obj.get_median(column_name)
+                median_val = dp_helper_obj.get_median(self._data_frame, column_name)
                 replace_value = median_val
                 self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
             if value == "mode":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
-                mode_val = dp_helper_obj.get_mode(column_name)
+                mode_val = dp_helper_obj.get_mode(self._data_frame, column_name)
                 replace_value = mode_val
                 self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
             else:
@@ -215,12 +215,12 @@ class FeatureEngineeringHelper:
         else:
             if value == "median":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
-                median_val = dp_helper_obj.get_median(column_name)
+                median_val = dp_helper_obj.get_median(self._data_frame, column_name)
                 replace_value = median_val
                 self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_median", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
             elif value == "mode":
                 dp_helper_obj = DataPreprocessingHelper(self._data_frame)
-                mode_val = dp_helper_obj.get_mode(column_name)
+                mode_val = dp_helper_obj.get_mode(self._data_frame, column_name)
                 replace_value = mode_val
                 self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mode", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
             elif value == "mean":
@@ -337,7 +337,7 @@ class FeatureEngineeringHelper:
 
 
     def contains_word_helper(self, word):
-        return udf(lambda x:False if x==None or x.lower().find(word) == -1  else True)
+        return udf(lambda x:False if x == None or x.lower().find(word) == -1 else True)
 
 
     def contains_word(self, column_name, word):
