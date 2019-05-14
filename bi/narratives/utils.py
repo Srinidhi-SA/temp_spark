@@ -205,12 +205,12 @@ def get_rules_dictionary(rules):
                 key_measures[var] = {}
             key_measures[var]['lower_limit'] = limit
         elif ' not in ' in rx:
-            var,levels = re.split(' not in ',rx)
+            var,levels = re.split(' not in ',rx, 1)
             if not key_dimensions.has_key(var):
                 key_dimensions[var]={}
             key_dimensions[var]['not_in'] = str(levels).replace('(', '').replace(')','').split(',')
         elif ' in ' in rx:
-            var,levels = re.split(' in ',rx)
+            var,levels = re.split(' in ',rx, 1)
             if not key_dimensions.has_key(var):
                 key_dimensions[var]={}
             key_dimensions[var]['in'] = str(levels).replace('(', '').replace(')','').split(',')

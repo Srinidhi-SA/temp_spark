@@ -56,7 +56,7 @@ def load_dataset(spark,dataframe_context):
         df = df.dropna(how='all', thresh=None, subset=None)
 
     if df != None:
-        print "Dataset Loaded"
+        print "DATASET LOADED"
         print df.printSchema()
     else:
         print "DATASET NOT LOADED"
