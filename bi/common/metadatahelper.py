@@ -113,11 +113,12 @@ class MetaDataHelper():
         chart_data = C3ChartData(data=measure_chart_obj)
         return chart_data
 
-    def calculate_measure_column_stats_per_column(self, df, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict):
+    def calculate_measure_column_stats_per_column(self,df,column,summary_df,total_count,binned_stat_flag,displayNameDict,displayOrderDict):
         df1 = df.select(column)
         col_stat = dict(zip(summary_df["summary"],summary_df[column]))
         col_stat = self.calculate_measure_column_stats_col_stat(col_stat,df1,column,total_count)
         if round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) <=90:
+            print round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3)
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 col_stat["LevelCount"] = self.calculate_measure_column_stats_level(df1,column)
             if binned_stat_flag:
@@ -135,8 +136,8 @@ class MetaDataHelper():
         output = sorted(output,key=lambda x:displayOrderDict[x["name"]])
         return output,chart_data
 
-    def calculate_measure_column_stats(self, df, measure_columns, **kwargs):
-
+    def calculate_measure_column_stats(self,df,measure_columns,**kwargs):
+        i = 0
         binned_stat_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -167,88 +168,13 @@ class MetaDataHelper():
                             "percentOfNulls": 6}
 
         for column in measure_columns:
+            print "column number in measure ", i
+            i+=1
+            output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df,column,summary_df,total_count,binned_stat_flag,displayNameDict,displayOrderDict)
+        return output,chart_data
 
-            output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict)
-        return output, chart_data
-
-    def calculate_dimension_column_stats_per_column(self, df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict):
-        df1 = df.select(column)
-        st = time.time()
-        col_stat = {}
-        chart_data = {}
-        nullcnt = df1.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
-        col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
-        col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
-        col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-        col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-
-        if round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3) <=90:
-            if level_count_flag:
-                fs1 = time.time()
-                levelCount = {}
-                # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
-                #     levelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
-                #     levelCount = {str(k):v for k,v in levelCount.items()}
-                #     print "time for levelCount "+column,time.time()-fs1,"Seconds"
-                #     col_stat["LevelCount"] = levelCount
-                #     levelCountWithoutNull = levelCount
-                #     if None in levelCount:
-                #         levelCountWithoutNull.pop(None)
-                #     if levelCountWithoutNull != {}:
-                #         col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
-                #         col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
-                #     else:
-                #         col_stat["MaxLevel"] = None
-                #         col_stat["MinLevel"] = None
-                #
-                # else:
-                # levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20).toPandas().set_index(column).to_dict().values()[0]
-                # levelCount = {str(k):v for k,v in levelCount.items()}
-                # col_stat["LevelCount"] = levelCount
-                levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20)
-                levelCount = map(lambda row: row.asDict(), levelCount.collect())
-                l = {}
-                for level in levelCount:
-                    l[level[column]] = level['count']
-                levelCount =  l
-                col_stat["LevelCount"] = levelCount
-                levelCountBig = df1.groupBy(column).count().sort(("count"))
-                col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
-                levelCountBig = df1.groupBy(column).count().sort(desc("count"))
-                col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
-                print "time for levelCount "+column,time.time()-fs1,"Seconds"
-                dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
-                dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
-                dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
-                dimension_chart_obj.set_axes({"x":"name","y":"value"})
-                dimension_chart_obj.set_subchart(False)
-                dimension_chart_obj.set_hide_xtick(True)
-                dimension_chart_obj.set_show_legend(False)
-                chart_data[column] = C3ChartData(data=dimension_chart_obj)
-            else:
-                col_stat = dict(zip(summary_df["summary"],summary_df[column]))
-                col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
-                col_stat["numberOfUniqueValues"] = None
-                col_stat["MaxLevel"] = col_stat["max"]
-                col_stat["MinLevel"] = col_stat["min"]
-                chart_data[column] = {}
-        else:
-            chart_data[column] = {}
-            levelCount = {}
-            col_stat["LevelCount"] = levelCount
-
-        output = []
-        for k,v in col_stat.items():
-            if k not in ["LevelCount","numberOfNotNulls"]:
-                output.append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
-            else:
-                output.append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
-        output = sorted(output,key=lambda x:displayOrderDict[x["name"]])
-        print "dimension stats for column "+column,time.time()-st
-        return output, chart_data
-
-    def calculate_dimension_column_stats(self, df, dimension_columns, **kwargs):
-        
+    def calculate_dimension_column_stats(self,df,dimension_columns,**kwargs):
+        i = 0
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -260,6 +186,7 @@ class MetaDataHelper():
         output = {}
         chart_data = {}
         summary_df = df.describe().toPandas()
+        # print summary_df
         displayNameDict = {"count":"Count",
                             "numberOfNulls":"Null Values",
                             "numberOfUniqueValues":"Unique Values",
@@ -273,122 +200,99 @@ class MetaDataHelper():
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in dimension_columns:
+            print "column number in dimesion ", i
+            i+=1
+            df1 = df.select(column)
+            st = time.time()
+            col_stat = {}
+            nullcnt = df1.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
+            col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
+            col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
+            col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+            col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
+            if round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3) <=90:
+                if level_count_flag:
+                    fs1 = time.time()
+                    col_stat["LevelCount"] = {}
+                    # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
+                    #     levelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+                    #     levelCount = {str(k):v for k,v in levelCount.items()}
+                    #     print "time for levelCount "+column,time.time()-fs1,"Seconds"
+                    #     col_stat["LevelCount"] = levelCount
+                    #     levelCountWithoutNull = levelCount
+                    #     if None in levelCount:
+                    #         levelCountWithoutNull.pop(None)
+                    #     if levelCountWithoutNull != {}:
+                    #         col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
+                    #         col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
+                    #     else:
+                    #         col_stat["MaxLevel"] = None
+                    #         col_stat["MinLevel"] = None
+                    #
+                    # else:
+                    # levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20).toPandas().set_index(column).to_dict().values()[0]
+                    # levelCount = {str(k):v for k,v in levelCount.items()}
+                    # col_stat["LevelCount"] = levelCount
+                    levelCountAll = df1.groupBy(column).count()
+                    # levelCount = map(lambda row: row.asDict(), levelCountAll.sort(desc("count")).collect())
+                    # l = {}
+                    for level in map(lambda row: row.asDict(), levelCountAll.collect()):
+                        col_stat["LevelCount"][level[column]] = level['count']
+                    # levelCount =  l
+                    # col_stat["LevelCount"] = levelCount
 
-            output[column], chart_data[column] = self.calculate_dimension_column_stats_per_column(df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict)
-        return output, chart_data
-
-    def calculate_time_dimension_column_stats_per_column(self, df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict):
-        df1 = df.select(column)
-        col_stat = {}
-        nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
-        col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
-        col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-        col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0/ total_count), 3)) + "%"
-        col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-
-        if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <=80:
-            uniqueVals = df1.select(column).distinct().na.drop().limit(100).collect()
-            notNullDf = df1.select(column).distinct().na.drop()
-            notNullDf = notNullDf.orderBy([column],ascending=[True])
-            notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
-            id_max = notNullDf.select("_id_").rdd.max()[0]
-            first_date = notNullDf.select(column).first()[0]
-            first_date = pd.to_datetime(first_date).date()
-            try:
-                print "TRY BLOCK STARTED for column ", column
-                last_date = notNullDf.where(col("_id_") == id_max).select(column).first()[0]
-                last_date = pd.to_datetime(last_date).date()
-            except:
-                print "ENTERING EXCEPT BLOCK for column ", column
-                pandas_df = notNullDf.select(["_id_",column]).toPandas()
-                pandas_df.sort_values(by=column,ascending=True,inplace=True)
-                last_date = str(pandas_df[column].iloc[-1].date())
-            col_stat["firstDate"] = first_date
-            col_stat["lastDate"] = last_date
-            # col_stat["count"] = df.select(column).distinct().na.drop().count()
-            col_stat["count"] = notNullDf.count()
-            if level_count_flag:
-                # print "start level count"
-                fs1 = time.time()
-                levelCount = {}
-                # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
-                #     tdLevelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
-                #     levelCount = {}
-                #     for k,v in tdLevelCount.items():
-                #         if k != None:
-                #             levelCount[str(pd.to_datetime(k).date())] = v
-                #         else:
-                #             levelCount[k] = v
-                #     # print "time for levelCount ",time.time()-fs1,"Seconds"
-                #     col_stat["LevelCount"] = levelCount
-                #     if None in levelCount.keys():
-                #         col_stat["numberOfNulls"] = levelCount[None]
-                #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                #     else:
-                #         col_stat["numberOfNulls"] = 0
-                #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                #
-                #     col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
-                #     levelCountWithoutNull = levelCount
-                #     if None in levelCount:
-                #         levelCountWithoutNull.pop(None)
-                #     if levelCountWithoutNull != {}:
-                #         col_stat["MaxLevel"] = last_date
-                #         col_stat["MinLevel"] = first_date
-                #     else:
-                #         col_stat["MaxLevel"] = None
-                #         col_stat["MinLevel"] = None
-                # else:
-                levelCount = df1.groupBy(column).count().sort(desc("count")).limit(12).toPandas().set_index(column).to_dict().values()[0]
-                levelCount = {str(k):v for k,v in levelCount.items()}
-                col_stat["LevelCount"] = levelCount
-                levelCountBig = df1.groupBy(column).count().sort(("count"))
-                #col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
-                col_stat["MinLevel"]=first_date
-                levelCountBig = df1.groupBy(column).count().sort(desc("count"))
-                #col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
-                col_stat["MaxLevel"]=last_date
-
-                dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
-                dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
-                dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
-                dimension_chart_obj.set_axes({"x":"name","y":"value"})
-                dimension_chart_obj.set_subchart(False)
-                dimension_chart_obj.set_hide_xtick(True)
-                dimension_chart_obj.set_show_legend(False)
-                chart_data[column] = C3ChartData(data=dimension_chart_obj)
-
+                    col_stat["MinLevel"] = levelCountAll.sort(("count")).select(column).rdd.take(1)[0][0]
+                    col_stat["MaxLevel"] = levelCountAll.sort(desc("count")).select(column).rdd.take(1)[0][0]
+                    print "time for levelCount "+column,time.time()-fs1,"Seconds"
+                    dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in col_stat["LevelCount"].items()]
+                    dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
+                    dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
+                    dimension_chart_obj.set_axes({"x":"name","y":"value"})
+                    dimension_chart_obj.set_subchart(False)
+                    dimension_chart_obj.set_hide_xtick(True)
+                    dimension_chart_obj.set_show_legend(False)
+                    chart_data[column] = C3ChartData(data=dimension_chart_obj)
+                else:
+                    col_stat = dict(zip(summary_df["summary"],summary_df[column]))
+                    # print col_stat
+                    col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
+                    col_stat["numberOfUniqueValues"] = None
+                    col_stat["MaxLevel"] = col_stat["max"]
+                    col_stat["MinLevel"] = col_stat["min"]
+                    chart_data[column] = {}
             else:
-                col_stat["firstDate"] = first_date
-                col_stat["lastDate"] = last_date
-                # col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
-                # col_stat["numberOfNotNulls"] = int(col_stat["count"])
-                # col_stat["numberOfUniqueValues"] = None
                 chart_data[column] = {}
-        else:
-            chart_data[column] = {}
-        output[column] = []
-        for k,v in col_stat.items():
-            if k not in ["LevelCount","numberOfNotNulls","MaxLevel","MinLevel"]:
-                output[column].append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
-            else:
-                output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
-        output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
-        ##output[column] = output[column]
+                col_stat["LevelCount"] = {}
+
+            output[column] = []
+            for k,v in col_stat.items():
+                if k not in ["LevelCount","numberOfNotNulls"]:
+                    output[column].append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
+                else:
+                    output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+            output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
+            ##output[column] = output[column]
+            print "dimension stats for column "+column,time.time()-st
+            gc.collect()
         return output,chart_data
 
-    def calculate_time_dimension_column_stats(self, df, td_columns, **kwargs):
 
+    def calculate_time_dimension_column_stats(self,df,td_columns,**kwargs):
+        i = 0
+        # print(df.toPandas().head(),td_columns)
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
             xtraArgs[key] =  kwargs[key]
         if "level_count_flag" in xtraArgs:
             level_count_flag = xtraArgs[key]
+        # print level_count_flag
         df = df.select(td_columns)
         total_count = df.count()
         output = {}
         chart_data = {}
+        # summary_df = df.describe().toPandas()
+        # print summary_df
         displayNameDict = {"count":"Count",
                             "numberOfNulls":"Null Values",
                             "numberOfUniqueValues":"Unique Values",
@@ -404,8 +308,108 @@ class MetaDataHelper():
         displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 9, "MaxLevel": 10, "numberOfUniqueValues": 2,
                             "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in td_columns:
-            output[column], chart_data[column] = self.calculate_time_dimension_column_stats_per_column(df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict)
-        return output, chart_data
+            print "column number in time dimesion ", i
+            i+=1
+            df1 = df.select(column)
+            col_stat = {}
+            nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
+            col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
+            col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+            col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0/ total_count), 3)) + "%"
+            col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
+            if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <=80:
+                uniqueVals = df1.select(column).distinct().na.drop().limit(100).collect()
+                notNullDf = df1.select(column).distinct().na.drop()
+                notNullDf = notNullDf.orderBy([column],ascending=[True])
+                notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
+                id_max = notNullDf.select("_id_").rdd.max()[0]
+                first_date = notNullDf.select(column).first()[0]
+                first_date = pd.to_datetime(first_date).date()
+                try:
+                    print "TRY BLOCK STARTED for column ", column
+                    last_date = notNullDf.where(col("_id_") == id_max).select(column).first()[0]
+                    last_date = pd.to_datetime(last_date).date()
+                except:
+                    print "ENTERING EXCEPT BLOCK for column ", column
+                    pandas_df = notNullDf.select(["_id_",column]).toPandas()
+                    pandas_df.sort_values(by=column,ascending=True,inplace=True)
+                    last_date = str(pandas_df[column].iloc[-1].date())
+                col_stat["firstDate"] = first_date
+                col_stat["lastDate"] = last_date
+                # col_stat["count"] = df.select(column).distinct().na.drop().count()
+                col_stat["count"] = notNullDf.count()
+                if level_count_flag:
+                    # print "start level count"
+                    fs1 = time.time()
+                    levelCount = {}
+                    # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
+                    #     tdLevelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+                    #     levelCount = {}
+                    #     for k,v in tdLevelCount.items():
+                    #         if k != None:
+                    #             levelCount[str(pd.to_datetime(k).date())] = v
+                    #         else:
+                    #             levelCount[k] = v
+                    #     # print "time for levelCount ",time.time()-fs1,"Seconds"
+                    #     col_stat["LevelCount"] = levelCount
+                    #     if None in levelCount.keys():
+                    #         col_stat["numberOfNulls"] = levelCount[None]
+                    #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+                    #     else:
+                    #         col_stat["numberOfNulls"] = 0
+                    #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+                    #
+                    #     col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
+                    #     levelCountWithoutNull = levelCount
+                    #     if None in levelCount:
+                    #         levelCountWithoutNull.pop(None)
+                    #     if levelCountWithoutNull != {}:
+                    #         col_stat["MaxLevel"] = last_date
+                    #         col_stat["MinLevel"] = first_date
+                    #     else:
+                    #         col_stat["MaxLevel"] = None
+                    #         col_stat["MinLevel"] = None
+                    # else:
+                    levelCount = df1.groupBy(column).count().sort(desc("count")).limit(12).toPandas().set_index(column).to_dict().values()[0]
+                    levelCount = {str(k):v for k,v in levelCount.items()}
+                    col_stat["LevelCount"] = levelCount
+                    levelCountBig = df1.groupBy(column).count().sort(("count"))
+                    #col_stat["MinLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    col_stat["MinLevel"]=first_date
+                    levelCountBig = df1.groupBy(column).count().sort(desc("count"))
+                    #col_stat["MaxLevel"] = levelCountBig.select(column).rdd.take(1)[0][0]
+                    col_stat["MaxLevel"]=last_date
+
+
+                    dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
+                    dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
+                    dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
+                    dimension_chart_obj.set_axes({"x":"name","y":"value"})
+                    dimension_chart_obj.set_subchart(False)
+                    dimension_chart_obj.set_hide_xtick(True)
+                    dimension_chart_obj.set_show_legend(False)
+                    chart_data[column] = C3ChartData(data=dimension_chart_obj)
+
+                else:
+                    col_stat["firstDate"] = first_date
+                    col_stat["lastDate"] = last_date
+                    # col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
+                    # col_stat["numberOfNotNulls"] = int(col_stat["count"])
+                    # col_stat["numberOfUniqueValues"] = None
+                    chart_data[column] = {}
+
+            else:
+                chart_data[column] = {}
+            output[column] = []
+            for k,v in col_stat.items():
+                if k not in ["LevelCount","numberOfNotNulls","MaxLevel","MinLevel"]:
+                    output[column].append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
+                else:
+                    output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+            output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
+            ##output[column] = output[column]
+        return output,chart_data
+
 
     # def get_datetime_suggestions(self,df,col_name):
     #     output = {}
@@ -595,108 +599,8 @@ class MetaDataHelper():
                     dollar_columns.append(col)
         return dollar_columns
 
-
-    def calculate_time_dimension_column_stats_from_string_per_column(self, df, column, total_count, level_count_flag, displayNameDict, displayOrderDict, unprocessed_columns):
-        df1 = df.select(column)
-        col_stat = {}
-        chart_data = {}
-        output = {}
-        nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
-        col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
-        col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-        col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
-        col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-        try:
-            uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
-            date_format=metaHelperInstance.get_datetime_format(uniqueVals)
-            notNullDf = df1.select(column).distinct().na.drop()
-            func =  udf (lambda x: datetime.strptime(x, date_format), DateType())
-            notNullDf = notNullDf.withColumn("timestampCol", func(col(column)))
-            notNullDf = notNullDf.orderBy("timestampCol",ascending=[True])
-            notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
-            id_max=notNullDf.select("_id_").rdd.max()[0]
-            first_date = notNullDf.select("timestampCol").first()[0]
-            first_date = str(pd.to_datetime(first_date).date())
-            try:
-                print "TRY BLOCK STARTED for column ", column
-                last_date = str(notNullDf.where(col("_id_") == id_max).select("timestampCol").first()[0])
-            except:
-                print "ENTERING EXCEPT BLOCK for column ", column
-                pandas_df = notNullDf.select(["_id_",column]).toPandas()
-                pandas_df.sort_values(by=column,ascending=True,inplace=True)
-                last_date = str(pandas_df[column].iloc[-1].date())
-            col_stat["firstDate"] = first_date
-            col_stat["lastDate"] = last_date
-            col_stat["count"] = notNullDf.count()
-            if level_count_flag:
-                fs1 = time.time()
-                levelCount = {}
-                # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
-                #     tdLevelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
-                #     levelCount = {}
-                #     for k,v in tdLevelCount.items():
-                #         if k != None:
-                #             levelCount[str(pd.to_datetime(k).date())] = v
-                #         else:
-                #             levelCount[k] = v
-                #     col_stat["LevelCount"] = levelCount
-                #     if None in levelCount.keys():
-                #         col_stat["numberOfNulls"] = levelCount[None]
-                #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                #     else:
-                #         col_stat["numberOfNulls"] = 0
-                #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
-                #
-                #     col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count ), 3)) + "%"
-                #     levelCountWithoutNull = levelCount
-                #     if None in levelCount:
-                #         levelCountWithoutNull.pop(None)
-                #     if levelCountWithoutNull != {}:
-                #         col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
-                #         col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
-                #     else:
-                #         col_stat["MaxLevel"] = None
-                #         col_stat["MinLevel"] = None
-                # else:
-                levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20).toPandas().set_index(column).to_dict().values()[0]
-                levelCount = {str(k):v for k,v in levelCount.items()}
-                col_stat["LevelCount"] = levelCount
-                levelCountBig = df1.groupBy(column).count().sort(("count"))
-                col_stat["MinLevel"]=first_date
-                col_stat["MaxLevel"]=last_date
-                dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
-                dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
-                dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
-                dimension_chart_obj.set_axes({"x":"name","y":"value"})
-                dimension_chart_obj.set_subchart(False)
-                dimension_chart_obj.set_hide_xtick(True)
-                dimension_chart_obj.set_show_legend(False)
-                chart_data[column] = C3ChartData(data=dimension_chart_obj)
-            else:
-                col_stat["firstDate"] = first_date
-                col_stat["lastDate"] = last_date
-                # col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
-                # col_stat["numberOfNotNulls"] = int(col_stat["count"])
-                # col_stat["numberOfUniqueValues"] = None
-                chart_data[column] = {}
-        except:
-            print "could not process column: ",column
-            unprocessed_columns.append(column)
-            chart_data[column] = {}
-
-        output[column] = []
-        for k,v in col_stat.items():
-            if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls","MaxLevel","MinLevel"]:
-                output[column].append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
-            else:
-                output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
-        output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
-        return output, chart_data, unprocessed_columns
-
-
-
-    def calculate_time_dimension_column_stats_from_string(self, df, td_columns,**kwargs):
-
+    def calculate_time_dimension_column_stats_from_string(self,df,td_columns,**kwargs):
+        i = 0
         metaHelperInstance = MetaDataHelper(df, df.count())
         level_count_flag = True
         xtraArgs = {}
@@ -729,7 +633,104 @@ class MetaDataHelper():
                             "max": 9, "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
         unprocessed_columns = []
         for column in td_columns:
-            print "column number in time dimension string ", i
+            print "column number in time dimesion string ", i
             i+=1
-            output, chart_data, unprocessed_columns = self.calculate_time_dimension_column_stats_from_string_per_column(df, column, total_count, level_count_flag, displayNameDict, displayOrderDict, unprocessed_columns)
+            df1 = df.select(column)
+            col_stat = {}
+            nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
+            col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
+            col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+            col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count), 3)) + "%"
+            col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
+            try:
+
+                uniqueVals = df1.select(column).distinct().na.drop().limit(1000).collect()
+                date_format=metaHelperInstance.get_datetime_format(uniqueVals)
+
+                notNullDf = df1.select(column).distinct().na.drop()
+                func =  udf (lambda x: datetime.strptime(x, date_format), DateType())
+                notNullDf = notNullDf.withColumn("timestampCol", func(col(column)))
+                notNullDf = notNullDf.orderBy("timestampCol",ascending=[True])
+                notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
+                id_max=notNullDf.select("_id_").rdd.max()[0]
+                first_date = notNullDf.select("timestampCol").first()[0]
+                first_date = str(pd.to_datetime(first_date).date())
+                try:
+                    print "TRY BLOCK STARTED for column ", column
+                    last_date = str(notNullDf.where(col("_id_") == id_max).select("timestampCol").first()[0])
+                except:
+                    print "ENTERING EXCEPT BLOCK for column ", column
+                    pandas_df = notNullDf.select(["_id_",column]).toPandas()
+                    pandas_df.sort_values(by=column,ascending=True,inplace=True)
+                    last_date = str(pandas_df[column].iloc[-1].date())
+                col_stat["firstDate"] = first_date
+                col_stat["lastDate"] = last_date
+                col_stat["count"] = notNullDf.count()
+                if level_count_flag:
+                    fs1 = time.time()
+                    levelCount = {}
+                    # if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
+                    #     tdLevelCount = df1.groupBy(column).count().toPandas().set_index(column).to_dict().values()[0]
+                    #     levelCount = {}
+                    #     for k,v in tdLevelCount.items():
+                    #         if k != None:
+                    #             levelCount[str(pd.to_datetime(k).date())] = v
+                    #         else:
+                    #             levelCount[k] = v
+                    #     col_stat["LevelCount"] = levelCount
+                    #     if None in levelCount.keys():
+                    #         col_stat["numberOfNulls"] = levelCount[None]
+                    #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+                    #     else:
+                    #         col_stat["numberOfNulls"] = 0
+                    #         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
+                    #
+                    #     col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]*100.0 / total_count ), 3)) + "%"
+                    #     levelCountWithoutNull = levelCount
+                    #     if None in levelCount:
+                    #         levelCountWithoutNull.pop(None)
+                    #     if levelCountWithoutNull != {}:
+                    #         col_stat["MaxLevel"] = max(levelCountWithoutNull,key=levelCount.get)
+                    #         col_stat["MinLevel"] = min(levelCountWithoutNull,key=levelCount.get)
+                    #     else:
+                    #         col_stat["MaxLevel"] = None
+                    #         col_stat["MinLevel"] = None
+                    # else:
+                    levelCount = df1.groupBy(column).count().sort(desc("count")).limit(20).toPandas().set_index(column).to_dict().values()[0]
+                    levelCount = {str(k):v for k,v in levelCount.items()}
+                    col_stat["LevelCount"] = levelCount
+                    levelCountBig = df1.groupBy(column).count().sort(("count"))
+                    col_stat["MinLevel"]=first_date
+                    col_stat["MaxLevel"]=last_date
+
+                    dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in levelCount.items()]
+                    dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
+                    dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
+                    dimension_chart_obj.set_axes({"x":"name","y":"value"})
+                    dimension_chart_obj.set_subchart(False)
+                    dimension_chart_obj.set_hide_xtick(True)
+                    dimension_chart_obj.set_show_legend(False)
+                    chart_data[column] = C3ChartData(data=dimension_chart_obj)
+
+                else:
+                    col_stat["firstDate"] = first_date
+                    col_stat["lastDate"] = last_date
+                    # col_stat["numberOfNulls"] = total_count - int(col_stat["count"])
+                    # col_stat["numberOfNotNulls"] = int(col_stat["count"])
+                    # col_stat["numberOfUniqueValues"] = None
+                    chart_data[column] = {}
+
+            except:
+                print "could not process column: ",column
+                unprocessed_columns.append(column)
+                chart_data[column] = {}
+
+            output[column] = []
+            for k,v in col_stat.items():
+                if k not in ["LevelCount","min","max","mean","stddev","numberOfNotNulls","MaxLevel","MinLevel"]:
+                    output[column].append({"name":k,"value":v,"display":True,"displayName":displayNameDict[k]})
+                else:
+                    output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
+            output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
+            #output[column] = output[column]
         return output,chart_data,unprocessed_columns
