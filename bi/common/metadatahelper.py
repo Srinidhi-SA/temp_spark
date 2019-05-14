@@ -136,7 +136,7 @@ class MetaDataHelper():
         return output,chart_data
 
     def calculate_measure_column_stats(self, df, measure_columns, **kwargs):
-        i = 0
+
         binned_stat_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -167,7 +167,7 @@ class MetaDataHelper():
                             "percentOfNulls": 6}
 
         for column in measure_columns:
-            i+=1
+
             output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict)
         return output, chart_data
 
@@ -248,7 +248,7 @@ class MetaDataHelper():
         return output, chart_data
 
     def calculate_dimension_column_stats(self, df, dimension_columns, **kwargs):
-        i = 0
+        
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -273,8 +273,7 @@ class MetaDataHelper():
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in dimension_columns:
-            print "column number in dimension ", i
-            i+=1
+
             output[column], chart_data[column] = self.calculate_dimension_column_stats_per_column(df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict)
         return output, chart_data
 
@@ -379,7 +378,7 @@ class MetaDataHelper():
         return output,chart_data
 
     def calculate_time_dimension_column_stats(self, df, td_columns, **kwargs):
-        i = 0
+
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -405,8 +404,6 @@ class MetaDataHelper():
         displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 9, "MaxLevel": 10, "numberOfUniqueValues": 2,
                             "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in td_columns:
-            print "column number in time dimension ", i
-            i+=1
             output[column], chart_data[column] = self.calculate_time_dimension_column_stats_per_column(df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict)
         return output, chart_data
 
@@ -699,7 +696,7 @@ class MetaDataHelper():
 
 
     def calculate_time_dimension_column_stats_from_string(self, df, td_columns,**kwargs):
-        i = 0
+
         metaHelperInstance = MetaDataHelper(df, df.count())
         level_count_flag = True
         xtraArgs = {}
