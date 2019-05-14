@@ -16,9 +16,10 @@ class FeatureEngineering:
         print "Performing Feature Engineering Operations"
         feature_engineering_helper_obj = FeatureEngineeringHelper(self._df)
         feature_engineering_helper_obj.consider_columns=self.consider_columns
+        columns_to_be_considered_for_binning=self.consider_columns
         for settings in self._featureEngineeringDict['overall_settings']:
             if settings['name'] == "binning_all_measures" and settings['selected'] == True:
-                self._df = feature_engineering_helper_obj.binning_all_measures(settings['number_of_bins'])
+                self._df = feature_engineering_helper_obj.binning_all_measures(settings['number_of_bins'],columns_to_be_considered_for_binning)
 
         for key in self._featureEngineeringDict['column_wise_settings'].keys():
             if self._featureEngineeringDict['column_wise_settings'][key]['selected']:

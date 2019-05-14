@@ -118,7 +118,6 @@ class MetaDataHelper():
         col_stat = dict(zip(summary_df["summary"],summary_df[column]))
         col_stat = self.calculate_measure_column_stats_col_stat(col_stat,df1,column,total_count)
         if round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) <=90:
-            print round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3)
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 col_stat["LevelCount"] = self.calculate_measure_column_stats_level(df1,column)
             if binned_stat_flag:
@@ -168,7 +167,6 @@ class MetaDataHelper():
                             "percentOfNulls": 6}
 
         for column in measure_columns:
-            print "column number in measure ", i
             i+=1
             output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict)
         return output, chart_data

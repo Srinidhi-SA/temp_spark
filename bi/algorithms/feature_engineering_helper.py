@@ -31,13 +31,14 @@ class FeatureEngineeringHelper:
 
         # self._dataframe_helper = dataframe_helper
 
-    def binning_all_measures(self,number_of_bins):
+    def binning_all_measures(self,number_of_bins,consider_cols):
         dfSchemaFields = self._data_frame.schema.fields
         numeric_columns = []
+        cols_to_be_binned=[x[:-4] for x in consider_cols if x[-4:]=="_bin"]
         for field in dfSchemaFields:
             if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
                 numeric_columns.append(field.name)
-        for column_name in numeric_columns:
+        for column_name in numeric_columns and cols_to_be_binned:
             self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
         return self._data_frame
 

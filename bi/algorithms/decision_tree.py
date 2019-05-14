@@ -30,10 +30,10 @@ class DecisionTrees:
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._analysisDict = self._dataframe_context.get_analysis_dict()
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
-        if self._analysisDict:
-            for m in self._measure_columns:
-                if data_frame.select(F.countDistinct(m)).collect()[0][0]<self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
-                    self._measure_columns.remove(m)
+        # if self._analysisDict:
+        #     for m in self._measure_columns:
+        #         if data_frame.select(F.countDistinct(m)).collect()[0][0]<self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
+        #             self._measure_columns.remove(m)
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._date_columns = self._dataframe_context.get_date_columns()
         self._uid_col = self._dataframe_context.get_uid_column()
