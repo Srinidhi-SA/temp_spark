@@ -273,7 +273,7 @@ class MetaDataHelper():
 
 
     def calculate_time_dimension_column_stats(self,df,td_columns,**kwargs):
-        
+
         # print(df.toPandas().head(),td_columns)
         level_count_flag = True
         xtraArgs = {}
@@ -303,8 +303,6 @@ class MetaDataHelper():
         displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 9, "MaxLevel": 10, "numberOfUniqueValues": 2,
                             "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in td_columns:
-            print "column number in time dimesion ", i
-            i+=1
             df1 = df.select(column)
             col_stat = {}
             nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))

@@ -152,7 +152,6 @@ class MetaDataScript:
             else:
                 dateColumnFormat = None
             if dateColumnFormat:
-                print "inside"
                 dateTimeSuggestions.update({column:dateColumnFormat})
                 data=ColumnData()
                 data.set_level_count_to_null()
