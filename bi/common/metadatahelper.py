@@ -118,7 +118,6 @@ class MetaDataHelper():
         col_stat = dict(zip(summary_df["summary"],summary_df[column]))
         col_stat = self.calculate_measure_column_stats_col_stat(col_stat,df1,column,total_count)
         if round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3) <=90:
-            print round((col_stat["numberOfNulls"]*100.0 / (total_count)), 3)
             if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION:
                 col_stat["LevelCount"] = self.calculate_measure_column_stats_level(df1,column)
             if binned_stat_flag:
@@ -137,7 +136,7 @@ class MetaDataHelper():
         return output,chart_data
 
     def calculate_measure_column_stats(self,df,measure_columns,**kwargs):
-        i = 0
+
         binned_stat_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -168,13 +167,11 @@ class MetaDataHelper():
                             "percentOfNulls": 6}
 
         for column in measure_columns:
-            print "column number in measure ", i
-            i+=1
             output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df,column,summary_df,total_count,binned_stat_flag,displayNameDict,displayOrderDict)
         return output,chart_data
 
     def calculate_dimension_column_stats(self,df,dimension_columns,**kwargs):
-        i = 0
+
         level_count_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -200,8 +197,6 @@ class MetaDataHelper():
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
         for column in dimension_columns:
-            print "column number in dimesion ", i
-            i+=1
             df1 = df.select(column)
             st = time.time()
             col_stat = {}
@@ -278,7 +273,7 @@ class MetaDataHelper():
 
 
     def calculate_time_dimension_column_stats(self,df,td_columns,**kwargs):
-        i = 0
+        
         # print(df.toPandas().head(),td_columns)
         level_count_flag = True
         xtraArgs = {}
@@ -638,8 +633,6 @@ class MetaDataHelper():
                             "max": 9, "stddev": 10, "mean": 11, "LevelCount": 12, "percentOfNulls": 4}
         unprocessed_columns = []
         for column in td_columns:
-            print "column number in time dimesion string ", i
-            i+=1
             df1 = df.select(column)
             col_stat = {}
             nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
