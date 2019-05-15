@@ -460,21 +460,23 @@ class MetaDataHelper():
         #         pass
         formats = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
         dual_checks = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["dual_checks"]
-        if columnVector[0] == None:
-            x = columnVector[1][0]
+        if columnVector[0] == None and  len(columnVector)>1:
+            x = columnVector[1]
         else:
-            x = columnVector[0][0]
+            return detectedFormat
         for format1 in formats:
             try:
                 t = datetime.strptime(x,format1)
                 if (format1 in dual_checks):
                     for x1 in columnVector:
-                        x = x1[0]
-                        try:
-                            t = datetime.strptime(x,format1)
-                        except ValueError as err:
-                            format1 = '%d'+format1[2]+'%m'+format1[5:]
-                            break
+                        if x1 == None:
+                            try:
+                                t = datetime.strptime(x,format1)
+                            except ValueError as err:
+                                format1 = '%d'+format1[2]+'%m'+format1[5:]
+                                break
+                        else:
+                            pass
                 detectedFormat = format1
                 break
             except ValueError as err:
