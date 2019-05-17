@@ -225,7 +225,20 @@ class MetaDataScript:
         # time_columns=self._timestamp_columns
         # time_string_columns=self._timestamp_string_columns
         # original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
-        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        timeDimensionColumnStat,timeDimensionCharts, unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        self._string_columns = self._string_columns + unprocessed_columns
+        self._timestamp_columns = list(set(self._timestamp_columns) - set(unprocessed_columns))
+        for column in unprocessed_columns:
+
+                # dateTimeSuggestions.update({column:dateColumnFormat})
+                data=ColumnData()
+                data.set_level_count_to_null()
+                data.set_chart_data_to_null()
+                data.set_date_suggestion_flag(False)
+                data.set_abstract_datatype("dimension")
+                data.set_actual_datatype("dimension")
+        self.update_column_type_dict()
+
         # timeDimensionColumnStat2,timeDimensionCharts2,unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,self._timestamp_string_columns,level_count_flag=self._level_count_flag)
         # gc.collect()
         # timeDimensionColumnStat.update(timeDimensionColumnStat2)

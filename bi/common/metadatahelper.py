@@ -313,7 +313,7 @@ class MetaDataHelper():
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
             try:
                 if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <=90:
-                    uniqueVals = df1.select(column).distinct().na.drop().limit(100).collect()
+                    uniqueVals = df1.select(column).distinct().na.drop().collect()
                     notNullDf = df1.select(column).distinct().na.drop()
                     notNullDf = notNullDf.orderBy([column],ascending=[True])
                     notNullDf = notNullDf.withColumn("_id_", monotonically_increasing_id())
@@ -408,7 +408,7 @@ class MetaDataHelper():
                     output[column].append({"name":k,"value":v,"display":False,"displayName":displayNameDict[k]})
             output[column] = sorted(output[column],key=lambda x:displayOrderDict[x["name"]])
             ##output[column] = output[column]
-        return output,chart_data
+        return output,chart_data, unprocessed_columns
 
 
     # def get_datetime_suggestions(self,df,col_name):
