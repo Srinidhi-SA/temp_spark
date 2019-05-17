@@ -15,7 +15,7 @@ class DataLoader:
     @accepts(SparkSession, basestring, has_header=bool, interpret_data_schema=bool)
     def load_csv_file(spark_session, csv_file_path, has_header=True, interpret_data_schema=True):
         return spark_session.read.csv(csv_file_path, header=has_header, inferSchema=interpret_data_schema, escape='"',
-                                      multiLine=True, ignoreTrailingWhiteSpace=True, nullValue=None and 'na')
+                                      multiLine=True, ignoreTrailingWhiteSpace=True, nullValue=None and 'na' and 'nan')
 
     @staticmethod
     @accepts(SparkSession, basestring, dict)
@@ -169,7 +169,7 @@ class DataLoader:
 
         try:
 	    if df is None:
-            	df = spark_session.read.csv('/tmp/'+dst_file_name,header=True, inferSchema=True ) 
+            	df = spark_session.read.csv('/tmp/'+dst_file_name,header=True, inferSchema=True )
         except Exception as e:
             print(e)
 

@@ -163,6 +163,7 @@ class MetaDataScript:
         sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
         print "sampling takes",time_taken_sampling
         self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
+
         self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
         self.update_column_type_dict()
 
@@ -218,17 +219,17 @@ class MetaDataScript:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
-        print "Count of DateTime columns",len(self._timestamp_columns) + len(self._timestamp_string_columns)
+        print "Count of DateTime columns",len(self._timestamp_columns)
 
         self._start_time = time.time()
-        time_columns=self._timestamp_columns
-        time_string_columns=self._timestamp_string_columns
-        original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
-        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,original_timestamp_columns,level_count_flag=self._level_count_flag)
-        timeDimensionColumnStat2,timeDimensionCharts2,unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,time_string_columns,level_count_flag=self._level_count_flag)
-        gc.collect()
-        timeDimensionColumnStat.update(timeDimensionColumnStat2)
-        timeDimensionCharts.update(timeDimensionCharts2)
+        # time_columns=self._timestamp_columns
+        # time_string_columns=self._timestamp_string_columns
+        # original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
+        timeDimensionColumnStat,timeDimensionCharts = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        # timeDimensionColumnStat2,timeDimensionCharts2,unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,self._timestamp_string_columns,level_count_flag=self._level_count_flag)
+        # gc.collect()
+        # timeDimensionColumnStat.update(timeDimensionColumnStat2)
+        # timeDimensionCharts.update(timeDimensionCharts2)
         time_taken_tdstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["timedimensionstats"]["weight"]
         print "time dimension stats takes",time_taken_tdstats
