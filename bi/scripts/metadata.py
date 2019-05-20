@@ -165,7 +165,7 @@ class MetaDataScript:
         self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
 
         self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
-        self.update_column_type_dict()
+        # self.update_column_type_dict()
 
         print "time taken for separating date columns from string is :", time.time()-separation_time
 
@@ -182,6 +182,35 @@ class MetaDataScript:
         #     self._numeric_columns = self._numeric_columns + self._dollar_columns
         #     self._string_columns = list(set(self._string_columns)-set(self._dollar_columns))
         #     self.update_column_type_dict()
+
+
+        columnData = []
+        headers = []
+
+        self._start_time = time.time()
+        print "Count of Numeric columns",len(self._numeric_columns)
+        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
+        time_taken_measurestats = time.time()-self._start_time
+        self._completionStatus += self._scriptStages["measurestats"]["weight"]
+        print "measure stats takes",time_taken_measurestats
+        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
+                                    "measurestats",\
+                                    "info",\
+                                    self._scriptStages["measurestats"]["summary"],\
+                                    self._completionStatus,\
+                                    self._completionStatus)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
+        print "Count of DateTime columns",len(self._timestamp_columns)
+
+        self._start_time = time.time()
+        # time_columns=self._timestamp_columns
+        # time_string_columns=self._timestamp_string_columns
+        # original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
+        timeDimensionColumnStat,timeDimensionCharts, unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        self._string_columns = self._string_columns + unprocessed_columns
+        self._timestamp_columns = list(set(self._timestamp_columns) - set(unprocessed_columns))
+        self.update_column_type_dict()
+
 
         if len(self._numeric_columns) > 1:
             # print "self._numeric_columns : ", self._numeric_columns
@@ -202,42 +231,6 @@ class MetaDataScript:
         metaData.append(MetaData(name="timeDimensionColumns",value = self._timestamp_columns,display=False))
         # metaData.append(MetaData(name="percentageColumns",value = self._percentage_columns,display=False))
         # metaData.append(MetaData(name="dollarColumns",value = self._dollar_columns,display=False))
-        columnData = []
-        headers = []
-
-        self._start_time = time.time()
-        print "Count of Numeric columns",len(self._numeric_columns)
-        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
-        gc.collect()
-        time_taken_measurestats = time.time()-self._start_time
-        self._completionStatus += self._scriptStages["measurestats"]["weight"]
-        print "measure stats takes",time_taken_measurestats
-        progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
-                                    "measurestats",\
-                                    "info",\
-                                    self._scriptStages["measurestats"]["summary"],\
-                                    self._completionStatus,\
-                                    self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
-        print "Count of DateTime columns",len(self._timestamp_columns)
-
-        self._start_time = time.time()
-        # time_columns=self._timestamp_columns
-        # time_string_columns=self._timestamp_string_columns
-        # original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
-        timeDimensionColumnStat,timeDimensionCharts, unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
-        self._string_columns = self._string_columns + unprocessed_columns
-        self._timestamp_columns = list(set(self._timestamp_columns) - set(unprocessed_columns))
-        for column in unprocessed_columns:
-
-                # dateTimeSuggestions.update({column:dateColumnFormat})
-                data=ColumnData()
-                data.set_level_count_to_null()
-                data.set_chart_data_to_null()
-                data.set_date_suggestion_flag(False)
-                data.set_abstract_datatype("dimension")
-                data.set_actual_datatype("dimension")
-        self.update_column_type_dict()
 
         # timeDimensionColumnStat2,timeDimensionCharts2,unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats_from_string(self._data_frame,self._timestamp_string_columns,level_count_flag=self._level_count_flag)
         # gc.collect()
