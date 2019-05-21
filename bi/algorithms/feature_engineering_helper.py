@@ -14,7 +14,7 @@ from scipy import linspace
 #from pyspark.sql.functions import *
 from bi.common.column import ColumnType
 from bi.common import MetaDataHelper
-
+from bi.settings import setting as GLOBALSETTINGS
 
 
 from data_preprocessing_helper import DataPreprocessingHelper
@@ -33,7 +33,7 @@ class FeatureEngineeringHelper:
 
     def to_date_(self,col, formats=GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["pyspark_formats"]):
         # Spark 2.2 or later syntax, for < 2.2 use unix_timestamp and cast
-        return coalesce(*[to_date(col, f) for f in formats])
+        return F.coalesce(*[to_date(col, f) for f in formats])
 
     def binning_all_measures(self,number_of_bins,consider_cols):
         dfSchemaFields = self._data_frame.schema.fields
