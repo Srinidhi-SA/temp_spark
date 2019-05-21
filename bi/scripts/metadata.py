@@ -5,6 +5,10 @@ from bi.common import ColumnType
 from bi.common import MetaDataHelper
 from bi.common import utils as CommonUtils
 from bi.common.results import DfMetaData, MetaData, ColumnData, ColumnHeader
+from bi.settings import setting as GLOBALSETTINGS
+
+from pyspark.sql.functions import coalesce, to_date
+from pyspark.sql.functions import date_format
 
 
 class MetaDataScript:
@@ -117,6 +121,9 @@ class MetaDataScript:
         self._dataSize["nTimeDimensions"] = len(self._timestamp_columns)
         self._dataSize["nBooleans"] = len(self._boolean_columns)
 
+    def to_date_(self,col, formats=GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["pyspark_formats"]):
+        # Spark 2.2 or later syntax, for < 2.2 use unix_timestamp and cast
+        return coalesce(*[to_date(col, f) for f in formats])
 
     def run(self):
         self._start_time = time.time()
@@ -141,16 +148,18 @@ class MetaDataScript:
         self._timestamp_string_columns=[]
         uniqueVals = []
         dateTimeSuggestions = {}
+
         for column in self._string_columns:
             if self._column_type_dict[column]["actual"] != "boolean":
                 # uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(10).collect()
                 uniqueVals = sampleData[column].unique().tolist()
             else:
                 uniqueVals = []
-            if len(uniqueVals) > 0:
+            if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
                 dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
             else:
                 dateColumnFormat = None
+
             if dateColumnFormat:
                 dateTimeSuggestions.update({column:dateColumnFormat})
                 data=ColumnData()
@@ -160,6 +169,7 @@ class MetaDataScript:
                 data.set_abstract_datatype("datetime")
                 data.set_actual_datatype("datetime")
                 self._timestamp_string_columns.append(column)
+                self._data_frame = self._data_frame.withColumn(column, self.to_date_(column))
         sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
         print "sampling takes",time_taken_sampling
         self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))

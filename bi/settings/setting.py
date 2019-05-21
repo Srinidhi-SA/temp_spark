@@ -233,7 +233,7 @@ subsettingScriptWeight = {
 SUPPORTED_DATETIME_FORMATS = {
             "formats": (
                     '%m/%d/%Y %H:%M', '%d/%m/%Y %H:%M', '%m/%d/%y %H:%M', '%d/%m/%y %H:%M',
-                    '%m-%d-%Y %H:%M', '%d-%m-%Y %H:%M', '%m-%d-%y %H:%M', '%d-%m-%y %H:%M',
+                    '%d-%m-%Y %H:%M', '%m-%d-%Y %H:%M',  '%m-%d-%y %H:%M', '%d-%m-%y %H:%M',
                     '%b/%d/%Y %H:%M', '%d/%b/%Y %H:%M', '%b/%d/%y %H:%M', '%d/%b/%y %H:%M',
                     '%b-%d-%Y %H:%M', '%d-%b-%Y %H:%M', '%b-%d-%y %H:%M', '%d-%b-%y %H:%M',
                     '%B/%d/%Y %H:%M', '%d/%B/%Y %H:%M', '%B/%d/%y %H:%M', '%d/%B/%y %H:%M',
@@ -266,5 +266,28 @@ SUPPORTED_DATETIME_FORMATS = {
                     '%m-%d-%Y %r', '%m-%d-%Y %R', '%m-%d-%y %r','%m-%d-%y %R',
                     '%m/%d/%Y %r', '%m/%d/%Y %R', '%m/%d/%y %r', '%m/%d/%y %R',
                     '%m/%d/%Y', '%m/%d/%y', '%m-%d-%Y', '%m-%d-%y',
-                    '%m.%d.%Y', '%m.%d.%y', '%m - %d - %Y','%m - %d - %y')
+                    '%m.%d.%Y', '%m.%d.%y', '%m - %d - %Y','%m - %d - %y'),
+            "pyspark_formats": (
+          'MM/dd/yyyy HH:mm', 'dd/MM/yyyy HH:mm', 'MM/dd/yy HH:mm', 'dd/MM/yy HH:mm',
+          'MM-dd-yyyy HH:mm', 'dd-MM-yyyy HH:mm', 'MM-dd-yy HH:mm','MM-dd-yy HH:mm:ss', 'dd-MM-yy HH:mm',
+          'MMM/dd/yyyy HH:mm', 'dd/MMM/yyyy HH:mm', 'MMM/dd/yy HH:mm', 'dd/MMM/yy HH:mm',
+          'MMM-dd-yyyy HH:mm', 'dd-MMM-yyyy HH:mm', 'MMM-dd-yy HH:mm', 'dd-MMM-yy HH:mm',
+          'MMMM/dd/yyyy HH:mm', 'dd/MMMM/yyyy HH:mm', 'MMMM/dd/yy HH:mm', 'dd/MMMM/yy HH:mm',
+          'MMMM-dd-yyyy HH:mm', 'dd-MMMM-yyyy HH:mm', 'MMMM-dd-yy HH:mm', 'dd-MMMM-yy HH:mm',
+          'yyyy-MM-dd HH:mm', 'yyyy/MM/dd HH:mm', 'yyyy-MMM-dd HH:mm', 'yyyy-MMMM-dd HH:mm',
+          'dd MMMM yyyy', 'dd MMMM yy', 'dd MMM yy', 'dd MMM yyyy',
+          'MM/dd/yyyy', 'dd/MM/yyyy', 'MM/dd/yy', 'dd/MM/yy',
+          'MM-dd-yyyy', 'dd-MM-yyyy', 'MM-dd-yy', 'dd-MM-yy',
+          'MMM/dd/yyyy', 'dd/MMM/yyyy', 'MMM/dd/yy', 'dd/MMM/yy',
+          'MMM-dd-yyyy', 'dd-MMM-yyyy', 'MMM-dd-yy', 'dd-MMM-yy',
+          'MMMM/dd/yyyy', 'dd/MMMM/yyyy', 'MMMM/dd/yy', 'dd/MMMM/yy',
+          'MMMM-dd-yyyy', 'dd-MMMM-yyyy', 'MMMM-dd-yy', 'dd-MMMM-yy',
+          'yyyy-MM-dd', 'yyyy/MM/dd', 'yyyy-MMM-dd', 'yyyy-MMMM-dd',
+          'MMM dd, yyyy', 'MMMM dd, yyyy', 'MMMM dd yyyy', 'MM/dd/yyyy',
+          'dd MMMM, yyyy', 'dd MMMM, yy', 'dd MMM, yyyy', 'dd MMM, yy',
+          'MM/dd/yy', 'MMM yyyy', 'MMMM yy', 'MM/yy', 'MM/yyyy',
+          'MMMMyyyy', 'MMM dd,yyyy', 'MM.dd.yyyy', 'MM.dd.yy', 'MMM/yy',
+          'MM - dd - yyyy', 'MM - dd - yy', 'MMMM dd, yy', 'MMM dd, yy',
+          'dd-MMMM', 'dd-MMM', 'MMM,yy', 'MMMM,yy', 'MMM,yyyy', 'MMMM,yyyy',
+          'MMM yyyy', 'MMM yy', 'MMMM yyyy', 'MMMM yy', 'MMM-yy', 'MMM/yyyy', 'MMM-yyyy')
                     }
