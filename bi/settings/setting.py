@@ -268,16 +268,16 @@ SUPPORTED_DATETIME_FORMATS = {
                     '%m/%d/%Y', '%m/%d/%y', '%m-%d-%Y', '%m-%d-%y',
                     '%m.%d.%Y', '%m.%d.%y', '%m - %d - %Y','%m - %d - %y'),
             "pyspark_formats": (
-          'MM/dd/yyyy HH:mm', 'dd/MM/yyyy HH:mm', 'MM/dd/yy HH:mm', 'dd/MM/yy HH:mm',
-          'MM-dd-yyyy HH:mm', 'dd-MM-yyyy HH:mm', 'MM-dd-yy HH:mm','MM-dd-yy HH:mm:ss', 'dd-MM-yy HH:mm',
+          'MM/dd/yy', 'dd/MM/yy','MM-dd-yy', 'dd-MM-yy','MM/dd/yyyy HH:mm', 'dd/MM/yyyy HH:mm', 'MM/dd/yy HH:mm', 'dd/MM/yy HH:mm',
+          'MM-dd-yyyy HH:mm', 'dd-MM-yyyy HH:mm', 'MM-dd-yy HH:mm', 'dd-MM-yy HH:mm',
           'MMM/dd/yyyy HH:mm', 'dd/MMM/yyyy HH:mm', 'MMM/dd/yy HH:mm', 'dd/MMM/yy HH:mm',
           'MMM-dd-yyyy HH:mm', 'dd-MMM-yyyy HH:mm', 'MMM-dd-yy HH:mm', 'dd-MMM-yy HH:mm',
           'MMMM/dd/yyyy HH:mm', 'dd/MMMM/yyyy HH:mm', 'MMMM/dd/yy HH:mm', 'dd/MMMM/yy HH:mm',
           'MMMM-dd-yyyy HH:mm', 'dd-MMMM-yyyy HH:mm', 'MMMM-dd-yy HH:mm', 'dd-MMMM-yy HH:mm',
           'yyyy-MM-dd HH:mm', 'yyyy/MM/dd HH:mm', 'yyyy-MMM-dd HH:mm', 'yyyy-MMMM-dd HH:mm',
           'dd MMMM yyyy', 'dd MMMM yy', 'dd MMM yy', 'dd MMM yyyy',
-          'MM/dd/yyyy', 'dd/MM/yyyy', 'MM/dd/yy', 'dd/MM/yy',
-          'MM-dd-yyyy', 'dd-MM-yyyy', 'MM-dd-yy', 'dd-MM-yy',
+          'MM/dd/yyyy', 'dd/MM/yyyy',
+          'MM-dd-yyyy', 'dd-MM-yyyy',
           'MMM/dd/yyyy', 'dd/MMM/yyyy', 'MMM/dd/yy', 'dd/MMM/yy',
           'MMM-dd-yyyy', 'dd-MMM-yyyy', 'MMM-dd-yy', 'dd-MMM-yy',
           'MMMM/dd/yyyy', 'dd/MMMM/yyyy', 'MMMM/dd/yy', 'dd/MMMM/yy',
@@ -289,5 +289,5 @@ SUPPORTED_DATETIME_FORMATS = {
           'MMMMyyyy', 'MMM dd,yyyy', 'MM.dd.yyyy', 'MM.dd.yy', 'MMM/yy',
           'MM - dd - yyyy', 'MM - dd - yy', 'MMMM dd, yy', 'MMM dd, yy',
           'dd-MMMM', 'dd-MMM', 'MMM,yy', 'MMMM,yy', 'MMM,yyyy', 'MMMM,yyyy',
-          'MMM yyyy', 'MMM yy', 'MMMM yyyy', 'MMMM yy', 'MMM-yy', 'MMM/yyyy', 'MMM-yyyy')
+          'MMM yyyy', 'MMM yy', 'MMMM yyyy', 'MMMM yy', 'MMM-yy', 'MMM/yyyy', 'MMM-yyyy', 'dd-mm-yyyy')
                     }
