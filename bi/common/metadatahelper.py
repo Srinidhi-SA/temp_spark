@@ -200,12 +200,15 @@ class MetaDataHelper():
             df1 = df.select(column)
             st = time.time()
             col_stat = {}
-            nullcnt = df1.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
+            try:
+                nullcnt = df1.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
+            except:
+                nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
             col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
             col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
             col_stat["numberOfUniqueValues"] = df1.select(column).distinct().count()
-            if round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3) <=80:
+            if round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3) <=90:
                 if level_count_flag:
                     fs1 = time.time()
                     col_stat["LevelCount"] = {}
@@ -236,10 +239,10 @@ class MetaDataHelper():
                     # levelCount =  l
                     # col_stat["LevelCount"] = levelCount
 
-                    col_stat["MinLevel"] = levelCountAll.sort(("count")).select(column).rdd.take(1)[0][0]
-                    col_stat["MaxLevel"] = levelCountAll.sort(desc("count")).select(column).rdd.take(1)[0][0]
+                    col_stat["MinLevel"] = str(levelCountAll.sort(("count")).select(column).rdd.take(1)[0][0])
+                    col_stat["MaxLevel"] = str(levelCountAll.sort(desc("count")).select(column).rdd.take(1)[0][0])
                     print "time for levelCount "+column,time.time()-fs1,"Seconds"
-                    dimension_chart_data = [{"name":k,"value":v} if k != None else {"name":"null","value":v} for k,v in col_stat["LevelCount"].items()]
+                    dimension_chart_data = [{"name":str(k),"value":v} if k != None else {"name":"null","value":v} for k,v in col_stat["LevelCount"].items()]
                     dimension_chart_data = sorted(dimension_chart_data,key=lambda x:x["value"],reverse=True)
                     dimension_chart_obj = ChartJson(NormalChartData(dimension_chart_data).get_data(),chart_type="bar")
                     dimension_chart_obj.set_axes({"x":"name","y":"value"})
@@ -548,7 +551,7 @@ class MetaDataHelper():
         if len(levels)>0:
             for val in levels:
                 if val:
-                    if any([ord(char)>127 for char in val]):
+                    if any([ord(char)>127 for char in str(val)]):
                         utf8 = True
                         break
         return utf8
