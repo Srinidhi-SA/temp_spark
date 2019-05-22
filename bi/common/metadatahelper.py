@@ -533,7 +533,7 @@ class MetaDataHelper():
                     ignore = True
                     reason = "Only one Not Null value"
                 elif colStat["numberOfUniqueValues"] > max_levels:
-                    ignore = False
+                    ignore = True
                     reason = "Number of Levels are more than the defined thershold"
         return ignore,reason
 

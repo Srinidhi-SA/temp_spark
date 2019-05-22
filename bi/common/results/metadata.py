@@ -86,6 +86,7 @@ class ColumnData:
         self.name = name
         self.slug = None
         self.ignoreSuggestionFlag = False
+        self.ignoreSuggestionPreviewFlag=True
         self.dateSuggestionFlag = False
         self.ignoreSuggestionMsg = None
         self.columnStats = columnStats
@@ -101,6 +102,8 @@ class ColumnData:
             self.slug = data["slug"]
         if "ignoreSuggestionFlag" in data:
             self.ignoreSuggestionFlag = data["ignoreSuggestionFlag"]
+        if "ignoreSuggestionPreviewFlag" in data:
+            self.ignoreSuggestionPreviewFlag=data["ignoreSuggestionPreviewFlag"]
         if "dateSuggestionFlag" in data:
             self.dateSuggestionFlag = data["dateSuggestionFlag"]
         if "ignoreSuggestionMsg" in data:
@@ -141,6 +144,9 @@ class ColumnData:
 
     def set_ignore_suggestion_flag(self,data):
         self.ignoreSuggestionFlag = data
+
+    def set_ignore_suggestion_preview_flag(self,data):
+        self.ignoreSuggestionPreviewFlag = data
 
     def set_ignore_suggestion_message(self,data):
         self.ignoreSuggestionMsg = data

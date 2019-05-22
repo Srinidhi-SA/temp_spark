@@ -14,6 +14,7 @@ from scipy import linspace
 #from pyspark.sql.functions import *
 from bi.common.column import ColumnType
 from bi.common import MetaDataHelper
+from bi.settings import setting as GLOBALSETTINGS
 
 
 
