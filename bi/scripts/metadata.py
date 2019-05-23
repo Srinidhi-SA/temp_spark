@@ -155,7 +155,7 @@ class MetaDataScript:
                 uniqueVals = sampleData[column].unique().tolist()
             else:
                 uniqueVals = []
-            if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).na.drop().select(column).first()[0]])!=None:
+            if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
                 dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
             else:
                 dateColumnFormat = None
