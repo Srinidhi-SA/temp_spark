@@ -200,7 +200,7 @@ class MetaDataHelper():
             df1 = df.select(column)
             st = time.time()
             col_stat = {}
-            nullcnt = df1.select(count(when(isnan(column) | col(column).isNull(), column)).alias(column))
+            nullcnt = df1.select(count(when(col(column).isNull(), column)).alias(column))
             col_stat["numberOfNulls"] = nullcnt.rdd.flatMap(list).first()
             col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
             col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
@@ -548,7 +548,7 @@ class MetaDataHelper():
         if len(levels)>0:
             for val in levels:
                 if val:
-                    if any([ord(char)>127 for char in val]):
+                    if any([ord(char)>127 for char in str(val)]):
                         utf8 = True
                         break
         return utf8
