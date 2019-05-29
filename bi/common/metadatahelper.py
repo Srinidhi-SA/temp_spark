@@ -470,6 +470,8 @@ class MetaDataHelper():
         col_stat["percentOfNulls"] = str(round((col_stat["numberOfNulls"]  * 100.0/ (total_count)), 3)) + "%"
         col_stat["numberOfNotNulls"] = total_count - col_stat["numberOfNulls"]
         col_stat["numberOfUniqueValues"] = df1.dropna().nunique()
+        if col_stat["numberOfNulls"] > 0:
+            col_stat["numberOfUniqueValues"]= col_stat["numberOfUniqueValues"] +1
         try:
             if round((col_stat["numberOfNulls"]*100.0/ total_count), 3) <= 80:
                 uniqueVals = df1.dropna().unique()
