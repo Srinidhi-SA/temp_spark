@@ -337,7 +337,7 @@ class MetaDataScript:
                         data.set_ignore_suggestion_message(ignoreReason)
 
             elif self._column_type_dict[column]["abstract"] == "datetime":
-                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",timeDimensionColumnStat[column],max_levels=self._max_levels)
+                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"datetime",timeDimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)

@@ -754,6 +754,22 @@ class MetaDataHelper():
                 elif colStat["numberOfUniqueValues"] > max_levels:
                     ignore = True
                     reason = "Number of Levels are more than the defined thershold"
+
+        elif dataType == "datetime":
+            if (colStat["numberOfUniqueValues"]==1):
+                ignore = True
+                reason = "Only one Unique Value"
+            if (colStat["numberOfNulls"] == 0):
+                if (colStat["numberOfUniqueValues"] == total_rows):
+                    ignore = True
+                    reason = "Index Column (all values are distinct)"
+            else:
+                if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]):
+                    ignore = True
+                    reason = "Count of Nulls More than Count of Not Nulls"
+                elif (colStat["numberOfNotNulls"]==1):
+                    ignore = True
+                    reason = "Only one Not Null value"
         return ignore,reason
 
 
