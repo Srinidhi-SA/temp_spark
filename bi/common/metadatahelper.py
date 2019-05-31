@@ -119,6 +119,8 @@ class MetaDataHelper():
                 fs1 = time.time()
                 levelCount = dict(df1.value_counts())
                 levelCount = {str(k):v for k,v in levelCount.items()}
+                if col_stat["numberOfNulls"] > 0:
+                    levelCount[None]=col_stat["numberOfNulls"]
                 col_stat["LevelCount"] = levelCount
                 print "TIME FOR MEASURE LEVEL COUNT - " + column, time.time() - fs1, "Seconds"
             if binned_stat_flag:
@@ -294,6 +296,8 @@ class MetaDataHelper():
                 if col_stat["numberOfUniqueValues"] <= GLOBALSETTINGS.UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION:
                     levelCount = dict(df1.value_counts())
                     levelCount = {str(k):v for k,v in levelCount.items()}
+                    if col_stat["numberOfNulls"] > 0:
+                        levelCount[None]=col_stat["numberOfNulls"]
                     col_stat["LevelCount"] = levelCount
                     levelCountWithoutNull = levelCount
                     if None in levelCount:
