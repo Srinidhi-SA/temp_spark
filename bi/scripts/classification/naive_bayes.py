@@ -766,14 +766,14 @@ class NBGClassificationModelScript:
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
-                auc = metrics.roc_auc_score(y_test,y_score)
+                roc_auc = metrics.roc_auc_score(y_test,y_score)
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
-                auc = None
+                roc_auc = None
 
             y_prob_for_eval = []
             for i in range(len(y_prob)):
@@ -843,7 +843,7 @@ class NBGClassificationModelScript:
                     else:
                         y_score_roc_multi.append(val)
 
-                auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+                roc_auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
 
                 fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
                 roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
@@ -916,7 +916,7 @@ class NBGClassificationModelScript:
             self._model_summary.set_validation_method("Train and Test")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
             self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
-            self._model_summary.set_AUC_score(auc)
+            self._model_summary.set_AUC_score(roc_auc)
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
@@ -1516,7 +1516,7 @@ class NBMClassificationModelScript:
             if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="binary")
-                auc = metrics.roc_auc_score(y_test,y_score)
+                roc_auc = metrics.roc_auc_score(y_test,y_score)
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="binary")
             elif len(levels) > 2:
@@ -1525,7 +1525,7 @@ class NBMClassificationModelScript:
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
                 # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
-                auc = None
+                roc_auc = None
 
             y_prob_for_eval = []
             for i in range(len(y_prob)):
@@ -1593,7 +1593,7 @@ class NBMClassificationModelScript:
                     else:
                         y_score_roc_multi.append(val)
 
-                auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+                roc_auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
 
                 fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
                 roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
@@ -1666,7 +1666,7 @@ class NBMClassificationModelScript:
             self._model_summary.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
             self._model_summary.set_level_map_dict(objs["labelMapping"])
             self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
-            self._model_summary.set_AUC_score(auc)
+            self._model_summary.set_AUC_score(roc_auc)
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
