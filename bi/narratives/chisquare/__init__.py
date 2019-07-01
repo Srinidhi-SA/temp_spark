@@ -204,9 +204,12 @@ class ChiSquareNarratives:
             else:
                 if self._nColsToUse != None:
                     significant_variables = significant_variables[:self._nColsToUse]
+                    nColsToUse_temp =  self._nColsToUse
+                else:
+                    nColsToUse_temp =  self._noOfSigDimsToShow
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"custom","info",display=True,customMsg="Analyzing key drivers",weightKey="narratives")
-            for analysed_dimension in significant_variables[:self._noOfSigDimsToShow]:
+            for analysed_dimension in significant_variables[:nColsToUse_temp]:
                 chisquare_result = self._df_chisquare.get_chisquare_result(target_dimension,analysed_dimension)
                 if self._appid=='2':
                     print "APPID 2 is used"
