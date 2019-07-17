@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -22,6 +23,7 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.common import NarrativesTree
 
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
@@ -40,7 +42,7 @@ from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegr
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score,explained_variance_score
 from math import sqrt
 import pandas as pd
 import numpy as np
@@ -71,6 +73,7 @@ class LinearRegressionModelScript:
         self._analysisName = "linearRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = self._dataframe_context.get_ml_environment()
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -335,6 +338,7 @@ class LinearRegressionModelScript:
             metrics["mse"] = mean_squared_error(y_test, y_score)
             metrics["mae"] = mean_absolute_error(y_test, y_score)
             metrics["rmse"] = sqrt(metrics["mse"])
+            metrics["explained_variance_score"]=explained_variance_score(y_test, y_score)
             transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
             transformed["difference"] = transformed[result_column] - transformed["prediction"]
             transformed["mape"] = np.abs(transformed["difference"])*100/transformed[result_column]
@@ -381,6 +385,11 @@ class LinearRegressionModelScript:
             self._model_summary.set_feature_list(list(x_train.columns))
             self._model_summary.set_coefficinets_array(coefficientsArray)
             self._model_summary.set_intercept(interceptValue)
+            self._model_summary.set_model_mse(metrics["mse"])
+            self._model_summary.set_model_mae(metrics["mae"])
+            self._model_summary.set_rmse(metrics["rmse"])
+            self._model_summary.set_model_rsquared(metrics["r2"])
+            self._model_summary.set_model_exp_variance_score(metrics["explained_variance_score"])
 
             try:
                 pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
@@ -429,14 +438,82 @@ class LinearRegressionModelScript:
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
+        modelmanagement_ = self._model_summary.get_model_params()
+        self._model_management = MLModelSummary()
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
+            self._model_management.set_target_variable(result_column)#target column name
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+            self._model_management.set_algorithm_name("Linear Regression")#algorithm name
+            self._model_management.set_training_time(runtime) # run time
+            self._model_management.set_training_status(data="completed")# training status
+            self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+            self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["rmse"])
+            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
+            self._model_management.set_normalize_value(data=modelmanagement_['normalize'])
+            self._model_management.set_copy_x(data=modelmanagement_['copy_X'])
+        else:
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
+            self._model_management.set_target_variable(result_column)#target column name
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+            self._model_management.set_algorithm_name("Linear Regression")#algorithm name
+            self._model_management.set_training_time(runtime) # run time
+            self._model_management.set_training_status(data="completed")# training status
+            self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+            self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["rmse"])
+            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
+            self._model_management.set_normalize_value(data=modelmanagement_['normalize'])
+            self._model_management.set_copy_x(data=modelmanagement_['copy_X'])
+
+        modelManagementSummaryJson =[
+                    ["Project Name",self._model_management.get_job_type()],
+                    ["Algorithm",self._model_management.get_algorithm_name()],
+                    ["Training Status",self._model_management.get_training_status()],
+                    ["Root Mean Squared Error",self._model_management.get_rmse()],
+                    ["RunTime",self._model_management.get_training_time()],
+                    ["Owner",None],
+                    ["Created On",self._model_management.get_creation_date()]
+                    ]
+        modelManagementModelSettingsJson =[
+                    ["Training Dataset", self._model_management.get_datasetName()],
+                    ["Target Column", self._model_management.get_target_variable()],
+                    ["Algorithm", self._model_management.get_algorithm_name()],
+                    ["Model Validation", self._model_management.get_validation_method()],
+                    ["Fit Intercept", str(self._model_management.get_fit_intercept())],
+                    ["N jobs", self._model_management.get_no_of_jobs()],
+                    ["Normalize",self._model_management.get_normalize_value()],
+                    ["Copy_X", self._model_management.get_copy_x()]
+                    ]
+
+        linrOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        linrPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards_regression(self._model_summary)]
+        linrDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+        # linrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
         linrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
+        linR_Overview_Node = NarrativesTree()
+        linR_Performance_Node = NarrativesTree()
+        linR_Deployment_Node = NarrativesTree()
+        linR_Overview_Node.set_name("Overview")
+        linR_Performance_Node.set_name("Performance")
+        linR_Deployment_Node.set_name("Deployment")
+        for card in linrOverviewCards:
+            linR_Overview_Node.add_a_card(card)
+        for card in linrPerformanceCards:
+            linR_Performance_Node.add_a_card(card)
+        for card in linrDeploymentCards:
+            linR_Deployment_Node.add_a_card(card)
         for card in linrCards:
             self._prediction_narrative.add_a_card(card)
         self._result_setter.set_model_summary({"linearregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
         self._result_setter.set_linr_cards(linrCards)
+        self._result_setter.set_lreg_nodes([linR_Overview_Node, linR_Performance_Node, linR_Deployment_Node])
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

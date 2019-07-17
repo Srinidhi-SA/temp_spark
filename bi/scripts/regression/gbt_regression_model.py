@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -34,10 +35,11 @@ from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.scripts.measureAnalysis.descr_stats import DescriptiveStatsScript
 from bi.scripts.measureAnalysis.two_way_anova import TwoWayAnovaScript
 from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegressionScript
+from bi.common import NarrativesTree
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score,explained_variance_score
 from math import sqrt
 import pandas as pd
 import numpy as np
@@ -68,6 +70,7 @@ class GBTRegressionModelScript:
         self._analysisName = "gbtRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = mLEnvironment
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -288,6 +291,7 @@ class GBTRegressionModelScript:
             metrics["mse"] = mean_squared_error(y_test, y_score)
             metrics["mae"] = mean_absolute_error(y_test, y_score)
             metrics["rmse"] = sqrt(metrics["mse"])
+            metrics["explained_variance_score"]=explained_variance_score(y_test, y_score)
             transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
             transformed["difference"] = transformed[result_column] - transformed["prediction"]
             transformed["mape"] = np.abs(transformed["difference"])*100/transformed[result_column]
@@ -333,6 +337,11 @@ class GBTRegressionModelScript:
             self._model_summary.set_sample_data(sampleData.to_dict())
             self._model_summary.set_feature_importance(featuresArray)
             self._model_summary.set_feature_list(list(x_train.columns))
+            self._model_summary.set_model_mse(metrics["mse"])
+            self._model_summary.set_model_mae(metrics["mae"])
+            self._model_summary.set_rmse(metrics["rmse"])
+            self._model_summary.set_model_rsquared(metrics["r2"])
+            self._model_summary.set_model_exp_variance_score(metrics["explained_variance_score"])
 
 
             try:
@@ -387,14 +396,89 @@ class GBTRegressionModelScript:
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
+        modelmanagement_=self._model_summary.get_model_params()
+        self._model_management=MLModelSummary()
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
+            self._model_management.set_loss_function(data=modelmanagement_['loss'])
+            self._model_management.set_algorithm_name("Gradient Boosted Tree Regression")
+            self._model_management.set_training_status(data="completed")
+            self._model_management.set_rmse(metrics["rmse"])
+            self._model_management.set_training_time(runtime)
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_target_variable(result_column)
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
+        else:
+            self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
+            self._model_management.set_loss_function(data=modelmanagement_['loss'])
+            self._model_management.set_algorithm_name("Gradient Boosted Tree Regression")
+            self._model_management.set_training_status(data="completed")
+            self._model_management.set_rmse(metrics["rmse"])
+            self._model_management.set_training_time(runtime)
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_target_variable(result_column)
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
+
+        modelManagementSummaryJson =[
+
+                    ["Project Name",self._model_management.get_job_type()],
+                    ["Algorithm",self._model_management.get_algorithm_name()],
+                    ["Training Status",self._model_management.get_training_status()],
+                    ["RMSE",self._model_management.get_rmse()],
+                    ["RunTime",self._model_management.get_training_time()],
+                    ["Owner",None],
+                    ["Created On",self._model_management.get_creation_date()]
+
+                    ]
+        if algoSetting.is_hyperparameter_tuning_enabled():
+            modelManagementModelSettingsJson =[
+
+                    ["Training Dataset",self._model_management.get_datasetName()],
+                    ["Target Column",self._model_management.get_target_variable()],
+                    ["Algorithm",self._model_management.get_algorithm_name()],
+                    ["Model Validation",self._model_management.get_validation_method()],
+                     ["Learning Rate",self._model_management.get_learning_rate()],
+                     ["Loss Function",self._model_management.get_loss_function()]
+
+                    ]
+        else:
+            modelManagementModelSettingsJson =[
+
+                    ["Training Dataset",self._model_management.get_datasetName()],
+                    ["Target Column",self._model_management.get_target_variable()],
+                    ["Algorithm",self._model_management.get_algorithm_name()],
+                    ["Model Validation",self._model_management.get_validation_method()],
+                    ["Learning Rate",self._model_management.get_learning_rate()],
+                    ["Loss Function",self._model_management.get_loss_function()]
+                    ]
+        print modelManagementModelSettingsJson,modelManagementSummaryJson
+
+
 
         gbtrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-
+        gbtPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards_regression(self._model_summary)]
+        gbtOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        gbtDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+        GBT_Overview_Node = NarrativesTree()
+        GBT_Overview_Node.set_name("Overview")
+        GBT_Performance_Node = NarrativesTree()
+        GBT_Performance_Node.set_name("Performance")
+        GBT_Deployment_Node = NarrativesTree()
+        GBT_Deployment_Node.set_name("Deployment")
+        for card in gbtOverviewCards:
+            GBT_Overview_Node.add_a_card(card)
+        for card in gbtPerformanceCards:
+            GBT_Performance_Node.add_a_card(card)
+        for card in gbtDeploymentCards:
+            GBT_Deployment_Node.add_a_card(card)
         for card in gbtrCards:
             self._prediction_narrative.add_a_card(card)
         self._result_setter.set_model_summary({"gbtregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_gbt_regression_model_summart(modelSummaryJson)
         self._result_setter.set_gbtr_cards(gbtrCards)
+        self._result_setter.set_gbt_nodes([GBT_Overview_Node,GBT_Performance_Node,GBT_Deployment_Node])
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

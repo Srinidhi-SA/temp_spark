@@ -58,6 +58,26 @@ class ResultSetter:
         self.coeffCardScore = None
         self.anovaNarrativeOnScoredData = {}
         self.anovaChartOnScoredData = {}
+        self.dtreenodes = []
+        self.gbtnodes = []
+        self.lregnodes = []
+        self.rfgnodes = []
+    def set_dtree_nodes(self,data):
+        self.dtreenodes = data
+    def set_gbt_nodes(self,data):
+        self.gbtnodes = data
+    def set_lreg_nodes(self,data):
+        self.lregnodes = data
+    def set_rfreg_nodes(self,data):
+        self.rfgnodes = data
+    def get_all_rfreg_regression_nodes(self):
+        return self.rfgnodes
+    def get_all_lreg_regression_nodes(self):
+        return self.lregnodes
+    def get_all_gbt_regression_nodes(self):
+        return self.gbtnodes
+    def get_all_dtree_regression_nodes(self):
+        return self.dtreenodes
 
     def set_anova_narrative_on_scored_data(self,dataDict):
         self.anovaNarrativeOnScoredData.update(dataDict)

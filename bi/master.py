@@ -45,7 +45,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "metaData"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -184,9 +184,18 @@ def main(configJson):
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
+                dataTypeChangeCols=dataframe_context.get_change_datatype_details()
                 colsToBin = df_helper.get_cols_to_bin()
-                levelCountDict = df_helper.get_level_counts(colsToBin)
-                metaParserInstance.update_level_counts(colsToBin,levelCountDict)
+                updateLevelCountCols=colsToBin
+                try:
+                    for i in dataTypeChangeCols:
+                        if i["columnType"]=="dimension":
+                            updateLevelCountCols.append(i["colName"])
+                except:
+                    pass
+                print updateLevelCountCols
+                levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
+                metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
 
         ############################ MetaData Calculation ##########################
 

@@ -141,6 +141,69 @@ class MLModelSummary:
         self.priors = None
         self.varSmoothing = None
         self.datasetName = None
+        self.mse = None
+        self.rsquared = None
+        self.mae = None
+        self.rmse = None
+        self.splitter = None
+        self.loss_function = None
+        self.normalizeValue = None
+        self.copyX = None
+        self.exp_var_score = None
+
+    def set_normalize_value(self,data):
+        self.normalizeValue = data
+
+    def get_normalize_value(self):
+         return self.normalizeValue
+
+    def set_copy_x(self,data):
+        self.copyX = data
+
+    def get_copy_x(self):
+        return self.copyX
+
+    def set_model_mse(self,data):
+        self.mse = round(data,3)
+
+    def get_model_mse(self):
+        return self.mse
+
+    def set_model_rsquared(self,data):
+        self.rsquared = round(data,3)
+
+    def get_model_rsquared(self):
+        return self.rsquared
+
+    def set_model_mae(self,data):
+        self.mae = round(data,3)
+
+    def get_model_mae(self):
+        return self.mae
+
+    def set_rmse(self,data):
+        self.rmse = round(data,3)
+
+    def get_rmse(self):
+        return self.rmse
+
+    def set_splitter(self,data):
+        self.splitter=data
+
+    def get_splitter(self):
+        return self.splitter
+
+    def set_loss_function(self,data):
+        self.loss_function = data
+
+    def get_loss_function(self):
+        return self.loss_function
+
+    def set_model_exp_variance_score(self,data):
+        self.exp_var_score = round(data,3)
+
+    def get_model_exp_variance_score(self):
+        return self.exp_var_score
 
     def set_datasetName(self,data):
         self.datasetName = data
@@ -506,8 +569,8 @@ class SklearnGridSearchResult:
             self.resultDf = pd.DataFrame(self.resultDict)
         else:
             self.resultDf = None
-        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time(Secs)","comparisonMetricUsed","algorithmName","alwaysSelected"]
-        self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName"]
+        self.ignoreList = ["Model Id","Precision","Recall","ROC-AUC","RMSE","MAE","MSE","R-Squared","Slug","Selected","Run Time(Secs)","comparisonMetricUsed","algorithmName","alwaysSelected","explained_variance_score"]
+        self.hideFromTable = ["Selected","alwaysSelected","Slug","comparisonMetricUsed","algorithmName","explained_variance_score"]
         self.metricColName = "comparisonMetricUsed"
         self.keepColumns = ["Model Id"]
         self.bestModel = None
@@ -536,6 +599,8 @@ class SklearnGridSearchResult:
             evaluationMetric = "MAE"
         if evaluationMetric == "Neg_mean_squared_error":
             evaluationMetric = "MSE"
+        if  evaluationMetric == "Rmse":
+            evaluationMetric = "RMSE"
 
         evalMetricVal = -1
         for idx,paramsObj in enumerate(self.resultDf["params"]):

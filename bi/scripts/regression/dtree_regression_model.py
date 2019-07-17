@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -37,7 +38,7 @@ from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegr
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score,explained_variance_score
 from math import sqrt
 import pandas as pd
 import numpy as np
@@ -50,6 +51,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 
+from bi.common import NarrativesTree
 
 
 
@@ -70,6 +72,7 @@ class DTREERegressionModelScript:
         self._analysisName = "dtreeRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = mlEnvironment
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
@@ -294,6 +297,7 @@ class DTREERegressionModelScript:
             metrics["mse"] = mean_squared_error(y_test, y_score)
             metrics["mae"] = mean_absolute_error(y_test, y_score)
             metrics["rmse"] = sqrt(metrics["mse"])
+            metrics["explained_variance_score"]=explained_variance_score(y_test, y_score)
             transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
             transformed["difference"] = transformed[result_column] - transformed["prediction"]
             transformed["mape"] = np.abs(transformed["difference"])*100/transformed[result_column]
@@ -342,6 +346,11 @@ class DTREERegressionModelScript:
             self._model_summary.set_sample_data(sampleData.to_dict())
             self._model_summary.set_feature_importance(featuresArray)
             self._model_summary.set_feature_list(list(x_train.columns))
+            self._model_summary.set_model_mse(metrics["mse"])
+            self._model_summary.set_model_mae(metrics["mae"])
+            self._model_summary.set_rmse(metrics["rmse"])
+            self._model_summary.set_model_rsquared(metrics["r2"])
+            self._model_summary.set_model_exp_variance_score(metrics["explained_variance_score"])
 
 
             try:
@@ -391,14 +400,105 @@ class DTREERegressionModelScript:
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
+        modelmanagement_=self._model_summary.get_model_params()
+
+        self._model_management=MLModelSummary()
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            self._model_management.set_criterion(data=modelmanagement_['criterion'])
+            self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+            self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+            self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+            self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_decrease'])
+            self._model_management.set_algorithm_name("Decision Tree Regression")
+            self._model_management.set_training_status(data="completed")
+            self._model_management.set_rmse(metrics["rmse"])
+            self._model_management.set_training_time(runtime)
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_target_variable(result_column)
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
+        else:
+            self._model_management.set_criterion(data=modelmanagement_['criterion'])
+            self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+            self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+            self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+            self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_decrease'])
+            self._model_management.set_algorithm_name("Decision Tree Regression")
+            self._model_management.set_training_status(data="completed")
+            self._model_management.set_rmse(metrics["rmse"])
+            self._model_management.set_training_time(runtime)
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_target_variable(result_column)
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
+            self._model_management.set_splitter(modelmanagement_["splitter"])
+        modelManagementSummaryJson =[
+
+                    ["Project Name",self._model_management.get_job_type()],
+                    ["Algorithm",self._model_management.get_algorithm_name()],
+                    ["Training Status",self._model_management.get_training_status()],
+                    ["RMSE",self._model_management.get_rmse()],
+                    ["RunTime",self._model_management.get_training_time()],
+                    ["Owner",None],
+                    ["Created On",self._model_management.get_creation_date()]
+
+                    ]
+        if algoSetting.is_hyperparameter_tuning_enabled():
+            modelManagementModelSettingsJson =[
+
+                     ["Training Dataset",self._model_management.get_datasetName()],
+                     ["Target Column",self._model_management.get_target_variable()],
+                     ["Algorithm",self._model_management.get_algorithm_name()],
+                     ["Model Validation",self._model_management.get_validation_method()],
+                     ["Criterion",self._model_management.get_criterion()],
+                     ["Max Depth",self._model_management.get_max_depth()],
+                     ["Minimum Instances For Split",self._model_management.get_min_instance_for_split()],
+                     ["Minimum Instances For Leaf Node",self._model_management.get_min_instance_for_leaf_node()],
+                     ["Max Leaf Nodes",str(self._model_management.get_max_leaf_nodes())],
+                     ["Impurity Decrease cutoff for Split",self._model_management.get_impurity_decrease_cutoff_for_split()],
+                     ["Node Split Strategy ",self._model_management.get_splitter()]
+                    ]
+        else:
+            modelManagementModelSettingsJson =[
+
+                     ["Training Dataset",self._model_management.get_datasetName()],
+                     ["Target Column",self._model_management.get_target_variable()],
+                     ["Algorithm",self._model_management.get_algorithm_name()],
+                     ["Model Validation",self._model_management.get_validation_method()],
+                     ["Criterion",self._model_management.get_criterion()],
+                     ["Max Depth",self._model_management.get_max_depth()],
+                     ["Minimum Instances For Split",self._model_management.get_min_instance_for_split()],
+                     ["Minimum Instances For Leaf Node",self._model_management.get_min_instance_for_leaf_node()],
+                     ["Max Leaf Nodes",str(self._model_management.get_max_leaf_nodes())],
+                     ["Impurity Decrease cutoff for Split",self._model_management.get_impurity_decrease_cutoff_for_split()]
+                    ]
+        print modelManagementModelSettingsJson
 
         dtreerCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
+        dtreerPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards_regression(self._model_summary)]
+        dtreeOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        dtreeDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+        DTree_Overview_Node = NarrativesTree()
+        DTree_Overview_Node.set_name("Overview")
+        DTree_Performance_Node = NarrativesTree()
+        DTree_Performance_Node.set_name("Performance")
+        DTree_Deployment_Node = NarrativesTree()
+        DTree_Deployment_Node.set_name("Deployment")
+        for card in dtreeOverviewCards:
+            DTree_Overview_Node.add_a_card(card)
+        for card in dtreerPerformanceCards:
+            DTree_Performance_Node.add_a_card(card)
+        for card in dtreeDeploymentCards:
+            DTree_Deployment_Node.add_a_card(card)
         for card in dtreerCards:
             self._prediction_narrative.add_a_card(card)
         self._result_setter.set_model_summary({"dtreeregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_dtree_regression_model_summart(modelSummaryJson)
         self._result_setter.set_dtreer_cards(dtreerCards)
+        self._result_setter.set_dtree_nodes([DTree_Overview_Node,DTree_Performance_Node,DTree_Deployment_Node])
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

@@ -735,6 +735,126 @@ def create_model_summary_para(modelSummaryClass):
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
 
     return paragraph
+def create_model_management_cards_regression(modelPerformanceClass):
+
+    '''SUMMARY DATA'''
+    summaryCardData = []
+    summaryData = [
+        {
+          "name":"Mean Squared Error",
+          "value":str(modelPerformanceClass.get_model_mse()),
+          "description":"Squared Average Of Diffrence Between Actual And Predicted Values"
+        },
+        {
+          "name": "Mean Absolute Error",
+          "value": str(modelPerformanceClass.get_model_mae()),
+          "description":"Absolute Average Of Diffrence Between Actual And Predicted Values"
+        },
+        {
+          "name": "R-Squared Metric",
+          "value": str(modelPerformanceClass.get_model_rsquared()),
+          "description":"The Proportion Of The Variance For A Dependent Variable That's Explained By An Independent Variable"
+        },
+        {
+          "name": "Root Mean Squared Error",
+          "value": str(modelPerformanceClass.get_rmse()),
+          "description":"Standard Deviation Of The Residuals "
+        },
+        {
+          "name": "Explained Variance Score",
+          "value": str(modelPerformanceClass.get_model_exp_variance_score()),
+          "description":"Variance Explained By The Model"
+        },
+
+    ]
+
+    modelPerformanceCardDataBox = DataBox(data=summaryData)
+    modelPerformanceCardDataBox.set_data(summaryData)
+
+    summaryCardData.append(modelPerformanceCardDataBox)
+
+    summaryCard = NormalCard()
+    summaryCard.set_card_data(summaryCardData)
+    summaryCard.set_card_width(100)
+
+
+    mapeChartData = []
+    chartDataValues = []
+    mapeStatsArr = modelPerformanceClass.get_mape_stats()
+    for val in mapeStatsArr:
+        chartDataValues.append(val[1]["count"])
+        if val[1]["splitRange"][0] == 0:
+            mapeChartData.append({"key":"<{}%".format(val[1]["splitRange"][1]),"value":val[1]["count"]})
+        elif val[1]["splitRange"][1] >100:
+            mapeChartData.append({"key":">{}%".format(val[1]["splitRange"][0]),"value":val[1]["count"]})
+        else:
+            mapeChartData.append({"key":"{}-{}%".format(val[1]["splitRange"][0],val[1]["splitRange"][1]),"value":val[1]["count"]})
+    mapeChartJson = ChartJson()
+    mapeChartJson.set_data(mapeChartData)
+    mapeChartJson.set_chart_type("bar")
+    mapeChartJson.set_label_text({'x':' ','y':'No of Observations'})
+    mapeChartJson.set_axes({"x":"key","y":"value"})
+    mapeChartJson.set_title('Distribution of Errors')
+    modelSummaryMapeChart = C3ChartData(data=mapeChartJson)
+
+    modelSummaryCard2 = NormalCard()
+    modelSummaryCard2.set_card_width(50)
+    DisErrData = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Distribution of Errors</h4>")
+    modelSummaryCard2.set_card_data([DisErrData,modelSummaryMapeChart])
+
+
+
+    sampleData = modelPerformanceClass.get_sample_data()
+    sampleData = pd.DataFrame(sampleData)
+    sampleData.reset_index(inplace=True)
+    targetVariable = modelPerformanceClass.get_target_variable()
+    actualVsPredictedData = sampleData[[targetVariable,"prediction"]].T.to_dict().values()
+    actualVsPredictedData = sorted(actualVsPredictedData,key=lambda x:x[targetVariable])
+    actualVsPredictedChartJson = ChartJson()
+    actualVsPredictedChartJson.set_chart_type("scatter")
+    actualVsPredictedChartJson.set_data({"data":actualVsPredictedData})
+    actualVsPredictedChartJson.set_axes({"x":targetVariable,"y":"predicted"})
+    actualVsPredictedChartJson.set_label_text({'x':'Actual Values','y':'Predicted Values'})
+    actualVsPredictedChartJson.set_title('Actual vs Predicted')
+    actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
+
+    residualData = sampleData[["index","difference"]].T.to_dict().values()
+    residualData = sorted(residualData,key=lambda x:x["index"])
+    residualChartJson = ChartJson()
+    residualChartJson.set_chart_type("scatter")
+    residualChartJson.set_data({"data":residualData})
+    residualChartJson.set_axes({"x":"index","y":"difference"})
+    residualChartJson.set_label_text({'x':' ','y':'Residuals'})
+    residualChart = C3ChartData(data=residualChartJson)
+    residualButton = PopupData()
+    residualButton.set_data(residualChart)
+    residualButton.set_name("View Residuals")
+
+    modelSummaryCard1 = NormalCard()
+    modelSummaryCard1.set_card_width(50)
+    ActVsPreData = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Actual vs Predicted</h4>")
+    modelSummaryCard1.set_card_data([ActVsPreData,actualVsPredictedChart,residualButton])
+
+
+
+    residualVsPredictedData = sampleData[["prediction","difference"]].T.to_dict().values()
+    residualVsPredictedData = sorted(residualVsPredictedData,key=lambda x:x["difference"])
+    print(residualVsPredictedData,"residualVsPredictedData")
+    residualVsPredictedChartJson = ChartJson()
+    residualVsPredictedChartJson.set_chart_type("scatter")
+    residualVsPredictedChartJson.set_data({"data":residualVsPredictedData})
+    residualVsPredictedChartJson.set_axes({"x":"predicted","y":"difference"})
+    residualVsPredictedChartJson.set_label_text({'x':'predicted','y':'difference'})
+    residualVsPredictedChartJson.set_title('Residual vs Predicted')
+    residualVsPredictedChart = C3ChartData(data=residualVsPredictedChartJson)
+
+    modelSummaryCard3 = NormalCard()
+    modelSummaryCard3.set_card_width(50)
+    ResVsPreData = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Residual vs Predicted</h4>")
+    modelSummaryCard3.set_card_data([ResVsPreData,residualVsPredictedChart])
+
+
+    return [summaryCard,modelSummaryCard1,modelSummaryCard2,modelSummaryCard3]
 
 def create_model_summary_cards(modelSummaryClass):
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
@@ -1388,9 +1508,15 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             "mse" : "Mean Square Error",
                             "mae" : "Mean Absolute Error",
                             "r2" : "R-Squared",
-                            "rmse" : "Root Mean Square Error"
+                            "rmse" : "Root Mean Square Error",
+                            "explained_variance_score":"explained_variance_score"
                             }
         metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
+        metricsToBeShowns=[]
+        for i in metricNames:
+            if i !="explained_variance_score":
+                metricsToBeShowns.append(i)
+        metricNames=metricsToBeShowns
         full_names = map(lambda x: metricNamesMapping[x],metricNames)
         metricTableTopRow = ["Algorithm"]+full_names
         allMetricsData.append(metricTableTopRow)
@@ -1516,6 +1642,19 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         print model_dropdowns
         print "="*100
         model_dropdowns = [x for x in model_dropdowns if x != None]
+        modelManagement = []
+        dtreeManagementNode = NarrativesTree(name='Decision Tree')
+        gbtManagementNode = NarrativesTree(name='GBTree Regression')
+        rfregManagementNode = NarrativesTree(name='Random Forest Regression')
+        lregManagementNode = NarrativesTree(name='Linear Regression')
+        dtreeManagementNode.add_nodes(result_setter.get_all_dtree_regression_nodes())
+        gbtManagementNode.add_nodes(result_setter.get_all_gbt_regression_nodes())
+        rfregManagementNode.add_nodes(result_setter.get_all_rfreg_regression_nodes())
+        lregManagementNode.add_nodes(result_setter.get_all_lreg_regression_nodes())
+        modelManagement = [dtreeManagementNode,gbtManagementNode,rfregManagementNode,lregManagementNode]
+        modelManagement = json.loads(CommonUtils.convert_python_object_to_json(modelManagement))
+
+        modelJsonOutput.set_model_management_summary(modelManagement)
         modelJsonOutput.set_model_dropdown(model_dropdowns)
         modelJsonOutput.set_model_config(model_configs)
         if hyperParameterFlag == True:

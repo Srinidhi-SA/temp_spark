@@ -10,6 +10,7 @@ CLASSIFICATION_MODEL_EVALUATION_METRIC = "accuracy"
 REGRESSION_MODEL_EVALUATION_METRIC = "r2"
 SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP = {
     "r2":"R-Squared",
+    "RMSE":"RMSE",
     "neg_mean_absolute_error":"MAE",
     "neg_mean_squared_error":"MSE",
     "neg_mean_squared_log_error":"MSE(log)",

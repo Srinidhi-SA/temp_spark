@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -19,6 +20,7 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.common import NarrativesTree
 
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
@@ -37,7 +39,7 @@ from bi.scripts.measureAnalysis.decision_tree_regression import DecisionTreeRegr
 
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score,explained_variance_score
 from math import sqrt
 import pandas as pd
 import numpy as np
@@ -67,6 +69,7 @@ class RFRegressionModelScript:
         self._model_summary = MLModelSummary()
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._analysisName = "rfRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
@@ -295,6 +298,7 @@ class RFRegressionModelScript:
             metrics["mse"] = mean_squared_error(y_test, y_score)
             metrics["mae"] = mean_absolute_error(y_test, y_score)
             metrics["rmse"] = sqrt(metrics["mse"])
+            metrics["explained_variance_score"]=explained_variance_score(y_test, y_score)
             transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
             transformed["difference"] = transformed[result_column] - transformed["prediction"]
             transformed["mape"] = np.abs(transformed["difference"])*100/transformed[result_column]
@@ -340,6 +344,11 @@ class RFRegressionModelScript:
             self._model_summary.set_sample_data(sampleData.to_dict())
             self._model_summary.set_feature_importance(featuresArray)
             self._model_summary.set_feature_list(list(x_train.columns))
+            self._model_summary.set_model_mse(metrics["mse"])
+            self._model_summary.set_model_mae(metrics["mae"])
+            self._model_summary.set_rmse(metrics["rmse"])
+            self._model_summary.set_model_rsquared(metrics["r2"])
+            self._model_summary.set_model_exp_variance_score(metrics["explained_variance_score"])
 
 
             try:
@@ -389,6 +398,114 @@ class RFRegressionModelScript:
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
+        modelmanagement_=self._model_summary.get_model_params()
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            self._model_management = MLModelSummary()
+            self._model_management.set_criterion(data=modelmanagement_['criterion'])
+            self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+            self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+            self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+            self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_decrease'])
+            self._model_management.set_no_of_estimators(data=modelmanagement_['n_estimators'])
+            self._model_management.set_bootstrap_sampling(data=modelmanagement_['bootstrap'])
+            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
+            self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+            self._model_management.set_training_status(data="completed")# training status
+            self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+            #self._model_management.set_target_level(self._targetLevel) # target column value
+            self._model_management.set_training_time(runtime) # run time
+            self._model_management.set_algorithm_name("Random Forest Regression")#algorithm name
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+            self._model_management.set_target_variable(result_column)#target column name
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_rmse(metrics["rmse"])
+            self._model_management.set_model_mse(metrics["mse"])
+            self._model_management.set_model_mae(metrics["mae"])
+            self._model_management.set_model_rsquared(metrics["r2"])
+
+
+        else:
+            self._model_management = MLModelSummary()
+            self._model_management.set_criterion(data=modelmanagement_['criterion'])
+            self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+            self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+            self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+            self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_split'])
+            self._model_management.set_no_of_estimators(data=modelmanagement_['n_estimators'])
+            self._model_management.set_bootstrap_sampling(data=modelmanagement_['bootstrap'])
+            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
+            self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+            self._model_management.set_training_status(data="completed")# training status
+            self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+            self._model_management.set_training_time(runtime) # run tim
+            self._model_management.set_algorithm_name("Random Forest Regression")#algorithm name
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+            self._model_management.set_target_variable(result_column)#target column name
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
+            self._model_management.set_datasetName(self._datasetName)
+            self._model_management.set_rmse(metrics["rmse"])
+            self._model_management.set_model_mse(metrics["mse"])
+            self._model_management.set_model_mae(metrics["mae"])
+            self._model_management.set_model_rsquared(metrics["r2"])
+
+
+
+
+
+        modelManagementSummaryJson = [
+
+                        ["Project Name",self._model_management.get_job_type()],
+                        ["Algorithm",self._model_management.get_algorithm_name()],
+                        ["Training Status",self._model_management.get_training_status()],
+                        ["RMSE",self._model_management.get_rmse()],
+                        ["RunTime",self._model_management.get_training_time()],
+                        ["Owner",None],
+                        ["Created On",self._model_management.get_creation_date()]
+
+                                    ]
+
+        modelManagementModelSettingsJson = [
+
+                              ["Training Dataset",self._model_management.get_datasetName()],
+                              ["Target Column",self._model_management.get_target_variable()],
+                              ["Algorithm",self._model_management.get_algorithm_name()],
+                              ["Model Validation",self._model_management.get_validation_method()],
+                              ["Criterion",self._model_management.get_criterion()],
+                              ["Max Depth",self._model_management.get_max_depth()],
+                              ["Minimum Instances For Split",self._model_management.get_min_instance_for_split()],
+                              ["Minimum Instances For Leaf Node",self._model_management.get_min_instance_for_leaf_node()],
+                              ["Max Leaf Nodes",str(self._model_management.get_max_leaf_nodes())],
+                              ["Impurity Decrease cutoff for Split",self._model_management.get_impurity_decrease_cutoff_for_split()],
+                              ["No of Estimators",self._model_management.get_no_of_estimators()],
+                              ["Bootstrap Sampling",str(self._model_management.get_bootstrap_sampling())],
+                              ["No Of Jobs",self._model_management.get_no_of_jobs()]
+
+
+                                              ]
+
+
+
+
+        rfOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards_regression(self._model_summary)]
+        rfDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+        #rfrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards_regression(self._model_summary)]
+        rfrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        RF_Overview_Node = NarrativesTree()
+        RF_Overview_Node.set_name("Overview")
+        RF_Performance_Node = NarrativesTree()
+        RF_Performance_Node.set_name("Performance")
+        RF_Deployment_Node = NarrativesTree()
+        RF_Deployment_Node.set_name("Deployment")
+        for card in rfOverviewCards:
+            RF_Overview_Node.add_a_card(card)
+        for card in rfDeploymentCards:
+            RF_Deployment_Node.add_a_card(card)
 
         rfrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
@@ -397,6 +514,7 @@ class RFRegressionModelScript:
         self._result_setter.set_model_summary({"rfregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_rf_regression_model_summart(modelSummaryJson)
         self._result_setter.set_rfr_cards(rfrCards)
+        self._result_setter.set_rf_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
