@@ -403,6 +403,7 @@ class GBTRegressionModelScript:
             self._model_management.set_loss_function(data=modelmanagement_['loss'])
             self._model_management.set_algorithm_name("Gradient Boosted Tree Regression")
             self._model_management.set_training_status(data="completed")
+            self._model_management.set_job_type(self._dataframe_context.get_job_name())
             self._model_management.set_rmse(metrics["rmse"])
             self._model_management.set_training_time(runtime)
             self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))
@@ -411,6 +412,7 @@ class GBTRegressionModelScript:
             self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
         else:
             self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
+            self._model_management.set_job_type(self._dataframe_context.get_job_name())
             self._model_management.set_loss_function(data=modelmanagement_['loss'])
             self._model_management.set_algorithm_name("Gradient Boosted Tree Regression")
             self._model_management.set_training_status(data="completed")
@@ -436,6 +438,7 @@ class GBTRegressionModelScript:
             modelManagementModelSettingsJson =[
 
                     ["Training Dataset",self._model_management.get_datasetName()],
+                    ["Project Name",self._model_management.get_job_type()],
                     ["Target Column",self._model_management.get_target_variable()],
                     ["Algorithm",self._model_management.get_algorithm_name()],
                     ["Model Validation",self._model_management.get_validation_method()],
