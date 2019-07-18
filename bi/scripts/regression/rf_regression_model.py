@@ -506,6 +506,8 @@ class RFRegressionModelScript:
             RF_Overview_Node.add_a_card(card)
         for card in rfDeploymentCards:
             RF_Deployment_Node.add_a_card(card)
+        for card in rfPerformanceCards:
+            RF_Performance_Node.add_a_card(card)
 
         rfrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
@@ -514,7 +516,7 @@ class RFRegressionModelScript:
         self._result_setter.set_model_summary({"rfregression":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_rf_regression_model_summart(modelSummaryJson)
         self._result_setter.set_rfr_cards(rfrCards)
-        self._result_setter.set_rf_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
+        self._result_setter.set_rfreg_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
