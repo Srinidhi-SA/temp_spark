@@ -193,7 +193,6 @@ def main(configJson):
                             updateLevelCountCols.append(i["colName"])
                 except:
                     pass
-                print updateLevelCountCols
                 levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
                 metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
 
