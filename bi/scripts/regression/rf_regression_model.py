@@ -406,10 +406,10 @@ class RFRegressionModelScript:
             self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
             self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
             self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
-            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_decrease'])
+            self._model_management.set_impurity_decrease_cutoff_for_split(data=str(modelmanagement_['min_impurity_decrease']))
             self._model_management.set_no_of_estimators(data=modelmanagement_['n_estimators'])
             self._model_management.set_bootstrap_sampling(data=modelmanagement_['bootstrap'])
-            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
             self._model_management.set_training_status(data="completed")# training status
@@ -434,10 +434,10 @@ class RFRegressionModelScript:
             self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
             self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
             self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
-            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_split'])
+            self._model_management.set_impurity_decrease_cutoff_for_split(data=str(modelmanagement_['min_impurity_split']))
             self._model_management.set_no_of_estimators(data=modelmanagement_['n_estimators'])
             self._model_management.set_bootstrap_sampling(data=modelmanagement_['bootstrap'])
-            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
             self._model_management.set_training_status(data="completed")# training status

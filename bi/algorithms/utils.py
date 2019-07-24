@@ -743,17 +743,17 @@ def create_model_management_cards_regression(modelPerformanceClass):
         {
           "name":"Mean Squared Error",
           "value":str(modelPerformanceClass.get_model_mse()),
-          "description":"Squared Average Of Diffrence Between Actual And Predicted Values"
+          "description":"Squared Average Of Difference Between Actual And Predicted Values"
         },
         {
           "name": "Mean Absolute Error",
           "value": str(modelPerformanceClass.get_model_mae()),
-          "description":"Absolute Average Of Diffrence Between Actual And Predicted Values"
+          "description":"Absolute Average Of Difference Between Actual And Predicted Values"
         },
         {
           "name": "R-Squared Metric",
           "value": str(modelPerformanceClass.get_model_rsquared()),
-          "description":"The Proportion Of The Variance For A Dependent Variable That's Explained By An Independent Variable"
+          "description":"Percentage of Target column explained by model"
         },
         {
           "name": "Root Mean Squared Error",
@@ -763,7 +763,7 @@ def create_model_management_cards_regression(modelPerformanceClass):
         {
           "name": "Explained Variance Score",
           "value": str(modelPerformanceClass.get_model_exp_variance_score()),
-          "description":"Variance Explained By The Model"
+          "description":"Proportion to which a model accounts for the variation"
         },
 
     ]
@@ -794,7 +794,7 @@ def create_model_management_cards_regression(modelPerformanceClass):
     mapeChartJson.set_chart_type("bar")
     mapeChartJson.set_label_text({'x':' ','y':'No of Observations'})
     mapeChartJson.set_axes({"x":"key","y":"value"})
-    mapeChartJson.set_title('Distribution of Errors')
+    #mapeChartJson.set_title('Distribution of Errors')
     modelSummaryMapeChart = C3ChartData(data=mapeChartJson)
 
     modelSummaryCard2 = NormalCard()
@@ -815,7 +815,7 @@ def create_model_management_cards_regression(modelPerformanceClass):
     actualVsPredictedChartJson.set_data({"data":actualVsPredictedData})
     actualVsPredictedChartJson.set_axes({"x":targetVariable,"y":"predicted"})
     actualVsPredictedChartJson.set_label_text({'x':'Actual Values','y':'Predicted Values'})
-    actualVsPredictedChartJson.set_title('Actual vs Predicted')
+    #actualVsPredictedChartJson.set_title('Actual vs Predicted')
     actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
 
     residualData = sampleData[["index","difference"]].T.to_dict().values()
@@ -837,19 +837,19 @@ def create_model_management_cards_regression(modelPerformanceClass):
 
 
 
-    residualVsPredictedData = sampleData[["prediction","difference"]].T.to_dict().values()
+    residualVsPredictedData = sampleData[["difference","prediction"]].T.to_dict().values()
     residualVsPredictedData = sorted(residualVsPredictedData,key=lambda x:x["difference"])
     print(residualVsPredictedData,"residualVsPredictedData")
     residualVsPredictedChartJson = ChartJson()
     residualVsPredictedChartJson.set_chart_type("scatter")
     residualVsPredictedChartJson.set_data({"data":residualVsPredictedData})
-    residualVsPredictedChartJson.set_axes({"x":"predicted","y":"difference"})
-    residualVsPredictedChartJson.set_label_text({'x':'predicted','y':'difference'})
-    residualVsPredictedChartJson.set_title('Residual vs Predicted')
+    residualVsPredictedChartJson.set_axes({"x":"difference","y":"predicted"})
+    residualVsPredictedChartJson.set_label_text({"x":"Difference","y":"Predicted"})
+    #residualVsPredictedChartJson.set_title('Residual vs Predicted')
     residualVsPredictedChart = C3ChartData(data=residualVsPredictedChartJson)
 
     modelSummaryCard3 = NormalCard()
-    modelSummaryCard3.set_card_width(50)
+    modelSummaryCard3.set_card_width(100)
     ResVsPreData = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>Residual vs Predicted</h4>")
     modelSummaryCard3.set_card_data([ResVsPreData,residualVsPredictedChart])
 

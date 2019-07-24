@@ -450,10 +450,10 @@ class LinearRegressionModelScript:
             self._model_management.set_training_status(data="completed")# training status
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
             self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["rmse"])
-            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
-            self._model_management.set_normalize_value(data=modelmanagement_['normalize'])
-            self._model_management.set_copy_x(data=modelmanagement_['copy_X'])
+            self._model_management.set_normalize_value(data=str(modelmanagement_['normalize']))
+            self._model_management.set_copy_x(data=str(modelmanagement_['copy_X']))
         else:
             self._model_management.set_datasetName(self._datasetName)
             self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
@@ -464,10 +464,10 @@ class LinearRegressionModelScript:
             self._model_management.set_training_status(data="completed")# training status
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
             self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["rmse"])
-            self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+            self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
-            self._model_management.set_normalize_value(data=modelmanagement_['normalize'])
-            self._model_management.set_copy_x(data=modelmanagement_['copy_X'])
+            self._model_management.set_normalize_value(data=str(modelmanagement_['normalize']))
+            self._model_management.set_copy_x(data=str(modelmanagement_['copy_X']))
 
         modelManagementSummaryJson =[
                     ["Project Name",self._model_management.get_job_type()],
