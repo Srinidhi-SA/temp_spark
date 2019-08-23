@@ -151,6 +151,79 @@ class MLModelSummary:
         self.copyX = None
         self.exp_var_score = None
 
+    def set_epsilon(self,data):
+        self.epsilon =data
+
+    def get_epsilon(self):
+        return self.epsilon
+
+    def set_activation(self,data):
+        self.activation = data
+
+    def get_activation(self):
+        return self.activation
+
+    def set_batch_size(self,data):
+        self.batch_size=data
+    def get_batch_size(self):
+        return self.batch_size
+    def set_early_stopping(self,data):
+        self.early_stopping = data
+    def get_early_stopping(self):
+        return self.early_stopping
+    def set_beta_1(self,data):
+        self.beta1= data
+    def get_beta_1(self):
+        return self.beta1
+    def set_beta_2(self,data):
+        self.beta1= data
+    def get_beta_2(self):
+        return self.beta1
+    def set_nesterovs_momentum(self,data):
+        self.nesterovs_momentum=data
+    def get_nesterovs_momentum(self):
+        return self.nesterovs_momentum
+    def set_hidden_layer_sizes(self,data):
+        self.hidden_layer_sizes=data
+    def get_hidden_layer_sizes(self):
+        return self.hidden_layer_sizes
+    def set_power_t(self,data):
+        self.power_t=data
+    def get_power_t(self):
+        return self.power_t
+    def set_learning_rate_init(self,data):
+        self.learning_rate_init=data
+    def get_learning_rate_init(self):
+        return self.learning_rate_init
+    def set_shuffle(self,data):
+        self.shuffle=data
+    def get_shuffle(self):
+        return self.shuffle
+    def set_verbose(self,data):
+        self.verbose=data
+    def get_verbose(self):
+        return self.verbose
+    def set_random_state(self,data):
+        self.random_state= data
+    def get_random_state(self):
+        return self.random_state
+    def set_n_iter_no_change(self,data):
+        self.n_iter_no_change=data
+    def get_n_iter_no_change(self):
+        return self.n_iter_no_change
+    def set_learning_rate(self,data):
+        self.learning_rate=data
+    def get_learning_rate(self):
+        return self.learning_rate
+    def set_validation_fraction(self,data):
+        self.validation_fraction= data
+    def get_validation_fraction(self):
+        return self.validation_fraction
+    def set_momentum(self,data):
+        self.momentum=data
+    def get_momentum(self):
+        return self.momentum
+
     def set_normalize_value(self,data):
         self.normalizeValue = data
 

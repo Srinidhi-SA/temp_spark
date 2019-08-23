@@ -23,6 +23,7 @@ class ResultSetter:
         self.randomForestModelSummary = None
         self.naiveBayesModelSummary = None
         self.xgboostModelSummary = None
+        self.annModelSummary = None
         self.logisticRegressionModelSummary = None
         self.svmModelSummary = None
         self.linearRegressionModelSummary = None
@@ -35,6 +36,7 @@ class ResultSetter:
         self.lrcards = []
         self.svmcards = []
         self.xgbcards = []
+        self.anncards = []
         self.linrcards = []
         self.glinrcards = []
         self.gbtrcards = []
@@ -44,6 +46,7 @@ class ResultSetter:
         self.scorechicards = []
         self.scoredtreecards = []
         self.rfnodes = []
+        self.annnodes = []
         self.nbnodes = []
         self.xgbnodes = []
         self.lrnodes = []
@@ -125,6 +128,8 @@ class ResultSetter:
         self.rfcards = data
     def set_rf_nodes(self,data):
         self.rfnodes = data
+    def set_ann_nodes(self,data):
+        self.annnodes = data
     def set_lr_nodes(self,data):
         self.lrnodes = data
     def set_nb_nodes(self,data):
@@ -147,10 +152,14 @@ class ResultSetter:
         self.xgbcards = data
     def set_svm_cards(self,data):
         self.svmcards = data
+    def set_ann_cards(self,data):
+        self.anncards = data
     def get_all_classification_cards(self):
-        return self.rfcards + self.lrcards + self.xgbcards+self.nbcards
+        return self.rfcards + self.lrcards + self.xgbcards+self.nbcards+self.anncards
     def get_all_rf_classification_nodes(self):
         return self.rfnodes
+    def get_all_ann_classification_nodes(self):
+        return self.annnodes
     def get_all_lr_classification_nodes(self):
         return self.lrnodes
     def get_all_xgb_classification_nodes(self):
@@ -160,6 +169,10 @@ class ResultSetter:
     def get_all_regression_cards(self):
         return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
 
+    def set_ann_model_summary(self,data):
+        self.annModelSummary = data
+    def get_ann_model_summary(self):
+        return self.annModelSummary
     def set_random_forest_model_summary(self,data):
         self.randomForestModelSummary = data
     def set_naive_bayes_model_summary(self,data):

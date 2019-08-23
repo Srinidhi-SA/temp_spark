@@ -140,7 +140,8 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"linr":"linearregression",
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
-            ALGORITHMRANDOMSLUG+"rfr":"rfregression"
+            ALGORITHMRANDOMSLUG+"rfr":"rfregression",
+            ALGORITHMRANDOMSLUG+"mlp":"ANN"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
@@ -154,7 +155,8 @@ MODEL_SLUG_MAPPING = {
             "generalizedlinearregression":ALGORITHMRANDOMSLUG+"linr",
             "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
             "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
-            "rfregression":ALGORITHMRANDOMSLUG+"rfr"
+            "rfregression":ALGORITHMRANDOMSLUG+"rfr",
+            "ANN":ALGORITHMRANDOMSLUG+"mlp"
             }
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
@@ -220,7 +222,8 @@ classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"nb"  : 1,
     ALGORITHMRANDOMSLUG+"xgb" : 1,
     ALGORITHMRANDOMSLUG+"lr"  : 1,
-    ALGORITHMRANDOMSLUG+"svm" : 2
+    ALGORITHMRANDOMSLUG+"svm" : 2,
+    ALGORITHMRANDOMSLUG+"mlp" : 1,
 }
 
 metadataScriptWeight = {
