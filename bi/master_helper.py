@@ -303,7 +303,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     except Exception as e:
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["ANN"] and obj.get_algorithm_name() == "NEURAL NETWORK":
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["ANN"] and obj.get_algorithm_name() == "Neural Network":
                 try:
                     st = time.time()
                     ann_obj = AnnScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)

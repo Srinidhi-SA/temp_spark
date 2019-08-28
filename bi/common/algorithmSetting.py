@@ -217,7 +217,11 @@ class AlgorithmParameters:
                         if "float" in self.expectedDataType:
                             self.acceptedValue = float(defaultValue)
                         elif "int" in self.expectedDataType:
-                            self.acceptedValue = int(defaultValue)
+                            try:
+                                self.acceptedValue = int(defaultValue)
+                            except:
+                                self.acceptedValue = defaultValue
+
                 if self.name != "tol":
                     output = {self.name:defaultValue}
                 else:
