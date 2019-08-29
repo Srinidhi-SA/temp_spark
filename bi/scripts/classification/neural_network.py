@@ -40,7 +40,7 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
 
-class AnnScript:
+class NeuralNetworkScript:
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -53,7 +53,7 @@ class AnnScript:
         self._score_summary = {}
         self._column_separator = "|~|"
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["ANN"]
+        self._slug = self._model_slug_map["Neural Network"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -66,15 +66,15 @@ class AnnScript:
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The ANN Scripts",
+                "summary":"Initialized The Neural Network Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"ANN Model Training Started",
+                "summary":"Neural Network Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"ANN Model Training Finished",
+                "summary":"Neural Network Model Training Finished",
                 "weight":4
                 },
             }
@@ -388,8 +388,8 @@ class AnnScript:
             cat_cols = list(set(categorical_columns) - {result_column})
             overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel=self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("ANN")
-            self._model_summary.set_algorithm_display_name("ANN")
+            self._model_summary.set_algorithm_name("Neural Network")
+            self._model_summary.set_algorithm_display_name("Neural Network")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -478,41 +478,41 @@ class AnnScript:
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("ANN")#algorithm name
+                self._model_management.set_algorithm_name("Neural Network")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
             else:
-                self._model_management.set_epsilon(data=modelmanagement_['epsilon'])
-                self._model_management.set_activation(data=modelmanagement_['activation'])
-                self._model_management.set_batch_size(data=modelmanagement_['batch_size'])
-                self._model_management.set_alpha(data=modelmanagement_['alpha'])
-                self._model_management.set_early_stopping(data=modelmanagement_['early_stopping'])
-                self._model_management.set_beta_1(data=modelmanagement_['beta_1'])
-                self._model_management.set_beta_2(data=modelmanagement_['beta_2'])
-                self._model_management.set_nesterovs_momentum(data=modelmanagement_['nesterovs_momentum'])
-                self._model_management.set_hidden_layer_sizes(data=modelmanagement_['hidden_layer_sizes'])
-                self._model_management.set_solver_used(data=modelmanagement_['solver'])
-                self._model_management.set_power_t(data=modelmanagement_['power_t'])
-                self._model_management.set_learning_rate_init(data=modelmanagement_['learning_rate_init'])
-                self._model_management.set_shuffle(data=modelmanagement_['shuffle'])
+                self._model_management.set_epsilon(data=modelmanagement_['param_grid']['epsilon'][0])
+                self._model_management.set_activation(data=modelmanagement_['param_grid']['activation'][0])
+                self._model_management.set_batch_size(data=modelmanagement_['param_grid']['batch_size'][0])
+                self._model_management.set_alpha(data=modelmanagement_['param_grid']['alpha'][0])
+                self._model_management.set_early_stopping(data=modelmanagement_['estimator__early_stopping'])
+                self._model_management.set_beta_1(data=modelmanagement_['estimator__beta_1'])
+                self._model_management.set_beta_2(data=modelmanagement_['estimator__beta_2'])
+                self._model_management.set_nesterovs_momentum(data=modelmanagement_['estimator__nesterovs_momentum'])
+                self._model_management.set_hidden_layer_sizes(data=modelmanagement_['estimator__hidden_layer_sizes'])
+                self._model_management.set_solver_used(data=modelmanagement_['estimator__solver'])
+                self._model_management.set_power_t(data=modelmanagement_['param_grid']['power_t'][0])
+                self._model_management.set_learning_rate_init(data=modelmanagement_['param_grid']['learning_rate_init'][0])
+                self._model_management.set_shuffle(data=modelmanagement_['param_grid']['shuffle'][0])
                 self._model_management.set_verbose(data=modelmanagement_['verbose'])
-                self._model_management.set_maximum_solver(data=modelmanagement_['max_iter'])
-                self._model_management.set_random_state(data=modelmanagement_['random_state'])
-                self._model_management.set_n_iter_no_change(data=modelmanagement_['n_iter_no_change'])
-                self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
-                self._model_management.set_validation_fraction(data=modelmanagement_['validation_fraction'])
-                self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
-                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['tol'])
-                self._model_management.set_momentum(data=modelmanagement_['momentum'])
+                self._model_management.set_maximum_solver(data=modelmanagement_['param_grid']['max_iter'][0])
+                self._model_management.set_random_state(data=modelmanagement_['estimator__random_state'])
+                self._model_management.set_n_iter_no_change(data=modelmanagement_['param_grid']['n_iter_no_change'][0])
+                self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
+                self._model_management.set_validation_fraction(data=modelmanagement_['param_grid']['validation_fraction'][0])
+                self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['param_grid']['tol'][0])
+                self._model_management.set_momentum(data=modelmanagement_['estimator__momentum'])
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status
                 self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("ANN")#algorithm name
+                self._model_management.set_algorithm_name("Neural Network")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
@@ -567,29 +567,29 @@ class AnnScript:
 
 
 
-            annOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            annPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
-            annDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
-            annCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-            ANN_Overview_Node = NarrativesTree()
-            ANN_Overview_Node.set_name("Overview")
-            ANN_Performance_Node = NarrativesTree()
-            ANN_Performance_Node.set_name("Performance")
-            ANN_Deployment_Node = NarrativesTree()
-            ANN_Deployment_Node.set_name("Deployment")
-            for card in annOverviewCards:
-                ANN_Overview_Node.add_a_card(card)
-            for card in annPerformanceCards:
-                ANN_Performance_Node.add_a_card(card)
-            for card in annDeploymentCards:
-                ANN_Deployment_Node.add_a_card(card)
-            for card in annCards:
+            nnOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            nnPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+            nnDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+            nnCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            NN_Overview_Node = NarrativesTree()
+            NN_Overview_Node.set_name("Overview")
+            NN_Performance_Node = NarrativesTree()
+            NN_Performance_Node.set_name("Performance")
+            NN_Deployment_Node = NarrativesTree()
+            NN_Deployment_Node.set_name("Deployment")
+            for card in nnOverviewCards:
+                NN_Overview_Node.add_a_card(card)
+            for card in nnPerformanceCards:
+                NN_Performance_Node.add_a_card(card)
+            for card in nnDeploymentCards:
+                NN_Deployment_Node.add_a_card(card)
+            for card in nnCards:
                 self._prediction_narrative.add_a_card(card)
 
-            self._result_setter.set_model_summary({"ANN":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_ann_model_summary(modelSummaryJson)
-            self._result_setter.set_ann_cards(annCards)
-            self._result_setter.set_ann_nodes([ANN_Overview_Node,ANN_Performance_Node,ANN_Deployment_Node])
+            self._result_setter.set_model_summary({"Neural Network":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_nn_model_summary(modelSummaryJson)
+            self._result_setter.set_nn_cards(nnCards)
+            self._result_setter.set_nn_nodes([NN_Overview_Node,NN_Performance_Node,NN_Deployment_Node])
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -600,11 +600,11 @@ class AnnScript:
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The ANN Scripts",
+                "summary":"Initialized The Neural Network Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"ANN Model Prediction Finished",
+                "summary":"Neural Network Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{

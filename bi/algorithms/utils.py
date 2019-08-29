@@ -569,7 +569,7 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary):
     summary = []
     algos = collated_summary.keys()
-    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine","ANN":"ANN"}
+    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network":"Neural Network"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -711,7 +711,7 @@ def create_model_summary_para(modelSummaryClass):
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naive bayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
-        elif modelSummaryClass.get_algorithm_name() == 'ANN':
+        elif modelSummaryClass.get_algorithm_name() == 'Neural Network':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Neural Network. The model has an overall accuracy of <b>{}%</b>. The model using Neural Network was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
@@ -737,7 +737,7 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
-        elif modelSummaryClass.get_algorithm_name() == 'ANN':
+        elif modelSummaryClass.get_algorithm_name() == 'Neural Network':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
@@ -1347,7 +1347,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrModelSummary = result_setter.get_logistic_regression_model_summary()
         xgbModelSummary = result_setter.get_xgboost_model_summary()
         svmModelSummary = result_setter.get_svm_model_summary()
-        annModelSummary = result_setter.get_ann_model_summary()
+        nnModelSummary = result_setter.get_nn_model_summary()
 
         model_dropdowns = []
         model_hyperparameter_summary = []
@@ -1362,14 +1362,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         counter = 1
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,annModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,nnModelSummary]:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
                     hyperParameterFlagDict[obj["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["slug"]] = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,annModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,nnModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["slug"]] = obj["modelFeatureList"]
@@ -1446,13 +1446,13 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrManagementNode = NarrativesTree(name='Logistic Regression')
         xgbManagementNode = NarrativesTree(name='Xgboost')
         nbManagementNode = NarrativesTree(name='Naive Bayes')
-        annManagementNode = NarrativesTree(name='Neural Network')
-        annManagementNode.add_nodes(result_setter.get_all_ann_classification_nodes())
+        nnManagementNode = NarrativesTree(name='Neural Network')
+        nnManagementNode.add_nodes(result_setter.get_all_nn_classification_nodes())
         rfManagementNode.add_nodes(result_setter.get_all_rf_classification_nodes())
         lrManagementNode.add_nodes(result_setter.get_all_lr_classification_nodes())
         xgbManagementNode.add_nodes(result_setter.get_all_xgb_classification_nodes())
         nbManagementNode.add_nodes(result_setter.get_all_nb_classification_nodes())
-        modelManagement = [rfManagementNode,lrManagementNode,xgbManagementNode,nbManagementNode,annManagementNode]
+        modelManagement = [rfManagementNode,lrManagementNode,xgbManagementNode,nbManagementNode,nnManagementNode]
         modelManagement = json.loads(CommonUtils.convert_python_object_to_json(modelManagement))
 
         modelJsonOutput.set_model_management_summary(modelManagement)

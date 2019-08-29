@@ -141,7 +141,7 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
             ALGORITHMRANDOMSLUG+"rfr":"rfregression",
-            ALGORITHMRANDOMSLUG+"mlp":"ANN"
+            ALGORITHMRANDOMSLUG+"mlp":"Neural Network"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
@@ -156,7 +156,7 @@ MODEL_SLUG_MAPPING = {
             "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
             "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
             "rfregression":ALGORITHMRANDOMSLUG+"rfr",
-            "ANN":ALGORITHMRANDOMSLUG+"mlp"
+            "Neural Network":ALGORITHMRANDOMSLUG+"mlp"
             }
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
@@ -168,7 +168,8 @@ SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"linr":"Linear Regression",
             ALGORITHMRANDOMSLUG+"gbtr":"Gradient Boosted Trees",
             ALGORITHMRANDOMSLUG+"dtreer":"Decision Tree",
-            ALGORITHMRANDOMSLUG+"rfr":"Random Forest"
+            ALGORITHMRANDOMSLUG+"rfr":"Random Forest",
+            ALGORITHMRANDOMSLUG+"mlp":"Neural Network"
             }
 
 scriptsMapping = {

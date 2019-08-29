@@ -17,7 +17,7 @@ from bi.scripts.classification.naive_bayes import NBGClassificationModelScript
 from bi.scripts.classification.naive_bayes import NBMClassificationModelScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
-from bi.scripts.classification.ann import AnnScript
+from bi.scripts.classification.neural_network import NeuralNetworkScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
 from bi.scripts.regression.linear_regression_model import LinearRegressionModelScript
 from bi.scripts.regression.generalized_linear_regression_model import GeneralizedLinearRegressionModelScript
@@ -303,15 +303,15 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     except Exception as e:
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["ANN"] and obj.get_algorithm_name() == "Neural Network":
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network"] and obj.get_algorithm_name() == "Neural Network":
                 try:
                     st = time.time()
-                    ann_obj = AnnScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    nn_obj = NeuralNetworkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-                    ann_obj.Train()
-                    print "Ann Model Done in ", time.time() - st,  " seconds."
+                    nn_obj.Train()
+                    print "Neural Network Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"ANN",e)
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
                 # try:
@@ -471,9 +471,9 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
-        elif "ANN" in selected_model_for_prediction:
+        elif "Neural Network" in selected_model_for_prediction:
             # df = df.toPandas()
-            trainedModel = AnnScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = NeuralNetworkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
