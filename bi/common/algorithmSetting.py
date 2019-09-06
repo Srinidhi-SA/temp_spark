@@ -207,6 +207,11 @@ class AlgorithmParameters:
                         self.acceptedValue = float(self.acceptedValue)
                     elif "int" in self.expectedDataType:
                         self.acceptedValue = int(self.acceptedValue)
+                    elif "tuple" in self.expectedDataType:
+                        try:
+                            self.acceptedValue = int(self.acceptedValue)
+                        except:
+                            self.acceptedValue=[int(i) for i in self.acceptedValue.split(",")]
                 if self.name != "tol":
                     output = {self.name:self.acceptedValue}
                 else:
