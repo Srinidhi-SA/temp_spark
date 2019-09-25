@@ -502,7 +502,7 @@ class NeuralNetworkScript:
                 self._model_management.set_random_state(data=modelmanagement_['estimator__random_state'])
                 self._model_management.set_n_iter_no_change(data=modelmanagement_['param_grid']['n_iter_no_change'][0])
                 self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
-                self._model_management.set_validation_fraction(data=modelmanagement_['param_grid']['validation_fraction'][0])
+                self._model_management.set_validation_fraction(data=modelmanagement_['estimator__validation_fraction'])
                 self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
                 self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['param_grid']['tol'][0])
                 self._model_management.set_momentum(data=modelmanagement_['estimator__momentum'])
