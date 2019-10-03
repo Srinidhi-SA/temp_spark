@@ -25,10 +25,10 @@ class FeatureEngineeringHelper:
     """Contains Feature Engineering Operation Functions"""
 
 
-    def __init__(self, df):
+    def __init__(self, df, dataframe_context):
         self._data_frame = df
         self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
-
+        self._dataframe_context = dataframe_context
 
         # self._dataframe_helper = dataframe_helper
 
@@ -208,12 +208,12 @@ class FeatureEngineeringHelper:
     def replace_values_in_column(self, column_name, range, value):
         if False:
             if value == "median":
-                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
                 median_val = dp_helper_obj.get_median(self._data_frame, column_name)
                 replace_value = median_val
                 self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
             if value == "mode":
-                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
                 mode_val = dp_helper_obj.get_mode(self._data_frame, column_name)
                 replace_value = mode_val
                 self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
@@ -222,17 +222,17 @@ class FeatureEngineeringHelper:
                 self._data_frame = self._data_frame.withColumn(column_name, when(((self._data_frame[column_name] >= range[0]) & (self._data_frame[column_name] <= range[1])), replace_value).otherwise(self._data_frame[column_name]))
         else:
             if value == "median":
-                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
                 median_val = dp_helper_obj.get_median(self._data_frame, column_name)
                 replace_value = median_val
                 self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_median", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
             elif value == "mode":
-                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
                 mode_val = dp_helper_obj.get_mode(self._data_frame, column_name)
                 replace_value = mode_val
                 self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mode", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))
             elif value == "mean":
-                dp_helper_obj = DataPreprocessingHelper(self._data_frame)
+                dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
                 mean_value = self._data_frame.agg(avg(column_name)).first()[0]
                 replace_value = mean_value
                 self._data_frame = self._data_frame.withColumn(column_name+"_treated_"+str(range)+"_mean", when(self._data_frame[column_name] == range, replace_value).otherwise(self._data_frame[column_name]))

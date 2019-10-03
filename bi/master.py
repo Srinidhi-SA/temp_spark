@@ -165,13 +165,13 @@ def main(configJson):
                         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                         dataframe_context.update_completion_status(completionStatus)
                         if dataCleansingDict['selected']:
-                            data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict)
+                            data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict, dataframe_context)
                             df = data_preprocessing_obj.data_cleansing()
                             removed_col=data_preprocessing_obj.removed_col
                         dataframe_context.set_ignore_column_suggestions(removed_col)
 
                         if featureEngineeringDict['selected']:
-                            feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict)
+                            feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict, dataframe_context)
                             feature_engineering_obj.consider_columns =dataframe_context.get_consider_columns()
                             df = feature_engineering_obj.feature_engineering()
                         new_cols_list = df.columns

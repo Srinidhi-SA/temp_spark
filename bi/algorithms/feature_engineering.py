@@ -3,10 +3,10 @@ from feature_engineering_helper import FeatureEngineeringHelper
 
 class FeatureEngineering:
 
-    def __init__(self, spark, df,  featureEngineeringDict):
+    def __init__(self, spark, df,  featureEngineeringDict,  dataframe_context):
         self._spark = spark
         self._df = df
-        # self._dataframe_context = dataframe_context
+        self._dataframe_context = dataframe_context
         # self._dataframe_helper = dataframe_helper
         # self._metaParserInstance = metaParserInstance
         self._featureEngineeringDict = featureEngineeringDict
@@ -14,7 +14,7 @@ class FeatureEngineering:
 
     def feature_engineering(self):
         print "Performing Feature Engineering Operations"
-        feature_engineering_helper_obj = FeatureEngineeringHelper(self._df)
+        feature_engineering_helper_obj = FeatureEngineeringHelper(self._df, self._dataframe_context)
         feature_engineering_helper_obj.consider_columns=self.consider_columns
         columns_to_be_considered_for_binning=self.consider_columns
         for settings in self._featureEngineeringDict['overall_settings']:

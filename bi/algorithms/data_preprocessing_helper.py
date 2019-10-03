@@ -10,9 +10,10 @@ from pyspark.sql.functions import avg, when, stddev as _stddev, col
 class DataPreprocessingHelper():
     """Docstring for data Preprocessing Operations"""
 
-    def __init__(self, df):
+    def __init__(self, df, dataframe_context):
         self._data_frame = df
         self.removed_col = []
+        self._dataframe_context = dataframe_context
 
     def drop_duplicate_rows(self):
         self._data_frame = self._data_frame.dropDuplicates()
@@ -42,8 +43,12 @@ class DataPreprocessingHelper():
                 if self._data_frame.groupby(
                         self._data_frame[categorical_col[i]]).count().collect() == self._data_frame.groupby(
                         categorical_col[j]).count().collect():
-                    categorical_list1.append(categorical_col[j])
-                    categorical_list2.append(categorical_col[i])
+                        if categorical_col[j] == self._dataframe_context.get_result_column():
+                            categorical_list1.append(categorical_col[i])
+                            categorical_list2.append(categorical_col[j])
+                        else :
+                            categorical_list1.append(categorical_col[j])
+                            categorical_list2.append(categorical_col[i])
 
         count_dict1 = dict(zip(categorical_list1, categorical_list2))
 
@@ -61,8 +66,13 @@ class DataPreprocessingHelper():
                 df_col1_std = self._data_frame.select(_stddev(col(numerical_col[i])).alias('std')).collect()[0][0]
                 df_col2_std = self._data_frame.select(_stddev(col(numerical_col[j])).alias('std')).collect()[0][0]
                 if (df_col1_std == df_col2_std):
-                    numerical_list1.append(numerical_col[j])
-                    numerical_list2.append(numerical_col[i])
+                    if numerical_col[j] == self._dataframe_context.get_result_column():
+                        numerical_list1.append(numerical_col[i])
+                        numerical_list2.append(numerical_col[j])
+                    else :
+                        numerical_list1.append(numerical_col[j])
+                        numerical_list2.append(numerical_col[i])
+
 
         count_dict2 = dict(zip(numerical_list1, numerical_list2))
 
@@ -79,8 +89,12 @@ class DataPreprocessingHelper():
             for j in range(i + 1, len(boolean_col)):
                 if self._data_frame.groupby(df[boolean_col[i]]).count().collect() == self._data_frame.groupby(
                         boolean_col[j]).count().collect():
-                    boolean_list1.append(boolean_col[j])
-                    boolean_list2.append(boolean_col[i])
+                        if boolean_col[j] == self._dataframe_context.get_result_column():
+                            boolean_list1.append(boolean_col[i])
+                            boolean_list2.append(boolean_col[j])
+                        else :
+                            boolean_list1.append(boolean_col[j])
+                            boolean_list2.append(boolean_col[i])
 
         count_dict3 = dict(zip(boolean_list1, boolean_list2))
 

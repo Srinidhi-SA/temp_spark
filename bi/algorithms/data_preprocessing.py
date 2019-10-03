@@ -3,10 +3,10 @@ from data_preprocessing_helper import DataPreprocessingHelper
 
 class DataPreprocessing:
 
-    def __init__(self,spark,df,dataCleansingDict):
+    def __init__(self,spark,df,dataCleansingDict,dataframe_context):
         self._spark = spark
         self._df = df
-        # self._dataframe_context = dataframe_context
+        self._dataframe_context = dataframe_context
         # self._dataframe_helper = dataframe_helper
         # self._metaParserInstance = metaParserInstance
         self._dataCleansingDict = dataCleansingDict
@@ -14,7 +14,7 @@ class DataPreprocessing:
 
     def data_cleansing(self):
         print "Cleaning The Data"
-        data_preprocessing_helper_obj = DataPreprocessingHelper(self._df)
+        data_preprocessing_helper_obj = DataPreprocessingHelper(self._df, self._dataframe_context)
         for settings in self._dataCleansingDict['overall_settings']:
             if settings['name'] == "duplicate_row" and settings['selected'] == True:
                 self._df = data_preprocessing_helper_obj.drop_duplicate_rows()

@@ -376,9 +376,13 @@ class ContextSetter:
         self.considercolumns = considerCols
     @accepts(object,(list))
     def set_ignore_column_suggestions(self,ignoreSuggestions):
-        for x in ignoreSuggestions:
-            if x not in GLOBALSETTINGS.CONSIDERED_COLUMNS:
+        if self.get_job_type() != "metaData":
+            for x in ignoreSuggestions:
                 self.ignorecolumns.append(x)
+        else:
+            for x in ignoreSuggestions:
+                if x not in GLOBALSETTINGS.CONSIDERED_COLUMNS:
+                    self.ignorecolumns.append(x)
 
     @accepts(object,(list))
     def set_utf8_columns(self,utf8Cols):
