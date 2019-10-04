@@ -1069,25 +1069,14 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_legend({"a1":"ROC Curve","b1":"Reference Line"})
                 chart_json.set_point_radius(2.0)
             elif "% Responders(Cumulative)" in label:
-                # data = {}
-                # ChartData.insert(0, {"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0})
-                # data["Gain Chart"] = ChartData
-                # data["Reference Line"] = [{"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0}, {"% Population(Cumulative)" : 100.0, "% Responders(Cumulative)" : 100.0}]
-                # print "^_^"*20
-                # print "GAIN CHART DATA - ", data
-                # print "^_^"*20
-                # ChartData = ScatterChartData(data=data)
-                # chart_json = ChartJson()
-                # chart_json.set_data(ChartData.get_data())
-                # chart_json.set_chart_type(chart_type)
-                # chart_json.set_axes({"x" : "% Population(Cumulative)", "y" : "% Responders(Cumulative)"})
-                # chart_json.set_label_text({"x":label[0],"y":label[1]})
-                # chart_json.set_subchart(subchart)
-                # chart_json.set_xaxis_number_format(".2f")
-                # chart_json.set_yaxis_number_format(".4f")
-                # chart_json.set_legend({"a1":"Gain Chart","b1":"Reference Line"})
-                # chart_json.set_point_radius(5.0)
-                ChartData = NormalChartData(data=ChartData)
+                data = {}
+                #ChartData.insert(0, {"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0})
+                data["Gain Chart"] = ChartData
+                data["Reference Line"] = [{"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0}, {"% Population(Cumulative)" : 100.0, "% Responders(Cumulative)" : 100.0}]
+                print "^_^"*20
+                print "GAIN CHART DATA - ", data
+                print "^_^"*20
+                ChartData = ScatterChartData(data=data)
                 chart_json = ChartJson()
                 chart_json.set_data(ChartData.get_data())
                 chart_json.set_chart_type(chart_type)
@@ -1096,6 +1085,17 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_subchart(subchart)
                 chart_json.set_xaxis_number_format(".2f")
                 chart_json.set_yaxis_number_format(".4f")
+                chart_json.set_legend({"a1":"Gain Chart","b1":"Reference Line"})
+                chart_json.set_point_radius(5.0)
+                # ChartData = NormalChartData(data=ChartData)
+                # chart_json = ChartJson()
+                # chart_json.set_data(ChartData.get_data())
+                # chart_json.set_chart_type(chart_type)
+                # chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                # chart_json.set_label_text({"x":label[0],"y":label[1]})
+                # chart_json.set_subchart(subchart)
+                # chart_json.set_xaxis_number_format(".2f")
+                # chart_json.set_yaxis_number_format(".4f")
             elif "Lift @ Decile" in label:
                 data = {}
                 data["Lift Chart"] = ChartData

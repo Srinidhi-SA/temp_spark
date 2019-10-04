@@ -3,7 +3,7 @@
   {{measure_name}} contribution from each of the {{plural_dimension_name}} seems to be similar.
 {% else %}
   {% if num_top_groups == 1 %}
-    The <b>top {{plural_dimension_name}}(Segment {{top_groups[0]}})</b> account for about <b>{{top_groups_percent}}%</b> of the total {{measure_name}}.
+    <b>{{dimension_name}}({{top_groups[0]}})</b> accounts for about <b>{{top_groups_percent}}%</b> of the total {{measure_name}}.
   {% elif num_top_groups == 2 %}
     The <b>top two {{plural_dimension_name}}(Segments {{top_groups[0]}} and {{top_groups[1]}})</b> account for about <b>{{top_groups_percent}}%</b> of the total {{measure_name}}.
   {% elif num_top_groups == 3 %}
@@ -13,7 +13,11 @@
   {% endif %}
 {% endif %}
 {% if best_category_by_mean==best_category_by_total %}
-  Being the <b>largest contributor</b>, {{plural_dimension_name}} - {{best_category_by_total}} amounts to {{best_category_by_total_sum}} that accounts for about <b>{{best_category_by_total_cont}}% of the total {{measure_name}}</b> and the average {{measure_name}} is {{best_category_by_total_avg}}.
+  {% if num_top_groups == 1 %}
+    Being the <b>only contributor</b>, {{best_category_by_total}} amounts to {{best_category_by_total_sum}} that accounts for about <b>{{best_category_by_total_cont}}% of the total {{measure_name}}</b> and the average {{measure_name}} is {{best_category_by_total_avg}}.
+  {% else %}
+    Being the <b>largest contributor</b>, {{best_category_by_total}} amounts to {{best_category_by_total_sum}} that accounts for about <b>{{best_category_by_total_cont}}% of the total {{measure_name}}</b> and the average {{measure_name}} is {{best_category_by_total_avg}}.
+  {% endif %}
 {% else %}
   Being the <b>largest contributor</b>, {{plural_dimension_name}} - {{best_category_by_total}}
   amounts to {{best_category_by_total_sum}} that accounts for about <b>{{best_category_by_total_cont}}%
