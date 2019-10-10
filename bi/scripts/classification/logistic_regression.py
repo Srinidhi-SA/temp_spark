@@ -164,10 +164,10 @@ class LogisticRegressionScript:
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
-                    #clfGrid.fit(x_train,y_train)
+                    clfGrid.fit(x_train,y_train)
                     #bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(params_grid,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     #print resultArray
 

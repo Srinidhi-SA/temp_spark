@@ -5,22 +5,19 @@ from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-from bi.common import MetaDataHelper
-from bi.scripts.metadata import  MetaDataScript
+
 
 class MeasureColumnNarrative:
 
     MAX_FRACTION_DIGITS = 2
 
-    def __init__(self, data_frame,column_name, measure_descr_stats, df_helper, df_context, result_setter, story_narrative,scriptWeight=None, analysisName=None):
+    def __init__(self, column_name, measure_descr_stats, df_helper, df_context, result_setter, story_narrative,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
         self._column_name = column_name.lower()
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._measure_descr_stats = measure_descr_stats
         self._five_point_summary_stats = measure_descr_stats.get_five_point_summary_stats()
-        self._data_frame = data_frame
-        self._total_rows = self._data_frame.count()
         # self._histogram = measure_descr_stats.get_histogram()
         # self._num_columns = context.get_column_count()
         # self._num_rows = context.get_row_count()
@@ -126,28 +123,14 @@ class MeasureColumnNarrative:
         if ignored_columns == None:
             ignored_columns = []
 
-        metaHelperInstance = MetaDataHelper(self._data_frame, self._total_rows)
-        sampleData = metaHelperInstance.get_sample_data()
-        sampleData = sampleData.toPandas()
-        l1=[]
-        l2=[]
-        for column in self._dataframe_helper.get_string_columns():
-            uniqueVals = sampleData[column].unique().tolist()
-            if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
-                dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
-                l1.append(column)
-            else:
-                dateColumnFormat = None
-                l2.append(column)
-
         data_dict = {"n_c" : self._dataframe_helper.get_num_columns(),
                     "n_m" : len(self._dataframe_helper.get_numeric_columns()),
-                    "n_d" : len(l2),
-                    "n_td" : len(l1),
+                    "n_d" : len(self._dataframe_helper.get_string_columns()),
+                    "n_td" : len(self._dataframe_helper.get_timestamp_columns()),
                     "c" : self._column_name,
-                    "d" : l2,
+                    "d" : self._dataframe_helper.get_string_columns(),
                     "m" : self._dataframe_helper.get_numeric_columns(),
-                    "td" : l1,
+                    "td" : self._dataframe_helper.get_timestamp_columns(),
                     "observations" : self._dataframe_helper.get_num_rows(),
                     "ignorecolumns" : ignored_columns,
                     "n_t" : len(self._dataframe_helper.get_string_columns())+len(self._dataframe_helper.get_numeric_columns())+len(self._dataframe_helper.get_timestamp_columns())
