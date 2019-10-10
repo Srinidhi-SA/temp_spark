@@ -19,7 +19,7 @@ class FreqDimensionsScript:
         # DataWriter.write_dict_as_json(self._spark, df_freq_dimension_result, self._dataframe_context.get_result_file()+'FreqDimension/')
 
         # Narratives
-        narratives_obj = DimensionColumnNarrative(self._dataframe_context.get_result_column(), self._dataframe_helper, self._dataframe_context, df_freq_dimension_obj,self._story_narrative,self._result_setter)
+        narratives_obj = DimensionColumnNarrative(self._data_frame,self._dataframe_context.get_result_column(), self._dataframe_helper, self._dataframe_context, df_freq_dimension_obj,self._story_narrative,self._result_setter)
         narratives = CommonUtils.as_dict(narratives_obj)
         # print "Narratives: %s" % (json.dumps(narratives, indent=2))
         # DataWriter.write_dict_as_json(self._spark, narratives, self._dataframe_context.get_narratives_file()+'FreqDimension/')
