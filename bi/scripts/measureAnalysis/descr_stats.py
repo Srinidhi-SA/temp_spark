@@ -25,6 +25,6 @@ class DescriptiveStatsScript:
         print "descr stats ",time.time()-st
 
         st = time.time()
-        narratives_obj = MeasureColumnNarrative(self._dataframe_context.get_result_column(), descr_stats_obj, self._dataframe_helper,self._dataframe_context,self._result_setter, self._story_narrative,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
+        narratives_obj = MeasureColumnNarrative(self._data_frame,self._dataframe_context.get_result_column(), descr_stats_obj, self._dataframe_helper,self._dataframe_context,self._result_setter, self._story_narrative,scriptWeight=self._scriptWeightDict,analysisName=self._analysisName)
         # narratives = CommonUtils.as_dict(narratives_obj)
         print "descr stats narratives",time.time()-st

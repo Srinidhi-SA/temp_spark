@@ -184,7 +184,7 @@ class RandomForestPysparkScript:
             df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
             df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
             CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
+            narratives_obj = DimensionColumnNarrative(df, result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
             narratives = CommonUtils.as_dict(narratives_obj)
             CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
             print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
