@@ -35,6 +35,9 @@ class AnovaNarratives:
         self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._base_dir = "/anova/"
 
+        self._analysisName = self._dataframe_context.get_analysis_name()
+        self._analysisDict = self._dataframe_context.get_analysis_dict()
+
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._messageURL = self._dataframe_context.get_message_url()
         if analysisName == None:
@@ -88,12 +91,19 @@ class AnovaNarratives:
             self._result_setter.set_anova_node(self._anovaNodes)
 
     def _generate_narratives(self):
+        try:
+            nColsToUse = self._analysisDict[self._analysisName]["noOfColumnsToUse"]
+        except:
+            nColsToUse = None
         self._anovaNodes = NarrativesTree()
         self._anovaNodes.set_name("Performance")
         for measure_column in self._df_anova_result.get_measure_columns():
             measure_anova_result = self._df_anova_result.get_measure_result(measure_column)
             significant_dimensions_dict, insignificant_dimensions = measure_anova_result.get_OneWayAnovaSignificantDimensions()
+            num_dimensions = len(significant_dimensions_dict.items()) + len(insignificant_dimensions)
             significant_dimensions = [k for k,v in sorted(significant_dimensions_dict.items(), key=lambda x: -x[1])]
+            if nColsToUse != None:
+                significant_dimensions = significant_dimensions[:nColsToUse]
             num_significant_dimensions = len(significant_dimensions)
             num_insignificant_dimensions = len(insignificant_dimensions)
             print "num_significant_dimensions",num_significant_dimensions
