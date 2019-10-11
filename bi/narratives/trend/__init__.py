@@ -466,7 +466,7 @@ class TimeSeriesNarrative:
                         else:
                             cardData1 += blocks
 
-                        trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
+                        trend_chart_data = [x for x in grouped_data[["key","value"]].T.to_dict().values() if x['key']!=None]
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
                         card1chartdata = trend_chart_data
                         if self._dataLevel == "day":

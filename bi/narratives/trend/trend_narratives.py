@@ -161,6 +161,14 @@ class TrendNarrative:
         else:
             index_col = "year_month"
             dateColDateFormat = "%b-%y"
+        max_levels = min(200, round(sparkdf.count()**0.5))
+        ignoreColumnSuggestions = []
+
+        for col in significant_columns:
+            if sparkdf.select(col).distinct().count() > max_levels:
+                ignoreColumnSuggestions.append(col)
+
+        significant_columns = [col for col in significant_columns if col not in ignoreColumnSuggestions]
         level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,dateColDateFormat,value_col,reference_time, self._metaParser)
         print "level_cont finished in ",time.time()-st
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
