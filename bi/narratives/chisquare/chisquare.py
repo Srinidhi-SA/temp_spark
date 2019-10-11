@@ -262,14 +262,17 @@ class ChiSquareAnalysis:
           ###############
 
           print "self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol
-          if (self._binTargetCol == True & self._binAnalyzedCol == False):
-              print "Only Target Column is Binned, : ", self._binTargetCol
-              output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
-          elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-              print "Target Column and IV is Binned : ", self._binTargetCol, self._binAnalyzedCol
-              output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
+          if len(data_dict['worst_second_share']) == 0:
+             output=[]
           else:
-              output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
+              if (self._binTargetCol == True & self._binAnalyzedCol == False):
+                  print "Only Target Column is Binned, : ", self._binTargetCol
+                  output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
+              elif (self._binTargetCol == True & self._binAnalyzedCol == True):
+                  print "Target Column and IV is Binned : ", self._binTargetCol, self._binAnalyzedCol
+                  output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
+              else:
+                  output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
 
           targetDimCard1Data = []
           targetDimcard1Heading = '<h3>Impact of '+ self._analysed_dimension + '  on '+self._target_dimension+"</h3>"
