@@ -191,7 +191,7 @@ class ChartJson:
         self.legend = legend
         self.chart_type = chart_type
         self.types = types
-        self.axisRotation = False
+        self.axisRotation = True
         self.yAxisNumberFormat = '.2s'
         self.xAxisNumberFormat = '.2s'
         self.y2AxisNumberFormat = ''
