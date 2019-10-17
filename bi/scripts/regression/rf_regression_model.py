@@ -254,6 +254,10 @@ class RFRegressionModelScript:
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
 
                 elif hyperParamAlgoName == "randomsearchcv":
                     estRand = RandomizedSearchCV(est,params_grid)

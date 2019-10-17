@@ -630,8 +630,10 @@ def get_ordered_summary(out,evaluvation_metric):
                 out_df[i]=out_df[i].astype(int)
             except:
                 out_df[i]=out_df[i].astype(float)
-
-    out_df=out_df.sort_values(by = [str(map[evaluvation_metric])], ascending = False)
+    if evaluvation_metric not in  ["RMSE","neg_mean_absolute_error","neg_mean_squared_error"]:
+        out_df=out_df.sort_values(by = [str(map[evaluvation_metric])], ascending = False)
+    else :
+        out_df=out_df.sort_values(by = [str(map[evaluvation_metric])], ascending = True)
     print out_df
     out_act=out_df.T
     sec=out_act.values.tolist()
