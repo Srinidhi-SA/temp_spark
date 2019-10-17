@@ -84,6 +84,7 @@ class ColumnData:
         if chartData is None:
             chartData = {}
         self.name = name
+        self.checked = None
         self.slug = None
         self.ignoreSuggestionFlag = False
         self.ignoreSuggestionPreviewFlag=True
@@ -216,6 +217,8 @@ class ColumnData:
             newObj = {'display': False, 'displayName': 'Unique Values', 'name': 'numberOfUniqueValues', 'value': uniqueVal}
             self.columnStats.append(newObj)
 
+    def set_checker(self,data):
+        self.checked = data
 
 class ColumnHeader:
     def __init__(self,name = None,slug = None):

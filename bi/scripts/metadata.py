@@ -285,6 +285,7 @@ class MetaDataScript:
             data.set_slug(random_slug)
             data.set_name(column)
             data.set_abstract_datatype(self._column_type_dict[column]["abstract"])
+            data.set_checker(True) 
 
             columnStat = []
             columnChartData = None
