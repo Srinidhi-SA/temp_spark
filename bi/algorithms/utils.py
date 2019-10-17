@@ -1119,6 +1119,9 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 {"% Population(Cumulative)" : 80.0, "% Responders(Cumulative)" : 80.0},
                 {"% Population(Cumulative)" : 90.0, "% Responders(Cumulative)" : 90.0},
                 {"% Population(Cumulative)" : 100.0, "% Responders(Cumulative)" : 100.0}]
+                # x axis for gain chart
+                for i,j in zip(range(10),data["Reference Line"][1:]):
+                        j['% Population(Cumulative)'] = ChartData[i]['% Population(Cumulative)']
                 data["Gain Chart"] = ChartData
 
 
