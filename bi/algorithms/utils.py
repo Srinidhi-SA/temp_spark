@@ -566,7 +566,7 @@ def fill_missing_values(df,replacement_dict):
     return df
 
 
-def get_model_comparison(collated_summary):
+def get_model_comparison(collated_summary,evaluvation_metric):
     summary = []
     algos = collated_summary.keys()
     algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network":"Neural Network"}
@@ -574,8 +574,8 @@ def get_model_comparison(collated_summary):
     for val in algos:
         out.append(algos_dict[val])
     out = [[""]+out]
-    first_column = ["Accuracy","Precision","Recall"]
-    data_keys = ["modelAccuracy","modelPrecision","modelRecall"]
+    first_column = ["Accuracy","Precision","Recall","ROC-AUC"]
+    data_keys = ["modelAccuracy","modelPrecision","modelRecall","modelAUC"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
     map_dict = dict(zip(first_column,data_keys))
     for key in first_column:
@@ -599,12 +599,49 @@ def get_model_comparison(collated_summary):
     summaryData = HtmlData(data = summary_html)
 
 
+    out=get_ordered_summary(out,evaluvation_metric)
     modelTable = TableData()
     modelTable.set_table_data([list(x) for x in np.transpose(out)])
     modelTable.set_table_type("circularChartTable")
     if len(algos) == 1:
         summaryData = None
-    return modelTable,summaryData
+    return modelTable,summaryData,out[0]
+
+def get_ordered_summary(out,evaluvation_metric):
+    out[0][0]="None"
+    indexx=out[0]
+    out = [list(x) for x in np.transpose(out)]
+    out_df = pd.DataFrame(out[1:], columns = out[0],index=indexx[1:])
+    metrics=out_df.columns.tolist()
+    map = {
+        "r2":"R-Squared",
+        "RMSE":"Root Mean Square Error",
+        "neg_mean_absolute_error":"Mean Absolute Error",
+        "neg_mean_squared_error":"Mean Square Error",
+        "neg_mean_squared_log_error":"MSE(log)",
+        "accuracy":"Accuracy",
+        "precision":"Precision",
+        "recall":"Recall",
+        "roc_auc":"ROC-AUC"
+    }
+    for i in metrics:
+        if i !="None":
+            try:
+                out_df[i]=out_df[i].astype(int)
+            except:
+                out_df[i]=out_df[i].astype(float)
+
+    out_df=out_df.sort_values(by = [str(map[evaluvation_metric])], ascending = False)
+    print out_df
+    out_act=out_df.T
+    sec=out_act.values.tolist()
+    fir=out_act.index.tolist()
+    for i in range(len(fir)):
+        if fir[i]=="None":
+             sec[i]=[""]+sec[i]
+        else:
+            sec[i]=[fir[i]]+sec[i]
+    return sec
 
 def get_feature_importance(collated_summary):
     feature_importance = collated_summary["randomforest"]["featureImportance"]
@@ -1282,6 +1319,23 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card1Data.append(HtmlData(data = get_total_models_classification(collated_summary)))
         card1.set_card_data(card1Data)
         card1 = json.loads(CommonUtils.convert_python_object_to_json(card1))
+        rfModelSummary = result_setter.get_random_forest_model_summary()
+        nbModelSummary = result_setter.get_naive_bayes_model_summary()
+        lrModelSummary = result_setter.get_logistic_regression_model_summary()
+        xgbModelSummary = result_setter.get_xgboost_model_summary()
+        if rfModelSummary !=None:
+            evaluvation_metric=rfModelSummary["dropdown"]["evaluationMetricName"]
+            print evaluvation_metric
+        elif nbModelSummary !=None:
+            evaluvation_metric=nbModelSummary["dropdown"]["evaluationMetricName"]
+            print evaluvation_metric
+        elif lrModelSummary !=None:
+            evaluvation_metric=lrModelSummary["dropdown"]["evaluationMetricName"]
+            print evaluvation_metric
+        elif xgbModelSummary !=None:
+            evaluvation_metric=xgbModelSummary["dropdown"]["evaluationMetricName"]
+            print evaluvation_metric
+
 
         try:
             featureImportanceC3Object = get_feature_importance(collated_summary)
@@ -1289,7 +1343,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             featureImportanceC3Object = None
         if featureImportanceC3Object != None:
             card2 = NormalCard()
-            card2_elements = get_model_comparison(collated_summary)
+            card2_elements = get_model_comparison(collated_summary,evaluvation_metric)
             if card2_elements[1] == None:
                 card2Data = [card2_elements[0]]
             else:
@@ -1315,7 +1369,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             emptycard.set_card_width(50)
 
             card2 = NormalCard()
-            card2_elements = get_model_comparison(collated_summary)
+            card2_elements = get_model_comparison(collated_summary,evaluvation_metric)
             card2Data = [card2_elements[0]]
             card2.set_card_data(card2Data)
             card2.set_card_width(50)
@@ -1330,6 +1384,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         modelResult = CommonUtils.convert_python_object_to_json(prediction_narrative)
         modelResult = json.loads(modelResult)
         existing_cards = modelResult["listOfCards"]
+        result_setter.model_order=[i for i in card2_elements[2] if i!=""]
         existing_cards = result_setter.get_all_classification_cards()
         # print "existing_cards",existing_cards
         # modelResult["listOfCards"] = [card1,card2,card3] + existing_cards
@@ -1528,10 +1583,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         card4 = NormalCard()
         allMetricsData = []
         metricNamesMapping = {
-                            "mse" : "Mean Square Error",
-                            "mae" : "Mean Absolute Error",
+                            "neg_mean_squared_error" : "Mean Square Error",
+                            "neg_mean_absolute_error" : "Mean Absolute Error",
                             "r2" : "R-Squared",
-                            "rmse" : "Root Mean Square Error",
+                            "RMSE" : "Root Mean Square Error",
                             "explained_variance_score":"explained_variance_score"
                             }
         metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
@@ -1550,7 +1605,13 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             for val in metricNames:
                 algoRow.append(CommonUtils.round_sig(dataObj["modelEvaluationMetrics"][val],2))
             allMetricsData.append(algoRow)
-
+        allRegressionModelSummary = result_setter.get_all_regression_model_summary()
+        evaluvation_metric=allRegressionModelSummary[0]['dropdown']['evaluationMetricName']
+        allMetricsData=get_ordered_summary([list(x) for x in np.transpose(allMetricsData)],evaluvation_metric)
+        result_setter.model_order=[i for i in allMetricsData[0][1:] if i!=""]
+        allMetricsData= [list(x) for x in np.transpose(allMetricsData)]
+        if allMetricsData[0][0]=="":
+            allMetricsData[0][0]='Algorithm'
         evaluationMetricsTable = TableData({'tableType':'normal','tableData':allMetricsData})
         evaluationMetricsTable.set_table_top_header("Model Comparison")
         card4Data = [HtmlData(data="<h4><center>Model Comparison</center></h4>"),evaluationMetricsTable]
@@ -1577,7 +1638,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_features = {}
         model_configs = {}
         target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
-        allRegressionModelSummary = result_setter.get_all_regression_model_summary()
+
         allAlgorithmTable = []
         allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time(Secs)"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)

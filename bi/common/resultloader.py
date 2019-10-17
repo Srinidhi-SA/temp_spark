@@ -155,7 +155,11 @@ class ResultSetter:
     def set_nn_cards(self,data):
         self.nncards = data
     def get_all_classification_cards(self):
-        return self.rfcards + self.lrcards + self.xgbcards+self.nbcards+self.nncards
+        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards}
+        all_cards=[]
+        for i in self.model_order:
+            all_cards=all_cards+map_dict[i]
+        return all_cards
     def get_all_rf_classification_nodes(self):
         return self.rfnodes
     def get_all_nn_classification_nodes(self):
@@ -167,7 +171,13 @@ class ResultSetter:
     def get_all_nb_classification_nodes(self):
         return self.nbnodes
     def get_all_regression_cards(self):
-        return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
+        print self.model_order
+        map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards}
+        all_cards=[]
+        for i in self.model_order:
+            all_cards=all_cards+map_dict[i]
+        return all_cards
+        #return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
 
     def set_nn_model_summary(self,data):
         self.nnModelSummary = data

@@ -230,7 +230,7 @@ class RFClassificationModelScript:
                     modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
-                evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
+                evaluationMetricDict =algoSetting.get_evaluvation_metric()
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
