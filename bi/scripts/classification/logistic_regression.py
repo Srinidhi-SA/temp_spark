@@ -21,7 +21,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import roc_curve, auc, roc_auc_score
-
+from sklearn.model_selection import ParameterGrid
 
 
 from pyspark.sql import SQLContext
@@ -164,10 +164,13 @@ class LogisticRegressionScript:
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
-                    clfGrid.fit(x_train,y_train)
+                    #clfGrid.fit(x_train,y_train)
+                    grid_param={}
+                    grid_param['params']=ParameterGrid(params_grid)
                     #bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
+                    #sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     #print resultArray
 
