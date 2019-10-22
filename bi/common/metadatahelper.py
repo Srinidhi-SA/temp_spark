@@ -231,6 +231,11 @@ class MetaDataHelper():
 
     def calculate_measure_column_stats(self, df, measure_columns, **kwargs):
         i = 0
+        n_rows, n_cols = df.count(), len(df.columns)
+        if n_rows < 100000 and n_cols < 500:
+            pandas_flag = True
+        else:
+            pandas_flag = False
         binned_stat_flag = True
         xtraArgs = {}
         for key in kwargs:
@@ -238,7 +243,8 @@ class MetaDataHelper():
         if "binColumn" in xtraArgs:
             binned_stat_flag = xtraArgs["binColumn"]
         df = df.select(measure_columns)
-        pandas_df = df.toPandas()
+        if pandas_flag:
+            pandas_df = df.toPandas()
         total_count = df.count()
         output = {}
         chart_data = {}
@@ -262,11 +268,8 @@ class MetaDataHelper():
                             "numberOfNotNulls":7,"count":8,"LevelCount":9,"Outliers":10,"OutlierLR":11,"OutlierUR":12,
                             "percentOfNulls": 6}
 
-        n_rows, n_cols = df.count(), len(df.columns)
-        if n_rows < 100000 and n_cols < 500:
-            pandas_flag = True
-        else:
-            pandas_flag = False
+
+
 
         print "+"*60
         print "NUMBER OF ROWS - ", n_rows
@@ -276,7 +279,10 @@ class MetaDataHelper():
         for column in measure_columns:
             print "COLUMN NUMBER IN MEASURE - ", i
             i+=1
-            output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, pandas_df, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict, output, chart_data, pandas_flag)
+            if pandas_flag:
+                output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, pandas_df, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict, output, chart_data, pandas_flag)
+            else:
+                output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, None, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict, output, chart_data, False)
         return output, chart_data
 
     def calculate_dimension_column_stats_pandas(self, pandas_df, column, summary_df, total_count, level_count_flag, chart_data):
@@ -430,7 +436,13 @@ class MetaDataHelper():
         if "levelCount" in xtraArgs:
             level_count_flag = xtraArgs["levelCount"]
         df = df.select(dimension_columns)
-        pandas_df = df.toPandas()
+        n_rows, n_cols = df.count(), len(df.columns)
+        if n_rows < 100000 and n_cols < 500:
+            pandas_flag = True
+        else:
+            pandas_flag = False
+        if pandas_flag:
+            pandas_df = df.toPandas()
         total_count = df.count()
         output = {}
         chart_data = {}
@@ -449,11 +461,6 @@ class MetaDataHelper():
         displayOrderDict = {"MinLevel": 0, "MaxLevel": 1, "numberOfUniqueValues": 2, "numberOfNulls": 3,
                             "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
 
-        n_rows, n_cols = df.count(), len(df.columns)
-        if n_rows < 100000 and n_cols < 500:
-            pandas_flag = True
-        else:
-            pandas_flag = False
 
         print "+"*60
         print "NUMBER OF ROWS - ", n_rows
@@ -464,7 +471,11 @@ class MetaDataHelper():
         for column in dimension_columns:
             print "COLUMN NUMBER IN DIMENSION - ", i
             i+=1
-            output[column], chart_data[column] = self.calculate_dimension_column_stats_per_column(df, pandas_df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict, output, chart_data, pandas_flag)
+            if pandas_flag:
+                output[column], chart_data[column] = self.calculate_dimension_column_stats_per_column(df, pandas_df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict, output, chart_data, pandas_flag)
+            else:
+                output[column], chart_data[column] = self.calculate_dimension_column_stats_per_column(df,None, column, summary_df, total_count, level_count_flag,displayNameDict, displayOrderDict, output, chart_data,False)
+
         return output, chart_data
 
     def calculate_time_dimension_column_stats_pandas(self, pandas_df, column, total_count, level_count_flag, chart_data,unprocessed_columns):
