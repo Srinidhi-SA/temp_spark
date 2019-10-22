@@ -19,7 +19,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
-
+from sklearn.model_selection import ParameterGrid
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
@@ -150,10 +150,12 @@ class SupportVectorMachineScript:
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
-                    clfGrid.fit(x_train,y_train)
-                    bestEstimator = clfGrid.best_estimator_
+                    #clfGrid.fit(x_train,y_train)
+                    grid_param={}
+                    grid_param['params']=ParameterGrid(params_grid)
+                    #bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})

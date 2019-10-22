@@ -54,7 +54,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
-
+from sklearn.model_selection import ParameterGrid
 
 
 
@@ -203,9 +203,9 @@ class LinearRegressionModelScript:
             evaluator = RegressionEvaluator(predictionCol="prediction",labelCol=result_column)
             metrics = {}
             metrics["r2"] = evaluator.evaluate(transformed,{evaluator.metricName: "r2"})
-            metrics["rmse"] = evaluator.evaluate(transformed,{evaluator.metricName: "rmse"})
-            metrics["mse"] = evaluator.evaluate(transformed,{evaluator.metricName: "mse"})
-            metrics["mae"] = evaluator.evaluate(transformed,{evaluator.metricName: "mae"})
+            metrics["RMSE"] = evaluator.evaluate(transformed,{evaluator.metricName: "rmse"})
+            metrics["neg_mean_squared_error"] = evaluator.evaluate(transformed,{evaluator.metricName: "mse"})
+            metrics["neg_mean_absolute_error"] = evaluator.evaluate(transformed,{evaluator.metricName: "mae"})
             runtime = round((time.time() - st_global),2)
             # print transformed.count()
             mapeDf = transformed.select("mape")
@@ -283,19 +283,25 @@ class LinearRegressionModelScript:
                     gridParams = estGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
                     estGrid.set_params(**hyperParamInitParam)
-                    estGrid.fit(x_train,y_train)
-                    bestEstimator = estGrid.best_estimator_
+                    # estGrid.fit(x_train,y_train)
+                    grid_param={}
+                    grid_param['params']=ParameterGrid(params_grid)
+                    #bestEstimator = estGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    sklearnHyperParameterResultObj = SklearnGridSearchResult(estGrid.cv_results_,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
                 elif hyperParamAlgoName == "randomsearchcv":
                     estRand = RandomizedSearchCV(est,params_grid)
                     estRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
-                evaluationMetricDict = {"name":GLOBALSETTINGS.REGRESSION_MODEL_EVALUATION_METRIC}
+                evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
@@ -335,9 +341,9 @@ class LinearRegressionModelScript:
                 joblib.dump(objs["trained_model"],"/".join(modelFilepathArr))
             metrics = {}
             metrics["r2"] = r2_score(y_test, y_score)
-            metrics["mse"] = mean_squared_error(y_test, y_score)
-            metrics["mae"] = mean_absolute_error(y_test, y_score)
-            metrics["rmse"] = sqrt(metrics["mse"])
+            metrics["neg_mean_squared_error"] = mean_squared_error(y_test, y_score)
+            metrics["neg_mean_absolute_error"] = mean_absolute_error(y_test, y_score)
+            metrics["RMSE"] = sqrt(metrics["neg_mean_squared_error"])
             metrics["explained_variance_score"]=explained_variance_score(y_test, y_score)
             transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
             transformed["difference"] = transformed[result_column] - transformed["prediction"]
@@ -385,9 +391,9 @@ class LinearRegressionModelScript:
             self._model_summary.set_feature_list(list(x_train.columns))
             self._model_summary.set_coefficinets_array(coefficientsArray)
             self._model_summary.set_intercept(interceptValue)
-            self._model_summary.set_model_mse(metrics["mse"])
-            self._model_summary.set_model_mae(metrics["mae"])
-            self._model_summary.set_rmse(metrics["rmse"])
+            self._model_summary.set_model_mse(metrics["neg_mean_squared_error"])
+            self._model_summary.set_model_mae(metrics["neg_mean_absolute_error"])
+            self._model_summary.set_rmse(metrics["RMSE"])
             self._model_summary.set_model_rsquared(metrics["r2"])
             self._model_summary.set_model_exp_variance_score(metrics["explained_variance_score"])
 
@@ -408,8 +414,8 @@ class LinearRegressionModelScript:
         if not algoSetting.is_hyperparameter_tuning_enabled():
             modelDropDownObj = {
                         "name":self._model_summary.get_algorithm_name(),
-                        "evaluationMetricValue":self._model_summary.get_model_accuracy(),
-                        "evaluationMetricName":"r2",
+                        "evaluationMetricValue":metrics[evaluationMetricDict["name"]],
+                        "evaluationMetricName":evaluationMetricDict["name"],
                         "slug":self._model_summary.get_slug(),
                         "Model Id":modelName
                         }
@@ -425,8 +431,8 @@ class LinearRegressionModelScript:
         else:
             modelDropDownObj = {
                         "name":self._model_summary.get_algorithm_name(),
-                        "evaluationMetricValue":resultArray[0]["R-Squared"],
-                        "evaluationMetricName":"r2",
+                        "evaluationMetricValue":metrics[evaluationMetricDict["name"]],
+                        "evaluationMetricName":evaluationMetricDict["name"],
                         "slug":self._model_summary.get_slug(),
                         "Model Id":resultArray[0]["Model Id"]
                         }
@@ -449,7 +455,7 @@ class LinearRegressionModelScript:
             self._model_management.set_training_time(runtime) # run time
             self._model_management.set_training_status(data="completed")# training status
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
-            self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["rmse"])
+            self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["RMSE"])
             self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
             self._model_management.set_normalize_value(data=str(modelmanagement_['normalize']))
@@ -463,7 +469,7 @@ class LinearRegressionModelScript:
             self._model_management.set_training_time(runtime) # run time
             self._model_management.set_training_status(data="completed")# training status
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
-            self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["rmse"])
+            self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["RMSE"])
             self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
             self._model_management.set_normalize_value(data=str(modelmanagement_['normalize']))
