@@ -395,6 +395,7 @@ class ChiSquareAnalysis:
                   # print self._data_frame.select('Sales').show()
 
                   distribution_second = []
+                  d_l=[]
                   for d in self._second_level_dimensions:
                     grouped = df_second_target.sort_values(d,ascending=False,axis = 0).groupby(d).agg({d:'count'})
                     contributions = df_second_dim.groupby(d).agg({d:'count'})
@@ -527,8 +528,12 @@ class ChiSquareAnalysis:
                   card2Heading = '<h3>Key Drivers of ' + self._target_dimension + ' (' + targetLevel + ')'+"</h3>"
                   chart,bubble = self.generate_distribution_card_chart(targetLevel, targetLevelContributions, levels, level_counts, total,impact_target_thershold)
                   card2ChartData = NormalChartData(data=chart["data"])
+                  "rounding the chartdata values for key drivers tab inside table percentage(table data)"
+                  for d in card2ChartData.get_data():
+                      d['percentage']=round(d['percentage'],2)
+                      d_l.append(d)
                   card2ChartJson = ChartJson()
-                  card2ChartJson.set_data(card2ChartData.get_data())
+                  card2ChartJson.set_data(d_l)
                   card2ChartJson.set_chart_type("combination")
                   card2ChartJson.set_types({"total":"bar","percentage":"line"})
                   card2ChartJson.set_legend({"total":"# of "+targetLevel,"percentage":"% of "+targetLevel})

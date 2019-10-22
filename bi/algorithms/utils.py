@@ -1104,7 +1104,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_label_text({"x":label[0],"y":label[1]})
                 chart_json.set_subchart(subchart)
                 chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".3f")
+                chart_json.set_yaxis_number_format(".0f")
                 chart_json.set_legend({"a1":"ROC Curve","b1":"Reference Line"})
                 chart_json.set_point_radius(2.0)
             elif "% Responders(Cumulative)" in label:
@@ -1136,7 +1136,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_label_text({"x":label[0],"y":label[1]})
                 #chart_json.set_subchart(subchart)
                 chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".4f")
+                chart_json.set_yaxis_number_format(".0f")
                 chart_json.set_legend({"a1":"Gain Chart","b1":"Reference Line"})
                 chart_json.set_point_radius(2.0)
                 # ChartData = NormalChartData(data=ChartData)
@@ -1160,7 +1160,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_label_text({"x":label[0],"y":label[1]})
                 chart_json.set_subchart(subchart)
                 chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".4f")
+                chart_json.set_yaxis_number_format(".0f")
                 chart_json.set_legend({"a1":"Lift Chart","b1":"Reference Line"})
                 chart_json.set_point_radius(5.0)
             else:
@@ -1172,7 +1172,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 chart_json.set_label_text({"x":label[0],"y":label[1]})
                 chart_json.set_subchart(subchart)
                 chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".4f")
+                chart_json.set_yaxis_number_format(".0f")
 
             return chart_json
 
@@ -1509,6 +1509,18 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["labelMappingDict"] = labelMappingDict
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
         model_dropdowns = [x for x in model_dropdowns if x != None]
+        """Rounding the model accuracy"""
+        i=0
+        numberOfModels=len(model_dropdowns)
+        while i<numberOfModels:
+            if model_dropdowns[i]['evaluationMetricValue']!=None:
+                model_dropdowns[i]['evaluationMetricValue']=round(model_dropdowns[i]['evaluationMetricValue'],3)
+                i=i+1
+            else:
+                i=i+1
+        print model_dropdowns
+
+
 
         # Adding Management Tree
         modelManagement = []
@@ -1731,6 +1743,16 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         print model_dropdowns
         print "="*100
         model_dropdowns = [x for x in model_dropdowns if x != None]
+        """Rounding the model accuracy"""
+        i=0
+        numberOfModels=len(model_dropdowns)
+        while i<numberOfModels:
+            if model_dropdowns[i]['evaluationMetricValue']!=None:
+                model_dropdowns[i]['evaluationMetricValue']=round(model_dropdowns[i]['evaluationMetricValue'],3)
+                i=i+1
+            else:
+                i=i+1
+        print model_dropdowns
         modelManagement = []
         dtreeManagementNode = NarrativesTree(name='Decision Tree')
         gbtManagementNode = NarrativesTree(name='GBTree Regression')

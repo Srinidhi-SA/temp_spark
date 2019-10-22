@@ -301,7 +301,7 @@ class LinearRegressionModelScript:
                     estRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
-                evaluationMetricDict = algoSetting.get_evaluvation_metric()
+                evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}

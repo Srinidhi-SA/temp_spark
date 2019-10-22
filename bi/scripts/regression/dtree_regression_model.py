@@ -264,7 +264,7 @@ class DTREERegressionModelScript:
                     estRand.set_params(**hyperParamInitParam)
                     bestEstimator = None
             else:
-                evaluationMetricDict = algoSetting.get_evaluvation_metric()
+                evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
@@ -374,6 +374,8 @@ class DTREERegressionModelScript:
                 self._result_setter.update_pmml_object({self._slug:pmmlText})
             except:
                 pass
+
+
         if not algoSetting.is_hyperparameter_tuning_enabled():
             modelDropDownObj = {
                         "name":self._model_summary.get_algorithm_name(),

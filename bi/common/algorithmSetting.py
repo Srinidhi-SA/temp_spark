@@ -322,13 +322,20 @@ class AlgorithmParameterConfig:
             return True
         else:
             return False
-    def get_evaluvation_metric(self):
-        par=[obj for obj in self.hyperParameterSetting][0]
-        aba=par.get_params()
-        params_dict = {}
-        for obj in aba:
-            params_dict.update(obj.get_param_value(hyperParams=False))
-        return {"name":params_dict["evaluationMetric"]}
+    def get_evaluvation_metric(self,Type):
+        try:
+            par=[obj for obj in self.hyperParameterSetting][0]
+            aba=par.get_params()
+            params_dict = {}
+            for obj in aba:
+                params_dict.update(obj.get_param_value(hyperParams=False))
+            return {"name":params_dict["evaluationMetric"]}
+        except:
+            if Type=="CLASSIFICATION":
+                return {"name":"accuracy"}
+            else:
+                return {"name":"r2"}
+
 
 
     def get_hyperparameter_params(self):

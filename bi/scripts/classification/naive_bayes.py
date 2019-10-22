@@ -178,7 +178,7 @@ class NBBClassificationModelScript:
                         clfRand.set_params(**hyperParamInitParam)
                         bestEstimator = None
             else:
-                evaluationMetricDict =algoSetting.get_evaluvation_metric()
+                evaluationMetricDict =algoSetting.get_evaluvation_metric(Type="CLASSIFICATION")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
@@ -735,7 +735,7 @@ class NBGClassificationModelScript:
                     modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
-                evaluationMetricDict =algoSetting.get_evaluvation_metric()
+                evaluationMetricDict =algoSetting.get_evaluvation_metric(Type="CLASSIFICATION")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
@@ -1489,7 +1489,7 @@ class NBMClassificationModelScript:
                     modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
-                evaluationMetricDict =algoSetting.get_evaluvation_metric()
+                evaluationMetricDict =algoSetting.get_evaluvation_metric(Type="CLASSIFICATION")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
