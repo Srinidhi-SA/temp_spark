@@ -1328,6 +1328,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         nbModelSummary = result_setter.get_naive_bayes_model_summary()
         lrModelSummary = result_setter.get_logistic_regression_model_summary()
         xgbModelSummary = result_setter.get_xgboost_model_summary()
+        nnModelSummary = result_setter.get_nn_model_summary()
         if rfModelSummary !=None:
             evaluvation_metric=rfModelSummary["dropdown"]["evaluationMetricName"]
             print evaluvation_metric
@@ -1340,6 +1341,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         elif xgbModelSummary !=None:
             evaluvation_metric=xgbModelSummary["dropdown"]["evaluationMetricName"]
             print evaluvation_metric
+        elif nnModelSummary!=None:
+            evaluvation_metric=nnModelSummary["dropdown"]["evaluationMetricName"]
+
 
 
         try:
@@ -1504,10 +1508,16 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
             algoSummaryCardDict = json.loads(algoSummaryCardJson)
             model_hyperparameter_summary.insert(0,algoSummaryCardDict)
+        rfFailCard = result_setter.get_rf_fail_card()
+        nnFailCard = result_setter.get_nn_fail_card()
+        nbFailCard = result_setter.get_nb_fail_card()
+        lrFailCard = result_setter.get_lr_fail_card()
+        xgbFailCard = result_setter.get_xgb_fail_card()
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = labelMappingDict
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
+        model_configs["fail_card"]=[rfFailCard,nnFailCard,nbFailCard,lrFailCard,xgbFailCard]
         model_dropdowns = [x for x in model_dropdowns if x != None]
         """Rounding the model accuracy"""
         i=0
@@ -1735,11 +1745,15 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             algoSummaryCardJson = CommonUtils.convert_python_object_to_json(algoSummaryCard)
             algoSummaryCardDict = json.loads(algoSummaryCardJson)
             model_hyperparameter_summary.insert(0,algoSummaryCardDict)
-
+        rfFailCard = result_setter.get_rf_fail_card()
+        lrFailCard = result_setter.get_lr_fail_card()
+        gbtFailCard = result_setter.get_gbt_fail_card()
+        dtrFailCard = result_setter.get_dtr_fail_card()
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = {}
         model_configs["targetVariableLevelcount"] = []
+        model_configs["fail_card"]=[rfFailCard,gbtFailCard,dtrFailCard,lrFailCard]
         print model_dropdowns
         print "="*100
         model_dropdowns = [x for x in model_dropdowns if x != None]

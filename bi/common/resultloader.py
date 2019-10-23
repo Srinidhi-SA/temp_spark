@@ -65,6 +65,42 @@ class ResultSetter:
         self.gbtnodes = []
         self.lregnodes = []
         self.rfgnodes = []
+        self.rffailcard =[]
+        self.lrfailcard = []
+        self.nnfailcard = []
+        self.xgbfailcard = []
+        self.nbfailcard = []
+        self.dtrfailcard = []
+        self.gbtfailcard = []
+    def set_dtr_fail_card(self,data):
+        self.dtrfailcard=data
+    def get_dtr_fail_card(self):
+        return self.dtrfailcard
+    def set_gbt_fail_card(self,data):
+        self.gbtfailcard=data
+    def get_gbt_fail_card(self):
+        return self.gbtfailcard
+
+    def set_lr_fail_card(self,data):
+        self.lrfailcard=data
+    def get_lr_fail_card(self):
+        return self.lrfailcard
+    def set_nn_fail_card(self,data):
+        self.nnfailcard=data
+    def get_nn_fail_card(self):
+        return self.nnfailcard
+    def set_xgb_fail_card(self,data):
+        self.xgbfailcard=data
+    def get_xgb_fail_card(self):
+        return self.xgbfailcard
+    def set_nb_fail_card(self,data):
+        self.nbfailcard=data
+    def get_nb_fail_card(self):
+        return self.nbfailcard
+    def set_rf_fail_card(self,data):
+        self.rffailcard=data
+    def get_rf_fail_card(self):
+        return self.rffailcard
     def set_dtree_nodes(self,data):
         self.dtreenodes = data
     def set_gbt_nodes(self,data):
