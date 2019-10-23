@@ -70,8 +70,8 @@ class ResultSetter:
         self.nnfailcard = []
         self.xgbfailcard = []
         self.nbfailcard = []
-        self.dtrfailcard
-        self.gbtfailcard
+        self.dtrfailcard = []
+        self.gbtfailcard = []
     def set_dtr_fail_card(self,data):
         self.dtrfailcard=data
     def get_dtr_fail_card(self):
