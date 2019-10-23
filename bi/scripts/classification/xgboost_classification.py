@@ -509,7 +509,7 @@ class XgboostScript:
                             ["Training Status",self._model_management.get_training_status()],
                             ["Accuracy",self._model_management.get_model_accuracy()],
                             ["RunTime",self._model_management.get_training_time()],
-                            ["Owner",None],
+                            #["Owner",None],
                             ["Created On",self._model_management.get_creation_date()]
 
                             ]
@@ -557,6 +557,7 @@ class XgboostScript:
             self._result_setter.set_xgboost_model_summary(modelSummaryJson)
             self._result_setter.set_xgb_cards(xgbCards)
             self._result_setter.set_xgb_nodes([XGB_Overview_Node,XGB_Performance_Node,XGB_Deployment_Node])
+            self._result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

@@ -241,6 +241,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     rf_obj.Train()
                     print "Random Forest Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["xgboost"]:
@@ -250,6 +251,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     xgb_obj.Train()
                     print "XGBoost Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]:
@@ -260,6 +262,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     lr_obj.Train()
                     print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"Logistic Regression","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
@@ -301,6 +304,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                         nb_obj.Train()
                         print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
                     except Exception as e:
+                        result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"False"})
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network"] and obj.get_algorithm_name() == "Neural Network":
@@ -311,6 +315,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     nn_obj.Train()
                     print "Neural Network Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
@@ -331,6 +336,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     lin_obj.Train()
                     print "Linear Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
@@ -350,6 +356,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     gbt_obj.Train()
                     print "GBT Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_gbt_fail_card({"Algorithm_Name":"gbtregression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
@@ -359,6 +366,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     dtree_obj.Train()
                     print "DTREE Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_dtr_fail_card({"Algorithm_Name":"DecisionTree","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
@@ -368,6 +376,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     rf_obj.Train()
                     print "RF Regression Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
+                    result_setter.set_rf_fail_card({"Algorithm_Name":"rfRegression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 

@@ -528,7 +528,7 @@ class NeuralNetworkScript:
                         ["Training Status",self._model_management.get_training_status()],
                         ["Accuracy",self._model_management.get_model_accuracy()],
                         ["RunTime",self._model_management.get_training_time()],
-                        ["Owner",None],
+                        #["Owner",None],
                         ["Created On",self._model_management.get_creation_date()]
 
                         ]
@@ -592,6 +592,7 @@ class NeuralNetworkScript:
             self._result_setter.set_nn_model_summary(modelSummaryJson)
             self._result_setter.set_nn_cards(nnCards)
             self._result_setter.set_nn_nodes([NN_Overview_Node,NN_Performance_Node,NN_Deployment_Node])
+            self._result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

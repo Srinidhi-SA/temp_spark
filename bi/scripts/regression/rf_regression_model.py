@@ -470,7 +470,7 @@ class RFRegressionModelScript:
                         ["Training Status",self._model_management.get_training_status()],
                         ["RMSE",self._model_management.get_rmse()],
                         ["RunTime",self._model_management.get_training_time()],
-                        ["Owner",None],
+                        #["Owner",None],
                         ["Created On",self._model_management.get_creation_date()]
 
                                     ]
@@ -523,6 +523,7 @@ class RFRegressionModelScript:
         self._result_setter.set_rf_regression_model_summart(modelSummaryJson)
         self._result_setter.set_rfr_cards(rfrCards)
         self._result_setter.set_rfreg_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
+        self._result_setter.set_rf_fail_card({"Algorithm_Name":"rfregression","Success":"True"})
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
