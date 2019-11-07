@@ -100,7 +100,7 @@ class MetaDataScript:
                 ColumnType(type(field.dataType)).get_actual_data_type() == ColumnType.REAL]
         self._column_type_dict = {}
         self._dataSize = {"nRows":self._total_rows,"nCols":self._total_columns,"nBooleans":None,"nMeasures":None,"nDimensions":None,"nTimeDimensions":None,"dimensionLevelCountDict":{},"totalLevels":None}
-
+        self.actual_col_datatype_update=[]
         self.update_column_type_dict()
         time_taken_schema = time.time()-self._start_time
         print "schema rendering takes",time_taken_schema
@@ -285,22 +285,42 @@ class MetaDataScript:
             data.set_slug(random_slug)
             data.set_name(column)
             data.set_abstract_datatype(self._column_type_dict[column]["abstract"])
-            data.set_checker(True) 
-
+            data.set_checker(True)
+            changeflage=False
             columnStat = []
             columnChartData = None
+            check_datatype_change=self.actual_col_datatype_update
+            if len(check_datatype_change)!=0:
+                for i in check_datatype_change:
+                    if i.keys()[0]==column:
+                        changeflage=True
+                        changeType=i[column]
+                        break
+                    else:
+                        changeflage=False
+            else:
+                changeflage=False
             if self._column_type_dict[column]["abstract"] == "measure":
                 data.set_column_stats(measureColumnStat[column])
                 data.set_column_chart(measureCharts[column])
-                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+                if changeflage:
+                    data.set_actual_datatype("dimension")
+                else:
+                    data.set_actual_datatype(self._column_type_dict[column]["actual"])
             elif self._column_type_dict[column]["abstract"] == "dimension":
                 data.set_column_stats(dimensionColumnStat[column])
                 data.set_column_chart(dimensionCharts[column])
-                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+                if changeflage:
+                    data.set_actual_datatype("measure")
+                else:
+                    data.set_actual_datatype(self._column_type_dict[column]["actual"])
             elif self._column_type_dict[column]["abstract"] == "datetime":
                 data.set_column_stats(timeDimensionColumnStat[column])
                 data.set_column_chart(timeDimensionCharts[column])
-                data.set_actual_datatype(self._column_type_dict[column]["actual"])
+                if changeflage:
+                    data.set_actual_datatype("dimension")
+                else:
+                    data.set_actual_datatype(self._column_type_dict[column]["actual"])
             if self._column_type_dict[column]["abstract"] == "measure":
                 if column not in self._real_columns:
                     ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)

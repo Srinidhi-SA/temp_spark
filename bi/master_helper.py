@@ -691,6 +691,10 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
         if filtered_df.count() > 0:
             transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context,metaParserInstance)
             transform_class.applyTransformations()
+            try:
+                update_metadata_datatype_change=transform_class.actual_col_datatype_update
+            except:
+                pass
             transformed_df = transform_class.get_transformed_data_frame()
         if filtered_df.count() > 0 and transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
@@ -698,6 +702,10 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
             transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
             print "starting Metadata for the Filtered Dataframe"
             meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
+            try:
+                meta_data_class.actual_col_datatype_update=update_metadata_datatype_change
+            except:
+                pass
             meta_data_object = meta_data_class.run()
             metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
             print metaDataJson
