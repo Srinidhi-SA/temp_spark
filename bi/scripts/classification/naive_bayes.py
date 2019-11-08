@@ -1129,6 +1129,7 @@ class NBGClassificationModelScript:
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
+            y_prob=list(map(lambda x:round(x,2),y_prob))
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
 
         df["predicted_class"] = score["predicted_class"]
@@ -1877,6 +1878,7 @@ class NBMClassificationModelScript:
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
+            y_prob=list(map(lambda x:round(x,2),y_prob))
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
 
         df["predicted_class"] = score["predicted_class"]
