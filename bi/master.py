@@ -83,6 +83,10 @@ def main(configJson):
     jobURL = jobConfig["job_url"]
     messageURL = jobConfig["message_url"]
 
+
+    messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
+    messages_for_API = messages.send_messages()
+
     try:
         errorURL = jobConfig["error_reporting_url"]
     except:
