@@ -8,8 +8,7 @@ from bi.common.results import DfMetaData, MetaData, ColumnData, ColumnHeader
 from bi.settings import setting as GLOBALSETTINGS
 
 from pyspark.sql.functions import coalesce, to_date
-from pyspark.sql.functions import date_format
-
+from pyspark.sql.functions import date_format, lit
 
 class MetaDataScript:
     '''
@@ -278,6 +277,27 @@ class MetaDataScript:
         ignoreColumnReason = []
         utf8ColumnSuggestion = []
 
+        dup_cols = []
+        #columns = self._data_frame.columns
+        measureDupCols=self.checkDupColName(measureColumnStat)
+        dimensionDupCols=self.checkDupColName(dimensionColumnStat)
+        timeDimensionDupCols=self.checkDupColName(timeDimensionColumnStat)
+        for i in measureDupCols:
+            if self.checkDuplicateCols(i[0],i[1]) == True:
+                for j in i[1:]:
+                    if dict(name="Duplicate",value=True) not in measureColumnStat[j]:
+                        measureColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+        for i in dimensionDupCols:
+            if self.checkDuplicateCols(i[0],i[1],True) == True:
+                for j in i[1:]:
+                    if dict(name="Duplicate",value=True) not in dimensionColumnStat[j]:
+                        dimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+        for i in timeDimensionDupCols:
+            if self.checkDuplicateCols(i[0],i[1]) == True:
+                for j in i[1:]:
+                    if dict(name="Duplicate",value=True) not in timeDimensionColumnStat[j]:
+                        timeDimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+
         for column in self._data_frame.columns:
             random_slug = uuid.uuid4().hex
             headers.append(ColumnHeader(name=column,slug=random_slug))
@@ -322,15 +342,15 @@ class MetaDataScript:
                 else:
                     data.set_actual_datatype(self._column_type_dict[column]["actual"])
             if self._column_type_dict[column]["abstract"] == "measure":
-                if column not in self._real_columns:
-                    ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
-                    if ignoreSuggestion:
-                        ignoreColumnSuggestions.append(column)
-                        ignoreColumnReason.append(ignoreReason)
-                        #data.set_level_count_to_null()
-                        #data.set_chart_data_to_null()
-                        data.set_ignore_suggestion_flag(True)
-                        data.set_ignore_suggestion_message(ignoreReason)
+                #if column not in self._real_columns:
+                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
+                if ignoreSuggestion:
+                    ignoreColumnSuggestions.append(column)
+                    ignoreColumnReason.append(ignoreReason)
+                    #data.set_level_count_to_null()
+                    #data.set_chart_data_to_null()
+                    data.set_ignore_suggestion_flag(True)
+                    data.set_ignore_suggestion_message(ignoreReason)
             elif self._column_type_dict[column]["abstract"] == "dimension":
                 ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
@@ -401,3 +421,41 @@ class MetaDataScript:
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
         self._dataframe_context.update_completion_status(self._completionStatus)
         return dfMetaData
+
+    def checkDuplicateCols(self,col1,col2,flag=False):
+        if flag == False:
+            if self._data_frame.select(col1).sample(False,0.3,seed=1).collect() == self._data_frame.select(col2).sample(False,0.3,seed=1).collect():
+                return True
+            else :
+                return False
+        else :
+            try:
+                fractions1 = self._data_frame.select(col1).distinct().withColumn("fraction", lit(0.3)).rdd.collectAsMap()
+                fractions2 = self._data_frame.select(col2).distinct().withColumn("fraction", lit(0.3)).rdd.collectAsMap()
+                if self._data_frame.select(col1).stat.sampleBy(col1, fractions1, 1).collect() == self._data_frame.select(col2).stat.sampleBy(col2, fractions2, 1).collect():
+                    return True
+                else :
+                    return False
+            except:
+                if self._data_frame.select(col1).sample(False,0.3,seed=1).collect() == self._data_frame.select(col2).sample(False,0.3,seed=1).collect():
+                    return True
+                else :
+                    return False
+
+    def checkDupColName(self,statsDict):
+        flipped = {}
+        if len(set(list(map(str,statsDict.values())))) < len(statsDict.keys()):
+            for key, value in statsDict.items():
+                if str(value) not in flipped:
+                    flipped[str(value)] = [key]
+                else:
+                    flipped[str(value)].append(key)
+            def check_length(value):
+                if len(value)>1:
+                    return True
+                else:
+                    return False
+            dupCols=filter(check_length, flipped.values())
+            return dupCols
+        else :
+            return []

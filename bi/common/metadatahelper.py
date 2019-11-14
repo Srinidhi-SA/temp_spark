@@ -734,6 +734,10 @@ class MetaDataHelper():
             if (colStat["numberOfUniqueValues"]==1):
                 ignore = True
                 reason = "Only one Unique Value"
+            if "Duplicate" in colStat:
+                if (colStat["Duplicate"] != None):
+                    ignore = True
+                    reason = "Column is a duplicate of "+str(colStat["Duplicate"])
             if (colStat["numberOfNulls"] > 0):
                 if (colStat["numberOfUniqueValues"]==2):
                     ignore = True
@@ -755,6 +759,10 @@ class MetaDataHelper():
             if (colStat["numberOfUniqueValues"]==1):
                 ignore = True
                 reason = "Only one Unique Value"
+            if "Duplicate" in colStat:
+                if (colStat["Duplicate"] != None):
+                    ignore = True
+                    reason = "Column is a duplicate of "+str(colStat["Duplicate"])
             if (colStat["numberOfNulls"] == 0):
                 if (colStat["numberOfUniqueValues"] == total_rows):
                     ignore = True
@@ -774,6 +782,10 @@ class MetaDataHelper():
             if (colStat["numberOfUniqueValues"]==1):
                 ignore = True
                 reason = "Only one Unique Value"
+            if "Duplicate" in colStat:
+                if (colStat["Duplicate"] != None):
+                    ignore = True
+                    reason = "Column is a duplicate of "+str(colStat["Duplicate"])
             if (colStat["numberOfNulls"] == 0):
                 if (colStat["numberOfUniqueValues"] == total_rows):
                     ignore = True

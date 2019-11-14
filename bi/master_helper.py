@@ -45,8 +45,7 @@ def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-        for i in GLOBALSETTINGS.DEFAULT_NULL_VALUES:
-            df = df.replace(i, None)
+        df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
         cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]","", col) for col in df.columns]
         # df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
     else:
