@@ -87,8 +87,8 @@ def main(configJson):
 
     messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
     messages_for_API = messages.send_messages()
-    import sys
-    sys.exit()
+    # import sys
+    # sys.exit()
     try:
         errorURL = jobConfig["error_reporting_url"]
     except:
