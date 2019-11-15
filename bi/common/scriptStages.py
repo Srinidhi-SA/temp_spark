@@ -46,7 +46,7 @@ class messages_list:
         "Influencer": ['Finding Factors That Influence Target Variable', 'Started The Regression Script', 'Regression Coefficients Calculated', 'Started The Regression Narratives', 'Analyzing Key Influencers', 'Narratives For Regression Finished'],
         "Prediction": [ 'Creating Prediction Model For target', 'Started The Decision Tree Regression Script', 'Decision Tree Regression Learning Finished', 'Started The Decision Tree Regression Narratives', 'Generating Prediction Rules', 'Narratives For Decision Tree Regression Finished']}
 
-        self._story_messages_dimension = {"Overview1": ['Analyzing Target Variable', 'Choosing Statistical And Machine Learning Techniques For Analysis', 'Initialized the Frequency Scripts', 'Running Groupby Operations', 'Frequency Stats Calculated', 'Initialized The Frequency Narratives', 'Summary Generation Finished', 'Summary Generation Finished'],
+        self._story_messages_dimension = {"Overview1": ['Analyzing Target Variable', 'Choosing Statistical And Machine Learning Techniques For Analysis', 'Initialized the Frequency Scripts', 'Running Groupby Operations', 'Frequency Stats Calculated', 'Initialized The Frequency Narratives', 'Summary Generation Finished'],
         "Overview2": ['Validating Analysis Results', 'Creating Visualizations', 'Creating Narratives', 'Your Signal Is Ready', 'Job Finished'],
         "Trend": ['Analyzing Trend For target', 'Initialized The Frequency Narratives', 'Summary Generation Finished', 'Frequency Stats Narratives Done'],
         "Association": ['Evaluating Variables For Statistical Association', 'Initialized the Chisquare Scripts', 'Chisquare Stats Calculated', 'Initialized the Frequency Narratives', 'Analyzing key drivers', 'Summary Generation Finished', 'Frequency Stats Narratives Done'],
@@ -79,7 +79,8 @@ class messages_list:
                 output_messages.append(i)
 
         if self._jobType == 'metaData':
-            output_messages.append(self._metaData_messages)
+            for i in self._metaData_messages:
+                output_messages.append(i)
 
         if self._jobType == 'story':
             storyType = ''
