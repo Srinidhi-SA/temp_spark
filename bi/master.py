@@ -16,6 +16,7 @@ from bi.algorithms import feature_engineering as feature_engineering
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.common import NarrativesTree,ConfigValidator
+from bi.common import scriptStages
 from bi.scripts.stockAdvisor.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
 # from bi.tests.chisquare.test_chisquare import TestChiSquare
@@ -83,6 +84,11 @@ def main(configJson):
     jobURL = jobConfig["job_url"]
     messageURL = jobConfig["message_url"]
 
+
+    messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
+    messages_for_API = messages.send_messages()
+    # import sys
+    # sys.exit()
     try:
         errorURL = jobConfig["error_reporting_url"]
     except:
