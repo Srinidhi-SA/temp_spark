@@ -1,5 +1,4 @@
 import sys
-import sys
 import time
 import json
 import pyhocon
@@ -83,12 +82,13 @@ def main(configJson):
     jobName = jobConfig["job_name"]
     jobURL = jobConfig["job_url"]
     messageURL = jobConfig["message_url"]
+    initialMessageURL = jobConfig["initial_messages"]
 
 
     messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
     messages_for_API = messages.send_messages()
-    # import sys
-    # sys.exit()
+    messages_for_API = json.dumps(messages_for_API)
+    res = requests.put(url=initialMessageURL,data=messages_for_API)
     try:
         errorURL = jobConfig["error_reporting_url"]
     except:
@@ -317,7 +317,7 @@ def submit_job_through_yarn():
     jobName = jobConfig["job_name"]
     jobURL = jobConfig["job_url"]
     messageURL = jobConfig["message_url"]
-    killURL = jobConfig["kill_url"]    
+    killURL = jobConfig["kill_url"]
     try:
     	main(json_config["job_config"])
     except Exception, e:

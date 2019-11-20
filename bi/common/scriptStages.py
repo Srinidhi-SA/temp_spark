@@ -125,8 +125,6 @@ class messages_list:
 
 
         output_dictionary ={i:output_messages[i] for i in range(len(output_messages))}
-
-        print output_dictionary
         return output_dictionary
 #comment above two and uncomment below two line if output is required in a list format. The print statement is to be used if required
         # print output_messages
