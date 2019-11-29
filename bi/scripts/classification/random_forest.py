@@ -512,7 +512,7 @@ class RFClassificationModelScript:
                             ["Training Status",self._model_management.get_training_status()],
                             ["Accuracy",self._model_management.get_model_accuracy()],
                             ["RunTime",self._model_management.get_training_time()],
-                            ["Owner",None],
+                            #["Owner",None],
                             ["Created On",self._model_management.get_creation_date()]
 
                                         ]
@@ -560,6 +560,7 @@ class RFClassificationModelScript:
             self._result_setter.set_random_forest_model_summary(modelSummaryJson)
             self._result_setter.set_rf_cards(rfCards)
             self._result_setter.set_rf_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
+            self._result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -651,6 +652,7 @@ class RFClassificationModelScript:
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
+            y_prob=list(map(lambda x:round(x,2),y_prob))
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
 
         df["predicted_class"] = score["predicted_class"]

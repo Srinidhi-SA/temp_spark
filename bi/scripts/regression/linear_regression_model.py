@@ -481,7 +481,7 @@ class LinearRegressionModelScript:
                     ["Training Status",self._model_management.get_training_status()],
                     ["Root Mean Squared Error",self._model_management.get_rmse()],
                     ["RunTime",self._model_management.get_training_time()],
-                    ["Owner",None],
+                    #["Owner",None],
                     ["Created On",self._model_management.get_creation_date()]
                     ]
         modelManagementModelSettingsJson =[
@@ -520,6 +520,7 @@ class LinearRegressionModelScript:
         self._result_setter.set_linear_regression_model_summary(modelSummaryJson)
         self._result_setter.set_linr_cards(linrCards)
         self._result_setter.set_lreg_nodes([linR_Overview_Node, linR_Performance_Node, linR_Deployment_Node])
+        self._result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"True"})
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 

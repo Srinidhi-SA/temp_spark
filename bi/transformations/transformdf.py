@@ -24,6 +24,7 @@ class DataFrameTransformer:
         self._analysisName = "transformation"
         self._messageURL = self._dataframe_context.get_message_url()
         self._replaceTypeList = ["equals","contains","startsWith","endsWith"]
+        self.actual_col_datatype_update=[]
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Filter Parameters",
@@ -70,6 +71,7 @@ class DataFrameTransformer:
                                 newDataType = "string"
                             elif castDataType == "datetime":
                                 newDataType = "timestamp"
+                            self.actual_col_datatype_update.append({colName:newDataType})
                             self.update_column_datatype(colName,newDataType)
                             print self._data_frame.printSchema()
                     print self._data_frame.printSchema()

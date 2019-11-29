@@ -837,7 +837,7 @@ class SkleanrKFoldResult:
                     metricsFold["neg_mean_squared_log_error"] = metrics.mean_squared_log_error(y_test_fold, y_score_fold)
                 except:
                     metricsFold["neg_mean_squared_log_error"] = "NA"
-                metricsFold["rmse"] = sqrt(metricsFold["neg_mean_squared_error"])
+                metricsFold["RMSE"] = sqrt(metricsFold["neg_mean_squared_error"])
             self.kFoldOutput.append((self.estimator,metricsFold))
         if self.appType == "CLASSIFICATION":
             self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)

@@ -1,5 +1,4 @@
 import sys
-import sys
 import time
 import json
 import pyhocon
@@ -16,6 +15,7 @@ from bi.algorithms import feature_engineering as feature_engineering
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.common import NarrativesTree,ConfigValidator
+from bi.common import scriptStages
 from bi.scripts.stockAdvisor.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
 # from bi.tests.chisquare.test_chisquare import TestChiSquare
@@ -45,7 +45,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "metaData"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -82,7 +82,13 @@ def main(configJson):
     jobName = jobConfig["job_name"]
     jobURL = jobConfig["job_url"]
     messageURL = jobConfig["message_url"]
+    initialMessageURL = jobConfig["initial_messages"]
 
+
+    messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
+    messages_for_API = messages.send_messages()
+    messages_for_API = json.dumps(messages_for_API)
+    res = requests.put(url=initialMessageURL,data=messages_for_API)
     try:
         errorURL = jobConfig["error_reporting_url"]
     except:
@@ -304,9 +310,25 @@ def submit_job_through_yarn():
     # print json.loads(sys.argv[1])
     json_config = json.loads(sys.argv[1])
     # json_config["config"] = ""
-
-    main(json_config["job_config"])
-
+    configJson = json_config["job_config"]
+    config = configJson["config"]
+    jobConfig = configJson["job_config"]
+    jobType = jobConfig["job_type"]
+    jobName = jobConfig["job_name"]
+    jobURL = jobConfig["job_url"]
+    messageURL = jobConfig["message_url"]
+    killURL = jobConfig["kill_url"]
+    try:
+    	main(json_config["job_config"])
+    except Exception, e:
+        # print jobURL, killURL
+        data = {"status": "killed", "jobURL": jobURL}
+        resp = send_kill_command(killURL, data)
+        while str(resp.text) != '{"result": "success"}':
+            data = {"status": "killed", "jobURL": jobURL}
+            resp = send_kill_command(killURL, data)
+        # print resp.text
+        print 'Main Method Did Not End ....., ', str(e)
 if __name__ == '__main__':
     jobURL, killURL = killer_setting(sys.argv[1])
     try:
@@ -316,5 +338,8 @@ if __name__ == '__main__':
         # print jobURL, killURL
         data = {"status": "killed", "jobURL": jobURL}
         resp = send_kill_command(killURL, data)
+        while str(resp.text) != '{"result": "success"}':
+            data = {"status": "killed", "jobURL": jobURL}
+            resp = send_kill_command(killURL, data)
         # print resp.text
         print 'Main Method Did Not End ....., ', str(e)

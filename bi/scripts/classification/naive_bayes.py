@@ -333,6 +333,7 @@ class NBBClassificationModelScript:
             self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
             self._result_setter.set_nb_cards(nbCards)
+            self._result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -423,6 +424,7 @@ class NBBClassificationModelScript:
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
+            y_prob=list(map(lambda x:round(x,2),y_prob))
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
 
         df["predicted_class"] = score["predicted_class"]
@@ -996,7 +998,7 @@ class NBGClassificationModelScript:
                                   ["Training Status",self._model_management.get_training_status()],
                                   ["Accuracy",self._model_management.get_model_accuracy()],
                                   ["RunTime",self._model_management.get_training_time()],
-                                  ["Owner",None],
+                                  #["Owner",None],
                                   ["Created On",self._model_management.get_creation_date()]
 
                                               ]
@@ -1036,6 +1038,7 @@ class NBGClassificationModelScript:
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
             self._result_setter.set_nb_cards(nbCards)
             self._result_setter.set_nb_nodes([NB_Overview_Node, NB_Performance_Node, NB_Deployment_Node])
+            self._result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -1126,6 +1129,7 @@ class NBGClassificationModelScript:
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
+            y_prob=list(map(lambda x:round(x,2),y_prob))
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
 
         df["predicted_class"] = score["predicted_class"]
@@ -1746,7 +1750,7 @@ class NBMClassificationModelScript:
                                   ["Training Status",self._model_management.get_training_status()],
                                   ["Accuracy",self._model_management.get_model_accuracy()],
                                   ["RunTime",self._model_management.get_training_time()],
-                                  ["Owner",None],
+                                  #["Owner",None],
                                   ["Created On",self._model_management.get_creation_date()]
 
                                               ]
@@ -1784,6 +1788,7 @@ class NBMClassificationModelScript:
             self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
             self._result_setter.set_nb_cards(nbCards)
             self._result_setter.set_nb_nodes([NB_Overview_Node, NB_Performance_Node, NB_Deployment_Node])
+            self._result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"True"})
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
@@ -1873,6 +1878,7 @@ class NBMClassificationModelScript:
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
+            y_prob=list(map(lambda x:round(x,2),y_prob))
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
 
         df["predicted_class"] = score["predicted_class"]

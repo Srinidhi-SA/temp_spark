@@ -452,7 +452,7 @@ class DTREERegressionModelScript:
                     ["Training Status",self._model_management.get_training_status()],
                     ["RMSE",self._model_management.get_rmse()],
                     ["RunTime",self._model_management.get_training_time()],
-                    ["Owner",None],
+                    #["Owner",None],
                     ["Created On",self._model_management.get_creation_date()]
 
                     ]
@@ -510,7 +510,7 @@ class DTREERegressionModelScript:
         self._result_setter.set_dtree_regression_model_summart(modelSummaryJson)
         self._result_setter.set_dtreer_cards(dtreerCards)
         self._result_setter.set_dtree_nodes([DTree_Overview_Node,DTree_Performance_Node,DTree_Deployment_Node])
-
+        self._result_setter.set_dtr_fail_card({"Algorithm_Name":"DecisionTree","Success":"True"})
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
