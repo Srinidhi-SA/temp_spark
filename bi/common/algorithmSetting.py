@@ -279,6 +279,7 @@ class AlgorithmParameterConfig:
         self.hyperParameterSetting = []
         self.parameters = []
         self.hyperParamsArray = []
+        self.tf_parameters = []
 
     def set_params(self,algoParamObj):
         if "description" in algoParamObj:
@@ -297,6 +298,8 @@ class AlgorithmParameterConfig:
                 hyperParameterSettingInstance.set_params(hyperParamObj)
                 hyperSettingArr.append(hyperParameterSettingInstance)
             self.hyperParameterSetting = hyperSettingArr
+        if "tf_parameters" in  algoParamObj:
+            self.tf_parameters=algoParamObj["tf_parameters"]
 
         if "parameters" in algoParamObj:
             paramArr = []
@@ -353,6 +356,9 @@ class AlgorithmParameterConfig:
         hyperParamsObj = [obj for obj in self.hyperParameterSetting if obj.is_tuning_enabled() == True][0]
         hyperParamsArray = hyperParamsObj.get_params()
         return hyperParamsObj.get_name()
+        
+    def get_tf_params_dict(self):
+        return self.tf_parameters
 
     def get_params_dict(self):
         """

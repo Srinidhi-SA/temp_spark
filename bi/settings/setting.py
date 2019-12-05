@@ -143,7 +143,8 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
             ALGORITHMRANDOMSLUG+"rfr":"rfregression",
-            ALGORITHMRANDOMSLUG+"mlp":"Neural Network"
+            ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
+            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
@@ -158,8 +159,9 @@ MODEL_SLUG_MAPPING = {
             "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
             "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
             "rfregression":ALGORITHMRANDOMSLUG+"rfr",
-            "Neural Network":ALGORITHMRANDOMSLUG+"mlp"
-            }
+            "Neural Network":ALGORITHMRANDOMSLUG+"mlp",
+            "TensorFlow":ALGORITHMRANDOMSLUG+"tfx",
+                     }
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"Random Forest",
@@ -171,7 +173,8 @@ SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"gbtr":"Gradient Boosted Trees",
             ALGORITHMRANDOMSLUG+"dtreer":"Decision Tree",
             ALGORITHMRANDOMSLUG+"rfr":"Random Forest",
-            ALGORITHMRANDOMSLUG+"mlp":"Neural Network"
+            ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
+            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow"
             }
 
 scriptsMapping = {
@@ -217,7 +220,8 @@ regressionAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"linr"  : 1,
     ALGORITHMRANDOMSLUG+"gbtr" : 1,
     ALGORITHMRANDOMSLUG+"rfr"  : 1,
-    ALGORITHMRANDOMSLUG+"dtreer" : 1
+    ALGORITHMRANDOMSLUG+"dtreer" : 1,
+    ALGORITHMRANDOMSLUG+"tfx" : 1,
 }
 
 classificationAlgoRelativeWeight = {
@@ -227,6 +231,8 @@ classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"lr"  : 1,
     ALGORITHMRANDOMSLUG+"svm" : 2,
     ALGORITHMRANDOMSLUG+"mlp" : 1,
+    ALGORITHMRANDOMSLUG+"tfx" : 1,
+
 }
 
 metadataScriptWeight = {
