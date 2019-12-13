@@ -154,35 +154,34 @@ class TensorFlowScript:
             self._result_setter.set_hyper_parameter_results(self._slug,None)
 
             params_tf=algoSetting.get_tf_params_dict()
+            algoParams = algoSetting.get_params_dict()
+            algoParams = {k:v for k,v in algoParams.items()}
 
             model = tf.keras.models.Sequential()
             first_layer_flag=True
-            for i in params_tf['hidden_layer_info'].keys():
-
-                if params_tf['hidden_layer_info'][i]["layer"]=="Dense":
+            for i in range(len(params_tf['hidden_layer_info'].keys())):
+                if params_tf['hidden_layer_info'][str(i)]["layer"]=="Dense":
                     if first_layer_flag:
-                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][i]["units"], activation=params_tf['hidden_layer_info'][i]["activation"],input_shape=(len(x_train.columns),)))
+                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][str(i)]["units"], activation=params_tf['hidden_layer_info'][str(i)]["activation"],input_shape=(len(x_train.columns),)))
                         first_layer_flag=False
                     else:
-                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][i]["units"], activation=params_tf['hidden_layer_info'][i]["activation"]))
+                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][str(i)]["units"], activation=params_tf['hidden_layer_info'][str(i)]["activation"]))
 
-                elif params_tf['hidden_layer_info'][i]["layer"]=="Dropout":
-                    model.add(tf.keras.layers.Dropout(params_tf['hidden_layer_info'][i]["rate"]))
+                elif params_tf['hidden_layer_info'][str(i)]["layer"]=="Dropout":
+                    model.add(tf.keras.layers.Dropout(float(params_tf['hidden_layer_info'][str(i)]["rate"])))
 
-                elif params_tf['hidden_layer_info'][i]["layer"]=="Lambda":
-                    model.add(tf.keras.layers.Lambda(lambda x:fun(x)))
-            model.compile(optimizer=params_tf["optimizer"],loss = params_tf["loss"], metrics=params_tf['metrics'])
-            if validationDict["name"] == "kFold":
-                defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                numFold = int(validationDict["value"])
-                if numFold == 0:
-                    numFold = 3
-                kFoldClass = SkleanrKFoldResult(numFold,model,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
-                kFoldClass.train_and_save_result()
-                kFoldOutput = kFoldClass.get_kfold_result()
-                bestEstimator = kFoldClass.get_best_estimator()
-            elif validationDict["name"] == "trainAndtest":
-                model.fit(x_train,y_train,epochs=params_tf["number_of_epochs"],verbose=1)
+                elif params_tf['hidden_layer_info'][str(i)]["layer"]=="Lambda":
+                    if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Addition":
+                        model.add(tf.keras.layers.Lambda(lambda x:x+float(params_tf['hidden_layer_info'][str(i)]["units"])))
+                    if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Multiplication":
+                        model.add(tf.keras.layers.Lambda(lambda x:x*float(params_tf['hidden_layer_info'][str(i)]["units"])))
+                    if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Subtraction":
+                        model.add(tf.keras.layers.Lambda(lambda x:x-float(params_tf['hidden_layer_info'][str(i)]["units"])))
+                    if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Division":
+                        model.add(tf.keras.layers.Lambda(lambda x:x/float(params_tf['hidden_layer_info'][str(i)]["units"])))
+            model.compile(optimizer=algoParams["optimizer"],loss = algoParams["loss"], metrics=[algoParams['metrics']])
+
+            model.fit(x_train,y_train,epochs=algoParams["number_of_epochs"],verbose=1,batch_size=algoParams["batch_size"])
 
 
             bestEstimator=model
@@ -396,6 +395,7 @@ class TensorFlowScript:
 
             self._model_management = MLModelSummary()
             modelmanagement_=params_tf
+            modelmanagement_.update(algoParams)
             if algoSetting.is_hyperparameter_tuning_enabled():
                 pass
             else:
