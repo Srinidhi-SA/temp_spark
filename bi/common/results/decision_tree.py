@@ -10,12 +10,13 @@ class DecisionTreeResult:
     def __init__(self):
         self.tree = {}
 
-    def set_params(self, tree_result, rules, total, success, success_percent):
+    def set_params(self, tree_result, rules, total, success, success_percent,path_dict):
         self.tree = tree_result
         self._table = rules
         self._total = total
         self._success = success
         self._success_percent = success_percent
+        self._path_dict=path_dict
 
     def set_target_map(self, target_map, target_agg, important_vars):
         self._target_map = target_map
@@ -62,3 +63,6 @@ class DecisionTreeResult:
 
     def get_success_percent(self):
         return self._success_percent
+
+    def get_path_dict(self):
+        return self._path_dict

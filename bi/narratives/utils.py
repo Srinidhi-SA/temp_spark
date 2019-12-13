@@ -208,12 +208,25 @@ def get_rules_dictionary(rules):
             var,levels = re.split(' not in ',rx, 1)
             if not key_dimensions.has_key(var):
                 key_dimensions[var]={}
-            key_dimensions[var]['not_in'] = str(levels).replace('(', '').replace(')','').split(',')
+                key_dimensions[var]['not_in'] = str(levels).replace('(', '').replace(')','').split(',')
+            else:
+                 try:
+                      key_dimensions[var]['not_in'].extend(str(levels).replace('(', '').replace(')','').split(','))
+                 except:
+                      key_dimensions[var]['not_in'] = str(levels).replace('(', '').replace(')','').split(',')
+            try:
+                 key_dimensions[var]['not_in'] = list(np.unique(key_dimensions[var]['not_in']))
+            except:
+                 pass
         elif ' in ' in rx:
             var,levels = re.split(' in ',rx, 1)
             if not key_dimensions.has_key(var):
                 key_dimensions[var]={}
             key_dimensions[var]['in'] = str(levels).replace('(', '').replace(')','').split(',')
+            try:
+                 key_dimensions[var]['in'] = list(np.unique(key_dimensions[var]['in']))
+            except:
+                 pass
     for var in key_dimensions.keys():
         if key_dimensions[var].has_key('in') and key_dimensions[var].has_key('not_in'):
             in_val = key_dimensions[var]['in']
@@ -221,7 +234,7 @@ def get_rules_dictionary(rules):
             valInBoth_inAnd_not_in = list(set(in_val).intersection(not_in_val))
             for val in valInBoth_inAnd_not_in:
                 key_dimensions[var]['in'].remove(val)
-                key_dimensions[var]['not_in'].remove(val)
+                #key_dimensions[var]['not_in'].remove(val)
 
     return [key_dimensions,key_measures]
 
@@ -960,7 +973,24 @@ def restructure_donut_chart_data(dataDict,nLevels=None):
     finalData = mainData+[("Others",sum(otherData))]
     return dict(finalData)
 
-def generate_rules(colname,target,rules, total, success, success_percent,analysisType,binFlag=False):
+def generate_rules(colname,target,rules, total, success, success_percent,analysisType,path_dict,binFlag=False):
+    ru=re.split(',(?![^(]*\))',rules)
+    rules_to_remove=[]
+    paths_to_collapse=[]
+    path_list=[]
+    rules_to_remove=[i for i in ru]
+    for key in sorted(path_dict, key=lambda k: len(path_dict[k]), reverse=False):
+        if key !="Root":
+            if key not in rules_to_remove:
+                path_list.append(path_dict[key])
+    for test_string in path_list:
+        i=0
+        for ele in path_list:
+            if (ele in test_string):
+                i+=1
+                if  i==1:
+                    if ele not in paths_to_collapse:
+                        paths_to_collapse.append(ele)
     key_dimensions,key_measures = get_rules_dictionary(rules)
     temp_narrative = ''
     crude_narrative = ''
@@ -995,7 +1025,7 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                 temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
                 crude_narrative = crude_narrative + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
 
-        elif key_dimensions[var].has_key('not_in') and len(key_dimensions[var]['not_in'])>0:
+        if key_dimensions[var].has_key('not_in') and len(key_dimensions[var]['not_in'])>0:
             # key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
             key_dimensions_tuple = key_dimensions[var]['not_in']
             if len(key_dimensions_tuple) > 5:
@@ -1060,7 +1090,7 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
             else:
                 narrative = 'When ' +temp_narrative+ ' then there is  <b>' + str(round_number(success_percent)) + '% ' + \
                             ' <b>chance that '+ colname + 'range would be ' + target +'.'
-        return narrative,crude_narrative
+        return narrative,crude_narrative,paths_to_collapse
 
 def statistical_info_array_formatter(st_array):
     outArray = []

@@ -7,7 +7,7 @@ from utils import accepts
 
 
 #import bi.common.dataframe
-
+revmap_dict = {'Low':0.0,'Below Average':1.0,'Average':2.0,'Above Average':3.0,'High':4.0}
 class DataFrameFilterer:
     @accepts(object,DataFrame)
     def __init__(self, dataframe):
@@ -57,20 +57,27 @@ class DataFrameFilterer:
         elif less_than_equal==1:
             self._data_frame = self._data_frame.filter(col(colname) <= end_value)
 
-    def values_in(self, colname, values):
+    def values_in(self, colname, values,measure_columns):
         if type(values) == str:
             values = values[1:-1]
             values = values.split(',')
+        if colname in measure_columns:
+            values=map(revmap_dict.get,values)
         self._data_frame = self._data_frame.where(col(colname).isin(values))
 
-    def values_not_in(self, colname, values):
+    def values_not_in(self, colname, values,measure_columns):
         if type(values) == str:
             values = values[1:-1]
             values = values.split(',')
+        if colname in measure_columns:
+            values=map(revmap_dict.get,values)
         self._data_frame = self._data_frame.where(col(colname).isin(values)==False)
 
     def get_aggregated_result(self, colname, target):
         return self._data_frame.select(colname).groupBy(colname).agg({'*': 'count'}).collect()
+
+    def get_count_result(self,target):
+        return self._data_frame.groupBy(target).count().collect()
 
     def get_filtered_data_frame(self):
         return self._data_frame

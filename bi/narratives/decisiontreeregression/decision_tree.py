@@ -28,6 +28,7 @@ class DecisionTreeRegNarrative:
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
+        self._decision_path_dict = decision_tree_rules.get_path_dict()
         self._table = decision_tree_rules.get_table()
         self.new_table={}
         self.successful_predictions=decision_tree_rules.get_success()
@@ -80,7 +81,7 @@ class DecisionTreeRegNarrative:
 
         self._generate_narratives()
         self._story_narrative.add_a_node(self._decisionTreeNode)
-        self._result_setter.set_decision_tree_node(self._decisionTreeNode)
+        self._result_setter.set_decision_tree_node(self._decisionTreeNode,self._decision_rules_dict)
 
         # self._completionStatus = self._dataframe_context.get_completion_status()
         # self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
@@ -177,7 +178,8 @@ class DecisionTreeRegNarrative:
                 "Prediction",
                 "Freq",
                 "group",
-                "richRules"
+                "Collapsed Paths",
+                "richRules",
               ]]
         dropdownData = []
         chartDict = {}
@@ -205,6 +207,7 @@ class DecisionTreeRegNarrative:
             success_percent = self.success_percent[target]
             richRulesArray = []
             crudeRuleArray = []
+            collapseArray =[]
             analysisType = self._dataframe_context.get_analysis_type()
             targetCol = self._dataframe_context.get_result_column()
             binFlag = False
@@ -213,12 +216,13 @@ class DecisionTreeRegNarrative:
                 if binnedColObj != None and targetCol in binnedColObj:
                     binFlag = True
             for idx2,crudeRule in enumerate(rulesArray):
-                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx2], success[idx2], success_percent[idx2],analysisType,binFlag=binFlag)
+                richRule,crudeRule,paths_to_collapse = NarrativesUtils.generate_rules(self._colname,target,crudeRule, freqArray[idx2], success[idx2], success_percent[idx2],analysisType,self._decision_path_dict.copy(),binFlag=binFlag)
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
+                collapseArray.append(paths_to_collapse)
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
-            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,freqArray,groupArray,richRulesArray)
+            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,freqArray,groupArray,collapseArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 

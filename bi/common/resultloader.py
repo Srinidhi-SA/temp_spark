@@ -146,8 +146,11 @@ class ResultSetter:
         return self.pmmlObjects
     def get_score_cards(self):
         return self.scoredtreecards
-    def set_score_dtree_cards(self,data):
+    def set_score_dtree_cards(self,data,decisionTree):
+        data[0]['decisionTree']=decisionTree
         self.scoredtreecards = data
+
+        #self.scoredtreecards.append(decisionTree)
     def set_score_freq_card(self,data):
         self.scorefreqcard  = data
     def get_score_freq_card(self):
@@ -273,8 +276,9 @@ class ResultSetter:
         self.chisquareNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_distribution_node(self,node):
         self.distributionNode = json.loads(CommonUtils.convert_python_object_to_json(node))
-    def set_decision_tree_node(self,node):
+    def set_decision_tree_node(self,node,decision_tree):
         self.decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(node))
+        self.decisionTreeNode['decisionTree']=decision_tree
     def set_anova_node(self,node):
         self.anovaNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_regression_node(self,node):

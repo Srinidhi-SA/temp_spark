@@ -15,6 +15,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 from bi.common import DataLoader
 from bi.common import DataFrameHelper
+import collections
 
 """
 Decision Tree
@@ -47,6 +48,7 @@ class DecisionTreeRegression:
         self._alias_dict = {}
         self._important_vars = {}
         self._numCluster = None
+        self._count_list=[]
 
         self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
         self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
@@ -136,23 +138,51 @@ class DecisionTreeRegression:
         success = 0
         total = 0
         important_vars = []
+        dict_tree=[]
+        data_dict={}
+        for rows in DFF.get_count_result(colname):
+            if rows is not None:
+                data_dict[rows[0]]=rows[1]
+        dict_tree.append(data_dict)
         for rule in rule_list:
             if ' <= ' in rule:
                 var,limit = re.split(' <= ',rule)
                 DFF.values_below(var,limit)
+                data_dict={}
+                for rows in DFF.get_count_result(colname):
+                    if rows is not None:
+                        data_dict[rows[0]]=rows[1]
+                dict_tree.append(data_dict)
             elif ' > ' in rule:
                 var,limit = re.split(' > ',rule)
                 DFF.values_above(var,limit)
+                data_dict={}
+                for rows in DFF.get_count_result(colname):
+                    if rows is not None:
+                        data_dict[rows[0]]=rows[1]
+                dict_tree.append(data_dict)
             elif ' not in ' in rule:
                 var,levels = re.split(' not in ',rule)
                 levels=levels[1:-1].split(",")
-                levels = [self._alias_dict[x] for x in levels]
-                DFF.values_not_in(var,levels)
+                #levels = [self._alias_dict[x] for x in levels]
+                levels1 = [key if x==key else self._alias_dict[x] for x in levels for key in  self._alias_dict.keys()]
+                DFF.values_not_in(var,levels1,self._measure_columns)
+                data_dict={}
+                for rows in DFF.get_count_result(colname):
+                    if rows is not None:
+                        data_dict[rows[0]]=rows[1]
+                dict_tree.append(data_dict)
             elif ' in ' in rule:
                 var,levels = re.split(' in ',rule)
                 levels=levels[1:-1].split(",")
-                levels = [self._alias_dict[x] for x in levels]
-                DFF.values_in(var,levels)
+                #levels = [self._alias_dict[x] for x in levels]
+                levels1 = [key if x==key else self._alias_dict[x] for x in levels for key in  self._alias_dict.keys()]
+                DFF.values_in(var,levels1,self._measure_columns)
+                data_dict={}
+                for rows in DFF.get_count_result(colname):
+                    if rows is not None:
+                        data_dict[rows[0]]=rows[1]
+                dict_tree.append(data_dict)
             important_vars.append(var)
         for rows in DFF.get_aggregated_result(colname,target):
             if(rows[0]==target):
@@ -170,7 +200,7 @@ class DecisionTreeRegression:
             self._total[target].append(total)
             self._success[target].append(success)
             self._probability[target].append(success*100.0/total)
-            return success
+            return success,total,dict_tree
 
     def generate_new_tree(self, rules, rule_list=None):
         if rule_list is None:
@@ -189,17 +219,77 @@ class DecisionTreeRegression:
                     new_rules['children'].append(val)
             return new_rules
         else:
+            new_rules = {'name':rules['name'],'fruits':[]}
             target = rules['name'][9:]
-            num_success = self.extract_rules(rules_list,target)
+            num_success,num_total,dict_tree = self.extract_rules(rules_list,target)
+            new_rules['fruits']=dict_tree
+            vals=dict_tree[-1].values()
+            new_rules['probability']=round(max(vals)*100.0/sum(vals),2)
             if 'Predict:' in rules['name'] and num_success>0:
                 return new_rules
 
-    def wrap_tree(self, tree):
+    def node_name_extractor(self,tree_dict):
+        new_list=[]
+        if "children" in tree_dict.keys() and len(tree_dict['children'])>0:
+            if tree_dict['name'] not in new_list:
+                new_list.append(tree_dict['name'])
+                for child in tree_dict['children']:
+                    if not "fruits" in child.keys():
+                            val=self.node_name_extractor(child)
+                            if val!= None:
+                                if val not in new_list:
+                                    new_list.append(val)
+                    else:
+                        for idx,fruit in enumerate(child['fruits']):
+                            if (fruit,idx) not in self._count_list:
+                                self._count_list.append((fruit,idx))
+
+
+        return new_list
+
+
+    def path_extractor(self,dct, value, path=()):
+        for key, val in dct.items():
+            if val == value:
+                yield path + (key, )
+        for key, lst in dct.items():
+            if isinstance(lst, list):
+                for idx,item in enumerate(lst):
+                    for pth in self.path_extractor(item, value, path + (key,idx )):
+                        yield pth
+
+
+    def path_dict_creator(self,tree_list,new_tree):
+        path_list=[]
+        for val in tree_list:
+            for item in self.path_extractor(new_tree, value=val):
+                    if val=="Root":
+                        path_list.append("Root")
+                    else:
+                        path="Root"
+                        for i in item:
+                            if type(i)!=int:
+                                path=path+"."+i
+                            else:
+                                path=path+"[{}]".format(i)
+                                if path not in path_list:
+                                    path_list.append(path)
+                                    path_dict=dict(zip(tree_list,path_list))
+
+        return path_dict
+
+    def wrap_tree(self, tree,tree_dict):
         new_tree = {}
         if "children" in tree.keys() and len(tree['children'])>0:
-            new_tree['name'] = tree['name']
+            for item in tree_dict.keys():
+                if item.find(tree['name']) != -1:
+                    #tree_name=tree['name'].split("(")
+                    new_tree['name']= tree['name']
+                    new_tree['name1'] = str(tree_dict.get(item))
+                    new_tree['name1'] = new_tree['name1'].replace("u'", "'")
+                    new_tree['name1'] = new_tree['name1'].replace("'", '')
             for child in tree['children']:
-                val = self.wrap_tree(child)
+                val = self.wrap_tree(child,tree_dict)
                 if val!= None:
                     if not new_tree.has_key('children'):
                         new_tree['children']=[]
@@ -209,7 +299,16 @@ class DecisionTreeRegression:
                     return new_tree
         elif 'Predict: ' in tree['name'] or 'Root' in tree['name']:
             new_tree['name'] = tree['name']
+            new_tree['name1']="Probability:"+str(tree['probability']) + "%"
             return new_tree
+
+    def flatten(self,l):
+        for el in l:
+            if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
+                for sub in self.flatten(el):
+                    yield sub
+            else:
+                yield el
 
     def transform_data_frames(self):
         self._data_frame, self._mapping_dict = MLUtils.add_string_index(self._data_frame, self._dimension_columns)
@@ -285,15 +384,21 @@ class DecisionTreeRegression:
         data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
         (trainingData, testData) = data.randomSplit([1.0, 0.0])
         # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=3, maxBins=max_length)
+        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=6, maxBins=max_length)
         output_result = model.toDebugString()
         print "output_result",output_result
         decision_tree = self.tree_json(output_result, self._data_frame)
         self._new_tree = self.generate_new_tree(decision_tree)
-        self._new_tree = self.wrap_tree(self._new_tree)
+        node_list = self.node_name_extractor(self._new_tree)
+        node_list=list(self.flatten(node_list))
+        correct_count_list=[i[0] for i in  self._count_list]
+        tree_dict=dict(zip(node_list,correct_count_list))
+        #self._new_tree = self.generate_new_tree_total(decision_tree)
+        self._new_tree = self.wrap_tree(self._new_tree,tree_dict)
+        self._path_dict=self.path_dict_creator(node_list,self._new_tree)
         # self._new_tree = utils.recursiveRemoveNullNodes(self._new_tree)
         # decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
-        decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability)
+        decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability,self._path_dict)
         decision_tree_result.set_target_map(self._mapping_dict[self._target_dimension], self._aggr_data, self._important_vars)
 
         # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]*self._scriptStages["dtreeTrainingStart"]["weight"]/10

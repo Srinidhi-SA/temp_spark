@@ -34,7 +34,9 @@ class DecisionTreeNarrative:
         self._colname = column_name
 
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
+        self._decision_tree_rules=decision_tree_rules
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
+        self._decision_path_dict = decision_tree_rules.get_path_dict()
         self._decision_tree_json = CommonUtils.as_dict(decision_tree_rules)
         self._decision_tree_raw = self._decision_rules_dict
         # self._decision_tree_raw = {"tree":{"children":None}}
@@ -89,8 +91,8 @@ class DecisionTreeNarrative:
         self._decisionTreeNode.set_name("Prediction")
         self._generate_narratives()
         # self._story_narrative.add_a_node(self._decisionTreeNode)
-        self._result_setter.set_decision_tree_node(self._decisionTreeNode)
-        self._result_setter.set_score_dtree_cards(json.loads(CommonUtils.convert_python_object_to_json(self._decisionTreeNode.get_all_cards())))
+        self._result_setter.set_decision_tree_node(self._decisionTreeNode,self._decision_tree_raw)
+        self._result_setter.set_score_dtree_cards(json.loads(CommonUtils.convert_python_object_to_json(self._decisionTreeNode.get_all_cards())),self._decision_tree_raw)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["dtreeNarrativeEnd"]["weight"]/10
@@ -182,6 +184,7 @@ class DecisionTreeNarrative:
                 "Prediction",
                 "Freq",
                 "group",
+                "Collapsed Paths",
                 "richRules"
               ]]
         dropdownData = []
@@ -220,6 +223,7 @@ class DecisionTreeNarrative:
             success_percent = self.success_percent[target]
             richRulesArray = []
             crudeRuleArray = []
+            collapseArray =[]
             analysisType = self._dataframe_context.get_analysis_type()
             targetCol = self._dataframe_context.get_result_column()
             binFlag = False
@@ -228,12 +232,14 @@ class DecisionTreeNarrative:
                 if binnedColObj != None and targetCol in binnedColObj:
                     binFlag = True
             for idx2,crudeRule in enumerate(rulesArray):
-                richRule,crudeRule = NarrativesUtils.generate_rules(self._colname,target,crudeRule, success[idx2], freqArray[idx2], success_percent[idx2],analysisType,binFlag=binFlag)
+                richRule,crudeRule,paths_to_collapse = NarrativesUtils.generate_rules(self._colname,target,crudeRule, success[idx2], freqArray[idx2], success_percent[idx2],analysisType,self._decision_path_dict.copy(),binFlag=binFlag)
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
+                collapseArray.append(paths_to_collapse)
+
             probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
             # targetArray = zip(richRulesArray,probabilityArray,predictionArray,success,groupArray)
-            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,success,groupArray,richRulesArray)
+            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,success,groupArray,collapseArray,richRulesArray)
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 
@@ -328,7 +334,7 @@ class DecisionTreeNarrative:
         main_card_table.set_table_type("popupDecisionTreeTable")
         main_card_data.append(main_card_table)
         uidTable = self._result_setter.get_unique_identifier_table()
-        if uidTable != None:
+ ``       if uidTable != None:
             main_card_data.append(uidTable)
         else:
             main_card_table.set_table_width(100)
