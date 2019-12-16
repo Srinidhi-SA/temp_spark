@@ -334,7 +334,7 @@ class DecisionTreeNarrative:
         main_card_table.set_table_type("popupDecisionTreeTable")
         main_card_data.append(main_card_table)
         uidTable = self._result_setter.get_unique_identifier_table()
- ``       if uidTable != None:
+        if uidTable != None:
             main_card_data.append(uidTable)
         else:
             main_card_table.set_table_width(100)
