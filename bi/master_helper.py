@@ -18,6 +18,8 @@ from bi.scripts.classification.naive_bayes import NBMClassificationModelScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
 from bi.scripts.classification.neural_network import NeuralNetworkScript
+from bi.scripts.classification.tensor_flow_nn import TensorFlowScript
+from bi.scripts.regression.tensor_flow_reg_nn import TensorFlowRegScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
 from bi.scripts.regression.linear_regression_model import LinearRegressionModelScript
 from bi.scripts.regression.generalized_linear_regression_model import GeneralizedLinearRegressionModelScript
@@ -319,6 +321,17 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+                try:
+                    st = time.time()
+                    tf_obj = TensorFlowScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                    tf_obj.Train()
+                    print "TensorFlow Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    result_setter.set_nn_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
                 # try:
                 #     st = time.time()
@@ -339,6 +352,16 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+                try:
+                    st = time.time()
+                    lin_obj = TensorFlowRegScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    lin_obj.Train()
+                    print "TensorFlow Model Done in ", time.time() - st,  " seconds."
+                except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"TensorFlow","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
@@ -498,6 +521,16 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print "Scoring Done in ", time.time() - st,  " seconds."
+        elif "TensorFlow" in selected_model_for_prediction:
+            # df = df.toPandas()
+            trainedModel = TensorFlowScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print "Scoring Done in ", time.time() - st,  " seconds."
         elif "naive bayes" in selected_model_for_prediction:

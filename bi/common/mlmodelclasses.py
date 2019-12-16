@@ -150,6 +150,21 @@ class MLModelSummary:
         self.normalizeValue = None
         self.copyX = None
         self.exp_var_score = None
+        self.layer_info=[]
+        self.optimizer=None
+
+    def set_layer_info(self,data):
+        self.layer_info=data
+    def get_layer_info(self):
+        return self.layer_info
+    def set_optimizer(self,data):
+        self.optimizer=data
+    def get_optimizer(self):
+        return self.optimizer
+    def set_no_epochs(self,data):
+        self.epochs=data
+    def get_no_epochs(self):
+        return self.epochs
 
     def set_epsilon(self,data):
         self.epsilon =data

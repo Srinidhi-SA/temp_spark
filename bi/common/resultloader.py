@@ -24,6 +24,7 @@ class ResultSetter:
         self.naiveBayesModelSummary = None
         self.xgboostModelSummary = None
         self.nnModelSummary = None
+        self.tfModelSummary = None
         self.logisticRegressionModelSummary = None
         self.svmModelSummary = None
         self.linearRegressionModelSummary = None
@@ -31,22 +32,26 @@ class ResultSetter:
         self.gbtRegressionModelSummary = None
         self.dtreeRegressionModelSummary = None
         self.rfRegressionModelSummary = None
+        self.tfRegressionModelSummary = None
         self.rfcards = []
         self.nbcards = []
         self.lrcards = []
         self.svmcards = []
         self.xgbcards = []
         self.nncards = []
+        self.tfcards = []
         self.linrcards = []
         self.glinrcards = []
         self.gbtrcards = []
         self.rfrcards = []
+        self.tfregcards = []
         self.dtreercards = []
         self.scorefreqcard = []
         self.scorechicards = []
         self.scoredtreecards = []
         self.rfnodes = []
         self.nnnodes = []
+        self.tfnodes = []
         self.nbnodes = []
         self.xgbnodes = []
         self.lrnodes = []
@@ -62,20 +67,27 @@ class ResultSetter:
         self.anovaNarrativeOnScoredData = {}
         self.anovaChartOnScoredData = {}
         self.dtreenodes = []
+        self.tfregnodes =[]
         self.gbtnodes = []
         self.lregnodes = []
         self.rfgnodes = []
         self.rffailcard =[]
         self.lrfailcard = []
         self.nnfailcard = []
+        self.tffailcard= []
         self.xgbfailcard = []
         self.nbfailcard = []
         self.dtrfailcard = []
         self.gbtfailcard = []
+        self.tfregfailcard = []
     def set_dtr_fail_card(self,data):
         self.dtrfailcard=data
+    def set_tfreg_fail_card(self,data):
+        self.tfregfailcard=data
     def get_dtr_fail_card(self):
         return self.dtrfailcard
+    def get_tfreg_fail_card(self):
+        return self.tfregfailcard
     def set_gbt_fail_card(self,data):
         self.gbtfailcard=data
     def get_gbt_fail_card(self):
@@ -87,6 +99,10 @@ class ResultSetter:
         return self.lrfailcard
     def set_nn_fail_card(self,data):
         self.nnfailcard=data
+    def set_tf_fail_card(self,data):
+        self.tffailcard=data
+    def get_tf_fail_card(self):
+        return self.tffailcard
     def get_nn_fail_card(self):
         return self.nnfailcard
     def set_xgb_fail_card(self,data):
@@ -103,6 +119,8 @@ class ResultSetter:
         return self.rffailcard
     def set_dtree_nodes(self,data):
         self.dtreenodes = data
+    def set_tfreg_nodes(self,data):
+        self.tfregnodes = data
     def set_gbt_nodes(self,data):
         self.gbtnodes = data
     def set_lreg_nodes(self,data):
@@ -117,6 +135,8 @@ class ResultSetter:
         return self.gbtnodes
     def get_all_dtree_regression_nodes(self):
         return self.dtreenodes
+    def get_all_tfreg_regression_nodes(self):
+        return self.tfregnodes
 
     def set_anova_narrative_on_scored_data(self,dataDict):
         self.anovaNarrativeOnScoredData.update(dataDict)
@@ -169,6 +189,8 @@ class ResultSetter:
         self.rfnodes = data
     def set_nn_nodes(self,data):
         self.nnnodes = data
+    def set_tf_nodes(self,data):
+        self.tfnodes = data
     def set_lr_nodes(self,data):
         self.lrnodes = data
     def set_nb_nodes(self,data):
@@ -181,6 +203,8 @@ class ResultSetter:
         self.linrcards = data
     def set_glinr_cards(self,data):
         self.glinrcards = data
+    def set_tfreg_cards(self,data):
+        self.tfregcards = data
     def set_gbtr_cards(self,data):
         self.gbtrcards = data
     def set_rfr_cards(self,data):
@@ -193,8 +217,10 @@ class ResultSetter:
         self.svmcards = data
     def set_nn_cards(self,data):
         self.nncards = data
+    def set_tf_cards(self,data):
+        self.tfcards = data
     def get_all_classification_cards(self):
-        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards}
+        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards,'TensorFlow':self.tfcards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
@@ -203,6 +229,8 @@ class ResultSetter:
         return self.rfnodes
     def get_all_nn_classification_nodes(self):
         return self.nnnodes
+    def get_all_tf_classification_nodes(self):
+        return self.tfnodes
     def get_all_lr_classification_nodes(self):
         return self.lrnodes
     def get_all_xgb_classification_nodes(self):
@@ -211,13 +239,16 @@ class ResultSetter:
         return self.nbnodes
     def get_all_regression_cards(self):
         print self.model_order
-        map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards}
+        map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards,'TensorFlow':self.tfregcards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
         return all_cards
         #return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
-
+    def set_tf_model_summary(self,data):
+        self.tfModelSummary = data
+    def get_tf_model_summary(self):
+        return self.tfModelSummary
     def set_nn_model_summary(self,data):
         self.nnModelSummary = data
     def get_nn_model_summary(self):
@@ -240,6 +271,10 @@ class ResultSetter:
         self.gbtRegressionModelSummary = data
     def set_dtree_regression_model_summart(self,data):
         self.dtreeRegressionModelSummary = data
+    def set_tfreg_regression_model_summart(self,data):
+        self.tfRegressionModelSummary = data
+    def get_tfreg_regression_model_summart(self):
+        return self.tfRegressionModelSummary
     def set_rf_regression_model_summart(self,data):
         self.rfRegressionModelSummary = data
     def get_random_forest_model_summary(self):
@@ -264,7 +299,7 @@ class ResultSetter:
         return self.generalizedLinearRegressionModelSummary
 
     def get_all_regression_model_summary(self):
-        allRegressionModelSummary = [self.linearRegressionModelSummary,self.gbtRegressionModelSummary,self.dtreeRegressionModelSummary,self.rfRegressionModelSummary,self.generalizedLinearRegressionModelSummary]
+        allRegressionModelSummary = [self.linearRegressionModelSummary,self.gbtRegressionModelSummary,self.dtreeRegressionModelSummary,self.rfRegressionModelSummary,self.generalizedLinearRegressionModelSummary,self.tfRegressionModelSummary]
         allRegressionModelSummary = [x for x in allRegressionModelSummary if x != None]
         return allRegressionModelSummary
 
