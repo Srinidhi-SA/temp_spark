@@ -358,6 +358,11 @@ class AlgorithmParameterConfig:
         return hyperParamsObj.get_name()
 
     def get_tf_params_dict(self):
+        for i in range(len(self.tensorflow_params['hidden_layer_info'].keys())):
+            for j in  self.tensorflow_params['hidden_layer_info'][str(i)].keys():
+                print j
+                if self.tensorflow_params['hidden_layer_info'][str(i)][j]==" " or self.tensorflow_params['hidden_layer_info'][str(i)][j]=="None":
+                    self.tensorflow_params['hidden_layer_info'][str(i)][j]=None
         return self.tensorflow_params
 
     def get_params_dict(self):

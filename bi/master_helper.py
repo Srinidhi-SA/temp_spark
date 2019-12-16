@@ -327,10 +327,10 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     tf_obj = TensorFlowScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     tf_obj.Train()
-                    print "Neural Network Model Done in ", time.time() - st,  " seconds."
+                    print "TensorFlow Model Done in ", time.time() - st,  " seconds."
                 except Exception as e:
                     result_setter.set_nn_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
                 # try:

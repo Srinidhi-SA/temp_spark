@@ -158,28 +158,52 @@ class TensorFlowScript:
             algoParams = {k:v for k,v in algoParams.items()}
 
             model = tf.keras.models.Sequential()
+
             first_layer_flag=True
             for i in range(len(params_tf['hidden_layer_info'].keys())):
                 if params_tf['hidden_layer_info'][str(i)]["layer"]=="Dense":
+
                     if first_layer_flag:
-                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][str(i)]["units"], activation=params_tf['hidden_layer_info'][str(i)]["activation"],input_shape=(len(x_train.columns),)))
+
+                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][str(i)]["units"],
+                        activation=params_tf['hidden_layer_info'][str(i)]["activation"],
+                        input_shape=(len(x_train.columns),),
+                        use_bias=params_tf['hidden_layer_info'][str(i)]["use_bias"],
+                        kernel_initializer=params_tf['hidden_layer_info'][str(i)]["kernel_initializer"],
+                        bias_initializer=params_tf['hidden_layer_info'][str(i)]["bias_initializer"],
+                        kernel_regularizer=params_tf['hidden_layer_info'][str(i)]["kernel_regularizer"],
+                        bias_regularizer=params_tf['hidden_layer_info'][str(i)]["bias_regularizer"],
+                        activity_regularizer=params_tf['hidden_layer_info'][str(i)]["activity_regularizer"],
+                        kernel_constraint=params_tf['hidden_layer_info'][str(i)]["kernel_constraint"],
+                        bias_constraint=params_tf['hidden_layer_info'][str(i)]["bias_constraint"]))
                         first_layer_flag=False
                     else:
-                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][str(i)]["units"], activation=params_tf['hidden_layer_info'][str(i)]["activation"]))
+                        model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][str(i)]["units"],
+                        activation=params_tf['hidden_layer_info'][str(i)]["activation"],
+                        use_bias=params_tf['hidden_layer_info'][str(i)]["use_bias"],
+                        kernel_initializer=params_tf['hidden_layer_info'][str(i)]["kernel_initializer"],
+                        bias_initializer=params_tf['hidden_layer_info'][str(i)]["bias_initializer"],
+                        kernel_regularizer=params_tf['hidden_layer_info'][str(i)]["kernel_regularizer"],
+                        bias_regularizer=params_tf['hidden_layer_info'][str(i)]["bias_regularizer"],
+                        activity_regularizer=params_tf['hidden_layer_info'][str(i)]["activity_regularizer"],
+                        kernel_constraint=params_tf['hidden_layer_info'][str(i)]["kernel_constraint"],
+                        bias_constraint=params_tf['hidden_layer_info'][str(i)]["bias_constraint"]))
 
                 elif params_tf['hidden_layer_info'][str(i)]["layer"]=="Dropout":
                     model.add(tf.keras.layers.Dropout(float(params_tf['hidden_layer_info'][str(i)]["rate"])))
 
                 elif params_tf['hidden_layer_info'][str(i)]["layer"]=="Lambda":
                     if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Addition":
-                        model.add(tf.keras.layers.Lambda(lambda x:x+float(params_tf['hidden_layer_info'][str(i)]["units"])))
+                        model.add(tf.keras.layers.Lambda(lambda x:x+int(params_tf['hidden_layer_info'][str(i)]["units"])))
                     if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Multiplication":
-                        model.add(tf.keras.layers.Lambda(lambda x:x*float(params_tf['hidden_layer_info'][str(i)]["units"])))
+                        model.add(tf.keras.layers.Lambda(lambda x:x*int(params_tf['hidden_layer_info'][str(i)]["units"])))
                     if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Subtraction":
-                        model.add(tf.keras.layers.Lambda(lambda x:x-float(params_tf['hidden_layer_info'][str(i)]["units"])))
+                        model.add(tf.keras.layers.Lambda(lambda x:x-int(params_tf['hidden_layer_info'][str(i)]["units"])))
                     if params_tf['hidden_layer_info'][str(i)]["lambda"]=="Division":
-                        model.add(tf.keras.layers.Lambda(lambda x:x/float(params_tf['hidden_layer_info'][str(i)]["units"])))
+                        model.add(tf.keras.layers.Lambda(lambda x:x/int(params_tf['hidden_layer_info'][str(i)]["units"])))
+
             model.compile(optimizer=algoParams["optimizer"],loss = algoParams["loss"], metrics=[algoParams['metrics']])
+
 
             model.fit(x_train,y_train,epochs=algoParams["number_of_epochs"],verbose=1,batch_size=algoParams["batch_size"])
 
@@ -445,12 +469,11 @@ class TensorFlowScript:
                         ["Metrics",self._model_management.get_model_evaluation_metrics()]
 
                         ]
-            for i in modelmanagement_["hidden_layer_info"]:
+            for i in range(len(modelmanagement_['hidden_layer_info'].keys())):
                 string=""
-                key=str(modelmanagement_["hidden_layer_info"][i]["layer"])+" "+str(i)+":"
-                for j in modelmanagement_["hidden_layer_info"][i]:
-                    string=string+str(j)+":"+str(modelmanagement_["hidden_layer_info"][i][j])+",   "
-                modelManagementModelSettingsJson.append([key,string] )
+                key="layer No-"+str(i)+"-"+str(modelmanagement_["hidden_layer_info"][str(i)]["layer"]+"-")
+                for j in modelmanagement_["hidden_layer_info"][str(i)]:
+                    modelManagementModelSettingsJson.append([key+j+":",modelmanagement_["hidden_layer_info"][str(i)][j]])
 
 
 
@@ -558,7 +581,7 @@ class TensorFlowScript:
                 score_summary_path = score_summary_path[7:]
             model_columns = self._dataframe_context.get_model_features()
             #trained_model = joblib.load(trained_model_path)
-            trained_model = load_model(trained_model_path)
+            trained_model = tf.keras.models.load_model(trained_model_path)
 
             df = self._data_frame.toPandas()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
