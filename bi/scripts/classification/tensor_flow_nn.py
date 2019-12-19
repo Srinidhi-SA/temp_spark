@@ -204,8 +204,11 @@ class TensorFlowScript:
 
             model.compile(optimizer=algoParams["optimizer"],loss = algoParams["loss"], metrics=[algoParams['metrics']])
 
-
-            model.fit(x_train,y_train,epochs=algoParams["number_of_epochs"],verbose=1,batch_size=algoParams["batch_size"])
+            try:
+                model.fit(x_train,y_train,epochs=algoParams["number_of_epochs"],verbose=1,batch_size=algoParams["batch_size"])
+            except:
+                y_train=tf.keras.utils.to_categorical(y_train)
+                model.fit(x_train,y_train,epochs=algoParams["number_of_epochs"],verbose=1,batch_size=algoParams["batch_size"])
 
 
             bestEstimator=model
