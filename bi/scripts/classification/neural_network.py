@@ -1,3 +1,12 @@
+from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import json
 import time
 
@@ -7,7 +16,7 @@ import pandas as pd
 from datetime import datetime
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 
@@ -40,7 +49,7 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
 
-class NeuralNetworkScript:
+class NeuralNetworkScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -58,7 +67,7 @@ class NeuralNetworkScript:
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        print self._completionStatus,"initial completion status"
+        print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
@@ -85,14 +94,14 @@ class NeuralNetworkScript:
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
+        algoSetting = [x for x in algosToRun if x.get_algorithm_slug()==self._slug][0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns) - {uid_col})
         allDateCols = self._dataframe_context.get_date_columns()
         categorical_columns = list(set(categorical_columns)-set(allDateCols))
-        print categorical_columns
+        print(categorical_columns)
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         result_column = self._dataframe_context.get_result_column()
 
@@ -100,7 +109,7 @@ class NeuralNetworkScript:
         if model_path.startswith("file"):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
-        print "model_path",model_path
+        print("model_path",model_path)
         pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
@@ -129,22 +138,22 @@ class NeuralNetworkScript:
             classes = labelEncoder.classes_
             transformed = labelEncoder.transform(classes)
             transformed_classes_list = list(transformed)
-            labelMapping = dict(zip(transformed,classes))
-            inverseLabelMapping = dict(zip(classes,transformed))
+            labelMapping = dict(list(zip(transformed,classes)))
+            inverseLabelMapping = dict(list(zip(classes,transformed)))
             posLabel = inverseLabelMapping[self._targetLevel]
             appType = self._dataframe_context.get_app_type()
 
-            print "="*150
-            print "TRANSFORMED CLASSES - ", transformed_classes_list
-            print "LEVELS - ", levels
-            print "NUMBER OF LEVELS - ", len(levels)
-            print "CLASSES - ", classes
-            print "LABEL MAPPING - ", labelMapping
-            print "INVERSE LABEL MAPPING - ", inverseLabelMapping
-            print "POSITIVE LABEL - ", posLabel
-            print "TARGET LEVEL - ", self._targetLevel
-            print "APP TYPE - ", appType
-            print "="*150
+            print("="*150)
+            print("TRANSFORMED CLASSES - ", transformed_classes_list)
+            print("LEVELS - ", levels)
+            print("NUMBER OF LEVELS - ", len(levels))
+            print("CLASSES - ", classes)
+            print("LABEL MAPPING - ", labelMapping)
+            print("INVERSE LABEL MAPPING - ", inverseLabelMapping)
+            print("POSITIVE LABEL - ", posLabel)
+            print("TARGET LEVEL - ", self._targetLevel)
+            print("APP TYPE - ", appType)
+            print("="*150)
 
 
             clf = MLPClassifier()
@@ -154,12 +163,12 @@ class NeuralNetworkScript:
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
-                params_grid = {k:v for k,v in params_grid.items() if k in clf.get_params()}
-                print params_grid
+                params_grid = {k:v for k,v in list(params_grid.items()) if k in clf.get_params()}
+                print(params_grid)
                 if hyperParamAlgoName == "gridsearchcv":
                     clfGrid = GridSearchCV(clf,params_grid)
                     gridParams = clfGrid.get_params()
-                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
                     #clfGrid.fit(x_train,y_train)
@@ -207,8 +216,8 @@ class NeuralNetworkScript:
                         resultArraydf = resultArraydf.sort_values(by = ['ROC_AUC'], ascending = False)
                         best_model_by_metric_chosen = resultArraydf["Model_Id"].iloc[0]
 
-                    print "BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen
-                    print resultArraydf.head(20)
+                    print("BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen)
+                    print(resultArraydf.head(20))
                     hyper_st=time.time()
                     bestEstimator = sklearnHyperParameterResultObj.getBestModel()
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
@@ -229,13 +238,13 @@ class NeuralNetworkScript:
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
+                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
                 clf.set_params(**algoParams)
                 modelmanagement_=clf.get_params()
-                print "!"*50
-                print algoParams
-                print clf.get_params()
-                print "!"*50
+                print("!"*50)
+                print(algoParams)
+                print(clf.get_params())
+                print("!"*50)
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
@@ -451,7 +460,7 @@ class NeuralNetworkScript:
                 }
 
             self._model_management = MLModelSummary()
-            print modelmanagement_
+            print(modelmanagement_)
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 self._model_management.set_epsilon(data=modelmanagement_['epsilon'])
                 self._model_management.set_activation(data=modelmanagement_['activation'])
@@ -625,7 +634,7 @@ class NeuralNetworkScript:
                 },
             }
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
+        self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"],10)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "initialization",\
                                     "info",\
@@ -684,7 +693,7 @@ class NeuralNetworkScript:
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
-            y_prob=list(map(lambda x:round(x,2),y_prob))
+            y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
 
         df["predicted_class"] = score["predicted_class"]
@@ -722,7 +731,7 @@ class NeuralNetworkScript:
                 self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
 
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"]/10
+        self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"],10)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "prediction",\
                                     "info",\
@@ -734,7 +743,7 @@ class NeuralNetworkScript:
 
         # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
-        print "STARTING DIMENSION ANALYSIS ..."
+        print("STARTING DIMENSION ANALYSIS ...")
         columns_to_keep = []
         columns_to_drop = []
         # considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
@@ -756,7 +765,7 @@ class NeuralNetworkScript:
         # df.drop('predicted_probability', axis=1, inplace=True)
         resultColLevelCount = dict(df[result_column].value_counts())
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
-        self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(resultColLevelCount.keys())})
+        self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
         self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df)
@@ -812,28 +821,28 @@ class NeuralNetworkScript:
                 fs = time.time()
                 df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
-                print narratives_obj
+                print(narratives_obj)
             except:
-                print "DecisionTree Analysis Failed "
+                print("DecisionTree Analysis Failed ")
         else:
-            data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
+            data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
 
             if data_dict["nactual"] > 2:
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
-                levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])
+                levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:
                 levelCountDict = resultColLevelCount
                 otherClass = list(set(labelMappingDict.values())-set(predictedClasses))[0]
                 levelCountDict[otherClass] = 0
 
-                print levelCountDict
+                print(levelCountDict)
 
-            total = float(sum([x for x in levelCountDict.values() if x != None]))
-            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]
+            total = float(sum([x for x in list(levelCountDict.values()) if x != None]))
+            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(old_div(v*100,total))+"%"}) for k,v in list(levelCountDict.items()) if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["blockSplitter"] = "|~NEWBLOCK~|"
             data_dict["targetcol"] = result_column
-            data_dict["nlevel"] = len(levelCountDict.keys())
+            data_dict["nlevel"] = len(list(levelCountDict.keys()))
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
             maincardSummary = NarrativesUtils.get_template_output("/apps/",'scorewithoutdtree.html',data_dict)

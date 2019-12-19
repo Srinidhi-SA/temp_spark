@@ -1,3 +1,8 @@
+from __future__ import print_function
+from builtins import str
+from builtins import zip
+from builtins import range
+from builtins import object
 import json
 import math
 import numpy as np
@@ -14,7 +19,7 @@ import pyspark.sql.functions as FN
 
 
 
-class TimeSeriesCalculations:
+class TimeSeriesCalculations(object):
     def __init__(self, df_helper, df_context, result_setter, spark):
         self._result_setter = result_setter
         self._dataframe_helper = df_helper
@@ -74,7 +79,7 @@ class TimeSeriesCalculations:
                     for idx in range(len(splits)-1):
                         text = str(splits[idx])+" to "+str(splits[idx+1])
                         ranges.append(text)
-                    bin_dict = dict(zip(range(len(ranges)),ranges))
+                    bin_dict = dict(list(zip(list(range(len(ranges))),ranges)))
                 else:
                     df = self._data_frame
 
@@ -95,7 +100,7 @@ class TimeSeriesCalculations:
                     if chisquare_column in self._dataframe_helper.get_numeric_columns():
                         crosstab_columns = crosstab_df.columns
                         chisquare_levels = crosstab_columns[1:]
-                        chisquare_levels = map(lambda x:bin_dict[x],chisquare_levels)
+                        chisquare_levels = [bin_dict[x] for x in chisquare_levels]
                         crosstab_df.columns = [crosstab_columns[0]]+chisquare_levels
                     else:
                         chisquare_levels = crosstab_df.columns[1:]
@@ -113,7 +118,7 @@ class TimeSeriesCalculations:
                         growth_dict[val]["growth"] = round(((final_df[val].iloc[-1]-final_df[val].iloc[0])*100/float(final_df[val].iloc[0])),self._num_significant_digits)
                         if growth_dict[val]["growth"] > 3 or final_df[val].iloc[0] == 0:
                             growth_dict[val]["growthType"] = "positive"
-                            print growth_dict[val]["growth"]
+                            print(growth_dict[val]["growth"])
                         elif growth_dict[val]["growth"] < -3:
                             growth_dict[val]["growthType"] = "negative"
                         else:
@@ -123,7 +128,7 @@ class TimeSeriesCalculations:
                     growth_dict["overall"]["growth"] = round((final_df["value"].iloc[-1]-final_df["value"].iloc[0]/float(final_df["value"].iloc[0])),self._num_significant_digits)
                     data_dict = {}
                     total_tuple = []
-                    for k,v in growth_dict.items():
+                    for k,v in list(growth_dict.items()):
                         if k != "overall":
                             total_tuple.append((k,v["total"]))
                     sorted_total_tuple = sorted(total_tuple,key=lambda x:x[1],reverse=True)
@@ -191,4 +196,4 @@ class TimeSeriesCalculations:
                     paragraphs = NarrativesUtils.paragraph_splitter(summary1)
                     card_data = {"paragraphs":paragraphs,"chart":chart_data}
                     output.append([card_data])
-                print json.dumps(output,indent=2)
+                print(json.dumps(output,indent=2))

@@ -1,17 +1,20 @@
+from __future__ import absolute_import
+from past.builtins import basestring
+from builtins import object
 from pyspark import RDD
 from pyspark.sql import Row
 from pyspark.sql import SparkSession
 from pyspark.sql import types as pst
 
-from decorators import accepts
-from writemode import WriteMode
+from .decorators import accepts
+from .writemode import WriteMode
 
 '''
 Ref: http://nadbordrozd.github.io/blog/2016/05/22/one-weird-trick-that-will-fix-your-pyspark-schemas/
 
 Multilevel JSON persitence fails with existing DataFrame RDD apis, so borrowed implementation from above reference
 '''
-class DataWriter:
+class DataWriter(object):
 
     @staticmethod
     @accepts(SparkSession, dict, basestring, write_mode=type(WriteMode.OVERWRITE))
@@ -61,7 +64,7 @@ class DataWriter:
         """creates a Row object conforming to a schema as specified by a dict"""
 
         def _equivalent_types(x, y):
-            if type(x) in [str, unicode] and type(y) in [str, unicode]:
+            if type(x) in [str, str] and type(y) in [str, str]:
                 return True
             return isinstance(x, type(y)) or isinstance(y, type(x))
 
@@ -71,7 +74,7 @@ class DataWriter:
             if type(x) != dict:
                 raise ValueError("expected dict, got %s instead" % type(x))
             rowified_dict = {}
-            for key, val in x.items():
+            for key, val in list(x.items()):
                 if key not in prototype:
                     raise ValueError("got unexpected field %s" % key)
                 rowified_dict[key] = DataWriter._rowify(val, prototype[key])

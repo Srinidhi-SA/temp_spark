@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from past.builtins import basestring
+from builtins import object
 from pyspark.sql import functions as FN
 
 from bi.common import BIException
@@ -8,10 +11,10 @@ from bi.common.results import DimensionDescriptiveStats
 from bi.common.results import MeasureDescriptiveStats
 from bi.transformations import Binner
 from bi.transformations import Quantizer
-from util import Stats
+from .util import Stats
 
 
-class DescriptiveStats:
+class DescriptiveStats(object):
     # collect freq stats for dimension column only if number of levels is less than MAX_NUM_LEVELS
     MAX_NUM_LEVELS = 100
 

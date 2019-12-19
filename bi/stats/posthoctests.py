@@ -1,7 +1,11 @@
+from __future__ import absolute_import
+from __future__ import division
+from builtins import object
+from past.utils import old_div
 import math
 
 from bi.common.decorators import accepts
-from util import Stats
+from .util import Stats
 
 """
 Tuckey Range test (Ref: https://en.wikipedia.org/wiki/Tukey%27s_range_test)
@@ -10,10 +14,10 @@ Tuckey Range test (Ref: https://en.wikipedia.org/wiki/Tukey%27s_range_test)
 """
 
 
-class TuckeyHSD:
+class TuckeyHSD(object):
 
     @staticmethod
-    @accepts((int, long, float), (int, long), (int, long), (int, long, float), (int, long, float), (int, long), alpha_level=float)
+    @accepts((int, int, float), (int, int), (int, int), (int, int, float), (int, int, float), (int, int), alpha_level=float)
     def test(mean_sum_of_squares_error, num_records, num_groups, group1_mean, group2_mean, group_size, alpha_level=0.05):
         """
         Tests if difference between mean of two groups is significant, using TukeyHSD test
@@ -27,7 +31,7 @@ class TuckeyHSD:
         :return:
         """
         std_err = math.sqrt(float(mean_sum_of_squares_error) / group_size)
-        critical_value = math.fabs(group1_mean-group2_mean)/std_err
+        critical_value = old_div(math.fabs(group1_mean-group2_mean),std_err)
         df = num_records - num_groups
         if critical_value <= Stats.studentized_range(alpha=alpha_level, samples=num_groups, df=df):
             return True
@@ -47,8 +51,8 @@ class TuckeyHSD:
         :return:
         """
         # Formula Source - https://www.uvm.edu/~dhowell/gradstat/psych341/labs/Lab1/Multcomp.html
-        std_err = math.sqrt(((float(mean_sum_of_squares_error)/group1_size) + (float(mean_sum_of_squares_error)/group2_size))/2)
-        critical_value = math.fabs(group1_mean-group2_mean)/std_err
+        std_err = math.sqrt(old_div(((float(mean_sum_of_squares_error)/group1_size) + (float(mean_sum_of_squares_error)/group2_size)),2))
+        critical_value = old_div(math.fabs(group1_mean-group2_mean),std_err)
         df = num_records - num_groups
         if critical_value <= Stats.studentized_range(alpha=alpha_level, samples=num_groups, df=df):
             return True

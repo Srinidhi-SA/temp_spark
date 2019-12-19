@@ -1,5 +1,6 @@
 
-class ConfigValidator:
+from builtins import object
+class ConfigValidator(object):
     """
     class for validating the config being passed for runnning Jobs
 
@@ -80,10 +81,10 @@ class ConfigValidator:
 
     def validate_object_keys(self):
         rootkeys = ["config","job_config"]
-        existingKeys = self._configObj.keys()
+        existingKeys = list(self._configObj.keys())
         self._rootKeysValidation = self.check_subset_list(rootkeys,existingKeys)
         
     def validate_job_config_keys(self):
         jobConfigKeys = ["job_type","job_url","get_config","set_result"]
-        existingKeys = self._configObj["job_config"].keys()
+        existingKeys = list(self._configObj["job_config"].keys())
         self._jobconfigKeysValidation = self.check_subset_list(jobConfigKeys,existingKeys)

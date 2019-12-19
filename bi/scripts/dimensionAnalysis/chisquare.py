@@ -1,8 +1,9 @@
+from builtins import object
 from bi.common import utils as CommonUtils
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.stats.chisquare import ChiSquare
 
-class ChiSquareScript:
+class ChiSquareScript(object):
     def __init__(self, data_frame, df_helper, df_context, spark, story_narrative,result_setter,meta_parser):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper

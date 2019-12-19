@@ -1,3 +1,6 @@
+from __future__ import print_function
+from past.builtins import basestring
+from builtins import object
 import time
 
 from pyspark.sql.functions import col, udf
@@ -12,7 +15,7 @@ from bi.common.decorators import accepts
 
 #import bi.common.dataframe
 
-class DataFrameTransformer:
+class DataFrameTransformer(object):
     # @accepts(object,DataFrame,DataFrameHelper,ContextSetter)
     def __init__(self, dataframe, df_helper, df_context, meta_parser):
         self._data_frame = dataframe
@@ -64,7 +67,7 @@ class DataFrameTransformer:
                             self.update_column_name(colName,obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
-                            print castDataType
+                            print(castDataType)
                             if castDataType == "numeric":
                                 newDataType = 'int'
                             elif castDataType == "text":
@@ -73,14 +76,14 @@ class DataFrameTransformer:
                                 newDataType = "timestamp"
                             self.actual_col_datatype_update.append({colName:newDataType})
                             self.update_column_datatype(colName,newDataType)
-                            print self._data_frame.printSchema()
-                    print self._data_frame.printSchema()
+                            print(self._data_frame.printSchema())
+                    print(self._data_frame.printSchema())
 
 
 
 
     def add_new_columns(self,df,new_col_name,old_col_list,operator):
-        print "adding new column"
+        print("adding new column")
         col_dtype_list=[] #will take dtype of all the merger column to see unique value
         ncol_dtype=False
         col_dtype_map={}
@@ -88,7 +91,7 @@ class DataFrameTransformer:
         for col_dtype_set in col_dtype_setlist:
             col_dtype_map[col_dtype_set[0]]=col_dtype_set[1]
         #will check data type of each column,if all of them are same then only we will merge different col dataset to create new col
-        print col_dtype_map
+        print(col_dtype_map)
         dtype_col_map={}
         for old_col in old_col_list:
             dtype=col_dtype_map[old_col]
@@ -97,21 +100,21 @@ class DataFrameTransformer:
                 dtype_col_map[dtype]=dtype_col_map[dtype].append(old_col)
             else:
                 dtype_col_map[dtype]=[old_col]
-        print col_dtype_list
+        print(col_dtype_list)
         uniq_dtype_list=list(set(col_dtype_list))
         newdf=df
         if uniq_dtype_list and len(uniq_dtype_list)==1:
             #newdf = df.withColumn('total', sum(df[col] for col in df.columns))
-            print new_col_name
+            print(new_col_name)
             newdf=df.withColumn(new_col_name,lit(10))
             #TODO here actual operation is not happening,need to change according to the passed operator
             #newdf=     df.withColumn(new_col_name,sum(df[col] for col in old_col_list))
             #all the data type of merger columns are same so we can create new column adding different fields data
-            print "all data type is same"
+            print("all data type is same")
         else:
-            print "data type of merger column are different so cant concatnate different data types"
-            for dtype in dtype_col_map.keys():
-                print dtype_col_map[dtype]
+            print("data type of merger column are different so cant concatnate different data types")
+            for dtype in list(dtype_col_map.keys()):
+                print(dtype_col_map[dtype])
         return newdf
 
     def delete_column(self,column):
@@ -130,11 +133,11 @@ class DataFrameTransformer:
                         replace_values = udf(lambda x: x.replace(key,value),StringType())
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
                     if replace_type == "startsWith":
-                        print replace_obj
+                        print(replace_obj)
                         replace_values = udf(lambda x: replace_obj["replacedValue"]+x[len(replace_obj["valueToReplace"]):] if x.startswith(replace_obj["valueToReplace"]) else x,StringType())
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
                     if replace_type == "endsWith":
-                        print replace_obj
+                        print(replace_obj)
                         replace_values = udf(lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x,StringType())
                         self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
                     if replace_type == "equals":
@@ -144,14 +147,14 @@ class DataFrameTransformer:
                                                                        .otherwise(self._data_frame[column_name]))
 
     def update_column_datatype(self,column_name,data_type):
-        print "Updating column data type"
+        print("Updating column data type")
         self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
-        print self._data_frame.printSchema()
+        print(self._data_frame.printSchema())
         # TODO update data type as measure or dimension
 
     def update_column_name(self,old_column_name,new_column_name):
-        print "old_column_name",old_column_name
-        print "new_column_name",new_column_name
+        print("old_column_name",old_column_name)
+        print("new_column_name",new_column_name)
         if new_column_name:
             self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
             # print self._data_frame.columns
@@ -182,18 +185,18 @@ class DataFrameTransformer:
             topnLevel = topnLevel
         else:
             topnLevel = GLOBALSETTINGS.DTREE_TARGET_DIMENSION_MAX_LEVEL - 1
-        print targetCol
+        print(targetCol)
 
         for colName in targetCol:
             levelCountDict = self._metaParser.get_unique_level_dict(colName)
-            levelCountArray = sorted(levelCountDict.items(),key=lambda x:x[1],reverse=True)
+            levelCountArray = sorted(list(levelCountDict.items()),key=lambda x:x[1],reverse=True)
             countArr = [x[1] for x in levelCountArray]
             totalCount = sum(countArr)
             existinCount = sum(countArr[:topnLevel])
             newLevelCount = levelCountArray[:topnLevel]
             newLevelCount.append((defaltName,totalCount-existinCount))
             mappingDict = dict([(tup[0],tup[0]) if idx <= topnLevel-1 else (tup[0],defaltName) for idx,tup in enumerate(levelCountArray)])
-            mapping_expr = create_map([lit(x) for x in chain(*mappingDict.items())])
+            mapping_expr = create_map([lit(x) for x in chain(*list(mappingDict.items()))])
             existingCols = self._data_frame.columns
             # self._data_frame = self._data_frame.withColumnRenamed(colName,str(colName)+"JJJLLLLKJJ")
             # self._data_frame = self._data_frame.withColumn(colName,mapping_expr.getItem(col(str(colName)+"JJJLLLLKJJ")))

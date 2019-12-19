@@ -1,8 +1,9 @@
+from builtins import object
 from bi.common import utils as CommonUtils
 from bi.transformations import DensityBinner
 
 
-class DensityHistogramsScript:
+class DensityHistogramsScript(object):
     def __init__(self, data_frame, df_helper, df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper

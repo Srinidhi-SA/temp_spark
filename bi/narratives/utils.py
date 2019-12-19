@@ -2,6 +2,13 @@
 """
 Utility functions to be used by various narrative objects
 """
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 import math
 import random
 import re
@@ -196,17 +203,17 @@ def get_rules_dictionary(rules):
     for rx in rules_list:
         if ' <= ' in rx:
             var,limit = re.split(' <= ',rx)
-            if not key_measures.has_key(var):
+            if var not in key_measures:
                 key_measures[var] ={}
             key_measures[var]['upper_limit'] = limit
         elif ' > ' in rx:
             var,limit = re.split(' > ',rx)
-            if not key_measures.has_key(var):
+            if var not in key_measures:
                 key_measures[var] = {}
             key_measures[var]['lower_limit'] = limit
         elif ' not in ' in rx:
             var,levels = re.split(' not in ',rx, 1)
-            if not key_dimensions.has_key(var):
+            if var not in key_dimensions:
                 key_dimensions[var]={}
                 key_dimensions[var]['not_in'] = str(levels).replace('(', '').replace(')','').split(',')
             else:
@@ -220,15 +227,15 @@ def get_rules_dictionary(rules):
                  pass
         elif ' in ' in rx:
             var,levels = re.split(' in ',rx, 1)
-            if not key_dimensions.has_key(var):
+            if var not in key_dimensions:
                 key_dimensions[var]={}
             key_dimensions[var]['in'] = str(levels).replace('(', '').replace(')','').split(',')
             try:
                  key_dimensions[var]['in'] = list(np.unique(key_dimensions[var]['in']))
             except:
                  pass
-    for var in key_dimensions.keys():
-        if key_dimensions[var].has_key('in') and key_dimensions[var].has_key('not_in'):
+    for var in list(key_dimensions.keys()):
+        if 'in' in key_dimensions[var] and 'not_in' in key_dimensions[var]:
             in_val = key_dimensions[var]['in']
             not_in_val = key_dimensions[var]['not_in']
             valInBoth_inAnd_not_in = list(set(in_val).intersection(not_in_val))
@@ -327,7 +334,7 @@ def accumu(lis):
         yield total
 
 def continuous_streak(aggData, direction="increase"):
-    data = aggData.T.to_dict().values()
+    data = list(aggData.T.to_dict().values())
     if len(data) < 2:
         return len(data)
     else:
@@ -479,8 +486,8 @@ def get_streak_data(df,trendString,maxRuns,trend,dataLevel):
 def calculate_dimension_contribution(levelContObject):
     output = {"posGrowthArray":None,"negGrowthArray":None}
     dataArray= []
-    for k,v in levelContObject.items():
-        for k1,v1 in v.items():
+    for k,v in list(levelContObject.items()):
+        for k1,v1 in list(v.items()):
             new_key = (k,k1)
             if v1["diff"] != None :
                 dataArray.append((new_key, v1))
@@ -510,8 +517,8 @@ def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,val
     # print "max_time",max_time
     out = {}
     for column_name in columns:
-        print "-"*100
-        print "calculate_level_contribution for ",column_name
+        print("-"*100)
+        print("calculate_level_contribution for ",column_name)
         data_dict = {
                     "overall_avg":None,
                     "excluding_avg":None,
@@ -525,7 +532,7 @@ def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,val
             column_levels = meta_parser.get_unique_level_names(column_name)
         except:
             column_levels = [x[0] for x in sparkdf.select(column_name).distinct().collect()]
-        out[column_name] = dict(zip(column_levels,[data_dict]*len(column_levels)))
+        out[column_name] = dict(list(zip(column_levels,[data_dict]*len(column_levels))))
         # st = time.time()
         pivotdf = sparkdf.groupBy(index_col).pivot(column_name).sum(value_col)
         # print "time for pivot",time.time()-st
@@ -554,8 +561,8 @@ def calculate_level_contribution(sparkdf,columns,index_col,dateColDateFormat,val
                     data_dict["contribution"] = float(np.nansum(k[level]))*100/np.nansum(k["total"])
                     data = list(k[level])
                     growth_data = [x for x in data if np.isnan(x) != True and x != 0]
-                    data_dict["growth"] = (growth_data[-1]-growth_data[0])*100/growth_data[0]
-                    k["percentLevel"] = (k[level]/k["total"])*100
+                    data_dict["growth"] = old_div((growth_data[-1]-growth_data[0])*100,growth_data[0])
+                    k["percentLevel"] = (old_div(k[level],k["total"]))*100
                     data = list(k["percentLevel"])
                     data_dict["overall_avg"] = np.nanmean(data)
                     data_dict["maxval"] = np.nanmax(data)
@@ -573,24 +580,24 @@ def get_level_cont_dict(level_cont):
     levelContributionSummary = level_cont
     output = []
     # k is the dimension name
-    for k,valdict in levelContributionSummary.items():
-        v = {k1:v1 for (k1,v1) in valdict.items() if v1["contribution"] >= 5}
+    for k,valdict in list(levelContributionSummary.items()):
+        v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"] >= 5}
         if len(v) == 0:
-            print "#"*200
-            print "all levels have contribution less than 5"
+            print("#"*200)
+            print("all levels have contribution less than 5")
             v = valdict
         max_level = max(v,key=lambda x: v[x]["diff"])
         contribution_dict = {}
-        for level,value in levelContributionSummary[k][max_level].items():
+        for level,value in list(levelContributionSummary[k][max_level].items()):
             contribution_dict[level] = value
             contribution_dict.update({"level":max_level})
         output.append(contribution_dict)
-    out_dict = dict(zip(levelContributionSummary.keys(),output))
+    out_dict = dict(list(zip(list(levelContributionSummary.keys()),output)))
     out_data = {"category_flag":True}
     out_dict_without_none = dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None )
     if len(out_dict_without_none) >0:
         out_data["highest_contributing_variable"] = max(out_dict_without_none,key=lambda x:out_dict[x]["diff"])
-        print "highest_contributing_variable",out_data["highest_contributing_variable"]
+        print("highest_contributing_variable",out_data["highest_contributing_variable"])
         if "category" in out_data["highest_contributing_variable"].lower():
             out_data["category_flag"] = False
         out_data["highest_contributing_level"] = out_dict[out_data["highest_contributing_variable"]]["level"]
@@ -600,24 +607,24 @@ def get_level_cont_dict(level_cont):
         out_data["highest_contributing_variable"] = None
 
     output = []
-    for k,valdict in levelContributionSummary.items():
-        v = {k1:v1 for (k1,v1) in valdict.items() if v1["contribution"] >= 5}
+    for k,valdict in list(levelContributionSummary.items()):
+        v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"] >= 5}
         if len(v) == 0:
-            print "#"*200
-            print "all levels have contribution less than 5"
+            print("#"*200)
+            print("all levels have contribution less than 5")
             v = valdict
         min_level = min(v,key=lambda x: v[x]["diff"] if v[x]["diff"] != None else 9999999999999999999)
         t_dict = {}
-        for k1,v1 in levelContributionSummary[k][min_level].items():
+        for k1,v1 in list(levelContributionSummary[k][min_level].items()):
             t_dict[k1] = v1
             t_dict.update({"level":min_level})
         output.append(t_dict)
-    out_dict = dict(zip(levelContributionSummary.keys(),output))
+    out_dict = dict(list(zip(list(levelContributionSummary.keys()),output)))
     # out_data["lowest_contributing_variable"] = min(out_dict,key=lambda x:out_dict[x]["diff"])
     out_dict_without_none = dict((item,out_dict[item])for item in out_dict if out_dict[item]["diff"] is not None )
     if len(out_dict_without_none) >0:
         out_data["lowest_contributing_variable"] = min(out_dict_without_none,key=lambda x:out_dict[x]["diff"])
-        print "lowest_contributing_variable",out_data["lowest_contributing_variable"]
+        print("lowest_contributing_variable",out_data["lowest_contributing_variable"])
         out_data["lowest_contributing_level"] = out_dict[out_data["lowest_contributing_variable"]]["level"]
         out_data["lowest_contributing_level_decrease"] = out_dict[out_data["lowest_contributing_variable"]]["diff"]
         out_data["lowest_contributing_level_range"] = str(round(out_dict[out_data["lowest_contributing_variable"]]["minval"],2))+" vis-a-vis "+str(round(out_dict[out_data["lowest_contributing_variable"]]["excluding_avg"],2))
@@ -626,7 +633,7 @@ def get_level_cont_dict(level_cont):
     return out_data
 
 def calculate_bucket_data(grouped_data,dataLevel):
-    print "calculating bucket data"
+    print("calculating bucket data")
     df = grouped_data
     min_streak = 2
     max_streak = 9
@@ -634,10 +641,10 @@ def calculate_bucket_data(grouped_data,dataLevel):
         max_streak = int(math.floor(df.shape[0]*0.3))
         if max_streak <= 2:
             max_streak = 2
-    streak_range = range(min_streak,max_streak+1)
+    streak_range = list(range(min_streak,max_streak+1))
     max_dict = {}
     for val in streak_range:
-        df[str(val)] = df["value"].rolling(val).sum()/val
+        df[str(val)] = old_div(df["value"].rolling(val).sum(),val)
         temp_dict = {}
         temp_dict["id_max"] = df[str(val)].idxmax()
         temp_dict["max_val"] = round(df.loc[temp_dict["id_max"],str(val)],2)
@@ -669,7 +676,7 @@ def calculate_bucket_data(grouped_data,dataLevel):
 def get_bucket_data_dict(bucket_dict):
     # max_bucket = max(max_dict,key = lambda x: max_dict[x]["max_val"])
     zip_list = []
-    for k,v in bucket_dict.items():
+    for k,v in list(bucket_dict.items()):
         if v["max_val"] >= v["average"]:
             zip_list.append([int(k),v["max_val"]])
     zip_list = sorted(zip_list, key=lambda x:x[1],reverse=True)
@@ -734,7 +741,7 @@ def date_formats_mapping_dict():
 
 def get_date_conversion_formats(self, primary_date,dateColumnFormatDict,requestedDateFormat):
     dateFormatConversionDict = date_formats_mapping_dict()
-    if primary_date in dateColumnFormatDict.keys():
+    if primary_date in list(dateColumnFormatDict.keys()):
         existingDateFormat = dateColumnFormatDict[primary_date]
     else:
         existingDateFormat = None
@@ -771,13 +778,13 @@ def streak_data(df,peak_index,low_index,percentage_change_column,value_column):
         dataDict["downStreakBeginValue"] = df[value_column][l]
         dataDict["downStreakEndMonth"] = df["year_month"][l+dataDict["downStreakDuration"]]
         dataDict["downStreakEndValue"] = df[value_column][l+dataDict["downStreakDuration"]]
-        dataDict["downStreakContribution"] = sum(df[value_column].iloc[l:low_index])*100/sum(df[value_column])
+        dataDict["downStreakContribution"] = old_div(sum(df[value_column].iloc[l:low_index])*100,sum(df[value_column]))
     if dataDict["upStreakDuration"] >=2 :
         dataDict["upStreakBeginMonth"] = df["year_month"][k]
         dataDict["upStreakBeginValue"] = df[value_column][k]
         dataDict["upStreakEndMonth"] = df["year_month"][k+dataDict["upStreakDuration"]]
         dataDict["upStreakEndValue"] = df[value_column][k+dataDict["upStreakDuration"]]
-        dataDict["upStreakContribution"] = sum(df[value_column].iloc[k:peak_index])*100/sum(df[value_column])
+        dataDict["upStreakContribution"] = old_div(sum(df[value_column].iloc[k:peak_index])*100,sum(df[value_column]))
 
     return dataDict
 
@@ -909,7 +916,7 @@ def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,
 
     if trendOnTdCol == False:
         date_format = existingDateFormat
-        print "date_format : ", date_format
+        print("date_format : ", date_format)
         string_to_date = PysparkFN.udf(lambda x: datetime.strptime(x,date_format) if x != None else None, DateType())
         date_to_month_year = PysparkFN.udf(lambda x: datetime.strptime(x,date_format).strftime("%b-%y") if x != None else None, StringType())
         df = df.withColumn("suggestedDate", string_to_date(dateColToBeUsedForAnalysis))
@@ -926,20 +933,20 @@ def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,
     first_date = dfForRange.select("suggestedDate").first()[0]
     #####  This is a Temporary fix
     try:
-        print "TRY BLOCK STARTED"
+        print("TRY BLOCK STARTED")
         id_max = dfForRange.select(PysparkFN.max("_id_")).first()[0]
         last_date = dfForRange.where(PysparkFN.col("_id_") == id_max).select("suggestedDate").first()[0]
     except:
-        print "ENTERING EXCEPT BLOCK"
+        print("ENTERING EXCEPT BLOCK")
         pandas_df = dfForRange.select(["suggestedDate"]).distinct().toPandas()
         pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
         last_date = pandas_df["suggestedDate"].iloc[-1]
     if last_date == None:
-        print "IF Last date none:-"
+        print("IF Last date none:-")
         pandas_df = dfForRange.select(["suggestedDate"]).distinct().toPandas()
         pandas_df.sort_values(by="suggestedDate",ascending=True,inplace=True)
         last_date = pandas_df["suggestedDate"].iloc[-1]
-    print "first_date : ", first_date
+    print("first_date : ", first_date)
     dataRange = (last_date-first_date).days
     if dataRange <= 180:
         duration = dataRange
@@ -966,7 +973,7 @@ def calculate_data_range_stats(df,existingDateFormat,dateColToBeUsedForAnalysis,
 def restructure_donut_chart_data(dataDict,nLevels=None):
     if nLevels == None:
         nLevels = 10
-    dataTuple = [(k,v) for k,v in dataDict.items()]
+    dataTuple = [(k,v) for k,v in list(dataDict.items())]
     dataTuple = sorted(dataTuple,key=lambda x:x[1],reverse=True)
     mainData = dataTuple[:nLevels-1]
     otherData = [x[1] for x in dataTuple[nLevels-1:]]
@@ -996,19 +1003,19 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
     crude_narrative = ''
 
     customSeparator = "|~%%~| "
-    for var in key_measures.keys():
-        if key_measures[var].has_key('upper_limit') and key_measures[var].has_key('lower_limit'):
+    for var in list(key_measures.keys()):
+        if 'upper_limit' in key_measures[var] and 'lower_limit' in key_measures[var]:
             temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
             crude_narrative = crude_narrative + 'value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
-        elif key_measures[var].has_key('upper_limit'):
+        elif 'upper_limit' in key_measures[var]:
             temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
             crude_narrative = crude_narrative + 'value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
-        elif key_measures[var].has_key('lower_limit'):
+        elif 'lower_limit' in key_measures[var]:
             temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
             crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
     # crude_narrative = temp_narrative
-    for var in key_dimensions.keys():
-        if key_dimensions[var].has_key('in') and len(key_dimensions[var]['in'])>0:
+    for var in list(key_dimensions.keys()):
+        if 'in' in key_dimensions[var] and len(key_dimensions[var]['in'])>0:
             # key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['in']).replace('(', '').replace(')','').split(',')))
             key_dimensions_tuple = key_dimensions[var]['in']
             if len(key_dimensions_tuple) > 5:
@@ -1025,7 +1032,7 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
                 temp_narrative = temp_narrative + 'the ' + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
                 crude_narrative = crude_narrative + var + ' falls among ' + str(key_dimensions[var]['in']) + customSeparator
 
-        if key_dimensions[var].has_key('not_in') and len(key_dimensions[var]['not_in'])>0:
+        if 'not_in' in key_dimensions[var] and len(key_dimensions[var]['not_in'])>0:
             # key_dimensions_tuple = tuple(map(str.strip, str(key_dimensions[var]['not_in']).replace('(', '').replace(')','').split(',')))
             key_dimensions_tuple = key_dimensions[var]['not_in']
             if len(key_dimensions_tuple) > 5:

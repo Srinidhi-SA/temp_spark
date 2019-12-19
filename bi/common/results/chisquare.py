@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for ChiSquare test"""
+from __future__ import division
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import re
 
 from humanize import intcomma
@@ -10,7 +17,7 @@ from bi.common.decorators import accepts
 from bi.common.exception import BIException
 
 
-class ContingencyTable:
+class ContingencyTable(object):
     """
     Represents a two dimensional contingency table of M x N dimension.
         M rows      - one for each unique value of column one
@@ -20,7 +27,7 @@ class ContingencyTable:
     def __init__(self, column_one_values, column_two_values):
         self.column_one_values = column_one_values
         self.column_two_values = column_two_values
-        self._col2_order = range(len(column_two_values))
+        self._col2_order = list(range(len(column_two_values)))
         self.category_type = 'Nominal'
         self.table = [[0 for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
@@ -106,13 +113,13 @@ class ContingencyTable:
         column_total = self.get_column_total()
         column_one_values = self.column_one_values
         column_two_values = self.column_two_values
-        self.table_percent = [[round(self.table[i][j]*100.0/total,2) for j in range(0,len(column_two_values))] \
+        self.table_percent = [[round(old_div(self.table[i][j]*100.0,total),2) for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
         # print 'table_percent' *5
         # print self.table_percent
-        self.table_percent_by_row = [[round(self.table[i][j]*100.0/row_total[i],2) for j in range(0,len(column_two_values))] \
+        self.table_percent_by_row = [[round(old_div(self.table[i][j]*100.0,row_total[i]),2) for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
-        self.table_percent_by_column = [[round(self.table[i][j]*100.0/column_total[j],2) for j in range(0,len(column_two_values))] \
+        self.table_percent_by_column = [[round(old_div(self.table[i][j]*100.0,column_total[j]),2) for j in range(0,len(column_two_values))] \
                         for i in range(0,len(column_one_values))]
 
     @accepts(object, (str, basestring), (list, tuple))
@@ -150,7 +157,7 @@ class ContingencyTable:
         column_two_index = self.column_two_values.index(column_two_value)
         return self.table_percent_by_column[column_one_index][column_two_index]
 
-class ChiSquareResult:
+class ChiSquareResult(object):
     """
     Encapsulates results of ChiSquare test
     """
@@ -215,7 +222,7 @@ class ChiSquareResult:
     # def set_buckeddata(self.bucketedData):
     #     self._bucketedData = bucketedData
 
-class DFChiSquareResult:
+class DFChiSquareResult(object):
     """
     Result object for all ChiSquare tests in a dataframe
     """
@@ -228,7 +235,7 @@ class DFChiSquareResult:
     def add_chisquare_result(self, targetDimension, testDimension, chisquare_result):
         if targetDimension not in self.dimensions:
             self.dimensions.append(testDimension)
-        if not self.results.has_key(targetDimension):
+        if targetDimension not in self.results:
             self.results[targetDimension] = {}
         self.results.get(targetDimension)[testDimension] = chisquare_result
 
@@ -239,11 +246,11 @@ class DFChiSquareResult:
         return self.measures
 
     def get_dimensions_analyzed(self, measure_column):
-        if not self.results.has_key(measure_column):
+        if measure_column not in self.results:
             return []
-        return self.results.get(measure_column).keys()
+        return list(self.results.get(measure_column).keys())
 
     def get_chisquare_result(self, target_dimension, input_dimension):
-        if not self.results.has_key(target_dimension) or not self.results.get(target_dimension).has_key(input_dimension):
+        if target_dimension not in self.results or input_dimension not in self.results.get(target_dimension):
             return None
         return self.results.get(target_dimension).get(input_dimension)

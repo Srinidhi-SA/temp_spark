@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import math
 
 from pyspark.sql import functions as FN
@@ -16,7 +21,7 @@ One way ANOVA test
 """
 
 
-class OneWayAnova:
+class OneWayAnova(object):
     GRAND_MEAN_COLUMN_NAME = '__grand_mean'
     MEAN_COLUMN_NAME = '__mean'
     COUNT_COLUMN_NAME = '__count'
@@ -57,7 +62,7 @@ class OneWayAnova:
         num_levels = self._data_frame.na.drop(subset=dimension_column_name).select(dimension_column_name).distinct().count()
         num_rows = self._data_frame.count()
         if num_levels > max_num_levels:
-            print 'Dimension column(%s) has more than %d levels' % (dimension_column_name, max_num_levels)
+            print('Dimension column(%s) has more than %d levels' % (dimension_column_name, max_num_levels))
             return None
         grand_mean_expr = (FN.mean(measure_column_name).alias(OneWayAnova.GRAND_MEAN_COLUMN_NAME),)
         grand_mean = self._data_frame.select(*grand_mean_expr).collect()[0][OneWayAnova.GRAND_MEAN_COLUMN_NAME]
@@ -73,7 +78,7 @@ class OneWayAnova:
         measure_column = FN.col(measure_column_name)
         anova_result = AnovaResult()
         sum_of_squares_error = 0
-        for group_name in groups_data.keys():
+        for group_name in list(groups_data.keys()):
             group_mean = groups_data.get(group_name).get(OneWayAnova.MEAN_COLUMN_NAME)
             group_sum_of_squares = self._data_frame.filter(dimension_column == group_name) \
                 .select(((measure_column - group_mean) * (measure_column - group_mean))) \
@@ -85,19 +90,19 @@ class OneWayAnova:
                 self._data_frame.filter(dimension_column == group_name).select(measure_column), self._dataframe_helper, self._dataframe_context)
             try:
                 group_descr_stats = descr_stats.stats_for_measure_column(measure_column_name)
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 group_descr_stats = {}
             anova_column_value_group_stats = AnovaColumnValueGroupStats(column_value_group, group_descr_stats)
             anova_result.add_group_stats(anova_column_value_group_stats)
 
         sum_of_squares_between = sum(
             [data[OneWayAnova.COUNT_COLUMN_NAME] * math.pow(grand_mean - data[OneWayAnova.MEAN_COLUMN_NAME], 2)
-             for data in groups_data.values()])
+             for data in list(groups_data.values())])
         mean_sum_of_squares_between = float(sum_of_squares_between) / (num_levels - 1)
 
         mean_sum_of_squares_error = float(sum_of_squares_error) / (num_rows - num_levels)
-        f_value = mean_sum_of_squares_between / mean_sum_of_squares_error
+        f_value = old_div(mean_sum_of_squares_between, mean_sum_of_squares_error)
         p_value = Stats.f_distribution_critical_value(f_value, num_levels - 1, num_rows - num_levels)
         anova_result.set_params(df1=num_levels - 1,
                                 df2=(num_rows - num_levels),

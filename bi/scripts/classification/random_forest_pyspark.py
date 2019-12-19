@@ -1,8 +1,12 @@
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import json
 import time
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 
@@ -28,7 +32,7 @@ from pyspark.sql.types import *
 
 
 
-class RandomForestPysparkScript:
+class RandomForestPysparkScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
@@ -154,7 +158,7 @@ class RandomForestPysparkScript:
         CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
 
-        print "STARTING DIMENSION ANALYSIS ..."
+        print("STARTING DIMENSION ANALYSIS ...")
         columns_to_keep = []
         columns_to_drop = []
         considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
@@ -187,9 +191,9 @@ class RandomForestPysparkScript:
             narratives_obj = DimensionColumnNarrative(df, result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
             narratives = CommonUtils.as_dict(narratives_obj)
             CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-            print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+            print("Frequency Analysis Done in ", time.time() - fs,  " seconds.")
         except:
-            print "Frequency Analysis Failed "
+            print("Frequency Analysis Failed ")
 
         try:
             fs = time.time()
@@ -197,11 +201,11 @@ class RandomForestPysparkScript:
             result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
             df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
             df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
+            print('RESULT: %s' % (json.dumps(df_chisquare_result, indent=2)))
             CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
             chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
             # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
             CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+            print("ChiSquare Analysis Done in ", time.time() - fs, " seconds.")
         except:
-           print "ChiSquare Analysis Failed "
+           print("ChiSquare Analysis Failed ")

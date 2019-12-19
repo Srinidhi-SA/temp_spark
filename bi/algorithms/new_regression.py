@@ -1,3 +1,5 @@
+from builtins import zip
+from builtins import object
 from pyspark.ml.linalg import DenseVector
 from pyspark.ml.regression import LinearRegression as LR
 from pyspark.sql.functions import col
@@ -7,7 +9,7 @@ from bi.common.results.regression import DFRegressionResult
 from bi.common.results.regression import RegressionResult
 
 
-class LinearRegression:
+class LinearRegression(object):
     LABEL_COLUMN_NAME = '_1'
     FEATURES_COLUMN_NAME = '_2'
 

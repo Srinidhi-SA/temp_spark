@@ -1,7 +1,9 @@
+from __future__ import print_function
+from builtins import object
 from bi.common import utils as CommonUtils
 import json
 
-class ResultSetter:
+class ResultSetter(object):
     """
     Provides helper method to store all the different result and narratives.
     """
@@ -238,7 +240,7 @@ class ResultSetter:
     def get_all_nb_classification_nodes(self):
         return self.nbnodes
     def get_all_regression_cards(self):
-        print self.model_order
+        print(self.model_order)
         map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards,'TensorFlow':self.tfregcards}
         all_cards=[]
         for i in self.model_order:

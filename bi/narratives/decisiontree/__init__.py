@@ -1,11 +1,13 @@
+from __future__ import absolute_import
+from builtins import object
 from bi.common.results.decision_tree import DecisionTreeResult
 from bi.common.utils import accepts
-from decision_tree import DecisionTreeNarrative
+from .decision_tree import DecisionTreeNarrative
 
 
-class DecisionNarrative:
+class DecisionNarrative(object):
 
-    @accepts(object, (int, long), DecisionTreeResult)
+    @accepts(object, (int, int), DecisionTreeResult)
     def __init__(self, num_measure_columns, decision_tree_rules):
         self._df_regression_result = df_freq_dimension_obj
         self._num_measure_columns = num_measure_columns

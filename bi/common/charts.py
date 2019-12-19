@@ -1,4 +1,5 @@
-class ScatterChartData:
+from builtins import object
+class ScatterChartData(object):
     """
     Data Wrapper for Scatter Plots
 
@@ -78,13 +79,13 @@ class ScatterChartData:
         return self.data
 
     def get_outer_keys(self):
-        return self.data.keys()
+        return list(self.data.keys())
 
     def get_inner_keys(self):
-        keys = self.data.keys()
-        return self.data[keys[0]][0].keys()
+        keys = list(self.data.keys())
+        return list(self.data[keys[0]][0].keys())
 
-class NormalChartData:
+class NormalChartData(object):
     """
     Data Wrapper Class for Charts other than scatter charts
     #### data structure for line chart
@@ -170,11 +171,11 @@ class NormalChartData:
 
     def get_keys(self):
         if len(self.data) != 0:
-            return self.data[0].keys()
+            return list(self.data[0].keys())
         else:
             return []
 
-class ChartJson:
+class ChartJson(object):
     """
     formats = ['.2s','$','$,'.2f']
     """

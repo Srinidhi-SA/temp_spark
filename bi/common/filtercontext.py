@@ -1,4 +1,5 @@
-class FilterContextSetter:
+from builtins import object
+class FilterContextSetter(object):
     def __init__(self, config_obj):
         self._config_obj = config_obj
         self.CSV_FILE = ""

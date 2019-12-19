@@ -1,15 +1,23 @@
 """
 functions to load data from various sources to create a dataframe
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from pyspark.sql import SparkSession, HiveContext
 from pyspark import SparkContext, SparkConf
 import random
-from decorators import accepts
+from .decorators import accepts
 import time
 import re
+from functools import reduce
+import subprocess
 
-class DataLoader:
+class DataLoader(object):
 
     @staticmethod
     @accepts(SparkSession, basestring, has_header=bool, interpret_data_schema=bool)
@@ -21,10 +29,10 @@ class DataLoader:
     @accepts(SparkSession, basestring, dict)
     def create_dataframe_from_jdbc_connector(spark_session, datasource_type, dbConnectionParams):
         datasource_type = datasource_type.lower()
-        print "~"*100
-        print "Data Source :- ",datasource_type
-        print "Database Connection Params :- ",dbConnectionParams
-        print "~"*100
+        print("~"*100)
+        print("Data Source :- ",datasource_type)
+        print("Database Connection Params :- ",dbConnectionParams)
+        print("~"*100)
         if "hana" == datasource_type:
             return DataLoader.create_dataframe_from_hana_connector(spark_session, dbConnectionParams)
         elif "mysql" == datasource_type:
@@ -45,7 +53,7 @@ class DataLoader:
         # change jdbc_url
 
         jdbc_url = "jdbc:mysql://{}:{}/{}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
-        print jdbc_url
+        print(jdbc_url)
 
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
@@ -58,7 +66,7 @@ class DataLoader:
             return df
         except Exception as e:
             print("couldn't connect to database")
-            print e
+            print(e)
         return df
 
     @staticmethod
@@ -153,79 +161,56 @@ class DataLoader:
         def download_file(file_name, dest_name):
             bucket = get_boto_bucket()
             bucket.download_file(file_name, dest_name)
-	    import subprocess
-	    subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
+
+        subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
 
         def read_file(src_name):
             bucket = get_boto_bucket()
 
         download_file(file_name,'/tmp/'+dst_file_name)
 
-	try:
-	    if df is None:
-            	df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
-	except Exception as e:
-	    print(e)
-
         try:
-	    if df is None:
-            	df = spark_session.read.csv('/tmp/'+dst_file_name,header=True, inferSchema=True )
+            if df is None:
+                df = spark_session.read.csv('file:///tmp/'
+                        + dst_file_name, header=True, inferSchema=True)
         except Exception as e:
             print(e)
 
-        try:
-	    if df is None:
-            	df = spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True )
-        except Exception as e:
-            print(e)
-
-
-	try:
-	    if df is None:
-	    	df = spark_session.read.csv('/dev/dataset/'+dst_file_name,header=True, inferSchema=True)
-	except Exception as e:
-	    print(e)
-        cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
-        df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
-
-        '''
-        except Exception as e:
-            print("couldn't connect to S3")
-            raise e
-        try:
-
-            spark = SparkSession \
-                    .builder \
-                    .appName("using_s3") \
-                    .getOrCreate()
-
-
-            #df = spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True )
-            df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
-            cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
-            df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
-        except Exception as e:
-            print "tried once, will wait for 3 second before next try"
-            time.sleep(3)
             try:
-                spark = SparkSession \
-                        .builder \
-                        .appName("using_s3") \
-                        .getOrCreate()
-                # df = spark.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'+dst_file_name,header=True, inferSchema=True,multiLine=True,ignoreLeadingWhiteSpace=True,ignoreTrailingWhiteSpace=True,escape="\"")
-                df = spark_session.read.csv('file:///tmp/'+dst_file_name,header=True, inferSchema=True )
-                cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
-                df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
+                if df is None:
+                    df = spark_session.read.csv('/tmp/'
+                            + dst_file_name, header=True,
+                            inferSchema=True)
             except Exception as e:
-                print ("S3 file not found")
-                raise e
-	'''
+                print(e)
+
+            try:
+                if df is None:
+                    df = \
+                        spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'
+                             + dst_file_name, header=True,
+                            inferSchema=True)
+            except Exception as e:
+                print(e)
+
+                try:
+                    if df is None:
+                        df = spark_session.read.csv('/dev/dataset/'
+                                + dst_file_name, header=True,
+                                inferSchema=True)
+                except Exception as e:
+                    print(e)
+                cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", '', col)
+                        for col in df.columns]
+                df = reduce(lambda data, idx: \
+                            data.withColumnRenamed(df.columns[idx],
+                            cols[idx]), range(len(df.columns)), df)
         return df
 
 
     @staticmethod
     def get_db_name(dbConnectionParams):
-        if "schema" in dbConnectionParams.keys():
+        if "schema" in list(dbConnectionParams.keys()):
             return dbConnectionParams.get("schema")
-        elif "databasename" in dbConnectionParams.keys():
+        elif "databasename" in list(dbConnectionParams.keys()):
             return dbConnectionParams.get("databasename")

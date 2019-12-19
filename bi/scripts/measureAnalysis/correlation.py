@@ -1,8 +1,9 @@
+from builtins import object
 from bi.common import utils as CommonUtils
 from bi.stats import Correlation
 
 
-class CorrelationScript:
+class CorrelationScript(object):
     def __init__(self, data_frame, df_helper, df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper

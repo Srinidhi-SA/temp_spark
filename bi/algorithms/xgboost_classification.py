@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import zip
+from builtins import object
 import xgboost as xgb
 from sklearn import preprocessing
 
@@ -5,14 +8,14 @@ from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
 
 
-class XgboostClassifier:
+class XgboostClassifier(object):
     def __init__(self, data_frame, dataframe_helper, spark):
         # self._spark = spark
         # self.data_frame = data_frame.toPandas()
         # self._measure_columns = dataframe_helper.get_numeric_columns()
         # self._dimension_columns = dataframe_helper.get_string_columns()
         # self.classifier = initiate_forest_classifier(10,5)
-        print "XGBOOST INITIALIZATION DONE"
+        print("XGBOOST INITIALIZATION DONE")
 
     def initiate_xgboost_classifier(self):
         general_params = {"booster":"gbtree","silent":0,"nthread":2}
@@ -36,7 +39,7 @@ class XgboostClassifier:
         y_train = labelEncoder.transform(y_train)
         classes = labelEncoder.classes_
         transformed = labelEncoder.transform(classes)
-        labelMapping = dict(zip(transformed,classes))
+        labelMapping = dict(list(zip(transformed,classes)))
         clf = clf.fit(x_train, y_train)
         y_score = clf.predict(x_test)
         y_score = labelEncoder.inverse_transform(y_score)
@@ -44,7 +47,7 @@ class XgboostClassifier:
         y_prob = [0]*len(y_score)
 
         feature_importance = dict(sorted(zip(x_train.columns,clf.feature_importances_),key=lambda x: x[1],reverse=True))
-        for k, v in feature_importance.iteritems():
+        for k, v in feature_importance.items():
             feature_importance[k] = CommonUtils.round_sig(v)
         return {"trained_model":clf,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
 

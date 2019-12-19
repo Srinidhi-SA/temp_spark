@@ -1,3 +1,8 @@
+from __future__ import print_function
+from builtins import str
+from builtins import zip
+from builtins import range
+from builtins import object
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml.feature import VectorAssembler
@@ -7,12 +12,12 @@ import pyspark.sql.functions as sparkFN
 
 
 
-class KmeansClustering:
+class KmeansClustering(object):
     def __init__(self, data_frame, df_helper, df_context, meta_parser, spark):
         # self._spark = spark
         self._data_frame = data_frame
         self._metaParser = meta_parser
-        print "KMEANS INITIALIZATION DONE"
+        print("KMEANS INITIALIZATION DONE")
         self._kmeans_result = {}
         self._max_cluster = 5
         self._predictedData = None
@@ -28,14 +33,14 @@ class KmeansClustering:
         vectorized_data = scale_model.transform(assembled)
 
         if cluster_count == None:
-            cluster_count_array = range(2,self._max_cluster)
+            cluster_count_array = list(range(2,self._max_cluster))
             wssse_output = []
             for n_cluster in cluster_count_array:
                 kmeans = KMeans().setK(n_cluster).setSeed(1)
                 kmeans_model = kmeans.fit(vectorized_data)
                 wssse = kmeans_model.computeCost(vectorized_data)
                 wssse_output.append(wssse)
-            wssse_dict = dict(zip(cluster_count_array,wssse_output))
+            wssse_dict = dict(list(zip(cluster_count_array,wssse_output)))
 
             cluster_count = min(wssse_dict,key = wssse_dict.get)
             kmeans = KMeans().setK(cluster_count).setSeed(1)
@@ -68,7 +73,7 @@ class KmeansClustering:
         return self._predictedData
 
     def get_aggregated_summary(self,inputCol):
-        print " get_aggregated_summary inputCol",inputCol
+        print(" get_aggregated_summary inputCol",inputCol)
         numRows = self._metaParser.get_num_rows()
         agg_df = self._predictedData.groupby('prediction').agg(sparkFN.sum(inputCol).alias('sum'), sparkFN.count(inputCol).alias('count'))
         aggDfArr = agg_df.collect()

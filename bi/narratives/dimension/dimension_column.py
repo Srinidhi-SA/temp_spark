@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import object
 import json
 import operator
 import re
@@ -13,7 +16,7 @@ from bi.common import MetaDataHelper
 from bi.scripts.metadata import  MetaDataScript
 
 
-class DimensionColumnNarrative:
+class DimensionColumnNarrative(object):
     MAX_FRACTION_DIGITS = 2
 
     def __init__(self, data_frame, column_name,df_helper, df_context, freq_dimension_stats,result_setter,story_narrative,scriptWeight=None, analysisName=None):
@@ -165,19 +168,19 @@ class DimensionColumnNarrative:
         freq_dict = json.loads(freq_dict)
         colname = self._colname
         freq_data = []
-        print "self._dataframe_helper.get_cols_to_bin()",self._dataframe_helper.get_cols_to_bin()
+        print("self._dataframe_helper.get_cols_to_bin()",self._dataframe_helper.get_cols_to_bin())
         if colname in self._dataframe_helper.get_cols_to_bin():
-            keys_to_sort = freq_dict[colname][colname].values()
+            keys_to_sort = list(freq_dict[colname][colname].values())
             convert = lambda text: int(text) if text.isdigit() else text
             alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)',key)]
             keys_to_sort.sort(key=alphanum_key)
             temp_dict={}
-            for k,v in freq_dict[colname][colname].items():
+            for k,v in list(freq_dict[colname][colname].items()):
                 temp_dict[v] = freq_dict[colname]["count"][k]
             for each in keys_to_sort:
                 freq_data.append({"key":each,"Count":temp_dict[each]})
         else:
-            for k,v in freq_dict[colname][colname].items():
+            for k,v in list(freq_dict[colname][colname].items()):
                 freq_data.append({"key":v,"Count":freq_dict[colname]["count"][k]})
             freq_data = sorted(freq_data,key=lambda x:x["Count"],reverse=True)
         data_dict = {"colname":self._colname}
@@ -188,9 +191,9 @@ class DimensionColumnNarrative:
         data_dict["blockSplitter"] = self._blockSplitter
         data_dict["max"] = {"key":freq_dict[colname][colname][max_key],"val":count[max_key]}
         data_dict["min"] = {"key":freq_dict[colname][colname][min_key],"val":count[min_key]}
-        data_dict["keys"] = freq_dict[colname][colname].values()
-        data_dict["avg"] = round(sum(count.values())/float(len(count.values())),2)
-        data_dict["above_avg"] = [freq_dict[colname][colname][key] for key in count.keys() if count[key] > data_dict["avg"]]
+        data_dict["keys"] = list(freq_dict[colname][colname].values())
+        data_dict["avg"] = round(sum(count.values())/float(len(list(count.values()))),2)
+        data_dict["above_avg"] = [freq_dict[colname][colname][key] for key in list(count.keys()) if count[key] > data_dict["avg"]]
         data_dict["per_bigger_avg"] = round(data_dict["max"]["val"]/float(data_dict["avg"]),4)
         data_dict["per_bigger_low"] = round(data_dict["max"]["val"]/float(data_dict["min"]["val"]),4)
         uniq_val = list(set(count.values()))
@@ -201,7 +204,7 @@ class DimensionColumnNarrative:
             #percent_75 = np.percentile(count.values(),75)
             #kv=[(freq_dict[colname][colname][key],count[key]) for key in count.keys()]
             percent_75 = sum(count.values())*0.75
-            kv = sorted(count.items(),key = operator.itemgetter(1),reverse=True)
+            kv = sorted(list(count.items()),key = operator.itemgetter(1),reverse=True)
             kv_75 = [(k,v) for k,v in kv if v <= percent_75]
             kv_75 = []
             temp_sum = 0
@@ -263,9 +266,9 @@ class DimensionColumnNarrative:
         min_key = min(count, key=count.get)
         data_dict["max"] = {"key":freq_dict[colname][colname][max_key],"val":count[max_key]}
         data_dict["min"] = {"key":freq_dict[colname][colname][min_key],"val":count[min_key]}
-        data_dict["keys"] = freq_dict[colname][colname].values()
-        data_dict["avg"] = round(sum(count.values())/float(len(count.values())),2)
-        data_dict["above_avg"] = [freq_dict[colname][colname][key] for key in count.keys() if count[key] > data_dict["avg"]]
+        data_dict["keys"] = list(freq_dict[colname][colname].values())
+        data_dict["avg"] = round(sum(count.values())/float(len(list(count.values()))),2)
+        data_dict["above_avg"] = [freq_dict[colname][colname][key] for key in list(count.keys()) if count[key] > data_dict["avg"]]
         data_dict["per_bigger_avg"] = round(data_dict["max"]["val"]/float(data_dict["avg"]),2)
         data_dict["per_bigger_low"] = round(data_dict["max"]["val"]/float(data_dict["min"]["val"]),2)
         uniq_val = list(set(count.values()))
@@ -274,7 +277,7 @@ class DimensionColumnNarrative:
             data_dict["count"] = uniq_val[0]
         if len(data_dict["keys"]) >= 2:
             percent_75 = sum(count.values())*0.75
-            kv = sorted(count.items(),key = operator.itemgetter(1),reverse=True)
+            kv = sorted(list(count.items()),key = operator.itemgetter(1),reverse=True)
             kv_75 = [(k,v) for k,v in kv if v <= percent_75]
             kv_75 = []
             temp_sum = 0

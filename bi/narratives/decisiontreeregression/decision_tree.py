@@ -1,3 +1,6 @@
+from builtins import zip
+from builtins import str
+from builtins import object
 import humanize
 
 from bi.common import NormalCard, NarrativesTree, C3ChartData, TableData
@@ -7,12 +10,12 @@ from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
 
 
-class DecisionTreeRegNarrative:
+class DecisionTreeRegNarrative(object):
     MAX_FRACTION_DIGITS = 2
 
     def _get_new_table(self):
         self.card1Table = [["PREDICTION","RULES","PERCENTAGE"]]
-        for keys in self._table.keys():
+        for keys in list(self._table.keys()):
             self.new_table[keys]={}
             self.new_table[keys]['rules'] = self._table[keys]
             self.new_table[keys]['probability'] = [round(i,2) for i in self.success_percent[keys]]
@@ -169,7 +172,7 @@ class DecisionTreeRegNarrative:
         rules_dict = self._table
         data_dict["blockSplitter"] = self._blockSplitter
         data_dict["targetcol"] = self._colname
-        groups = rules_dict.keys()
+        groups = list(rules_dict.keys())
         probabilityCutoff = 75
         probabilityGroups=[{"probability":probabilityCutoff,"count":0,"range":[probabilityCutoff,100]},{"probability":probabilityCutoff-1,"count":0,"range":[0,probabilityCutoff-1]}]
         tableArray = [[
@@ -220,9 +223,9 @@ class DecisionTreeRegNarrative:
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
                 collapseArray.append(paths_to_collapse)
-            probabilityArray = map(lambda x:humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" ,probabilityArray)
+            probabilityArray = [humanize.apnumber(x)+"%" if x >=10 else str(int(x))+"%" for x in probabilityArray]
             # targetArray = zip(rulesArray,probabilityArray,predictionArray,freqArray,groupArray)
-            targetArray = zip(crudeRuleArray,probabilityArray,predictionArray,freqArray,groupArray,collapseArray,richRulesArray)
+            targetArray = list(zip(crudeRuleArray,probabilityArray,predictionArray,freqArray,groupArray,collapseArray,richRulesArray))
             targetArray = [list(x) for x in targetArray]
             tableArray += targetArray
 

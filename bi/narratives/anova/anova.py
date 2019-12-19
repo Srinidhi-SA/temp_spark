@@ -1,3 +1,10 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import math
 import math
 
@@ -10,7 +17,7 @@ from bi.common import NormalChartData, ChartJson
 from bi.narratives import utils as NarrativesUtils
 
 
-class Card:
+class Card(object):
     def __init__(self, heading):
         self.heading = heading
         self.charts = {}
@@ -27,12 +34,12 @@ class Card:
         self.bubble_data.append(bubble_data)
 
 
-class BubbleData:
+class BubbleData(object):
     def __init__(self,value, text):
         self.value = value
         self.text = text
 
-class chart:
+class chart(object):
     def __init__(self, data, labels='',  heading = ''):
         self.heading = heading
         self.data = data
@@ -41,12 +48,12 @@ class chart:
     def add_data_c3(self, data_c3):
         self.data_c3 = data_c3
 
-class paragraph:
+class paragraph(object):
     def __init__(self, header, content):
         self.header = header
         self.content = [content]
 
-class OneWayAnovaNarratives:
+class OneWayAnovaNarratives(object):
     THRESHHOLD_TOTAL = 0.75
     ALPHA = 0.05
 
@@ -82,8 +89,8 @@ class OneWayAnovaNarratives:
             binnedColObj = [x["colName"] for x in customAnalysis]
             if binnedColObj != None and (self._dimension_column in binnedColObj):
                 self._binAnalyzedCol = True
-        print "BinAnalyzedCol..........."
-        print self._binAnalyzedCol
+        print("BinAnalyzedCol...........")
+        print(self._binAnalyzedCol)
         self._generate_narratives()
 
     def _generate_narratives(self):
@@ -91,7 +98,7 @@ class OneWayAnovaNarratives:
         self._generate_card1()
 
         if self._dataframe_context.get_job_type() != "prediction":
-            print "duration is ",self._trendDuration
+            print("duration is ",self._trendDuration)
             if self._trendDuration > 0:
                 self._generate_card2()
                 if self._card3_required:
@@ -122,7 +129,7 @@ class OneWayAnovaNarratives:
         key_list = ['k1','k2','k3']
         data_c3 = []
         for row in zip(data[x],data[y],data[y2]):
-            row_data = dict(zip(key_list,row))
+            row_data = dict(list(zip(key_list,row)))
             try:
                 row_data["k1"] = str(row_data["k1"].to_datetime().date())
             except:
@@ -203,13 +210,13 @@ class OneWayAnovaNarratives:
         fifteen_percent_total = 0.15*sum_total
         sorted_total = sorted(totals, reverse=True)
         if len(groups_by_total)%2 == 0:
-            fifty_percent_index = int(len(groups_by_total)/2)
+            fifty_percent_index = int(old_div(len(groups_by_total),2))
             top_fifty_total = sum(sorted_total[:fifty_percent_index])
             bottom_fifty_total = sum(sorted_total[fifty_percent_index:])
             if top_fifty_total - bottom_fifty_total >= fifteen_percent_total:
                 uniformly_distributed = False
         else:
-            fifty_percent_index = int(len(groups_by_total)/2)+1
+            fifty_percent_index = int(old_div(len(groups_by_total),2))+1
             top_fifty_total = sum(sorted_total[:fifty_percent_index])
             bottom_fifty_total = sum(sorted_total[fifty_percent_index-1:])
             if top_fifty_total - bottom_fifty_total >= fifteen_percent_total:
@@ -221,7 +228,7 @@ class OneWayAnovaNarratives:
             diffs = [sorted_total[i]-sorted_total[i+1] for i in range(fifty_percent_index)]
             max_diff_index = diffs.index(max(diffs[1:]))
             top_groups = [k for t,k in groups_by_total[:max_diff_index+1]]
-            top_groups_contribution = sum(sorted_total[:max_diff_index+1])*100/sum_total
+            top_groups_contribution = old_div(sum(sorted_total[:max_diff_index+1])*100,sum_total)
             bottom_groups = []
             bottom_groups_contribution = 0
             for t,k in groups_by_total[:0:-1]:
@@ -229,12 +236,12 @@ class OneWayAnovaNarratives:
                 bottom_groups_contribution = bottom_groups_contribution + t
                 if bottom_groups_contribution >= five_percent_total:
                     break
-            bottom_groups_contribution = bottom_groups_contribution*100/sum_total
+            bottom_groups_contribution = old_div(bottom_groups_contribution*100,sum_total)
         elif not uniformly_distributed:
             top_groups = [groups_by_total[0][1]]
-            top_groups_contribution = groups_by_total[0][0]*100/sum_total
+            top_groups_contribution = old_div(groups_by_total[0][0]*100,sum_total)
             bottom_groups = [groups_by_total[1][1]]
-            bottom_groups_contribution = groups_by_total[1][0]*100/sum_total
+            bottom_groups_contribution = old_div(groups_by_total[1][0]*100,sum_total)
         elif uniformly_distributed:
             top_groups = []
             top_groups_contribution = 0
@@ -292,7 +299,7 @@ class OneWayAnovaNarratives:
         # tuple of (dimension name,anovaResult,effect_size)
         top_level_sig_dimensions = topLevelAnova.get_top_significant_dimensions(3)
         significant_dimensions = [x[0] for x in top_level_sig_dimensions]
-        print significant_dimensions
+        print(significant_dimensions)
         contributorDict = {}
         for idx,obj in enumerate(top_level_sig_dimensions):
             leveldf = obj[1].get_level_dataframe()
@@ -300,9 +307,9 @@ class OneWayAnovaNarratives:
             contributorDict[obj[0]] = {"level":levelContribution}
             totalCont = round(np.sum([c[1] for c in levelContribution[:3]]),2)
             contributorDict[obj[0]].update({"total":totalCont})
-        print contributorDict
+        print(contributorDict)
 
-        print "data dict started"
+        print("data dict started")
         data_dict = {
                     'sig_dims' : significant_dimensions,
                     'num_sig_dims' : len(significant_dimensions),
@@ -345,7 +352,7 @@ class OneWayAnovaNarratives:
         if len(significant_dimensions)>n:
             dimension = significant_dimensions[n]
             contributions = top_dimension_stats.get_contributions(dimension)
-            contributions = [(v*100,k) for k,v in contributions.items()]
+            contributions = [(v*100,k) for k,v in list(contributions.items())]
             contributions = sorted(contributions, reverse=True)
             diffs = [contributions[i][0]-contributions[i+1][0] for i in range(len(contributions)-1)]
             cutoff = diffs.index(max(diffs))
@@ -405,8 +412,8 @@ class OneWayAnovaNarratives:
         # self.card2.add_chart('trend_chart',chart1)
         self.card1.add_chart('trend_chart',chart1)
 
-        overall_increase_percent = (overall_df[total_measure].iloc[-1]*100/overall_df[total_measure].iloc[0]) - 100
-        subset_increase_percent = (subset_df[subset_measure].iloc[-1]*100/subset_df[subset_measure].iloc[0]) - 100
+        overall_increase_percent = (old_div(overall_df[total_measure].iloc[-1]*100,overall_df[total_measure].iloc[0])) - 100
+        subset_increase_percent = (old_div(subset_df[subset_measure].iloc[-1]*100,subset_df[subset_measure].iloc[0])) - 100
 
         overall_peak_index = overall_df[total_measure].argmax()
         overall_peak_value = overall_df[total_measure].ix[overall_peak_index]
@@ -426,11 +433,11 @@ class OneWayAnovaNarratives:
         if math.isnan(overall_df['prev'].ix[overall_peak_index]):
             overall_peak_increase = 0
         else:
-            overall_peak_increase = (overall_df[total_measure].ix[overall_peak_index]/overall_df['prev'].ix[overall_peak_index])*100 - 100
+            overall_peak_increase = (old_div(overall_df[total_measure].ix[overall_peak_index],overall_df['prev'].ix[overall_peak_index]))*100 - 100
         if math.isnan(subset_df['prev'].ix[subset_peak_index]):
             subset_peak_increase = 0
         else:
-            subset_peak_increase = (subset_df[subset_measure].ix[subset_peak_index]/subset_df['prev'].ix[subset_peak_index])*100 - 100
+            subset_peak_increase = (old_div(subset_df[subset_measure].ix[subset_peak_index],subset_df['prev'].ix[subset_peak_index]))*100 - 100
 
         overall_df['avg_diff'] = overall_df[total_measure] - overall_df[total_measure].mean()
         subset_df['avg_diff'] = subset_df[subset_measure] - subset_df[subset_measure].mean()
@@ -443,7 +450,7 @@ class OneWayAnovaNarratives:
         overall_streak_length = int(overall_df['u_streak'].ix[overall_longest_streak_end_index])
         for i in range(1,int(overall_streak_length)):
             overall_longest_streak_contribution = overall_df[total_measure].shift(i).ix[overall_longest_streak_end_index]
-        overall_longest_streak_contribution = overall_longest_streak_contribution*100/overall_df[total_measure].sum()
+        overall_longest_streak_contribution = old_div(overall_longest_streak_contribution*100,overall_df[total_measure].sum())
         if self._dataLevel == "month":
             overall_longest_streak_end_date = overall_df['year_month'].ix[overall_longest_streak_end_index]
             overall_longest_streak_start_date = overall_df['year_month'].shift(overall_streak_length-1).ix[overall_longest_streak_end_index]
@@ -456,7 +463,7 @@ class OneWayAnovaNarratives:
         subset_streak_length = int(subset_df['u_streak'].ix[subset_longest_streak_end_index])
         for i in range(1,int(subset_streak_length)):
             subset_longest_streak_contribution = subset_df[subset_measure].shift(i).ix[subset_longest_streak_end_index]
-        subset_longest_streak_contribution = subset_longest_streak_contribution*100/subset_df[subset_measure].sum()
+        subset_longest_streak_contribution = old_div(subset_longest_streak_contribution*100,subset_df[subset_measure].sum())
         if self._dataLevel == "month":
             subset_longest_streak_end_date = subset_df['year_month'].ix[subset_longest_streak_end_index]
             subset_longest_streak_start_date = subset_df['year_month'].shift(subset_streak_length-1).ix[subset_longest_streak_end_index]
@@ -486,15 +493,15 @@ class OneWayAnovaNarratives:
                     'dimension' : self._dimension_column,
         }
 
-        print "data_dict - For anova_template_6 -------------------"
-        print data_dict
+        print("data_dict - For anova_template_6 -------------------")
+        print(data_dict)
 
 
 
         # print json.dumps(data_dict,indent=2)
 
         if self._binAnalyzedCol == True:
-            print "Binned IV"
+            print("Binned IV")
             output = {}
             output['header'] = "<h4>"+ self._dimension_column + " - " +  top_level_name+"'s "+self._measure_column+" Performance over time"+"</h4>"
             output['content'] = []
@@ -516,7 +523,7 @@ class OneWayAnovaNarratives:
 
     def generate_trending_comments(self):
         grouped_data_frame = self._trend_result.get_grouped_data(self._dimension_column)
-        grouped_data_frame['increase'] = (grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100/grouped_data_frame['measure']['first']
+        grouped_data_frame['increase'] = old_div((grouped_data_frame['measure']['last'] - grouped_data_frame['measure']['first'])*100,grouped_data_frame['measure']['first'])
         positive_growth_dimensions = grouped_data_frame['dimension'].ix[grouped_data_frame['increase']>3]
         negative_growth_dimensions = grouped_data_frame['dimension'].ix[grouped_data_frame['increase']<-2]
         stable_growth_dimensions = grouped_data_frame['dimension'].ix[(grouped_data_frame['increase']>=-2) & (grouped_data_frame['increase']<=3)]
@@ -584,7 +591,7 @@ class OneWayAnovaNarratives:
         self._contribution_limit = grouped_data_frame['contribution'].mean()
         self._increase_limit = max(0.0, grouped_data_frame['increase'].mean())
         dimensionLevel = list(set(pivot_df.columns) - {"year_month", "key"})
-        print dimensionLevel
+        print(dimensionLevel)
         share = []
         growth = []
         for lvl in dimensionLevel:

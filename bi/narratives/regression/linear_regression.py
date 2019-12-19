@@ -1,3 +1,10 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import operator
 import time
 
@@ -14,7 +21,7 @@ from bi.narratives import utils as NarrativesUtils
 from bi.stats.util import Stats
 
 
-class LinearRegressionNarrative:
+class LinearRegressionNarrative(object):
     STRONG_CORRELATION = 0.7
     MODERATE_CORRELATION = 0.3
 
@@ -98,9 +105,9 @@ class LinearRegressionNarrative:
         df = grouped_output["data"]
         bins = grouped_output["bins"]
         # print json.dumps(dimension_data_dict,indent=2)
-        category_dict = dict(zip(bins.keys(),[str(bins[x][0])+" to "+str(bins[x][1]) for x in bins.keys()]))
+        category_dict = dict(list(zip(list(bins.keys()),[str(bins[x][0])+" to "+str(bins[x][1]) for x in list(bins.keys())])))
         table_data = {}
-        for val in dimension_data_dict.keys():
+        for val in list(dimension_data_dict.keys()):
             dimension_data_dict[val]['dimension'] = val
             dimension_data_dict[val]['num_levels'] = len(dimension_data_dict[val]['levels'])
             data = df.groupby(df["BINNED_INDEX"]).pivot(val).avg(self._result_column).toPandas()
@@ -116,8 +123,8 @@ class LinearRegressionNarrative:
             # table_data[val]['header'] = [dict(zip(headers,['Category']+list(colnames)))]
             # table_data[val]['tableData'] = [dict(zip(headers,row)) for row in data.values.tolist()]
             headers = ['header'+str(i) for i in range(1,len(data.index)+2)]
-            table_data[val]['header'] = [dict(zip(headers,['Category']+list(data['BINNED_INDEX'])))]
-            table_data[val]['tableData'] = [dict(zip(headers,[col]+[round(i,2) for i in data[col].tolist()])) for col in colnames]
+            table_data[val]['header'] = [dict(list(zip(headers,['Category']+list(data['BINNED_INDEX']))))]
+            table_data[val]['tableData'] = [dict(list(zip(headers,[col]+[round(i,2) for i in data[col].tolist()]))) for col in colnames]
         ranked_dimensions = [(dimension_data_dict[dim]['rank'], dim) for dim in dimension_data_dict]
         ranked_dimensions = sorted(ranked_dimensions)
         ranked_dimensions = [dim for rank,dim in ranked_dimensions]
@@ -164,7 +171,7 @@ class LinearRegressionNarrative:
         data_dict['measure'] = measure_column
         data_dict['total_measure'] = agg_data[measure_column].sum()
         data_dict['total_target'] = agg_data[self._result_column].sum()
-        data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, 1)
+        data_dict['fold'] = round(old_div(data_dict['total_measure']*100,data_dict['total_target']) - 100.0, 1)
         data_dict['num_dates'] = len(agg_data.index)
         data_dict['start_date'] = agg_data[date_column].iloc[0]
         data_dict['end_date'] = agg_data[date_column].iloc[-1]
@@ -172,7 +179,7 @@ class LinearRegressionNarrative:
         data_dict['end_value'] = round(agg_data[measure_column].iloc[-1],2)
         # data_dict['target_start_value'] = agg_data[self._result_column].iloc[0]
         # data_dict['target_end_value'] = agg_data[self._result_column].iloc[-1]
-        data_dict['change_percent'] = NarrativesUtils.round_number(agg_data[measure_column].iloc[-1]*100/agg_data[measure_column].iloc[0] - 100,2)
+        data_dict['change_percent'] = NarrativesUtils.round_number(old_div(agg_data[measure_column].iloc[-1]*100,agg_data[measure_column].iloc[0]) - 100,2)
         data_dict['correlation'] = NarrativesUtils.round_number(agg_data[measure_column].corr(agg_data[self._result_column]),2)
         peak_index = agg_data[measure_column].argmax()
         data_dict['peak_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[peak_index],2)
@@ -187,13 +194,13 @@ class LinearRegressionNarrative:
         fs = time.time()
         data_dict = {}
         significant_dimensions = self._dataframe_helper.get_significant_dimension()
-        print
-        print "-"*100
-        print "Target Column : ", col1
-        print "Measure Column : ", col2
-        print "significant_dimensions : ", significant_dimensions
+        print()
+        print("-"*100)
+        print("Target Column : ", col1)
+        print("Measure Column : ", col2)
+        print("significant_dimensions : ", significant_dimensions)
         if significant_dimensions != {}:
-            sig_dims = [(x,significant_dimensions[x]) for x in significant_dimensions.keys()]
+            sig_dims = [(x,significant_dimensions[x]) for x in list(significant_dimensions.keys())]
             sig_dims = sorted(sig_dims,key=lambda x:x[1],reverse=True)
             cat_columns = [x[0] for x in sig_dims[:10]]
         else:
@@ -201,8 +208,8 @@ class LinearRegressionNarrative:
 
         col1_mean = Stats.mean(self._data_frame,col1)
         col2_mean = Stats.mean(self._data_frame,col2)
-        print "col1=>",col1," | col2=>",col2
-        print col1_mean,col2_mean
+        print("col1=>",col1," | col2=>",col2)
+        print(col1_mean,col2_mean)
         low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) < col2_mean)
         low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) >= col2_mean)
         high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) >= col2_mean)
@@ -214,60 +221,60 @@ class LinearRegressionNarrative:
         contribution = {}
         freq = {}
         elasticity_dict = {}
-        print "low1low2:", low1low2Count
-        print "low1high2:", low1high2Count
-        print "high1high2:", high1high2Count
-        print "high1low2:", high1low2Count
-        print "quadrant dataframe creation Done in ", time.time() - fs, " seconds."
+        print("low1low2:", low1low2Count)
+        print("low1high2:", low1high2Count)
+        print("high1high2:", high1high2Count)
+        print("high1low2:", high1low2Count)
+        print("quadrant dataframe creation Done in ", time.time() - fs, " seconds.")
 
         dfs = []
         labels = []
         if low1low2Count > 0:
             fs = time.time()
             freq["low1low2"] = self.get_freq_dict(low1low2,cat_columns)[:3]
-            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
-            contribution["low1low2"] = str(round(low1low2Count*100/self._data_frame.count()))+"%"
+            print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
+            contribution["low1low2"] = str(round(old_div(low1low2Count*100,self._data_frame.count())))+"%"
             fs = time.time()
             elasticity_dict["low1low2"] = self.run_regression(low1low2,col2)
-            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
+            print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
             dfs.append("low1low2")
             labels.append("Low %s with Low %s"%(col1,col2))
         if low1high2Count > 0:
             fs = time.time()
             freq["low1high2"] = self.get_freq_dict(low1high2,cat_columns)[:3]
-            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
-            contribution["low1high2"] = str(round(low1high2Count*100/self._data_frame.count()))+"%"
+            print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
+            contribution["low1high2"] = str(round(old_div(low1high2Count*100,self._data_frame.count())))+"%"
             fs = time.time()
             elasticity_dict["low1high2"] = self.run_regression(low1high2,col2)
-            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
+            print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
             dfs.append("low1high2")
             labels.append("Low %s with High %s"%(col1,col2))
         if high1high2Count > 0:
             fs = time.time()
             freq["high1high2"] = self.get_freq_dict(high1high2,cat_columns)[:3]
-            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
-            contribution["high1high2"] = str(round(high1high2Count*100/self._data_frame.count()))+"%"
+            print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
+            contribution["high1high2"] = str(round(old_div(high1high2Count*100,self._data_frame.count())))+"%"
             fs = time.time()
             elasticity_dict["high1high2"] = self.run_regression(high1high2,col2)
-            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
+            print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
             dfs.append("high1high2")
             labels.append("High %s with High %s"%(col1,col2))
         if high1low2Count > 0:
             fs = time.time()
             freq["high1low2"] = self.get_freq_dict(high1low2,cat_columns)[:3]
-            print "get_freq_dict Analysis Done in ", time.time() - fs, " seconds."
-            contribution["high1low2"] = str(round(high1low2Count*100/self._data_frame.count()))+"%"
+            print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
+            contribution["high1low2"] = str(round(old_div(high1low2Count*100,self._data_frame.count())))+"%"
             fs = time.time()
             elasticity_dict["high1low2"] = self.run_regression(high1low2,col2)
-            print "run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds."
+            print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
             dfs.append("high1low2")
             labels.append("High %s with Low %s"%(col1,col2))
         fs = time.time()
         # overall_coeff = self._regression_result.get_coeff(col2)
         overall_coeff = self._regression_result.get_all_coeff()[col2]["coefficient"]
-        elasticity_value = overall_coeff * Stats.mean(self._data_frame,col1)/Stats.mean(self._data_frame,col2)
+        elasticity_value = old_div(overall_coeff * Stats.mean(self._data_frame,col1),Stats.mean(self._data_frame,col2))
         data_dict["overall_elasticity"] = elasticity_value
-        label_dict = dict(zip(dfs,labels))
+        label_dict = dict(list(zip(dfs,labels)))
 
         data_dict["measure_column"] = col2
         data_dict["result_column"] = col1
@@ -295,7 +302,7 @@ class LinearRegressionNarrative:
         plotColors = []
         if low1low2Count > 0:
             sample_rows = min(100.0, float(low1low2Count))
-            low1low2 = low1low2.sample(False, sample_rows/low1low2Count, seed = 50)
+            low1low2 = low1low2.sample(False, old_div(sample_rows,low1low2Count), seed = 50)
             low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
             low1low2_col2 = [x[0] for x in low1low2.select(col2).collect()]
             low1low2_color = ["#DD2E1F"]*len(low1low2_col2)
@@ -305,7 +312,7 @@ class LinearRegressionNarrative:
             plotColors.append("#DD2E1F")
         if low1high2Count > 0:
             sample_rows = min(100.0, float(low1high2Count))
-            low1high2 = low1high2.sample(False, sample_rows/low1high2Count, seed = 50)
+            low1high2 = low1high2.sample(False, old_div(sample_rows,low1high2Count), seed = 50)
             low1high2_col1 = [x[0] for x in low1high2.select(col1).collect()]
             low1high2_col2 = [x[0] for x in low1high2.select(col2).collect()]
             low1high2_color = ["#7C5BBB"]*len(low1high2_col2)
@@ -315,7 +322,7 @@ class LinearRegressionNarrative:
             plotColors.append("#7C5BBB")
         if high1high2Count > 0:
             sample_rows = min(100.0, float(high1high2Count))
-            high1high2 = high1high2.sample(False, sample_rows/high1high2Count, seed = 50)
+            high1high2 = high1high2.sample(False, old_div(sample_rows,high1high2Count), seed = 50)
             high1high2_col1 = [x[0] for x in high1high2.select(col1).collect()]
             high1high2_col2 = [x[0] for x in high1high2.select(col2).collect()]
             high1high2_color = ["#00AEB3"]*len(high1high2_col2)
@@ -325,7 +332,7 @@ class LinearRegressionNarrative:
             plotColors.append("#00AEB3")
         if high1low2Count > 0:
             sample_rows = min(100.0, float(high1low2Count))
-            high1low2 = high1low2.sample(False, sample_rows/high1low2Count, seed = 50)
+            high1low2 = high1low2.sample(False, old_div(sample_rows,high1low2Count), seed = 50)
             high1low2_col1 = [x[0] for x in high1low2.select(col1).collect()]
             high1low2_col2 = [x[0] for x in high1low2.select(col2).collect()]
             high1low2_color = ["#EC640C"]*len(high1low2_col2)
@@ -335,11 +342,11 @@ class LinearRegressionNarrative:
             plotColors.append("#EC640C")
 
 
-        plot_labels = dict(zip(plotColors,labels))
+        plot_labels = dict(list(zip(plotColors,labels)))
         all_data = sorted(zip(col2_data[1:],col1_data[1:],color_data[1:]),key=lambda x:x[1])
 
         scatterData = ScatterChartData()
-        data_obj = dict(zip(labels,[[] for i in range(len(labels))]))
+        data_obj = dict(list(zip(labels,[[] for i in range(len(labels))])))
         for val in all_data:
             col = val[2]
             obj = {col1:val[1],col2:val[0]}
@@ -353,25 +360,25 @@ class LinearRegressionNarrative:
         scatterChart.set_axes({"x":col2,"y":col1})
         scatterChart.set_chart_type("scatter")
         data_dict["charts"] = scatterChart
-        print "dsa Analysis Done in ", time.time() - fs, " seconds."
+        print("dsa Analysis Done in ", time.time() - fs, " seconds.")
         return data_dict
 
     #### functions to calculate data dicts for different cards
 
     def get_freq_dict(self,df,columns):
         # print columns
-        column_tuple = zip(columns,[{}]*len(columns))
+        column_tuple = list(zip(columns,[{}]*len(columns)))
         output = []
         for val in column_tuple:
             freq_df = df.groupby(val[0]).count().toPandas()
-            freq_dict = dict(zip(freq_df[val[0]],freq_df["count"]))
-            print freq_dict
+            freq_dict = dict(list(zip(freq_df[val[0]],freq_df["count"])))
+            print(freq_dict)
             if freq_dict != {}:
                 max_level = max(freq_dict,key=freq_dict.get)
                 max_val = freq_dict[max_level]
                 output.append((val[0],freq_dict,max_level,max_val))
             else:
-                print freq_dict
+                print(freq_dict)
                 # print df.select(val[0]).toPandas()
         sorted_output = sorted(output,key=lambda x:x[3],reverse=True)
         return sorted_output
@@ -387,10 +394,10 @@ class LinearRegressionNarrative:
                   "rsquare" : result.get_rsquare(),
                   "coeff" : result.get_all_coeff()
                   }
-        if measure_column in result["coeff"].keys():
+        if measure_column in list(result["coeff"].keys()):
             output["coeff"] = result["coeff"][measure_column]["coefficient"]
             try:
-                output["elasticity_value"] = output["coeff"] * Stats.mean(df,result_column)/Stats.mean(df,measure_column)
+                output["elasticity_value"] = old_div(output["coeff"] * Stats.mean(df,result_column),Stats.mean(df,measure_column))
             except:
                 output["elasticity_value"] = 0
         else:
@@ -402,15 +409,15 @@ class LinearRegressionNarrative:
     def keyAreasDict(self,dim_col_regression,measure_col):
         data = dim_col_regression
         dimension_data_dict = {}
-        dims = data.keys()
+        dims = list(data.keys())
         dimension_level_coeff_dict = {}
         all_coeff_list = []
         highest_coeff = {}
         lowest_coeff = {}
         for dim in dims:
-            levels = data[dim].keys()
+            levels = list(data[dim].keys())
             try:
-                coeff_list = [(x,round(data[dim][x]["coeff"][measure_col]["coefficient"],2)) if (isinstance(data[dim][x]['coeff'],dict) and data[dim][x]["coeff"].has_key(measure_col)) else (x,0.0) for x in levels ]
+                coeff_list = [(x,round(data[dim][x]["coeff"][measure_col]["coefficient"],2)) if (isinstance(data[dim][x]['coeff'],dict) and measure_col in data[dim][x]["coeff"]) else (x,0.0) for x in levels ]
             except:
                 continue
             coeff_list = sorted(coeff_list,key=lambda x:abs(x[1]),reverse=True)
@@ -418,18 +425,18 @@ class LinearRegressionNarrative:
             lowest_coeff[dim] = coeff_list[-1]
             all_coeff_list.append([coeff_list[0],dim])
         all_coeff_list = sorted(all_coeff_list,key=lambda x:abs(x[0][1]),reverse=True)
-        print "all_coeff_list"
-        print all_coeff_list
+        print("all_coeff_list")
+        print(all_coeff_list)
         top2_dims = [x[1] for x in all_coeff_list[:2]]
-        dimension_data_dict = dict(zip(top2_dims,[{}]*len(top2_dims)))
+        dimension_data_dict = dict(list(zip(top2_dims,[{}]*len(top2_dims))))
         for val in top2_dims:
             temp_dict = {}
-            temp_dict["levels"] = data[val].keys()
+            temp_dict["levels"] = list(data[val].keys())
             temp_dict["highest_impact_level"] = highest_coeff[val]
             temp_dict["lowest_impact_level"] = lowest_coeff[val]
             dimension_data_dict[val] = temp_dict
         # print '*'*100
-        print 'TOP 2 DIMS  :  ',top2_dims
+        print('TOP 2 DIMS  :  ',top2_dims)
         # print 'Dimension Data Dict  :  ',dimension_data_dict
         dimension_data_dict[top2_dims[0]]["rank"] = 1
         if len(top2_dims)>1:
@@ -446,7 +453,7 @@ class LinearRegressionNarrative:
         binned_df = bucketizer.transform(double_df)
         unique_bins = binned_df.select("BINNED_INDEX").distinct().collect()
         unique_bins = [int(x[0]) for x in unique_bins]
-        binned_index_dict = dict(zip(unique_bins,splits_data["splits_range"]))
+        binned_index_dict = dict(list(zip(unique_bins,splits_data["splits_range"])))
         output = {"bins":binned_index_dict,"data":binned_df}
         return output
 
@@ -472,13 +479,13 @@ class LinearRegressionNarrative:
         kmeans_df = kmeans_result["data"]
         cluster_data_dict = {"chart_data":None,"grp_data":None}
         grp_df = kmeans_df.groupBy("prediction").count().toPandas()
-        grp_counts = zip(grp_df["prediction"], grp_df["count"])
+        grp_counts = list(zip(grp_df["prediction"], grp_df["count"]))
         grp_counts = sorted(grp_counts,key=lambda x:x[1],reverse=True)
         grp_dict = dict(grp_counts)
 
         colors = ["red","blue","green","yellow","black"]
         cluster_ids = list(grp_df["prediction"])
-        color_dict = dict(zip(cluster_ids,colors[:len(cluster_ids)]))
+        color_dict = dict(list(zip(cluster_ids,colors[:len(cluster_ids)])))
 
         chart_data = {"heading":"","data":[]}
         result_col_data = [self._result_column]
@@ -492,9 +499,9 @@ class LinearRegressionNarrative:
             data = {}
             data["group_number"] = grp_id+1
             data["count"] = grp_dict[grp_id]
-            data["contribution"] = round(grp_dict[grp_id]*100/total,2)
+            data["contribution"] = round(old_div(grp_dict[grp_id]*100,total),2)
             df = kmeans_df.filter(FN.col("prediction") == grp_id)
-            data["columns"] = dict(zip(input_columns,[{}]*len(input_columns)))
+            data["columns"] = dict(list(zip(input_columns,[{}]*len(input_columns))))
             for val in input_columns:
                 data["columns"][val]["avg"] = round(Stats.mean(df,val),2)
             grp_data.append(data)

@@ -1,4 +1,9 @@
-class TimeSeriesAnalysis:
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
+class TimeSeriesAnalysis(object):
     def __init__(self):
         # self._spark = spark
         # self.data_frame = data_frame.toPandas()
@@ -6,24 +11,24 @@ class TimeSeriesAnalysis:
         # self._dimension_columns = dataframe_helper.get_string_columns()
         # self.classifier = initiate_forest_classifier(10,5)
         # https://grisha.org/blog/2016/02/17/triple-exponential-smoothing-forecasting-part-iii/
-        print "TIME SERIES INITIALIZATION DONE"
+        print("TIME SERIES INITIALIZATION DONE")
 
     def initial_trend(self, series, slen):
         sum = 0.0
         if len(series) >= slen*2:
             for i in range(slen):
                 sum += float(series[i+slen] - series[i]) / slen
-            return sum / slen
+            return old_div(sum, slen)
         else:
             new_range = len(series)-slen
             for i in range(new_range):
                 sum += float(series[i+slen] - series[i])
-            return sum / new_range
+            return old_div(sum, new_range)
 
     def initial_seasonal_components(self, series, slen):
         seasonals = {}
         season_averages = []
-        n_seasons = int(len(series)/slen)
+        n_seasons = int(old_div(len(series),slen))
         # compute season averages
         for j in range(n_seasons):
             season_averages.append(sum(series[slen*j:slen*j+slen])/float(slen))
@@ -32,7 +37,7 @@ class TimeSeriesAnalysis:
             sum_of_vals_over_avg = 0.0
             for j in range(n_seasons):
                 sum_of_vals_over_avg += series[slen*j+i]-season_averages[j]
-            seasonals[i] = sum_of_vals_over_avg/n_seasons
+            seasonals[i] = old_div(sum_of_vals_over_avg,n_seasons)
         return seasonals
 
     def triple_exponential_smoothing(self, series, slen, alpha, beta, gamma, n_preds):

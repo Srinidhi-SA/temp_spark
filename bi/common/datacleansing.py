@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from past.builtins import basestring
+from builtins import object
 from datetime import datetime
 
 from pyspark.sql import functions as FN
@@ -5,17 +8,17 @@ from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.types import DateType
 from pyspark.sql.types import TimestampType
 
-from dataframe import DataFrameHelper
-from utils import accepts
+from .dataframe import DataFrameHelper
+from .utils import accepts
 
 
-class DataType:
+class DataType(object):
     STRING = 'string'
     DATE = 'date'
     TIMESTAMP = 'timestamp'
 
 
-class ColumnTypeConversion:
+class ColumnTypeConversion(object):
     """
     Encapsulates information required for type casting a column
     """
@@ -40,7 +43,7 @@ class ColumnTypeConversion:
         return self._required_column_type
 
 
-class DataCleanser:
+class DataCleanser(object):
     """
     Cleanses a data frame as pre user requirement.
     At present, supports three kinds of cleansing operations:
@@ -83,7 +86,7 @@ class DataCleanser:
         # column_name does not exist => ignore
         if not self._dataframe_helper.has_column(column_name):
             return
-        if self._transformations.has_key(column_name):
+        if column_name in self._transformations:
             del self._transformations[column_name]
         if column_name not in self._columns_to_remove:
             self._columns_to_remove.append(column_name)
@@ -101,16 +104,16 @@ class DataCleanser:
         :return:
         """
         for column_name in self._columns_to_remove:
-            if self._transformations.has_key(column_name):
+            if column_name in self._transformations:
                 del self._transformations[column_name]
 
         columns_to_retain = [column for column in self._dataframe_helper.get_columns() if
                              column not in self._columns_to_remove]
 
-        columns_to_transform = self._transformations.keys()
+        columns_to_transform = list(self._transformations.keys())
         column_expressions = []
         for column_name in columns_to_retain:
-            if self._transformations.has_key(column_name):
+            if column_name in self._transformations:
                 column_expressions.append(self._column_type_casting_expression(self._transformations.get(column_name)))
             else:
                 column_expressions.append(FN.col(column_name))

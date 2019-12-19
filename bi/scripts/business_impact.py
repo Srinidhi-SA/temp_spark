@@ -1,8 +1,13 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import time, json, re, sys
 from bi.common import utils as CommonUtils
 from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableData, ModelSummary,PopupData,NormalCard,ParallelCoordinateData,DataBox,WordCloud
 
-class BusinessCard:
+class BusinessCard(object):
     """
     Functionalities
     """
@@ -135,7 +140,7 @@ class BusinessCard:
         '''
         Impact on Productivity - 3.5 X  ( Impact on Productivity = Time taken by data scientist / time taken by mAdvisor)
         '''
-        productivity = str(round(self.time_analyst/self.time_mAdvisor,1)) + "X"
+        productivity = str(round(old_div(self.time_analyst,self.time_mAdvisor),1)) + "X"
         return productivity
 
     def get_summary_data(self):
@@ -213,7 +218,7 @@ class BusinessCard:
         self.businessCardData.append(paraDataClass)
 
     def Run(self):
-        print "In Run of BusinessCard"
+        print("In Run of BusinessCard")
         self._businessImpactNode = NarrativesTree()
         self._businessImpactNode.set_name("Impact")
 

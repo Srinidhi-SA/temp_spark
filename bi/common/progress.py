@@ -1,4 +1,7 @@
+from __future__ import absolute_import
 
+from past.builtins import basestring
+from builtins import object
 import threading
 import time
 
@@ -6,7 +9,7 @@ from pyspark.context import SparkContext
 from pyspark.status import SparkJobInfo
 from pyspark.status import SparkStageInfo
 
-from decorators import accepts
+from .decorators import accepts
 
 
 class ProgressTracker(threading.Thread):
@@ -39,7 +42,7 @@ class ProgressTracker(threading.Thread):
 
 
 
-class JobStatusResult:
+class JobStatusResult(object):
 
     def __init__(self):
         self._status_info = {}
@@ -47,21 +50,21 @@ class JobStatusResult:
 
     @accepts(object, SparkJobInfo)
     def add_job_info(self, job_info):
-        if not self._status_info.has_key(job_info):
+        if job_info not in self._status_info:
             self._status_info[job_info] = []
 
     @accepts(object, SparkJobInfo, SparkStageInfo)
     def add_stage_info_for_job(self, job_info, stage_info):
-        if not self._status_info.has_key(job_info):
+        if job_info not in self._status_info:
             self._status_info[job_info] = []
         if not stage_info in self._status_info.get(job_info):
             self._status_info[job_info].append(stage_info)
 
     def jobs_complete(self):
-        if len(self._status_info.keys()) ==0:
+        if len(list(self._status_info.keys())) ==0:
             return False
 
-        for job_info in self._status_info.keys():
+        for job_info in list(self._status_info.keys()):
             for stage_info in self._status_info.get(job_info):
                 if stage_info.numCompletedTasks + stage_info.numFailedTasks < stage_info.numTasks:
                     return False
@@ -69,7 +72,7 @@ class JobStatusResult:
 
     def as_dict(self):
         result = {}
-        for job_info in self._status_info.keys():
+        for job_info in list(self._status_info.keys()):
             job_id = job_info.jobId
             result[job_id] = {'status': job_info.status, 'stages': []}
             for stage_info in self._status_info.get(job_info):

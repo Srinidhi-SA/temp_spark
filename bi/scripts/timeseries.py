@@ -1,8 +1,9 @@
+from builtins import object
 from bi.common import utils as CommonUtils
 from bi.narratives.trend import TimeSeriesNarrative
 
 
-class TrendScript:
+class TrendScript(object):
 
     def __init__(self, df_helper, df_context, result_setter, spark, story_narrative, meta_parser):
         self._story_narrative = story_narrative

@@ -1,3 +1,4 @@
+from builtins import object
 import json
 
 from bi.common import utils as CommonUtils
@@ -9,7 +10,7 @@ Count Frequency in a Dimension
 """
 
 
-class FreqDimensions:
+class FreqDimensions(object):
 
     def __init__(self, data_frame, df_helper, df_context, scriptWeight=None, analysisName=None):
         self._data_frame = data_frame

@@ -1,3 +1,4 @@
+from builtins import object
 import json
 
 from bi.common import DataWriter
@@ -6,7 +7,7 @@ from bi.narratives.anova import AnovaNarratives
 from bi.stats import OneWayAnova
 
 
-class OneWayAnovaScript:
+class OneWayAnovaScript(object):
     def __init__(self, data_frame, df_helper, df_context, spark):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper

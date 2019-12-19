@@ -1,4 +1,5 @@
-class ConfigValidator:
+from builtins import object
+class ConfigValidator(object):
     def __init__(self,dataframe_context = None):
         self._dataframe_context = dataframe_context
 

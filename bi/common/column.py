@@ -1,3 +1,4 @@
+from builtins import object
 from pyspark.sql.types import BinaryType
 from pyspark.sql.types import BooleanType
 from pyspark.sql.types import DateType
@@ -11,7 +12,7 @@ from pyspark.sql.types import StringType
 from pyspark.sql.types import TimestampType
 
 
-class ColumnType:
+class ColumnType(object):
     """
     Kind of data a column, in a data frame, holds
     """

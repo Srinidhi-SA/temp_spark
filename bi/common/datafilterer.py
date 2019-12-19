@@ -1,14 +1,17 @@
+from __future__ import absolute_import
+from builtins import map
+from builtins import object
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType
 
-from utils import accepts
+from .utils import accepts
 
 
 #import bi.common.dataframe
 revmap_dict = {'Low':0.0,'Below Average':1.0,'Average':2.0,'Above Average':3.0,'High':4.0}
-class DataFrameFilterer:
+class DataFrameFilterer(object):
     @accepts(object,DataFrame)
     def __init__(self, dataframe):
         self._data_frame = dataframe
@@ -62,7 +65,7 @@ class DataFrameFilterer:
             values = values[1:-1]
             values = values.split(',')
         if colname in measure_columns:
-            values=map(revmap_dict.get,values)
+            values=list(map(revmap_dict.get,values))
         self._data_frame = self._data_frame.where(col(colname).isin(values))
 
     def values_not_in(self, colname, values,measure_columns):
@@ -70,7 +73,7 @@ class DataFrameFilterer:
             values = values[1:-1]
             values = values.split(',')
         if colname in measure_columns:
-            values=map(revmap_dict.get,values)
+            values=list(map(revmap_dict.get,values))
         self._data_frame = self._data_frame.where(col(colname).isin(values)==False)
 
     def get_aggregated_result(self, colname, target):

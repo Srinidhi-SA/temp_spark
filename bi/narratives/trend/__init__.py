@@ -1,3 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import pandas as pd
 import time
 from datetime import datetime
@@ -12,10 +20,10 @@ from bi.common import ScatterChartData, NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-from trend_narratives import TrendNarrative
+from .trend_narratives import TrendNarrative
 
 
-class TimeSeriesNarrative:
+class TimeSeriesNarrative(object):
     def __init__(self, df_helper, df_context, result_setter, spark, story_narrative, meta_parser):
         self._story_narrative = story_narrative
         self._result_setter = result_setter
@@ -104,7 +112,7 @@ class TimeSeriesNarrative:
                                                     self._dateColumnFormatDict,\
                                                     self._dateFormatConversionDict,
                                                     self._requestedDateFormat)
-        print dateColCheck
+        print(dateColCheck)
 
         self._dateFormatDetected = dateColCheck["dateFormatDetected"]
         self._trend_on_td_column = dateColCheck["trendOnTdCol"]
@@ -115,7 +123,7 @@ class TimeSeriesNarrative:
             self._date_column_suggested = dateColCheck["suggestedDateColumn"]
         if self._existingDateFormat:
             self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_column_suggested,self._trend_on_td_column)
-            print dataRangeStats
+            print(dataRangeStats)
             self._durationString = dataRangeStats["durationString"]
             self._duration = dataRangeStats["duration"]
             self._dataLevel = dataRangeStats["dataLevel"]
@@ -167,13 +175,13 @@ class TimeSeriesNarrative:
                     card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
                     self.set_regression_trend_card_data(card2)
                 else:
-                    print "NO DATE FORMAT DETECTED"
+                    print("NO DATE FORMAT DETECTED")
             else:
-                print "NO DATE COLUMNS PRESENT"
+                print("NO DATE COLUMNS PRESENT")
 
 
         if self._analysistype=="measure":
-            self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["trendNarrativeStart"]["weight"]/10
+            self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["trendNarrativeStart"]["weight"],10)
             progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                         "trendNarrativeStart",\
                                         "info",\
@@ -205,7 +213,7 @@ class TimeSeriesNarrative:
                             significant_dimensions = [x[0] for x in significant_dimension_tuple[:self._number_of_dimensions_to_consider]]
                         else:
                             significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
-                        print "significant_dimensions",significant_dimensions
+                        print("significant_dimensions",significant_dimensions)
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
                         # grouped_data.to_csv("/home/gulshan/marlabs/datasets/trend_grouped_pandas.csv",index=False)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
@@ -242,7 +250,7 @@ class TimeSeriesNarrative:
                         card1BubbleData = "<div class='col-md-6 col-xs-12 xs-p-20'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div><div class='col-md-6 col-xs-12 xs-p-20'><h2 class='text-center'><span>{}</span><br/><small>{}</small></h2></div>".format(bubbledata[0]["value"],bubbledata[0]["text"],bubbledata[1]["value"],bubbledata[1]["text"])
                         # print card1BubbleData
 
-                        trend_chart_data = grouped_data[["key","value"]].T.to_dict().values()
+                        trend_chart_data = list(grouped_data[["key","value"]].T.to_dict().values())
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
                         card1chartdata = {"actual":[],"predicted":[]}
 
@@ -273,7 +281,7 @@ class TimeSeriesNarrative:
                             elif self._dataLevel == "day":
                                 key = forecast_start_time+relativedelta(days=1+val)
                                 forecasted_dates.append(key)
-                        forecasted_list = zip(forecasted_dates,predicted_values)
+                        forecasted_list = list(zip(forecasted_dates,predicted_values))
                         if self._dataLevel == "month":
                             forecasted_list = [{"key":val[0].strftime("%b-%y"),"value":val[1]} for val in forecasted_list]
                         elif self._dataLevel == "day":
@@ -332,7 +340,7 @@ class TimeSeriesNarrative:
                         # self._result_setter.update_executive_summary_data(forecastDataDict)
                         # summary3 = NarrativesUtils.get_template_output(self._base_dir,\
                                                                         # 'trend_narrative_card3.html',forecastDataDict)
-                        self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["trendNarrativeEnd"]["weight"]/10
+                        self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["trendNarrativeEnd"]["weight"],10)
                         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                                     "trendNarrativeEnd",\
                                                     "info",\
@@ -343,10 +351,10 @@ class TimeSeriesNarrative:
                         self._dataframe_context.update_completion_status(self._completionStatus)
                     else:
                         # self._result_setter.update_executive_summary_data({"trend_present":False})
-                        print "Trend Analysis for Measure Failed"
-                        print "#"*20+"Trend Analysis Error"+"#"*20
-                        print "No date format for the date column %s was detected." %(self._date_column_suggested)
-                        print "#"*60
+                        print("Trend Analysis for Measure Failed")
+                        print("#"*20+"Trend Analysis Error"+"#"*20)
+                        print("No date format for the date column %s was detected." %(self._date_column_suggested))
+                        print("#"*60)
                         self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
                         self._dataframe_context.update_completion_status(completionStatus)
                         progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
@@ -356,10 +364,10 @@ class TimeSeriesNarrative:
                         self._dataframe_context.update_completion_status(self._completionStatus)
                 else:
                     # self._result_setter.update_executive_summary_data({"trend_present":False})
-                    print "Trend Analysis for Measure Failed"
-                    print "#"*20+"Trend Analysis Error"+"#"*20
-                    print "No date column present for Trend Analysis."
-                    print "#"*60
+                    print("Trend Analysis for Measure Failed")
+                    print("#"*20+"Trend Analysis Error"+"#"*20)
+                    print("No date column present for Trend Analysis.")
+                    print("#"*60)
                     self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
                     self._dataframe_context.update_completion_status(completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
@@ -368,11 +376,11 @@ class TimeSeriesNarrative:
                     CommonUtils.save_progress_message(messageURL,progressMessage)
                     self._dataframe_context.update_completion_status(self._completionStatus)
             else:
-                print "overall Trend not Started YET"
+                print("overall Trend not Started YET")
 
         elif self._analysistype == "dimension":
-            print "Dimension Trend Started"
-            self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"]/10
+            print("Dimension Trend Started")
+            self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["initialization"]["weight"],10)
             progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                         "initialization",\
                                         "info",\
@@ -395,9 +403,9 @@ class TimeSeriesNarrative:
                     except:
                         result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
 
-                    print "-"*100
+                    print("-"*100)
                     # TODO Implement meta parser getter here
-                    print result_column_levels
+                    print(result_column_levels)
                     level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
                     level_count_df_rows =  level_count_df.collect()
                     top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
@@ -405,17 +413,17 @@ class TimeSeriesNarrative:
                     chart_data = {}
                     cardData1 = []
                     c3_chart = {"dataType":"c3Chart","data":{}}
-                    print "#"*40
+                    print("#"*40)
                     overall_count = NarrativesUtils.get_grouped_count_data_for_dimension_trend(self._data_frame,self._dataLevel,self._result_column)
-                    print "#"*40
+                    print("#"*40)
                     for idx,level in  enumerate(top2levels):
-                        print "calculations in progress for the level :- ",level
+                        print("calculations in progress for the level :- ",level)
                         leveldf = self._data_frame.filter(col(self._result_column) == level)
                         grouped_data = NarrativesUtils.get_grouped_data_for_trend(leveldf,self._dataLevel,self._result_column,self._analysistype )
                         grouped_data.rename(columns={"value":"value_count"},inplace=True)
                         grouped_data = pd.merge(grouped_data, overall_count, on='key', how='left')
                         # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),self._num_significant_digits))
-                        grouped_data["value"] = grouped_data["value_count"]/grouped_data["totalCount"]
+                        grouped_data["value"] = old_div(grouped_data["value_count"],grouped_data["totalCount"])
                         grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,self._num_significant_digits))
                         leveldf = leveldf.drop(self._date_column_suggested)
                         leveldf = leveldf.withColumnRenamed("year_month", self._date_column_suggested)
@@ -440,13 +448,13 @@ class TimeSeriesNarrative:
                             significant_dimensions = [x[0] for x in significant_dimension_tuple[:self._number_of_dimensions_to_consider]]
                         else:
                             significant_dimensions = self._string_columns[:self._number_of_dimensions_to_consider]
-                        print "significant_dimensions",significant_dimensions
+                        print("significant_dimensions",significant_dimensions)
                         reference_time = dataDict["reference_time"]
                         dataDict["significant_dimensions"] = significant_dimensions
                         if len(significant_dimensions) > 0:
                             st = time.time()
                             xtraData = trend_narrative_obj.get_xtra_calculations(leveldf,grouped_data,significant_dimensions,self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
-                            print "time for get_xtra_calculations" ,time.time()-st
+                            print("time for get_xtra_calculations" ,time.time()-st)
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         dimensionCount = trend_narrative_obj.generate_dimension_extra_narrative(grouped_data,dataDict,self._dataLevel)
@@ -466,7 +474,7 @@ class TimeSeriesNarrative:
                         else:
                             cardData1 += blocks
 
-                        trend_chart_data = [x for x in grouped_data[["key","value"]].T.to_dict().values() if x['key']!=None]
+                        trend_chart_data = [x for x in list(grouped_data[["key","value"]].T.to_dict().values()) if x['key']!=None]
                         trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
                         card1chartdata = trend_chart_data
                         if self._dataLevel == "day":
@@ -475,7 +483,7 @@ class TimeSeriesNarrative:
                             card1chartdata = [{"key":val["key"].strftime("%b-%y"),"value":val["value"]} for val in card1chartdata]
                         chart_data[level] = card1chartdata
 
-                    labels = {"x":"key","y":chart_data.keys()[0],"y2":chart_data.keys()[1]}
+                    labels = {"x":"key","y":list(chart_data.keys())[0],"y2":list(chart_data.keys())[1]}
                     c3Chart = {
                                "data":chart_data,
                                "format":"%b-%y",
@@ -512,7 +520,7 @@ class TimeSeriesNarrative:
                     trendStoryNode = NarrativesTree("Trend",None,[],[trendCard])
                     self._story_narrative.add_a_node(trendStoryNode)
                     self._result_setter.set_trend_node(trendStoryNode)
-                    self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["summarygeneration"]["weight"]/10
+                    self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["summarygeneration"]["weight"],10)
                     progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                                 "summarygeneration",\
                                                 "info",\
@@ -522,7 +530,7 @@ class TimeSeriesNarrative:
                     CommonUtils.save_progress_message(self._messageURL,progressMessage)
                     self._dataframe_context.update_completion_status(self._completionStatus)
 
-                    self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"]/10
+                    self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["completion"]["weight"],10)
                     progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                                 "completion",\
                                                 "info",\
@@ -533,11 +541,11 @@ class TimeSeriesNarrative:
                     self._dataframe_context.update_completion_status(self._completionStatus)
                 else:
                     self._result_setter.update_executive_summary_data({"trend_present":False})
-                    print "Trend Analysis for Dimension Failed"
-                    print "#"*20+"Trend Analysis Error"+"#"*20
+                    print("Trend Analysis for Dimension Failed")
+                    print("#"*20+"Trend Analysis Error"+"#"*20)
                     if self._date_column_suggested:
-                        print "No date format for the date column %s was detected." %(self._date_column_suggested)
-                    print "#"*60
+                        print("No date format for the date column %s was detected." %(self._date_column_suggested))
+                    print("#"*60)
                     self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
                     self._dataframe_context.update_completion_status(self._completionStatus)
                     progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\
@@ -548,10 +556,10 @@ class TimeSeriesNarrative:
 
             else:
                 self._result_setter.update_executive_summary_data({"trend_present":False})
-                print "Trend Analysis for Dimension Failed"
-                print "#"*20+"Trend Analysis Error"+"#"*20
-                print "No date column present for Trend Analysis."
-                print "#"*60
+                print("Trend Analysis for Dimension Failed")
+                print("#"*20+"Trend Analysis Error"+"#"*20)
+                print("No date column present for Trend Analysis.")
+                print("#"*60)
                 self._completionStatus += self._scriptWeightDict[self._analysisName]["total"]
                 self._dataframe_context.update_completion_status(self._completionStatus)
                 progressMessage = CommonUtils.create_progress_message_object("Trend","failedState","error",\

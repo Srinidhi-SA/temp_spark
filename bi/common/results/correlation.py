@@ -1,7 +1,10 @@
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 from bi.common.decorators import accepts
 
 
-class CorrelationStats:
+class CorrelationStats(object):
     STANDARD_ERROR = 'std_err'
     T_VALUE = 't_value'
     P_VALUE = 'p_value'
@@ -9,7 +12,7 @@ class CorrelationStats:
     COEFFICIENT_OF_DETERMINATION = 'coeff_determination'
 
     @accepts(object, correlation=(int, float), std_error=(int, float), t_value=(int, float), p_value=(int, float),
-             degrees_of_freedom=(int, long), coeff_determination=(int, float))
+             degrees_of_freedom=(int, int), coeff_determination=(int, float))
     def __init__(self, correlation=0.0, std_error=0.0, t_value=0.0, p_value=0.0, degrees_of_freedom=1,
                  coeff_determination=0.0):
         self.correlation = correlation
@@ -47,7 +50,7 @@ class CorrelationStats:
         return self.effect_size.get(CorrelationStats.COEFFICIENT_OF_DETERMINATION)
 
 
-class ColumnCorrelations:
+class ColumnCorrelations(object):
     """Correlations of a measure column with all other measure columns
     """
     @accepts(object, (str, basestring))
@@ -68,7 +71,7 @@ class ColumnCorrelations:
     def get_correlation(self, column_name):
         return self.correlations[column_name]
 
-class Correlations:
+class Correlations(object):
     """Correlation among all measure columsn in a a dataframe
     """
     def __init__(self):

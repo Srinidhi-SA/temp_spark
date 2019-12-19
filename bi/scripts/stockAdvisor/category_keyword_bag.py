@@ -1,6 +1,8 @@
+from __future__ import print_function
+from builtins import zip
 import json
 import csv
-print "In keywords bag!!"
+print("In keywords bag!!")
 
 CATEGORY1 = "Competition"
 CATEGORY2 = "Expansion - geography/segment"
@@ -72,20 +74,20 @@ cat3Keywords = set(cat3Keywords)
 cat4Keywords = set(cat4Keywords)
 cat5Keywords = set(cat5Keywords)
 cat6Keywords = set(cat6Keywords)
-print "Total keywords for cat 1 : "
-print len(cat1Keywords)
-print "Total keywords for cat 2 : "
-print len(cat2Keywords)
-print "Total keywords for cat 3 : "
-print len(cat3Keywords)
-print "Total keywords for cat 4 : "
-print len(cat4Keywords)
-print "Total keywords for cat 5 : "
-print len(cat5Keywords)
-print "Total keywords for cat 6 : "
-print len(cat6Keywords)
+print("Total keywords for cat 1 : ")
+print(len(cat1Keywords))
+print("Total keywords for cat 2 : ")
+print(len(cat2Keywords))
+print("Total keywords for cat 3 : ")
+print(len(cat3Keywords))
+print("Total keywords for cat 4 : ")
+print(len(cat4Keywords))
+print("Total keywords for cat 5 : ")
+print(len(cat5Keywords))
+print("Total keywords for cat 6 : ")
+print(len(cat6Keywords))
 
-print "after deducting intersections......"
+print("after deducting intersections......")
 
 cat1Keywords = (cat1Keywords-cat2Keywords-cat3Keywords-cat4Keywords-cat5Keywords-cat6Keywords)
 cat2Keywords = (cat2Keywords-cat1Keywords-cat3Keywords-cat4Keywords-cat5Keywords-cat6Keywords)
@@ -94,18 +96,18 @@ cat4Keywords = (cat4Keywords-cat2Keywords-cat3Keywords-cat1Keywords-cat5Keywords
 cat5Keywords = (cat5Keywords-cat2Keywords-cat3Keywords-cat4Keywords-cat1Keywords-cat6Keywords)
 cat6Keywords = (cat6Keywords-cat2Keywords-cat3Keywords-cat4Keywords-cat5Keywords-cat1Keywords)
 
-print "Total keywords for cat 1 : "
-print len(cat1Keywords)
-print "Total keywords for cat 2 : "
-print len(cat2Keywords)
-print "Total keywords for cat 3 : "
-print len(cat3Keywords)
-print "Total keywords for cat 4 : "
-print len(cat4Keywords)
-print "Total keywords for cat 5 : "
-print len(cat5Keywords)
-print "Total keywords for cat 6 : "
-print len(cat6Keywords)
+print("Total keywords for cat 1 : ")
+print(len(cat1Keywords))
+print("Total keywords for cat 2 : ")
+print(len(cat2Keywords))
+print("Total keywords for cat 3 : ")
+print(len(cat3Keywords))
+print("Total keywords for cat 4 : ")
+print(len(cat4Keywords))
+print("Total keywords for cat 5 : ")
+print(len(cat5Keywords))
+print("Total keywords for cat 6 : ")
+print(len(cat6Keywords))
 cat1Keywords = list(cat1Keywords)
 #print cat1Keywords[0]
 #for item in cat1Keywords:
@@ -118,7 +120,7 @@ tests={CATEGORY1: cat1Keywords,
        CATEGORY6:cat6Keywords}
 with open('/home/marlabs/Desktop/concept_keywords.csv','w') as fout:
     writer=csv.writer(fout)
-    writer.writerows([tests.keys()])
-    for row in zip(*tests.values()):
+    writer.writerows([list(tests.keys())])
+    for row in zip(*list(tests.values())):
         row=[s.encode('utf-8') for s in row]
         writer.writerows([row])

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from bi import master
 from sparkjobserver.api import SparkJob, build_problems
 
@@ -17,6 +18,6 @@ class JobScript(SparkJob):
 
     def run_job(self, context, runtime, data):
         confPath = data[0]
-        print 'confPath', confPath
+        print('confPath', confPath)
         master.main(confPath)
         return "Done the regression job"

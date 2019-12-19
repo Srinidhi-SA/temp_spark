@@ -1,7 +1,10 @@
-from data_preprocessing_helper import DataPreprocessingHelper
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import object
+from .data_preprocessing_helper import DataPreprocessingHelper
 
 
-class DataPreprocessing:
+class DataPreprocessing(object):
 
     def __init__(self,spark,df,dataCleansingDict,dataframe_context):
         self._spark = spark
@@ -13,7 +16,7 @@ class DataPreprocessing:
         # self._featureEngineeringDict = featureEngineeringDict
 
     def data_cleansing(self):
-        print "Cleaning The Data"
+        print("Cleaning The Data")
         data_preprocessing_helper_obj = DataPreprocessingHelper(self._df, self._dataframe_context)
         for settings in self._dataCleansingDict['overall_settings']:
             if settings['name'] == "duplicate_row" and settings['selected'] == True:
@@ -24,7 +27,7 @@ class DataPreprocessing:
         data_preprocessing_helper_obj.get_removed_columns()
         self.removed_col=data_preprocessing_helper_obj.removed_col
 
-        for key in self._dataCleansingDict['columns_wise_settings'].keys():
+        for key in list(self._dataCleansingDict['columns_wise_settings'].keys()):
             if self._dataCleansingDict['columns_wise_settings'][key]['selected']:
                 if self._dataCleansingDict['columns_wise_settings'][key]['name'] == "missing_value_treatment":
                     for operation in self._dataCleansingDict['columns_wise_settings'][key]['operations']:
@@ -66,5 +69,5 @@ class DataPreprocessing:
                                 for column in operation['columns']:
                                     self._df = data_preprocessing_helper_obj.mode_impute_outliers(column["name"])
 
-        print "Data Cleaning Completed"
+        print("Data Cleaning Completed")
         return self._df

@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import object
+from past.utils import old_div
 import math
 
 import pyspark.sql.functions as FN
@@ -7,7 +10,7 @@ from bi.stats.util import Stats
 from ..common import DataFrameHelper
 
 
-class IndependentSampleTTest:
+class IndependentSampleTTest(object):
     """
     Class implements independent sampling t-test
         Ref: https://en.wikipedia.org/wiki/Student's_t-test
@@ -98,9 +101,9 @@ class IndependentSampleTTest:
                                                      sample2_variance):
         sample1_mean = Stats.mean(sample1, self._dependent_var)
         sample2_mean = Stats.mean(sample2, self._dependent_var)
-        pooled_standard_deviation = math.sqrt((sample1_variance + sample2_variance) / 2)
+        pooled_standard_deviation = math.sqrt(old_div((sample1_variance + sample2_variance), 2))
         standard_error = pooled_standard_deviation * math.sqrt(2.0 / sample_size)
-        t_value = (sample1_mean - sample2_mean) / standard_error
+        t_value = old_div((sample1_mean - sample2_mean), standard_error)
         degrees_of_freedom = 2 * sample_size - 2
         p_value = Stats.t_distribution_critical_value(t_value, df=degrees_of_freedom)
 
@@ -119,9 +122,9 @@ class IndependentSampleTTest:
         sample2_mean = Stats.mean(sample2, self._dependent_var)
         degrees_of_freedom = sample1_size + sample2_size - 2
         pooled_std_dev = math.sqrt(
-            ((sample1_size - 1) * sample1_variance + (sample2_size - 1) * sample2_variance) / degrees_of_freedom)
-        std_err = pooled_std_dev * math.sqrt((1 / sample1_size) + (1 / sample2_size))
-        t_value = (sample1_mean - sample2_mean) / std_err
+            old_div(((sample1_size - 1) * sample1_variance + (sample2_size - 1) * sample2_variance), degrees_of_freedom))
+        std_err = pooled_std_dev * math.sqrt((old_div(1, sample1_size)) + (old_div(1, sample2_size)))
+        t_value = old_div((sample1_mean - sample2_mean), std_err)
         p_value = Stats.t_distribution_critical_value(t_value, df=degrees_of_freedom)
 
         return IndependentSampleTTestResult(indep_variable=self._independent_var, dep_variable=self._dependent_var,
@@ -138,11 +141,11 @@ class IndependentSampleTTest:
         sample2_size = sample2.count()
         sample1_mean = Stats.mean(sample1, self._dependent_var)
         sample2_mean = Stats.mean(sample2, self._dependent_var)
-        degrees_of_freedom = (math.pow((sample1_variance / sample1_size) + (sample2_variance / sample2_size), 2)) / (
-            (math.pow(sample1_variance, 2) / (math.pow(sample1_size, 2) * (sample1_size - 1))) + (
-                math.pow(sample2_variance, 2) / (math.pow(sample2_size, 2) * (sample2_size - 1))))
-        t_value = (sample1_mean - sample2_mean) / math.sqrt(
-            (sample1_variance / sample1_size) + (sample2_variance / sample2_size))
+        degrees_of_freedom = old_div((math.pow((old_div(sample1_variance, sample1_size)) + (old_div(sample2_variance, sample2_size)), 2)), (
+            (old_div(math.pow(sample1_variance, 2), (math.pow(sample1_size, 2) * (sample1_size - 1)))) + (
+                old_div(math.pow(sample2_variance, 2), (math.pow(sample2_size, 2) * (sample2_size - 1))))))
+        t_value = old_div((sample1_mean - sample2_mean), math.sqrt(
+            (old_div(sample1_variance, sample1_size)) + (old_div(sample2_variance, sample2_size))))
         p_value = Stats.t_distribution_critical_value(t_value, df=degrees_of_freedom)
 
         return IndependentSampleTTestResult(indep_variable=self._independent_var, dep_variable=self._dependent_var,
@@ -154,7 +157,7 @@ class IndependentSampleTTest:
                                             p_value=p_value, df=degrees_of_freedom)
 
 
-class DependentSampleTTest:
+class DependentSampleTTest(object):
     """
     Class implements dependent sampling t-test (paired t-test)
         Ref: https://en.wikipedia.org/wiki/Student's_t-test
@@ -189,7 +192,7 @@ class DependentSampleTTest:
         sample_size = sample_of_differences.count()
         sample_mean = Stats.mean(sample_of_differences, diff_column_name)
         sample_sd = Stats.standard_deviation(sample_of_differences, diff_column_name)
-        t_value = float(sample_mean) / (sample_sd / math.sqrt(sample_size))
+        t_value = float(sample_mean) / (old_div(sample_sd, math.sqrt(sample_size)))
         degree_of_freedom = sample_size - 1
         p_value = Stats.t_distribution_critical_value(t_value, df=degree_of_freedom)
 
@@ -198,7 +201,7 @@ class DependentSampleTTest:
                                           p_value=p_value)
 
 
-class IndependentSampleTTestResult:
+class IndependentSampleTTestResult(object):
     """
     Model for t-test result
     """
@@ -262,7 +265,7 @@ class IndependentSampleTTestResult:
                self._sample2_variance, self._t_value, self._p_value, self._df)
 
 
-class DependentSampleTtestResult:
+class DependentSampleTtestResult(object):
     """
     Paired t-test / dependent sample t-test result
     """

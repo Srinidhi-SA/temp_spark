@@ -1,8 +1,12 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from .configs.localConfigs import *
+from bi.tests.testConfigs import *
 
 def get_test_configs(jobType,testFor = None):
-    print jobType
-    from configs.localConfigs import *
-    from bi.tests.testConfigs import *
+    print(jobType)
+    # from configs.localConfigs import *
+    # from bi.tests.testConfigs import *
     testConfigs = {
         "story"        : get_story_config(),
         "metaData"     : get_metadata_config(),

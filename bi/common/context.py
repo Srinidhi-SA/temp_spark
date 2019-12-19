@@ -1,10 +1,16 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import object
+from past.utils import old_div
 from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
 from cryptography.fernet import Fernet
 from bi.common import AlgorithmParameterConfig
 
 
-class ContextSetter:
+class ContextSetter(object):
 
     MEASUREC_COLUMNS = "measure_columns"
     DIMENSION_COLUMNS = "dimension_columns"
@@ -108,14 +114,14 @@ class ContextSetter:
         self.ALGORITHM_SETTINGS = self._config_obj.get_algorithm_settings()
         self.FEATURE_SETTINGS = self._config_obj.get_feature_settings()
 
-        fileSettingKeys = self.FILE_SETTINGS.keys()
-        columnSettingKeys = self.COLUMN_SETTINGS.keys()
-        featureSettingKeys = self.FEATURE_SETTINGS.keys()
-        filterSettingKeys = self.FILTER_SETTINGS.keys()
-        advanceSettingKeys = self.ADVANCE_SETTINGS.keys()
-        transformSettingsKeys = self.TRANSFORMATION_SETTINGS.keys()
-        stockSettingKeys = self.STOCK_SETTINGS.keys()
-        dbSettingKeys = self.DATABASE_SETTINGS.keys()
+        fileSettingKeys = list(self.FILE_SETTINGS.keys())
+        columnSettingKeys = list(self.COLUMN_SETTINGS.keys())
+        featureSettingKeys = list(self.FEATURE_SETTINGS.keys())
+        filterSettingKeys = list(self.FILTER_SETTINGS.keys())
+        advanceSettingKeys = list(self.ADVANCE_SETTINGS.keys())
+        transformSettingsKeys = list(self.TRANSFORMATION_SETTINGS.keys())
+        stockSettingKeys = list(self.STOCK_SETTINGS.keys())
+        dbSettingKeys = list(self.DATABASE_SETTINGS.keys())
 
         if len(self.ALGORITHM_SETTINGS) > 0:
             for obj in self.ALGORITHM_SETTINGS:
@@ -147,7 +153,7 @@ class ContextSetter:
                     self.OUTPUT_FILEPATH = cipher_suite.decrypt(self.OUTPUT_FILEPATH)
                 else:
                     self.OUTPUT_FILEPATH = str(self.OUTPUT_FILEPATH)
-                print self.OUTPUT_FILEPATH
+                print(self.OUTPUT_FILEPATH)
             if "narratives_file" in fileSettingKeys:
                 self.NARRATIVES_FILE =self.FILE_SETTINGS['narratives_file'][0]
             if "result_file" in fileSettingKeys:
@@ -296,7 +302,7 @@ class ContextSetter:
                         }
                     )
                 self.analysisList = [GLOBALSETTINGS.scriptsMapping[x] for x in analysisList]
-                self.analysisDict = dict(zip(self.analysisList,analysisDictList))
+                self.analysisDict = dict(list(zip(self.analysisList,analysisDictList)))
             if "trendSettings" in advanceSettingKeys:
                 trendSettingObj = self.ADVANCE_SETTINGS["trendSettings"]
                 trendSettings = [obj for obj in trendSettingObj if obj["status"]==True]
@@ -344,8 +350,8 @@ class ContextSetter:
                 self.featureEngineeringDict = self.FEATURE_SETTINGS.get("FEATURE_ENGINEERING")
 
         if self.analysistype in ["measure","dimension"]:
-            print "self.analysisList",self.analysisList
-            print "self.analysistype",self.analysistype
+            print("self.analysisList",self.analysisList)
+            print("self.analysistype",self.analysistype)
             self.set_analysis_weights(self.analysisList,self.analysistype)
 
     def set_anova_on_scored_data(self,data):
@@ -506,10 +512,10 @@ class ContextSetter:
         percentWeight = [int(round(x*100/float(totalWeight))) for x in relativeWeightArray]
         diff = sum(percentWeight) - 100
         percentWeight = percentWeight[:-1] + [percentWeight[-1]+-(diff)]
-        weightDict = dict(zip(scriptsToRun,percentWeight))
+        weightDict = dict(list(zip(scriptsToRun,percentWeight)))
         outputdict = {}
-        for k,v in weightDict.items():
-            outputdict[k] = {"total":v,"script":v/2,"narratives":v-v/2}
+        for k,v in list(weightDict.items()):
+            outputdict[k] = {"total":v,"script":old_div(v,2),"narratives":v-old_div(v,2)}
         if analysis_type == "measure":
             self.measureAnalysisWeight = outputdict
         elif analysis_type == "dimension":
@@ -570,9 +576,9 @@ class ContextSetter:
         percentWeight = [int(round(x*(100-initWeight)/float(totalWeight))) for x in relativeWeightArray]
         diff = sum(percentWeight) - 100 + initWeight
         percentWeight = percentWeight[:-1] + [percentWeight[-1]+-(diff)]
-        weightDict = dict(zip(algoSlugs,percentWeight))
+        weightDict = dict(list(zip(algoSlugs,percentWeight)))
         outputdict = {}
-        for k,v in weightDict.items():
+        for k,v in list(weightDict.items()):
             outputdict[k] = {"total":v}
         outputdict.update(intitialScriptWeight)
         self.mlModelTrainingWeight = outputdict

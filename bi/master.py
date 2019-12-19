@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from past.builtins import basestring
 import sys
 import time
 import json
@@ -5,8 +9,8 @@ import pyhocon
 import unittest
 import requests
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
+#reload(sys)
+#sys.setdefaultencoding('utf-8')
 
 from bi.settings import *
 from bi.algorithms import data_preprocessing as data_preprocessing
@@ -35,23 +39,23 @@ def main(configJson):
         ignoreMsg = False
     elif isinstance(configJson,basestring):
         if configJson.endswith(".cfg"):
-            print "||############################## Running in cfgMode ##############################||"
+            print("||############################## Running in cfgMode ##############################||")
             cfgMode = True
             debugMode = False
             ignoreMsg = False
         else:
-            print "||############################## Running in debugMode ##############################||"
+            print("||############################## Running in debugMode ##############################||")
             cfgMode = False
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "prediction"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
                 configJson = get_test_configs(jobType)
 
-    print "||############################## Creating Spark Session ##############################||"
+    print("||############################## Creating Spark Session ##############################||")
     if debugMode:
         APP_NAME = "mAdvisor_running_in_debug_mode"
     else:
@@ -60,7 +64,7 @@ def main(configJson):
             configJson = requests.get(configJson["job_config"]["config_url"])
             configJson = configJson.json()
 
-        if "job_config" in configJson.keys() and "job_name" in configJson["job_config"]:
+        if "job_config" in list(configJson.keys()) and "job_name" in configJson["job_config"]:
             APP_NAME = configJson["job_config"]["job_name"]
         else:
             APP_NAME = "--missing--"
@@ -74,7 +78,7 @@ def main(configJson):
 
     # spark.conf.set("spark.sql.execution.arrow.enabled", "true")
 
-    print "||############################## Parsing Config file ##############################||"
+    print("||############################## Parsing Config file ##############################||")
 
     config = configJson["config"]
     jobConfig = configJson["job_config"]
@@ -120,7 +124,7 @@ def main(configJson):
     result_setter = ResultSetter(dataframe_context)
     appid = dataframe_context.get_app_id()
     completionStatus = 0
-    print "||############################## Validating the Config ##############################||"
+    print("||############################## Validating the Config ##############################||")
     configValidator = ConfigValidator(dataframe_context)
     configValid = configValidator.get_sanity_check()
 
@@ -186,7 +190,7 @@ def main(configJson):
                             new_cols_added = list(set(new_cols_list) - set(old_cols_list))
                         else:
                              new_cols_added = None
-                        print df.printSchema()
+                        print(df.printSchema())
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
@@ -239,7 +243,7 @@ def main(configJson):
         ################################### Test Cases  ############################
 
         if jobType == "testCase":
-            print "Running Test Case for Chi-square Analysis---------------"
+            print("Running Test Case for Chi-square Analysis---------------")
             # TestChiSquare().setUp()
             unittest.TextTestRunner(verbosity=2).run(unittest.TestLoader().loadTestsFromTestCase(TestChiSquare))
 
@@ -261,16 +265,16 @@ def main(configJson):
             stockAdvisorData = stockObj.Run()
             stockAdvisorDataJson = CommonUtils.convert_python_object_to_json(stockAdvisorData)
             # stockAdvisorDataJson["name"] = jobName
-            print "*"*100
-            print "Result : ", stockAdvisorDataJson
+            print("*"*100)
+            print("Result : ", stockAdvisorDataJson)
             response = CommonUtils.save_result_json(jobURL,stockAdvisorDataJson)
 
         ############################################################################
         scriptEndTime = time.time()
         runtimeDict = {"startTime":scriptStartTime,"endTime":scriptEndTime}
-        print runtimeDict
+        print(runtimeDict)
         CommonUtils.save_error_messages(errorURL,"jobRuntime",runtimeDict,ignore=ignoreMsg)
-        print "Scripts Time : ", scriptEndTime - scriptStartTime, " seconds."
+        print("Scripts Time : ", scriptEndTime - scriptStartTime, " seconds.")
         #spark.stop()
 
 
@@ -291,7 +295,7 @@ def killer_setting(configJson):
         else:
             configJson = get_test_configs(jobType)
 
-    print "||############################## Parsing Config File ##############################||"
+    print("||############################## Parsing Config File ##############################||")
 
     config = configJson["config"]
     jobConfig = configJson["job_config"]
@@ -320,7 +324,7 @@ def submit_job_through_yarn():
     killURL = jobConfig["kill_url"]
     try:
     	main(json_config["job_config"])
-    except Exception, e:
+    except Exception as e:
         # print jobURL, killURL
         data = {"status": "killed", "jobURL": jobURL}
         resp = send_kill_command(killURL, data)
@@ -328,18 +332,18 @@ def submit_job_through_yarn():
             data = {"status": "killed", "jobURL": jobURL}
             resp = send_kill_command(killURL, data)
         # print resp.text
-        print 'Main Method Did Not End ....., ', str(e)
+        print('Main Method Did Not End ....., ', str(e))
 if __name__ == '__main__':
     jobURL, killURL = killer_setting(sys.argv[1])
-    try:
-        main(sys.argv[1])
-        print 'Main Method End .....'
-    except Exception, e:
+    #try:
+    main(sys.argv[1])
+    print('Main Method End .....')
+    #except Exception as e:
         # print jobURL, killURL
-        data = {"status": "killed", "jobURL": jobURL}
-        resp = send_kill_command(killURL, data)
-        while str(resp.text) != '{"result": "success"}':
-            data = {"status": "killed", "jobURL": jobURL}
-            resp = send_kill_command(killURL, data)
-        # print resp.text
-        print 'Main Method Did Not End ....., ', str(e)
+    # data = {"status": "killed", "jobURL": jobURL}
+    # resp = send_kill_command(killURL, data)
+    # while str(resp.text) != '{"result": "success"}':
+    #     data = {"status": "killed", "jobURL": jobURL}
+    #     resp = send_kill_command(killURL, data)
+    # # print resp.text
+    # print('Main Method Did Not End ....., ', str(e))

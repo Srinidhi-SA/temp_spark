@@ -1,6 +1,9 @@
+from __future__ import division
+from past.utils import old_div
+from builtins import object
 from scipy import stats
 
-class DFTwoWayAnovaResult:
+class DFTwoWayAnovaResult(object):
     def __init__(self):
         self.result = {}
     def add_measure_result(self,measure,Measure_Anova_Result):
@@ -8,7 +11,7 @@ class DFTwoWayAnovaResult:
     def get_measure_result(self, measure):
         return self.result[measure]
 
-class MeasureAnovaResult:
+class MeasureAnovaResult(object):
     def __init__(self, var):
         self._n_mean2 = var[0] * var[1]**2
         self._mean = var[1]
@@ -26,20 +29,20 @@ class MeasureAnovaResult:
         return self.OneWayAnovaResult[dimension]
 
     def set_TwoWayAnovaResult(self, dimension1,dimension2, var):
-        if not self.TwoWayAnovaResult.has_key(dimension1):
+        if dimension1 not in self.TwoWayAnovaResult:
             self.TwoWayAnovaResult[dimension1]={}
         self.TwoWayAnovaResult[dimension1][dimension2] = TwoWayAnovaResult(var)
         self.TwoWayAnovaResult[dimension1][dimension2].set_results(self._n_mean2, self._sum_x2, self.OneWayAnovaResult[dimension1], self.OneWayAnovaResult[dimension2])
 
     def get_TwoWayAnovaResult(self, dimension1,dimension2):
-        if self.TwoWayAnovaResult.has_key(dimension1):
-            if self.TwoWayAnovaResult[dimension1].has_key(dimension2):
+        if dimension1 in self.TwoWayAnovaResult:
+            if dimension2 in self.TwoWayAnovaResult[dimension1]:
                 return self.TwoWayAnovaResult[dimension1][dimension2]
-        if self.TwoWayAnovaResult.has_key(dimension2):
-            if self.TwoWayAnovaResult[dimension2].has_key(dimension1):
+        if dimension2 in self.TwoWayAnovaResult:
+            if dimension1 in self.TwoWayAnovaResult[dimension2]:
                 return self.TwoWayAnovaResult[dimension2][dimension1]
 
-class TwoWayAnovaResult:
+class TwoWayAnovaResult(object):
     def __init__(self, var):
         self._n_mean2 = var.var5.sum()
         self.set_dim_table(var)
@@ -56,27 +59,27 @@ class TwoWayAnovaResult:
     def set_results(self, var1, var2, anova_row, anova_column):
         self.ss_row = anova_row.get_ss_between()
         self.df_row = anova_row.get_df_between()
-        self.ms_row = self.ss_row/self.df_row
+        self.ms_row = old_div(self.ss_row,self.df_row)
 
         self.ss_total = anova_row.get_ss_total()
         self.df_total = anova_row.get_df_total()
-        self.ms_total = self.ss_total/self.df_total
+        self.ms_total = old_div(self.ss_total,self.df_total)
 
         self.ss_column = anova_column.get_ss_between()
         self.df_column = anova_column.get_df_between()
-        self.ms_column = self.ss_column/self.df_column
+        self.ms_column = old_div(self.ss_column,self.df_column)
 
         self.ss_interaction = self._n_mean2 - self.ss_row - self.ss_column - var1
         self.df_interaction = self.df_row * self.df_column
-        self.ms_interaction = self.ss_interaction/self.df_interaction
+        self.ms_interaction = old_div(self.ss_interaction,self.df_interaction)
 
         self.ss_error = var2 - self._n_mean2
         self.df_error = self.df_total - (self.df_row+1)*(self.df_column+1) + 1
-        self.ms_error = self.ss_error/self.df_error
+        self.ms_error = old_div(self.ss_error,self.df_error)
 
-        self.f_row = self.ms_row/self.ms_error
-        self.f_column = self.ms_column/self.ms_error
-        self.f_interaction = self.ms_interaction/self.ms_error
+        self.f_row = old_div(self.ms_row,self.ms_error)
+        self.f_column = old_div(self.ms_column,self.ms_error)
+        self.f_interaction = old_div(self.ms_interaction,self.ms_error)
 
         '''
         self.p_row = Stats.f_distribution_critical_value(self.f_row, self.df_row, self.df_error)
@@ -88,11 +91,11 @@ class TwoWayAnovaResult:
         self.p_column = 1 - stats.f.cdf(self.f_column, self.df_column,self.df_error)
         self.p_interaction = 1 - stats.f.cdf(self.f_interaction, self.df_interaction,self.df_error)
         #'''
-        self.effect_size_interaction = self.ss_interaction/self.ss_error
-        self.effect_size_row = self.ss_row/self.ss_error
-        self.effect_size_column = self.ss_column/self.ss_error
+        self.effect_size_interaction = old_div(self.ss_interaction,self.ss_error)
+        self.effect_size_row = old_div(self.ss_row,self.ss_error)
+        self.effect_size_column = old_div(self.ss_column,self.ss_error)
 
-class OneWayAnovaResult:
+class OneWayAnovaResult(object):
     def __init__(self, var):
         self._n_mean2 = var.var3.sum()
         self.df_total = var.counts.sum() - 1
@@ -113,12 +116,12 @@ class OneWayAnovaResult:
         self.ss_between = self._n_mean2 - var1
         self.ss_within = var2 - self._n_mean2
         if self.ss_within > 0:
-            self.effect_size = self.ss_between/self.ss_within
+            self.effect_size = old_div(self.ss_between,self.ss_within)
         else:
             self.effect_size = 0
-        self.ms_between = self.ss_between/self.df_between
-        self.ms_within = self.ss_within/self.df_within
-        self.f_stat = self.ms_between/self.ms_within
+        self.ms_between = old_div(self.ss_between,self.df_between)
+        self.ms_within = old_div(self.ss_within,self.df_within)
+        self.f_stat = old_div(self.ms_between,self.ms_within)
         self.p_value = 1 - stats.f.cdf(self.f_stat, self.df_between, self.df_within)
 
     def get_ss_total(self):

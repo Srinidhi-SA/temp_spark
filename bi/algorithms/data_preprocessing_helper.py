@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from bi.stats.util import Stats
 from pyspark.sql import functions as F
 from pyspark.sql.functions import avg, when, stddev as _stddev, col
@@ -7,7 +13,7 @@ from pyspark.sql.functions import avg, when, stddev as _stddev, col
 # from pyspark.sql.functions import *
 
 
-class DataPreprocessingHelper():
+class DataPreprocessingHelper(object):
     """Docstring for data Preprocessing Operations"""
 
     def __init__(self, df, dataframe_context):
@@ -50,12 +56,12 @@ class DataPreprocessingHelper():
                             categorical_list1.append(categorical_col[j])
                             categorical_list2.append(categorical_col[i])
 
-        count_dict1 = dict(zip(categorical_list1, categorical_list2))
+        count_dict1 = dict(list(zip(categorical_list1, categorical_list2)))
 
         elements_list1 = []
         elements_list2 = []
 
-        for k, v in count_dict1.items():
+        for k, v in list(count_dict1.items()):
             elements_list1 = self._data_frame.select(k)
             elements_list2 = self._data_frame.select(v)
             if elements_list1.collect() == elements_list2.collect():
@@ -74,12 +80,12 @@ class DataPreprocessingHelper():
                         numerical_list2.append(numerical_col[i])
 
 
-        count_dict2 = dict(zip(numerical_list1, numerical_list2))
+        count_dict2 = dict(list(zip(numerical_list1, numerical_list2)))
 
         elements_list3 = []
         elements_list4 = []
 
-        for k, v in count_dict2.items():
+        for k, v in list(count_dict2.items()):
             elements_list3 = self._data_frame.select(k)
             elements_list4 = self._data_frame.select(v)
             if elements_list3.collect() == elements_list4.collect():
@@ -96,12 +102,12 @@ class DataPreprocessingHelper():
                             boolean_list1.append(boolean_col[j])
                             boolean_list2.append(boolean_col[i])
 
-        count_dict3 = dict(zip(boolean_list1, boolean_list2))
+        count_dict3 = dict(list(zip(boolean_list1, boolean_list2)))
 
         elements_list5 = []
         elements_list6 = []
 
-        for k, v in count_dict3.items():
+        for k, v in list(count_dict3.items()):
             elements_list5 = self._data_frame.select(k)
             elements_list6 = self._data_frame.select(v)
             if elements_list5.collect() == elements_list6.collect():
@@ -136,21 +142,21 @@ class DataPreprocessingHelper():
     def get_proportion_of_unique_val(self, col_for_uvpro):
         df_counts = self._data_frame.groupBy(col_for_uvpro).count()
         total = df_counts.select(F.sum("count")).collect()[0][0]
-        df_prop = df_counts.withColumn("PROPORTION", (df_counts["count"] / total))
+        df_prop = df_counts.withColumn("PROPORTION", (old_div(df_counts["count"], total)))
         df_prop = df_prop.drop("count")
         return df_prop
 
     def get_percentage_of_unique_val(self, col_for_uvper):
         df_counts = self._data_frame.groupBy(col_for_uvper).count()
         total = df_counts.select(F.sum("count")).collect()[0][0]
-        df_prop = df_counts.withColumn("PERCENTAGE", 100 * (df_counts["count"] / total))
+        df_prop = df_counts.withColumn("PERCENTAGE", 100 * (old_div(df_counts["count"], total)))
         df_prop = df_prop.drop("count")
         return df_prop
 
     def get_count_of_unique_val(self):
         df_temp = self._data_frame.agg(*(countDistinct(col(c)).alias(c) for c in self._data_frame.columns))
         df_pandas = df_temp.toPandas().transpose()
-        print df_pandas
+        print(df_pandas)
 
     def get_mode(self, df, col_for_mode):
         '''Only returns one mode even in case of multiple available modes'''

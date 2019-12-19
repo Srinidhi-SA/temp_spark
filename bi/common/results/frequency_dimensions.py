@@ -2,7 +2,8 @@
 """This module contains result object for FreqDimension test"""
 
 
-class FreqDimensionResult:
+from builtins import object
+class FreqDimensionResult(object):
     """
     Encapsulates results of Frequency Calculation
     """

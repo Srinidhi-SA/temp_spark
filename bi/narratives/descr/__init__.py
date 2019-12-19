@@ -1,10 +1,13 @@
+from __future__ import absolute_import
+from past.builtins import basestring
+from builtins import object
 from bi.common.utils import accepts
 
-from measure import MeasureColumnNarrative
+from .measure import MeasureColumnNarrative
 # from bi.common import DataframeContext
 
 
-class DescriptiveStatsNarrative:
+class DescriptiveStatsNarrative(object):
     def __init__(self):
         self.measures = {}
         self.dimensions = {}

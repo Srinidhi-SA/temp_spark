@@ -1,8 +1,11 @@
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from bi.common.exception import BIException
 from bi.common.utils import accepts
 
 
-class RegressionResult:
+class RegressionResult(object):
     INTERCEPT = 'intercept'
     COEFFICIENTS = 'coefficients'
     COEFF = 'coefficient'
@@ -92,7 +95,7 @@ class RegressionResult:
     def get_all_coeff(self):
         return self.stats[RegressionResult.COEFFICIENTS]
 
-class DFRegressionResult:
+class DFRegressionResult(object):
     def __init__(self):
         self.measures = []
         self.results = {}

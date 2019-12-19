@@ -1,5 +1,8 @@
+from __future__ import division
 
 
+from builtins import object
+from past.utils import old_div
 from pyspark.sql import functions as FN
 from scipy.stats import f as FDistribution
 from scipy.stats import norm as NormalDistribution
@@ -7,7 +10,7 @@ from scipy.stats import t as TDistribution
 from statsmodels.stats.libqsturng import qsturng
 
 
-class Stats:
+class Stats(object):
     """
     Statistical utility functions
     """
@@ -23,7 +26,7 @@ class Stats:
         if two_sided:
             return float(TDistribution.pdf(t_value, df=df))
 
-        return float(TDistribution.pdf(t_value, df=df)/2)
+        return float(old_div(TDistribution.pdf(t_value, df=df),2))
 
 
     @staticmethod

@@ -1,4 +1,7 @@
-class ParserConfig():
+from __future__ import print_function
+from builtins import map
+from builtins import object
+class ParserConfig(object):
     """For reading info from config json"""
     def __init__(self, config):
         self.config = config
@@ -66,7 +69,7 @@ class ParserConfig():
                 if self.config.get(section, option).strip() is "":
                     dict1[option] = None
                 else:
-                    dict1[option] = map(str.strip,self.config.get(section, option).strip().split(','))
+                    dict1[option] = list(map(str.strip,self.config.get(section, option).strip().split(',')))
                 if dict1[option] == -1:
                     DebugPrint("skip: %s" % option)
             except:

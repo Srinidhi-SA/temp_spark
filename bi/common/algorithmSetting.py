@@ -1,8 +1,12 @@
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from builtins import object
 from bi.common.decorators import accepts
 import numpy as np
 
 
-class AlgorithmParameters:
+class AlgorithmParameters(object):
 
     def __init__(self):
         self.name = None
@@ -63,7 +67,7 @@ class AlgorithmParameters:
 
     def handle_boolean(self,dictObj):
         newArray = []
-        for k,v in dictObj.items():
+        for k,v in list(dictObj.items()):
             if isinstance(v,list):
                 vNew = []
                 for val in v:
@@ -93,7 +97,7 @@ class AlgorithmParameters:
 
     def get_default_value(self,tuningParams=True):
         if type(self.defaultValue) == list:
-            filteredArr = [x["name"] for x in filter(lambda x:x["selected"] == True,self.defaultValue)]
+            filteredArr = [x["name"] for x in [x for x in self.defaultValue if x["selected"] == True]]
             outArray = []
             if len(filteredArr) > 0:
                 for filteredVal in filteredArr:
@@ -118,7 +122,7 @@ class AlgorithmParameters:
                     outArrayNew.append(val)
             outArray = outArrayNew
             if len(outArray) == 0:
-                print "SOMETHING FISHY IN",self.name
+                print("SOMETHING FISHY IN",self.name)
                 return None
             else:
 
@@ -133,7 +137,7 @@ class AlgorithmParameters:
                 return self.defaultValue
 
     def hyperParameterInputParser(self,stringObj):
-        print stringObj
+        print(stringObj)
         out = []
         blocks =  stringObj.split(",")
         for val in blocks:
@@ -166,10 +170,10 @@ class AlgorithmParameters:
                         valRange = [round(x,precision) for x in valRange]
                         valRange.append(float(endVal))
                     else:
-                        valRange = range(int(startVal),int(endVal))
+                        valRange = list(range(int(startVal),int(endVal)))
                         valRange.append(int(endVal))
                 out += valRange
-        print out
+        print(out)
         return out
 
 
@@ -235,7 +239,7 @@ class AlgorithmParameters:
 
 
 
-class HyperParameterSetting:
+class HyperParameterSetting(object):
     def __init__(self):
         self.selected = None
         self.name = None
@@ -270,7 +274,7 @@ class HyperParameterSetting:
 
 
 
-class AlgorithmParameterConfig:
+class AlgorithmParameterConfig(object):
     def __init__(self):
         self.description = None
         self.selected = None
@@ -358,9 +362,8 @@ class AlgorithmParameterConfig:
         return hyperParamsObj.get_name()
 
     def get_tf_params_dict(self):
-        for i in range(len(self.tensorflow_params['hidden_layer_info'].keys())):
-            for j in  self.tensorflow_params['hidden_layer_info'][str(i)].keys():
-                print j
+        for i in range(len(list(self.tensorflow_params['hidden_layer_info'].keys()))):
+            for j in  list(self.tensorflow_params['hidden_layer_info'][str(i)].keys()):
                 if self.tensorflow_params['hidden_layer_info'][str(i)][j]==" " or self.tensorflow_params['hidden_layer_info'][str(i)][j]=="None":
                     self.tensorflow_params['hidden_layer_info'][str(i)][j]=None
         return self.tensorflow_params

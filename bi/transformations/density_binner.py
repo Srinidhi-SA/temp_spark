@@ -1,3 +1,5 @@
+from past.builtins import basestring
+from builtins import object
 from pyspark.ml.feature import Bucketizer
 from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql import functions as FN
@@ -13,7 +15,7 @@ Constants for Binner classes
 """
 
 
-class DensityBinner:
+class DensityBinner(object):
     """
     Utility class for binning numeric columns of a data frame
     """
