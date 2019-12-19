@@ -51,8 +51,16 @@ class ChiSquareNarratives(object):
         for bin_col in list(bin_data.keys()):
             for split in bin_data[bin_col]:
                 val = split.split('to')
-                pandas_df[bin_col][(pandas_df[bin_col]>=float(val[0].replace(',',''))) & (pandas_df[bin_col]<float(val[1].replace(',','')))] =  split
-
+                # pandas_df[bin_col][(float(pandas_df[bin_col])>=float(val[0].replace(',',''))) & (float(pandas_df[bin_col])<float(val[1].replace(',','')))] =  split
+                row_value = list(pandas_df[bin_col])
+                temp = []
+                for  row_value_  in row_value:
+                    if not isinstance(row_value_, str)  and  \
+                      (float(row_value_) >= float(val[0].replace(',','')))   and   \
+                      (float(row_value_) <  float(val[1].replace(',',''))):
+                      temp.append(split)
+                    else: temp.append(row_value_)
+                pandas_df[bin_col] = temp
         fields = [StructField(field_name, StringType(), True) for field_name in pandas_df.columns]
         schema = StructType(fields)
 

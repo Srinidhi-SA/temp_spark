@@ -171,8 +171,8 @@ class MeasureColumnNarrative(object):
     def _generate_analysis_para1(self):
         output = 'Para1 entered'
         data_dict = {"cols" : self._dataframe_helper.get_num_columns(),
-                    "min" : NarrativesUtils.round_number(self._measure_descr_stats.get_min(), 0),
-                    "max" : NarrativesUtils.round_number(self._measure_descr_stats.get_max(), 0),
+                    "min" : int(round(self._measure_descr_stats.get_min(), 0)),
+                    "max" : int(round(self._measure_descr_stats.get_max(), 0)),
                     "n" : self._five_point_summary_stats.get_num_outliers(),
                     "l" : self._five_point_summary_stats.get_left_outliers(),
                     "r" : self._five_point_summary_stats.get_right_outliers(),

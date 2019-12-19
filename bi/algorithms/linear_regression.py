@@ -115,7 +115,7 @@ class LinearRegression(object):
         try:
             p_values = [float(val) if val != None else None for val in lr_model.summary.pValues]
         except:
-            p_values = [None]*len(coefficients)
+            p_values = [0]*len(coefficients)
         # print p_values
         # print coefficients
         regression_result = RegressionResult(output_column, sorted(list(set(input_columns))))

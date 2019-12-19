@@ -135,7 +135,8 @@ def get_template_output(base_dir, template_file, data_dict):
     templateEnv.filters['intcomma'] = humanize.intcomma
     templateEnv.filters['pluralize']=pluralize
     template = templateEnv.get_template(base_dir+template_file)
-    output = template.render(data_dict)
+    # output = template.render(data_dict)
+    output = template.render({str(k):v for k,v in list(data_dict.items())})
     return clean_narratives(output)
 
 def clean_result_text(text):
@@ -581,11 +582,13 @@ def get_level_cont_dict(level_cont):
     output = []
     # k is the dimension name
     for k,valdict in list(levelContributionSummary.items()):
-        v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"] >= 5}
+        # v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"] >= 5}
+        v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"]!= None and v1["diff"]!= None and v1["contribution"] >= 5}
         if len(v) == 0:
             print("#"*200)
             print("all levels have contribution less than 5")
-            v = valdict
+            # v = valdict
+            v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"]!= None and v1["diff"]!= None}
         max_level = max(v,key=lambda x: v[x]["diff"])
         contribution_dict = {}
         for level,value in list(levelContributionSummary[k][max_level].items()):
@@ -608,11 +611,13 @@ def get_level_cont_dict(level_cont):
 
     output = []
     for k,valdict in list(levelContributionSummary.items()):
-        v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"] >= 5}
+        # v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"] >= 5}
+        v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"]!= None and v1["diff"]!= None and v1["contribution"] >= 5}
         if len(v) == 0:
             print("#"*200)
             print("all levels have contribution less than 5")
-            v = valdict
+            # v = valdict
+            v = {k1:v1 for (k1,v1) in list(valdict.items()) if v1["contribution"]!= None and v1["diff"]!= None}
         min_level = min(v,key=lambda x: v[x]["diff"] if v[x]["diff"] != None else 9999999999999999999)
         t_dict = {}
         for k1,v1 in list(levelContributionSummary[k][min_level].items()):
@@ -1114,6 +1119,11 @@ def statistical_info_array_formatter(st_array):
 
 def select_y_axis_format(dataArray):
     if len(dataArray)>0:
+        temp = []
+        for i in dataArray:
+            i = float(i)
+            temp.append(i)
+        dataArray = temp
         minval = min(dataArray)
         if minval >= 0.01:
             return ".2f"

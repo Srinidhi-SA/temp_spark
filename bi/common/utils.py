@@ -191,7 +191,7 @@ def as_dict(obj):
         return {k: as_dict(v) for (k, v) in list(obj.items())}
     elif hasattr(obj, "_ast"):
         return as_dict(obj._ast())
-    elif hasattr(obj, '__iter__'):
+    elif hasattr(obj, '__iter__')and not isinstance(obj, str):
         return [as_dict(v) for v in obj]
     elif hasattr(obj, '__dict__'):
         return dict([(key, as_dict(value))

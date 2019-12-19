@@ -190,7 +190,7 @@ class DataFrameTransformer(object):
         for colName in targetCol:
             levelCountDict = self._metaParser.get_unique_level_dict(colName)
             levelCountArray = sorted(list(levelCountDict.items()),key=lambda x:x[1],reverse=True)
-            countArr = [x[1] for x in levelCountArray]
+            countArr = [int(x[1]) for x in levelCountArray]
             totalCount = sum(countArr)
             existinCount = sum(countArr[:topnLevel])
             newLevelCount = levelCountArray[:topnLevel]
