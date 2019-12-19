@@ -90,7 +90,12 @@ class RFClassificationModelScript:
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
+        algoSetting = filter(lambda x: x.get_algorithm_slug() == self._slug, algosToRun)[0]
+        # print "[]" * 30
+        # print "algoSetting", algoSetting
+        # print "[]" * 30
+        # print self._dataframe_context.ALGORITHM_SETTINGS
+        # print "[]" * 100
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -238,10 +243,21 @@ class RFClassificationModelScript:
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
+                # print "[]"*30
+                # print "ALGO-PARAMS", algoParams
+                # print "[]" * 30
                 algoParams["random_state"] = 42
                 algoParams = {k:v for k,v in algoParams.items() if k in clf.get_params().keys()}
+                # print "[]" * 30
+                # print "ALGO-PARAMS", algoParams
+                # print "[]" * 30
                 clf.set_params(**algoParams)
-                modelmanagement_=clf.get_params()
+                modelmanagement_ = clf.get_params()
+                # print "[]" * 30
+                # print "modelmanagement_", modelmanagement_
+                # print "[]" * 30
+                # import sys
+                # sys.exit()
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])
