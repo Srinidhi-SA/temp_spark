@@ -176,11 +176,13 @@ class NNPTClassificationScript:
             testset = torch_data_utils.TensorDataset(x_test_tensored, y_test_tensored)
 
             nnptc_params = algoSetting.get_nnptc_params_dict()[0]
-            layers_for_network = PYTORCHUTILS.get_layers_for_network_module(nnptc_params, task_type = "CLASSIFICATION")
+            layers_for_network = PYTORCHUTILS.get_layers_for_network_module(nnptc_params, task_type = "CLASSIFICATION", first_layer_units = x_train.shape[1])
             # Use GPU if available
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             network = PyTorchNetwork(layers_for_network).to(device)
-            other_params_dict = PYTORCHUTILS.get_other_pytorch_params(nnptc_params, task_type = "CLASSIFICATION")
+            network.eval()
+
+            other_params_dict = PYTORCHUTILS.get_other_pytorch_params(nnptc_params, task_type = "CLASSIFICATION", network_params = network.parameters())
 
             print "~"*50
             print "NNPTC-PARAMS - ", nnptc_params
@@ -193,6 +195,7 @@ class NNPTClassificationScript:
             criterion = other_params_dict["loss_criterion"]
             n_epochs = other_params_dict["number_of_epochs"]
             batch_size = other_params_dict["batch_size"]
+            optimizer = other_params_dict["optimizer"]
             optimizer = optim.Adam(network.parameters(), weight_decay=0.0001)
 
             dataloader_params = {
@@ -452,6 +455,10 @@ class NNPTClassificationScript:
 
             self._model_management = MLModelSummary()
             modelmanagement_= nnptc_params
+            modelmanagement_.update(other_params_dict)
+            print "~"*45
+            print "MODEL_MANAGEMENT - ", modelmanagement_
+            print "~"*45
             if algoSetting.is_hyperparameter_tuning_enabled():
                 pass
             else:
@@ -460,7 +467,6 @@ class NNPTClassificationScript:
                 self._model_management.set_optimizer(data=modelmanagement_['optimizer'])
                 self._model_management.set_batch_size(data=modelmanagement_['batch_size'])
                 self._model_management.set_no_epochs(data=modelmanagement_['number_of_epochs'])
-                # self._model_management.set_model_evaluation_metrics(data=modelmanagement_['metrics'])
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status
                 self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
@@ -500,14 +506,17 @@ class NNPTClassificationScript:
                         ["Epochs",self._model_management.get_no_epochs()]
 
                         ]
-            # ["Metrics",self._model_management.get_model_evaluation_metrics()
 
-            for i in modelmanagement_["hidden_layer_info"]:
+            for i in range(len(modelmanagement_['hidden_layer_info'].keys())):
                 string=""
-                key=str(modelmanagement_["hidden_layer_info"][i]["layer"])+" "+str(i)+":"
-                for j in modelmanagement_["hidden_layer_info"][i]:
-                    string=string+str(j)+":"+str(modelmanagement_["hidden_layer_info"][i][j])+",   "
-                modelManagementModelSettingsJson.append([key,string] )
+                key="layer No-"+str(i+1)+"-"+str(modelmanagement_["hidden_layer_info"][i+1]["layer"]+"-")
+                for j in modelmanagement_["hidden_layer_info"][i+1]:
+                    modelManagementModelSettingsJson.append([key+j+":",str(modelmanagement_["hidden_layer_info"][i+1][j])])
+
+            print "~"*45
+            print modelManagementModelSettingsJson
+            print "~"*45
+
 
 
             nnptcOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]

@@ -155,14 +155,14 @@ class NNPTRegressionScript:
             testset = torch_data_utils.TensorDataset(x_test_tensored, y_test_tensored)
 
             nnptr_params = algoSetting.get_nnptr_params_dict()[0]
-            layers_for_network = PYTORCHUTILS.get_layers_for_network_module(nnptr_params, task_type = "REGRESSION")
+            layers_for_network = PYTORCHUTILS.get_layers_for_network_module(nnptr_params, task_type = "REGRESSION",first_layer_units = x_train.shape[1])
 
             # Use GPU if available
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             network = PyTorchNetwork(layers_for_network).to(device)
             network.eval()
 
-            other_params_dict = PYTORCHUTILS.get_other_pytorch_params(nnptr_params, task_type = "CLASSIFICATION")
+            other_params_dict = PYTORCHUTILS.get_other_pytorch_params(nnptr_params, task_type = "REGRESSION", network_params = network.parameters())
 
             print "~"*50
             print "NNPTR-PARAMS - ", nnptr_params
@@ -175,7 +175,7 @@ class NNPTRegressionScript:
             criterion = other_params_dict["loss_criterion"]
             n_epochs = other_params_dict["number_of_epochs"]
             batch_size = other_params_dict["batch_size"]
-            optimizer = optim.Adam(network.parameters(), weight_decay=0.0001)
+            optimizer = other_params_dict["optimizer"]
 
             dataloader_params = {
             "batch_size": batch_size,
@@ -520,7 +520,7 @@ class NNPTRegressionScript:
 
             y_score_mid = outputs_test_df_tensored.tolist()
             y_score = [x[0] for x in y_score_mid]
-            
+
             scoreKpiArray = MLUtils.get_scored_data_summary(y_score)
             kpiCard = NormalCard()
             kpiCardData = [KpiData(data=x) for x in scoreKpiArray]

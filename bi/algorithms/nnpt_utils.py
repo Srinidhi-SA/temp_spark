@@ -4,7 +4,7 @@ import torch.optim as optim
 import numpy as np
 
 
-def get_layers_for_network_module(nnpt_params, task_type):
+def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
     layers = []
     layers_list = sorted(tuple(nnpt_params["hidden_layer_info"]))
 
@@ -16,7 +16,10 @@ def get_layers_for_network_module(nnpt_params, task_type):
         for val in layers_list:
             layer_dict = nnpt_params["hidden_layer_info"][val]
             layer_name = layer_dict["layer"]
-            layer_units_ip = layer_dict["units_ip"]
+            if val == 1:
+                layer_units_ip = first_layer_units
+            else:
+                layer_units_ip = layer_dict["units_ip"]
             layer_units_op = layer_dict["units_op"]
             layer_bias = layer_dict["bias"]
             layer_activation = layer_dict["activation"]
@@ -144,7 +147,10 @@ def get_layers_for_network_module(nnpt_params, task_type):
         for val in layers_list:
             layer_dict = nnpt_params["hidden_layer_info"][val]
             layer_name = layer_dict["layer"]
-            layer_units_ip = layer_dict["units_ip"]
+            if val == 1:
+                layer_units_ip = first_layer_units
+            else:
+                layer_units_ip = layer_dict["units_ip"]
             layer_units_op = layer_dict["units_op"]
             layer_bias = layer_dict["bias"]
             layer_activation = layer_dict["activation"]
@@ -267,41 +273,81 @@ def get_layers_for_network_module(nnpt_params, task_type):
     return layers
 
 
-def get_other_pytorch_params(nnpt_params, task_type):
+def get_other_pytorch_params(nnpt_params, task_type, network_params):
     loss_criterion_dict = nnpt_params["loss"]
     loss_name = loss_criterion_dict["loss"]
-
     optimizer_dict = nnpt_params["optimizer"]
     optimizer_name = optimizer_dict["optimizer"]
 
     batch_size = nnpt_params["batch_size"]
     number_of_epochs = nnpt_params["number_of_epochs"]
-
-    if loss_name == "CrossEntropyLoss":
-        loss_criterion = nn.CrossEntropyLoss(reduction = loss_criterion_dict["reduction"])
-    if loss_name == "MSELoss":
-        loss_criterion = nn.MSELoss(reduction = loss_criterion_dict["reduction"])
-
-
-    # if optimizer_name == "Adam":
-    #     optimizer_params = []
-    #     for k,v in optimizer_dict:
-    #         if optimizer_dict[k] == "optimizer":
-    #             pass
-    #         else:
-    #             optimizer_params.append(k = v)
-
+    loss_criterion = get_loss_criterion(loss_name, loss_criterion_dict)
+    optimizer = get_optimizer(optimizer_name, optimizer_dict, network_params)
 
     other_params_dict = {}
     other_params_dict["number_of_epochs"] = number_of_epochs
     other_params_dict["batch_size"] = batch_size
     other_params_dict["loss_criterion"] = loss_criterion
-    # other_params_dict["optimizer"] = optimizer_params
-
-
+    other_params_dict["optimizer"] = optimizer
 
     return other_params_dict
 
+
+
+def get_loss_criterion(loss_name, loss_criterion_dict):
+    if loss_name == "CrossEntropyLoss":
+        loss_criterion = nn.CrossEntropyLoss(reduction = loss_criterion_dict["reduction"])
+    if loss_name == "L1Loss":
+        loss_criterion = nn.L1Loss(reduction = loss_criterion_dict["reduction"])
+    if loss_name == "MSELoss":
+        loss_criterion = nn.MSELoss(reduction = loss_criterion_dict["reduction"])
+    if loss_name == "CTCLoss":
+        loss_criterion = nn.CTCLoss(reduction = loss_criterion_dict["reduction"], blank = loss_criterion_dict["blank"], zero_infinity = loss_criterion_dict["zero_infinity"])
+    if loss_name == "NLLLoss":
+        loss_criterion = nn.NLLLoss(reduction = loss_criterion_dict["reduction"], weight = loss_criterion_dict["weight"])
+    if loss_name == "PoissonNLLLoss":
+        loss_criterion = nn.PoissonNLLLoss(reduction = loss_criterion_dict["reduction"], log_input = loss_criterion_dict["log_input"], full = loss_criterion_dict["full"], eps = loss_criterion_dict["eps"])
+    if loss_name == "KLDivLoss":
+        loss_criterion = nn.KLDivLoss(reduction = loss_criterion_dict["reduction"])
+    if loss_name == "BCELoss":
+        loss_criterion = nn.BCELoss(reduction = loss_criterion_dict["reduction"], weight = loss_criterion_dict["weight"])
+    if loss_name == "BCEWithLogitsLoss":
+        loss_criterion = nn.BCEWithLogitsLoss(reduction = loss_criterion_dict["reduction"], weight = loss_criterion_dict["weight"], pos_weight = loss_criterion_dict["pos_weight"])
+    if loss_name == "SoftMarginLoss":
+        loss_criterion = nn.SoftMarginLoss(reduction = loss_criterion_dict["reduction"])
+    if loss_name == None:
+        loss_criterion = None
+
+    return loss_criterion
+
+
+def get_optimizer(optimizer_name, optimizer_dict, network_params):
+    if optimizer_name == "Adadelta":
+        optimizer = optim.Adadelta(network_params, weight_decay = optimizer_dict["weight_decay"], rho = optimizer_dict["rho"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
+    if optimizer_name == "Adagrad":
+        optimizer = optim.Adagrad(network_params, weight_decay = optimizer_dict["weight_decay"], lr_decay = optimizer_dict["lr_decay"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
+    if optimizer_name == "Adam":
+        optimizer = optim.Adam(network_params, weight_decay = optimizer_dict["weight_decay"], betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
+    if optimizer_name == "AdamW":
+        optimizer = optim.AdamW(network_params, weight_decay = optimizer_dict["weight_decay"], betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
+    if optimizer_name == "SparseAdam":
+        optimizer = optim.SparseAdam(network_params, betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
+    if optimizer_name == "Adamax":
+        optimizer = optim.Adamax(network_params, betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], weight_decay = optimizer_dict["weight_decay"])
+    if optimizer_name == "ASGD":
+        optimizer = optim.ASGD(network_params, lr = optimizer_dict["lr"], lambd = optimizer_dict["lambd"], alpha = optimizer_dict["alpha"], t0 = optimizer_dict["t0"], weight_decay = optimizer_dict["weight_decay"])
+    if optimizer_name == "LBFGS":
+        optimizer = optim.LBFGS(network_params, lr = optimizer_dict["lr"], max_iter = optimizer_dict["max_iter"], max_eval = optimizer_dict["max_eval"], tolerance_grad = optimizer_dict["tolerance_grad"], tolerance_change = optimizer_dict["tolerance_change"], history_size = optimizer_dict["history_size"], line_search_fn = optimizer_dict["line_search_fn"])
+    if optimizer_name == "RMSprop":
+        optimizer = optim.RMSprop(network_params, weight_decay = optimizer_dict["weight_decay"], lr = optimizer_dict["lr"], momentum = optimizer_dict["momentum"], alpha = optimizer_dict["alpha"], eps = optimizer_dict["eps"], centered = optimizer_dict["centered"])
+    if optimizer_name == "Rprop":
+        optimizer = optim.Rprop(network_params, lr = optimizer_dict["lr"], eta = optimizer_dict["eta"], step_sizes = optimizer_dict["step_sizes"])
+    if optimizer_name == "SGD":
+        optimizer = optim.SGD(network_params, weight_decay = optimizer_dict["weight_decay"], momentum = optimizer_dict["momentum"], dampening = optimizer_dict["dampening"], lr = optimizer_dict["lr"], nesterov = optimizer_dict["nesterov"])
+    if optimizer_name == None:
+        optimizer = None
+
+    return optimizer
 
 
 def get_tensored_data(x_train, y_train, x_test, y_test):

@@ -1463,14 +1463,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         counter = 1
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary, nnptcModelSummary]:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
                     hyperParameterFlagDict[obj["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["slug"]] = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary, nnptcModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["slug"]] = obj["modelFeatureList"]
@@ -1783,11 +1783,12 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         gbtFailCard = result_setter.get_gbt_fail_card()
         dtrFailCard = result_setter.get_dtr_fail_card()
         tfregFailCard = result_setter.get_tfreg_fail_card()
+        nnptrFailCard = result_setter.get_nnptr_fail_card()
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = {}
         model_configs["targetVariableLevelcount"] = []
-        model_configs["fail_card"]=[rfFailCard,gbtFailCard,dtrFailCard,lrFailCard,tfregFailCard]
+        model_configs["fail_card"]=[rfFailCard,gbtFailCard,dtrFailCard,lrFailCard,tfregFailCard, nnptrFailCard]
         print model_dropdowns
         print "="*100
         model_dropdowns = [x for x in model_dropdowns if x != None]
@@ -1807,12 +1808,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         rfregManagementNode = NarrativesTree(name='Random Forest Regression')
         lregManagementNode = NarrativesTree(name='Linear Regression')
         tfregManagementNode = NarrativesTree(name="TensorFlow")
+        nnptrManagementNode = NarrativesTree(name="Neural Networks(pyTorch)")
         dtreeManagementNode.add_nodes(result_setter.get_all_dtree_regression_nodes())
         gbtManagementNode.add_nodes(result_setter.get_all_gbt_regression_nodes())
         rfregManagementNode.add_nodes(result_setter.get_all_rfreg_regression_nodes())
         lregManagementNode.add_nodes(result_setter.get_all_lreg_regression_nodes())
         tfregManagementNode.add_nodes(result_setter.get_all_tfreg_regression_nodes())
-        modelManagement = [dtreeManagementNode,gbtManagementNode,rfregManagementNode,lregManagementNode,tfregManagementNode]
+        nnptrManagementNode.add_nodes(result_setter.get_all_nnptr_regression_nodes())
+        modelManagement = [dtreeManagementNode,gbtManagementNode,rfregManagementNode,lregManagementNode,tfregManagementNode, nnptrManagementNode]
         modelManagement = json.loads(CommonUtils.convert_python_object_to_json(modelManagement))
 
         modelJsonOutput.set_model_management_summary(modelManagement)
