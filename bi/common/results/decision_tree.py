@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for DecisionTree test"""
+from __future__ import print_function
 
 
-class DecisionTreeResult:
+from builtins import range
+from builtins import object
+class DecisionTreeResult(object):
     """
     Encapsulates results of DecisionTree test
     """
@@ -21,15 +24,15 @@ class DecisionTreeResult:
     def set_target_map(self, target_map, target_agg, important_vars):
         self._target_map = target_map
         self._target_agg = target_agg
-        print "set_target_map"
-        print target_agg
+        print("set_target_map")
+        print(target_agg)
         self._important_vars = important_vars
 
     def set_freq_distribution(self, target_agg, important_vars):
         self._target_map = None
-        print "set_freq_distribution"
+        print("set_freq_distribution")
         self._target_agg = target_agg
-        print target_agg
+        print(target_agg)
         self._important_vars = important_vars
 
     def get_significant_vars(self):
@@ -44,9 +47,9 @@ class DecisionTreeResult:
     def get_target_contributions(self):
         if self._target_map==None:
             return self._target_agg
-        print "get_target_contributions"
-        print dict([(self._target_map[i], self._target_agg[i]) for i in range(3)])
-        print self._target_map
+        print("get_target_contributions")
+        print(dict([(self._target_map[i], self._target_agg[i]) for i in range(3)]))
+        print(self._target_map)
         return dict([(self._target_map[i], self._target_agg[i]) for i in range(3)])
 
     def get_decision_rules(self):

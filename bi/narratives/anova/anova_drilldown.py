@@ -1,9 +1,11 @@
+from builtins import zip
+from builtins import object
 from pyspark.sql import functions as FN
 
 from bi.narratives import utils as NarrativesUtils
 
 
-class AnovaDrilldownNarratives:
+class AnovaDrilldownNarratives(object):
 
     def __init__(self, measure_column, dimension_columns, df_helper, anova_narratives,base_dir):
         self.measure_column = measure_column
@@ -19,21 +21,21 @@ class AnovaDrilldownNarratives:
         grouped_data = {}
         for col in dimension_columns:
             agg_df = df.groupBy(col).agg(FN.count(col).alias("count")).toPandas()
-            grouped_data[col] = dict(zip(agg_df[col],agg_df["count"]))
+            grouped_data[col] = dict(list(zip(agg_df[col],agg_df["count"])))
         return grouped_data
 
     def get_aggregared_sum(self, df, dimension_columns):
         grouped_data = {}
         for col in dimension_columns:
             agg_df = df.groupBy(col).agg(FN.sum(col).alias("count")).toPandas()
-            grouped_data[col] = dict(zip(agg_df[col],agg_df["count"]))
+            grouped_data[col] = dict(list(zip(agg_df[col],agg_df["count"])))
         return grouped_data
 
     def get_aggregared_avg(self, df, dimension_columns):
         grouped_data = {}
         for col in dimension_columns:
             agg_df = df.groupBy(col).agg(FN.mean(col).alias("count")).toPandas()
-            grouped_data[col] = dict(zip(agg_df[col],agg_df["count"]))
+            grouped_data[col] = dict(list(zip(agg_df[col],agg_df["count"])))
         return grouped_data
 
     def get_top_dimensions_to_drilldown(self, dimension_columns, overall_aggregation, level_aggregation, n_top=2):
@@ -42,7 +44,7 @@ class AnovaDrilldownNarratives:
             overall_level_freq = overall_aggregation[col]
             subset_level_freq = level_aggregation[col]
             diff_list = []
-            for key in subset_level_freq.keys():
+            for key in list(subset_level_freq.keys()):
                 diff_list.append((subset_level_freq[key]-overall_level_freq[key],key))
             k = (col,max(diff_list,key=lambda x:x[0]))
             output.append(k)

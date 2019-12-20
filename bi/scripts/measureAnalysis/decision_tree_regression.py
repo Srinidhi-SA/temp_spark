@@ -1,3 +1,4 @@
+from builtins import object
 import json
 
 from bi.algorithms import DecisionTreeRegression
@@ -5,7 +6,7 @@ from bi.common import utils as CommonUtils
 from bi.narratives.decisiontreeregression.decision_tree import DecisionTreeRegNarrative
 
 
-class DecisionTreeRegressionScript:
+class DecisionTreeRegressionScript(object):
     def __init__(self, data_frame, df_helper,df_context, result_setter, spark,story_narrative,meta_parser,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter

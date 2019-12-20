@@ -1,4 +1,11 @@
-import __builtin__
+from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from builtins import object
+from past.utils import old_div
+import builtins
 import time
 
 import pandas as pd
@@ -20,7 +27,7 @@ Two way ANOVA test
 """
 
 
-class TwoWayAnova:
+class TwoWayAnova(object):
     """
         var1 = n*mean2
         var2 = sum(x2)
@@ -47,13 +54,13 @@ class TwoWayAnova:
             self._scriptWeightDict = scriptWeight
 
 
-        print "=================dimension columns======================"
-        print self._dimension_columns
-        print "=================dimension columns======================"
+        print("=================dimension columns======================")
+        print(self._dimension_columns)
+        print("=================dimension columns======================")
 
-        print "==================measure_columns ========================"
-        print self._measure_columns
-        print "==================measure_columns ========================"
+        print("==================measure_columns ========================")
+        print(self._measure_columns)
+        print("==================measure_columns ========================")
 
         self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._date_columns = self._dataframe_context.get_date_columns()
@@ -77,7 +84,7 @@ class TwoWayAnova:
         dateColCheck = None
         scriptsToRun = self._dataframe_context.get_analysis_name_list()
 
-        print self._dateColumnFormatDict
+        print(self._dateColumnFormatDict)
         self._selected_date_columns = self._dataframe_context.get_selected_date_columns()
         if self._selected_date_columns != None:
             dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
@@ -96,8 +103,8 @@ class TwoWayAnova:
                     self._existingDateFormat = dateColCheck["existingDateFormat"]
                     self._date_columns_suggested = dateColCheck["suggestedDateColumn"]
             if self._dateFormatDetected:
-                print "self._existingDateFormat",self._existingDateFormat
-                print "self._existingDateFormat",self._existingDateFormat
+                print("self._existingDateFormat",self._existingDateFormat)
+                print("self._existingDateFormat",self._existingDateFormat)
                 self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_columns_suggested,self._trend_on_td_column)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -142,7 +149,7 @@ class TwoWayAnova:
         if measure_columns is None:
             measures = self._measure_columns
         dimensions = dimension_columns
-        print "===================dimensions================"
+        print("===================dimensions================")
         if dimension_columns is None:
             dimensions = self._dimension_columns
         try:
@@ -153,21 +160,21 @@ class TwoWayAnova:
         #     dimensions = dimensions[:nColsToUse]
         sqrt_nrows = round(self._dataframe_helper.get_num_rows()**0.5)
         acceptable_level_count = GLOBALSETTINGS.ANOVAMAXLEVEL
-        print {"acceptable_level_count":acceptable_level_count,"sqrt_nrows":sqrt_nrows}
-        max_levels = __builtin__.min([acceptable_level_count,int(sqrt_nrows)])
+        print({"acceptable_level_count":acceptable_level_count,"sqrt_nrows":sqrt_nrows})
+        max_levels = builtins.min([acceptable_level_count,int(sqrt_nrows)])
         df_anova_result = DFTwoWayAnovaResult()
         dimensions_to_test = [dim for dim in dimensions if self._dataframe_helper.get_num_unique_values(dim) <= max_levels]
-        print "======================= dimensions_to_test ==============================="
-        print dimensions_to_test
+        print("======================= dimensions_to_test ===============================")
+        print(dimensions_to_test)
         self._dimensions_to_test = [x for x in dimensions_to_test if x in self._data_frame.columns]
-        print "dimensions to test ",self._dimensions_to_test
+        print("dimensions to test ",self._dimensions_to_test)
         for measure in measures:
             measureColStat = self._data_frame.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
             measureColMean = measureColStat[0][1]
             measureColCount = measureColStat[0][2]
             measureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
             self._anova_result = MeasureAnovaResult(measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
-            print self._dataRangeStats
+            print(self._dataRangeStats)
             if self._dateFormatDetected:
                 grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataRangeStats["dataLevel"],measure,"measure")
                 trendData = TrendData()
@@ -181,7 +188,7 @@ class TwoWayAnova:
                 self._anova_result.set_trend_data(trendData)
 
             for dimension in self._dimensions_to_test:
-                print "dimension--",dimension
+                print("dimension--",dimension)
                 anovaResult = self.one_way_anova_test(self._data_frame,measure,dimension,measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
                 dimensionAnovaResult = OneWayAnovaResult()
                 dimensionAnovaResult.set_params(df_within=anovaResult["df_within"],
@@ -206,7 +213,7 @@ class TwoWayAnova:
                     topLevelAnova = TopLevelDfAnovaStats()
                     levelDf = anovaResult["levelDf"]
                     toplevelStats = levelDf.ix[levelDf["total"].argmax()]
-                    print "toplevelStats",toplevelStats
+                    print("toplevelStats",toplevelStats)
                     topLevelAnova.set_top_level_stat(toplevelStats)
                     topLevelDf = self._data_frame.where(col(dimension).isin([toplevelStats.levels]))
                     if self._dateFormatDetected:
@@ -224,7 +231,7 @@ class TwoWayAnova:
                     dimensions_to_test_for_top_level = list(set(self._dimensions_to_test) - {dimension})
                     topLevelAnovaDimensions = {}
                     for dimensionlTopLevel in dimensions_to_test_for_top_level:
-                        print "top level dimensions",dimensionlTopLevel
+                        print("top level dimensions",dimensionlTopLevel)
                         topLevelDfAnovaResult = self.one_way_anova_test(topLevelDf,measure,dimensionlTopLevel,measureColMean=topLevelDfMeasureColMean,measureColCount=topLevelDfMeasureColCount,measureColSst=topLevelDfMeasureColSst)
                         dimensiontopLevelAnovaResult = OneWayAnovaResult()
                         dimensiontopLevelAnovaResult.set_params(df_within=topLevelDfAnovaResult["df_within"],
@@ -248,8 +255,8 @@ class TwoWayAnova:
                     self._anova_result.set_topLevelDfAnovaResult(dimension,topLevelAnova)
 
             df_anova_result.add_measure_result(measure,self._anova_result)
-            print self._anova_result.get_dimensions_analyzed()
-            print "checking effect size access",self._anova_result.get_OneWayAnovaEffectSize(self._dimensions_to_test[0])
+            print(self._anova_result.get_dimensions_analyzed())
+            print("checking effect size access",self._anova_result.get_OneWayAnovaEffectSize(self._dimensions_to_test[0]))
 
 
         # self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
@@ -268,7 +275,7 @@ class TwoWayAnova:
 
     def one_way_anova_test(self,df,measure,dimension,measureColMean=None,measureColCount=None,measureColSst=None):
         st=time.time()
-        print "running anova for :-","measure-",measure,"|***|","dimension-",dimension
+        print("running anova for :-","measure-",measure,"|***|","dimension-",dimension)
         if measureColMean == None:
             measureColStat = df.select([sum(measure).alias("total"),mean(measure).alias("average")]).collect()
             overallMean = measureColStat[0][1]
@@ -296,20 +303,20 @@ class TwoWayAnova:
             group_sse = filtered_df.select(sum(pow(col(measure)-row["average"],2))).collect()[0][0]
             ss_within = ss_within+group_sse
         try:
-            ms_between = ss_between/df_between
+            ms_between = old_div(ss_between,df_between)
         except:
             ms_between = 0
         try:
-            ms_within = ss_within/df_within
+            ms_within = old_div(ss_within,df_within)
         except:
             ms_within = 0
         try:
-            f_stat = ms_between/ms_within
+            f_stat = old_div(ms_between,ms_within)
         except:
             f_stat = 0
         f_critical = f.ppf(q=1-0.05, dfn=df_between, dfd=df_within)
         p_value = f.cdf(f_stat, df_between, df_within)
-        eta_squared = ss_between/ss_total
+        eta_squared = old_div(ss_between,ss_total)
         level_aggregate_pandasdf.columns = ["levels"]+list(level_aggregate_pandasdf.columns[1:])
         anovaOutput = {
                        "df_total":df_total,
@@ -329,7 +336,7 @@ class TwoWayAnova:
                        "levelDf":level_aggregate_pandasdf
                       }
         # print anovaOutput
-        print "finished in :-",time.time()-st
+        print("finished in :-",time.time()-st)
         return anovaOutput
 
 

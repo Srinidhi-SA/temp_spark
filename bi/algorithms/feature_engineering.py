@@ -1,7 +1,10 @@
-from feature_engineering_helper import FeatureEngineeringHelper
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import object
+from .feature_engineering_helper import FeatureEngineeringHelper
 
 
-class FeatureEngineering:
+class FeatureEngineering(object):
 
     def __init__(self, spark, df,  featureEngineeringDict,  dataframe_context):
         self._spark = spark
@@ -13,7 +16,7 @@ class FeatureEngineering:
 
 
     def feature_engineering(self):
-        print "Performing Feature Engineering Operations"
+        print("Performing Feature Engineering Operations")
         feature_engineering_helper_obj = FeatureEngineeringHelper(self._df, self._dataframe_context)
         feature_engineering_helper_obj.consider_columns=self.consider_columns
         columns_to_be_considered_for_binning=self.consider_columns
@@ -21,7 +24,7 @@ class FeatureEngineering:
             if settings['name'] == "binning_all_measures" and settings['selected'] == True:
                 self._df = feature_engineering_helper_obj.binning_all_measures(settings['number_of_bins'],columns_to_be_considered_for_binning)
 
-        for key in self._featureEngineeringDict['column_wise_settings'].keys():
+        for key in list(self._featureEngineeringDict['column_wise_settings'].keys()):
             if self._featureEngineeringDict['column_wise_settings'][key]['selected']:
                 if self._featureEngineeringDict['column_wise_settings'][key]['name'] == "creating_new_bins_or_levels":
                     for operation in self._featureEngineeringDict['column_wise_settings'][key]['operations']:
@@ -84,5 +87,5 @@ class FeatureEngineering:
                                     if column["standardization_type"] == "normalization":
                                         self._df = feature_engineering_helper_obj.normalize_column(column["name"])
 
-        print "Feature Engineering Operations successfully Performed"
+        print("Feature Engineering Operations successfully Performed")
         return self._df

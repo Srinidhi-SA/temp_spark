@@ -1,7 +1,9 @@
+from builtins import zip
+from builtins import object
 from bi.common.decorators import accepts
 from bi.common.results import DfMetaData, MetaData, ColumnData, ColumnHeader
 
-class MetaParser:
+class MetaParser(object):
     def __init__(self):
         self.columnData = []
         self.headers = []
@@ -33,10 +35,10 @@ class MetaParser:
         self.dollar_columns = [obj.get_value() for obj in self.metaData if obj.get_name() == "dollarColumns"]
         self.ignoreColumnSuggestions = [obj.get_value() for obj in self.metaData if obj.get_name() == "ignoreColumnSuggestions"][0]
         self.ignoreReason = [obj.get_value() for obj in self.metaData if obj.get_name() == "ignoreColumnReason"][0]
-        self.ignoreColDict = dict(zip(self.ignoreColumnSuggestions,self.ignoreReason))
+        self.ignoreColDict = dict(list(zip(self.ignoreColumnSuggestions,self.ignoreReason)))
         self.utf8ColumnSuggestion = [obj.get_value() for obj in self.metaData if obj.get_name()=="utf8ColumnSuggestion"][0]
         self.dateTimeSuggestions = [obj.get_value() for obj in self.metaData if obj.get_name()=="dateTimeSuggestions"][0]
-        self.uidCols = [k for k,v in self.ignoreColDict.items() if v.startswith("Index Column")]
+        self.uidCols = [k for k,v in list(self.ignoreColDict.items()) if v.startswith("Index Column")]
         self.column_dict = dict([(obj.get_name(),obj) for obj in self.columnData])
 
     def update_column_dict(self,colname,columnStats):
@@ -78,7 +80,7 @@ class MetaParser:
 
     def get_unique_level_names(self,column_name):
         if self.column_dict[column_name].get_column_type()=="dimension":
-            return self.column_dict[column_name].get_level_count_dict(column_name).keys()
+            return list(self.column_dict[column_name].get_level_count_dict(column_name).keys())
         else:
             return None
 
@@ -124,7 +126,7 @@ class MetaParser:
         return self.noOfColumns
 
     def get_name_from_slug(self,slug):
-        headerOfInterest = filter(lambda x:x.get_slug()==slug,self.headers)
+        headerOfInterest = [x for x in self.headers if x.get_slug()==slug]
         if len(headerOfInterest) == 1:
             return headerOfInterest[0].get_name()
         else:

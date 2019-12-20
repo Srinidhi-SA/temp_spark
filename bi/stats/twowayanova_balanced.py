@@ -1,3 +1,5 @@
+from builtins import range
+from builtins import object
 import pandas as pd
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import mean, sum, col, count
@@ -14,7 +16,7 @@ Two way ANOVA test
 """
 
 
-class TwoWayAnova:
+class TwoWayAnova(object):
     """
         var1 = n*mean2
         var2 = sum(x2)

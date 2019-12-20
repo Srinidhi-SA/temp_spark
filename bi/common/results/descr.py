@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for descriptive stats"""
 
+from past.builtins import basestring
+from builtins import object
 from bi.common.decorators import accepts
 from bi.common.results.histogram import Histogram
 from bi.common import utils
 
 
 
-class FivePointSummary:
+class FivePointSummary(object):
     """Five Point summary stats for a measure column"""
 
     LEFT_HINGE = 'left_hinge'
@@ -20,11 +22,11 @@ class FivePointSummary:
     LEFT_OUTLIERS = 'left'
     RIGHT_OUTLIERS = 'right'
 
-    @accepts(object, left_hinge_value=(int, long, float), q1_value=(int, long, float),
-             median=(int, long, float), q3_value=(int, long, float), right_hinge_value=(int, long, float),
-             num_left_outliers=(int, long, float), num_right_outliers=(int, long, float),
-             q1_freq=(int, long, float), q2_freq=(int, long, float),
-             q3_freq=(int, long, float), q4_freq=(int, long, float))
+    @accepts(object, left_hinge_value=(int, int, float), q1_value=(int, int, float),
+             median=(int, int, float), q3_value=(int, int, float), right_hinge_value=(int, int, float),
+             num_left_outliers=(int, int, float), num_right_outliers=(int, int, float),
+             q1_freq=(int, int, float), q2_freq=(int, int, float),
+             q3_freq=(int, int, float), q4_freq=(int, int, float))
     def __init__(self, left_hinge_value=0.0, q1_value=0.0, median=0.0, q3_value=0.0, right_hinge_value=0.0,
                  num_left_outliers=0, num_right_outliers=0,
                  q1_freq=0, q2_freq=0, q3_freq=0, q4_freq=0):
@@ -80,7 +82,7 @@ class FivePointSummary:
     def get_q3_split(self):
         return self.splits.get(FivePointSummary.Q3)
 
-class MeasureDescriptiveStats:
+class MeasureDescriptiveStats(object):
     """Descriptive stats for a measure column"""
 
     @accepts(object)
@@ -99,9 +101,9 @@ class MeasureDescriptiveStats:
         # TODO: remove raw_data object post demo
         #self.raw_data = None
 
-    @accepts(object, num_values=(int, long), min_value=(int, long, float), max_value=(int, long, float),
-             total=(int, long, float), mean=(int, long, float), variance=(int, long, float),
-             std_dev=(int, long, float), skew=(int, long, float), kurtosis=(int, long, float))
+    @accepts(object, num_values=(int, int), min_value=(int, int, float), max_value=(int, int, float),
+             total=(int, int, float), mean=(int, int, float), variance=(int, int, float),
+             std_dev=(int, int, float), skew=(int, int, float), kurtosis=(int, int, float))
     def set_summary_stats(self, num_values=0, min_value=0.0, max_value=0.0, total=0.0,
                           mean=0.0, variance=0.0, std_dev=0.0, skew=0.0,
                           kurtosis=0.0):
@@ -163,10 +165,10 @@ class MeasureDescriptiveStats:
     def get_n(self):
         return self.n
 
-class DimensionDescriptiveStats:
+class DimensionDescriptiveStats(object):
     """Descriptive stats for a dimension column"""
 
-    @accepts(object, num_null_values=(int, long), num_non_null_values=(int, long), cardinality=(int, long))
+    @accepts(object, num_null_values=(int, int), num_non_null_values=(int, int), cardinality=(int, int))
     def __init__(self, num_null_values=0, num_non_null_values=0, cardinality=1):
         self.n = num_non_null_values + num_null_values
         self.num_null_values = num_null_values
@@ -194,7 +196,7 @@ class DimensionDescriptiveStats:
         return self.freq
 
 
-class TimeDimensionDescriptiveStats:
+class TimeDimensionDescriptiveStats(object):
     """Descriptive stats for a time dimension column"""
 
     @accepts(object, basestring, basestring)
@@ -203,10 +205,10 @@ class TimeDimensionDescriptiveStats:
         self._column_type = column_type
 
 
-class DataFrameDescriptiveStats:
+class DataFrameDescriptiveStats(object):
     """Descriptive stats for all column in a dataframe"""
 
-    @accepts(object, num_columns=(int, long), num_rows=(int, long))
+    @accepts(object, num_columns=(int, int), num_rows=(int, int))
     def __init__(self, num_columns=0, num_rows=0):
         self.num_columns = num_columns
         self.num_rows = num_rows
@@ -219,7 +221,7 @@ class DataFrameDescriptiveStats:
         self.measures[measure_column_name] = measure_column_descr_stats
 
     def get_measure_columns(self):
-        return self.measures.keys()
+        return list(self.measures.keys())
 
     def get_measure_column_stats(self, column_name):
         return self.measures.get(column_name)

@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 import argparse
 import json
 import sys
@@ -34,7 +41,7 @@ if __name__ == '__main__':
             or arguments.input3 is None \
             or arguments.result is None \
             or arguments.narratives is None:
-        print 'One of the aguments --input1 / --input2 / --input3 / --result / --narratives is missing'
+        print('One of the aguments --input1 / --input2 / --input3 / --result / --narratives is missing')
         sys.exit(-1)
 
     spark = CommonUtils.get_spark_session(app_name=APP_NAME)
@@ -48,11 +55,11 @@ if __name__ == '__main__':
     NARRATIVES_FILE = arguments.narratives
 
     df1 = DataLoader.load_csv_file(spark, input1)
-    print "File loaded: ", input1
+    print("File loaded: ", input1)
     df2 = DataLoader.load_csv_file(spark, input2)
-    print "File loaded: ", input2
+    print("File loaded: ", input2)
     df3 = DataLoader.load_csv_file(spark, input3)
-    print "File loaded: ", input3
+    print("File loaded: ", input3)
 
     base_dir = "/home/gulshan/projects/portfolio/"
     time_format = "%b %d, %Y"
@@ -82,7 +89,7 @@ if __name__ == '__main__':
         return out
     def convert_dict_to_float(dict):
         out = {}
-        for x in dict.keys():
+        for x in list(dict.keys()):
             out[x] = float(dict[x])
         return out
 
@@ -91,8 +98,8 @@ if __name__ == '__main__':
         class_grp = df[[dimension_colname,measure_colname]].groupby(dimension_colname)[measure_colname].sum()
         k = class_grp.to_frame()
         k['cum_sum'] = class_grp.cumsum()
-        k['cum_per'] = (k['cum_sum']/k[measure_colname].sum()).apply(lambda x:round(x,2)*100)
-        k['per_con'] = (k[measure_colname]/k[measure_colname].sum()).apply(lambda x:round(x,2)*100)
+        k['cum_per'] = (old_div(k['cum_sum'],k[measure_colname].sum())).apply(lambda x:round(x,2)*100)
+        k['per_con'] = (old_div(k[measure_colname],k[measure_colname].sum())).apply(lambda x:round(x,2)*100)
         # k['cum_per'] = map(lambda x:round(x,2),convert_numpy64_to_float(k['cum_per']))
         # k['per_con'] = map(lambda x:round(x,2),convert_numpy64_to_float(k['per_con']))
         # k['cum_sum'] = map(lambda x:round(x,2),convert_numpy64_to_float(k['cum_sum']))
@@ -103,7 +110,7 @@ if __name__ == '__main__':
 
         dict_k = k.to_dict()
         val_dict = k[measure_colname].to_dict()
-        val_dict= {k:int(val_dict[k]) for k in val_dict.keys()}
+        val_dict= {k:int(val_dict[k]) for k in list(val_dict.keys())}
         dict_k['order_increasing'] = sorted(val_dict, key = val_dict.get)
         return dict_k
 
@@ -115,20 +122,20 @@ if __name__ == '__main__':
 
     def scale_column(df,colname,scale):
         first_val = float(parse_numeric_string(df[colname][0]))
-        scaled_col = df[colname].map(lambda x: (x/first_val)*scale)
+        scaled_col = df[colname].map(lambda x: (old_div(x,first_val))*scale)
         # scaled_col = convert_numpy64_to_float(scaled_col)
         return scaled_col
 
     def performance_gain(series):
         ls = list(series)
-        return ((ls[-1]/ls[0])-1)*100
+        return ((old_div(ls[-1],ls[0]))-1)*100
 
     def month_on_month_performance(df,dimension_column,measure_column,):
         k = df[[dimension_column,measure_column]]
         k[measure_column] = k[measure_column].map(lambda x: float(parse_numeric_string(x)))
         grps = k.groupby(dimension_column)[measure_column]
         for val in grps:
-            print (val[0],performance_gain(val[1]))
+            print((val[0],performance_gain(val[1])))
 
     def portfolio_performance_data(df,colnames,sensex_colname,scale):
         output = {}
@@ -145,7 +152,7 @@ if __name__ == '__main__':
         return output
 
     def calculate_sector_performance(df,sector_map,measure_col):
-        total_amount_by_cat = [{"sector":val,"sector_contribution":float(sum(df[sector_map[val]['colname']]*df[measure_col]))} for val in sector_map.keys()[1:]]
+        total_amount_by_cat = [{"sector":val,"sector_contribution":float(sum(df[sector_map[val]['colname']]*df[measure_col]))} for val in list(sector_map.keys())[1:]]
         return total_amount_by_cat
 
     def create_sector_mapping(df):
@@ -163,7 +170,7 @@ if __name__ == '__main__':
 
     format_date(historical_nav,"Date",time_format)
     historical_nav.sort_values(by="Date")
-    analysis_duration = (historical_nav['Date'].max()-historical_nav['Date'].min()).days/30
+    analysis_duration = old_div((historical_nav['Date'].max()-historical_nav['Date'].min()).days,30)
     fund_names = list(client_data["Fund Name"])
     sensex_colname = "S&P BSE Sensex 30"
     fund_names.append(sensex_colname)
@@ -177,7 +184,7 @@ if __name__ == '__main__':
     client_data_summary = []
     purchase_value = {"name":"Total Net Investments","value":human_format(client_data["Purchase Value"].sum())}
     current_value = {"name":"Current Market Value","value":human_format(client_data["Current Value"].sum())}
-    growth = round(((client_data["Current Value"].sum()/float(client_data["Purchase Value"].sum())-1)/analysis_duration)*12*100,2)
+    growth = round((old_div((client_data["Current Value"].sum()/float(client_data["Purchase Value"].sum())-1),analysis_duration))*12*100,2)
     annual_growth = {"name":"Compounded Annual Growth","value":str(growth)+"%"}
     client_data_summary = [purchase_value,current_value,annual_growth]
     result_object['portfolio_summary']=client_data_summary
@@ -208,9 +215,9 @@ if __name__ == '__main__':
                                             }
                                           }
     temp = result_object['portfolio_snapshot']["class"]["values"]
-    result_object['portfolio_snapshot']["class"]["values"] = {x:round(float(temp[x]),2) for x in temp.keys()}
+    result_object['portfolio_snapshot']["class"]["values"] = {x:round(float(temp[x]),2) for x in list(temp.keys())}
     temp = result_object['portfolio_snapshot']["sector"]["values"]
-    result_object['portfolio_snapshot']["sector"]["values"] = {x:round(float(temp[x]),2) for x in temp.keys()}
+    result_object['portfolio_snapshot']["sector"]["values"] = {x:round(float(temp[x]),2) for x in list(temp.keys())}
 
     # Narratives snapshot section
 
@@ -323,14 +330,14 @@ if __name__ == '__main__':
             val[key] = round(float(val[key]),2)
             out.append(val)
         return out
-    for key in portfolio_performance.keys():
+    for key in list(portfolio_performance.keys()):
         result_object['portfolio_performance'][key] = change_to_float(portfolio_performance[key],"val")
 
     ############################Performance Narrative ####################################3333
     def calculate_streak_months(portfolio_growth,max_length):
         streak = ""
-        months = portfolio_growth.keys()
-        for month in portfolio_growth.keys():
+        months = list(portfolio_growth.keys())
+        for month in list(portfolio_growth.keys()):
             if portfolio_growth[month] > 0:
                 streak+="P"
             else:
@@ -346,7 +353,7 @@ if __name__ == '__main__':
         neg_streak_months = []
         if "P"*longest_seq_len in streak:
             index = streak.index("P"*longest_seq_len)
-            pos_streak_months =  portfolio_growth.keys()[index,index+longest_seq_len]
+            pos_streak_months =  list(portfolio_growth.keys())[index,index+longest_seq_len]
         else:
             index = streak.index("N"*longest_seq_len)
             neg_streak_months = months[index:index+longest_seq_len]
@@ -356,7 +363,7 @@ if __name__ == '__main__':
     portfolio = 0
     for col in fund_names:
         portfolio = portfolio + historical_nav[col]
-    portfolio = [x*100/portfolio[0] for x in portfolio]
+    portfolio = [old_div(x*100,portfolio[0]) for x in portfolio]
     sensex = list(scale_column(historical_nav,sensex_colname,100))
     month_list = list(historical_nav["month"])
     sensex_month = {key: [] for key in list(set(month_list))}
@@ -368,10 +375,10 @@ if __name__ == '__main__':
 
     month_diff = {}
     for val in list(set(month_list)):
-        month_diff[val] = 100*(portfolio_month[val][-1]-sensex_month[val][-1])/sensex_month[val][-1]
+        month_diff[val] = old_div(100*(portfolio_month[val][-1]-sensex_month[val][-1]),sensex_month[val][-1])
 
     portfolio_growth = {}
-    for month in portfolio_month.keys():
+    for month in list(portfolio_month.keys()):
         portfolio_growth[month] = portfolio_month[month][-1]-portfolio_month[month][0]
 
 
@@ -383,8 +390,8 @@ if __name__ == '__main__':
     month_string = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
 
     final_diff = portfolio[-1]-sensex[-1]
-    pos_diff_months = [k for k in portfolio_growth.keys() if portfolio_growth[k]>0]
-    neg_diff_months = [k for k in portfolio_growth.keys() if portfolio_growth[k]<0]
+    pos_diff_months = [k for k in list(portfolio_growth.keys()) if portfolio_growth[k]>0]
+    neg_diff_months = [k for k in list(portfolio_growth.keys()) if portfolio_growth[k]<0]
 
 
 
@@ -441,17 +448,17 @@ if __name__ == '__main__':
             out["diff"] = round(data[1]-data[0],3)
             out["per"] = round(out["diff"]/float(data[0])*100,2)
             out["growth_type"] = "pos" if out["diff"] > 0.0 else "neg" if out["diff"] < 0.0 else "zero"
-            out["cagr"] = round(out["per"]/analysis_duration*12,2)
+            out["cagr"] = round(old_div(out["per"],analysis_duration*12),2)
             output[col] = out
         return output
 
     def get_top_performer(fund_dict):
         #     funds = [x for x in fund_dict.keys() if fund_dict[x]["growth_type"] == growth_type]
-        subset = {k:fund_dict[k]["diff"] for k in fund_dict.keys()}
+        subset = {k:fund_dict[k]["diff"] for k in list(fund_dict.keys())}
         out = {"top":[],"bot":[]}
-        if len(subset.keys()) > 2:
+        if len(list(subset.keys())) > 2:
             max_key = max(subset,key = subset.get)
-            s_keys = subset.keys()
+            s_keys = list(subset.keys())
             s_keys.remove(max_key)
             subset1 = {k:subset[k] for k in s_keys}
             max_key_2 = max(subset1,key = subset1.get)
@@ -462,7 +469,7 @@ if __name__ == '__main__':
             out["top"] = [first,second]
 
             min_key = min(subset,key = subset.get)
-            s_keys = subset.keys()
+            s_keys = list(subset.keys())
             s_keys.remove(min_key)
             subset1 = {k:subset[k] for k in s_keys}
             min_key_2 = min(subset1,key = subset1.get)
@@ -484,8 +491,8 @@ if __name__ == '__main__':
         else:
             return arr
     def get_class_type_statement(class_dict,fund_growth):
-        mf_list = fund_growth.values()
-        keys = class_dict.keys()
+        mf_list = list(fund_growth.values())
+        keys = list(class_dict.keys())
         out = ""
         if len(keys) == 1:
             if len(mf_list) == 2:
@@ -500,7 +507,7 @@ if __name__ == '__main__':
         return out
 
     def get_pos_neg_fundnames(fund_growth):
-        fund_names = fund_growth.keys()
+        fund_names = list(fund_growth.keys())
         out = {"pos":[],"neg":[]}
         for val in fund_names:
             if fund_growth[val]["growth_type"] == "pos":
@@ -514,7 +521,7 @@ if __name__ == '__main__':
         class_type_text = get_class_type_statement(class_dict,fund_growth)
         pos_neg_funds = get_pos_neg_fundnames(fund_growth)
 
-        keys = class_dict.keys()
+        keys = list(class_dict.keys())
         total = sum(class_dict.values())
         outperformer_statement = ""
         underperformer_statement = ""
@@ -523,11 +530,11 @@ if __name__ == '__main__':
         if total == 1:
             mf_dict = fund_growth.values[0]
             if mf_dict["growth_type"] == "pos":
-                out = "You have been investing in Only one mutual fund (i.e %s) and %s has grown by %s during the %d month period,resulting in CAGR of %s"%(class_dict.keys()[0],fund_growth.keys()[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
-                outperformer_statement = "The %s fund has grown by %s during the %d month period, CAGR of %s."%(fund_growth.keys()[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
+                out = "You have been investing in Only one mutual fund (i.e %s) and %s has grown by %s during the %d month period,resulting in CAGR of %s"%(list(class_dict.keys())[0],list(fund_growth.keys())[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
+                outperformer_statement = "The %s fund has grown by %s during the %d month period, CAGR of %s."%(list(fund_growth.keys())[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
             elif mf_dict["growth_type"] == "neg":
-                out = "You have been investing in Only one mutual fund (i.e %s) and %s has shrunken by %s during the %d month period,resulting in annual decline of %s"%(class_dict.keys()[0],fund_growth.keys()[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
-                underperformer_statement = "The %s fund has shrunk by %s during the %d month period, annual decline of %s."%(fund_growth.keys()[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
+                out = "You have been investing in Only one mutual fund (i.e %s) and %s has shrunken by %s during the %d month period,resulting in annual decline of %s"%(list(class_dict.keys())[0],list(fund_growth.keys())[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
+                underperformer_statement = "The %s fund has shrunk by %s during the %d month period, annual decline of %s."%(list(fund_growth.keys())[0],str(mf_dict["per"])+"%",analysis_duration,str(mf_dict["cagr"])+"%")
         elif total == 2:
             if len(pos_neg_funds["pos"]) == 2:
                 out = "You have been investing in two mutual funds (%s) and both have grown over the last %d months"%(class_type_text,analysis_duration)
@@ -586,10 +593,10 @@ if __name__ == '__main__':
     narrative_data["narratives"]["growth"] = {"summary":"","sub_heading":"","sub_sub_heading":""}
     narrative_data["narratives"]["growth"] = {"sub_heading":"What is driving your protfolio growth ?"}
 
-    fund_class = dict(zip(client_data["Fund Name"],client_data["Class"]))
+    fund_class = dict(list(zip(client_data["Fund Name"],client_data["Class"])))
     fund_cls_dict = dict(Counter(client_data["Class"]))
     fund_growth = calculate_fund_growth(historical_nav,fund_names[:-1])
-    for key in fund_growth.keys():
+    for key in list(fund_growth.keys()):
         fund_growth[key]["class"] = fund_class[key]
 
     class_type = get_class_type_statement(fund_cls_dict,fund_growth)
@@ -711,22 +718,22 @@ if __name__ == '__main__':
 
 
     sector_mapping = create_sector_mapping(portfolio_maps)
-    [sector_mapping[val].update({'colname':"Allocation % "+val}) for val in sector_mapping.keys()]
+    [sector_mapping[val].update({'colname':"Allocation % "+val}) for val in list(sector_mapping.keys())]
     sector_performance = pd.DataFrame(calculate_sector_performance(client_data,sector_mapping,"Amount"))
     sector_performance_stats = calculate_group_by_stats(sector_performance,"sector","sector_contribution")
 
     returns = {}
-    for key in sector_mapping.keys():
+    for key in list(sector_mapping.keys()):
         data = [float(parse_numeric_string(x)) for x in list(historical_nav[sector_mapping[key]["benchmark"]])]
-        rev = round(((data[-1]/data[0])-1)*(12/analysis_duration),2)*100
+        rev = round(((old_div(data[-1],data[0]))-1)*(old_div(12,analysis_duration)),2)*100
         returns[key] = rev
 
     per_con = sector_performance_stats["per_con"]
     top_sector_cutoff = 20
-    top_sectors = [(x,per_con[x]) for x in per_con.keys() if per_con[x] >= top_sector_cutoff]
+    top_sectors = [(x,per_con[x]) for x in list(per_con.keys()) if per_con[x] >= top_sector_cutoff]
     top_sectors.sort(key=lambda x: int(x[1]))
 
-    bot_sectors = [(x,per_con[x]) for x in per_con.keys() if per_con[x] < top_sector_cutoff]
+    bot_sectors = [(x,per_con[x]) for x in list(per_con.keys()) if per_con[x] < top_sector_cutoff]
     bot_sectors.sort(key=lambda x: int(x[1]))
 
     out = {"sector_data":{},"sector_order":sector_performance_stats['order_increasing']}
@@ -743,7 +750,7 @@ if __name__ == '__main__':
     stable = []
     underperform = []
     outperform = []
-    for val in sector_mapping.keys():
+    for val in list(sector_mapping.keys()):
         if sector_mapping[val]["performance"] == "Stable":
             stable.append(val)
         elif sector_mapping[val]["performance"] == "Underperform":
@@ -811,8 +818,8 @@ if __name__ == '__main__':
     }
 
 
-    print 'RESULT: %s' % (json.dumps(result_object, indent=2))
-    print 'NARRATIVES: %s' %(json.dumps(narrative_data, indent=2))
+    print('RESULT: %s' % (json.dumps(result_object, indent=2)))
+    print('NARRATIVES: %s' %(json.dumps(narrative_data, indent=2)))
 
     DataWriter.write_dict_as_json(spark, result_object, RESULT_FILE)
     DataWriter.write_dict_as_json(spark, narrative_data, NARRATIVES_FILE)

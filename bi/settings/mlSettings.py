@@ -1,7 +1,8 @@
-from pySparkMLClassificationParams import *
-from pySparkMLRegressionParams import *
-from sklearnMLClassificationParams import *
-from sklearnMLRegressionParams import *
+from __future__ import absolute_import
+from .pySparkMLClassificationParams import *
+from .pySparkMLRegressionParams import *
+from .sklearnMLClassificationParams import *
+from .sklearnMLRegressionParams import *
 import copy
 
 ALGORITHMRANDOMSLUG = "f77631ce2ab24cf78c55bb6a5fce4db8"

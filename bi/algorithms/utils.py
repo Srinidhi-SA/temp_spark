@@ -1,4 +1,12 @@
-import __builtin__
+from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
+import builtins
 import json
 import os
 import time
@@ -86,24 +94,24 @@ def drop_columns(df,drop_column_list):
 def scale_columns(df,column_list):
     for val in column_list:
         norm_df = df[val]
-        df[val] = (norm_df - norm_df.mean()) / (norm_df.max() - norm_df.min())
+        df[val] = old_div((norm_df - norm_df.mean()), (norm_df.max() - norm_df.min()))
 
 def missing_value_analysis(df,replacement_dict):
     bool_df = df.isnull()
     missing_dict = {}
     for val in bool_df.columns:
         missing_dict[val] = dict(bool_df[val].value_counts())
-    missing_cols = [val for val in missing_dict.keys() if True in missing_dict[val].keys()]
-    print('columns with missing value : ',missing_cols,'\n')
+    missing_cols = [val for val in list(missing_dict.keys()) if True in list(missing_dict[val].keys())]
+    print(('columns with missing value : ',missing_cols,'\n'))
 
     if replacement_dict != {}:
         for col in missing_cols:
-            if col in replacement_dict.keys():
+            if col in list(replacement_dict.keys()):
                 df[col] = df[col].apply(lambda x: replacement_dict[col] if pd.isnull(x) == True else x)
     else:
         new_dict = {}
         for col in missing_cols:
-            missing_dict[col]['ratio'] = missing_dict[col][True]/sum(missing_dict[col].values())
+            missing_dict[col]['ratio'] = old_div(missing_dict[col][True],sum(missing_dict[col].values()))
             new_dict[col] = missing_dict[col]
         print('\n')
         return new_dict
@@ -116,7 +124,7 @@ def factorize_columns(df,cat_columns):
         if col in df_col:
             uniq_vals = df_copy[col].unique()
             key = [idx for idx,x in enumerate(uniq_vals)]
-            rep_dict = dict(zip(uniq_vals,key))
+            rep_dict = dict(list(zip(uniq_vals,key)))
             if col != 'responded':
                 df_copy[col]=df_copy[col].apply(lambda x: rep_dict[x])
             else:
@@ -159,7 +167,7 @@ def calculate_predicted_probability(probability_array):
     out = []
     if len(probability_array[0]) > 1:
         for val in probability_array:
-            out.append(__builtin__.max(val))
+            out.append(builtins.max(val))
         return out
     else:
         return probability_array
@@ -174,7 +182,7 @@ def calculate_confusion_matrix(actual,predicted):
     actual_classes = list(set(actual))
     predicted_classes = list(set(predicted))
     total_classes = list(set(actual_classes+predicted_classes))
-    dummy_dict = dict(zip(total_classes,[0]*len(total_classes)))
+    dummy_dict = dict(list(zip(total_classes,[0]*len(total_classes))))
     for k in total_classes:
         if k not in predicted_classes:
             dict_out[k] = dummy_dict
@@ -185,14 +193,14 @@ def calculate_confusion_matrix(actual,predicted):
             else:
                 temp = dict_out[k]
                 missing_keys = list(set(total_classes)-set(actual_classes))
-                additional_data = dict(zip(missing_keys,[0]*len(missing_keys)))
+                additional_data = dict(list(zip(missing_keys,[0]*len(missing_keys))))
                 temp.update(additional_data)
                 dict_out[k] = temp
-    print dict_out
+    print(dict_out)
     return dict_out
 
 def reformat_confusion_matrix(confusion_matrix):
-    levels = confusion_matrix.keys()
+    levels = list(confusion_matrix.keys())
     confusion_matrix_data = [[""]+levels]
     for outer in levels:
         inner_list = [outer]
@@ -207,23 +215,23 @@ def calculate_overall_precision_recall(actual,predicted,targetLevel = None):
     classes = df["actual"].unique()
     val_counts_predicted = df["predicted"].value_counts().to_dict()
     for val in classes:
-        if val not in val_counts_predicted.keys():
+        if val not in list(val_counts_predicted.keys()):
             val_counts_predicted[val] = 0
 
     prediction_split = {}
-    for val in val_counts_predicted.keys():
+    for val in list(val_counts_predicted.keys()):
         prediction_split[val] = round(val_counts_predicted[val]*100/float(len(predicted)),2)
     val_counts = df["actual"].value_counts().to_dict()
     val_counts_tuple = tuple(val_counts.items())
     # positive_class = max(val_counts_tuple,key=lambda x:x[1])[0]
     # positive_class = __builtin__.max(val_counts,key=val_counts.get)
     if targetLevel == None:
-        positive_class = __builtin__.min(val_counts,key=val_counts.get)
+        positive_class = builtins.min(val_counts,key=val_counts.get)
     else:
         positive_class = targetLevel
-    print "val_counts_predicted",val_counts_predicted
-    print "val_counts actual",val_counts
-    print "positive_class",positive_class
+    print("val_counts_predicted",val_counts_predicted)
+    print("val_counts actual",val_counts)
+    print("positive_class",positive_class)
 
     output = {"precision":0,"recall":0,"classwise_stats":None,"prediction_split":prediction_split,"positive_class":positive_class}
     if len(classes) > 2:
@@ -231,7 +239,7 @@ def calculate_overall_precision_recall(actual,predicted,targetLevel = None):
         output["classwise_stats"] = class_precision_recall
         p = []
         r = []
-        for val in class_precision_recall.keys():
+        for val in list(class_precision_recall.keys()):
             p.append(class_precision_recall[val]["precision"])
             r.append(class_precision_recall[val]["recall"])
         output["precision"] = np.mean(p)
@@ -242,7 +250,7 @@ def calculate_overall_precision_recall(actual,predicted,targetLevel = None):
         count_dict["fp"] = df[(df["actual"]!=positive_class) & (df["predicted"]==positive_class)].shape[0]
         count_dict["tn"] = df[(df["actual"]!=positive_class) & (df["predicted"]!=positive_class)].shape[0]
         count_dict["fn"] = df[(df["actual"]==positive_class) & (df["predicted"]!=positive_class)].shape[0]
-        print {"tp":count_dict["tp"],"fp":count_dict["fp"],"tn":count_dict["tn"],"fn":count_dict["fn"]}
+        print({"tp":count_dict["tp"],"fp":count_dict["fp"],"tn":count_dict["tn"],"fn":count_dict["fn"]})
         if count_dict["tp"]+count_dict["fp"] > 0:
             output["precision"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fp"]),2)
         else:
@@ -251,7 +259,7 @@ def calculate_overall_precision_recall(actual,predicted,targetLevel = None):
             output["recall"] = round(float(count_dict["tp"])/(count_dict["tp"]+count_dict["fn"]),2)
         else:
             output["recall"] = 0.0
-    print output
+    print(output)
     return output
 
 def calculate_precision_recall(actual,predicted,df=None):
@@ -290,13 +298,13 @@ def calculate_scored_probability_stats(scored_dataframe):
         output[">"+str(100*val)+"%"] = temp_df["predicted_class"].value_counts().to_dict()
     temp_df = new_df[new_df["predicted_probability"] < 0.25]
     output["<25%"] = temp_df["predicted_class"].value_counts().to_dict()
-    for key in output.keys():
+    for key in list(output.keys()):
         if output[key] == {}:
             output.pop(key, None)
     formattedSplit = reformat_prediction_split(output)
-    print "formattedSplit"
-    print formattedSplit
-    print "="*200
+    print("formattedSplit")
+    print(formattedSplit)
+    print("="*200)
     return formattedSplit
 
 def create_dummy_columns(df,colnames):
@@ -320,10 +328,10 @@ def fill_missing_columns(df,model_columns,result_column):
 
 def transform_feature_importance(feature_importance_dict):
     feature_importance_new = [["Name"],["Value"]]
-    for k,v in feature_importance_dict.items():
+    for k,v in list(feature_importance_dict.items()):
         feature_importance_new[0].append(k)
         feature_importance_new[1].append(v)
-    zipped_feature_importance = zip(feature_importance_new[0],feature_importance_new[1])
+    zipped_feature_importance = list(zip(feature_importance_new[0],feature_importance_new[1]))
     zipped_feature_importance_subset = zipped_feature_importance[1:]
     zipped_feature_importance_subset = sorted(zipped_feature_importance_subset,key=lambda x:x[1],reverse=True)
     zipped_feature_importance = [zipped_feature_importance[0]]+zipped_feature_importance_subset
@@ -348,7 +356,7 @@ def bin_column(df, measure_column,get_aggregation = False):
         agg_df = df.groupby("bucket").agg(FN.sum(measure_column).alias('sum'), FN.count(measure_column).alias('count'))
         aggr = {}
         for row in agg_df.collect():
-            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': row[1]*100.0/total, 'count_percent': row[2]*100.0/df.count()}
+            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1]*100.0,total), 'count_percent': old_div(row[2]*100.0,df.count())}
 
     df = df.select([c for c in df.columns if c!=measure_column])
     df = df.withColumnRenamed("bucket",measure_column)
@@ -387,7 +395,7 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
         agg_df = final_df.groupby(col_to_cluster).agg(sum('target_col').alias('sum'), count('target_col').alias('count'))
         aggr = {}
         for row in agg_df.collect():
-            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': row[1]*100.0/total, 'count_percent': row[2]*100.0/final_df.count()}
+            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1]*100.0,total), 'count_percent': old_div(row[2]*100.0,final_df.count())}
     final_df = final_df.select([c for c in final_df.columns if c!='feature_vector'])
     final_df = final_df.select([col(c) if c!=col_to_cluster else col(c).alias(col_to_cluster) for c in final_df.columns])
     # print final_df.show(3)
@@ -405,7 +413,7 @@ def add_string_index(df,string_columns):
         column_name_maps[c+'_index'] = c
         mapping_dict[c] = dict(enumerate(my_df[[c+'_index']].schema[0].metadata['ml_attr']['vals']))
     my_df = my_df.select([c for c in my_df.columns if c not in string_columns])
-    my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in column_name_maps.keys() \
+    my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in list(column_name_maps.keys()) \
                             else col(c) for c in my_df.columns])
     return my_df, mapping_dict
 
@@ -434,19 +442,19 @@ def save_pipeline_or_model(pipeline,dir_path):
     if yes then 1st delete that then proceed
     """
     # dir_path = dir_path.replace("ubuntu","hadoop")
-    print "dir_path",dir_path
+    print("dir_path",dir_path)
     if dir_path.startswith("file"):
         new_path = dir_path[7:]
     else:
         new_path = dir_path
-    print "new_path",new_path
+    print("new_path",new_path)
     try:
         pipeline.save(dir_path)
-        print "saved in",dir_path
+        print("saved in",dir_path)
     except:
-        print "saving in dir_path failed:- Trying new_path"
+        print("saving in dir_path failed:- Trying new_path")
         pipeline.save(new_path)
-        print "saved in",new_path
+        print("saved in",new_path)
 
 def load_pipeline(filepath):
     model = PipelineModel.load(filepath)
@@ -482,7 +490,7 @@ def load_logistic_model(filepath):
 def stratified_sampling(df,target_column,split):
     levels = [x[0] for x in df.select(target_column).distinct().collect()]
     frac = [split]*len(levels)
-    sampling_dict = dict(zip(levels,frac))
+    sampling_dict = dict(list(zip(levels,frac)))
     sampled_df = df.sampleBy(target_column, fractions = sampling_dict, seed=0)
     return sampled_df
 
@@ -543,13 +551,13 @@ def read_string_indexer_mapping(pipeline_path,sqlContext):
 
 def reformat_prediction_split(prediction_split):
     inner_keys = []
-    for key,val in prediction_split.items():
-        inner_keys += val.keys()
+    for key,val in list(prediction_split.items()):
+        inner_keys += list(val.keys())
     inner_keys = list(set(inner_keys))
     pred_split_new = [["Range"]]
     for val in inner_keys:
         pred_split_new.append([val])
-    for k,v in prediction_split.items():
+    for k,v in list(prediction_split.items()):
         pred_split_new[0].append(k)
         for idx,val in enumerate(pred_split_new[1:]):
             if val[0] in v:
@@ -568,7 +576,7 @@ def fill_missing_values(df,replacement_dict):
 
 def get_model_comparison(collated_summary,evaluvation_metric):
     summary = []
-    algos = collated_summary.keys()
+    algos = list(collated_summary.keys())
     algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network":"Neural Network","TensorFlow":"TensorFlow", "Neural Networks(pyTorch)":"Neural Networks(pyTorch)"}
     out = []
     for val in algos:
@@ -577,7 +585,7 @@ def get_model_comparison(collated_summary,evaluvation_metric):
     first_column = ["Accuracy","Precision","Recall","ROC-AUC"]
     data_keys = ["modelAccuracy","modelPrecision","modelRecall","modelAUC"]
     summary_map = {"Precision":"Best Precision","Recall":"Best Recall","Best Accuracy":"Accuracy"}
-    map_dict = dict(zip(first_column,data_keys))
+    map_dict = dict(list(zip(first_column,data_keys)))
     for key in first_column:
         row = []
         for val in algos:
@@ -585,12 +593,12 @@ def get_model_comparison(collated_summary,evaluvation_metric):
             roundedVal = int(round(100*(collated_summary[val][map_dict[key]])))
             row.append(roundedVal)
         out.append([key]+row)
-        max_index = __builtin__.max(xrange(len(row)), key = lambda x: row[x])
+        max_index = builtins.max(range(len(row)), key = lambda x: row[x])
         summary.append(["Best "+key,algos_dict[algos[max_index]]])
     runtime = []
     for val in algos:
         runtime.append(collated_summary[val]["trainingTime"])
-    max_runtime_index = __builtin__.min(xrange(len(runtime)), key = lambda x: runtime[x])
+    max_runtime_index = builtins.min(range(len(runtime)), key = lambda x: runtime[x])
     summary.append(["Best Runtime",algos_dict[algos[max_runtime_index]]])
     inner_html = []
     for val in summary:
@@ -634,7 +642,7 @@ def get_ordered_summary(out,evaluvation_metric):
         out_df=out_df.sort_values(by = [str(map[evaluvation_metric])], ascending = False)
     else :
         out_df=out_df.sort_values(by = [str(map[evaluvation_metric])], ascending = True)
-    print out_df
+    print(out_df)
     out_act=out_df.T
     sec=out_act.values.tolist()
     fir=out_act.index.tolist()
@@ -647,7 +655,7 @@ def get_ordered_summary(out,evaluvation_metric):
 
 def get_feature_importance(collated_summary):
     feature_importance = collated_summary["randomforest"]["featureImportance"]
-    feature_importance_list = [[k,v] for k,v in feature_importance.items()]
+    feature_importance_list = [[k,v] for k,v in list(feature_importance.items())]
     sorted_feature_importance_list = sorted(feature_importance_list,key = lambda x:x[1],reverse=True)
     feature_importance_data = [{"Variable name":x[0],"Relative Importance":round(x[1],4)} for x in sorted_feature_importance_list if x[1] != 0]
     mapeChartData = NormalChartData(data=feature_importance_data)
@@ -661,7 +669,7 @@ def get_feature_importance(collated_summary):
     return card3Chart
 
 def get_total_models_classification(collated_summary):
-    algos = collated_summary.keys()
+    algos = list(collated_summary.keys())
     n_model = 1
     algorithm_name = []
     for val in algos:
@@ -678,7 +686,7 @@ def get_total_models_classification(collated_summary):
     return output
 
 def get_total_models_regression(collated_summary):
-    algos = collated_summary.keys()
+    algos = list(collated_summary.keys())
     n_model = 0
     algorithm_name = []
     for val in algos:
@@ -718,7 +726,7 @@ def create_scored_data_folder(score_slug,basefoldername):
     return filepath+"/"+score_slug+"/"
 
 def reformat_confusion_matrix(confusion_matrix):
-    levels = confusion_matrix.keys()
+    levels = list(confusion_matrix.keys())
     confusion_matrix_data = [[""]+levels]
     for outer in levels:
         inner_list = [outer]
@@ -728,7 +736,7 @@ def reformat_confusion_matrix(confusion_matrix):
     return [list(x) for x in np.array(confusion_matrix_data).T]
 
 def create_model_summary_para(modelSummaryClass):
-    prediction_split_array = sorted([(k,v) for k,v in modelSummaryClass.get_prediction_split().items()],key=lambda x:x[1],reverse=True)
+    prediction_split_array = sorted([(k,v) for k,v in list(modelSummaryClass.get_prediction_split().items())],key=lambda x:x[1],reverse=True)
     if len(prediction_split_array) == 2:
         binary_class = True
     else:
@@ -737,68 +745,68 @@ def create_model_summary_para(modelSummaryClass):
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Logistic Regression':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(),prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'XGBoost':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naive bayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using naive bayes. The model has an overall accuracy of <b>{}%</b>. The model using Naive Bayes was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Neural Network':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Neural Network. The model has an overall accuracy of <b>{}%</b>. The model using Neural Network was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Neural Network. The model has an overall accuracy of <b>{}%</b>. The model using Neural Network was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'TensorFlow':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using TensorFlow. The model has an overall accuracy of <b>{}%</b>. The model using TensorFlow was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using TensorFlow. The model has an overall accuracy of <b>{}%</b>. The model using TensorFlow was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Neural Networks(pyTorch)':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Neural Networks in pyTorch. The model has an overall accuracy of <b>{}%</b>. The model using Neural Networks in pyTorch was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Neural Networks in pyTorch. The model has an overall accuracy of <b>{}%</b>. The model using Neural Networks in pyTorch was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
     else:
         if modelSummaryClass.get_algorithm_name() == 'Random Forest':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
-            print "prediction_split_array : ", prediction_split_array
+            print("prediction_split_array : ", prediction_split_array)
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
-            paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor using {} has predicted around <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. The Random Forest model contains around {} trees and {} rules. The model was able to rightly predict {} observations as {} out of the total {}. ".format(modelSummaryClass.get_algorithm_name(),target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_num_trees(), modelSummaryClass.get_num_rules(), confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
-            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Logistic Regression':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
-            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "Using {}, mAdvisor was able to predict <b> {}% </b> of observations as {} with an overall accuracy of <b>{}%</b>. This model was evaluated using {} method. When it comes to predicting {}, <b>{}</b> observations were rightly predicted out of the total {} observations. ".format(modelSummaryClass.get_algorithm_name(), target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, modelSummaryClass.get_validation_method(), target_level, confusion_matrix[target_level][target_level], builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'XGBoost':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using XGBoost. The model has an overall accuracy of <b>{}%</b>. The model using XG Boost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Neural Network':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using Neural Network. The model has an overall accuracy of <b>{}%</b>. The model using Neural Network was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using Neural Network. The model has an overall accuracy of <b>{}%</b>. The model using Neural Network was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'TensorFlow':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using TensorFlow. The model has an overall accuracy of <b>{}%</b>. The model using TensorFlow was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using TensorFlow. The model has an overall accuracy of <b>{}%</b>. The model using TensorFlow was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'TensorFlow':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
-            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using Neural Networks in pyTorch. The model has an overall accuracy of <b>{}%</b>. The model using Neural Networks in pyTorch was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, __builtin__.sum(confusion_matrix[x][target_level] for x in confusion_matrix.keys()))
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using Neural Networks in pyTorch. The model has an overall accuracy of <b>{}%</b>. The model using Neural Networks in pyTorch was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
 
     return paragraph
 
@@ -876,7 +884,7 @@ def create_model_management_cards_regression(modelPerformanceClass):
     sampleData = pd.DataFrame(sampleData)
     sampleData.reset_index(inplace=True)
     targetVariable = modelPerformanceClass.get_target_variable()
-    actualVsPredictedData = sampleData[[targetVariable,"prediction"]].T.to_dict().values()
+    actualVsPredictedData = list(sampleData[[targetVariable,"prediction"]].T.to_dict().values())
     actualVsPredictedData = sorted(actualVsPredictedData,key=lambda x:x[targetVariable])
     actualVsPredictedChartJson = ChartJson()
     actualVsPredictedChartJson.set_chart_type("scatter")
@@ -886,7 +894,7 @@ def create_model_management_cards_regression(modelPerformanceClass):
     #actualVsPredictedChartJson.set_title('Actual vs Predicted')
     actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
 
-    residualData = sampleData[["index","difference"]].T.to_dict().values()
+    residualData = list(sampleData[["index","difference"]].T.to_dict().values())
     residualData = sorted(residualData,key=lambda x:x["index"])
     residualChartJson = ChartJson()
     residualChartJson.set_chart_type("scatter")
@@ -905,9 +913,9 @@ def create_model_management_cards_regression(modelPerformanceClass):
 
 
 
-    residualVsPredictedData = sampleData[["difference","prediction"]].T.to_dict().values()
+    residualVsPredictedData = list(sampleData[["difference","prediction"]].T.to_dict().values())
     residualVsPredictedData = sorted(residualVsPredictedData,key=lambda x:x["difference"])
-    print(residualVsPredictedData,"residualVsPredictedData")
+    print((residualVsPredictedData,"residualVsPredictedData"))
     residualVsPredictedChartJson = ChartJson()
     residualVsPredictedChartJson.set_chart_type("scatter")
     residualVsPredictedChartJson.set_data({"data":residualVsPredictedData})
@@ -957,9 +965,9 @@ def create_model_summary_cards(modelSummaryClass):
         # modelSummaryCard1Data.append(HtmlData(data="<p>Independent Variable Chosen - {}</p>".format(len(modelSummaryClass.get_model_features()))))
         # modelSummaryCard1Data.append(HtmlData(data="<h5>Predicted Distribution</h5>"))
         modelParams = modelSummaryClass.get_model_params()
-        print modelParams
+        print(modelParams)
         count = 0
-        for k,v in modelParams.items():
+        for k,v in list(modelParams.items()):
             k = k.capitalize()
             count += 1
             if count <= 4 :
@@ -1028,7 +1036,7 @@ def create_model_summary_cards(modelSummaryClass):
         sampleData = modelSummaryClass.get_sample_data()
         sampleData = pd.DataFrame(sampleData)
         sampleData.reset_index(inplace=True)
-        actualVsPredictedData = sampleData[[targetVariable,"prediction"]].T.to_dict().values()
+        actualVsPredictedData = list(sampleData[[targetVariable,"prediction"]].T.to_dict().values())
         actualVsPredictedData = sorted(actualVsPredictedData,key=lambda x:x[targetVariable])
         actualVsPredictedChartJson = ChartJson()
         actualVsPredictedChartJson.set_chart_type("scatter")
@@ -1041,7 +1049,7 @@ def create_model_summary_cards(modelSummaryClass):
         actualVsPredictedChart = C3ChartData(data=actualVsPredictedChartJson)
 
         ##################### Residual Chart #####################################
-        residualData = sampleData[["index","difference"]].T.to_dict().values()
+        residualData = list(sampleData[["index","difference"]].T.to_dict().values())
         residualData = sorted(residualData,key=lambda x:x["index"])
         residualChartJson = ChartJson()
         residualChartJson.set_chart_type("scatter")
@@ -1141,7 +1149,7 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
                 {"% Population(Cumulative)" : 90.0, "% Responders(Cumulative)" : 90.0},
                 {"% Population(Cumulative)" : 100.0, "% Responders(Cumulative)" : 100.0}]
                 # x axis for gain chart
-                for i,j in zip(range(10),data["Reference Line"][1:]):
+                for i,j in zip(list(range(10)),data["Reference Line"][1:]):
                         j['% Population(Cumulative)'] = ChartData[i]['% Population(Cumulative)']
                 data["Gain Chart"] = ChartData
 
@@ -1352,16 +1360,16 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         nnptcModelSummary = result_setter.get_nnptc_model_summary()
         if rfModelSummary !=None:
             evaluvation_metric=rfModelSummary["dropdown"]["evaluationMetricName"]
-            print evaluvation_metric
+            print(evaluvation_metric)
         elif nbModelSummary !=None:
             evaluvation_metric=nbModelSummary["dropdown"]["evaluationMetricName"]
-            print evaluvation_metric
+            print(evaluvation_metric)
         elif lrModelSummary !=None:
             evaluvation_metric=lrModelSummary["dropdown"]["evaluationMetricName"]
-            print evaluvation_metric
+            print(evaluvation_metric)
         elif xgbModelSummary !=None:
             evaluvation_metric=xgbModelSummary["dropdown"]["evaluationMetricName"]
-            print evaluvation_metric
+            print(evaluvation_metric)
         elif nnModelSummary!=None:
             evaluvation_metric=nnModelSummary["dropdown"]["evaluationMetricName"]
         elif tfModelSummary!=None:
@@ -1456,7 +1464,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs = {}
         labelMappingDict = {}
         targetVariableLevelcount = {}
-        target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
+        target_variable = collated_summary[list(collated_summary.keys())[0]]["targetVariable"]
         allAlgorithmTable = []
         allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","Precision","Recall","Accuracy","ROC-AUC","Run Time(Secs)"]
         allAlgorithmTable.append(allAlgorithmTableHeaderRow)
@@ -1557,7 +1565,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 i=i+1
             else:
                 i=i+1
-        print model_dropdowns
+        print(model_dropdowns)
 
 
 
@@ -1582,8 +1590,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
         modelJsonOutput.set_model_management_summary(modelManagement)
         modelJsonOutput.set_model_dropdown(model_dropdowns)
-        print model_dropdowns
-        print "="*100
+        print(model_dropdowns)
+        print("="*100)
         modelJsonOutput.set_model_config(model_configs)
         if hyperParameterFlag == True:
             modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
@@ -1591,7 +1599,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         return modelJsonOutput
     else:
         collated_summary = result_setter.get_model_summary()
-        targetVariable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
+        targetVariable = collated_summary[list(collated_summary.keys())[0]]["targetVariable"]
         card1 = NormalCard()
         # card1Data = [HtmlData(data="<h4><b>Predicting {}</b></h4>".format(targetVariable))]
         card1Data = [HtmlData(data="<h3>Model Summary</h3>")]
@@ -1649,17 +1657,17 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                             "RMSE" : "Root Mean Square Error",
                             "explained_variance_score":"explained_variance_score"
                             }
-        metricNames = collated_summary[collated_summary.keys()[0]]["modelEvaluationMetrics"].keys()
+        metricNames = list(collated_summary[list(collated_summary.keys())[0]]["modelEvaluationMetrics"].keys())
         metricsToBeShowns=[]
         for i in metricNames:
             if i !="explained_variance_score":
                 metricsToBeShowns.append(i)
         metricNames=metricsToBeShowns
-        full_names = map(lambda x: metricNamesMapping[x],metricNames)
+        full_names = [metricNamesMapping[x] for x in metricNames]
         metricTableTopRow = ["Algorithm"]+full_names
         allMetricsData.append(metricTableTopRow)
         # print "collated_summary : ", collated_summary
-        for algoName,dataObj in collated_summary.items():
+        for algoName,dataObj in list(collated_summary.items()):
             algoRow = []
             algoRow.append(collated_summary[algoName]['algorithmDisplayName'])
             for val in metricNames:
@@ -1697,7 +1705,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_hyperparameter_summary = []
         model_features = {}
         model_configs = {}
-        target_variable = collated_summary[collated_summary.keys()[0]]["targetVariable"]
+        target_variable = collated_summary[list(collated_summary.keys())[0]]["targetVariable"]
 
         allAlgorithmTable = []
         allAlgorithmTableHeaderRow = ["#","Model Id","Algorithm Name","Optimization Method","Metric","RMSE","MAE","MSE","R-Squared","Run Time(Secs)"]
@@ -1714,7 +1722,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                     hyperParameterFlagDict[obj["slug"]] = False
         for obj in allRegressionModelSummary:
             if obj != None:
-                print obj["dropdown"]
+                print(obj["dropdown"])
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["slug"]] = obj["modelFeatureList"]
                 if hyperParameterFlag == True:
@@ -1746,9 +1754,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                         hideColumns = parallelCoordinateMetaData["hideColumns"]
                         metricColName = parallelCoordinateMetaData["metricColName"]
                         columnOrder = parallelCoordinateMetaData["columnOrder"]
-                        print "="*50
-                        print columnOrder
-                        print "="*50
+                        print("="*50)
+                        print(columnOrder)
+                        print("="*50)
                         algoCard.set_card_data([ParallelCoordinateData(data=hyperParamSummary,ignoreList=ignoreList,hideColumns=hideColumns,metricColName=metricColName,columnOrder=columnOrder)])
                         algoCardJson = CommonUtils.convert_python_object_to_json(algoCard)
                         model_hyperparameter_summary.append(json.loads(algoCardJson))
@@ -1789,8 +1797,8 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["labelMappingDict"] = {}
         model_configs["targetVariableLevelcount"] = []
         model_configs["fail_card"]=[rfFailCard,gbtFailCard,dtrFailCard,lrFailCard,tfregFailCard, nnptrFailCard]
-        print model_dropdowns
-        print "="*100
+        print(model_dropdowns)
+        print("="*100)
         model_dropdowns = [x for x in model_dropdowns if x != None]
         """Rounding the model accuracy"""
         i=0
@@ -1801,7 +1809,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
                 i=i+1
             else:
                 i=i+1
-        print model_dropdowns
+        print(model_dropdowns)
         modelManagement = []
         dtreeManagementNode = NarrativesTree(name='Decision Tree')
         gbtManagementNode = NarrativesTree(name='GBTree Regression')
@@ -1830,13 +1838,13 @@ def get_mape_stats(df,colname):
     df = df.na.drop(subset=colname)
     splits = GLOBALSETTINGS.MAPEBINS
     splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
-    print splitRanges
+    print(splitRanges)
     st = time.time()
     bucketizer = Bucketizer(inputCol=colname,outputCol="mapeGULSHAN")
     bucketizer.setSplits(splits)
     df = bucketizer.transform(df)
     # print df.show()
-    print "mape bucketizer in",time.time()-st
+    print("mape bucketizer in",time.time()-st)
     quantileGrpDf = df.groupby("mapeGULSHAN").agg(FN.count(colname).alias('count'))
     splitDict = {}
     for val in quantileGrpDf.collect():
@@ -1851,19 +1859,19 @@ def get_quantile_summary(df,colname):
     st = time.time()
     # df = df.orderBy(colname)
     dfDesc = df.describe().toPandas()
-    descrDict = dict(zip(dfDesc["summary"],dfDesc[colname]))
+    descrDict = dict(list(zip(dfDesc["summary"],dfDesc[colname])))
     quantiles = df.stat.approxQuantile(colname,[0.25,0.5,0.75],0.0)
     biasVal = 1
     splits = [float(descrDict["min"])-biasVal]+quantiles+[float(descrDict["max"])+biasVal]
     splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
-    print splitRanges
+    print(splitRanges)
     try:
         bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
         bucketizer.setSplits(splits)
         df = bucketizer.transform(df)
         # print df.show()
     except:
-        print "using bias splitRange"
+        print("using bias splitRange")
         splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
         splitRanges[-1] = (splitRanges[-1][0]+biasVal,splitRanges[-1][1]-biasVal)
         bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
@@ -1920,27 +1928,27 @@ def vif_cal_spark(df):
         rsq =lr_evaluator.evaluate(predictions)
         if rsq == 1:
             rsq=0.999
-        vif=round(1/(1-rsq),2)
+        vif=round(old_div(1,(1-rsq)),2)
         vif_ser[xvar_names[i]] = vif
     return vif_ser
 
 def feature_selection_vif_spark(df,vif_thr=5):
     temp_vif = vif_cal_spark(df)
     check = (temp_vif>vif_thr).sum()
-    print temp_vif
+    print(temp_vif)
     if check == 0:
         return df
     else:
         all_col = df.columns
         while check !=0:
-            print "In While"
+            print("In While")
             mx_col =temp_vif.idxmax()
             col2use = list(set(all_col)-set([mx_col]))
             temp_df = df.select(col2use)
-            print "\ncolumn dropped : " + mx_col
+            print("\ncolumn dropped : " + mx_col)
             all_col = col2use
             temp_vif = vif_cal_spark(temp_df)
-            print temp_vif
+            print(temp_vif)
             check = (temp_vif>vif_thr).sum()
         return df.select(col2use)
 
@@ -1959,27 +1967,27 @@ def vif_cal(df):
         rsq = r2_score(df[y_col[0]],y_prd)
         if rsq == 1:
             rsq=0.999
-        vif=round(1/(1-rsq),2)
+        vif=round(old_div(1,(1-rsq)),2)
         vif_ser[xvar_names[i]] = vif
     return vif_ser
 
 def feature_selection_vif(df,vif_thr=5):
     temp_vif = vif_cal(df)
     check = (temp_vif>vif_thr).sum()
-    print temp_vif
+    print(temp_vif)
     if check == 0:
         return df
     else:
         all_col = df.columns
         while check !=0:
-            print "In While"
+            print("In While")
             mx_col =temp_vif.idxmax()
             col2use = list(set(all_col)-set([mx_col]))
             temp_df = df[col2use]
-            print "\ncolumn dropped : " + mx_col
+            print("\ncolumn dropped : " + mx_col)
             all_col = col2use
             temp_vif = vif_cal(temp_df)
-            print temp_vif
+            print(temp_vif)
             check = (temp_vif>vif_thr).sum()
         return df[col2use]
 
@@ -2020,7 +2028,7 @@ def stock_sense_overview_card(data_dict_overall):
 
     articlesByStockCardData = data_dict_overall["number_articles_by_stock"]
     plotData = []
-    for k,v in articlesByStockCardData.items():
+    for k,v in list(articlesByStockCardData.items()):
         plotData.append({"name":k,"value":v})
     plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     articlesByStockData = NormalChartData(data=plotData)
@@ -2037,12 +2045,12 @@ def stock_sense_overview_card(data_dict_overall):
     overviewCardData.append(articlesByStockChart)
 
     articlesByConceptCardData = data_dict_overall["number_articles_by_concept"]
-    valuesTotal = __builtin__.sum(articlesByConceptCardData.values())
+    valuesTotal = builtins.sum(list(articlesByConceptCardData.values()))
     try:
-        articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in articlesByConceptCardData.items()}
+        articlesByConceptCardData = {k:round(float(v)*100/valuesTotal,2) for k,v in list(articlesByConceptCardData.items())}
     except Exception as e:
-        print "=="*100
-        print "Could not find any content on this stock"
+        print("=="*100)
+        print("Could not find any content on this stock")
 
     articlesByConceptData = NormalChartData(data=[articlesByConceptCardData])
     chart_json = ChartJson()
@@ -2070,7 +2078,7 @@ def stock_sense_overview_card(data_dict_overall):
 
     articlesBySourceCardData = data_dict_overall["number_articles_per_source"]
     plotData = []
-    for k,v in articlesBySourceCardData.items():
+    for k,v in list(articlesBySourceCardData.items()):
         plotData.append({"name":k,"value":v})
     plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     articlesBySourceData = NormalChartData(data=plotData)
@@ -2090,7 +2098,7 @@ def stock_sense_overview_card(data_dict_overall):
 
     sentimentByStockCardData = data_dict_overall["stocks_by_sentiment"]
     plotData = []
-    for k,v in sentimentByStockCardData.items():
+    for k,v in list(sentimentByStockCardData.items()):
         plotData.append({"name":k,"value":v})
     plotData = sorted(plotData,key=lambda x:x["value"],reverse=True)
     sentimentByStockData = NormalChartData(data=plotData)
@@ -2112,29 +2120,29 @@ def stock_sense_overview_card(data_dict_overall):
 def aggregate_concept_stats(conceptDictArray):
     # {"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]}
     concepts = list(set([obj["concept"].split("__")[0] for obj in conceptDictArray]))
-    articlesDict = dict(zip(concepts,[0]*len(concepts)))
-    sentimentDict = dict(zip(concepts,[0]*len(concepts)))
+    articlesDict = dict(list(zip(concepts,[0]*len(concepts))))
+    sentimentDict = dict(list(zip(concepts,[0]*len(concepts))))
     for conceptDict in conceptDictArray:
         for concept in concepts:
             if conceptDict["concept"].split("__")[0] == concept:
                 articlesDict[concept] += conceptDict["articles"]
                 sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
     outArray = []
-    conceptTableDict = dict(zip(concepts,[[]]*len(concepts)))
+    conceptTableDict = dict(list(zip(concepts,[[]]*len(concepts))))
     for obj in conceptDictArray:
         conceptName,subConcept = obj["concept"].split("__")
         tableDict = {"text":subConcept,"value":obj["avgSentiment"]}
         existingVal = copy.deepcopy(conceptTableDict[conceptName])
         newVal = existingVal + [tableDict]
         conceptTableDict[conceptName] = newVal
-    conceptOrder = sorted([(k,len(v)) for k,v in conceptTableDict.items()],key=lambda x:x[1],reverse=True)
-    maxNoSubConcepts = max([len(v) for k,v in conceptTableDict.items()])
+    conceptOrder = sorted([(k,len(v)) for k,v in list(conceptTableDict.items())],key=lambda x:x[1],reverse=True)
+    maxNoSubConcepts = max([len(v) for k,v in list(conceptTableDict.items())])
     conceptTable = [[x[0] for x in conceptOrder]]
     for idx,val in enumerate(concepts):
         if len(conceptTableDict[val]) < maxNoSubConcepts:
             conceptTableDict[val] += [{"text":"","value":0}]*(maxNoSubConcepts-len(conceptTableDict[val]))
         if articlesDict[val] != 0:
-            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(sentimentDict[val]/articlesDict[val],2)}
+            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(old_div(sentimentDict[val],articlesDict[val]),2)}
         else:
             obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":0.0}
         outArray.append(obj)
@@ -2146,7 +2154,7 @@ def aggregate_concept_stats(conceptDictArray):
 
 def stock_sense_individual_stock_cards(stockDict):
     allStockNodes = []
-    for stockName,dataDict in stockDict.items():
+    for stockName,dataDict in list(stockDict.items()):
         stockNode = NarrativesTree()
         stockNode.set_name(stockName)
         analysisOverviewCard = NormalCard()
@@ -2199,7 +2207,7 @@ def stock_sense_individual_stock_cards(stockDict):
 
         conceptData = dataDict["articlesAndSentimentsPerConcept"]
         chartData = []
-        for k,v in dataDict["articlesAndSentimentsPerConcept"].items():
+        for k,v in list(dataDict["articlesAndSentimentsPerConcept"].items()):
             chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
         # chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
         chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)

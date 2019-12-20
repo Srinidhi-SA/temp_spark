@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 from datetime import datetime
 
 import pandas as pd
@@ -6,7 +12,7 @@ from scipy import stats
 from bi.common.decorators import accepts
 
 
-class DFTwoWayAnovaResult:
+class DFTwoWayAnovaResult(object):
     def __init__(self):
         self.result = {}
     def get_anova_result(self,measure,dimension):
@@ -18,13 +24,13 @@ class DFTwoWayAnovaResult:
     def get_measure_result(self, measure):
         return self.result[measure]
     def get_measure_columns(self):
-        return self.result.keys()
+        return list(self.result.keys())
     def get_dimensions_analyzed(self,measure):
         return self.result[measure].get_dimensions_analyzed()
     def get_significant_dimensions(self,measure):
         return self.result[measure].get_OneWayAnovaSignificantDimensions()
 
-class TrendData:
+class TrendData(object):
     def __init__(self,grouped_data=None,level_pivot=None,startDate=None,endDate=None,duration=None,durationString=None,dataLevel=None):
         self.grouped_data = grouped_data
         self.level_pivot = level_pivot
@@ -66,7 +72,7 @@ class TrendData:
     def get_duration_string(self):
         return self.durationString
 
-class OneWayAnovaResult:
+class OneWayAnovaResult(object):
     """
     Encapsulates results of an Anova test
     """
@@ -86,11 +92,11 @@ class OneWayAnovaResult:
         self.levelDf = None
 
 
-    @accepts(object, df_within=(int, long, float), df_between=(int, long, float),
-             sum_of_squares_between=(int, long, float),sum_of_squares_within=(int, long, float),
-             mean_sum_of_squares_between=(int, long, float),mean_sum_of_squares_within=(int, long, float),
-             f_value=(int, long, float), p_value=(int, float),eta_squared=(int, long, float),
-             f_critical=(int, long, float),total_number_of_records=(int, long),n_groups=(int, long),levelDf=pd.DataFrame)
+    @accepts(object, df_within=(int, int, float), df_between=(int, int, float),
+             sum_of_squares_between=(int, int, float),sum_of_squares_within=(int, int, float),
+             mean_sum_of_squares_between=(int, int, float),mean_sum_of_squares_within=(int, int, float),
+             f_value=(int, int, float), p_value=(int, float),eta_squared=(int, int, float),
+             f_critical=(int, int, float),total_number_of_records=(int, int),n_groups=(int, int),levelDf=pd.DataFrame)
     def set_params(self, df_within, df_between, sum_of_squares_between=0.0, sum_of_squares_within=0.0,
                    mean_sum_of_squares_between=0.0, mean_sum_of_squares_within=0.0, f_value=0.0, p_value=0.0,
                    eta_squared=0.0,f_critical=0.0,total_number_of_records=0,n_groups=0,levelDf=None):
@@ -150,7 +156,7 @@ class OneWayAnovaResult:
 
 
 
-class TopLevelDfAnovaStats:
+class TopLevelDfAnovaStats(object):
     def __init__(self):
         self.top_level_stat = None
         self.top_level_anova = {}
@@ -166,7 +172,7 @@ class TopLevelDfAnovaStats:
         return self.top_level_stat
 
     def get_top_level_name(self):
-        print self.top_level_stat
+        print(self.top_level_stat)
         return self.top_level_stat["levels"]
 
     @accepts(object,dimension=str,anovaResult=OneWayAnovaResult)
@@ -175,15 +181,15 @@ class TopLevelDfAnovaStats:
 
     @accepts(object,dimension=str,contributionDict=dict)
     def set_dimension_contributions(self,dimension,contributionDict):
-        print "contributionDict",contributionDict
-        print "#$"*23
+        print("contributionDict",contributionDict)
+        print("#$"*23)
         self.contributions[dimension] = contributionDict
 
     def get_top_significant_dimensions(self,n=5):
         output = []
-        for dim,anovaResult in self.top_level_anova.items():
-            print "getting top n"
-            print dim,anovaResult.get_p_value(),type(anovaResult.get_p_value())
+        for dim,anovaResult in list(self.top_level_anova.items()):
+            print("getting top n")
+            print(dim,anovaResult.get_p_value(),type(anovaResult.get_p_value()))
             if anovaResult.get_p_value() < 0.05:
                 output.append((dim,anovaResult,anovaResult.get_effect_size()))
         sortedOutput = sorted(output,key=lambda x:x[2],reverse=True)
@@ -196,7 +202,7 @@ class TopLevelDfAnovaStats:
     def get_trend_data(self):
         return self.trendData
 
-class MeasureAnovaResult:
+class MeasureAnovaResult(object):
     def __init__(self, measureColMean=None,measureColCount=None, measureColSst=None):
         self.global_mean = measureColMean
         self.df = measureColCount - 1
@@ -210,7 +216,7 @@ class MeasureAnovaResult:
         return self.oneWayAnovaResultDict[dimension]
 
     def get_dimensions_analyzed(self):
-        return self.oneWayAnovaResultDict.keys()
+        return list(self.oneWayAnovaResultDict.keys())
 
     @accepts(object, dimension=(str), oneWayAnovaResult=OneWayAnovaResult)
     def set_oneWayAnovaResultDict(self, dimension,oneWayAnovaResult):
@@ -247,22 +253,22 @@ class MeasureAnovaResult:
         return self.trendData
 
     def set_TwoWayAnovaResult(self, dimension1,dimension2, var, sse):
-        if not self.TwoWayAnovaResult.has_key(dimension1):
+        if dimension1 not in self.TwoWayAnovaResult:
             self.TwoWayAnovaResult[dimension1]={}
         self.TwoWayAnovaResult[dimension1][dimension2] = TwoWayAnovaResult(var, self.global_mean, sse, self.sst)
         self.TwoWayAnovaResult[dimension1][dimension2].set_results(self.OneWayAnovaResult[dimension1], self.OneWayAnovaResult[dimension2])
 
     def get_TwoWayAnovaResult(self, dimension1,dimension2):
-        if self.TwoWayAnovaResult.has_key(dimension1):
-            if self.TwoWayAnovaResult[dimension1].has_key(dimension2):
+        if dimension1 in self.TwoWayAnovaResult:
+            if dimension2 in self.TwoWayAnovaResult[dimension1]:
                 return self.TwoWayAnovaResult[dimension1][dimension2]
-        if self.TwoWayAnovaResult.has_key(dimension2):
-            if self.TwoWayAnovaResult[dimension2].has_key(dimension1):
+        if dimension2 in self.TwoWayAnovaResult:
+            if dimension1 in self.TwoWayAnovaResult[dimension2]:
                 return self.TwoWayAnovaResult[dimension2][dimension1]
 
 
 
-class TwoWayAnovaResult:
+class TwoWayAnovaResult(object):
     def __init__(self, var, global_mean, sse, sst):
         self._global_mean = global_mean
         self.set_dim_table(var)
@@ -285,27 +291,27 @@ class TwoWayAnovaResult:
     def set_results(self, anova_row, anova_column):
         self.ss_row = anova_row.get_ss_between()
         self.df_row = anova_row.get_df_between()
-        self.ms_row = self.ss_row/self.df_row
+        self.ms_row = old_div(self.ss_row,self.df_row)
 
         #self.ss_total = anova_row.get_ss_total()
         self.df_total = anova_row.get_df_total()
-        self.ms_total = self.ss_total/self.df_total
+        self.ms_total = old_div(self.ss_total,self.df_total)
 
         self.ss_column = anova_column.get_ss_between()
         self.df_column = anova_column.get_df_between()
-        self.ms_column = self.ss_column/self.df_column
+        self.ms_column = old_div(self.ss_column,self.df_column)
 
         #self.ss_interaction = self._n_mean2 - self.ss_row - self.ss_column - var1
         self.df_interaction = self.df_row * self.df_column
-        self.ms_interaction = self.ss_interaction/self.df_interaction
+        self.ms_interaction = old_div(self.ss_interaction,self.df_interaction)
 
         #self.ss_error = var2 - self._n_mean2
         self.df_error = self.df_total - (self.df_row+1)*(self.df_column+1) + 1
-        self.ms_error = self.ss_error/self.df_error
+        self.ms_error = old_div(self.ss_error,self.df_error)
 
-        self.f_row = self.ms_row/self.ms_error
-        self.f_column = self.ms_column/self.ms_error
-        self.f_interaction = self.ms_interaction/self.ms_error
+        self.f_row = old_div(self.ms_row,self.ms_error)
+        self.f_column = old_div(self.ms_column,self.ms_error)
+        self.f_interaction = old_div(self.ms_interaction,self.ms_error)
 
         '''
         self.p_row = Stats.f_distribution_critical_value(self.f_row, self.df_row, self.df_error)
@@ -317,11 +323,11 @@ class TwoWayAnovaResult:
         self.p_column = 1 - stats.f.cdf(self.f_column, self.df_column,self.df_error)
         self.p_interaction = 1 - stats.f.cdf(self.f_interaction, self.df_interaction,self.df_error)
         #'''
-        self.effect_size_interaction = self.ss_interaction/self.ss_total
-        self.effect_size_row = self.ss_row/self.ss_total
-        self.effect_size_column = self.ss_column/self.ss_total
+        self.effect_size_interaction = old_div(self.ss_interaction,self.ss_total)
+        self.effect_size_row = old_div(self.ss_row,self.ss_total)
+        self.effect_size_column = old_div(self.ss_column,self.ss_total)
 
-class TopDimensionStats:
+class TopDimensionStats(object):
     def __init__(self,top_dimension, total,df,mean, sst):
         self.top_dimension = top_dimension
         self.sum_measure = total
@@ -344,12 +350,12 @@ class TopDimensionStats:
         ss_within = sse
         df_within = self._df_total - df_between
         if ss_within > 0:
-            self.effect_size[dimension] = ss_between/self._sst
+            self.effect_size[dimension] = old_div(ss_between,self._sst)
         else:
             self.effect_size[dimension] = 0
-        ms_between = ss_between/df_between
-        ms_within = ss_within/df_within
-        f_stat = ms_between/ms_within
+        ms_between = old_div(ss_between,df_between)
+        ms_within = old_div(ss_within,df_within)
+        f_stat = old_div(ms_between,ms_within)
         self.p_value[dimension] = 1 - stats.f.cdf(f_stat, df_between, df_within)
         if self.p_value[dimension]<=0.05:
             self.compute_contributions(dimension,var)
@@ -361,14 +367,14 @@ class TopDimensionStats:
         var = var.sort_values('total', ascending = False)
         max_diff_index = var.total.diff(1).argmax()
         var = var.ix[:max_diff_index]
-        var['percent'] = var['total']/self.sum_measure
-        self.contributions[dimension] = dict(zip(var['levels'], var['percent']))
+        var['percent'] = old_div(var['total'],self.sum_measure)
+        self.contributions[dimension] = dict(list(zip(var['levels'], var['percent'])))
 
     def get_contributions(self, dimension):
         return self.contributions[dimension]
 
     def get_top_3_significant_dimensions(self):
-        significant_dimensions = [k for k,v in self.p_value.items() if v<=0.05]
+        significant_dimensions = [k for k,v in list(self.p_value.items()) if v<=0.05]
         if len(significant_dimensions)<2:
             return significant_dimensions
         else:
@@ -376,7 +382,7 @@ class TopDimensionStats:
             return significant_dimensions
 
     def get_significant_dimensions(self):
-        significant_dimensions = [k for k,v in self.p_value.items() if v<=0.05]
+        significant_dimensions = [k for k,v in list(self.p_value.items()) if v<=0.05]
         if len(significant_dimensions)<2:
             return significant_dimensions
         else:
@@ -386,7 +392,7 @@ class TopDimensionStats:
 
 
 
-class TrendResult:
+class TrendResult(object):
     def __init__(self, agg_data_frame, date_field, measure):
         self._data_frame = agg_data_frame
         self.subset_df = {}
@@ -394,7 +400,7 @@ class TrendResult:
         self.top_dimensions = {}
         self.date_field = date_field
         self.measure = measure
-        self._growth_rate = (self._data_frame['measure'].iloc[-1]*100/self._data_frame['measure'].iloc[0]) - 100
+        self._growth_rate = (old_div(self._data_frame['measure'].iloc[-1]*100,self._data_frame['measure'].iloc[0])) - 100
 
     def get_data_frame(self):
         return self._data_frame
@@ -421,7 +427,7 @@ class TrendResult:
     def get_top_dimension(self, dimension):
         return self.top_dimensions[dimension]
 
-class TrendDimensionResult:
+class TrendDimensionResult(object):
     def __init__(self, agg_data_frame_dimension):
         self.grouped_data_frame = agg_data_frame_dimension
 

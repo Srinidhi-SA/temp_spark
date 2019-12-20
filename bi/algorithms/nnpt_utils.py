@@ -1,3 +1,4 @@
+from __future__ import print_function
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -8,9 +9,9 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
     layers = []
     layers_list = sorted(tuple(nnpt_params["hidden_layer_info"]))
 
-    print "n_layers - ", len(layers_list)
-    print "task_type - ", task_type
-    print "layers_tuple - ", layers_list
+    print("n_layers - ", len(layers_list))
+    print("task_type - ", task_type)
+    print("layers_tuple - ", layers_list)
 
     if task_type == "CLASSIFICATION":
         for val in layers_list:
@@ -26,10 +27,10 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
             layer_batchnormalization = layer_dict["batchnormalization"]
             layer_dropout = layer_dict["dropout"]
 
-            print "~"*50
-            print "Layer ID - ", val
-            print "Layer Name - ", layer_name
-            print "~"*50
+            print("~"*50)
+            print("Layer ID - ", val)
+            print("Layer Name - ", layer_name)
+            print("~"*50)
 
             if layer_name == "Linear":
                 main_layer = nn.Linear(in_features = layer_units_ip, out_features = layer_units_op, bias = layer_bias)
@@ -139,9 +140,9 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
                 else:
                     pass
 
-        print "~"*50
-        print "FINAL LAYERS FOR NETWORK - ", layers
-        print "~"*50
+        print("~"*50)
+        print("FINAL LAYERS FOR NETWORK - ", layers)
+        print("~"*50)
 
     if task_type == "REGRESSION":
         for val in layers_list:
@@ -157,10 +158,10 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
             layer_batchnormalization = layer_dict["batchnormalization"]
             layer_dropout = layer_dict["dropout"]
 
-            print "~"*50
-            print "Layer ID - ", val
-            print "Layer Name - ", layer_name
-            print "~"*50
+            print("~"*50)
+            print("Layer ID - ", val)
+            print("Layer Name - ", layer_name)
+            print("~"*50)
 
             if layer_name == "Linear":
                 main_layer = nn.Linear(in_features = layer_units_ip, out_features = layer_units_op, bias = layer_bias)

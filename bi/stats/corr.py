@@ -1,4 +1,8 @@
+from __future__ import division
 
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 import math
 
 # from bi.common import ALPHA_LEVELS
@@ -16,7 +20,7 @@ from bi.stats.util import Stats
 Utility class for finding correlation among numerical columns in a data frame
 """
 
-class Correlation:
+class Correlation(object):
     def __init__(self, data_frame, df_helper, df_context):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
@@ -78,8 +82,8 @@ class Correlation:
         corr = self._data_frame.corr(column_one, column_two)
         num_of_samples = self._data_frame.select(column_one).count()
         df = num_of_samples - 2
-        std_error = math.sqrt((1 - math.pow(corr, 2)) / df)
-        t_value = corr / std_error
+        std_error = math.sqrt(old_div((1 - math.pow(corr, 2)), df))
+        t_value = old_div(corr, std_error)
         p_value = Stats.t_distribution_critical_value(t_value, df=df)
         coeff_determination = math.pow(corr, 2)
 

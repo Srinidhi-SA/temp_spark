@@ -1,7 +1,8 @@
+from builtins import object
 from bi.common.exception import BIException
 
 
-class Validator:
+class Validator(object):
     """
     Utilitiy class for common validations
     """

@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """This module contains result object for Anova test"""
+from __future__ import division
 
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 from bi.common.decorators import accepts
 from bi.common.results.descr import DimensionDescriptiveStats
 from bi.common.results.descr import MeasureDescriptiveStats
@@ -78,7 +82,7 @@ class ColumnValueGroup(object):
                    for column_name in self.get_column_names())
 
 
-class AnovaColumnValueGroupStats:
+class AnovaColumnValueGroupStats(object):
     """Descriptive stats of a measure column for a particular ColumnValueGroup in an Anova test"""
 
     @accepts(object, ColumnValueGroup,
@@ -102,7 +106,7 @@ class AnovaColumnValueGroupStats:
         return self.descr_stats
 
 
-class AnovaResult:
+class AnovaResult(object):
     """Encapsulates results of an Anova test"""
 
     def __init__(self):
@@ -126,10 +130,10 @@ class AnovaResult:
             self.groups.append(anova_column_value_group_stats)
             self.n += anova_column_value_group_stats.get_descr_stats().get_num_values()
 
-    @accepts(object, df1=(int, long, float), df2=(int, long, float), sum_of_squares_between=(int, long, float),
-             mean_sum_of_squares_between=(int, long, float), sum_of_squares_error=(int, long, float),
-             mean_sum_of_squares_error=(int, long, float), f_value=(int, long, float), p_value=(int, float),
-             total_number_of_records=(int, long))
+    @accepts(object, df1=(int, int, float), df2=(int, int, float), sum_of_squares_between=(int, int, float),
+             mean_sum_of_squares_between=(int, int, float), sum_of_squares_error=(int, int, float),
+             mean_sum_of_squares_error=(int, int, float), f_value=(int, int, float), p_value=(int, float),
+             total_number_of_records=(int, int))
     def set_params(self, df1, df2, sum_of_squares_between=0.0, mean_sum_of_squares_between=0.0,
                    sum_of_squares_error=0.0, mean_sum_of_squares_error=0.0, f_value=0.0, p_value=0.0,
                    total_number_of_records=140):
@@ -144,7 +148,7 @@ class AnovaResult:
         self.n = total_number_of_records
 
         if(self.p_value <= 0.05):
-            self.effect_size = sum_of_squares_between/sum_of_squares_error
+            self.effect_size = old_div(sum_of_squares_between,sum_of_squares_error)
 
 
     @accepts(object, float)
@@ -199,7 +203,7 @@ class AnovaResult:
                       reverse=descending_order)
 
 
-class DFAnovaResult:
+class DFAnovaResult(object):
     """
     Result object for all Anova tests in a dataframe
     """
@@ -212,7 +216,7 @@ class DFAnovaResult:
     def add_anova_result(self, measure_column, dimension_column, anova_result):
         if measure_column not in self.measures:
             self.measures.append(measure_column)
-        if not self.results.has_key(measure_column):
+        if measure_column not in self.results:
             self.results[measure_column] = {}
         self.results.get(measure_column)[dimension_column] = anova_result
 
@@ -220,11 +224,11 @@ class DFAnovaResult:
         return self.measures
 
     def get_dimensions_analyzed(self, measure_column):
-        if not self.results.has_key(measure_column):
+        if measure_column not in self.results:
             return []
-        return self.results.get(measure_column).keys()
+        return list(self.results.get(measure_column).keys())
 
     def get_anova_result(self, measure_column, dimension_column):
-        if not self.results.has_key(measure_column) or not self.results.get(measure_column).has_key(dimension_column):
+        if measure_column not in self.results or dimension_column not in self.results.get(measure_column):
             return None
         return self.results.get(measure_column).get(dimension_column)

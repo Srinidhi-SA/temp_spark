@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import object
 import time
 
 from pyspark.sql.functions import col
@@ -7,7 +9,7 @@ from bi.common import utils as CommonUtils
 
 #import bi.common.dataframe
 
-class DataFrameFilterer:
+class DataFrameFilterer(object):
     # @accepts(object,DataFrame,DataFrameHelper,ContextSetter)
     def __init__(self, dataframe, df_helper, df_context):
         self._data_frame = dataframe
@@ -62,7 +64,7 @@ class DataFrameFilterer:
 
         time_taken_dimensionfilters = time.time()-self._start_time
         self._completionStatus += self._scriptStages["dimensionfilters"]["weight"]
-        print "dimensionfilters takes",time_taken_dimensionfilters
+        print("dimensionfilters takes",time_taken_dimensionfilters)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "dimensionfilters",\
                                     "info",\
@@ -81,7 +83,7 @@ class DataFrameFilterer:
                                                            less_than_equal =1)
         time_taken_measurefilters = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurefilters"]["weight"]
-        print "measurefilters takes",time_taken_measurefilters
+        print("measurefilters takes",time_taken_measurefilters)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "measurefilters",\
                                     "info",\
@@ -100,7 +102,7 @@ class DataFrameFilterer:
                                                            less_than_equal =1)
         time_taken_datetimefilters = time.time()-self._start_time
         self._completionStatus += self._scriptStages["datetimefilters"]["weight"]
-        print "datetimefilters takes",time_taken_datetimefilters
+        print("datetimefilters takes",time_taken_datetimefilters)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "datetimefilters",\
                                     "info",\

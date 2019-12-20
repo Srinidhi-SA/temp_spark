@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
+from builtins import object
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql import functions as FN
 from pyspark.sql.types import DoubleType
@@ -13,7 +19,7 @@ Constants for Binner classes
 """
 
 
-class BinnerConstants:
+class BinnerConstants(object):
     # temporary column names to use in intermediate data frames
     ORIGINAL_COLUMN_NAME = 'values'
     BINNED_COLUMN_NAME = 'bin'
@@ -26,7 +32,7 @@ class BinnerConstants:
     BIN_NUMBER_OF_RECORDS_FIELD = 'num_records'
 
 
-class Binner:
+class Binner(object):
     """
     Utility class for binning numeric columns of a data frame
     """
@@ -74,10 +80,10 @@ class Binner:
             splits = CommonUtils.return_optimum_bins(self._data_frame.select(column_name).toPandas()[column_name])
             if splits[0]>min_value:
                 splits = [min_value-1]+list(splits)
-                print "Min Point Added"
+                print("Min Point Added")
             if splits[-1]<max_value:
                 splits = list(splits)+[max_value+1]
-                print "Max Point Added"
+                print("Max Point Added")
         else:
             splits = split_points
         # cast column_name to double type if needed, otherwise Bucketizer does not work
@@ -108,19 +114,19 @@ class Binner:
         return histogram
 
 
-class BinnedColumnNarrative:
+class BinnedColumnNarrative(object):
     @accepts(object, (list, tuple))
     def __init__(self, bins):
         self._bins = bins
 
-    @accepts(object, min_freq_percentage=(int, long, float), top_n=int)
+    @accepts(object, min_freq_percentage=(int, int, float), top_n=int)
     def get_narratives(self, min_freq_percentage=50, top_n=3):
         total_freq = sum([bin.get(BinnerConstants.BIN_NUMBER_OF_RECORDS_FIELD) for bin in self._bins])
         narratives = []
         for start_index in range(0, len(self._bins)):
             for end_index in range(start_index + 1, len(self._bins)):
-                freq = sum([self._bins[index].get(BinnerConstants.BIN_NUMBER_OF_RECORDS_FIELD) for index in
-                            range(start_index, end_index)]) * 100.0 / total_freq
+                freq = old_div(sum([self._bins[index].get(BinnerConstants.BIN_NUMBER_OF_RECORDS_FIELD) for index in
+                            range(start_index, end_index)]) * 100.0, total_freq)
 
                 if freq >= min_freq_percentage:
                     narratives.append({
@@ -130,16 +136,16 @@ class BinnedColumnNarrative:
                     })
 
         ## consider ranges only with no more than 1/2 of total number of bins
-        filtered_narratives = filter(lambda x: len(x.get('bins')) <= len(self._bins)/2, narratives)
+        filtered_narratives = [x for x in narratives if len(x.get('bins')) <= old_div(len(self._bins),2)]
         sorted_narratives = sorted(filtered_narratives, key=lambda x: (len(x.get('bins')), 100 - x.get('freq')))
         if len(sorted_narratives) == 0:
             return ['']
         text_narratives = []
         for narrative_obj in sorted_narratives[:top_n]:
             start_bin = \
-                filter(lambda x: x.get(BinnerConstants.BIN_NUMBER_FIELD) == narrative_obj.get('bins')[0], self._bins)[0]
+                [x for x in self._bins if x.get(BinnerConstants.BIN_NUMBER_FIELD) == narrative_obj.get('bins')[0]][0]
             end_bin = \
-                filter(lambda x: x.get(BinnerConstants.BIN_NUMBER_FIELD) == narrative_obj.get('bins')[-1], self._bins)[
+                [x for x in self._bins if x.get(BinnerConstants.BIN_NUMBER_FIELD) == narrative_obj.get('bins')[-1]][
                     0]
             narrative_str = '%0.2f%% values are in the range %0.2f and %0.2f' % (
                 narrative_obj.get('freq'), start_bin.get(BinnerConstants.BIN_START_VALUE_FIELD),

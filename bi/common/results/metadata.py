@@ -1,4 +1,5 @@
-class DfMetaData:
+from builtins import object
+class DfMetaData(object):
     """
     Functionalities:
     """
@@ -41,7 +42,7 @@ class DfMetaData:
     #     self.sampleData.append(data)
 
 
-class MetaData:
+class MetaData(object):
     def __init__(self,name=None,value=None,display=True,displayName=None):
         self.name = name
         self.value = value
@@ -77,7 +78,7 @@ class MetaData:
     def get_name(self):
         return self.name
 
-class ColumnData:
+class ColumnData(object):
     def __init__(self, name=None, slug=None, columnStats=None, chartData=None, columnType = None):
         if columnStats is None:
             columnStats = []
@@ -220,7 +221,7 @@ class ColumnData:
     def set_checker(self,data):
         self.checked = data
 
-class ColumnHeader:
+class ColumnHeader(object):
     def __init__(self,name = None,slug = None):
         self.name = name
         self.slug = slug

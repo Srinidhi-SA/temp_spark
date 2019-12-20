@@ -1,3 +1,9 @@
+from __future__ import absolute_import
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import math
 from datetime import datetime
 from pyspark.sql.functions import avg, mean, stddev, when, create_map, udf, lower
@@ -18,10 +24,10 @@ from bi.settings import setting as GLOBALSETTINGS
 
 
 
-from data_preprocessing_helper import DataPreprocessingHelper
+from .data_preprocessing_helper import DataPreprocessingHelper
 
 
-class FeatureEngineeringHelper:
+class FeatureEngineeringHelper(object):
     """Contains Feature Engineering Operation Functions"""
 
 
@@ -50,7 +56,7 @@ class FeatureEngineeringHelper:
 
     def create_bin_udf(self,dict):
           def check_key(x, dict):
-              for key in dict.keys():
+              for key in list(dict.keys()):
                   if (x >= dict[key][0] and x <= dict[key][1]):
                       return key
           return udf(lambda x: check_key(x,dict) if x != None else "None")
@@ -108,10 +114,10 @@ class FeatureEngineeringHelper:
 
     def create_level_udf(self, dict):
         selected_list = []
-        for key in dict.keys():
+        for key in list(dict.keys()):
             selected_list = selected_list + dict[key]
         def check_key(x, dict):
-            for key in dict.keys():
+            for key in list(dict.keys()):
                 if x in selected_list:
                     if x in dict[key]:
                         return key
@@ -128,7 +134,7 @@ class FeatureEngineeringHelper:
         def convert_to_date(value):
                 if isinstance(value, str):
                     value=datetime.strptime(value, date_format)
-                elif isinstance(value, unicode):
+                elif isinstance(value, str):
                     value=datetime.strptime(value,date_format)
                 else:
                     value=value
@@ -138,7 +144,7 @@ class FeatureEngineeringHelper:
             return datetime.date(value)
         def check_key(date, dict):
             date = convert_to_date(date)
-            for key, value in dict.items():
+            for key, value in list(dict.items()):
                 val1_date = convert_to_date_from_level_value(value[0])
                 val2_date = convert_to_date_from_level_value(value[1])
                 date_range = [val1_date, val2_date]
@@ -161,7 +167,7 @@ class FeatureEngineeringHelper:
 
     def create_bin_udf(self,dict):
         def check_key(x, dict):
-            for key in dict.keys():
+            for key in list(dict.keys()):
                 if (x >= dict[key][0] and x <= dict[key][1]):
                     return key
         return udf(lambda x: check_key(x,dict) if x != None else "None")
@@ -172,7 +178,7 @@ class FeatureEngineeringHelper:
             min_max = self._data_frame.agg(F.min(column_name).alias('min'), F.max(column_name).alias('max')).collect()
             min_value = min_max[0]['min']
             max_value = min_max[0]['max']
-            interval_size = ((max_value - min_value)*1.0/(number_of_bins-1))
+            interval_size = (old_div((max_value - min_value)*1.0,(number_of_bins-1)))
             dict = {}
             temp = min_value
             while temp <=max_value:
@@ -244,7 +250,7 @@ class FeatureEngineeringHelper:
 
     def standardize_column(self, column_name):
         def standardize_column_helper(mean, sd):
-            return udf(lambda x: (x-mean)*1.0/sd if x!=None else x)
+            return udf(lambda x: old_div((x-mean)*1.0,sd) if x!=None else x)
         mean = self._data_frame.select(F.mean(column_name)).collect()[0][0]
         StdDev = self._data_frame.select(F.stddev_samp(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_fs_standardized", standardize_column_helper(mean,StdDev)(col(column_name)))
@@ -255,7 +261,7 @@ class FeatureEngineeringHelper:
     '''Rounds off the returned value ==> values formed are either 0 or 1'''
     def normalize_column(self, column_name):
         def normalize_column_helper(min, max):
-            return udf(lambda x: (x - min)*1.0/(max - min) if x!=None else x)
+            return udf(lambda x: old_div((x - min)*1.0,(max - min)) if x!=None else x)
         max = self._data_frame.select(F.max(column_name)).collect()[0][0]
         min = self._data_frame.select(F.min(column_name)).collect()[0][0]
         self._data_frame = self._data_frame.withColumn(column_name + "_fs_normalized", normalize_column_helper(min, max)(col(column_name)))
@@ -271,9 +277,9 @@ class FeatureEngineeringHelper:
         if operation == "subs":
             return udf(lambda x: x - value if x!=None else x)
         if operation == "divide":
-            return udf(lambda x: x/value if x!=None else x)
+            return udf(lambda x: old_div(x,value) if x!=None else x)
         if operation == "Reciprocal":
-            return udf(lambda x: 1/x if x!=None else x)
+            return udf(lambda x: old_div(1,x) if x!=None else x)
         if operation == "NthRoot":
             try:
                 return udf(lambda x: x**(1.0/value) if x!=None else x)
@@ -391,7 +397,7 @@ class FeatureEngineeringHelper:
 
     def month_to_string(self,dict):
         def month_to_string_helper(x,dict):
-            for key in dict.keys():
+            for key in list(dict.keys()):
                 if int(x) == key:
                     return dict[key]
         #return udf(lambda x: dict_for_month_helper(x,dict))

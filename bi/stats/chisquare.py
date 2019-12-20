@@ -1,3 +1,9 @@
+from __future__ import print_function
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 import math
 from itertools import chain
 
@@ -18,7 +24,7 @@ from bi.common.results.chisquare import ContingencyTable
 Chi Square Test
 """
 
-class ChiSquare:
+class ChiSquare(object):
     GRAND_MEAN_COLUMN_NAME = '__grand_mean'
     MEAN_COLUMN_NAME = '__mean'
     COUNT_COLUMN_NAME = '__count'
@@ -87,16 +93,16 @@ class ChiSquare:
             try:
                 chisquare_result = self.test_dimension(targetDimension, d)
                 df_chisquare_result.add_chisquare_result(targetDimension, d, chisquare_result)
-            except Exception, e:
-                print repr(e), d
+            except Exception as e:
+                print(repr(e), d)
                 continue
         for m in all_measures:
             try:
                 if self._data_frame.select(F.countDistinct(m)).collect()[0][0]>self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
                     chisquare_result = self.test_measures(targetDimension, m)
                     df_chisquare_result.add_chisquare_result(targetDimension, m, chisquare_result)
-            except Exception, e:
-                print str(e), m
+            except Exception as e:
+                print(str(e), m)
                 continue
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False,weightKey="script")
@@ -109,7 +115,7 @@ class ChiSquare:
         chisquare_result = ChiSquareResult()
         pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testDimension)
         # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
-        rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
+        rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns) - 1, rdd)
         result = Statistics.chiSqTest(data_matrix)
         chisquare_result.set_params(result)
@@ -162,7 +168,7 @@ class ChiSquare:
             else:
                 pivot_table = df.stat.crosstab("{}".format(targetDimension), testMeasure)
 
-        rdd = list(chain(*zip(*pivot_table.drop(pivot_table.columns[0]).collect())))
+        rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
         data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
         result = Statistics.chiSqTest(data_matrix)
         chisquare_result.set_params(result)

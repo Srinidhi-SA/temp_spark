@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import json
 import time
 import re
@@ -62,10 +65,10 @@ def load_dataset(spark,dataframe_context):
         df = df.dropna(how='all', thresh=None, subset=None)
 
     if df != None:
-        print "DATASET LOADED"
-        print df.printSchema()
+        print("DATASET LOADED")
+        print(df.printSchema())
     else:
-        print "DATASET NOT LOADED"
+        print("DATASET NOT LOADED")
     return df
 
 def get_metadata(df,spark,dataframe_context,new_cols_added):
@@ -75,10 +78,10 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
         metaParserInstance = MetaParser()
         if debugMode != True:
             if jobType != "metaData":
-                print "Retrieving MetaData"
+                print("Retrieving MetaData")
                 if new_cols_added != None:
                     df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
-                    print "starting Metadata for newly added columns"
+                    print("starting Metadata for newly added columns")
                     dataframe_context.set_metadata_ignore_msg_flag(True)
                     meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)
                     meta_data_object_new = meta_data_class_new.run()
@@ -97,12 +100,12 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                     metaParserInstance.set_params(metaDataObj)
                 else:
                     fs = time.time()
-                    print "starting Metadata"
+                    print("starting Metadata")
                     dataframe_context.set_metadata_ignore_msg_flag(True)
                     meta_data_class = MetaDataScript(df,spark,dataframe_context)
                     meta_data_object = meta_data_class.run()
                     metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
-                    print "metaData Analysis Done in ", time.time() - fs, " seconds."
+                    print("metaData Analysis Done in ", time.time() - fs, " seconds.")
                     metaParserInstance.set_params(metaDataObj)
         elif debugMode == True:
             if jobType != "metaData":
@@ -112,7 +115,7 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                 try:
                     if new_cols_added != None:
                         df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
-                        print "starting Metadata for newly added columns"
+                        print("starting Metadata for newly added columns")
                         dataframe_context.set_metadata_ignore_msg_flag(True)
                         meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)
                         meta_data_object_new = meta_data_class_new.run()
@@ -133,12 +136,12 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                     metaParserInstance.set_params(metaDataObj)
                 else:
                     fs = time.time()
-                    print "starting Metadata"
+                    print("starting Metadata")
                     dataframe_context.set_metadata_ignore_msg_flag(True)
                     meta_data_class = MetaDataScript(df,spark,dataframe_context)
                     meta_data_object = meta_data_class.run()
                     metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
-                    print "metaData Analysis Done in ", time.time() - fs, " seconds."
+                    print("metaData Analysis Done in ", time.time() - fs, " seconds.")
                     metaParserInstance.set_params(metaDataObj)
 
         if jobType != "metaData":
@@ -174,7 +177,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     # dataCleansingDict = dataframe_context.get_dataCleansing_info()
     # featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
 
-    print "appid",appid
+    print("appid",appid)
     dataframe_context.initialize_ml_model_training_weight()
 
     prediction_narrative = NarrativesTree()
@@ -214,7 +217,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
 
     model_slug = dataframe_context.get_model_path()
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_MODELS
-    subfolders = GLOBALSETTINGS.SLUG_MODEL_MAPPING.keys()
+    subfolders = list(GLOBALSETTINGS.SLUG_MODEL_MAPPING.keys())
     model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=subfolders)
     dataframe_context.set_model_path(model_file_path)
     app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
@@ -244,7 +247,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     rf_obj = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     rf_obj.Train()
-                    print "Random Forest Model Done in ", time.time() - st,  " seconds."
+                    print("Random Forest Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
@@ -254,7 +257,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     xgb_obj = XgboostScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     xgb_obj.Train()
-                    print "XGBoost Model Done in ", time.time() - st,  " seconds."
+                    print("XGBoost Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
@@ -265,7 +268,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     lr_obj = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     lr_obj.Train()
-                    print "Logistic Regression Model Done in ", time.time() - st,  " seconds."
+                    print("Logistic Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_lr_fail_card({"Algorithm_Name":"Logistic Regression","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
@@ -277,7 +280,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     nb_obj = NBBClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     nb_obj.Train()
-                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                    print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -287,7 +290,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     nb_obj = NBGClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     nb_obj.Train()
-                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                    print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -297,17 +300,17 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     nb_obj = NBMClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     nb_obj.Train()
-                    print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                    print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
                     try:
-                        print "Calling Gaussian NB script .............."
+                        print("Calling Gaussian NB script ..............")
                         st = time.time()
                         nb_obj = NBGClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                         # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                         nb_obj.Train()
-                        print "Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                        print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                     except Exception as e:
                         result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"False"})
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
@@ -318,7 +321,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     nn_obj = NeuralNetworkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     nn_obj.Train()
-                    print "Neural Network Model Done in ", time.time() - st,  " seconds."
+                    print("Neural Network Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
@@ -329,7 +332,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     tf_obj = TensorFlowScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     tf_obj.Train()
-                    print "TensorFlow Model Done in ", time.time() - st,  " seconds."
+                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nn_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
@@ -339,7 +342,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     nnptc_obj = NNPTClassificationScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     nnptc_obj.Train()
-                    print "Neural Networks(pyTorch) trained in ", time.time() - st,  " seconds."
+                    print("Neural Networks(pyTorch) trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Networks(pyTorch)", "success": "False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Networks(pyTorch)", e)
@@ -360,7 +363,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     lin_obj = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     lin_obj.Train()
-                    print "Linear Regression Model Done in ", time.time() - st,  " seconds."
+                    print("Linear Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
@@ -370,7 +373,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     lin_obj = TensorFlowRegScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     lin_obj.Train()
-                    print "TensorFlow Model Done in ", time.time() - st,  " seconds."
+                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_lr_fail_card({"Algorithm_Name":"TensorFlow","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
@@ -380,7 +383,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     nnptr_obj = NNPTRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     nnptr_obj.Train()
-                    print "Neural Networks(pyTorch)-R trained in ", time.time() - st,  " seconds."
+                    print("Neural Networks(pyTorch)-R trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
@@ -400,7 +403,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     gbt_obj = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     gbt_obj.Train()
-                    print "GBT Regression Model Done in ", time.time() - st,  " seconds."
+                    print("GBT Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_gbt_fail_card({"Algorithm_Name":"gbtregression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
@@ -410,7 +413,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     dtree_obj = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     dtree_obj.Train()
-                    print "DTREE Regression Model Done in ", time.time() - st,  " seconds."
+                    print("DTREE Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_dtr_fail_card({"Algorithm_Name":"DecisionTree","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
@@ -420,7 +423,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     st = time.time()
                     rf_obj = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     rf_obj.Train()
-                    print "RF Regression Model Done in ", time.time() - st,  " seconds."
+                    print("RF Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_rf_fail_card({"Algorithm_Name":"rfRegression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
@@ -431,13 +434,13 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
 
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
-    print modelJsonOutput
+    print(modelJsonOutput)
 
     pmmlModels = result_setter.get_pmml_object()
     savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
     progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor Has Successfully Completed Building Machine Learning Models",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-    print "Model Training Completed in ", time.time() - st, " seconds."
+    print("Model Training Completed in ", time.time() - st, " seconds.")
 
 def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     dataframe_context.set_anova_on_scored_data(True)
@@ -451,7 +454,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     targetLevel = dataframe_context.get_target_level_for_model()
     dataCleansingDict = dataframe_context.get_dataCleansing_info()
     featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
-    print "Prediction Started"
+    print("Prediction Started")
     dataframe_context.initialize_ml_model_prediction_weight()
 
     st = time.time()
@@ -459,7 +462,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     story_narrative.set_name("scores")
     result_setter = ResultSetter(dataframe_context)
     model_path = dataframe_context.get_model_path()
-    print "model path",model_path
+    print("model path",model_path)
     result_column = dataframe_context.get_result_column()
     if result_column in df.columns:
         dataframe_helper.remove_null_rows(result_column)
@@ -481,15 +484,15 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     df = dataframe_helper.fill_missing_values(df)
     model_slug = model_path
     score_slug = dataframe_context.get_score_path()
-    print "score_slug",score_slug
+    print("score_slug",score_slug)
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_SCORES
     score_file_path = MLUtils.create_scored_data_folder(score_slug,basefoldername)
     appid = str(dataframe_context.get_app_id())
     app_type = dataframe_context.get_app_type()
     algorithm_name = dataframe_context.get_algorithm_slug()[0]
-    print "algorithm_name",algorithm_name
-    print "score_file_path",score_file_path
-    print "model_slug",model_slug
+    print("algorithm_name",algorithm_name)
+    print("score_file_path",score_file_path)
+    print("model_slug",model_slug)
 
     scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
     scriptStages = {
@@ -498,7 +501,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             "weight":4
             }
         }
-    print scriptWeightDict
+    print(scriptWeightDict)
     CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
     if app_type == "CLASSIFICATION":
@@ -506,7 +509,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
-        print "selected_model_for_prediction", selected_model_for_prediction
+        print("selected_model_for_prediction", selected_model_for_prediction)
         if "randomforest" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -516,7 +519,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "xgboost" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -525,7 +528,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "Neural Network" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = NeuralNetworkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -534,7 +537,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "logisticregression" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -544,7 +547,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "TensorFlow" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = TensorFlowScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -554,7 +557,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "Neural Networks(pyTorch)" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = NNPTClassificationScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -564,7 +567,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "naive bayes" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = NBMClassificationModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -580,9 +583,9 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naive bayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         else:
-            print "Could Not Load the Model for Scoring"
+            print("Could Not Load the Model for Scoring")
 
         # scoreSummary = CommonUtils.convert_python_object_to_json(story_narrative)
         storycards = result_setter.get_score_cards()
@@ -590,12 +593,12 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         storyNode.add_cards(storycards)
         # storyNode = {"listOfCards":[storycards],"listOfNodes":[],"name":None,"slug":None}
         scoreSummary = CommonUtils.convert_python_object_to_json(storyNode)
-        print scoreSummary
+        print(scoreSummary)
         jobUrl = dataframe_context.get_job_url()
         response = CommonUtils.save_result_json(jobUrl,scoreSummary)
         progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor Has Successfully Completed Building Machine Learning Models",100,100,display=True)
         CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-        print "Model Scoring Completed in ", time.time() - st, " seconds."
+        print("Model Scoring Completed in ", time.time() - st, " seconds.")
     elif app_type == "REGRESSION":
         model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
@@ -603,7 +606,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         dataframe_context.set_story_on_scored_data(True)
 
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
-        print "selected_model_for_prediction", selected_model_for_prediction
+        print("selected_model_for_prediction", selected_model_for_prediction)
         if "linearregression" in  selected_model_for_prediction:
             trainedModel = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
@@ -611,7 +614,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"linearregression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "gbtregression" in  selected_model_for_prediction:
             trainedModel = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -620,7 +623,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtregression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "dtreeregression" in  selected_model_for_prediction:
             trainedModel = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -629,7 +632,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeregression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "rfregression" in  selected_model_for_prediction:
             trainedModel = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -638,7 +641,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"rfregression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "generalizedlinearregression" in  selected_model_for_prediction:
             trainedModel = GeneralizedLinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -647,7 +650,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedlinearregression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         if "Neural Networks(pyTorch)" in  selected_model_for_prediction:
             trainedModel = NNPTRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
@@ -655,7 +658,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
 
         headNode = NarrativesTree()
         if headNode != None:
@@ -690,7 +693,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             anovaHeaderCard = NormalCard(cardData=[HtmlData("<h4>Analysis by Key Factors</h4>")])
             headNode.add_a_card(anovaHeaderCard)
             significantDims = len(anovaNarratives)
-            anovaNarrativesArray = anovaNarratives.items()
+            anovaNarrativesArray = list(anovaNarratives.items())
             anovaCardWidth = 100
             if significantDims == 1:
                 anovaCardWidth = 100
@@ -708,10 +711,10 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 headNode.add_a_card(anovaCard)
 
         headNodeJson = CommonUtils.convert_python_object_to_json(headNode)
-        print headNodeJson
+        print(headNodeJson)
         response = CommonUtils.save_result_json(jobUrl,headNodeJson)
         # print "Dimension Analysis Completed in", time.time()-st," Seconds"
-        print "Model Scoring Completed in ", time.time() - st, " seconds."
+        print("Model Scoring Completed in ", time.time() - st, " seconds.")
 
 
 def run_metadata(spark,df,dataframe_context):
@@ -731,8 +734,8 @@ def run_metadata(spark,df,dataframe_context):
     try:
         meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-        print metaDataJson
-        print "metaData Analysis Done in ", time.time() - fs, " seconds."
+        print(metaDataJson)
+        print("metaData Analysis Done in ", time.time() - fs, " seconds.")
         response = CommonUtils.save_result_json(jobUrl,metaDataJson)
         completionStatus = dataframe_context.get_completion_status()
         progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Your Data Is Uploaded",completionStatus,completionStatus,display=True)
@@ -752,7 +755,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
     APP_NAME = dataframe_context.get_app_name()
     errorURL = dataframe_context.get_error_url()
     jobUrl = dataframe_context.get_job_url()
-    print "starting subsetting"
+    print("starting subsetting")
     subsetting_class = DataFrameFilterer(df,dataframe_helper,dataframe_context)
     try:
         filtered_df = subsetting_class.applyFilter()
@@ -770,9 +773,9 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
             transformed_df = transform_class.get_transformed_data_frame()
         if filtered_df.count() > 0 and transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
-            print "output_filepath",output_filepath
+            print("output_filepath",output_filepath)
             transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
-            print "starting Metadata for the Filtered Dataframe"
+            print("starting Metadata for the Filtered Dataframe")
             meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
             try:
                 meta_data_class.actual_col_datatype_update=update_metadata_datatype_change
@@ -780,7 +783,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
                 pass
             meta_data_object = meta_data_class.run()
             metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-            print metaDataJson
+            print(metaDataJson)
             response = CommonUtils.save_result_json(jobUrl,metaDataJson)
         else:
             response = CommonUtils.save_result_json(jobUrl,{"status":"failed","message":"Filtered Dataframe has no data"})
@@ -790,7 +793,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
     progressMessage = CommonUtils.create_progress_message_object("final","final","info","Job Finished",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
-    print "SubSetting Analysis Completed in", time.time()-st," Seconds"
+    print("SubSetting Analysis Completed in", time.time()-st," Seconds")
 
 def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     LOGGER = dataframe_context.get_logger()
@@ -803,7 +806,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     jobName = dataframe_context.get_job_name()
     # scripts_to_run = dataframe_context.get_scripts_to_run()
     scripts_to_run = dataframe_context.get_analysis_name_list()
-    print "scripts_to_run",scripts_to_run
+    print("scripts_to_run",scripts_to_run)
     measure_columns = dataframe_helper.get_numeric_columns()
     dimension_columns = dataframe_helper.get_string_columns()
 
@@ -811,10 +814,10 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
     story_narrative = NarrativesTree()
     story_narrative.set_name("{} Performance Report".format(targetVal))
     scriptWeightDict = dataframe_context.get_script_weights()
-    print scriptWeightDict
+    print(scriptWeightDict)
 
     st = time.time()
-    print "STARTING DIMENSION ANALYSIS ..."
+    print("STARTING DIMENSION ANALYSIS ...")
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
     df = dataframe_helper.get_data_frame()
 
@@ -827,7 +830,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             fs = time.time()
             freq_obj = FreqDimensionsScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter)
             freq_obj.Run()
-            print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
+            print("Frequency Analysis Done in ", time.time() - fs,  " seconds.")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
             CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -846,7 +849,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             fs = time.time()
             chisquare_obj = ChiSquareScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             chisquare_obj.Run()
-            print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
+            print("ChiSquare Analysis Done in ", time.time() - fs, " seconds.")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Dimension vs. Dimension",e)
             CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -865,7 +868,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             fs = time.time()
             trend_obj = TrendScript(dataframe_helper, dataframe_context, result_setter, spark, story_narrative, metaParserInstance)
             trend_obj.Run()
-            print "Trend Analysis Done in ", time.time() - fs, " seconds."
+            print("Trend Analysis Done in ", time.time() - fs, " seconds.")
 
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
@@ -887,7 +890,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             df = dataframe_helper.get_data_frame()
             decision_tree_obj = DecisionTreeScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             decision_tree_obj.Run()
-            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+            print("DecisionTrees Analysis Done in ", time.time() - fs, " seconds.")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
             CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -941,9 +944,9 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
             fs = time.time()
             business_card_obj = BusinessCard(headNode, metaParserInstance, result_setter, dataframe_context, dataframe_helper, st, "dimension")
             business_card_obj.Run()
-            print "Business Card Analysis Done in ", time.time() - fs, " seconds."
-        except Exception, e:
-            print "Business Card Calculation failed : ", str(e)
+            print("Business Card Analysis Done in ", time.time() - fs, " seconds.")
+        except Exception as e:
+            print("Business Card Calculation failed : ", str(e))
     businessImpactNode = result_setter.get_business_impact_node()
     # print "businessImpactNode : ", json.dumps(businessImpactNode, indent=2)
 
@@ -952,7 +955,7 @@ def run_dimension_analysis(spark,df,dataframe_context,dataframe_helper,metaParse
 
     # print json.dumps(headNode,indent=2)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
-    print "Dimension Analysis Completed in", time.time()-st," Seconds"
+    print("Dimension Analysis Completed in", time.time()-st," Seconds")
     progressMessage = CommonUtils.create_progress_message_object("Dimension analysis","custom","info","Your Signal Is Ready",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
@@ -967,7 +970,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     jobName = dataframe_context.get_job_name()
     # scripts_to_run = dataframe_context.get_scripts_to_run()
     scripts_to_run = dataframe_context.get_analysis_name_list()
-    print "scripts_to_run",scripts_to_run
+    print("scripts_to_run",scripts_to_run)
     measure_columns = dataframe_helper.get_numeric_columns()
     dimension_columns = dataframe_helper.get_string_columns()
 
@@ -975,11 +978,11 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
     story_narrative = NarrativesTree()
     story_narrative.set_name("{} Performance Report".format(targetVal))
     scriptWeightDict = dataframe_context.get_script_weights()
-    print scriptWeightDict
+    print(scriptWeightDict)
 
 
     st = time.time()
-    print "STARTING MEASURE ANALYSIS ..."
+    print("STARTING MEASURE ANALYSIS ...")
     dataframe_helper.remove_null_rows(dataframe_context.get_result_column())
     df = dataframe_helper.get_data_frame()
 
@@ -994,7 +997,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             fs = time.time()
             descr_stats_obj = DescriptiveStatsScript(df, dataframe_helper, dataframe_context, result_setter, spark,story_narrative)
             descr_stats_obj.Run()
-            print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+            print("DescriptiveStats Analysis Done in ", time.time() - fs, " seconds.")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Descriptive analysis",e)
             CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -1013,7 +1016,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             fs = time.time()
             two_way_obj = TwoWayAnovaScript(df, dataframe_helper, dataframe_context, result_setter, spark,story_narrative,metaParserInstance)
             two_way_obj.Run()
-            print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+            print("OneWayAnova Analysis Done in ", time.time() - fs, " seconds.")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Measure vs. Dimension",e)
             CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -1032,13 +1035,13 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             fs = time.time()
             correlation_obj = CorrelationScript(df, dataframe_helper, dataframe_context, spark)
             correlations = correlation_obj.Run()
-            print "Correlation Analysis Done in ", time.time() - fs ," seconds."
+            print("Correlation Analysis Done in ", time.time() - fs ," seconds.")
             try:
                 df = df.na.drop(subset=measure_columns)
                 fs = time.time()
                 regression_obj = LinearRegressionScript(df, dataframe_helper, dataframe_context, result_setter, spark, correlations, story_narrative,metaParserInstance)
                 regression_obj.Run()
-                print "Regression Analysis Done in ", time.time() - fs, " seconds."
+                print("Regression Analysis Done in ", time.time() - fs, " seconds.")
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"regression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -1060,7 +1063,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             fs = time.time()
             trend_obj = TrendScript(dataframe_helper,dataframe_context,result_setter,spark,story_narrative, metaParserInstance)
             trend_obj.Run()
-            print "Trend Analysis Done in ", time.time() - fs, " seconds."
+            print("Trend Analysis Done in ", time.time() - fs, " seconds.")
 
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Trend",e)
@@ -1082,7 +1085,7 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             df = dataframe_helper.get_data_frame()
             dt_reg = DecisionTreeRegressionScript(df, dataframe_helper, dataframe_context, result_setter, spark,story_narrative,metaParserInstance)
             dt_reg.Run()
-            print "DecisionTrees Analysis Done in ", time.time() - fs, " seconds."
+            print("DecisionTrees Analysis Done in ", time.time() - fs, " seconds.")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(LOGGER,"Predictive modeling",e)
             CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -1140,9 +1143,9 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             fs = time.time()
             business_card_obj = BusinessCard(headNode, metaParserInstance, result_setter, dataframe_context, dataframe_helper, st, "measure")
             business_card_obj.Run()
-            print "Business Card Analysis Done in ", time.time() - fs, " seconds."
-        except Exception, e:
-            print "Business Card Calculation failed : ", str(e)
+            print("Business Card Analysis Done in ", time.time() - fs, " seconds.")
+        except Exception as e:
+            print("Business Card Calculation failed : ", str(e))
     businessImpactNode = result_setter.get_business_impact_node()
     # print "businessImpactNode : ", json.dumps(businessImpactNode, indent=2)
 
@@ -1152,6 +1155,6 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
 
     # print json.dumps(headNode)
     response = CommonUtils.save_result_json(jobUrl,json.dumps(headNode))
-    print "Measure Analysis Completed in :", time.time()-st," Seconds"
+    print("Measure Analysis Completed in :", time.time()-st," Seconds")
     progressMessage = CommonUtils.create_progress_message_object("Measure analysis","custom","info","Your Signal Is Ready",100,100,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)

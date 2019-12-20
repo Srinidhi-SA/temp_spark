@@ -1,9 +1,10 @@
+from builtins import object
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.transformations import DataFrameTransformer
 
 
-class DecisionTreeScript:
+class DecisionTreeScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, story_narrative,result_setter,meta_parser):
         self._story_narrative = story_narrative
         self._result_setter = result_setter

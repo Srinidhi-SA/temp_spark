@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import time
 from datetime import datetime
 
@@ -6,7 +12,7 @@ from bi.algorithms import TimeSeriesAnalysis
 from bi.narratives import utils as NarrativesUtils
 
 
-class TrendNarrative:
+class TrendNarrative(object):
 
     def __init__(self, measure_column, time_dimension_column, grouped_data, existingDateFormat,requestedDateFormat,base_dir, meta_parser):
         self._measure_column = measure_column
@@ -97,7 +103,7 @@ class TrendNarrative:
             dataDict["peakTime"] = df["year_month"][peak_index]
             dataDict["lowestTime"] = df["year_month"][low_index]
             dataDict["reference_time"] = dataDict["peakTime"]
-        print "Overall Growth ",dataDict["overall_growth"]
+        print("Overall Growth ",dataDict["overall_growth"])
         if dataDict["overall_growth"] < 0:
             dataDict["overall_growth_text"] = "negative growth"
         else:
@@ -148,14 +154,14 @@ class TrendNarrative:
         return dataDict
 
     def get_xtra_calculations(self,sparkdf,grouped_data,significant_columns,index_col,value_col,dateColDateFormat,reference_time,dataLevel):
-        print "dateColDateFormat",dateColDateFormat
+        print("dateColDateFormat",dateColDateFormat)
         if type(grouped_data["key"][0]) == "str":
             grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         grouped_data = grouped_data.sort_values(by = "key",ascending=True)
         grouped_data.reset_index(drop=True,inplace=True)
-        print "level contribution started"
+        print("level contribution started")
         st = time.time()
-        print "significant_columns",significant_columns
+        print("significant_columns",significant_columns)
         if dataLevel == "day":
             index_col = "suggestedDate"
         else:
@@ -170,7 +176,7 @@ class TrendNarrative:
 
         significant_columns = [col for col in significant_columns if col not in ignoreColumnSuggestions]
         level_cont = NarrativesUtils.calculate_level_contribution(sparkdf,significant_columns,index_col,dateColDateFormat,value_col,reference_time, self._metaParser)
-        print "level_cont finished in ",time.time()-st
+        print("level_cont finished in ",time.time()-st)
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)
         bucket_data = NarrativesUtils.get_bucket_data_dict(bucket_dict)
@@ -249,7 +255,7 @@ class TrendNarrative:
         data_dict['measure'] = measure_column
         data_dict['total_measure'] = int(agg_data[measure_column].sum())
         data_dict['total_target'] = int(agg_data[result_column].sum())
-        data_dict['fold'] = round(data_dict['total_measure']*100/data_dict['total_target'] - 100.0, self._num_significant_digits)
+        data_dict['fold'] = round(old_div(data_dict['total_measure']*100,data_dict['total_target']) - 100.0, self._num_significant_digits)
         data_dict['num_dates'] = len(agg_data.index)
 
         peak_index = agg_data[measure_column].argmax()
@@ -270,7 +276,7 @@ class TrendNarrative:
         data_dict['end_value'] = round(agg_data[measure_column].iloc[-1],self._num_significant_digits)
         # data_dict['target_start_value'] = agg_data[result_column].iloc[0]
         # data_dict['target_end_value'] = agg_data[result_column].iloc[-1]
-        data_dict['change_percent'] = NarrativesUtils.round_number(agg_data[measure_column].iloc[-1]*100/agg_data[measure_column].iloc[0] - 100,2)
+        data_dict['change_percent'] = NarrativesUtils.round_number(old_div(agg_data[measure_column].iloc[-1]*100,agg_data[measure_column].iloc[0]) - 100,2)
         data_dict['correlation'] = NarrativesUtils.round_number(agg_data[measure_column].corr(agg_data[result_column]),2)
 
         data_dict['peak_value'] = NarrativesUtils.round_number(agg_data[measure_column].ix[peak_index],2)
@@ -282,13 +288,13 @@ class TrendNarrative:
             agg_data["key"] = agg_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
         agg_data = agg_data.sort_values(by = "key",ascending=True)
         relevant_columns = list(set(agg_data.columns) - {"key", "year_month"})
-        chart_data = dict(zip(relevant_columns,[[]]*len(relevant_columns)))
+        chart_data = dict(list(zip(relevant_columns,[[]]*len(relevant_columns))))
         label = {"y":"","y2":""}
         label["y"] = relevant_columns[0]
         label["y2"] = relevant_columns[1]
         label_text = {"y":relevant_columns[0],"y2":relevant_columns[1],"x":"Time Duration"}
         for col in relevant_columns:
-            trend_chart_data = agg_data[["key",col]].T.to_dict().values()
+            trend_chart_data = list(agg_data[["key",col]].T.to_dict().values())
             trend_chart_data = sorted(trend_chart_data,key=lambda x:x["key"])
             if dataLevel == "day":
                 trend_chart_data = [{"key":str(val["key"]),"value":round(val[col],2)} for val in trend_chart_data]

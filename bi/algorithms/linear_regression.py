@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import object
 from pyspark.ml.regression import LinearRegression as LR
 
 from bi.common.exception import BIException
@@ -11,7 +13,7 @@ from bi.algorithms import utils as MLUtils
 
 import time
 
-class LinearRegression:
+class LinearRegression(object):
     LABEL_COLUMN_NAME = 'label'
     FEATURES_COLUMN_NAME = 'features'
 
@@ -72,7 +74,7 @@ class LinearRegression:
         return df_regression_result
 
     def fit(self, output_column, input_columns=None):
-        print "linear regression fit started"
+        print("linear regression fit started")
         if output_column not in self._dataframe_helper.get_numeric_columns():
             raise BIException('Output column: %s is not a measure column' % (output_column,))
 
@@ -86,7 +88,7 @@ class LinearRegression:
             raise BIException('At least one of the input columns %r is not a measure column' % (input_columns,))
 
         all_measures = input_columns+[output_column]
-        print all_measures
+        print(all_measures)
         measureDf = self._data_frame.select(all_measures)
         lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
                 elasticNetParam=1.0, labelCol=LinearRegression.LABEL_COLUMN_NAME,
@@ -97,14 +99,14 @@ class LinearRegression:
         pipelineModel = pipeline.fit(measureDf)
         training_df = pipelineModel.transform(measureDf)
         training_df = training_df.withColumn("label",training_df[output_column])
-        print "time taken to create training_df",time.time()-st
+        print("time taken to create training_df",time.time()-st)
         # st = time.time()
         # training_df.cache()
         # print "caching in ",time.time()-st
         st = time.time()
         lr_model = lr.fit(training_df)
         lr_summary = lr_model.evaluate(training_df)
-        print "lr model summary", time.time()-st
+        print("lr model summary", time.time()-st)
         sample_data_dict = {}
         for input_col in input_columns:
             sample_data_dict[input_col] = None

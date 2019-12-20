@@ -1,3 +1,10 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import json
 import random
 
@@ -13,7 +20,7 @@ from pyspark.sql import functions as F
 
 import pandas as pd
 
-class ChiSquareAnalysis:
+class ChiSquareAnalysis(object):
     def __init__ (self, df_context, df_helper,chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables, data_frame, measure_columns,base_dir,appid=None,target_chisquare_result=None):
         self._blockSplitter = "|~NEWBLOCK~|"
         self._highlightFlag = "|~HIGHLIGHT~|"
@@ -42,7 +49,7 @@ class ChiSquareAnalysis:
         else:
             self._second_level_dimensions = list(significant_variables)[:5]
 
-        print self._second_level_dimensions
+        print(self._second_level_dimensions)
 
         self._appid = appid
         self._card1 = NormalCard()
@@ -51,10 +58,10 @@ class ChiSquareAnalysis:
 
         self._binTargetCol = False
         self._binAnalyzedCol = False
-        print "--------Chi-Square Narratives for ", analysed_dimension, "---------"
+        print("--------Chi-Square Narratives for ", analysed_dimension, "---------")
         if self._dataframe_context.get_custom_analysis_details() != None:
             binnedColObj = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
-            print "analysed_dimension : ", self._analysed_dimension
+            print("analysed_dimension : ", self._analysed_dimension)
             if binnedColObj != None and self._target_dimension in binnedColObj:
                 self._binTargetCol = True
             if binnedColObj != None and (self._analysed_dimension in binnedColObj or self._analysed_dimension in self._measure_columns):
@@ -92,7 +99,7 @@ class ChiSquareAnalysis:
           levels = self._chiSquareTable.get_column_two_levels()
           level_counts = self._chiSquareTable.get_column_total()
           levels_count_sum = sum(level_counts)
-          levels_percentages = [i*100.0/levels_count_sum for i in level_counts]
+          levels_percentages = [old_div(i*100.0,levels_count_sum) for i in level_counts]
           sorted_levels = sorted(zip(level_counts,levels),reverse=True)
           level_differences = [0.0]+[sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
 
@@ -120,7 +127,7 @@ class ChiSquareAnalysis:
           top_target_bottom_dim = sorted_levels[-1][1]
           top_target_bottom_dim_contribution = sorted_levels[-1][0]
 
-          top_target_percentages = [i*100.0/sum_top_target for i in top_target_contributions]
+          top_target_percentages = [old_div(i*100.0,sum_top_target) for i in top_target_contributions]
           best_top_target_index = top_target_contributions.index(max(top_target_contributions))
           worst_top_target_index = top_target_contributions.index(min(top_target_contributions))
           top_target_differences = [x-y for x,y in zip(levels_percentages,top_target_percentages)]
@@ -137,16 +144,16 @@ class ChiSquareAnalysis:
           best_top_difference_indices = [x for x,y in sorted_[:tops]]
           worst_top_difference_indices = [x for x,y in sorted_[bottoms:]]
 
-          top_target_shares = [x*100.0/y for x,y in zip(top_target_contributions,level_counts)]
+          top_target_shares = [old_div(x*100.0,y) for x,y in zip(top_target_contributions,level_counts)]
           max_top_target_shares = max(top_target_shares)
           best_top_target_share_index = [idx for idx,val in enumerate(top_target_shares) if val==max_top_target_shares]
-          level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
+          level_counts_threshold = old_div(sum(level_counts)*0.05,len(level_counts))
           min_top_target_shares = min([x for x,y in zip(top_target_shares,level_counts) if y>=level_counts_threshold])
           if max_top_target_shares == min_top_target_shares:
               worst_top_target_share_index = []
           else:
               worst_top_target_share_index = [idx for idx,val in enumerate(top_target_shares) if val==min_top_target_shares]
-          overall_top_percentage = sum_top_target*100.0/total
+          overall_top_percentage = old_div(sum_top_target*100.0,total)
 
           second_target_contributions = [table.get_value(second_target,i) for i in levels]
           sum_second_target = sum(second_target_contributions)
@@ -158,7 +165,7 @@ class ChiSquareAnalysis:
           second_target_bottom_dim = sorted_levels[-1][1]
           second_target_bottom_dim_contribution = sorted_levels[-1][0]
 
-          second_target_percentages = [i*100.0/sum_second_target for i in second_target_contributions]
+          second_target_percentages = [old_div(i*100.0,sum_second_target) for i in second_target_contributions]
           best_second_target_index = second_target_contributions.index(max(second_target_contributions))
           worst_second_target_index = second_target_contributions.index(min(second_target_contributions))
           second_target_differences = [x-y for x,y in zip(levels_percentages,second_target_percentages)]
@@ -175,17 +182,17 @@ class ChiSquareAnalysis:
           best_second_difference_indices = [x for x,y in sorted_[:tops]]
           worst_second_difference_indices = [x for x,y in sorted_[bottoms:]]
 
-          second_target_shares = [x*100.0/y for x,y in zip(second_target_contributions,level_counts)]
+          second_target_shares = [old_div(x*100.0,y) for x,y in zip(second_target_contributions,level_counts)]
           max_second_target_shares = max(second_target_shares)
           best_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==max_second_target_shares]
-          level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
+          level_counts_threshold = old_div(sum(level_counts)*0.05,len(level_counts))
           min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
           # worst_second_target_share_index = second_target_shares.index(min_second_target_shares)
           if max_second_target_shares == min_second_target_shares:
               worst_second_target_share_index = []
           else:
               worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
-          overall_second_percentage = sum_second_target*100.0/total
+          overall_second_percentage = old_div(sum_second_target*100.0,total)
 
           targetCardDataDict = {}
           targetCardDataDict['target'] = target_dimension
@@ -222,31 +229,31 @@ class ChiSquareAnalysis:
           data_dict['plural_colname'] = NarrativesUtils.pluralize(analysed_dimension)
           data_dict['target'] = target_dimension
           data_dict['top_levels'] = top_dims
-          data_dict['top_levels_percent'] = round(top_dims_contribution*100.0/total,1)
+          data_dict['top_levels_percent'] = round(old_div(top_dims_contribution*100.0,total),1)
           data_dict['bottom_level'] = bottom_dim
           data_dict['bottom_levels'] = bottom_dims
-          data_dict['bottom_level_percent'] = round(bottom_dim_contribution*100/sum(level_counts),2)
+          data_dict['bottom_level_percent'] = round(old_div(bottom_dim_contribution*100,sum(level_counts)),2)
           data_dict['second_target']=second_target
           data_dict['second_target_top_dims'] = second_target_top_dims
-          data_dict['second_target_top_dims_contribution'] = second_target_top_dims_contribution*100.0/sum(second_target_contributions)
+          data_dict['second_target_top_dims_contribution'] = old_div(second_target_top_dims_contribution*100.0,sum(second_target_contributions))
           data_dict['second_target_bottom_dim']=second_target_bottom_dim
           data_dict['second_target_bottom_dim_contribution']=second_target_bottom_dim_contribution
           data_dict['best_second_target'] = levels[best_second_target_index]
           data_dict['best_second_target_count'] = second_target_contributions[best_second_target_index]
-          data_dict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/sum(second_target_contributions),2)
+          data_dict['best_second_target_percent'] = round(old_div(second_target_contributions[best_second_target_index]*100.0,sum(second_target_contributions)),2)
           data_dict['worst_second_target'] = levels[worst_second_target_index]
-          data_dict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/sum(second_target_contributions),2)
+          data_dict['worst_second_target_percent'] = round(old_div(second_target_contributions[worst_second_target_index]*100.0,sum(second_target_contributions)),2)
 
           data_dict['top_target']=top_target
           data_dict['top_target_top_dims'] = top_target_top_dims
-          data_dict['top_target_top_dims_contribution'] = top_target_top_dims_contribution*100.0/sum(top_target_contributions)
+          data_dict['top_target_top_dims_contribution'] = old_div(top_target_top_dims_contribution*100.0,sum(top_target_contributions))
           data_dict['top_target_bottom_dim']=top_target_bottom_dim
           data_dict['top_target_bottom_dim_contribution']=top_target_bottom_dim_contribution
           data_dict['best_top_target'] = levels[best_top_target_index]
           data_dict['best_top_target_count'] = top_target_contributions[best_top_target_index]
-          data_dict['best_top_target_percent'] = round(top_target_contributions[best_top_target_index]*100.0/sum(top_target_contributions),2)
+          data_dict['best_top_target_percent'] = round(old_div(top_target_contributions[best_top_target_index]*100.0,sum(top_target_contributions)),2)
           data_dict['worst_top_target'] = levels[worst_top_target_index]
-          data_dict['worst_top_target_percent'] = round(top_target_contributions[worst_top_target_index]*100.0/sum(top_target_contributions),2)
+          data_dict['worst_top_target_percent'] = round(old_div(top_target_contributions[worst_top_target_index]*100.0,sum(top_target_contributions)),2)
 
           data_dict["blockSplitter"] = self._blockSplitter
           data_dict["binTargetCol"] = self._binTargetCol
@@ -261,15 +268,15 @@ class ChiSquareAnalysis:
           #     CARD1   #
           ###############
 
-          print "self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol
+          print("self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol)
           if len(data_dict['worst_second_share']) == 0:
              output=[]
           else:
               if (self._binTargetCol == True & self._binAnalyzedCol == False):
-                  print "Only Target Column is Binned, : ", self._binTargetCol
+                  print("Only Target Column is Binned, : ", self._binTargetCol)
                   output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
               elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-                  print "Target Column and IV is Binned : ", self._binTargetCol, self._binAnalyzedCol
+                  print("Target Column and IV is Binned : ", self._binTargetCol, self._binAnalyzedCol)
                   output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1_binned_target_and_IV.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
               else:
                   output = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card1.html',data_dict),self._blockSplitter,highlightFlag=self._highlightFlag)
@@ -341,7 +348,7 @@ class ChiSquareAnalysis:
                   second_target_bottom_dim = sorted_levels[-1][1]
                   second_target_bottom_dim_contribution = sorted_levels[-1][0]
 
-                  second_target_percentages = [i*100.0/sum_second_target for i in second_target_contributions]
+                  second_target_percentages = [old_div(i*100.0,sum_second_target) for i in second_target_contributions]
                   best_second_target_index = second_target_contributions.index(max(second_target_contributions))
                   worst_second_target_index = second_target_contributions.index(min(second_target_contributions))
                   second_target_differences = [x-y for x,y in zip(levels_percentages,second_target_percentages)]
@@ -358,13 +365,13 @@ class ChiSquareAnalysis:
                   best_second_difference_indices = [x for x,y in sorted_[:tops]]
                   worst_second_difference_indices = [x for x,y in sorted_[bottoms:]]
 
-                  second_target_shares = [x*100.0/y for x,y in zip(second_target_contributions,level_counts)]
+                  second_target_shares = [old_div(x*100.0,y) for x,y in zip(second_target_contributions,level_counts)]
                   max_second_target_shares = max(second_target_shares)
                   best_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==max_second_target_shares]
-                  level_counts_threshold = sum(level_counts)*0.05/len(level_counts)
+                  level_counts_threshold = old_div(sum(level_counts)*0.05,len(level_counts))
                   min_second_target_shares = min([x for x,y in zip(second_target_shares,level_counts) if y>=level_counts_threshold])
                   worst_second_target_share_index = [idx for idx,val in enumerate(second_target_shares) if val==min_second_target_shares]
-                  overall_second_percentage = sum_second_target*100.0/total
+                  overall_second_percentage = old_div(sum_second_target*100.0,total)
 
                   # DataFrame for contribution calculation
 
@@ -401,17 +408,17 @@ class ChiSquareAnalysis:
                     contributions = df_second_dim.groupby(d).agg({d:'count'})
                     contribution_index = list(contributions.index)
                     contributions_val = contributions[d].tolist()
-                    contributions_list = dict(zip(contribution_index,contributions_val))
+                    contributions_list = dict(list(zip(contribution_index,contributions_val)))
                     index_list = list(grouped.index)
                     grouped_list = grouped[d].tolist()
-                    contributions_percent_list = [round(y*100.0/contributions_list[x],2) for x,y in zip(index_list,grouped_list)]
+                    contributions_percent_list = [round(old_div(y*100.0,contributions_list[x]),2) for x,y in zip(index_list,grouped_list)]
                     sum_ = grouped[d].sum()
                     diffs = [0]+[grouped_list[i]-grouped_list[i+1] for i in range(len(grouped_list)-1)]
                     max_diff = diffs.index(max(diffs))
-                    grouped_dict = dict(zip(index_list, grouped_list))
+                    grouped_dict = dict(list(zip(index_list, grouped_list)))
 
                     for val in contribution_index:
-                        if val not in grouped_dict.keys():
+                        if val not in list(grouped_dict.keys()):
                             grouped_dict[val] = 0
                         else:
                             pass
@@ -420,7 +427,7 @@ class ChiSquareAnalysis:
                     grouped_list = []
                     contributions_val = []
 
-                    for key in grouped_dict.keys():
+                    for key in list(grouped_dict.keys()):
                         index_list.append(key)
                         grouped_list.append(grouped_dict[key])
                         contributions_val.append(contributions_list[key])
@@ -449,8 +456,8 @@ class ChiSquareAnalysis:
                                         }
 
                     informative_df = pd.DataFrame(informative_dict)
-                    informative_df["percentage_horizontal"] = informative_df["positive_class_contribution"]*100/informative_df["positive_plus_others"]
-                    informative_df["percentage_vertical"] = informative_df["positive_class_contribution"]*100/sum_
+                    informative_df["percentage_horizontal"] = old_div(informative_df["positive_class_contribution"]*100,informative_df["positive_plus_others"])
+                    informative_df["percentage_vertical"] = old_div(informative_df["positive_class_contribution"]*100,sum_)
                     informative_df.sort_values(["percentage_vertical"], inplace = True, ascending = False)
                     informative_df = informative_df.reset_index(drop = True)
 
@@ -472,21 +479,21 @@ class ChiSquareAnalysis:
                     index_txt = ''
                     if differences_list:
                         if differences_list[0] >= 30:
-                            print "showing 1st case"
+                            print("showing 1st case")
                             index_txt = levels_sorted[0]
                             max_diff_equivalent = 1
                         else:
                             if len(differences_list)>=2:
                                 if differences_list[1] >= 10:
-                                    print "showing 1st and 2nd case"
+                                    print("showing 1st and 2nd case")
                                     index_txt = levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
                                     max_diff_equivalent = 2
                                 else:
-                                    print "showing 3rd case"
+                                    print("showing 3rd case")
                                     index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
                                     max_diff_equivalent = 3
                             else:
-                                print "showing 3rd case"
+                                print("showing 3rd case")
                                 index_txt = 'including ' + levels_sorted[0] + '(' + str(round(percentage_vertical_sorted[0], 1)) + '%)' + ' and ' + levels_sorted[1] + '(' + str(round(percentage_vertical_sorted[1], 1)) + '%)'
                                 max_diff_equivalent = 3
 
@@ -513,18 +520,18 @@ class ChiSquareAnalysis:
                   targetCardDataDict['distribution_second'] = distribution_second
                   targetCardDataDict['second_target']=targetLevel
                   targetCardDataDict['second_target_top_dims'] = second_target_top_dims
-                  targetCardDataDict['second_target_top_dims_contribution'] = second_target_top_dims_contribution*100.0/sum(second_target_contributions)
+                  targetCardDataDict['second_target_top_dims_contribution'] = old_div(second_target_top_dims_contribution*100.0,sum(second_target_contributions))
                   targetCardDataDict['second_target_bottom_dim']=second_target_bottom_dim
                   targetCardDataDict['second_target_bottom_dim_contribution']=second_target_bottom_dim_contribution
                   targetCardDataDict['best_second_target'] = levels[best_second_target_index]
                   targetCardDataDict['best_second_target_count'] = second_target_contributions[best_second_target_index]
-                  targetCardDataDict['best_second_target_percent'] = round(second_target_contributions[best_second_target_index]*100.0/sum(second_target_contributions),2)
+                  targetCardDataDict['best_second_target_percent'] = round(old_div(second_target_contributions[best_second_target_index]*100.0,sum(second_target_contributions)),2)
                   targetCardDataDict['worst_second_target'] = levels[worst_second_target_index]
-                  targetCardDataDict['worst_second_target_percent'] = round(second_target_contributions[worst_second_target_index]*100.0/sum(second_target_contributions),2)
+                  targetCardDataDict['worst_second_target_percent'] = round(old_div(second_target_contributions[worst_second_target_index]*100.0,sum(second_target_contributions)),2)
 
                   card2Data = []
                   targetLevelContributions = [table.get_value(targetLevel,i) for i in levels]
-                  impact_target_thershold= sum(targetLevelContributions)*0.02/len(targetLevelContributions)
+                  impact_target_thershold= old_div(sum(targetLevelContributions)*0.02,len(targetLevelContributions))
                   card2Heading = '<h3>Key Drivers of ' + self._target_dimension + ' (' + targetLevel + ')'+"</h3>"
                   chart,bubble = self.generate_distribution_card_chart(targetLevel, targetLevelContributions, levels, level_counts, total,impact_target_thershold)
                   card2ChartData = NormalChartData(data=chart["data"])
@@ -539,15 +546,15 @@ class ChiSquareAnalysis:
                   card2ChartJson.set_legend({"total":"# of "+targetLevel,"percentage":"% of "+targetLevel})
                   card2ChartJson.set_axes({"x":"key","y":"total","y2":"percentage"})
                   card2ChartJson.set_label_text({"x":" ","y":"Count","y2":"Percentage"})
-                  print "self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol
+                  print("self._binTargetCol & self._binAnalyzedCol : ", self._binTargetCol, self._binAnalyzedCol)
                   if (self._binTargetCol == True & self._binAnalyzedCol == False):
-                      print "Only Target Column is Binned"
+                      print("Only Target Column is Binned")
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target.html',targetCardDataDict),self._blockSplitter)
                   elif (self._binTargetCol == True & self._binAnalyzedCol == True):
-                      print "Target Column and IV is Binned"
+                      print("Target Column and IV is Binned")
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2_binned_target_and_IV.html',targetCardDataDict),self._blockSplitter)
                   else:
-                      print "In Else, self._binTargetCol should be False : ", self._binTargetCol
+                      print("In Else, self._binTargetCol should be False : ", self._binTargetCol)
                       output2 = NarrativesUtils.block_splitter(NarrativesUtils.get_template_output(self._base_dir,'card2.html',targetCardDataDict),self._blockSplitter)
 
                   card2Data.append(HtmlData(data=card2Heading))
@@ -583,9 +590,9 @@ class ChiSquareAnalysis:
                       'y':'# of '+__target,
                       'y2':'% of '+__target,}
         data = {}
-        data['total'] = dict(zip(levels,__target_contributions))
-        __target_percentages = [x*100.0/y for x,y in zip(__target_contributions,levels_count)]
-        data['percentage'] = dict(zip(levels,__target_percentages))
+        data['total'] = dict(list(zip(levels,__target_contributions)))
+        __target_percentages = [old_div(x*100.0,y) for x,y in zip(__target_contributions,levels_count)]
+        data['percentage'] = dict(list(zip(levels,__target_percentages)))
         chartData = []
         for val in zip(levels,__target_contributions,__target_percentages):
             chartData.append({"key":val[0],"total":val[1],"percentage":val[2]})
@@ -594,11 +601,11 @@ class ChiSquareAnalysis:
                                 'data':chartData}
         bubble_data1 = {}
         bubble_data2 = {}
-        bubble_data1['value'] = str(round(max(__target_contributions)*100.0/sum(__target_contributions),1))+'%'
+        bubble_data1['value'] = str(round(old_div(max(__target_contributions)*100.0,sum(__target_contributions)),1))+'%'
         m_index = __target_contributions.index(max(__target_contributions))
         bubble_data1['text'] = 'Overall '+__target+' comes from '+ levels[m_index]
         intial=-1
-        for k,v,i in zip(__target_contributions,__target_percentages,range(len(__target_contributions))):
+        for k,v,i in zip(__target_contributions,__target_percentages,list(range(len(__target_contributions)))):
             if k > thershold:
                 if intial < v:
                     intial = v
@@ -613,7 +620,7 @@ class ChiSquareAnalysis:
         column_two_values = self._chiSquareTable.column_two_values
         header_row = [self._analysed_dimension] + self._chiSquareTable.get_column_one_levels()
         all_columns = [column_two_values]+table_percent_by_column
-        other_rows = zip(*all_columns)
+        other_rows = list(zip(*all_columns))
         other_rows = [list(tup) for tup in other_rows]
         table_data = [header_row]+other_rows
         return table_data
@@ -633,28 +640,28 @@ class ChiSquareAnalysis:
 
         for idx, lvl in enumerate(dim_levels):
             first_row = ['Tag']+header
-            col_2_vals = zip(*table)[idx]
+            col_2_vals = list(zip(*table))[idx]
             data2 = ['bold'] + [lvl] + list(col_2_vals) + [sum(col_2_vals)]
 
-            dict_ = dict(zip(first_row, data2))
+            dict_ = dict(list(zip(first_row, data2)))
             data.append(dict_)
             data1.append(data2)
 
-            col_2_vals = zip(*table_percent_by_column)[idx]
+            col_2_vals = list(zip(*table_percent_by_column))[idx]
             data2 = [''] + ['As % within '+self._analysed_dimension] + list(col_2_vals) + [100.0]
-            dict_ = dict(zip(first_row, data2))
+            dict_ = dict(list(zip(first_row, data2)))
             data.append(dict_)
             data1.append(data2)
 
-            col_2_vals = zip(*table_percent_by_row)[idx]
-            col_2_vals1 = zip(*table_percent)[idx]
+            col_2_vals = list(zip(*table_percent_by_row))[idx]
+            col_2_vals1 = list(zip(*table_percent))[idx]
             data2 = [''] + ['As % within '+self._target_dimension] + list(col_2_vals) + [round(sum(col_2_vals1),2)]
-            dict_ = dict(zip(first_row, data2))
+            dict_ = dict(list(zip(first_row, data2)))
             data.append(dict_)
             data1.append(data2)
             # col_2_vals = zip(*table_percent)[idx]
             data2 = [''] + ['As % of Total'] + list(col_2_vals1) + [round(sum(col_2_vals1),2)]
-            dict_ = dict(zip(first_row, data2))
+            dict_ = dict(list(zip(first_row, data2)))
             data.append(dict_)
             data1.append(data2)
 

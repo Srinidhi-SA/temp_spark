@@ -3,7 +3,10 @@
     # messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
     # messages_for_API = messages.send_messages()
 
-class messages_list:
+from builtins import str
+from builtins import range
+from builtins import object
+class messages_list(object):
     """ Contains messages to send to API """
 
 

@@ -1,3 +1,6 @@
+from builtins import str
+from builtins import range
+from builtins import object
 import operator
 
 from bi.narratives import utils as NarrativesUtils
@@ -13,7 +16,7 @@ def combine(l):
         return temp
     return ''
 
-class ChiSquareAnalysisApp2:
+class ChiSquareAnalysisApp2(object):
     def __init__ (self, chisquare_result, target_dimension, analysed_dimension, significant_variables, num_analysed_variables,base_dir,appid=None):
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
@@ -61,7 +64,7 @@ class ChiSquareAnalysisApp2:
             column_two_value = chisquare_result_percentage_table.column_two_values[i]
             cumulative_percent[column_two_value] = sum(row_data[i] for row_data in chisquare_result_percentage_table.table)
 
-        cumulative_percent = sorted(cumulative_percent.items(),key=operator.itemgetter(1),reverse=True)
+        cumulative_percent = sorted(list(cumulative_percent.items()),key=operator.itemgetter(1),reverse=True)
 
         half_observation_categories = []
         half_observation_percent = 0
@@ -96,7 +99,7 @@ class ChiSquareAnalysisApp2:
         for i in chisquare_result_percentage_table.column_two_values:
             #rows = [i]
             for j in chisquare_result_percentage_table.column_one_values:
-                if not observations_by_target_categories.has_key(j):
+                if j not in observations_by_target_categories:
                     observations_by_target_categories[j] = {}
                 else:
                     #rows.append(str(round(chisquare_result_percentage_table.get_value(j, i),2)))
@@ -131,11 +134,11 @@ class ChiSquareAnalysisApp2:
             present_cat = self.table.column_one_values[idx]
             maxi = self.table.column_two_values[t.index(max(t))]
             mini = self.table.column_two_values[t.index(min(t))]
-            if not maximums.has_key(maxi):
+            if maxi not in maximums:
                 maximums[maxi]=[]
             tmp = present_cat+ '(' + str(max(t)) + '%)'
             maximums[maxi].append(tmp)
-            if not minimums.has_key(mini):
+            if mini not in minimums:
                 minimums[mini]=[]
             tmp = present_cat+ '(' + str(min(t)) + '%)'
             minimums[mini].append(tmp)

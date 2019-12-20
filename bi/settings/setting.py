@@ -1,7 +1,8 @@
-from pySparkMLClassificationParams import *
-from pySparkMLRegressionParams import *
-from sklearnMLClassificationParams import *
-from sklearnMLRegressionParams import *
+from __future__ import absolute_import
+from .pySparkMLClassificationParams import *
+from .pySparkMLRegressionParams import *
+from .sklearnMLClassificationParams import *
+from .sklearnMLRegressionParams import *
 
 UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION = 11
 UNIQUE_VALUES_COUNT_CUTOFF_CLASSIFICATION_DIMENSION = 20

@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 import datetime as dt
 # import dateparser
 import datetime as dt
@@ -19,14 +24,14 @@ from sklearn.model_selection import train_test_split
 from bi.common import ContextSetter
 from bi.common import utils as CommonUtils
 from bi.common import MetaParser
-from column import ColumnType
-from decorators import accepts
-from exception import BIException
+from .column import ColumnType
+from .decorators import accepts
+from .exception import BIException
 from bi.settings import setting as GLOBALSETTINGS
 
 
 
-class DataFrameHelper:
+class DataFrameHelper(object):
     """
     Provides helper method to query properties of a dataframe
     """
@@ -73,15 +78,15 @@ class DataFrameHelper:
         self._data_frame = sparkDf
 
     def set_params(self):
-        print "Setting the dataframe"
+        print("Setting the dataframe")
         # self._data_frame = CommonUtils.convert_percentage_columns(self._data_frame, self.percentage_columns)
         # self._data_frame = CommonUtils.convert_dollar_columns(self._data_frame, self.dollar_columns)
         colsToBin = [x["colName"] for x in self._dataframe_context.get_custom_analysis_details()]
-        print "ignorecolumns:-",self.ignorecolumns
+        print("ignorecolumns:-",self.ignorecolumns)
         # removing any columns which comes in customDetails from ignore columns
         self.ignorecolumns = list(set(self.ignorecolumns)-set(colsToBin))
         self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
-        print "self.resultcolumn",self.resultcolumn
+        print("self.resultcolumn",self.resultcolumn)
         if self.resultcolumn != "":
             colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
             colsToKeep=list(set(colsToKeep)-set(self.ignorecolumns))
@@ -90,8 +95,8 @@ class DataFrameHelper:
             colsToKeep=list(set(colsToKeep)-set(self.ignorecolumns))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         self.cols_ignored = list(set(self.columns) - set(colsToKeep))
-        print "colsToKeep:-",colsToKeep
-        print "colsToBin:-",colsToBin
+        print("colsToKeep:-",colsToKeep)
+        print("colsToBin:-",colsToBin)
         self.colsToBin = colsToBin
         appid = str(self._dataframe_context.get_app_id())
         if appid != "None":
@@ -116,10 +121,10 @@ class DataFrameHelper:
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
-        print "boolean_columns",self.boolean_columns
+        print("boolean_columns",self.boolean_columns)
         self.boolean_to_string(list(set(colsToKeep) & set(self.boolean_columns)))
         dataTypeChange = self._dataframe_context.get_change_datatype_details()
-        print dataTypeChange
+        print(dataTypeChange)
         self.change_data_type(dataTypeChange)
         self.update_column_data()
 
@@ -151,14 +156,14 @@ class DataFrameHelper:
                 self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType()))
 
     def change_data_type(self,dataTypeChange):
-        print "Updating column data type"
+        print("Updating column data type")
         for obj in dataTypeChange:
             try:
                 if obj["columnType"] == "dimension":
                     self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(StringType()))
                 elif obj["columnType"] == "measure":
                     self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(FloatType()))
-                print self._data_frame.printSchema()
+                print(self._data_frame.printSchema())
                 self._data_frame.show()
             except:
                 pass
@@ -169,21 +174,21 @@ class DataFrameHelper:
         date_columns = self._dataframe_context.get_date_columns()
         uidCol = self._dataframe_context.get_uid_column()
         ignored_cols=self._dataframe_context.get_ignore_column_suggestions()
-        print "All DATE Columns",date_columns
+        print("All DATE Columns",date_columns)
         considerColumns = self._dataframe_context.get_consider_columns()
         columns_to_ignore = [result_column]+date_columns+ignored_cols
         if uidCol:
             columns_to_ignore += [uidCol]
-        print "These Columns are Ignored:- ",  columns_to_ignore
+        print("These Columns are Ignored:- ",  columns_to_ignore)
         columns_to_keep = list(set(considerColumns)-set(columns_to_ignore))
         if train_test_ratio == None:
             train_test_ratio = 0.7
         appid = self._dataframe_context.get_app_id()
-        print "appid",appid
-        print "="*30
+        print("appid",appid)
+        print("="*30)
         app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
-        print "app_type",app_type
-        print "="*30
+        print("app_type",app_type)
+        print("="*30)
         if app_type == "CLASSIFICATION":
             if train_test_ratio != 1.0:
                 x_train,x_test,y_train,y_test = train_test_split(df[columns_to_keep], df[result_column], train_size=train_test_ratio, random_state=42, stratify=df[result_column])
@@ -230,12 +235,12 @@ class DataFrameHelper:
                 bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
                 bucketizer.setSplits(splits)
                 self._data_frame = bucketizer.transform(self._data_frame)
-                mapping_expr = create_map([lit(x) for x in chain(*splitsData["bin_mapping"].items())])
+                mapping_expr = create_map([lit(x) for x in chain(*list(splitsData["bin_mapping"].items()))])
                 # self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
                 self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
                 self._data_frame = self._data_frame.select(self.columns)
-            except Exception, e:
-                print "Binning failed for : ", bincol
+            except Exception as e:
+                print("Binning failed for : ", bincol)
 
     def get_cols_to_bin(self):
         return self.colsToBin
@@ -325,7 +330,7 @@ class DataFrameHelper:
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if existingDateFormat != None and requestedDateFormat != None:
-            print existingDateFormat,requestedDateFormat
+            print(existingDateFormat,requestedDateFormat)
             # def date(s):
             #   return str(s.date())
             # date_udf = udf(date, StringType())
@@ -350,8 +355,8 @@ class DataFrameHelper:
             try:
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             except Exception as e:
-                print e
-                print '----  ABOVE EXCEPTION  ----' * 10
+                print(e)
+                print('----  ABOVE EXCEPTION  ----' * 10)
                 existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
@@ -363,8 +368,8 @@ class DataFrameHelper:
             try:
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             except Exception as e:
-                print e
-                print '----  ABOVE EXCEPTION  ----' * 10
+                print(e)
+                print('----  ABOVE EXCEPTION  ----' * 10)
                 existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
                 agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
             agg_data = agg_data.sort_values('date_col')
@@ -401,7 +406,7 @@ class DataFrameHelper:
             levelCont[column] = dict(self._data_frame.groupBy(column).count().collect())
         return levelCont
 
-class DataFrameColumnMetadata:
+class DataFrameColumnMetadata(object):
     @accepts(object, basestring, type(ColumnType.MEASURE), type(ColumnType.INTEGER))
     def __init__(self, column_name, abstract_data_type, actual_data_type):
         self._column_name = column_name

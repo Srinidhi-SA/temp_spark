@@ -1,3 +1,9 @@
+from __future__ import print_function
+from builtins import filter
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import object
 import time
 import uuid
 import gc
@@ -10,7 +16,7 @@ from bi.settings import setting as GLOBALSETTINGS
 from pyspark.sql.functions import coalesce, to_date
 from pyspark.sql.functions import date_format, lit
 
-class MetaDataScript:
+class MetaDataScript(object):
     '''
     Gives metaData information about the data
     '''
@@ -102,7 +108,7 @@ class MetaDataScript:
         self.actual_col_datatype_update=[]
         self.update_column_type_dict()
         time_taken_schema = time.time()-self._start_time
-        print "schema rendering takes",time_taken_schema
+        print("schema rendering takes",time_taken_schema)
 
 
 
@@ -110,10 +116,10 @@ class MetaDataScript:
 
     def update_column_type_dict(self):
         self._column_type_dict = dict(\
-                                        zip(self._numeric_columns,[{"actual":"measure","abstract":"measure"}]*len(self._numeric_columns))+\
-                                        zip(self._string_columns,[{"actual":"dimension","abstract":"dimension"}]*len(self._string_columns))+\
-                                        zip(self._timestamp_columns,[{"actual":"datetime","abstract":"datetime"}]*len(self._timestamp_columns))+\
-                                        zip(self._boolean_columns,[{"actual":"boolean","abstract":"dimension"}]*len(self._boolean_columns))\
+                                        list(zip(self._numeric_columns,[{"actual":"measure","abstract":"measure"}]*len(self._numeric_columns)))+\
+                                        list(zip(self._string_columns,[{"actual":"dimension","abstract":"dimension"}]*len(self._string_columns)))+\
+                                        list(zip(self._timestamp_columns,[{"actual":"datetime","abstract":"datetime"}]*len(self._timestamp_columns)))+\
+                                        list(zip(self._boolean_columns,[{"actual":"boolean","abstract":"dimension"}]*len(self._boolean_columns)))\
                                      )
         self._dataSize["nMeasures"] = len(self._numeric_columns)
         self._dataSize["nDimensions"] = len(self._string_columns)
@@ -170,13 +176,13 @@ class MetaDataScript:
                 self._timestamp_string_columns.append(column)
                 self._data_frame = self._data_frame.withColumn(column, self.to_date_(column))
         sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
-        print "sampling takes",time_taken_sampling
+        print("sampling takes",time_taken_sampling)
         self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
 
         self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
         # self.update_column_type_dict()
 
-        print "time taken for separating date columns from string is :", time.time()-separation_time
+        print("time taken for separating date columns from string is :", time.time()-separation_time)
 
 
         # if len(self._percentage_columns)>0:
@@ -197,11 +203,11 @@ class MetaDataScript:
         headers = []
 
         self._start_time = time.time()
-        print "Count of Numeric columns",len(self._numeric_columns)
+        print("Count of Numeric columns",len(self._numeric_columns))
         measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
-        print "measure stats takes",time_taken_measurestats
+        print("measure stats takes",time_taken_measurestats)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "measurestats",\
                                     "info",\
@@ -209,7 +215,7 @@ class MetaDataScript:
                                     self._completionStatus,\
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
-        print "Count of DateTime columns",len(self._timestamp_columns)
+        print("Count of DateTime columns",len(self._timestamp_columns))
 
         self._start_time = time.time()
         # time_columns=self._timestamp_columns
@@ -247,7 +253,7 @@ class MetaDataScript:
         # timeDimensionCharts.update(timeDimensionCharts2)
         time_taken_tdstats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["timedimensionstats"]["weight"]
-        print "time dimension stats takes",time_taken_tdstats
+        print("time dimension stats takes",time_taken_tdstats)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "timedimensionstats",\
                                     "info",\
@@ -258,7 +264,7 @@ class MetaDataScript:
 
         self._start_time = time.time()
         dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
-        self._dataSize["dimensionLevelCountDict"] = {k:filter(lambda x:x["name"]=="numberOfUniqueValues",v)[0]["value"] for k,v in dimensionColumnStat.items()}
+        self._dataSize["dimensionLevelCountDict"] = {k:[x for x in v if x["name"]=="numberOfUniqueValues"][0]["value"] for k,v in list(dimensionColumnStat.items())}
         self._dataSize["totalLevels"] = sum(self._dataSize["dimensionLevelCountDict"].values())
 
         time_taken_dimensionstats = time.time()-self._start_time
@@ -312,7 +318,7 @@ class MetaDataScript:
             check_datatype_change=self.actual_col_datatype_update
             if len(check_datatype_change)!=0:
                 for i in check_datatype_change:
-                    if i.keys()[0]==column:
+                    if list(i.keys())[0]==column:
                         changeflage=True
                         changeType=i[column]
                         break
@@ -444,8 +450,8 @@ class MetaDataScript:
 
     def checkDupColName(self,statsDict):
         flipped = {}
-        if len(set(list(map(str,statsDict.values())))) < len(statsDict.keys()):
-            for key, value in statsDict.items():
+        if len(set(list(map(str,list(statsDict.values()))))) < len(list(statsDict.keys())):
+            for key, value in list(statsDict.items()):
                 if str(value) not in flipped:
                     flipped[str(value)] = [key]
                 else:
@@ -455,7 +461,7 @@ class MetaDataScript:
                     return True
                 else:
                     return False
-            dupCols=filter(check_length, flipped.values())
+            dupCols=list(filter(check_length, list(flipped.values())))
             return dupCols
         else :
             return []

@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import object
+from past.utils import old_div
 import time
 
 from pyspark.ml.feature import QuantileDiscretizer
@@ -7,7 +11,7 @@ from bi.common import BIException
 from bi.common.results import FivePointSummary
 
 
-class Quantizer:
+class Quantizer(object):
     QUANTIZATION_OUTPUT_COLUMN = '__quant'
     QUANTIZATION_RELATIVE_ERROR = 0.0001
     APPROX_ERROR = 0.10
@@ -64,10 +68,10 @@ class Quantizer:
         quartile_sums['q4'] = q4_stats[0]['sum']
 
         quartile_means = {}
-        quartile_means['q1'] = q1_stats[0]['sum']/q1_stats[0]['count']
-        quartile_means['q2'] = q2_stats[0]['sum']/q2_stats[0]['count']
-        quartile_means['q3'] = q3_stats[0]['sum']/q3_stats[0]['count']
-        quartile_means['q4'] = q4_stats[0]['sum']/q4_stats[0]['count']
+        quartile_means['q1'] = old_div(q1_stats[0]['sum'],q1_stats[0]['count'])
+        quartile_means['q2'] = old_div(q2_stats[0]['sum'],q2_stats[0]['count'])
+        quartile_means['q3'] = old_div(q3_stats[0]['sum'],q3_stats[0]['count'])
+        quartile_means['q4'] = old_div(q4_stats[0]['sum'],q4_stats[0]['count'])
 
         FPS = FivePointSummary(left_hinge_value=left_hinge, q1_value=q1, median=median, q3_value=q3,
                                 right_hinge_value=right_hinge, num_left_outliers=num_left_outliers,
@@ -84,8 +88,8 @@ class Quantizer:
         st = time.time()
         data_frame = data_frame.select(measure_column)
         splits = data_frame.approxQuantile(measure_column,Quantizer.QUARTILE_PERCENTAGES, Quantizer.APPROX_ERROR)
-        print splits
-        print "bucketizer",time.time()-st
+        print(splits)
+        print("bucketizer",time.time()-st)
         q1 = splits[0]
         median = splits[1]
         q3 = splits[2]
@@ -116,10 +120,10 @@ class Quantizer:
         quartile_sums['q4'] = q4_stats[0]['sum'] if q4_stats[0]['sum'] != None else 0
 
         quartile_means = {}
-        quartile_means['q1'] = quartile_sums['q1']/q1_stats[0]['count'] if q1_stats[0]['count'] != 0 else None
-        quartile_means['q2'] = quartile_sums['q2']/q2_stats[0]['count'] if q2_stats[0]['count'] != 0 else None
-        quartile_means['q3'] = quartile_sums['q3']/q3_stats[0]['count'] if q2_stats[0]['count'] != 0 else None
-        quartile_means['q4'] = quartile_sums['q4']/q4_stats[0]['count'] if q2_stats[0]['count'] != 0 else None
+        quartile_means['q1'] = old_div(quartile_sums['q1'],q1_stats[0]['count']) if q1_stats[0]['count'] != 0 else None
+        quartile_means['q2'] = old_div(quartile_sums['q2'],q2_stats[0]['count']) if q2_stats[0]['count'] != 0 else None
+        quartile_means['q3'] = old_div(quartile_sums['q3'],q3_stats[0]['count']) if q2_stats[0]['count'] != 0 else None
+        quartile_means['q4'] = old_div(quartile_sums['q4'],q4_stats[0]['count']) if q2_stats[0]['count'] != 0 else None
 
         FPS = FivePointSummary(left_hinge_value=left_hinge, q1_value=q1, median=median, q3_value=q3,
                                 right_hinge_value=right_hinge, num_left_outliers=num_left_outliers,

@@ -1,3 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from past.utils import old_div
 import json
 import md5
 import time
@@ -23,7 +31,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import regexp_extract, col
 
 
-from decorators import accepts
+from .decorators import accepts
 from math import log10, floor
 
 from bi.settings import setting as GLOBALSETTINGS
@@ -72,7 +80,7 @@ def get_existing_metadata(dataframe_context):
     else:
         return output
 
-@accepts((int, long, float), (int, long, float), num_steps=int)
+@accepts((int, int, float), (int, int, float), num_steps=int)
 def frange(start, stop, num_steps=10):
     """
     Create num_step equal sized ranges form start to stop, useful in histogram generation
@@ -96,7 +104,7 @@ def frange(start, stop, num_steps=10):
         step_size = round(step_size, rounding_digits)
 
     rounded_start = math.floor(1.0 * start / step_size) * step_size
-    rounded_stop = math.ceil(1.0 * (stop+step_size/num_steps) / step_size) * step_size
+    rounded_stop = math.ceil(1.0 * (stop+old_div(step_size,num_steps)) / step_size) * step_size
     i = rounded_start
     result = []
     while i < rounded_stop:
@@ -135,7 +143,7 @@ def get_updated_colnames(df):
         try:
             temp = [x for x in df.dropna(subset=[col])[col]]
             initial_length = len(temp)
-            if (initial_length<num_rows/2):
+            if (initial_length<old_div(num_rows,2)):
                 raise ValueError('None Vals')
             temp1 = [float(clean(x)) for x in temp]
             final_length = len(temp1)
@@ -180,22 +188,22 @@ def as_dict(obj):
     :return:
     """
     if isinstance(obj, dict):
-        return {k: as_dict(v) for (k, v) in obj.items()}
+        return {k: as_dict(v) for (k, v) in list(obj.items())}
     elif hasattr(obj, "_ast"):
         return as_dict(obj._ast())
     elif hasattr(obj, '__iter__'):
         return [as_dict(v) for v in obj]
     elif hasattr(obj, '__dict__'):
         return dict([(key, as_dict(value))
-                     for key, value in obj.__dict__.iteritems()
+                     for key, value in obj.__dict__.items()
                      if not callable(value) and not key.startswith('_')])
     else:
         return obj
 
 def recursiveRemoveNoneNodes(tree):
-    if isinstance(tree, dict) and "children" not in tree.keys():
+    if isinstance(tree, dict) and "children" not in list(tree.keys()):
         return tree
-    elif isinstance(tree, dict) and "children" in tree.keys():
+    elif isinstance(tree, dict) and "children" in list(tree.keys()):
         # if len(tree["children"]) != 0:
         if tree["children"] != [None]:
             for idx,stree in enumerate(tree["children"]):
@@ -246,10 +254,10 @@ def convert_python_object_to_json(object):
 
 def byteify(input):
     if isinstance(input, dict):
-        return dict([(byteify(key), byteify(value)) for key, value in input.iteritems()])
+        return dict([(byteify(key), byteify(value)) for key, value in input.items()])
     elif isinstance(input, list):
         return [byteify(element) for element in input]
-    elif isinstance(input, unicode):
+    elif isinstance(input, str):
         return input.encode('utf-8')
     else:
         return input
@@ -276,23 +284,23 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
 
 def save_result_json(url,jsonData):
     url += "set_result"
-    print "result url",url
+    print("result url",url)
     res = requests.put(url=url,data=jsonData)
     return res
 
 def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
-    print "="*100
-    print {
+    print("="*100)
+    print({
         "stageName": jsonData["stageName"],
         "globalCompletionPercentage": jsonData["globalCompletionPercentage"],
         "shortExplanation": jsonData["shortExplanation"],
         "analysisName": jsonData["analysisName"],
         "gmtDateTime":jsonData["gmtDateTime"]
-        }
-    print "="*100
+        })
+    print("="*100)
 
     if jsonData["globalCompletionPercentage"] > 100:
-        print "Red Alert ( percentage more than 100)"*5
+        print("Red Alert ( percentage more than 100)"*5)
     if emptyBin == True:
         url += "?emptyBin=True"
     # print "message url",url
@@ -305,14 +313,14 @@ def save_progress_message(url,jsonData,ignore=False,emptyBin=False):
 def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,scriptStages,analysisName,stageName,messageType,display=True,emptyBin=False,customMsg=None,weightKey="script"):
     if dataframeContext.get_dont_send_message() == False:
         completionStatus = dataframeContext.get_completion_status()
-        print "incoming completionStatus",completionStatus
+        print("incoming completionStatus",completionStatus)
         completionStatus = min(completionStatus,100)
         messageURL = dataframeContext.get_message_url()
         if customMsg == None:
             if dataframeContext.get_job_type() == 'training' or dataframeContext.get_job_type() == 'prediction':
                 completionStatus += scriptStages[stageName]["weight"]
             else:
-                completionStatus += scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"]/10
+                completionStatus += old_div(scriptWeightDict[analysisName][weightKey]*scriptStages[stageName]["weight"],10)
             progressMessage = create_progress_message_object(analysisName,\
                                         stageName,\
                                         messageType,\
@@ -328,7 +336,7 @@ def create_update_and_save_progress_message(dataframeContext,scriptWeightDict,sc
         else:
             save_progress_message(messageURL,progressMessage,ignore=False,emptyBin=emptyBin)
         dataframeContext.update_completion_status(completionStatus)
-        print "Outgoing Completion Status - ", completionStatus
+        print("Outgoing Completion Status - ", completionStatus)
 
 
 def save_pmml_models(url,jsonData,ignore=False):
@@ -347,14 +355,14 @@ def keyWithMaxVal(dictObj):
      return k[v.index(max(v))]
 
 def print_errors_and_store_traceback(loggerDict,scriptName,error):
-    print error
+    print(error)
     exception = {"exception":error,"traceback":traceback.format_exc()}
     loggerDict[scriptName] = exception
-    print "#####ERROR#####"*5
-    print error
-    print "#####ERROR#####"*5
-    print "{} Script Failed".format(scriptName)
-    print loggerDict[scriptName]
+    print("#####ERROR#####"*5)
+    print(error)
+    print("#####ERROR#####"*5)
+    print("{} Script Failed".format(scriptName))
+    print(loggerDict[scriptName])
 
 def save_error_messages(url,errorKey,error,ignore=False):
     if errorKey != None:
@@ -392,7 +400,7 @@ def get_splits(minVal,maxVal,n_split):
     splits_range = [(splits[idx],splits[idx+1]) for idx in range(len(splits)-1)]
     splits_data = {"splits":splits,"splits_range":splits_range}
     str_splits_range = [" to ".join([str(round_sig(x[0],sig=2)),str(round_sig(x[1],sig=2))]) for x in splits_range]
-    splits_data["bin_mapping"] = dict(zip(range(len(splits_range)),str_splits_range))
+    splits_data["bin_mapping"] = dict(list(zip(list(range(len(splits_range))),str_splits_range)))
     return splits_data
 
 def return_optimum_bins(x):
@@ -411,20 +419,20 @@ def return_optimum_bins(x):
 
 	N_MIN = 2   					# Minimum number of bins (integer)
 	N_MAX = 30						# Maximum number of bins (integer)
-	N = range(N_MIN,N_MAX) 			#of Bins
+	N = list(range(N_MIN,N_MAX)) 			#of Bins
 	N = np.array(N)
-	D = (x_max-x_min)/N    			#Bin size vector
+	D = old_div((x_max-x_min),N)    			#Bin size vector
 	C = zeros(shape=(size(D),1))
 
 	# Computation of the cost function
 
-	for i in xrange(size(N)):
+	for i in range(size(N)):
 		edges = linspace(x_min,x_max,N[i]+1)  # Bin edges
 		ki = plt.hist(x,edges) 				  # Count # of events in bins
 		ki = list(ki[0])
 		k = np.mean(ki) 					  # Mean of event count
-		v = sum((ki-k)**2)/N[i] 			  # Variance of event count
-		C[i] = (2*k-v)/((D[i])**2.)        	  # The cost Function
+		v = old_div(sum((ki-k)**2),N[i]) 			  # Variance of event count
+		C[i] = old_div((2*k-v),((D[i])**2.))        	  # The cost Function
 
 	# Optimal Bin Size Selection
 
@@ -467,8 +475,8 @@ def humanize_time(time_in_secs):
     Takes time in seconds (67856) and converts to 12 hours 13 minutes
     '''
     time_in_secs = int(round(time_in_secs))
-    hours = time_in_secs/3600
-    minutes = (time_in_secs - (hours*3600))/60
+    hours = old_div(time_in_secs,3600)
+    minutes = old_div((time_in_secs - (hours*3600)),60)
     if time_in_secs < 60:
         return "{} Seconds".format(time_in_secs)
     return "{} Hrs {} Mins".format(hours, minutes)

@@ -1,8 +1,9 @@
+from builtins import object
 from bi.narratives import utils as NarrativesUtils
 
 
 
-class ExecutiveSummaryNarrative:
+class ExecutiveSummaryNarrative(object):
     def __init__(self, df_helper, df_context, result_setter, spark):
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context

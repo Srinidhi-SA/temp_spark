@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import zip
+from builtins import object
 import pandas as pd
 from sklearn.svm import SVC
 from sklearn import preprocessing
@@ -6,14 +9,14 @@ from bi.algorithms import utils as MLUtils
 from bi.common import utils as CommonUtils
 
 
-class SupportVectorMachine:
+class SupportVectorMachine(object):
     def __init__(self, data_frame, dataframe_helper, spark):
         # self._spark = spark
         # self.data_frame = data_frame.toPandas()
         # self._measure_columns = dataframe_helper.get_numeric_columns()
         # self._dimension_columns = dataframe_helper.get_string_columns()
         # self.classifier = initiate_forest_classifier(10,5)
-        print "SVM INITIALIZATION DONE"
+        print("SVM INITIALIZATION DONE")
 
     def initiate_svm_classifier(self,n_estimators,max_features):
         clf = SVC(kernel='linear',probability=True)
@@ -46,14 +49,14 @@ class SupportVectorMachine:
         y_train = labelEncoder.transform(y_train)
         classes = labelEncoder.classes_
         transformed = labelEncoder.transform(classes)
-        labelMapping = dict(zip(transformed,classes))
-        print "starting svm model fit"
+        labelMapping = dict(list(zip(transformed,classes)))
+        print("starting svm model fit")
         import time
         st = time.time()
         clf = clf.fit(x_train, y_train)
-        print "time for fit",time.time()-st
-        print "svm model fit completed"
-        print "#"*40
+        print("time for fit",time.time()-st)
+        print("svm model fit completed")
+        print("#"*40)
         y_score = clf.predict(x_test)
         y_score = labelEncoder.inverse_transform(y_score)
         y_prob = clf.predict_proba(x_test)

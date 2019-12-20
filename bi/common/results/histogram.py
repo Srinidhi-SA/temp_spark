@@ -1,21 +1,24 @@
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 from bi.common.decorators import accepts
 
-class Histogram:
+class Histogram(object):
 
     BIN_NUMBER = 'bin_number'
     BIN_START_VALUE = 'start_value'
     BIN_END_VALUE = 'end_value'
     BIN_NUM_OF_RECORDS = 'num_records'
 
-    @accepts(object, (str, basestring), (int, long))
+    @accepts(object, (str, basestring), (int, int))
     def __init__(self, column_name, num_records):
         self.column_name = column_name
         self.num_records = num_records
         self.bins = []
         self._un_ordered_bins = []
 
-    @accepts(object, int, (int, long, float), (int, long, float), (int, long, float))
+    @accepts(object, int, (int, int, float), (int, int, float), (int, int, float))
     def add_bin(self, bin_number, start_value, end_value, num_records):
         bin_data = {
             Histogram.BIN_NUMBER: str(bin_number),
@@ -35,7 +38,7 @@ class Histogram:
     def get_column_name(self):
         return self.column_name
 
-class DataFrameHistogram:
+class DataFrameHistogram(object):
 
     def __init__(self):
         self.histograms = {}

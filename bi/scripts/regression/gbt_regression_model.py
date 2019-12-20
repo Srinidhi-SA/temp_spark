@@ -1,9 +1,16 @@
+from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import json
 import time
 from datetime import datetime
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 
@@ -55,7 +62,7 @@ from sklearn.model_selection import ParameterGrid
 
 
 
-class GBTRegressionModelScript:
+class GBTRegressionModelScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -73,7 +80,7 @@ class GBTRegressionModelScript:
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        print self._completionStatus,"initial completion status"
+        print(self._completionStatus,"initial completion status")
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
@@ -101,20 +108,20 @@ class GBTRegressionModelScript:
 
         appType = self._dataframe_context.get_app_type()
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x:x.get_algorithm_slug()==self._slug,algosToRun)[0]
+        algoSetting = [x for x in algosToRun if x.get_algorithm_slug()==self._slug][0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
             categorical_columns = list(set(categorical_columns) - {uid_col})
         allDateCols = self._dataframe_context.get_date_columns()
         categorical_columns = list(set(categorical_columns)-set(allDateCols))
-        print categorical_columns
+        print(categorical_columns)
         result_column = self._dataframe_context.get_result_column()
         numerical_columns = self._dataframe_helper.get_numeric_columns()
         numerical_columns = [x for x in numerical_columns if x != result_column]
 
         model_path = self._dataframe_context.get_model_path()
-        print "model_path",model_path
+        print("model_path",model_path)
         if model_path.startswith("file"):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
@@ -128,7 +135,7 @@ class GBTRegressionModelScript:
             pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
             pipelineModel = pipeline.fit(df)
             indexed = pipelineModel.transform(df)
-            featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*indexed.schema["features"].metadata["ml_attr"]["attrs"].values())))
+            featureMapping = sorted((attr["idx"], attr["name"]) for attr in (chain(*list(indexed.schema["features"].metadata["ml_attr"]["attrs"].values()))))
 
             MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
             gbtr = GBTRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
@@ -150,28 +157,28 @@ class GBTRegressionModelScript:
                 st = time.time()
                 cvModel = crossval.fit(indexed)
                 trainingTime = time.time()-st
-                print "cvModel training takes",trainingTime
+                print("cvModel training takes",trainingTime)
                 bestModel = cvModel.bestModel
             elif validationDict["name"] == "trainAndtest":
                 trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
                 st = time.time()
                 fit = gbtr.fit(trainingData)
                 trainingTime = time.time()-st
-                print "time to train",trainingTime
+                print("time to train",trainingTime)
                 bestModel = fit
 
             featureImportance = bestModel.featureImportances
-            print featureImportance,type(featureImportance)
+            print(featureImportance,type(featureImportance))
             # print featureImportance[0],len(featureImportance[1],len(featureImportance[2]))
-            print len(featureMapping)
+            print(len(featureMapping))
             featuresArray = [(name, featureImportance[idx]) for idx, name in featureMapping]
-            print featuresArray
+            print(featuresArray)
             MLUtils.save_pipeline_or_model(bestModel,model_filepath)
             transformed = bestModel.transform(validationData)
             transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
             transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
             transformed = transformed.withColumnRenamed(transformed.columns[-1],"difference")
-            transformed = transformed.select([result_column,"prediction","difference",FN.abs(transformed["difference"])*100/transformed[result_column]])
+            transformed = transformed.select([result_column,"prediction","difference",old_div(FN.abs(transformed["difference"])*100,transformed[result_column])])
             transformed = transformed.withColumnRenamed(transformed.columns[-1],"mape")
             sampleData = None
             nrows = transformed.count()
@@ -179,7 +186,7 @@ class GBTRegressionModelScript:
                 sampleData = transformed.sample(False, float(100)/nrows, seed=420)
             else:
                 sampleData = transformed
-            print sampleData.show()
+            print(sampleData.show())
             evaluator = RegressionEvaluator(predictionCol="prediction",labelCol=result_column)
             metrics = {}
             metrics["r2"] = evaluator.evaluate(transformed,{evaluator.metricName: "r2"})
@@ -191,15 +198,15 @@ class GBTRegressionModelScript:
             mapeDf = transformed.select("mape")
             # print mapeDf.show()
             mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
-            mapeStatsArr = mapeStats.items()
+            mapeStatsArr = list(mapeStats.items())
             mapeStatsArr = sorted(mapeStatsArr,key=lambda x:int(x[0]))
-            print mapeStatsArr
+            print(mapeStatsArr)
             quantileDf = transformed.select("prediction")
             # print quantileDf.show()
             quantileSummaryDict = MLUtils.get_quantile_summary(quantileDf,"prediction")
-            quantileSummaryArr = quantileSummaryDict.items()
+            quantileSummaryArr = list(quantileSummaryDict.items())
             quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
-            print quantileSummaryArr
+            print(quantileSummaryArr)
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("GBT Regression")
             self._model_summary.set_algorithm_display_name("Gradient Boosted Tree Regression")
@@ -232,12 +239,12 @@ class GBTRegressionModelScript:
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
-                params_grid = {k:v for k,v in params_grid.items() if k in est.get_params()}
-                print params_grid
+                params_grid = {k:v for k,v in list(params_grid.items()) if k in est.get_params()}
+                print(params_grid)
                 if hyperParamAlgoName == "gridsearchcv":
                     estGrid = GridSearchCV(est,params_grid)
                     gridParams = estGrid.get_params()
-                    hyperParamInitParam = {k:v for k,v in hyperParamInitParam.items() if k in gridParams}
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams}
                     estGrid.set_params(**hyperParamInitParam)
                     # estGrid.fit(x_train,y_train)
                     grid_param={}
@@ -261,7 +268,7 @@ class GBTRegressionModelScript:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in algoParams.items() if k in est.get_params().keys()}
+                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
                 est.set_params(**algoParams)
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if validationDict["name"] == "kFold":
@@ -300,7 +307,7 @@ class GBTRegressionModelScript:
             metrics["explained_variance_score"]=explained_variance_score(y_test, y_score)
             transformed = pd.DataFrame({"prediction":y_score,result_column:y_test})
             transformed["difference"] = transformed[result_column] - transformed["prediction"]
-            transformed["mape"] = np.abs(transformed["difference"])*100/transformed[result_column]
+            transformed["mape"] = old_div(np.abs(transformed["difference"])*100,transformed[result_column])
 
             sampleData = None
             nrows = transformed.shape[0]
@@ -308,13 +315,13 @@ class GBTRegressionModelScript:
                 sampleData = transformed.sample(n=100,random_state=420)
             else:
                 sampleData = transformed
-            print sampleData.head()
+            print(sampleData.head())
             if transformed["mape"].max() > 100:
                 GLOBALSETTINGS.MAPEBINS.append(transformed["mape"].max())
-                mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
+                mapeCountArr = list(pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items())
                 GLOBALSETTINGS.MAPEBINS.pop(5)
             else:
-                mapeCountArr = pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items()
+                mapeCountArr = list(pd.cut(transformed["mape"],GLOBALSETTINGS.MAPEBINS).value_counts().to_dict().items())
             mapeStatsArr = [(str(idx),dictObj) for idx,dictObj in enumerate(sorted([{"count":x[1],"splitRange":(x[0].left,x[0].right)} for x in mapeCountArr],key = lambda x:x["splitRange"][0]))]
 
             predictionColSummary = transformed["prediction"].describe().to_dict()
@@ -323,9 +330,9 @@ class GBTRegressionModelScript:
             transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins)
             quantileDf = transformed.groupby("quantileBinId").agg({"prediction":[np.sum,np.mean,np.size]}).reset_index()
             quantileDf.columns = ["prediction","sum","mean","count"]
-            quantileArr = quantileDf.T.to_dict().items()
+            quantileArr = list(quantileDf.T.to_dict().items())
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
-            print quantileSummaryArr
+            print(quantileSummaryArr)
             runtime = round((time.time() - st_global),2)
 
             self._model_summary.set_model_type("regression")
@@ -462,7 +469,7 @@ class GBTRegressionModelScript:
                     ["Learning Rate",self._model_management.get_learning_rate()],
                     ["Loss Function",self._model_management.get_loss_function()]
                     ]
-        print modelManagementModelSettingsJson,modelManagementSummaryJson
+        print(modelManagementModelSettingsJson,modelManagementSummaryJson)
 
 
 
@@ -529,9 +536,9 @@ class GBTRegressionModelScript:
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
             trained_model_path += "/model"
             pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
-            print "trained_model_path",trained_model_path
-            print "pipeline_path",pipeline_path
-            print "score_data_path",score_data_path
+            print("trained_model_path",trained_model_path)
+            print("pipeline_path",pipeline_path)
+            print("score_data_path",score_data_path)
             pipelineModel = MLUtils.load_pipeline(pipeline_path)
             trained_model = MLUtils.load_gbt_regresssion_pyspark_model(trained_model_path)
             df = self._data_frame
@@ -545,7 +552,7 @@ class GBTRegressionModelScript:
                 score_data_path = score_data_path[7:]
             pandas_scored_df.to_csv(score_data_path,header=True,index=False)
 
-            print "STARTING Measure ANALYSIS ..."
+            print("STARTING Measure ANALYSIS ...")
             columns_to_keep = []
             columns_to_drop = []
             columns_to_keep = self._dataframe_context.get_score_consider_columns()
@@ -554,7 +561,7 @@ class GBTRegressionModelScript:
             else:
                 columns_to_drop += ["predicted_probability"]
             columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
-            print "columns_to_drop",columns_to_drop
+            print("columns_to_drop",columns_to_drop)
             spark_scored_df = transformed.select(list(set(columns_to_keep+[result_column])))
 
         elif self._mlEnv == "sklearn":
@@ -562,13 +569,13 @@ class GBTRegressionModelScript:
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
             trained_model_path = "file://" + self._dataframe_context.get_model_path()
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
-            print "trained_model_path",trained_model_path
-            print "score_data_path",score_data_path
+            print("trained_model_path",trained_model_path)
+            print("score_data_path",score_data_path)
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
             trained_model = joblib.load(trained_model_path)
             model_columns = self._dataframe_context.get_model_features()
-            print "model_columns",model_columns
+            print("model_columns",model_columns)
 
             df = self._data_frame.toPandas()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -583,7 +590,7 @@ class GBTRegressionModelScript:
             kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
             kpiCard.set_card_data(kpiCardData)
             kpiCard.set_cente_alignment(True)
-            print CommonUtils.convert_python_object_to_json(kpiCard)
+            print(CommonUtils.convert_python_object_to_json(kpiCard))
             self._result_setter.set_kpi_card_regression_score(kpiCard)
 
             pandas_df[result_column] = y_score
@@ -592,7 +599,7 @@ class GBTRegressionModelScript:
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
-            print "STARTING Measure ANALYSIS ..."
+            print("STARTING Measure ANALYSIS ...")
             columns_to_keep = []
             columns_to_drop = []
             columns_to_keep = self._dataframe_context.get_score_consider_columns()
@@ -602,13 +609,13 @@ class GBTRegressionModelScript:
                 columns_to_drop += ["predicted_probability"]
 
             columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
-            print "columns_to_drop",columns_to_drop
+            print("columns_to_drop",columns_to_drop)
             pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
             spark_scored_df = SQLctx.createDataFrame(pandas_scored_df)
             # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
             # TODO update metadata for the newly created dataframe
             self._dataframe_context.update_consider_columns(columns_to_keep)
-            print spark_scored_df.printSchema()
+            print(spark_scored_df.printSchema())
 
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
@@ -618,9 +625,9 @@ class GBTRegressionModelScript:
             fs = time.time()
             descr_stats_obj = DescriptiveStatsScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,scriptWeight=self._scriptWeightDict,analysisName="Descriptive analysis")
             descr_stats_obj.Run()
-            print "DescriptiveStats Analysis Done in ", time.time() - fs, " seconds."
+            print("DescriptiveStats Analysis Done in ", time.time() - fs, " seconds.")
         except:
-            print "Frequency Analysis Failed "
+            print("Frequency Analysis Failed ")
 
         # try:
         #     fs = time.time()
@@ -636,6 +643,6 @@ class GBTRegressionModelScript:
             fs = time.time()
             two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
             two_way_obj.Run()
-            print "OneWayAnova Analysis Done in ", time.time() - fs, " seconds."
+            print("OneWayAnova Analysis Done in ", time.time() - fs, " seconds.")
         except:
-            print "Anova Analysis Failed"
+            print("Anova Analysis Failed")

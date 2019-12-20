@@ -1,8 +1,9 @@
+from builtins import object
 from bi.narratives.anova import AnovaNarratives
 from bi.stats import TwoWayAnova
 
 
-class TwoWayAnovaScript:
+class TwoWayAnovaScript(object):
     def __init__(self, data_frame, df_helper, df_context, result_setter, spark, story_narrative, meta_parser,scriptWeight=None, analysisName=None):
         self._story_narrative = story_narrative
         self._result_setter = result_setter

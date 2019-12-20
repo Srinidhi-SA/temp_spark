@@ -1,9 +1,10 @@
+from builtins import object
 from bi.common import utils as CommonUtils
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.frequency_dimensions import FreqDimensions
 
 
-class FreqDimensionsScript:
+class FreqDimensionsScript(object):
     def __init__(self, data_frame, df_helper, df_context, spark, result_setter, story_narrative):
         self._story_narrative = story_narrative
         self._result_setter = result_setter

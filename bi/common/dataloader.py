@@ -1,15 +1,22 @@
 """
 functions to load data from various sources to create a dataframe
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 from pyspark.sql import SparkSession, HiveContext
 from pyspark import SparkContext, SparkConf
 import random
-from decorators import accepts
+from .decorators import accepts
 import time
 import re
+from functools import reduce
 
-class DataLoader:
+class DataLoader(object):
 
     @staticmethod
     @accepts(SparkSession, basestring, has_header=bool, interpret_data_schema=bool)
@@ -21,10 +28,10 @@ class DataLoader:
     @accepts(SparkSession, basestring, dict)
     def create_dataframe_from_jdbc_connector(spark_session, datasource_type, dbConnectionParams):
         datasource_type = datasource_type.lower()
-        print "~"*100
-        print "Data Source :- ",datasource_type
-        print "Database Connection Params :- ",dbConnectionParams
-        print "~"*100
+        print("~"*100)
+        print("Data Source :- ",datasource_type)
+        print("Database Connection Params :- ",dbConnectionParams)
+        print("~"*100)
         if "hana" == datasource_type:
             return DataLoader.create_dataframe_from_hana_connector(spark_session, dbConnectionParams)
         elif "mysql" == datasource_type:
@@ -45,7 +52,7 @@ class DataLoader:
         # change jdbc_url
 
         jdbc_url = "jdbc:mysql://{}:{}/{}".format(dbConnectionParams["host"], dbConnectionParams["port"], DataLoader.get_db_name(dbConnectionParams))
-        print jdbc_url
+        print(jdbc_url)
 
         table_name = dbConnectionParams.get("tablename")
         username = dbConnectionParams.get("username")
@@ -58,7 +65,7 @@ class DataLoader:
             return df
         except Exception as e:
             print("couldn't connect to database")
-            print e
+            print(e)
         return df
 
     @staticmethod
@@ -186,7 +193,7 @@ class DataLoader:
 	except Exception as e:
 	    print(e)
         cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
-        df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
+        df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), range(len(df.columns)), df)
 
         '''
         except Exception as e:
@@ -225,7 +232,7 @@ class DataLoader:
 
     @staticmethod
     def get_db_name(dbConnectionParams):
-        if "schema" in dbConnectionParams.keys():
+        if "schema" in list(dbConnectionParams.keys()):
             return dbConnectionParams.get("schema")
-        elif "databasename" in dbConnectionParams.keys():
+        elif "databasename" in list(dbConnectionParams.keys()):
             return dbConnectionParams.get("databasename")

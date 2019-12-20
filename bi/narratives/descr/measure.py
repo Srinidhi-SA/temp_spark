@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import humanize
 
 from bi.common import NormalCard, SummaryCard, NarrativesTree, C3ChartData, TableData
@@ -8,7 +13,7 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.common import MetaDataHelper
 from bi.scripts.metadata import  MetaDataScript
 
-class MeasureColumnNarrative:
+class MeasureColumnNarrative(object):
 
     MAX_FRACTION_DIGITS = 2
 
@@ -185,8 +190,8 @@ class MeasureColumnNarrative:
     def _generate_analysis_para2(self):
         output = 'Para2 entered'
         histogram_buckets = self._measure_descr_stats.get_histogram()
-        print histogram_buckets
-        print "$"*200
+        print(histogram_buckets)
+        print("$"*200)
         threshold = self._dataframe_helper.get_num_rows() * 0.75
         s = 0
         start = 0
@@ -205,15 +210,15 @@ class MeasureColumnNarrative:
                     flag = 1
             if (flag == 1):
                 break
-        bin_size_75 = (end - start + 1)*100/len(histogram_buckets)
-        s = s*100/self._dataframe_helper.get_num_rows()
-        print histogram_buckets
-        print "="*120
+        bin_size_75 = old_div((end - start + 1)*100,len(histogram_buckets))
+        s = old_div(s*100,self._dataframe_helper.get_num_rows())
+        print(histogram_buckets)
+        print("="*120)
         start_value = histogram_buckets[start]['start_value']
-        print start,end
+        print(start,end)
         if end >= len(histogram_buckets):
             end = len(histogram_buckets)-1
-        print start,end
+        print(start,end)
         end_value = histogram_buckets[end]['end_value']
         if len(histogram_buckets) > 2:
             lowest = min(histogram_buckets[0]['num_records'],histogram_buckets[1]['num_records'],histogram_buckets[2]['num_records'])
@@ -224,17 +229,17 @@ class MeasureColumnNarrative:
 
         quartile_sums = self._five_point_summary_stats.get_sums()
         quartile_means = self._five_point_summary_stats.get_means()
-        print quartile_means
+        print(quartile_means)
         quartile_frequencies = self._five_point_summary_stats.get_frequencies()
         total = self._measure_descr_stats.get_total()
         avg = self._measure_descr_stats.get_mean()
         counts = self._measure_descr_stats.get_num_values()
 
         data_dict = {"histogram" : histogram_buckets,
-                    "per_cont_hist1" : NarrativesUtils.round_number(histogram_buckets[0]['num_records']*100/self._measure_descr_stats.get_total(), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
-                    "per_cont_hist2" : NarrativesUtils.round_number(histogram_buckets[1]['num_records']*100/self._measure_descr_stats.get_total(), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
-                    "lowest_cont" : NarrativesUtils.round_number(lowest*100/self._measure_descr_stats.get_total(), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
-                    "highest_cont" : NarrativesUtils.round_number(highest*100/self._measure_descr_stats.get_total(), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
+                    "per_cont_hist1" : NarrativesUtils.round_number(old_div(histogram_buckets[0]['num_records']*100,self._measure_descr_stats.get_total()), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
+                    "per_cont_hist2" : NarrativesUtils.round_number(old_div(histogram_buckets[1]['num_records']*100,self._measure_descr_stats.get_total()), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
+                    "lowest_cont" : NarrativesUtils.round_number(old_div(lowest*100,self._measure_descr_stats.get_total()), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
+                    "highest_cont" : NarrativesUtils.round_number(old_div(highest*100,self._measure_descr_stats.get_total()), MeasureColumnNarrative.MAX_FRACTION_DIGITS),
                     "num_bins" : len(histogram_buckets),
                     "seventy_five" : bin_size_75,
                     "col_name" : self._column_name,
@@ -243,21 +248,21 @@ class MeasureColumnNarrative:
                     "start_value" : start_value,
                     "end_value" : end_value,
                     "measure_colname":self._column_name,
-                    "q4_cont" : NarrativesUtils.round_number(quartile_frequencies['q4']*100.0/counts, 2),
-                    "q1_cont" : NarrativesUtils.round_number(quartile_frequencies['q1']*100.0/counts, 2),
-                    "q4_frac" : NarrativesUtils.round_number(quartile_sums['q4']*100.0/total, 2),
-                    "q1_frac" : NarrativesUtils.round_number(quartile_sums['q1']*100.0/total, 2),
+                    "q4_cont" : NarrativesUtils.round_number(old_div(quartile_frequencies['q4']*100.0,counts), 2),
+                    "q1_cont" : NarrativesUtils.round_number(old_div(quartile_frequencies['q1']*100.0,counts), 2),
+                    "q4_frac" : NarrativesUtils.round_number(old_div(quartile_sums['q4']*100.0,total), 2),
+                    "q1_frac" : NarrativesUtils.round_number(old_div(quartile_sums['q1']*100.0,total), 2),
                     "q4_sum" : NarrativesUtils.round_number(quartile_sums['q4'], 2),
                     "q4_mean" : NarrativesUtils.round_number(quartile_means['q4'], 2),
                     "q1_sum" : NarrativesUtils.round_number(quartile_sums['q1'], 2),
-                    "q4_overall_mean" : round(quartile_means['q4']*1.0/avg, 2),
+                    "q4_overall_mean" : round(old_div(quartile_means['q4']*1.0,avg), 2),
                     "total" : NarrativesUtils.round_number(total,2),
                     "avg" : NarrativesUtils.round_number(avg,2),
                     "highlightFlag":self._highlightFlag,
                     "blockSplitter":self._blockSplitter
         }
         try:
-            data_dict["q4_q1_mean"] = round(quartile_means['q4']*1.0/quartile_means['q1'], 1)
+            data_dict["q4_q1_mean"] = round(old_div(quartile_means['q4']*1.0,quartile_means['q1']), 1)
         except:
             data_dict["q4_q1_mean"] = None
 
@@ -272,8 +277,8 @@ class MeasureColumnNarrative:
                                     'content': blocks
                                 }
             quartiles = ['q1','q2','q3','q4']
-            observations = [0.0] + [quartile_frequencies[i]*100.0/counts for i in quartiles]
-            totals = [0.0] + [quartile_sums[i]*100.0/total for i in quartiles]
+            observations = [0.0] + [old_div(quartile_frequencies[i]*100.0,counts) for i in quartiles]
+            totals = [0.0] + [old_div(quartile_sums[i]*100.0,total) for i in quartiles]
             chart = {'x-label': '% of Observations',
                     'y-label': '% of Total '+self._column_name+' (Cumulative)',
                     'x': list(NarrativesUtils.accumu(observations)),
@@ -304,8 +309,8 @@ class MeasureColumnNarrative:
                     flag = 1
             if (flag == 1):
                 break
-        bin_size_75 = (end - start + 1)*100/len(histogram_buckets)
-        s = s*100/self._dataframe_helper.get_num_rows()
+        bin_size_75 = old_div((end - start + 1)*100,len(histogram_buckets))
+        s = old_div(s*100,self._dataframe_helper.get_num_rows())
         start_value = histogram_buckets[start]['start_value']
         if end >= len(histogram_buckets):
             end = len(histogram_buckets)-1

@@ -1,4 +1,8 @@
-from anova_drilldown import AnovaDrilldownNarratives
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
+from .anova_drilldown import AnovaDrilldownNarratives
 from bi.common import NormalCard, NarrativesTree, C3ChartData,HtmlData
 from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
@@ -7,7 +11,7 @@ from bi.narratives.anova.anova import OneWayAnovaNarratives
 from bi.settings import setting as GLOBALSETTINGS
 
 
-class AnovaNarratives:
+class AnovaNarratives(object):
     ALPHA = 0.05
 
     KEY_SUMMARY = 'summary'
@@ -100,13 +104,13 @@ class AnovaNarratives:
         for measure_column in self._df_anova_result.get_measure_columns():
             measure_anova_result = self._df_anova_result.get_measure_result(measure_column)
             significant_dimensions_dict, insignificant_dimensions = measure_anova_result.get_OneWayAnovaSignificantDimensions()
-            num_dimensions = len(significant_dimensions_dict.items()) + len(insignificant_dimensions)
-            significant_dimensions = [k for k,v in sorted(significant_dimensions_dict.items(), key=lambda x: -x[1])]
+            num_dimensions = len(list(significant_dimensions_dict.items())) + len(insignificant_dimensions)
+            significant_dimensions = [k for k,v in sorted(list(significant_dimensions_dict.items()), key=lambda x: -x[1])]
             if nColsToUse != None:
                 significant_dimensions = significant_dimensions[:nColsToUse]
             num_significant_dimensions = len(significant_dimensions)
             num_insignificant_dimensions = len(insignificant_dimensions)
-            print "num_significant_dimensions",num_significant_dimensions
+            print("num_significant_dimensions",num_significant_dimensions)
             if num_significant_dimensions > 0:
                 mainCard = NormalCard(name = "Overview of Key Factors")
                 data_c3 = []
@@ -180,7 +184,7 @@ class AnovaNarratives:
                 effect_size_chart = { 'heading' : '',
                                       'labels' : {'Dimension':'Effect Size'},
                                       'data' : significant_dimensions_dict}
-                print significant_dimensions_dict
+                print(significant_dimensions_dict)
                 self.narratives['main_card'][AnovaNarratives.KEY_CHART]['effect_size'] = effect_size_chart
                 progressMessage = CommonUtils.create_progress_message_object(self._analysisName,"custom","info","Analyzing Key Drivers",self._completionStatus,self._completionStatus,display=True)
                 CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=False)

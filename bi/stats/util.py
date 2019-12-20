@@ -1,4 +1,7 @@
+from __future__ import division
 
+from builtins import object
+from past.utils import old_div
 import pattern.en
 from pyspark.sql import functions as FN
 from scipy.stats import f as FDistribution
@@ -8,7 +11,7 @@ from scipy.stats import t as TDistribution
 from statsmodels.stats.libqsturng import qsturng
 
 
-class Stats:
+class Stats(object):
     """
     Statistical utility functions
     """
@@ -24,7 +27,7 @@ class Stats:
         if two_sided:
             return float(TDistribution.pdf(t_value, df=df))
 
-        return float(TDistribution.pdf(t_value, df=df)/2)
+        return float(old_div(TDistribution.pdf(t_value, df=df),2))
 
 
     @staticmethod
@@ -113,7 +116,7 @@ class Stats:
         df = df.drop("temp1", "temp2")
         outlier_count = df.filter(df["IS_OUTLIER"] == "true").count()
         total_count = df.count()
-        outlier_percentage = (outlier_count*100)/total_count
+        outlier_percentage = old_div((outlier_count*100),total_count)
         # print "Mean = ", mean_val
         # print "Std_Dev = ", std_val
         # print "Outlier_Count = ", outlier_count

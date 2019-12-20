@@ -1,3 +1,10 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import json
 
 from bi.algorithms import LinearRegression
@@ -6,10 +13,10 @@ from bi.common import NormalChartData, ChartJson
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
-from linear_regression import LinearRegressionNarrative
+from .linear_regression import LinearRegressionNarrative
 
 
-class RegressionNarrative:
+class RegressionNarrative(object):
     def __init__(self, df_helper, df_context, result_setter, spark, df_regression_result, correlations,story_narrative,meta_parser):
         self._metaParser = meta_parser
         self._result_setter = result_setter
@@ -34,12 +41,12 @@ class RegressionNarrative:
         self.result_column = self._dataframe_helper.resultcolumn
 
         self.all_coefficients = self._df_regression_result.get_all_coeff()
-        all_coeff = [(x,self.all_coefficients[x]) for x in self.all_coefficients.keys()]
+        all_coeff = [(x,self.all_coefficients[x]) for x in list(self.all_coefficients.keys())]
         all_coeff = sorted(all_coeff,key = lambda x:abs(x[1]["coefficient"]),reverse = True)
         self._all_coeffs = all_coeff
         self.significant_measures = [x[0] for x in all_coeff if x[1]['p_value']<=0.05]
-        print self.significant_measures
-        print "regression narratives started"
+        print(self.significant_measures)
+        print("regression narratives started")
         self.narratives = {"heading": self.result_column + "Performance Report",
                            "main_card":{},
                            "cards":[]
@@ -64,7 +71,7 @@ class RegressionNarrative:
                 "weight":0
                 },
             }
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["regressionNarrativeStart"]["weight"]/10
+        self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["regressionNarrativeStart"]["weight"],10)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "regressionNarrativeStart",\
                                     "info",\
@@ -78,7 +85,7 @@ class RegressionNarrative:
         self._regressionNode.set_name("Influencers")
         self._result_setter.set_regression_node(self._regressionNode)
 
-        self._completionStatus += self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["regressionNarrativeEnd"]["weight"]/10
+        self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["narratives"]*self._scriptStages["regressionNarrativeEnd"]["weight"],10)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "regressionNarrativeEnd",\
                                     "info",\
@@ -186,7 +193,7 @@ class RegressionNarrative:
             measureCard1Data += measureCard1para
 
             if self._run_dimension_level_regression:
-                print "running narratives for key area dict"
+                print("running narratives for key area dict")
                 self._dim_regression = self.run_regression_for_dimension_levels()
                 card2table, card2data=regression_narrative_obj.generate_card2_data(measure_column,self._dim_regression)
                 card2data.update({"blockSplitter":self._blockSplitter})
@@ -281,27 +288,27 @@ class RegressionNarrative:
 
 
     def run_regression_for_dimension_levels(self):
-        print "Running regression for Dimension Levels"
+        print("Running regression for Dimension Levels")
         significant_dimensions = self._dataframe_helper.get_significant_dimension()
-        print "significant_dimensions:",significant_dimensions
+        print("significant_dimensions:",significant_dimensions)
         if significant_dimensions != {}:
-            sig_dims = [(x,significant_dimensions[x]) for x in significant_dimensions.keys()]
+            sig_dims = [(x,significant_dimensions[x]) for x in list(significant_dimensions.keys())]
             sig_dims = sorted(sig_dims,key=lambda x:x[1],reverse=True)
             cat_columns = [x[0] for x in sig_dims[:5]]
         else:
             cat_columns = self._dimension_columns[:5]
         cat_columns= [x for x in cat_columns if x != "Agent Name"]
-        print "Running regression for below 5 dimensions"
-        print cat_columns
-        regression_result_dimension_cols = dict(zip(cat_columns,[{}]*len(cat_columns)))
+        print("Running regression for below 5 dimensions")
+        print(cat_columns)
+        regression_result_dimension_cols = dict(list(zip(cat_columns,[{}]*len(cat_columns))))
         for col in cat_columns:
-            print "For Column:",col
+            print("For Column:",col)
             # column_levels = self._dataframe_helper.get_all_levels(col)
-            column_levels = self._metaParser.get_unique_level_dict(col).keys()
-            level_regression_result = dict(zip(column_levels,[{}]*len(column_levels)))
-            print "No of levels in this column",len(column_levels)
+            column_levels = list(self._metaParser.get_unique_level_dict(col).keys())
+            level_regression_result = dict(list(zip(column_levels,[{}]*len(column_levels))))
+            print("No of levels in this column",len(column_levels))
             for level in column_levels:
-                print "Filtering data for level:",level
+                print("Filtering data for level:",level)
                 filtered_df = self._dataframe_helper.filter_dataframe(col,level)
                 result = LinearRegression(filtered_df, self._dataframe_helper, self._dataframe_context,self._metaParser,self._spark).fit(self._dataframe_context.get_result_column())
                 if result == None:

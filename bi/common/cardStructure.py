@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+from builtins import str
+from builtins import object
 from bi.common.decorators import accepts
 """
 This module contains Card Structure for Narratives
 """
 
-class NarrativesTree:
+class NarrativesTree(object):
     """
     Functionalities:
 
@@ -62,24 +65,24 @@ class NarrativesTree:
     def reorder_nodes(self,ordered_node_list):
         orderedNodeList = []
         nodeList = self.listOfNodes
-        print nodeList
+        print(nodeList)
         existingName = [node.get_name() for node in nodeList]
-        print existingName
+        print(existingName)
         for val in ordered_node_list:
-            print val
+            print(val)
             try:
                 index_value = existingName.index(44)
-                print index_value
-                print nodeList[index_value]
+                print(index_value)
+                print(nodeList[index_value])
                 orderedNodeList.append(nodeList[index_value])
             except ValueError:
                 index_value = -1
-        print orderedNodeList
+        print(orderedNodeList)
         self.listOfNodes = orderedNodeList
-        print self.listOfNodes
+        print(self.listOfNodes)
 
 
-class NormalCard:
+class NormalCard(object):
     """
     Defines the structure for a normal Card
     cardData is always an array of HtmlData or C3ChartData
@@ -150,7 +153,7 @@ class NormalCard:
         return self.cardType
 
 
-class SummaryCard:
+class SummaryCard(object):
     """
     Defines the structure for a Summary Card
     cardData is always an array of HtmlData or C3ChartData
@@ -222,7 +225,7 @@ class SummaryCard:
     def get_card_type(self):
         return self.cardType
 
-class HtmlData:
+class HtmlData(object):
 
     def __init__(self,data=None,classTag=None):
         self.dataType = "html"
@@ -244,7 +247,7 @@ class HtmlData:
     def get_class_tag(self):
         return self.classTag
 
-class TreeData:
+class TreeData(object):
 
     def __init__(self,data=None, datatype = 'tree'):
         self.dataType = datatype
@@ -259,7 +262,7 @@ class TreeData:
     def get_data_type(self):
         return self.dataType
 
-class TableData:
+class TableData(object):
 
     def __init__(self, data=None):
         if data is None:
@@ -293,7 +296,7 @@ class TableData:
         return self.dataType
 
 
-class C3ChartData:
+class C3ChartData(object):
     def __init__(self, data=None, info=None):
         if info is None:
             info = []
@@ -329,7 +332,7 @@ class C3ChartData:
     def get_data_type(self):
         return self.dataType
 
-class ToggleData:
+class ToggleData(object):
     def __init__(self,data=None):
         self.dataType = "toggle"
         self.data = {"toggleon":None,"toggleoff":None}
@@ -348,7 +351,7 @@ class ToggleData:
     def get_data_type(self):
         return self.dataType
 
-class PopupData:
+class PopupData(object):
     def __init__(self,data=None):
         self.dataType = "button"
         self.widthPercent = 100
@@ -371,7 +374,7 @@ class PopupData:
     def get_data_type(self):
         return self.dataType
 
-class KpiData:
+class KpiData(object):
     def __init__(self,data=None, datatype = 'kpi', widthPercent = 20):
         self.dataType = datatype
         self.data = data
@@ -389,7 +392,7 @@ class KpiData:
     def set_width_percent(self,data):
         self.widthPercent = data
 
-class ParallelCoordinateData:
+class ParallelCoordinateData(object):
 
     def __init__(self,data=None,ignoreList=[],hideColumns=[],metricColName=None,columnOrder=[]):
         self.dataType = "parallelCoordinates"
@@ -432,7 +435,7 @@ class ParallelCoordinateData:
     def get_metric_colname(self):
         return self.evaluationMetricColName
 
-class DataBox:
+class DataBox(object):
     """
                 sampleData = [{
                       "name": "Total Articles",
@@ -456,7 +459,7 @@ class DataBox:
     def get_data():
         return self.data
 
-class WordCloud:
+class WordCloud(object):
     """
     sampleData = [
                     {

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import object
 import time
 import re
 import pandas as pd
@@ -12,7 +15,7 @@ from sklearn import metrics
 
 
 
-class ModelSummary:
+class ModelSummary(object):
     """
     modelJsonOutput = {
                         "model_summary":modelResult,
@@ -79,7 +82,7 @@ class ModelSummary:
                 }
         return output
 
-class MLModelSummary:
+class MLModelSummary(object):
     def __init__(self):
         self.confusionMatrix = None
         self.featureImportance = None
@@ -623,7 +626,7 @@ class MLModelSummary:
         return self.slug
 
 
-class MLModelMetaData:
+class MLModelMetaData(object):
     """
     This module contains Meta Data for a corresponding ML Model
     """
@@ -635,12 +638,12 @@ class MLModelMetaData:
         self.packageVersion = None
 
 
-class ParamsGrid:
+class ParamsGrid(object):
     """
 
     """
 
-class SklearnGridSearchResult:
+class SklearnGridSearchResult(object):
     def __init__(self,resultDict = {},estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,modelFilepath = None,levels=None,posLabel=None,evaluationMetricDict=None):
         self.resultDict = resultDict
         self.estimator = estimator
@@ -702,14 +705,14 @@ class SklearnGridSearchResult:
                 y_prob = [0]*len(y_score)
             modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-len(str(idx+1)))+str(idx+1)
 
-            print "#"*100
-            print "Feature Importance ",modelName
+            print("#"*100)
+            print("Feature Importance ",modelName)
             try:
-                print estimator.feature_importances_
+                print(estimator.feature_importances_)
             except:
-                print "Feature Importance Not Defined"
+                print("Feature Importance Not Defined")
 
-            print "#"*100
+            print("#"*100)
             slug = self.modelFilepath.split("/")[-1]
             algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
             joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
@@ -740,10 +743,10 @@ class SklearnGridSearchResult:
                 self.bestParam = paramsObj
                 evalMetricVal = algoEvaluationMetrics[evaluationMetric]
 
-            algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in algoEvaluationMetrics.items()}
+            algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in list(algoEvaluationMetrics.items())}
             # algoEvaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in algoEvaluationMetrics.items()}
             row.update(algoEvaluationMetrics)
-            paramsObj = dict([(k,str(v)) if (v == None) | (v in [True,False]) else (k,v) for k,v in paramsObj.items()])
+            paramsObj = dict([(k,str(v)) if (v == None) | (v in [True,False]) else (k,v) for k,v in list(paramsObj.items())])
             row.update(paramsObj)
             tableOutput.append(row)
         if self.appType == "REGRESSION":
@@ -762,7 +765,7 @@ class SklearnGridSearchResult:
             self.keepColumns += ["RMSE","MAE","MSE","R-Squared"]
         elif self.appType == "CLASSIFICATION":
             self.keepColumns += ["Accuracy","Precision","Recall","ROC-AUC"]
-        self.keepColumns += paramsObj.keys()
+        self.keepColumns += list(paramsObj.keys())
         self.keepColumns.append("Selected")
         bestMod = tableOutput[0]
         bestMod["Selected"] = "True"
@@ -800,7 +803,7 @@ class SklearnGridSearchResult:
         roc_auc = metrics.roc_auc_score(y_test_roc_multi, y_score_roc_multi)
         return roc_auc
 
-class SkleanrKFoldResult:
+class SkleanrKFoldResult(object):
     """
     sampling can be ["kfold","stratifiedKfold","stratifiedShuffleSplit"]
     by default its kfold

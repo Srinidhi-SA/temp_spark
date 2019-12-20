@@ -1,9 +1,10 @@
+from builtins import object
 from pyspark.sql.functions import udf
 
 from bi.common.datafilterer import DataFrameFilterer
 
 
-class DataFilterHelper:
+class DataFilterHelper(object):
     def __init__(self, data_frame, df_context):
         self._data_frame = data_frame
         self._df_context = df_context
@@ -34,11 +35,11 @@ class DataFilterHelper:
         self.df_filterer = DataFrameFilterer(self._data_frame)
         self.dimension_filter = self._df_context.get_dimension_filters()
         if not self.dimension_filter==None:
-            for colmn in self.dimension_filter.keys():
+            for colmn in list(self.dimension_filter.keys()):
                 self.df_filterer.values_in(colmn, self.dimension_filter[colmn])
         self.measure_filter = self._df_context.get_measure_filters()
         if not self.measure_filter==None:
-            for colmn in self.measure_filter.keys():
+            for colmn in list(self.measure_filter.keys()):
                 self.df_filterer.values_between(colmn, self.measure_filter[colmn][0],self.measure_filter[colmn][1],1,1)
 
         self._data_frame = self.df_filterer.get_filtered_data_frame()

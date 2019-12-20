@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import json
 import re
 
@@ -16,7 +21,7 @@ Decision Tree
 """
 
 
-class DecisionTreeRegression:
+class DecisionTreeRegression(object):
 
     #@accepts(object, DataFrame)
     def __init__(self, data_frame, df_context, dataframe_helper, spark):
@@ -98,7 +103,7 @@ class DecisionTreeRegression:
             if idx == len(self._predicts) - 1:
                 end = self._data_frame.filter(col(measure_column_name).isNotNull()).select(FN.max(measure_column_name)).collect()[0][0]
             else:
-                end = (self._predicts[idx]+self._predicts[idx+1])/2
+                end = old_div((self._predicts[idx]+self._predicts[idx+1]),2)
             group_name = NarrativesUtils.round_number(start,2) + ' to ' + NarrativesUtils.round_number(end,2)
             self._map[self._predicts[idx]] ={'start':start, 'end': end, 'group': group_name}
             self._label_code[label_code] = group_name
@@ -119,7 +124,7 @@ class DecisionTreeRegression:
         new_tree = {}
         new_tree['name'] = rules['name']
 
-        if rules.has_key('children'):
+        if 'children' in rules:
             new_tree['children'] = []
             for children in rules['children']:
                 new_tree['children'].append(self.extract_rules(rules=children, colname = colname, rule_list = rule_list+[rules['name']]))
@@ -152,7 +157,7 @@ class DecisionTreeRegression:
                     success = rows[1]
                 total = total + rows[1]
             if (total > 0):
-                if not self._new_rules.has_key(target):
+                if target not in self._new_rules:
                     self._new_rules[target] = []
                     self._total[target] = []
                     self._success[target] = []
@@ -160,7 +165,7 @@ class DecisionTreeRegression:
                 self._new_rules[target].append(','.join(rule_list))
                 self._total[target].append(total)
                 self._success[target].append(success)
-                self._probability[target].append(success*100.0/total)
+                self._probability[target].append(old_div(success*100.0,total))
                 key = float(new_tree['name'][9:])
                 new_tree['name'] = 'Predict: ' + self._map[key]['group']
                 return new_tree
@@ -172,7 +177,7 @@ class DecisionTreeRegression:
         self._new_tree['name'] = decision_tree['name']
         # self._new_tree['children']=[]
         for rules in decision_tree['children']:
-            if not self._new_tree.has_key('children'):
+            if 'children' not in self._new_tree:
                 self._new_tree['children']=[]
             self._new_tree['children'].append(self.extract_rules(rules=rules, colname=colname))
             # else:
@@ -203,7 +208,7 @@ class DecisionTreeRegression:
         pandasDataFrame = self._data_frame.toPandas()
         for key in mapping_dict:
             pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: 'None' if x==None else x)
-            reverseMap = {v: k for k, v in mapping_dict[key].iteritems()}
+            reverseMap = {v: k for k, v in mapping_dict[key].items()}
             pandasDataFrame[key] = pandasDataFrame[key].apply(lambda x: reverseMap[x])
         # sqlCtx = SQLContext(self._spark)
         self._data_frame = self._spark.createDataFrame(pandasDataFrame)
