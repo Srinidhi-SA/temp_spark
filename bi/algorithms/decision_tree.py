@@ -104,6 +104,7 @@ class DecisionTrees(object):
                                     self._completionStatus)
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
+        print("I AM HERE")
 
     def parse(self, lines, df):
         block = []

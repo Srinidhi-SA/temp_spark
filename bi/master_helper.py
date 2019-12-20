@@ -23,6 +23,8 @@ from bi.scripts.classification.logistic_regression import LogisticRegressionScri
 from bi.scripts.classification.neural_network import NeuralNetworkScript
 from bi.scripts.classification.tensor_flow_nn import TensorFlowScript
 from bi.scripts.regression.tensor_flow_reg_nn import TensorFlowRegScript
+from bi.scripts.classification.neural_networks_pytorch_classification import NNPTClassificationScript
+from bi.scripts.regression.neural_networks_pytorch_regression import NNPTRegressionScript
 from bi.scripts.classification.svm import SupportVectorMachineScript
 from bi.scripts.regression.linear_regression_model import LinearRegressionModelScript
 from bi.scripts.regression.generalized_linear_regression_model import GeneralizedLinearRegressionModelScript
@@ -335,6 +337,16 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                     result_setter.set_nn_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+                try:
+                    st = time.time()
+                    nnptc_obj = NNPTClassificationScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    nnptc_obj.Train()
+                    print("Neural Networks(pyTorch) trained in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Networks(pyTorch)", "success": "False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Networks(pyTorch)", e)
+                    CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
                 # try:
                 #     st = time.time()
@@ -365,6 +377,16 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
                 except Exception as e:
                     result_setter.set_lr_fail_card({"Algorithm_Name":"TensorFlow","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+                try:
+                    st = time.time()
+                    nnptr_obj = NNPTRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    nnptr_obj.Train()
+                    print("Neural Networks(pyTorch)-R trained in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
@@ -536,6 +558,16 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
+        elif "Neural Networks(pyTorch)" in selected_model_for_prediction:
+            # df = df.toPandas()
+            trainedModel = NNPTClassificationScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "naive bayes" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = NBMClassificationModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
@@ -617,6 +649,14 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedlinearregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+        if "Neural Networks(pyTorch)" in  selected_model_for_prediction:
+            trainedModel = NNPTRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
 

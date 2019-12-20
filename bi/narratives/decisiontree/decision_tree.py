@@ -179,6 +179,7 @@ class DecisionTreeNarrative(object):
     def _generate_summary(self):
         data_dict = {}
         rules_dict = self._table
+        print("RULES DICT - ", rules_dict)
         data_dict["blockSplitter"] = self._blockSplitter
         data_dict["targetcol"] = self._colname
         groups = list(rules_dict.keys())
@@ -215,6 +216,7 @@ class DecisionTreeNarrative(object):
                 else:
                     dropdownData.append({"displayName":"{} : {}".format(self._colname,target),"name":target,"selected":False,"id":idx+1})
             rulesArray = rules_dict[target]
+            print("RULES ARRAY - ", rulesArray)
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
             probabilityArrayAll += probabilityArray
             groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]

@@ -247,10 +247,18 @@ class RFClassificationModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
+                # print "[]"*30
+                # print "ALGO-PARAMS", algoParams
+                # print "[]" * 30
                 algoParams["random_state"] = 42
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
                 clf.set_params(**algoParams)
-                modelmanagement_=clf.get_params()
+                modelmanagement_ = clf.get_params()
+                # print "[]" * 30
+                # print "modelmanagement_", modelmanagement_
+                # print "[]" * 30
+                # import sys
+                # sys.exit()
                 if validationDict["name"] == "kFold":
                     defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                     numFold = int(validationDict["value"])

@@ -18,7 +18,8 @@ class messages_list(object):
         self._targetColumn = "Target Column"
 
 
-        self._training_messages = {"Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Training Started", "Logistic Regression Model Training Finished"),
+        self._training_messages = {
+        "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Training Started", "Logistic Regression Model Training Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Training Started", "Random Forest Model Training Finished"),
         "XGBoost": ("Initialized The Xgboost Scripts", "Xgboost Model Training Started", "Xgboost Model Training Finished"),
         "naive bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Training Started", "Naive Bayes Model Training Finished"),
@@ -28,9 +29,12 @@ class messages_list(object):
         "Gradient Boosted Tree Regression": ("Initialized The Gradient Boosted Tree Regression Scripts","Gradient Boosted Tree Regression Model Training Started", "Gradient Boosted Tree Regression Model Training Finished"),
         "Decision Tree Regression": ("Initialized The Decision Tree Regression Scripts", "Decision Tree Regression Model Training Started", "Decision Tree Regression Model Training Finished"),
         "Random Forest Regression": ("Initialized The Random Forest Regression Scripts", "Random Forest Regression Model Training Started", "Random Forest Regression Model Training Finished"),
-        "TensorFlow": ("Initialized The TensorFlow Regression Scripts", "TensorFlow Neural Network Model Training Started", "TensorFlow Neural Network Model Training Finished")}
+        "TensorFlow": ("Initialized The TensorFlow Regression Scripts", "TensorFlow Neural Network Model Training Started", "TensorFlow Neural Network Model Training Finished"),
+        "Neural Networks(pyTorch)": ("Initialized The Neural Networks(pyTorch) Scripts", "Neural Networks(pyTorch) Training Started", "Neural Networks(pyTorch) Training Finished")
+        }
 
-        self._score_messages = {"Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Prediction Finished"),
+        self._score_messages = {
+        "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Prediction Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Prediction Finished"),
         "XGBoost": ("Initialized The Xgboost Scripts", "XGBoost Model Prediction Finished"),
         "Naive Bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Prediction Finished"),
@@ -40,7 +44,9 @@ class messages_list(object):
         "GBT Regression": ("Initialized The Gradient Boosted Tree Regression Scripts","Gradient Boosted Tree Regression Model Prediction Started", "Gradient Boosted Tree Regression Model Prediction Finished"),
         "DTREE Regression": ("Initialized The Decision Tree Regression Scripts", "Decision Tree Regression Model Prediction Started", "Decision Tree Regression Model Prediction Finished"),
         "RF Regression": ("Initialized The Random Forest Regression Scripts", "Random Forest Regression Model Prediction Started", "Random Forest Regression Model Prediction Finished"),
-        "TensorFlow": ("Initialized The TensorFlow Neural Network Scripts", "TensorFlow Neural Network Model Prediction Finished")}
+        "TensorFlow": ("Initialized The TensorFlow Neural Network Scripts", "TensorFlow Neural Network Model Prediction Finished"),
+        "Neural Networks(pyTorch)": ("Initialized The Neural Networks(pyTorch) Scripts", "Neural Networks(pyTorch) Prediction Finished")
+        }
 
         self._metaData_messages = ('Preparing Data For Loading', 'Initializing The Loading Process', 'Uploading Data', 'Creating Metadata For The Dataset', 'Sampling The Dataframe', 'Calculated Stats For Measure Columns', 'Calculated Stats For Time Dimension Columns', 'Calculated Stats For Dimension Columns', 'Validating Metadata Information', 'Ignore And Date Suggestions', 'Your Data Is Uploaded', 'Job Finished')
 

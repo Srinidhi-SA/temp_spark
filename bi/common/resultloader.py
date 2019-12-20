@@ -22,6 +22,7 @@ class ResultSetter(object):
         self.regressionNode = None
         self.anovaNode = None
         self.headNode = None
+
         self.randomForestModelSummary = None
         self.naiveBayesModelSummary = None
         self.xgboostModelSummary = None
@@ -29,12 +30,16 @@ class ResultSetter(object):
         self.tfModelSummary = None
         self.logisticRegressionModelSummary = None
         self.svmModelSummary = None
+        self.nnptcModelSummary = None
+
         self.linearRegressionModelSummary = None
         self.generalizedLinearRegressionModelSummary = None
         self.gbtRegressionModelSummary = None
         self.dtreeRegressionModelSummary = None
         self.rfRegressionModelSummary = None
         self.tfRegressionModelSummary = None
+        self.nnptrModelSummary = None
+
         self.rfcards = []
         self.nbcards = []
         self.lrcards = []
@@ -42,21 +47,28 @@ class ResultSetter(object):
         self.xgbcards = []
         self.nncards = []
         self.tfcards = []
+        self.nnptccards = []
+
         self.linrcards = []
         self.glinrcards = []
         self.gbtrcards = []
         self.rfrcards = []
         self.tfregcards = []
+        self.nnptrcards = []
         self.dtreercards = []
+
         self.scorefreqcard = []
         self.scorechicards = []
         self.scoredtreecards = []
+
         self.rfnodes = []
         self.nnnodes = []
         self.tfnodes = []
         self.nbnodes = []
         self.xgbnodes = []
         self.lrnodes = []
+        self.nnptcnodes = []
+
         self.stockAdvisorNode = None
         self.uidTable = None
         self.pmmlObjects = {}
@@ -68,32 +80,43 @@ class ResultSetter(object):
         self.coeffCardScore = None
         self.anovaNarrativeOnScoredData = {}
         self.anovaChartOnScoredData = {}
+
         self.dtreenodes = []
         self.tfregnodes =[]
         self.gbtnodes = []
         self.lregnodes = []
         self.rfgnodes = []
+        self.nnptrnodes = []
+
         self.rffailcard =[]
         self.lrfailcard = []
         self.nnfailcard = []
         self.tffailcard= []
         self.xgbfailcard = []
+        self.nnptcfailcard = []
         self.nbfailcard = []
+
         self.dtrfailcard = []
         self.gbtfailcard = []
         self.tfregfailcard = []
+        self.nnptrfailcard = []
+
     def set_dtr_fail_card(self,data):
         self.dtrfailcard=data
-    def set_tfreg_fail_card(self,data):
-        self.tfregfailcard=data
     def get_dtr_fail_card(self):
         return self.dtrfailcard
+    def set_tfreg_fail_card(self,data):
+        self.tfregfailcard=data
     def get_tfreg_fail_card(self):
         return self.tfregfailcard
     def set_gbt_fail_card(self,data):
         self.gbtfailcard=data
     def get_gbt_fail_card(self):
         return self.gbtfailcard
+    def set_nnptr_fail_card(self,data):
+        self.nnptrfailcard=data
+    def get_nnptr_fail_card(self):
+        return self.nnptrfailcard
 
     def set_lr_fail_card(self,data):
         self.lrfailcard=data
@@ -101,12 +124,16 @@ class ResultSetter(object):
         return self.lrfailcard
     def set_nn_fail_card(self,data):
         self.nnfailcard=data
+    def get_nn_fail_card(self):
+        return self.nnfailcard
+    def set_nnptc_fail_card(self,data):
+        self.nnptcfailcard=data
+    def get_nnptc_fail_card(self):
+        return self.nnptcfailcard
     def set_tf_fail_card(self,data):
         self.tffailcard=data
     def get_tf_fail_card(self):
         return self.tffailcard
-    def get_nn_fail_card(self):
-        return self.nnfailcard
     def set_xgb_fail_card(self,data):
         self.xgbfailcard=data
     def get_xgb_fail_card(self):
@@ -119,6 +146,7 @@ class ResultSetter(object):
         self.rffailcard=data
     def get_rf_fail_card(self):
         return self.rffailcard
+
     def set_dtree_nodes(self,data):
         self.dtreenodes = data
     def set_tfreg_nodes(self,data):
@@ -129,6 +157,9 @@ class ResultSetter(object):
         self.lregnodes = data
     def set_rfreg_nodes(self,data):
         self.rfgnodes = data
+    def set_nnptr_nodes(self,data):
+        self.nnptrnodes = data
+
     def get_all_rfreg_regression_nodes(self):
         return self.rfgnodes
     def get_all_lreg_regression_nodes(self):
@@ -139,6 +170,38 @@ class ResultSetter(object):
         return self.dtreenodes
     def get_all_tfreg_regression_nodes(self):
         return self.tfregnodes
+    def get_all_nnptr_regression_nodes(self):
+        return self.nnptrnodes
+
+    def set_rf_nodes(self,data):
+        self.rfnodes = data
+    def set_nn_nodes(self,data):
+        self.nnnodes = data
+    def set_tf_nodes(self,data):
+        self.tfnodes = data
+    def set_lr_nodes(self,data):
+        self.lrnodes = data
+    def set_nb_nodes(self,data):
+        self.nbnodes = data
+    def set_xgb_nodes(self,data):
+        self.xgbnodes = data
+    def set_nnptc_nodes(self,data):
+        self.nnptcnodes = data
+
+    def get_all_rf_classification_nodes(self):
+        return self.rfnodes
+    def get_all_nn_classification_nodes(self):
+        return self.nnnodes
+    def get_all_tf_classification_nodes(self):
+        return self.tfnodes
+    def get_all_lr_classification_nodes(self):
+        return self.lrnodes
+    def get_all_xgb_classification_nodes(self):
+        return self.xgbnodes
+    def get_all_nb_classification_nodes(self):
+        return self.nbnodes
+    def get_all_nnptc_classification_nodes(self):
+        return self.nnptcnodes
 
     def set_anova_narrative_on_scored_data(self,dataDict):
         self.anovaNarrativeOnScoredData.update(dataDict)
@@ -166,6 +229,7 @@ class ResultSetter(object):
         self.pmmlObjects.update(data)
     def get_pmml_object(self):
         return self.pmmlObjects
+
     def get_score_cards(self):
         return self.scoredtreecards
     def set_score_dtree_cards(self,data,decisionTree):
@@ -183,22 +247,11 @@ class ResultSetter(object):
         self.scorechicards.append(data)
     def get_score_chi_cards(self):
         return self.scorechicards
+
     def set_lr_cards(self,data):
         self.lrcards = data
     def set_rf_cards(self,data):
         self.rfcards = data
-    def set_rf_nodes(self,data):
-        self.rfnodes = data
-    def set_nn_nodes(self,data):
-        self.nnnodes = data
-    def set_tf_nodes(self,data):
-        self.tfnodes = data
-    def set_lr_nodes(self,data):
-        self.lrnodes = data
-    def set_nb_nodes(self,data):
-        self.nbnodes = data
-    def set_xgb_nodes(self,data):
-        self.xgbnodes = data
     def set_nb_cards(self,data):
         self.nbcards = data
     def set_linr_cards(self,data):
@@ -207,6 +260,8 @@ class ResultSetter(object):
         self.glinrcards = data
     def set_tfreg_cards(self,data):
         self.tfregcards = data
+    def set_nnptr_cards(self,data):
+        self.nnptrcards = data
     def set_gbtr_cards(self,data):
         self.gbtrcards = data
     def set_rfr_cards(self,data):
@@ -221,27 +276,19 @@ class ResultSetter(object):
         self.nncards = data
     def set_tf_cards(self,data):
         self.tfcards = data
+    def set_nnptc_cards(self,data):
+        self.nnptccards = data
+
     def get_all_classification_cards(self):
-        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards,'TensorFlow':self.tfcards}
+        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards,'TensorFlow':self.tfcards, "Neural Networks(pyTorch)":self.nnptccards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
         return all_cards
-    def get_all_rf_classification_nodes(self):
-        return self.rfnodes
-    def get_all_nn_classification_nodes(self):
-        return self.nnnodes
-    def get_all_tf_classification_nodes(self):
-        return self.tfnodes
-    def get_all_lr_classification_nodes(self):
-        return self.lrnodes
-    def get_all_xgb_classification_nodes(self):
-        return self.xgbnodes
-    def get_all_nb_classification_nodes(self):
-        return self.nbnodes
+
     def get_all_regression_cards(self):
         print(self.model_order)
-        map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards,'TensorFlow':self.tfregcards}
+        map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards,'TensorFlow':self.tfregcards, "Neural Networks(pyTorch)":self.nnptrcards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
@@ -249,12 +296,8 @@ class ResultSetter(object):
         #return self.linrcards+self.gbtrcards+self.dtreercards+self.rfrcards+self.glinrcards
     def set_tf_model_summary(self,data):
         self.tfModelSummary = data
-    def get_tf_model_summary(self):
-        return self.tfModelSummary
     def set_nn_model_summary(self,data):
         self.nnModelSummary = data
-    def get_nn_model_summary(self):
-        return self.nnModelSummary
     def set_random_forest_model_summary(self,data):
         self.randomForestModelSummary = data
     def set_naive_bayes_model_summary(self,data):
@@ -265,6 +308,9 @@ class ResultSetter(object):
         self.logisticRegressionModelSummary = data
     def set_svm_model_summary(self,data):
         self.svmModelSummary = data
+    def set_nnptc_model_summary(self,data):
+        self.nnptcModelSummary = data
+
     def set_linear_regression_model_summary(self,data):
         self.linearRegressionModelSummary = data
     def set_generalized_linear_regression_model_summary(self,data):
@@ -275,10 +321,11 @@ class ResultSetter(object):
         self.dtreeRegressionModelSummary = data
     def set_tfreg_regression_model_summart(self,data):
         self.tfRegressionModelSummary = data
-    def get_tfreg_regression_model_summart(self):
-        return self.tfRegressionModelSummary
     def set_rf_regression_model_summart(self,data):
         self.rfRegressionModelSummary = data
+    def set_nnptr_regression_model_summary(self,data):
+        self.nnptrModelSummary = data
+
     def get_random_forest_model_summary(self):
         return self.randomForestModelSummary
     def get_naive_bayes_model_summary(self):
@@ -289,6 +336,13 @@ class ResultSetter(object):
         return self.logisticRegressionModelSummary
     def get_svm_model_summary(self):
         return self.svmModelSummary
+    def get_nn_model_summary(self):
+        return self.nnModelSummary
+    def get_tf_model_summary(self):
+        return self.tfModelSummary
+    def get_nnptc_model_summary(self):
+        return self.nnptcModelSummary
+
     def get_linear_regression_model_summary(self):
         return self.linearRegressionModelSummary
     def get_gbt_regression_model_summart(self):
@@ -299,9 +353,13 @@ class ResultSetter(object):
         return self.rfRegressionModelSummary
     def get_generalized_linear_regression_model_summary(self):
         return self.generalizedLinearRegressionModelSummary
+    def get_tfreg_regression_model_summart(self):
+        return self.tfRegressionModelSummary
+    def get_nnptr_regression_model_summary(self):
+        return self.nnptrModelSummary
 
     def get_all_regression_model_summary(self):
-        allRegressionModelSummary = [self.linearRegressionModelSummary,self.gbtRegressionModelSummary,self.dtreeRegressionModelSummary,self.rfRegressionModelSummary,self.generalizedLinearRegressionModelSummary,self.tfRegressionModelSummary]
+        allRegressionModelSummary = [self.linearRegressionModelSummary,self.gbtRegressionModelSummary,self.dtreeRegressionModelSummary,self.rfRegressionModelSummary,self.generalizedLinearRegressionModelSummary,self.tfRegressionModelSummary,self.nnptrModelSummary]
         allRegressionModelSummary = [x for x in allRegressionModelSummary if x != None]
         return allRegressionModelSummary
 

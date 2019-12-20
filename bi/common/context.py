@@ -112,6 +112,9 @@ class ContextSetter(object):
         self.STOCK_SETTINGS = self._config_obj.get_stock_settings()
         self.DATABASE_SETTINGS = self._config_obj.get_database_settings()
         self.ALGORITHM_SETTINGS = self._config_obj.get_algorithm_settings()
+        print("+" * 45)
+        print(self.ALGORITHM_SETTINGS)
+        print("+" * 45)
         self.FEATURE_SETTINGS = self._config_obj.get_feature_settings()
 
         fileSettingKeys = list(self.FILE_SETTINGS.keys())

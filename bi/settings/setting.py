@@ -145,7 +145,8 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
             ALGORITHMRANDOMSLUG+"rfr":"rfregression",
             ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
-            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow"
+            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow",
+            ALGORITHMRANDOMSLUG+"nnpt":"Neural Networks(pyTorch)"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
@@ -162,6 +163,7 @@ MODEL_SLUG_MAPPING = {
             "rfregression":ALGORITHMRANDOMSLUG+"rfr",
             "Neural Network":ALGORITHMRANDOMSLUG+"mlp",
             "TensorFlow":ALGORITHMRANDOMSLUG+"tfx",
+            "Neural Networks(pyTorch)":ALGORITHMRANDOMSLUG+"nnpt"
                      }
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
@@ -175,7 +177,8 @@ SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"dtreer":"Decision Tree",
             ALGORITHMRANDOMSLUG+"rfr":"Random Forest",
             ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
-            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow"
+            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow",
+            ALGORITHMRANDOMSLUG+"nnpt":"Neural Networks(pyTorch)"
             }
 
 scriptsMapping = {
@@ -223,6 +226,7 @@ regressionAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"rfr"  : 1,
     ALGORITHMRANDOMSLUG+"dtreer" : 1,
     ALGORITHMRANDOMSLUG+"tfx" : 1,
+    ALGORITHMRANDOMSLUG+"nnpt" : 1
 }
 
 classificationAlgoRelativeWeight = {
@@ -233,6 +237,7 @@ classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"svm" : 2,
     ALGORITHMRANDOMSLUG+"mlp" : 1,
     ALGORITHMRANDOMSLUG+"tfx" : 1,
+    ALGORITHMRANDOMSLUG+"nnpt" : 1
 
 }
 
