@@ -280,6 +280,9 @@ class AlgorithmParameterConfig:
         self.parameters = []
         self.hyperParamsArray = []
         self.tensorflow_params = []
+        self.tf_parameters = []
+        self.nnptc_parameters = []
+        self.nnptr_parameters = []
 
     def set_params(self,algoParamObj):
         if "description" in algoParamObj:
@@ -309,6 +312,12 @@ class AlgorithmParameterConfig:
                 algoParamsInstance.set_params(paramObj)
                 paramArr.append(algoParamsInstance)
             self.parameters = paramArr
+        if "tf_parameters" in algoParamObj:
+            self.tf_parameters=algoParamObj["tf_parameters"]
+        if "nnptc_parameters" in algoParamObj:
+            self.nnptc_parameters=algoParamObj["nnptc_parameters"]
+        if "nnptr_parameters" in algoParamObj:
+            self.nnptr_parameters=algoParamObj["nnptr_parameters"]
 
     def is_selected(self):
         return self.selected
@@ -325,6 +334,7 @@ class AlgorithmParameterConfig:
             return True
         else:
             return False
+
     def get_evaluvation_metric(self,Type):
         try:
             par=[obj for obj in self.hyperParameterSetting][0]
@@ -364,6 +374,12 @@ class AlgorithmParameterConfig:
                 if self.tensorflow_params['hidden_layer_info'][str(i)][j]==" " or self.tensorflow_params['hidden_layer_info'][str(i)][j]=="None":
                     self.tensorflow_params['hidden_layer_info'][str(i)][j]=None
         return self.tensorflow_params
+
+    def get_nnptc_params_dict(self):
+        return self.nnptc_parameters
+
+    def get_nnptr_params_dict(self):
+        return self.nnptr_parameters
 
     def get_params_dict(self):
         """
