@@ -24,8 +24,8 @@ from bi.scripts.stockAdvisor.stock_advisor import StockAdvisor
 from bi.settings import setting as GLOBALSETTINGS
 # from bi.tests.chisquare.test_chisquare import TestChiSquare
 from bi.tests.chisquare import TestChiSquare
-import master_helper as MasterHelper
-from parser import configparser
+import bi.master_helper as MasterHelper
+from bi.parser import configparser
 
 def main(configJson):
     LOGGER = {}
