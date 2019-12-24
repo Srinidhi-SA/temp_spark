@@ -191,6 +191,10 @@ class NNPTClassificationScript(object):
             network = PyTorchNetwork(layers_for_network).to(device)
             network.eval()
 
+            print("~"*50)
+            print(network.parameters())
+            print("~"*50)
+
             other_params_dict = PYTORCHUTILS.get_other_pytorch_params(nnptc_params, task_type = "CLASSIFICATION", network_params = network.parameters())
 
             print("~"*50)

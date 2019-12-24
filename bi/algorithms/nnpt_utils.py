@@ -7,14 +7,19 @@ import numpy as np
 
 def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
     layers = []
+    nnpt_params["hidden_layer_info"] =  {int(key): val for key, val in nnpt_params['hidden_layer_info'].items()}
+
     layers_list = sorted(tuple(nnpt_params["hidden_layer_info"]))
 
+    print("="*45)
+    print(nnpt_params)
     print("n_layers - ", len(layers_list))
     print("task_type - ", task_type)
     print("layers_tuple - ", layers_list)
 
     if task_type == "CLASSIFICATION":
         for val in layers_list:
+            print(val)
             layer_dict = nnpt_params["hidden_layer_info"][val]
             layer_name = layer_dict["layer"]
             if val == 1:
@@ -38,14 +43,19 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
                 if layer_activation != None:
                     if layer_activation["name"] == "ELU":
                         activation = nn.ELU(alpha = layer_activation["alpha"], inplace = False)
+                        layers.append(activation)
                     if layer_activation["name"] == "Hardshrink":
                         activation = nn.Hardshrink(lambd = layer_activation["lambd"])
+                        layers.append(activation)
                     if layer_activation["name"] == "Hardtanh":
                         activation = nn.Hardtanh(min_val = layer_activation["min_val"], max_val = layer_activation["max_val"], inplace = False)
+                        layers.append(activation)
                     if layer_activation["name"] == "LeakyReLU":
                         activation = nn.LeakyReLU(negative_slope = layer_activation["negative_slope"], inplace = False)
+                        layers.append(activation)
                     if layer_activation["name"] == "LogSigmoid":
                         activation = nn.LogSigmoid()
+                        layers.append(activation)
                     if layer_activation["name"] == "MultiheadAttention":
                         activation = nn.MultiheadAttention(
                         embed_dim = layer_activation["embed_dim"],
@@ -57,86 +67,114 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
                         kdim = layer_activation["kdim"],
                         vdim = layer_activation["vdim"]
                         )
+                        layers.append(activation)
                     if layer_activation["name"] == "PreLU":
                         activation = nn.PreLU(num_parameters = layer_activation["num_parameters"], init = layer_activation["init"])
+                        layers.append(activation)
                     if layer_activation["name"] == "ReLU":
                         activation = nn.ReLU()
+                        layers.append(activation)
                     if layer_activation["name"] == "ReLU6":
                         activation = nn.ReLU6()
+                        layers.append(activation)
                     if layer_activation["name"] == "RreLU":
                         activation = nn.RreLU(lower = layer_activation["lower"], upper = layer_activation["upper"], inplace = False)
+                        layers.append(activation)
                     if layer_activation["name"] == "SELU":
                         activation = nn.SELU()
+                        layers.append(activation)
                     if layer_activation["name"] == "CELU":
                         activation = nn.CELU(alpha = layer_activation["alpha"], inplace = False)
+                        layers.append(activation)
                     if layer_activation["name"] == "GELU":
                         activation = nn.GELU()
+                        layers.append(activation)
                     if layer_activation["name"] == "Sigmoid":
                         activation = nn.Sigmoid()
+                        layers.append(activation)
                     if layer_activation["name"] == "Softplus":
                         activation = nn.Softplus(beta = layer_activation["beta"], threshold = layer_activation["threshold"])
+                        layers.append(activation)
                     if layer_activation["name"] == "Softshrink":
                         activation = nn.Softshrink(lambd = layer_activation["lambd"])
+                        layers.append(activation)
                     if layer_activation["name"] == "Softsign":
                         activation = nn.Softsign()
+                        layers.append(activation)
                     if layer_activation["name"] == "Tanh":
                         activation = nn.Tanh()
+                        layers.append(activation)
                     if layer_activation["name"] == "Tanhshrink":
                         activation = nn.Tanhshrink()
+                        layers.append(activation)
                     if layer_activation["name"] == "Threshold":
                         activation = nn.Threshold(threshold = layer_activation["threshold"], value = layer_activation["value"])
+                        layers.append(activation)
                     if layer_activation["name"] == "Softmin":
                         activation = nn.Softmin(dim = layer_activation["dim"])
+                        layers.append(activation)
                     if layer_activation["name"] == "Softmax":
                         activation = nn.Softmax(dim = layer_activation["dim"])
+                        layers.append(activation)
                     if layer_activation["name"] == "Softmax2d":
                         activation = nn.Softmax2d()
+                        layers.append(activation)
                     if layer_activation["name"] == "LogSoftmax":
                         activation = nn.LogSoftmax(dim = layer_activation["dim"])
+                        layers.append(activation)
                     if layer_activation["name"] == "AdaptiveLogSoftmaxWithLoss":
                         activation = nn.AdaptiveLogSoftmaxWithLoss(n_classes = layer_activation["n_classes"], cutoffs = layer_activation["cutoffs"], div_value = layer_activation["div_value"], head_bias = layer_activation["head_bias"])
-
-                    layers.append(activation)
+                        layers.append(activation)
                 else:
                     pass
 
                 if layer_batchnormalization != None:
                     if layer_batchnormalization["name"] == "BatchNorm1d":
                         batch_normalization = nn.BatchNorm1d(num_features = layer_batchnormalization["num_features"], eps = layer_batchnormalization["eps"], momentum = layer_batchnormalization["momentum"], affine = layer_batchnormalization["affine"], track_running_stats = layer_batchnormalization["track_running_stats"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "BatchNorm2d":
                         batch_normalization = nn.BatchNorm2d(num_features = layer_batchnormalization["num_features"], eps = layer_batchnormalization["eps"], momentum = layer_batchnormalization["momentum"], affine = layer_batchnormalization["affine"], track_running_stats = layer_batchnormalization["track_running_stats"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "BatchNorm3d":
                         batch_normalization = nn.BatchNorm3d(num_features = layer_batchnormalization["num_features"], eps = layer_batchnormalization["eps"], momentum = layer_batchnormalization["momentum"], affine = layer_batchnormalization["affine"], track_running_stats = layer_batchnormalization["track_running_stats"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "SyncBatchNorm":
                         batch_normalization = nn.SyncBatchNorm(num_features = layer_batchnormalization["num_features"], eps = layer_batchnormalization["eps"], momentum = layer_batchnormalization["momentum"], affine = layer_batchnormalization["affine"], track_running_stats = layer_batchnormalization["track_running_stats"], process_group = layer_batchnormalization["process_group"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "InstanceNorm1d":
                         batch_normalization = nn.InstanceNorm1d(num_features = layer_batchnormalization["num_features"], eps = layer_batchnormalization["eps"], momentum = layer_batchnormalization["momentum"], affine = layer_batchnormalization["affine"], track_running_stats = layer_batchnormalization["track_running_stats"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "InstanceNorm2d":
                         batch_normalization = nn.InstanceNorm2d(num_features = layer_batchnormalization["num_features"], eps = layer_batchnormalization["eps"], momentum = layer_batchnormalization["momentum"], affine = layer_batchnormalization["affine"], track_running_stats = layer_batchnormalization["track_running_stats"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "InstanceNorm3d":
                         batch_normalization = nn.InstanceNorm3d(num_features = layer_batchnormalization["num_features"], eps = layer_batchnormalization["eps"], momentum = layer_batchnormalization["momentum"], affine = layer_batchnormalization["affine"], track_running_stats = layer_batchnormalization["track_running_stats"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "GroupNorm":
                         batch_normalization = nn.GroupNorm(num_groups = layer_batchnormalization["num_groups"], num_channels = layer_batchnormalization["num_channels"], eps = layer_batchnormalization["eps"], affine = layer_batchnormalization["affine"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "LayerNorm":
                         batch_normalization = nn.LayerNorm(normalized_shape = layer_batchnormalization["normalized_shape"], eps = layer_batchnormalization["eps"], elementwise_affine = layer_batchnormalization["elementwise_affine"])
+                        layers.append(batch_normalization)
                     if layer_batchnormalization["name"] == "LocalResponseNorm":
                         batch_normalization = nn.LocalResponseNorm(size = layer_batchnormalization["size"], alpha = layer_batchnormalization["alpha"], beta = layer_batchnormalization["beta"], k = layer_batchnormalization["k"])
-
-                    layers.append(batch_normalization)
+                        layers.append(batch_normalization)
                 else:
                     pass
 
                 if layer_dropout != None:
                     if layer_dropout["name"] == "Dropout":
                         dropout = nn.Dropout(p = layer_dropout["p"], inplace = False)
+                        layers.append(dropout)
                     if layer_dropout["name"] == "Dropout2d":
                         dropout = nn.Dropout2d(p = layer_dropout["p"], inplace = False)
+                        layers.append(dropout)
                     if layer_dropout["name"] == "Dropout3d":
                         dropout = nn.Dropout3d(p = layer_dropout["p"], inplace = False)
+                        layers.append(dropout)
                     if layer_dropout["name"] == "AlphaDropout":
                         dropout = nn.AlphaDropout(p = layer_dropout["p"], inplace = False)
-
-                    layers.append(dropout)
+                        layers.append(dropout)
                 else:
                     pass
 
@@ -316,8 +354,8 @@ def get_loss_criterion(loss_name, loss_criterion_dict):
         loss_criterion = nn.BCEWithLogitsLoss(reduction = loss_criterion_dict["reduction"], weight = loss_criterion_dict["weight"], pos_weight = loss_criterion_dict["pos_weight"])
     if loss_name == "SoftMarginLoss":
         loss_criterion = nn.SoftMarginLoss(reduction = loss_criterion_dict["reduction"])
-    if loss_name == None:
-        loss_criterion = None
+    if loss_name == "None":
+        pass
 
     return loss_criterion
 
@@ -328,13 +366,13 @@ def get_optimizer(optimizer_name, optimizer_dict, network_params):
     if optimizer_name == "Adagrad":
         optimizer = optim.Adagrad(network_params, weight_decay = optimizer_dict["weight_decay"], lr_decay = optimizer_dict["lr_decay"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
     if optimizer_name == "Adam":
-        optimizer = optim.Adam(network_params, weight_decay = optimizer_dict["weight_decay"], betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
+        optimizer = optim.Adam(network_params, weight_decay = optimizer_dict["weight_decay"], betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
     if optimizer_name == "AdamW":
-        optimizer = optim.AdamW(network_params, weight_decay = optimizer_dict["weight_decay"], betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
+        optimizer = optim.AdamW(network_params, weight_decay = optimizer_dict["weight_decay"], betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
     if optimizer_name == "SparseAdam":
-        optimizer = optim.SparseAdam(network_params, betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
+        optimizer = optim.SparseAdam(network_params, betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
     if optimizer_name == "Adamax":
-        optimizer = optim.Adamax(network_params, betas = optimizer_dict["betas"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], weight_decay = optimizer_dict["weight_decay"])
+        optimizer = optim.Adamax(network_params, betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], weight_decay = optimizer_dict["weight_decay"])
     if optimizer_name == "ASGD":
         optimizer = optim.ASGD(network_params, lr = optimizer_dict["lr"], lambd = optimizer_dict["lambd"], alpha = optimizer_dict["alpha"], t0 = optimizer_dict["t0"], weight_decay = optimizer_dict["weight_decay"])
     if optimizer_name == "LBFGS":
