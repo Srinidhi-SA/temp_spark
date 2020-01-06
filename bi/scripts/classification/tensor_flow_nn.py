@@ -185,6 +185,12 @@ class TensorFlowScript(object):
                         activity_regularizer=params_tf['hidden_layer_info'][str(i)]["activity_regularizer"],
                         kernel_constraint=params_tf['hidden_layer_info'][str(i)]["kernel_constraint"],
                         bias_constraint=params_tf['hidden_layer_info'][str(i)]["bias_constraint"]))
+                        try:
+                            if params_tf['hidden_layer_info'][str(i)]["batch_normalization"]=="True":
+                                model.add(tf.keras.layers.BatchNormalization())
+                        except:
+                            print("BATCH_NORM_FAILED ##########################")
+                            pass
                         first_layer_flag=False
                     else:
                         model.add(tf.keras.layers.Dense(params_tf['hidden_layer_info'][str(i)]["units"],
@@ -197,6 +203,12 @@ class TensorFlowScript(object):
                         activity_regularizer=params_tf['hidden_layer_info'][str(i)]["activity_regularizer"],
                         kernel_constraint=params_tf['hidden_layer_info'][str(i)]["kernel_constraint"],
                         bias_constraint=params_tf['hidden_layer_info'][str(i)]["bias_constraint"]))
+                        try:
+                            if params_tf['hidden_layer_info'][str(i)]["batch_normalization"]=="True":
+                                model.add(tf.keras.layers.BatchNormalization())
+                        except:
+                            print("BATCH_NORM_FAILED ##########################")
+                            pass
 
                 elif params_tf['hidden_layer_info'][str(i)]["layer"]=="Dropout":
                     model.add(tf.keras.layers.Dropout(float(params_tf['hidden_layer_info'][str(i)]["rate"])))
