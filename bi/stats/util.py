@@ -107,8 +107,8 @@ class Stats(object):
         df_stats = df.select(mean(col(outlier_detection_col)).alias('mean'), stddev(col(outlier_detection_col)).alias('std')).collect()
         mean_val = df_stats[0]['mean']
         std_val = df_stats[0]['std']
-        upper_val = mean_val + (3*std_val)
-        lower_val = mean_val - (3*std_val)
+        upper_val = float(mean_val) + float(3*std_val)
+        lower_val = float(mean_val) - float(3*std_val)
         outliers = [lower_val, upper_val]
         df = df.withColumn("temp1", df[outlier_detection_col] > outliers[1])
         df = df.withColumn("temp2", df[outlier_detection_col] < outliers[0])
