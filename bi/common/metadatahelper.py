@@ -750,7 +750,7 @@ class MetaDataHelper(object):
                     ignore = True
                     reason = "Only one Unique Value"
             if (colStat["numberOfNulls"] == 0):
-                if (colStat["numberOfUniqueValues"] == total_rows):
+                if (colStat["numberOfUniqueValues"] == total_rows) and (df.schema[column_name].dataType == 'IntegerType'):
                     ignore = True
                     reason = "Index column (all values are distinct)"
             else:
