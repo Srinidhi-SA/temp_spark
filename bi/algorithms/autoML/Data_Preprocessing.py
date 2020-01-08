@@ -16,9 +16,6 @@ import pickle
 from validate_email import validate_email
 
 
-# In[34]:
-
-
 class Data_Preprocessing(object):
 
     def __init__(self,pre_dict):
@@ -27,13 +24,10 @@ class Data_Preprocessing(object):
     def drop_duplicate_rows(self,dataframe):
         '''Drops Duplicate rows of a dataframe and returns a new dataframe'''
         dataframe = dataframe.drop_duplicates()
-        # self._data_frame.show()
         return dataframe
 
     def drop_na_columns(self,dataset, pre_dict):
-
         col_settings = pre_dict['Column_settings']
-
         for i in range(len(col_settings)):
             col = col_settings[i]["re_column_name"]
             if(col in dataset):
@@ -65,9 +59,9 @@ class Data_Preprocessing(object):
         capped_col=[]
         for column in columns:
             df1=dataset[column]
-#             print(column)
+            print(column)
             col_summary=dataset[column].describe()
-#             print(col_summary)
+            print(col_summary)
             outlier_LR, outlier_UR = col_summary["mean"] - (3*col_summary["std"]), col_summary["mean"] + (3*col_summary["std"])
             outlier_per = len(df1[(df1 > outlier_UR) | (df1 < outlier_LR)])/dataset.shape[0]
             if outlier_per < 8/100 and outlier_per>0:
@@ -121,9 +115,6 @@ class Data_Preprocessing(object):
         ## considering currency_list and metric_list are globally defined.
         Dict={"Column_name":column,"email-id":False,"website":False,"Percentage":False,"CurrencyCol":{"value":False,"currency":None},"MetricCol":{"value":False,"metric":None},"SepSymbols":{"value":False,"Symbol":None}}
         column_val=dataset[column].astype(str).str.strip()
-#        if column_val.str.contains("\S+@\S+\.[Aa-zZ]{2,5}",na=True).all():
-
-        print("just before validate_email: ",dataset[column].name)
 
         df1 = dataset[column_val.apply(validate_email)]
         if(df1.shape[0]>=(0.8*dataset.shape[0])):
@@ -152,6 +143,8 @@ class Data_Preprocessing(object):
         elif column_val.str.contains("\S+\s*[\W_]+\s*\S+").all():
             seperators=list(map(lambda x:re.sub("\s*[a-zA-Z0-9]+$","",x),list(map(lambda x:re.sub('^[a-zA-Z0-9]+\s*', '', x),column_val))))
             if len(set(seperators))==1:
+                if seperators[0]=="":
+                    seperators[0] = ' '
                 Dict["SepSymbols"]["value"]=True
                 Dict["SepSymbols"]["Symbol"]=seperators[0]
         return Dict
@@ -161,7 +154,16 @@ class Data_Preprocessing(object):
         DataFrame=DataFrame.dropna(axis=0, subset=[targetname])
         output_dict={"Target_analysis":{"target":targetname,"unique_count":int,"value_counts":{},"balanced": None ,"binary": None}}
         target_variable=DataFrame[targetname]
-        if (m_type=='classification'):
+        counts = target_variable.value_counts()
+        DataFrame = DataFrame[~target_variable.isin(counts[counts <= 10].index)]
+        if (m_type.lower()=='classification'):
+            ## convert target column into object
+            output_dict['Target_analysis']['converted_to_str'] = False
+            if DataFrame[targetname].dtype != 'O':
+                DataFrame[targetname] = "'" + DataFrame[targetname].astype(str) + "'"
+                output_dict['Target_analysis']['converted_to_str'] = True
+                print("!!!!!!! Converted to str!!!!!!")
+
             unique_count=target_variable.nunique()
             output_dict['Target_analysis']['unique_count']=unique_count
             level_count=target_variable.value_counts()
@@ -173,7 +175,6 @@ class Data_Preprocessing(object):
                 out_dict={"Target_analysis":{"target_name":targetname,"descrp_status":{}}}
                 out_dict['Target_analysis']['descrp_status']=target_variable.describe().to_dict()
                 return out_dict,DataFrame
-
 
             if((percen_level_count[percen_level_count < ((1/(2*n))*100)]).empty==False):
                 output_dict['Target_analysis']['balanced']=False
@@ -213,12 +214,9 @@ class Data_Preprocessing(object):
 
             for i in range(len(col_settings)):
                 col = col_settings[i]["re_column_name"]
-#                 print(regexd)
                 for j in range(len(regexd)):
                     regex_col = regexd[j]["Column_name"]
-#                     print(regex_col, col)
                     if(col == regex_col):
-            #             print(col, regex_dict[j]["sep_symbols"]["symbol"])
                         col_settings[i]["email-id"]=regexd[j]["email-id"]
                         col_settings[i]["Percentage"]=regexd[j]["Percentage"]
                         col_settings[i]["website"]=regexd[j]["website"]
@@ -226,7 +224,6 @@ class Data_Preprocessing(object):
                         col_settings[i]["MetricCol"]["value"]=regexd[j]["MetricCol"]["value"]
                         col_settings[i]["MetricCol"]["metric"]=regexd[j]["MetricCol"]["metric"]
                         col_settings[i]["CurrencyCol"] = {}
-#                         print(regexd[j])
                         col_settings[i]["CurrencyCol"]["value"]=regexd[j]["CurrencyCol"]["value"]
                         col_settings[i]["CurrencyCol"]["currency"]=regexd[j]["CurrencyCol"]["currency"]
                         col_settings[i]["SepSymbols"] = {}
@@ -263,15 +260,11 @@ class Data_Preprocessing(object):
         df1=self.drop_duplicate_rows(df)
         df = self.drop_na_columns(df1,data_dict)
         data_dict['Dropped_columns']=list(set(df1)-set(df))
+        a,df=self.Target_analysis(df,target,app_type)
         measureCol=[]
         dimCol=[]
-        for i in df.columns:
-            if True: ##i != target: ##ensuring target doesnt contain null values
-                if df[i].dtypes != "object" and df[i].dtypes != "datetime64[ns]":
-                    measureCol.append(i)
-                else:
-                    dimCol.append(i)
-        a,data=self.Target_analysis(df,target,app_type)
+        measureCol = list(df.select_dtypes(include=['int','float']).columns)
+        dimCol = list(df.select_dtypes(include=['object','datetime64','category','bool']).columns)
         data_dict["Target_analysis"]=a["Target_analysis"]
         df,outlier_columns,capped_cols=self.handle_outliers(df,measureCol)
         print("capped_cols: ",capped_cols)
@@ -289,7 +282,10 @@ class Data_Preprocessing(object):
         dataFinal,data_dict["MeasureColsToDim"]=self.Dimension_Measure(df,dimCol)
         for column in data_dict["MeasureColsToDim"]:
             dataFinal[column]=pd.to_numeric(dataFinal[column])
-
+        ### Setting orginal_columns value in the dictionary:
+        orginal_columns=dataFinal.columns.to_list()
+        data_dict['original_cols'] = orginal_columns
+        print("Original Columns:  ",orginal_columns)
         return dataFinal,data_dict
 
     def fe_main(self,df,data_dict):
@@ -311,19 +307,10 @@ class Data_Preprocessing(object):
             currency_list=['₹', 'kr.', '₱', 'P', 'R', '£', '₦', '€', 'HK$', '$']
         currency_list
         Metric_list=list(set(dir(UnitRegistry())))
-
-#         df=self.drop_duplicate_rows(df)
-#         df = self.drop_na_columns(df,data_dict)
         measureCol=[]
         dimCol=[]
-        for i in df.columns:
-            if i != target:
-                if df[i].dtypes != "object" and df[i].dtypes != "datetime64[ns]":
-                    measureCol.append(i)
-                else:
-                    dimCol.append(i)
-#        a,data=self.Target_analysis(df,target,app_type)
-#        data_dict["Target_analysis"]=a["Target_analysis"]
+        measureCol = list(df.select_dtypes(include=['int','float']).columns)
+        dimCol = list(df.select_dtypes(include=['object','datetime64','category','bool']).columns)
         df,outlier_columns,capped_cols=self.handle_outliers(df,measureCol)
         data_dict["Cap_outlier"]=capped_cols
         measureColImpu=[i for i in measureCol if df[i].isna().sum()>0 ]

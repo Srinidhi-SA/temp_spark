@@ -42,7 +42,9 @@ class Sampling:
         X_train, y_train = self.dataset.drop(self.target, inplace=False,axis = 1), self.dataset[self.target]
         
         # getting the Categorical Column names (if any)
-        self.cat_col_names = list(X_train.select_dtypes(include=['object','datetime64']).columns)
+        all_columns = X_train.columns
+        numeric_columns = X_train._get_numeric_data().columns
+        self.cat_col_names = list(set(all_columns) - set(numeric_columns))
         
         # no. of classes limit for sampling # constraint is adjustable
         multiclass_limit = 5
@@ -107,6 +109,8 @@ class Sampling:
                         cat_cols_index = []
                         for i in self.cat_col_names:
                             cat_col_index = X_train.columns.get_loc(i)
+                            X_train[i]=X_train[i].astype(str)
+                            print("cat_col_index: i: ", i,X_train[i].dtype)
                             cat_cols_index.append(cat_col_index)
 
                         X_train_sampled, y_train_sampled = SMOTENC(random_state = 1, sampling_strategy  = ratio, categorical_features = cat_cols_index).fit_sample(X_train,y_train)

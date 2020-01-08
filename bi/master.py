@@ -15,6 +15,7 @@ import requests
 from bi.settings import *
 from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.algorithms import feature_engineering as feature_engineering
+from bi.algorithms.autoML import auto_ml as autoML
 
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
@@ -166,31 +167,41 @@ def main(configJson):
             if jobType != "metaData":
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
-                    dataCleansingDict = dataframe_context.get_dataCleansing_info()
-                    featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
-                    if dataCleansingDict['selected'] or featureEngineeringDict['selected']:
-                        old_cols_list = df.columns
-                        completionStatus = 10
-                        progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Performing Required Data Preprocessing And Feature Transformation Tasks",completionStatus,completionStatus)
-                        CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
-                        dataframe_context.update_completion_status(completionStatus)
-                        if dataCleansingDict['selected']:
-                            data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict, dataframe_context)
-                            df = data_preprocessing_obj.data_cleansing()
-                            removed_col=data_preprocessing_obj.removed_col
-                        dataframe_context.set_ignore_column_suggestions(removed_col)
+                    #temporary
+                    automl_enable = True
+                    if automl_enable is True:
+                        print ("KJNKJN"*10)
+                        df = df.toPandas()
+                        print (type(df))
+                        autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+                        one_click_json, linear_df, tree_df = autoML_obj.return_values()
+                        df = tree_df
+                    else:
+                        dataCleansingDict = dataframe_context.get_dataCleansing_info()
+                        featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
+                        if dataCleansingDict['selected'] or featureEngineeringDict['selected']:
+                            old_cols_list = df.columns
+                            completionStatus = 10
+                            progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Performing Required Data Preprocessing And Feature Transformation Tasks",completionStatus,completionStatus)
+                            CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
+                            dataframe_context.update_completion_status(completionStatus)
+                            if dataCleansingDict['selected']:
+                                data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict, dataframe_context)
+                                df = data_preprocessing_obj.data_cleansing()
+                                removed_col=data_preprocessing_obj.removed_col
+                            dataframe_context.set_ignore_column_suggestions(removed_col)
 
-                        if featureEngineeringDict['selected']:
-                            feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict, dataframe_context)
-                            feature_engineering_obj.consider_columns =dataframe_context.get_consider_columns()
-                            df = feature_engineering_obj.feature_engineering()
-                        new_cols_list = df.columns
-                        old_cols_list = list(set(old_cols_list) - set(removed_col))
-                        if len(old_cols_list) < len(new_cols_list):
-                            new_cols_added = list(set(new_cols_list) - set(old_cols_list))
-                        else:
-                             new_cols_added = None
-                        print(df.printSchema())
+                            if featureEngineeringDict['selected']:
+                                feature_engineering_obj = feature_engineering.FeatureEngineering(spark, df,  featureEngineeringDict, dataframe_context)
+                                feature_engineering_obj.consider_columns =dataframe_context.get_consider_columns()
+                                df = feature_engineering_obj.feature_engineering()
+                            new_cols_list = df.columns
+                            old_cols_list = list(set(old_cols_list) - set(removed_col))
+                            if len(old_cols_list) < len(new_cols_list):
+                                new_cols_added = list(set(new_cols_list) - set(old_cols_list))
+                            else:
+                                 new_cols_added = None
+                            print(df.printSchema())
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols

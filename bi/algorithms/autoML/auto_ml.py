@@ -31,8 +31,8 @@ class auto_ML:
         self.linear_df = None
         """DATA VALIDATION"""
 
-        # path = str(os.path.abspath(self.data_path))
-        path = '/home/marlabs/fresh/mAdvisor-MLScripts/bi/algotithms/autoML'
+        path = self.data_path
+        # path = '/home/marlabs/fresh/mAdvisor-MLScripts/bi/algorithms/'
         obj =  Data_Validation(path,target =self.target,method = self.app_type)
         obj.run()
 

@@ -32,11 +32,6 @@ from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 
 
-
-#pickle_in = open("dataPreprocessed_dict.pkl","rb")
-#data_dict = pickle.load(pickle_in)
-
-
 class Feature_Engineering:
 
     def __init__(self,Dataframe,data_dict):
@@ -51,19 +46,19 @@ class Feature_Engineering:
         only_created_df = pd.DataFrame()# fe created data
         self.columns_list=[]
         self.one_click={'created_feature':[],
-                        'original_cols':[],
+#                         'original_cols':[],
                         'splitted_columns':[],
                         'created_ud_date_column':[],
                         'normalize_column':[],
                         'train_final_cols':[],
                         'removed_null_cols':[],
                         'removed_unique_cols':[],
-#                         'log1p':[],
-#                         'exp':[],
-#                         'minmax':[],
-#                         'standard_scalar':[],
-#                         'new_scaled_colums':[],
-#                         'new_transformed_columns':[],
+    #                         'log1p':[],
+    #                         'exp':[],
+    #                         'minmax':[],
+    #                         'standard_scalar':[],
+    #                         'new_scaled_colums':[],
+    #                         'new_transformed_columns':[],
                         'removed_duplicate_columns':[],
                         'removed_constant_columns':[]
                     }
@@ -89,8 +84,13 @@ class Feature_Engineering:
         data_dict = self.data_dict2
         created_split_columns=[]
         data=self.Dataframe
-        orginal_columns=data.columns.to_list()
-        self.one_click['original_cols'] = orginal_columns
+
+        """Moved below code to data preprocessing as we want to capture only original columns and not others that were created during feature engineering
+#         orginal_columns=data.columns.to_list()
+#         self.one_click['original_cols'] = orginal_columns
+#         print("Original Columns:  ",orginal_columns)
+"""
+
         for idx in range(0,len(data_dict['Column_settings'])):
             if data_dict['Column_settings'][idx]['SepSymbols']['value'] == True:
                 col = data_dict['Column_settings'][idx]['re_column_name']
@@ -101,10 +101,16 @@ class Feature_Engineering:
                 data[new_col_second] = None
 
                 for idx in data.index.to_list():
-                        data.loc[idx,[new_col_first]] = data[col].str.strip().str.split(sep,n = 1)[idx][0]
+                        if sep!='':
+                            data.loc[idx,[new_col_first]] = data[col].str.strip().str.split(sep,n = 1)[idx][0]
+                        else:
+                            data.loc[idx,[new_col_first]]=data[col].str.strip().str.split()[idx][0]
                 try:
                     for idx in data.index.to_list():
-                        data.loc[idx,[new_col_second]] = data[col].str.strip().str.split(sep,n = 1)[idx][1]
+                        if sep!='':
+                                data.loc[idx,[new_col_second]] = data[col].str.strip().str.split(sep,n = 1)[idx][1]
+                        else:
+                            data.loc[idx,[new_col_second]]=data[col].str.strip().str.split()[idx][1]
                 except:
                     for idx in data.index.to_list():
                         temp = list(data.loc[idx,[col]].str.strip().str.split('_',n=1))[0]
@@ -124,13 +130,10 @@ class Feature_Engineering:
 
         return data
 
-   ##adding new date column features
+    ##adding new date column features
 
     def date_column_split(self):
         """Splitting date column"""
-
-
-
         data=self.Dataframe
         data = data.apply(lambda col: pd.to_datetime(col, errors='ignore')
               if col.dtypes == object
@@ -144,27 +147,15 @@ class Feature_Engineering:
         for col_name in data.select_dtypes(include='datetime'):
             i=0
             column = str(col_name)
+            data[column+'_day']= data[column].dt.day
+            data[column+'_month']= data[column].dt.month
+            data[column+'_year']= data[column].dt.year
             data[column+'_quarter']= data[column].dt.quarter
             data[column+'_semester'] = np.where(data[column+'_quarter'].isin([1,2]),1,2)
             data[column+'_day_of_the_week'] = data[column].dt.dayofweek
             data[column+'_time'] = data[column].dt.time
             data[column+'_day_of_the_year'] = data[column].dt.dayofyear
             data[column+'_week_of_the_year'] = data[column].dt.weekofyear
-
-#             data[column+'_holiday']= None
-#             data[column+'_holiday_near']=None
-#             for rows in data[col_name]:
-#                 year =int(rows.year)
-#                 list_holidays=list(holidays.India(years = year).items())## Given Indian holidays
-#                 list_holidays_full = [days[0] for days in list_holidays]
-
-#                 least_holiday =[abs(x-rows.date()).days for x in list_holidays_full]
-#                 data.loc[i,[column+'_holiday_near']]=min(least_holiday)
-#                 if  0 in least_holiday:
-#                     data.loc[i,[column+'_holiday']] =1
-#                 else:
-#                     data.loc[i,[column+'_holiday']] =0
-#                 i+=1
 
         new_cols=list(set(data.columns.to_list())-set(orginal_columns))
         date_extracted_cols =[{'name':x,'dtype':data[x].dtype,'created':True} for x in new_cols ]
@@ -225,9 +216,6 @@ class Feature_Engineering:
                 norm_num_col =random.choice(num_list)
         if len(norm_num_col)>0:
             pass
-        """
-        Check with Vishnu
-        """
         norm_col = [col for col in [norm_cat_col,norm_num_col] if len(col)>0]
         self.norm_col =random.choice(norm_col)
         self.one_click['normalize_column'] =self.norm_col
@@ -237,24 +225,32 @@ class Feature_Engineering:
 
 
 
-    def feature_transformation(self,data):
+    def feature_transformation(self,data,target,col_list):
+        data_dict={}
         pt_list=[]
         bin_list=[]
         dec_list=[]
-        for i in list(data.columns):
-          if (data[i].dtype==int) | (data[i].dtype==float):
-              if data[i].std()>data[i].mean()/2:
-                  data[i+'_pt']=self.power_transform(data[i])
-                  pt_list.append(i)
-                  self.one_click['power_transform']=pt_list
-              elif data[i].nunique()>0.7*data[i].count():
-                   data[i+'_bins']= self.bin_columns(data[i])
-                   bin_list.append(i)
-                   self.one_click['bin_columns']=bin_list
-          else:
-              data[i+'_decomposed']= self.categorical_decomposition(data[i])
-              dec_list.append(i)
-              self.one_click['categorical_decomposition']=dec_list
+        for i in col_list:
+            if (data[i].dtype==int) | (data[i].dtype==float):
+                if data[i].std()>data[i].mean()/2:
+                    data[i+'_pt']=self.power_transform(data[i])
+                    pt_list.append(i)
+                    self.one_click['created_feature'].append({'name':i+'_pt','dtype':data[i].dtype,'created':True})
+                    self.one_click['power_transform']=pt_list
+
+                elif data[i].nunique()>0.7*data[i].count():
+                    data[i+'_bins']= self.bin_columns(data[i])
+                    bin_list.append(i)
+                    self.one_click['created_feature'].append({'name':i+'_bins','dtype':data[i].dtype,'created':True})
+                    self.one_click['bin_columns']=bin_list
+
+            else:
+                if 0.1*data[i].count()<data[i].nunique():
+                    data[i+'_decomposed']= self.categorical_decomposition(data[i])
+                    self.one_click['created_feature'].append({'name':i+'_decomposed','dtype':data[i].dtype,'created':True})
+                    dec_list.append(i)
+                    self.one_click['categorical_decomposition']=dec_list
+
         return data
 
 
@@ -272,18 +268,16 @@ class Feature_Engineering:
         return data
 
     def bin_columns(self,data):
-        #print(i)
         max_val=round(data.max(),2)
         min_val=round(data.min(),2)
         print(min_val,max_val)
-        median_val=round(data.median(),2)
+        mean_val=round(data.mean(),2)
         std_val=round(data.std(),2)
-        data = pd.cut(data, bins=[min_val,median_val-std_val,median_val+std_val,max_val], labels=["[{}-{}]".format(min_val,round(median_val-std_val,2)), "[{}-{}]".format(round(median_val-std_val,2),round(median_val+std_val)), "[{}-{}]".format(round(median_val+std_val),max_val)],right=True,include_lowest=True)
+        data = pd.cut(data, bins=[min_val,mean_val,mean_val+std_val,max_val], labels=["[{}-{}]".format(min_val,round(mean_val,2)), "[{}-{}]".format(round(mean_val,2),round(mean_val+std_val)), "[{}-{}]".format(round(mean_val+std_val),max_val)],right=True,include_lowest=True)
         return data
 
 
     def bin_columns_for_crammers(self,data):
-        #print(i)
         max_val=round(data.max(),2)
         min_val=round(data.min(),2)
         mean_val=round(data.mean(),2)
@@ -292,15 +286,19 @@ class Feature_Engineering:
         return data
 
     def categorical_decomposition(self,data):
+
         val_count_dict=dict(data.value_counts()/data.count())
         for key in val_count_dict:
-            if val_count_dict[key]<0.2:
+            if val_count_dict[key]== min(val_count_dict.values()):
                 data=data.replace(to_replace =key, value ="Others")
         return data
 
 
 
     def feature_combiner_classification(self,data,target,col_list):
+        data_dict={'added':[],'multiplied_encoded_both':[],'multiplied_series_both':[],'multiplied_encoded1_series2':[],'multiplied_encoded2_series1':[]}
+        self.one_click['feature_combiner_classification']={}
+
         for i in col_list:
             for j in col_list[1:]:
                 if (data[target].dtype==object) | (data[target].nunique()<=3) :
@@ -318,9 +316,11 @@ class Feature_Engineering:
                                 le.fit(labels2)
                                 labels2 = le.transform(labels2)
                                 data[i+j]=labels1+labels2
-                                self.columns_list.append(combined_list1)
-                                self.one_click['feature_combiner_classification']=self.columns_list
-                    elif ((data[i].dtype==int)|(data[i].dtype==float) & (data[j].dtype==object)) | ((data[i].dtype==object) & ((data[j].dtype==int)|(data[j].dtype==float))):
+                                #self.one_click['created_feature'].append(i+j)
+                                self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
+                                data_dict['added'].append(combined_list1)
+                                self.one_click['feature_combiner_classification']=data_dict
+                    elif ((data[i].dtype==int or data[i].dtype=="int64")|(data[i].dtype==float or data[i].dtype=="float64") & (data[j].dtype==object)) | ((data[i].dtype==object) & ((data[j].dtype==int or data[j].dtype=='int64')|(data[j].dtype==float or data[j].dtype=='float64'))):
                             if not j+i in list(data.columns):
                                 if data[i].dtype==object:
                                          labels1=self.bin_columns_for_crammers(data[j])
@@ -341,14 +341,24 @@ class Feature_Engineering:
                                                 except:
                                                     labels2=labels2
                                                 try:
-                                                    data[i+j]=labels1*labels2
+                                                    try:
+                                                        data[i+j]=labels1*labels2
+                                                        data_dict['multiplied_encoded_both'].append(combined_list2)
+                                                    except:
+                                                        data[i+j]=data[i]*data[j]
+                                                        data_dict['multiplied_series_both'].append(combined_list2)
                                                 except:
                                                     try:
                                                          data[i+j]=data[j]*labels2
+                                                         data_dict['multiplied_encoded1_series2'].append(combined_list2)
                                                     except:
                                                          data[i+j]=labels1*data[i]
+                                                         data_dict['multiplied_encoded2_series1'].append(combined_list2)
+                                                #self.one_click['created_feature'].append(i+j)
+
+                                                self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
                                                 self.columns_list.append(combined_list2)
-                                                self.one_click['feature_combiner_classification']=self.columns_list
+                                                self.one_click['feature_combiner_classification']=data_dict
                                 elif data[j].dtype==object:
                                          labels1=self.bin_columns_for_crammers(data[i])
                                          if (self.cramers_corrected_stat(data[j],labels1) <0.5) & (self.cramers_corrected_stat(data[j],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
@@ -368,51 +378,48 @@ class Feature_Engineering:
                                                 except:
                                                     labels2 = labels2
                                                 try:
-                                                    data[i+j]=labels1*labels2
+                                                    try:
+                                                         data[i+j]=data[i]*labels2
+                                                         data_dict['multiplied_encoded2_series1'].append(combined_list3)
+
+                                                    except:
+                                                         data[i+j]=labels1*data[j]
+                                                         data_dict['multiplied_encoded1_series2'].append(combined_list3)
+
+
                                                 except:
                                                     try:
-                                                         data[i+j]=labels1*data[j]
+                                                        data[i+j]=labels1*labels2
+                                                        data_dict['multiplied_encoded_both'].append(combined_list3)
                                                     except:
-                                                         data[i+j]=data[i]*labels2
-                                                self.columns_list.append(combined_list3)
-                                                self.one_click['feature_combiner_classification']=self.columns_list
+                                                        data[i+j]=data[i]*data[j]
+                                                        data_dict['multiplied_series_both'].append(combined_list3)
+                                                    #self.one_click['created_feature'].append(i+j)
+                                                    self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
+                                                    self.columns_list.append(combined_list3)
+                                                    self.one_click['feature_combiner_classification']=data_dict
                     else:
                         if not j+i in list(data.columns):
                             try:
-                                labels1=self.bin_columns_for_crammers(data[i])
+                                labels1=bin_columns_for_crammers(data[i])
                             except:
                                 labels1=data[i]
                             try:
-                                labels2=self.bin_columns_for_crammers(data[j])
+                                labels2=bin_columns_for_crammers(data[j])
                             except:
                                 labels2=data[j]
-                            print("i & j: ", i, j)
-                            print(data[j].dtype, data[i].dtype)
                             if (-0.5<(data[i].corr(data[j]))<0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5) & (self.cramers_corrected_stat(labels2,data[target]) <0.5):
                                 le= sklearn.preprocessing.LabelEncoder()
                                 combined_list4=[]
                                 combined_list4.append(i)
                                 combined_list4.append(j)
-                                try:
-                                    le.fit(labels1)
-                                    labels1 = le.transform(labels1)
-                                except:
-                                    labels1 = labels1
-                                try:
-                                    le.fit(labels2)
-                                    labels2 = le.transform(labels2)
-                                except:
-                                    labels2 = labels2
-                                try:
-                                    data[i+j]=labels1*labels2
-                                except:
-                                    try:
-                                         data[i+j]=labels1*data[j]
-                                    except:
-                                         data[i+j]=data[i]*labels2
-                                self.columns_list.append(combined_list4)
-                                self.one_click['feature_combiner_classification']=self.columns_list
-
+                                #try:
+                                data[i+j]=data[i]*data[j]
+                                #self.one_click['created_feature'].append(i+j)
+                                self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
+                                data_dict['multiplied_series_both'].append(combined_list4)
+                                #columns_list.append(combined_list4)
+                                self.one_click['feature_combiner_classification']=data_dict
         return data
 
 
@@ -502,6 +509,59 @@ class Feature_Engineering:
                                     self.columns_list.append(combined_list4)
         return data
 
+    def feature_combiner_classification_score(self,data,data_dict):
+        le= sklearn.preprocessing.LabelEncoder()
+        if 'multiplied_encoded_both' in data_dict['feature_combiner_classification'].keys():
+            if len(data_dict['feature_combiner_classification']['multiplied_encoded_both'])>0:
+                for vals in data_dict['feature_combiner_classification']['multiplied_encoded_both']:
+                    labels1=data[vals[0]]
+                    le.fit(labels1)
+                    labels1=le.transform(labels1)
+                    labels2=data[vals[1]]
+                    le.fit(labels2)
+                    labels2=le.transform(labels2)
+                    data[vals[0]+vals[1]]=labels1*labels2
+        if 'multiplied_encoded1_series2' in data_dict['feature_combiner_classification'].keys():
+            if len(data_dict['feature_combiner_classification']['multiplied_encoded1_series2'])>0:
+                for vals in data_dict['feature_combiner_classification']['multiplied_encoded1_series2']:
+                    labels1=data[vals[0]]
+                    le.fit(labels1)
+                    labels1=le.transform(labels1)
+                    data[vals[0]+vals[1]]=labels1*data[vals[1]]
+        if 'multiplied_encoded2_series1' in data_dict['feature_combiner_classification'].keys():
+            if len(data_dict['feature_combiner_classification']['multiplied_encoded2_series1'])>0:
+                for vals in data_dict['feature_combiner_classification']['multiplied_encoded2_series1']:
+                    labels1=data[vals[1]]
+                    le.fit(labels1)
+                    labels1=le.transform(labels1)
+                    data[vals[0]+vals[1]]=labels1*data[vals[0]]
+        if 'multiplied_series_both' in data_dict['feature_combiner_classification'].keys():
+            if len(data_dict['feature_combiner_classification']['multiplied_series_both'])>0:
+                for vals in data_dict['feature_combiner_classification']['multiplied_series_both']:
+                    data[vals[0]+vals[1]]=data[vals[0]]*data[vals[1]]
+        if 'added' in data_dict['feature_combiner_classification'].keys():
+            if len(data_dict['feature_combiner_classification']['added'])>0:
+                for vals in data_dict['feature_combiner_classification']['added']:
+                    labels1=data[vals[0]]
+                    labels2=data[vals[1]]
+                    le.fit(labels1)
+                    labels1=le.transform(labels1)
+                    le.fit(labels2)
+                    labels2=le.transform(labels2)
+                    data[vals[0]+vals[1]]=labels1+labels2
+        return data
+
+    def feature_transformation_score(self,data,data_dict):
+        if 'power_transform' in data_dict.keys():
+            for i in data_dict['power_transform']:
+                    data[i+'_pt']=self.power_transform(data[i])
+        if 'bin_columns' in  data_dict.keys():
+            for i in data_dict['bin_columns']:
+                    data[i+'_bins']= self.bin_columns(data[i])
+        if 'categorical_decomposition' in data_dict.keys():
+            for i in data_dict['categorical_decomposition']:
+                    data[i+'_decomposed']= self.categorical_decomposition(data[i])
+        return data
 
 
     def cramers_corrected_stat(self,x,y):
@@ -580,7 +640,8 @@ class Feature_Engineering:
         """
         orginal_cols=data.columns.to_list()
         cols_to_keep = data.columns[data.isnull().mean()  <0.5].to_list()#removing columns with many null values
-        cols_to_keep = list(set(cols_to_keep+self.one_click['original_cols']))
+        cols_to_keep = list(set(cols_to_keep+self.data_dict2['original_cols']))
+        print("self.data_dict2['original_cols']  ",self.data_dict2['original_cols'])
         cols_to_keep.remove(self.target)
         removed_cols=list(set(orginal_cols)-set(cols_to_keep))
         removed_cols =[{'name':x,'dtype':data[x].dtype,'removed':True} for x in removed_cols ]
@@ -601,7 +662,8 @@ class Feature_Engineering:
         """
         orginal_cols=data.columns.to_list()
         cols_to_keep =data.iloc[:,(data.nunique()/len(data)<.9).values].columns.to_list()
-        cols_to_keep = list(set(cols_to_keep+self.one_click['original_cols']))
+        cols_to_keep = list(set(cols_to_keep+self.data_dict2['original_cols']))
+        print("self.data_dict2['original_cols']  ",self.data_dict2['original_cols'])
         cols_to_keep.remove(self.target)
         clean_data =data[cols_to_keep]
         removed_cols=list(set(orginal_cols)-set(cols_to_keep))
@@ -630,7 +692,7 @@ class Feature_Engineering:
 
 
 
-    def remove_duplicate(self ,data):
+    def remove_duplicate(self,data):
 
         """Removing duplicate features
 
@@ -649,10 +711,15 @@ class Feature_Engineering:
             col = data.iloc[:, x]
             for y in range(x + 1, data.shape[1]):
                 otherCol =data.iloc[:, y]
-                if col.equals(otherCol):
-                    dup_list.append(otherCol.name)
-                    duplicate_columns+=1
-        duplicate_column =[{'name':x,'dtype':str(data[x].dtype),'drop_column':True} for x in dup_list ]
+                try:
+                    test_col = (otherCol == col)
+                    if all(x == True for x in test_col): #col.equals(otherCol):
+                        dup_list.append(otherCol.name)
+                        duplicate_columns+=1
+                except:
+                    print("Errored! ", type(otherCol),"hgh",type(col),"hhhhhhhhhhhhhhhhhhhhhhhhhh",otherCol.name,col.name)
+
+        duplicate_column =[{'name':x,'dtype':data[x].dtype,'drop_column':True} for x in dup_list ]
         self.one_click['removed_duplicate_columns']=duplicate_column
         data.drop(dup_list,axis=1,inplace=True)
         return data
@@ -711,8 +778,6 @@ class Feature_Engineering:
 
         """
 
-
-
         min_max=[]
         std_scalar=[]
         for col in data.select_dtypes(exclude='object').columns:
@@ -745,9 +810,11 @@ class Feature_Engineering:
 
 
         cols_to_keep=[cols for cols in cols_to_keep if not is_datetime(self.Dataframe[cols])]
+        cols_to_keep.remove(self.target)
         #features = self.feature_creation(self.norm_col)
-        data1=self.feature_transformation(self.Dataframe)
-        if (self.data_dict2["app_type"] == "classification"):
+        data1=self.feature_transformation(self.Dataframe,self.target,cols_to_keep)
+
+        if (self.data_dict2["app_type"].lower() == "classification"):
                data2=self.feature_combiner_classification(self.Dataframe,self.target,cols_to_keep)
         else:
                data2=self.feature_combiner_regression(self.Dataframe,self.target,cols_to_keep)
@@ -761,33 +828,18 @@ class Feature_Engineering:
 
         features = self.Dataframe
 
-        #need  preprocessing here #####################
-        #calling preprocessing module here
-#         features[self.target] = self.one_click['y_train']
-#         data_clean = dclean.drop_duplicate_rows(features)
-#         data1,outlier_columns,capped_cols = dclean.handle_outliers(data_clean,data_clean.select_dtypes(exclude='object').columns.to_list())
-#         measureColImpu = [i for i in data_clean.select_dtypes(exclude='object').columns.to_list() if data_clean[i].isna().sum()>0 ]
-#         dimColImpu = [i for i in data_clean.select_dtypes(include='object').columns.to_list() if data_clean[i].isna().sum()>0 ]
-#         data_frm_clean,mean_impute_cols,median_impute_cols = dclean.measureCol_imputation(data_clean,measureColImpu,outlier_columns)
-#         data_frm_clean == dclean.dimCol_imputation(data_frm_clean,dimColImpu)
-#         features = data_frm_clean.drop(self.target,axis=1)
-        ################################################
         rem_uniq =self.remove_unique_values(features)
         rem_null_density =self.remove_null_density(rem_uniq)
 
         clean_df = self.remove_single_value(rem_null_density)#removing single value
         clean_df = self.remove_duplicate(clean_df)#removing duplicate
         self.one_click['train_final_cols'] = clean_df.columns.to_list()
-        ##Decided do not perform scaling
-#         scaled = self.scaling(clean_df)#scaling data
-#         transformed = self.transformations(scaled)#transforming
-#         transformed[self.target] = self.one_click['y_train']##adding target to final data
         clean_df[self.target]=self.one_click['y_train']
         featue_col_list  =[x['name'] for x in  self.one_click['created_feature']]
 
         new_created = [x for x in featue_col_list if x in self.one_click['train_final_cols']]
 
-        original_cols=self.one_click['original_cols']
+        original_cols=self.data_dict2['original_cols']
 
         original_cols = [x for x in original_cols if x in self.one_click['train_final_cols']]
 
@@ -802,8 +854,6 @@ class Feature_Engineering:
         self.only_created_df = only_created_df
 
         self.data_dict2.update(self.one_click)
-
-#        return clean_df ,original_df,only_created_df#combined df,original_df,created_df
 
 
     def test_transformations(self,data,log_col=[],exp_col=[]):
@@ -842,13 +892,22 @@ class Feature_Engineering:
         """test data flow"""
         self.split_columns()
         self.date_column_split()
-        features=self.feature_creation(normal)
-        test_data = features[final_col]
-        featue_col_list  =[x['name'] for x in  self.one_click['created_feature']]
+        cols_to_keep =self.Dataframe.iloc[:,(self.Dataframe.nunique()/len(self.Dataframe)<.9).values].columns.to_list()
+        cols_to_keep=[cols for cols in cols_to_keep if not is_datetime(self.Dataframe[cols])]
+        print(len(self.Dataframe.columns),"self.Dataframe.columns")
+        data1=self.feature_transformation_score(self.Dataframe,self.data_dict2.copy())
+        print(len(data1.columns),"length after transformation columns")
+        if (self.data_dict2["app_type"].lower() == "classification"):
+               data2=self.feature_combiner_classification_score(self.Dataframe,self.data_dict2.copy())
+               print(len(data2.columns),"length after combination columns")
+        else:
+               data2=self.feature_combiner_regression_score(self.Dataframe,self.one_click)
 
+        self.Dataframe = data1.merge(data2)
+        test_data = self.Dataframe#[final_col]
+        featue_col_list  =[x['name'] for x in  self.data_dict2['created_feature']]
         new_created = [x for x in featue_col_list if x in final_col]
-
-        original_cols=self.one_click['original_cols']
+        original_cols=self.data_dict2['original_cols']
         original_cols = [x for x in original_cols if x in final_col]
         only_created_df =test_data[new_created]
 
