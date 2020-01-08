@@ -52,7 +52,7 @@ class Data_Validation:
         re_column = column
 
         if self.df[re_column].dtype != 'object':
-            Dict["data_type"] = self.df[column].dtype
+            Dict["data_type"] = "{}".format(self.df[column].dtype)
 
         elif self.df[column].dtype == 'object':
 
@@ -69,7 +69,7 @@ class Data_Validation:
 
             Dict["re_name"] = True
 
-            Dict["data_type"] = self.df[column].dtype
+            Dict["data_type"] = "{}".format(self.df[column].dtype)
 
             re_column = re.sub(r'[\W_]', '_',column)
 

@@ -59,9 +59,9 @@ class Data_Preprocessing(object):
         capped_col=[]
         for column in columns:
             df1=dataset[column]
-            print(column)
+            #print(column)
             col_summary=dataset[column].describe()
-            print(col_summary)
+            #print(col_summary)
             outlier_LR, outlier_UR = col_summary["mean"] - (3*col_summary["std"]), col_summary["mean"] + (3*col_summary["std"])
             outlier_per = len(df1[(df1 > outlier_UR) | (df1 < outlier_LR)])/dataset.shape[0]
             if outlier_per < 8/100 and outlier_per>0:

@@ -102,7 +102,7 @@ class auto_ML:
 #         print(Dataframe3.info())
         print("#"*50)
         #print(Dataframe3.shape)
-        print(Dataframe3.columns)
+        #print(Dataframe3.columns)
 
         data_dict3 = obj3.data_dict
         print(data_dict3.keys())
@@ -169,10 +169,9 @@ class auto_ML:
 
         # with open('data.txt',  'w', encoding='utf-8') as f:
         #     json.dumps(obj6.data_dict)
-
         self.final_json = json.dumps(obj6.data_dict)
-        self.linear_df = l
-        self.tree_df = t
+        self.linear_df = linear_df
+        self.tree_df = tree_df
 
     def return_values(self):
         return self.final_json, self.linear_df, self.tree_df
