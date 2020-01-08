@@ -334,16 +334,16 @@ def submit_job_through_yarn():
         # print resp.text
         print('Main Method Did Not End ....., ', str(e))
 if __name__ == '__main__':
-    jobURL, killURL = killer_setting(sys.argv[1])
-    try:
-        main(sys.argv[1])
-        print('Main Method End .....')
-    except Exception as e:
-        # print jobURL, killURL
-        data = {"status": "killed", "jobURL": jobURL}
-        resp = send_kill_command(killURL, data)
-        while str(resp.text) != '{"result": "success"}':
-            data = {"status": "killed", "jobURL": jobURL}
-            resp = send_kill_command(killURL, data)
-        # print resp.text
-        print('Main Method Did Not End ....., ', str(e))
+    # jobURL, killURL = killer_setting(sys.argv[1])
+    # try:
+    main(sys.argv[1])
+    print('Main Method End .....')
+    # except Exception as e:
+    #     # print jobURL, killURL
+    #     data = {"status": "killed", "jobURL": jobURL}
+    #     resp = send_kill_command(killURL, data)
+    #     while str(resp.text) != '{"result": "success"}':
+    #         data = {"status": "killed", "jobURL": jobURL}
+    #         resp = send_kill_command(killURL, data)
+    #     # print resp.text
+    #     print('Main Method Did Not End ....., ', str(e))

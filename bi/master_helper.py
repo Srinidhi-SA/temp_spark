@@ -7,6 +7,7 @@ import re
 
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
+from bi.algorithms.autoML import auto_ml as autoML
 from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.algorithms import feature_engineering as feature_engineering
 from bi.scripts.metadata import MetaDataScript
@@ -240,14 +241,27 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
         completionStatus = 60
         dataframe_context.update_completion_status(completionStatus)
     if app_type == "CLASSIFICATION":
+        autoML_setting = True
+        if autoML_setting is True:
+            autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),app_type)
+            one_click_json, linear_df, tree_df = autoML_obj.return_values()
+        print ("???"*10)
+        print (list(tree_df))
+        print (one_click_json)
         for obj in algosToRun:
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["randomforest"]:
                 try:
                     st = time.time()
-                    rf_obj = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                    # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-                    rf_obj.Train()
-                    print("Random Forest Model Done in ", time.time() - st,  " seconds.")
+                    if autoML_setting:
+                        rf_obj = RFClassificationModelScript(tree_df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                        # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                        rf_obj.Train()
+                        print("Random Forest Model Done in ", time.time() - st,  " seconds.")
+                    else:
+                        rf_obj = RFClassificationModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                        # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
+                        rf_obj.Train()
+                        print("Random Forest Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
