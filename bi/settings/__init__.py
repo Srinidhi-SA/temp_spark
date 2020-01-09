@@ -3,9 +3,7 @@ from __future__ import absolute_import
 try:
     from .configs.localConfigs import *
 except:
-    
-    pass
-    # from .configs.sampleConfigs import *
+    from .configs.sampleConfigs import *
 from bi.tests.testConfigs import *
 
 def get_test_configs(jobType,testFor = None):

@@ -65,9 +65,9 @@ class auto_ML:
 #         Dataframe = obj1.df1
 #         print(Dataframe.info())
 
-        f = open("dict1.txt","w")
-        f.write( str(data_dict) )
-        f.close()
+        # f = open("dict1.txt","w")
+        # f.write( str(data_dict) )
+        # f.close()
 ########################################################################################
         """Feature Engineering"""
 
@@ -169,7 +169,7 @@ class auto_ML:
 
         # with open('data.txt',  'w', encoding='utf-8') as f:
         #     json.dumps(obj6.data_dict)
-        self.final_json = json.dumps(obj6.data_dict)
+        self.final_json = obj6.data_dict
         self.linear_df = linear_df
         self.tree_df = tree_df
 

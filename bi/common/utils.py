@@ -249,8 +249,6 @@ def temp_convertor(x):
         return "{}".format(x)
 
 def convert_python_object_to_json(object):
-    print ("^"*10)
-    print (object.__dict__.keys())
     try:
         return json.dumps(object, default=temp_convertor)
     except:

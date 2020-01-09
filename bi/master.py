@@ -167,8 +167,9 @@ def main(configJson):
             if jobType != "metaData":
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
+                    one_click_json = {}
                     #temporary
-                    automl_enable = False
+                    automl_enable = True
                     if automl_enable is True:
                         df = df.toPandas()
                         autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
@@ -242,7 +243,7 @@ def main(configJson):
         ################################ Model Training ############################
         elif jobType == 'training':
             dataframe_context.set_ml_environment("sklearn")
-            MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance)
+            MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance,one_click_json)
         ############################################################################
 
         ############################## Model Prediction ############################

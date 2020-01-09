@@ -164,7 +164,7 @@ def set_dataframe_helper(df,dataframe_context,metaParserInstance):
     df = dataframe_helper.get_data_frame()
     return df,dataframe_helper
 
-def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
+def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,one_click_json):
     st = time.time()
     LOGGER = dataframe_context.get_logger()
     jobUrl = dataframe_context.get_job_url()
@@ -434,6 +434,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
 
     modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
+    modelJsonOutput['one_click_json'] = one_click_json
     response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
     print(modelJsonOutput)
 
