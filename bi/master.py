@@ -168,14 +168,14 @@ def main(configJson):
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
                     #temporary
-                    automl_enable = True
+                    automl_enable = False
                     if automl_enable is True:
-                        print ("KJNKJN"*10)
                         df = df.toPandas()
-                        print (type(df))
                         autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
                         one_click_json, linear_df, tree_df = autoML_obj.return_values()
                         df = tree_df
+                        dataframe_context.set_consider_columns(list(df))
+                        df = spark.createDataFrame(df)
                     else:
                         dataCleansingDict = dataframe_context.get_dataCleansing_info()
                         featureEngineeringDict = dataframe_context.get_featureEngginerring_info()

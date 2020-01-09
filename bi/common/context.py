@@ -659,6 +659,10 @@ class ContextSetter(object):
     def get_consider_columns(self):
         return self.considercolumns
 
+    def set_consider_columns(self,considercolumns):
+        self.considercolumns = considercolumns
+        # return self.considercolumns
+
     def get_score_consider_columns(self):
         return self.scoreconsidercolumns
 

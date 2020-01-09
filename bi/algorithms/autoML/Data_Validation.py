@@ -63,19 +63,19 @@ class Data_Validation:
             except:
                 Dict["data_type"] = str(self.df[column].dtype)
 
-        if re.search(r'[\W_]+',column):
+        # if re.search(r'[\W_]+',column):
+        #
+        #     Dict["Special_char"] = True
+        #
+        #     Dict["re_name"] = True
+        #
+        #     Dict["data_type"] = "{}".format(self.df[column].dtype)
 
-            Dict["Special_char"] = True
+            # re_column = re.sub(r'[\W_]', '_',column)
 
-            Dict["re_name"] = True
+            # Dict["re_column_name"] = re_column
 
-            Dict["data_type"] = "{}".format(self.df[column].dtype)
-
-            re_column = re.sub(r'[\W_]', '_',column)
-
-            Dict["re_column_name"] = re_column
-
-            self.df.rename(columns = {column:re_column}, inplace = True)
+            # self.df.rename(columns = {column:re_column}, inplace = True)
 
 
         if column == self.target:
