@@ -100,6 +100,8 @@ class ContextSetter(object):
         self.mlModelPredictionWeight = {}
         self.anovaOnScoredData = False
 
+        self.trainerMode = ""
+
 
 
 
@@ -113,6 +115,7 @@ class ContextSetter(object):
         self.DATABASE_SETTINGS = self._config_obj.get_database_settings()
         self.ALGORITHM_SETTINGS = self._config_obj.get_algorithm_settings()
         self.FEATURE_SETTINGS = self._config_obj.get_feature_settings()
+        self.trainerMode = self._config_obj.get_trainerMode_info()
 
         fileSettingKeys = list(self.FILE_SETTINGS.keys())
         columnSettingKeys = list(self.COLUMN_SETTINGS.keys())
@@ -789,3 +792,6 @@ class ContextSetter(object):
 
     def get_featureEngginerring_info(self):
         return self.featureEngineeringDict
+
+    def get_trainerMode(self):
+        return self.trainerMode
