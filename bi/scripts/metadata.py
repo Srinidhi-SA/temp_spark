@@ -54,6 +54,33 @@ class MetaDataScript(object):
                     "weight":2
                     },
                 }
+        if dataframe_context.get_job_type()== "story":
+            self._scriptStages = {
+                "schema":{
+                    "summary":"Loaded The Data and Schema Is Run",
+                    "weight":1
+                    },
+                "sampling":{
+                    "summary":"Sampling The Dataframe",
+                    "weight":1
+                    },
+                "measurestats":{
+                    "summary":"Calculated Stats For Measure Columns",
+                    "weight":2
+                    },
+                "dimensionstats":{
+                    "summary":"Calculated Stats For Dimension Columns",
+                    "weight":2
+                    },
+                "timedimensionstats":{
+                    "summary":"Calculated Stats For Time Dimension Columns",
+                    "weight":2
+                    },
+                "suggestions":{
+                    "summary":"Ignore And Date Suggestions",
+                    "weight":1
+                    },
+                }
         else:
             self._scriptStages = {
                 "schema":{
