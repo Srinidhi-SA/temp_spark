@@ -251,26 +251,50 @@ class RFClassificationModelScript(object):
                 # print "ALGO-PARAMS", algoParams
                 # print "[]" * 30
                 algoParams["random_state"] = 42
-                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                clf.set_params(**algoParams)
-                modelmanagement_ = clf.get_params()
-                # print "[]" * 30
-                # print "modelmanagement_", modelmanagement_
-                # print "[]" * 30
-                # import sys
-                # sys.exit()
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                automl_enable=False
+                if automl_enable:
+                    params_grid={'max_depth': [5, 10],
+                                'min_samples_split': [2, 4],
+                                'min_samples_leaf': [1, 2],
+                                'min_impurity_decrease': [0],
+                                'n_estimators': [100],
+                                'criterion': ['gini', 'entropy'],
+                                'bootstrap': [True],
+                                'random_state': [42]}
+                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    gridParams = clfRand.get_params()
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
+                    clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
+                    numFold=5
+                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    clf.fit(x_train, y_train)
-                    bestEstimator = clf
+                    print("RandomForest AuTO ML Random CV#######################3")
+                else:
+                    algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
+                    clf.set_params(**algoParams)
+                    modelmanagement_ = clf.get_params()
+
+                    # print "[]" * 30
+                    # print "modelmanagement_", modelmanagement_
+                    # print "[]" * 30
+                    # import sys
+                    # sys.exit()
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        clf.fit(x_train, y_train)
+                        bestEstimator = clf
 
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -385,10 +409,14 @@ class RFClassificationModelScript(object):
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
 
-            featureImportance={}
-            feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
-            for k, v in feature_importance.items():
-                feature_importance[k] = CommonUtils.round_sig(v)
+            feature_importance={}
+            try:
+                feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+                for k, v in feature_importance.items():
+                    feature_importance[k] = CommonUtils.round_sig(v)
+            except:
+                pass
+
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
 
             if not algoSetting.is_hyperparameter_tuning_enabled():
@@ -475,8 +503,9 @@ class RFClassificationModelScript(object):
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
+            print (modelmanagement_)
 
-            if not algoSetting.is_hyperparameter_tuning_enabled():
+            if not algoSetting.is_hyperparameter_tuning_enabled()and not automl_enable:
                 self._model_management = MLModelSummary()
                 self._model_management.set_criterion(data=modelmanagement_['criterion'])
                 self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
@@ -501,27 +530,33 @@ class RFClassificationModelScript(object):
                 self._model_management.set_datasetName(self._datasetName)
             else:
                 self._model_management = MLModelSummary()
-                self._model_management.set_criterion(data=modelmanagement_['param_grid']['criterion'][0])
-                self._model_management.set_max_depth(data=modelmanagement_['param_grid']['max_depth'][0])
-                self._model_management.set_min_instance_for_split(data=modelmanagement_['param_grid']['min_samples_split'][0])
-                self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['param_grid']['min_samples_leaf'][0])
-                self._model_management.set_max_leaf_nodes(data=modelmanagement_['estimator__max_leaf_nodes'])
-                self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['estimator__min_impurity_split'])
-                self._model_management.set_no_of_estimators(data=modelmanagement_['estimator__max_features'])
-                self._model_management.set_bootstrap_sampling(data=modelmanagement_['estimator__bootstrap'])
-                self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
-                self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
-                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self._model_management.set_training_status(data="completed")# training status
-                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
-                self._model_management.set_target_level(self._targetLevel) # target column value
-                self._model_management.set_training_time(runtime) # run time
-                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("RandomForest")#algorithm name
-                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
-                self._model_management.set_datasetName(self._datasetName)
+                def set_model_params(x):
+                    self._model_management.set_criterion(data=modelmanagement_[x]['criterion'][0])
+                    self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
+                    self._model_management.set_min_instance_for_split(data=modelmanagement_[x]['min_samples_split'][0])
+                    self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_[x]['min_samples_leaf'][0])
+                    self._model_management.set_max_leaf_nodes(data=modelmanagement_['estimator__max_leaf_nodes'])
+                    self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['estimator__min_impurity_split'])
+                    self._model_management.set_no_of_estimators(data=modelmanagement_['estimator__max_features'])
+                    self._model_management.set_bootstrap_sampling(data=modelmanagement_['estimator__bootstrap'])
+                    self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                    self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                    self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                    self._model_management.set_training_status(data="completed")# training status
+                    self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                    self._model_management.set_target_level(self._targetLevel) # target column value
+                    self._model_management.set_training_time(runtime) # run time
+                    self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                    self._model_management.set_algorithm_name("RandomForest")#algorithm name
+                    self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                    self._model_management.set_target_variable(result_column)#target column name
+                    self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
+                    self._model_management.set_datasetName(self._datasetName)
+                if not automl_enable:
+                    set_model_params('param_grid')
+                else:
+                    set_model_params('param_distributions')
+
             modelManagementSummaryJson = [
 
                             ["Project Name",self._model_management.get_job_type()],

@@ -240,29 +240,48 @@ class LogisticRegressionScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                if len(levels) > 2:
-                    algoParams = {k:v for k,v in list(algoParams.items()) if k not in ["multi_class"]}
-                    algoParams["multi_class"] = "multinomial"
-                    algoParams["solver"] = "newton-cg"
-                clf.set_params(**algoParams)
-                modelmanagement_=clf.get_params()
-                print("!"*50)
-                print(algoParams)
-                print(clf.get_params())
-                print("!"*50)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                automl_enable=False
+                if automl_enable:
+                    params_grid={'classifier' : [LogisticRegression()],
+                                 'classifier__penalty' : ['l1', 'l2'],
+                                'classifier__C' : np.logspace(-4, 4, 20),
+                                'classifier__solver' : ['liblinear']}
+                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    gridParams = clfRand.get_params()
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
+                    clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
+                    numFold=5
+                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    clf.fit(x_train, y_train)
-                    bestEstimator = clf
+                    print("LogisticRegression AuTO ML Random CV#######################3")
+                else:
+                    algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
+                    if len(levels) > 2:
+                        algoParams = {k:v for k,v in list(algoParams.items()) if k not in ["multi_class"]}
+                        algoParams["multi_class"] = "multinomial"
+                        algoParams["solver"] = "newton-cg"
+                    clf.set_params(**algoParams)
+                    modelmanagement_=clf.get_params()
+                    print("!"*50)
+                    print(algoParams)
+                    print(clf.get_params())
+                    print("!"*50)
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        clf.fit(x_train, y_train)
+                        bestEstimator = clf
 
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -466,7 +485,7 @@ class LogisticRegressionScript(object):
                 }
 
             self._model_management = MLModelSummary()
-            if not algoSetting.is_hyperparameter_tuning_enabled():
+            if not algoSetting.is_hyperparameter_tuning_enabled()and not automl_enable:
 
                 self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
                 self._model_management.set_solver_used(data=modelmanagement_['solver'])
@@ -488,25 +507,30 @@ class LogisticRegressionScript(object):
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
             else:
-                self._model_management.set_fit_intercept(data=modelmanagement_['param_grid']['fit_intercept'][0])
-                self._model_management.set_solver_used(data=modelmanagement_['param_grid']['solver'][0])
-                self._model_management.set_multiclass_option(data=modelmanagement_['estimator__multi_class'])
-                self._model_management.set_maximum_solver(data=modelmanagement_['param_grid']['max_iter'][0])
-                self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
-                self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
-                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['param_grid']['tol'][0])
-                self._model_management.set_inverse_regularization_strength(data=modelmanagement_['param_grid']['C'][0])
-                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self._model_management.set_training_status(data="completed")# training status
-                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
-                self._model_management.set_target_level(self._targetLevel) # target column value
-                self._model_management.set_training_time(runtime) # run time
-                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
-                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
-                self._model_management.set_datasetName(self._datasetName)
+                def set_model_params(x):
+                    self._model_management.set_fit_intercept(data=modelmanagement_[x]['fit_intercept'][0])
+                    self._model_management.set_solver_used(data=modelmanagement_[x]['solver'][0])
+                    self._model_management.set_multiclass_option(data=modelmanagement_['estimator__multi_class'])
+                    self._model_management.set_maximum_solver(data=modelmanagement_[x]['max_iter'][0])
+                    self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                    self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                    self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_[x]['tol'][0])
+                    self._model_management.set_inverse_regularization_strength(data=modelmanagement_[x]['C'][0])
+                    self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                    self._model_management.set_training_status(data="completed")# training status
+                    self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                    self._model_management.set_target_level(self._targetLevel) # target column value
+                    self._model_management.set_training_time(runtime) # run time
+                    self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                    self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
+                    self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                    self._model_management.set_target_variable(result_column)#target column name
+                    self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+                    self._model_management.set_datasetName(self._datasetName)
+                if not automl_enable:
+                    set_model_params('param_grid')
+                else:
+                    set_model_params('param_distributions')
 
 
             modelManagementSummaryJson =[

@@ -167,15 +167,15 @@ def main(configJson):
             if jobType != "metaData":
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
-                    one_click_json = {}
                     #temporary
                     automl_enable = True
                     if automl_enable is True:
+                        print ("KJNKJN"*10)
                         df = df.toPandas()
+                        print (type(df))
                         autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
                         one_click_json, linear_df, tree_df = autoML_obj.return_values()
                         df = tree_df
-                        dataframe_context.set_consider_columns(list(df))
                         df = spark.createDataFrame(df)
                     else:
                         dataCleansingDict = dataframe_context.get_dataCleansing_info()
@@ -203,6 +203,7 @@ def main(configJson):
                             else:
                                  new_cols_added = None
                             print(df.printSchema())
+
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
