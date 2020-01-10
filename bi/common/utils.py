@@ -69,16 +69,19 @@ def get_existing_metadata(dataframe_context):
     slugs = dataframe_context.get_metadata_slugs()
     jsonToken = {"key1":uuid.uuid4().hex,"key2":uuid.uuid4().hex,"signature":None,"generated_at":time.time()}
     secretKey = GLOBALSETTINGS.HDFS_SECRET_KEY
-    sigString = generate_signature(jsonToken,secretKey)
-    jsonToken["signature"] = sigString
-    url = "{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
-    # print "url",url
-    metaObj = requests.get(url)
-    output = metaObj.json()
-    if "Message" in output:
+    try:   
+        sigString = generate_signature(jsonToken,secretKey)
+        jsonToken["signature"] = sigString
+        url = "{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
+        # print "url",url
+        metaObj = requests.get(url)
+        output = metaObj.json()
+        if "Message" in output:
+            return None
+        else:
+            return output
+    except:
         return None
-    else:
-        return output
 
 @accepts((int, int, float), (int, int, float), num_steps=int)
 def frange(start, stop, num_steps=10):
