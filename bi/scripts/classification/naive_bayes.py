@@ -191,20 +191,36 @@ class NBBClassificationModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                clf.set_params(**algoParams)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                automl_enable=False
+                if automl_enable:
+                    params_grid={'class_prior': [uniform.rvs(0,3), uniform.rvs(0,3), uniform.rvs(0,3)]}
+                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    gridParams = clfRand.get_params()
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
+                    clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
+                    numFold=5
+                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    clf.fit(x_train, y_train)
-                    bestEstimator = clf
+                    print("NaiveBayes AuTO ML Random CV#######################3")
+                else:
+                    algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
+                    clf.set_params(**algoParams)
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        clf.fit(x_train, y_train)
+                        bestEstimator = clf
 
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -750,21 +766,44 @@ class NBGClassificationModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                clf.set_params(**algoParams)
-                modelmanagement_=clf.get_params()
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                automl_enable=False
+                if automl_enable:
+                    params_grid={'max_depth': [5, 10],
+                                'min_samples_split': [2, 4],
+                                'min_samples_leaf': [1, 2],
+                                'min_impurity_decrease': [0],
+                                'n_estimators': [100],
+                                'criterion': ['gini', 'entropy'],
+                                'bootstrap': [True],
+                                'random_state': [42]}
+                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    gridParams = clfRand.get_params()
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
+                    clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
+                    numFold=5
+                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    clf.fit(x_train, y_train)
-                    bestEstimator = clf
+                    print("NaiveBayes AuTO ML Random CV#######################3")
+                else:
+                    algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
+                    clf.set_params(**algoParams)
+                    modelmanagement_=clf.get_params()
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        clf.fit(x_train, y_train)
+                        bestEstimator = clf
 
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -971,7 +1010,7 @@ class NBGClassificationModelScript(object):
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
-            if not algoSetting.is_hyperparameter_tuning_enabled():
+            if not algoSetting.is_hyperparameter_tuning_enabled() and not automl_enable:
                 self._model_management = MLModelSummary()
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status
@@ -1506,21 +1545,44 @@ class NBMClassificationModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                clf.set_params(**algoParams)
-                modelmanagement_=clf.get_params()
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                automl_enable=False
+                if automl_enable:
+                    params_grid={'max_depth': [5, 10],
+                                'min_samples_split': [2, 4],
+                                'min_samples_leaf': [1, 2],
+                                'min_impurity_decrease': [0],
+                                'n_estimators': [100],
+                                'criterion': ['gini', 'entropy'],
+                                'bootstrap': [True],
+                                'random_state': [42]}
+                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    gridParams = clfRand.get_params()
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
+                    clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
+                    numFold=5
+                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    clf.fit(x_train, y_train)
-                    bestEstimator = clf
+                    print("NaiveBayes AuTO ML Random CV#######################3")
+                else:
+                    algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
+                    clf.set_params(**algoParams)
+                    modelmanagement_=clf.get_params()
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        clf.fit(x_train, y_train)
+                        bestEstimator = clf
 
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -1726,7 +1788,7 @@ class NBMClassificationModelScript(object):
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
-            if not algoSetting.is_hyperparameter_tuning_enabled():
+            if not algoSetting.is_hyperparameter_tuning_enabled() and not automl_enable:
                 self._model_management = MLModelSummary()
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status

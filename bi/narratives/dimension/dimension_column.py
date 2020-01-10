@@ -67,7 +67,7 @@ class DimensionColumnNarrative(object):
                 },
             "summarygeneration":{
                 "summary":"Summary Generation Finished",
-                "weight":8
+                "weight":4
                 },
             "completion":{
                 "summary":"Frequency Stats Narratives Done",

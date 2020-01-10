@@ -107,7 +107,7 @@ class DataFrameHelper(object):
             if self._dataframe_context.get_job_type() != "subSetting":
                 if self._dataframe_context.get_job_type() != "prediction":
                     print (self._data_frame.printSchema())
-                    self._data_frame = self._data_frame.select(colsToKeep)
+                    self._data_frame = self._data_frame#select(colsToKeep)
                 else:
                     if app_type == "CLASSIFICATION":
                         if self._dataframe_context.get_story_on_scored_data() == False:
@@ -177,11 +177,12 @@ class DataFrameHelper(object):
         ignored_cols=self._dataframe_context.get_ignore_column_suggestions()
         print("All DATE Columns",date_columns)
         considerColumns = self._dataframe_context.get_consider_columns()
+        print(considerColumns,"consider columns")
         columns_to_ignore = [result_column]+date_columns+ignored_cols
         if uidCol:
             columns_to_ignore += [uidCol]
         print("These Columns are Ignored:- ",  columns_to_ignore)
-        columns_to_keep = list(set(considerColumns)-set(columns_to_ignore))
+        columns_to_keep = list(set(list(df.columns))-set(columns_to_ignore))
         if train_test_ratio == None:
             train_test_ratio = 0.7
         appid = self._dataframe_context.get_app_id()
