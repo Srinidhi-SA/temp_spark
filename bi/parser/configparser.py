@@ -18,12 +18,16 @@ class ParserConfig(object):
         self.DatabaseSettings = {}
         self.AlgorithmSettings = {}
         self.FeatureSettings = {}
+        self.TrainerMode = ""
 
     def get_algorithm_settings(self):
         return self.AlgorithmSettings
 
     def get_feature_settings(self):
         return self.FeatureSettings
+
+    def get_trainerMode_info(self):
+        return self.TrainerMode
 
     def get_database_settings(self):
         return self.DatabaseSettings
@@ -105,3 +109,5 @@ class ParserConfig(object):
             self.AlgorithmSettings = self.config.get('ALGORITHM_SETTING')
         if 'FEATURE_SETTINGS' in self.config:
             self.FeatureSettings = self.config.get('FEATURE_SETTINGS')
+        if 'TRAINER_MODE' in self.config:
+            self.TrainerMode = self.config.get('TRAINER_MODE')

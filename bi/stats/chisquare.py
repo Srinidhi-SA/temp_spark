@@ -67,7 +67,7 @@ class ChiSquare(object):
                 },
             "completion":{
                 "summary":"Chisquare Stats Calculated",
-                "weight":7
+                "weight":2
                 },
             }
 
