@@ -418,7 +418,7 @@ class Feature_Engineering:
 
                                                 data[i+name+j]=labels1*labels2
                                                 data_dict['multiplied_encoded1_series2'].append(combined_list2)
-                                                self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
+                                                self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
                                                 self.columns_list.append(combined_list2)
                                                 self.one_click['feature_combiner_classification']=data_dict
                                 elif data[j].dtype==object:
@@ -437,7 +437,7 @@ class Feature_Engineering:
 
                                                 data[i+name+j]=labels1*labels2
                                                 data_dict['multiplied_encoded2_series1'].append(combined_list3)
-                                                self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
+                                                self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
                                                 self.columns_list.append(combined_list3)
                                                 self.one_click['feature_combiner_classification']=data_dict
 
