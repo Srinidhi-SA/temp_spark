@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # # FeatureSelection
 
 import warnings
@@ -182,7 +179,6 @@ class Tree_fea_sel_tech(object):
     def Fea_imp(self,model,dum_col):
 
         """Feature selection is based on feature importances of a model
-
               which is not equal to 0.0 after rounding to 3 decimals"""
 
         Tree_fea_imp = []
@@ -288,9 +284,11 @@ class Utils(object):
 
     def num_col_f(self,Dataframe,target):
 
-        col1 = [col for col in list(Dataframe) if Dataframe[col].dtype == "int"]
+        ## col1 = [col for col in list(Dataframe) if Dataframe[col].dtype == "int"]
+        col1 = [col for col in list(Dataframe) if str(Dataframe[col].dtype).startswith("int")]
 
-        col2 = [col for col in list(Dataframe) if Dataframe[col].dtype == "float"]
+        ## col2 = [col for col in list(Dataframe) if Dataframe[col].dtype == "float"]
+        col2 = [col for col in list(Dataframe) if str(Dataframe[col].dtype).startswith("float")]
 
         num_col = col1 + col2
 
@@ -597,7 +595,9 @@ class Main(object):
 
         if self.apptype.lower() == "classification":
 
-            if self.Dataframe[self.target].dtype == 'float' or self.Dataframe[self.target].dtype == 'float64' :
+            ## if self.Dataframe[self.target].dtype == 'float' or self.Dataframe[self.target].dtype == 'float64' :
+
+            if str(self.Dataframe[self.target].dtype).startswith('float'):
 
                 self.Dataframe[self.target] = self.Dataframe[self.target].astype('int')
 

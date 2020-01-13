@@ -17,6 +17,7 @@ from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.algorithms import feature_engineering as feature_engineering
 from bi.algorithms.autoML import auto_ml as autoML
 
+
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.common import NarrativesTree,ConfigValidator
@@ -173,8 +174,9 @@ def main(configJson):
                         print ("KJNKJN"*10)
                         df = df.toPandas()
                         print (type(df))
-                        autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
-                        one_click_json, linear_df, tree_df = autoML_obj.return_values()
+                        if jobType == "training":
+                            autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+                            one_click_json, linear_df, tree_df = autoML_obj.return_values()
                         df = tree_df
                         df = spark.createDataFrame(df)
                     else:
