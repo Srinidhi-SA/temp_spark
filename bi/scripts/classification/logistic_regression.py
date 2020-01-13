@@ -242,10 +242,10 @@ class LogisticRegressionScript(object):
                 algoParams = algoSetting.get_params_dict()
                 automl_enable=False
                 if automl_enable:
-                    params_grid={'classifier' : [LogisticRegression()],
+                    params_grid={'classifier' : [LogisticRegression(),Logit()],
                                  'classifier__penalty' : ['l1', 'l2'],
                                 'classifier__C' : np.logspace(-4, 4, 20),
-                                'classifier__solver' : ['liblinear']}
+                                'classifier__solver' : ['liblinear', 'newton-cg','sag', 'saga','lbfgs']}
                     hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()

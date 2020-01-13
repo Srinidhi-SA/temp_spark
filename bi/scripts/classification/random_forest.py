@@ -253,15 +253,15 @@ class RFClassificationModelScript(object):
                 algoParams["random_state"] = 42
                 automl_enable=False
                 if automl_enable:
-                    params_grid={'max_depth': [5, 10],
-                                'min_samples_split': [2, 4],
-                                'min_samples_leaf': [1, 2],
+                    params_grid={'max_depth': [5, 10,20,30,50],
+                                'min_samples_split': [2, 4,6,8,10],
+                                'min_samples_leaf': [1, 2,3,4],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [100],
+                                'n_estimators': [100,200],
                                 'criterion': ['gini', 'entropy'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
-                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
+                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
