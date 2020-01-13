@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import os
 import sys
 import json
@@ -45,8 +39,8 @@ class auto_ML:
 #         print(Dataframe.info())
         print("#"*50)
 
-        self.target = obj.data_dict["target"]
-
+        #self.target = obj.data_dict["target"]
+        obj.data_dict["target"]=self.target
         if(obj.data_dict["target_fitness_check"] == False):
             sys.exit()
 
@@ -169,36 +163,10 @@ class auto_ML:
 
         # with open('data.txt',  'w', encoding='utf-8') as f:
         #     json.dumps(obj6.data_dict)
-        self.final_json = obj6.data_dict
+        self.final_json = json.dumps(obj6.data_dict)
         self.linear_df = linear_df
         self.tree_df = tree_df
 
     def return_values(self):
         return self.final_json, self.linear_df, self.tree_df
         #print(obj6.info,'\n')
-
-
-# In[3]:
-
-
-# a = AUTOML({})
-
-
-# In[4]:
-
-
-# import pickle
-#
-# example_dict = a.af
-#
-# pickle_out = open("dict4.pickle","wb")
-# pickle.dump(example_dict, pickle_out)
-# pickle_out.close()
-#
-#
-# # In[5]:
-#
-#
-# f = open("dict_final.txt","w")
-# f.write( str(example_dict) )
-# f.close()
