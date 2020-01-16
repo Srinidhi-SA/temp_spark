@@ -31,7 +31,7 @@ class MetaDataScript(object):
             self._scriptStages = {
                 "schema":{
                     "summary":"Preparing The Data For Model Creation",
-                    "weight":10
+                    "weight":2
                     },
                 "sampling":{
                     "summary":"Sampling The Dataframe",
@@ -93,11 +93,11 @@ class MetaDataScript(object):
                     },
                 "measurestats":{
                     "summary":"Calculated Stats For Measure Columns",
-                    "weight":25
+                    "weight":5
                     },
                 "dimensionstats":{
                     "summary":"Calculated Stats For Dimension Columns",
-                    "weight":25
+                    "weight":5
                     },
                 "timedimensionstats":{
                     "summary":"Calculated Stats For Time Dimension Columns",
@@ -105,7 +105,7 @@ class MetaDataScript(object):
                     },
                 "suggestions":{
                     "summary":"Ignore And Date Suggestions",
-                    "weight":25
+                    "weight":5
                     },
                 }
 
