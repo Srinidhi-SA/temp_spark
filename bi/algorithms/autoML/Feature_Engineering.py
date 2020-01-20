@@ -366,7 +366,7 @@ class Feature_Engineering:
                                                     self.one_click['feature_combiner_classification']=data_dict
                                     elif data[j].dtype==object:
                                              labels1=self.bin_columns_for_crammers(data[i])
-                                             if (self.cramers_corrected_stat(data[j],labels1) <0.1) & (self.cramers_corrected_stat(data[j],data[target]) <0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1):
+                                             if (self.cramers_corrected_stat(data[j],labels1) <0.5) & (self.cramers_corrected_stat(data[j],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
                                                     combined_list3=[]
                                                     combined_list3.append(i)
                                                     combined_list3.append(j)
@@ -407,7 +407,7 @@ class Feature_Engineering:
                             if not j+name+i in list(data.columns):
                                     if data[i].dtype==object:
                                              labels1=data[j]
-                                             if (self.cramers_corrected_stat(data[i],labels1) <0.1) & (self.cramers_corrected_stat(data[i],data[target]) <0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1):
+                                             if (self.cramers_corrected_stat(data[i],labels1) <0.5) & (self.cramers_corrected_stat(data[i],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
                                                     combined_list2=[]
                                                     combined_list2.append(i)
                                                     combined_list2.append(j)
@@ -426,7 +426,7 @@ class Feature_Engineering:
                                                     self.one_click['feature_combiner_classification']=data_dict
                                     elif data[j].dtype==object:
                                              labels1=data[i]
-                                             if (self.cramers_corrected_stat(data[j],labels1) <0.1) & (self.cramers_corrected_stat(data[j],data[target]) <0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1):
+                                             if (self.cramers_corrected_stat(data[j],labels1) <0.5) & (self.cramers_corrected_stat(data[j],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
                                                     combined_list3=[]
                                                     combined_list3.append(i)
                                                     combined_list3.append(j)

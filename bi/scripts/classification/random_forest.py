@@ -251,10 +251,7 @@ class RFClassificationModelScript(object):
                 # print "ALGO-PARAMS", algoParams
                 # print "[]" * 30
                 algoParams["random_state"] = 42
-                if self._dataframe_context.get_trainerMode() == "autoML":
-                    automl_enable=True
-                else:
-                    automl_enable=False
+                automl_enable=True
                 if automl_enable:
                     params_grid={'max_depth': [3,4,5,10,20],
                                 'min_samples_split': [2, 4,6],

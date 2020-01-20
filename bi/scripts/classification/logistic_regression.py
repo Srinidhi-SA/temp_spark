@@ -240,10 +240,7 @@ class LogisticRegressionScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                if self._dataframe_context.get_trainerMode() == "autoML":
-                    automl_enable=True
-                else:
-                    automl_enable=False
+                automl_enable=True
                 if automl_enable:
                     params_grid={'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
                                 'fit_intercept':[True],
