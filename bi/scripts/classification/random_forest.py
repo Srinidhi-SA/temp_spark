@@ -251,17 +251,20 @@ class RFClassificationModelScript(object):
                 # print "ALGO-PARAMS", algoParams
                 # print "[]" * 30
                 algoParams["random_state"] = 42
-                automl_enable=False
+                if self._dataframe_context.get_trainerMode() == "autoML":
+                    automl_enable=True
+                else:
+                    automl_enable=False
                 if automl_enable:
-                    params_grid={'max_depth': [5, 10,20,30,50],
-                                'min_samples_split': [2, 4,6,8,10],
-                                'min_samples_leaf': [1, 2,3,4],
+                    params_grid={'max_depth': [3,4,5,10,20],
+                                'min_samples_split': [2, 4,6],
+                                'min_samples_leaf': [1, 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [100,200],
+                                'n_estimators': [200],
                                 'criterion': ['gini', 'entropy'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
-                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 10}
+                    hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
@@ -505,7 +508,7 @@ class RFClassificationModelScript(object):
                 }
             print (modelmanagement_)
 
-            if not algoSetting.is_hyperparameter_tuning_enabled()and not automl_enable:
+            if not algoSetting.is_hyperparameter_tuning_enabled() and not automl_enable:
                 self._model_management = MLModelSummary()
                 self._model_management.set_criterion(data=modelmanagement_['criterion'])
                 self._model_management.set_max_depth(data=modelmanagement_['max_depth'])

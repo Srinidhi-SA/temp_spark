@@ -191,7 +191,10 @@ class NBBClassificationModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                automl_enable=False
+                if self._dataframe_context.get_trainerMode() == "autoML":
+                    automl_enable=True
+                else:
+                    automl_enable=False
                 if automl_enable:
                     params_grid={'class_prior': [uniform.rvs(0,3), uniform.rvs(0,3), uniform.rvs(0,3)]}
                     hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
@@ -766,7 +769,10 @@ class NBGClassificationModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                automl_enable=False
+                if self._dataframe_context.get_trainerMode() == "autoML":
+                    automl_enable=True
+                else:
+                    automl_enable=False
                 if automl_enable:
                     params_grid={'max_depth': [5, 10],
                                 'min_samples_split': [2, 4],
@@ -1545,7 +1551,10 @@ class NBMClassificationModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                automl_enable=False
+                if self._dataframe_context.get_trainerMode() == "autoML":
+                    automl_enable=True
+                else:
+                    automl_enable=False
                 if automl_enable:
                     params_grid={'max_depth': [5, 10],
                                 'min_samples_split': [2, 4],

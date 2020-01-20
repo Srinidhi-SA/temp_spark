@@ -240,24 +240,28 @@ class LogisticRegressionScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                automl_enable=False
+                if self._dataframe_context.get_trainerMode() == "autoML":
+                    automl_enable=True
+                else:
+                    automl_enable=False
                 if automl_enable:
-                    params_grid={'classifier' : [LogisticRegression(),Logit()],
-                                 'classifier__penalty' : ['l1', 'l2'],
-                                'classifier__C' : np.logspace(-4, 4, 20),
-                                'classifier__solver' : ['liblinear', 'newton-cg','sag', 'saga','lbfgs']}
+                    params_grid={'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+                                'fit_intercept':[True],
+                                'solver' : ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
+                                'penalty':['l1','l2']
+                                 }
                     hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
-                    clfRand = RandomizedSearchCV(clf,params_grid)
-                    gridParams = clfRand.get_params()
+                    clfGrid = GridSearchCV(clf,params_grid)
+                    gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
-                    clfRand.set_params(**hyperParamInitParam)
-                    modelmanagement_=clfRand.get_params()
+                    clfGrid.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfGrid.get_params()
                     numFold=5
-                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                    kFoldClass = SkleanrKFoldResult(numFold,clfGrid,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                    print("LogisticRegression AuTO ML Random CV#######################3")
+                    print("LogisticRegression AuTO ML gridSearch CV#######################3")
                 else:
                     algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
                     if len(levels) > 2:
@@ -511,11 +515,11 @@ class LogisticRegressionScript(object):
                     self._model_management.set_fit_intercept(data=modelmanagement_[x]['fit_intercept'][0])
                     self._model_management.set_solver_used(data=modelmanagement_[x]['solver'][0])
                     self._model_management.set_multiclass_option(data=modelmanagement_['estimator__multi_class'])
-                    self._model_management.set_maximum_solver(data=modelmanagement_[x]['max_iter'][0])
-                    self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
-                    self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
-                    self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_[x]['tol'][0])
-                    self._model_management.set_inverse_regularization_strength(data=modelmanagement_[x]['C'][0])
+                    #self._model_management.set_maximum_solver(data=modelmanagement_[x]['max_iter'][0])
+                    #self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                    #self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                    #self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_[x]['tol'][0])
+                    #self._model_management.set_inverse_regularization_strength(data=modelmanagement_[x]['C'][0])
                     self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                     self._model_management.set_training_status(data="completed")# training status
                     self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
@@ -527,7 +531,7 @@ class LogisticRegressionScript(object):
                     self._model_management.set_target_variable(result_column)#target column name
                     self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                     self._model_management.set_datasetName(self._datasetName)
-                if not automl_enable:
+                if  automl_enable:
                     set_model_params('param_grid')
                 else:
                     set_model_params('param_distributions')

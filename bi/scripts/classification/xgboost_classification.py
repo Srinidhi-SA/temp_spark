@@ -238,13 +238,19 @@ class XgboostScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                automl_enable=False
+                if self._dataframe_context.get_trainerMode() == "autoML":
+                    automl_enable=True
+                else:
+                    automl_enable=False
                 if automl_enable:
-                    params_grid={"learning_rate"    : [0.05, 0.10, 0.15, 0.20, 0.25, 0.30 ] ,
-                                 "max_depth"        : [ 3, 4, 5, 6, 8, 10, 12, 15, 25, 50, 100],
-                                 "min_child_weight" : [ 1, 3, 5, 7, 9 ],
-                                 "gamma"            : [ 0.0, 0.1, 0.2 , 0.3, 0.4 ],
-                                 "colsample_bytree" : [ 0.3, 0.4, 0.5 , 0.7 ] }
+                    params_grid={"learning_rate"    : [0.05, 0.10, 0.15,0.20,0.25,0.30],
+                                #"booster"           : ['gbtree'],
+                                 "subsample"         : [0.8],
+                                  "max_depth"        : [ 3, 4, 6, 8,10],
+                                  "min_child_weight" : [ 1, 3, 5, 6,7],
+                                  'n_estimators': [200],
+                                "gamma"            : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
+                                 "colsample_bytree" : [0.8]}#[ 0.3, 0.4, 0.5, 0.6,0.8, 1.0 ] }
                     hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
@@ -512,14 +518,14 @@ class XgboostScript(object):
                 self._model_management.set_datasetName(self._datasetName)
             else:
                 def set_model_params(x):
-                    self._model_management.set_booster_function(data=modelmanagement_[x]['booster'][0])
-                    self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
-                    self._model_management.set_minimum_loss_reduction(data=modelmanagement_[x]['gamma'][0])
-                    self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
-                    self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
-                    self._model_management.set_subsampling_ratio(data=modelmanagement_[x]['subsample'][0])
-                    self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
-                    self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
+                    # self._model_management.set_booster_function(data=modelmanagement_[x]['booster'][0])
+                    # self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
+                    # self._model_management.set_minimum_loss_reduction(data=modelmanagement_[x]['gamma'][0])
+                    # self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
+                    # self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
+                    # self._model_management.set_subsampling_ratio(data=modelmanagement_[x]['subsample'][0])
+                    # self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
+                    # self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
                     self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                     self._model_management.set_training_status(data="completed")# training status
                     self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables

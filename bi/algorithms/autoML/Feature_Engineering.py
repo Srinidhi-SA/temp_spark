@@ -11,6 +11,7 @@ from sklearn.preprocessing import LabelEncoder
 import sklearn
 from sklearn.preprocessing import PolynomialFeatures, PowerTransformer
 import scipy.stats as ss
+import time
 
 from itertools import combinations
 import warnings
@@ -230,22 +231,31 @@ class Feature_Engineering:
         pt_list=[]
         bin_list=[]
         dec_list=[]
+        pt = PowerTransformer()
+        temp=np.array(np.zeros(len(data)))
+        temp=temp.reshape(1,-1)
+        pt.fit(temp)
+        #print("time taken for fitting",end-start)
         for i in col_list:
             if (str(data[i].dtype).startswith('int')) | (str(data[i].dtype).startswith('float')):
                 if data[i].std()>data[i].mean()/2:
-                    data[i+'_pt']=self.power_transform(data[i])
+                    temp=np.array(data[i])
+                    temp=temp.reshape(1,-1)
+                    data[i+'_pt']=self.power_transform(data[i],pt,temp)
                     pt_list.append(i)
                     self.one_click['created_feature'].append({'name':i+'_pt','dtype':str(data[i].dtype),'created':True})
                     self.one_click['power_transform']=pt_list
 
-                elif data[i].nunique()>0.7*data[i].count():
+                elif data[i].nunique()>0.5*data[i].count():
+                    start=time.time()
                     data[i+'_bins']= self.bin_columns(data[i])
+                    end=time.time()
                     bin_list.append(i)
                     self.one_click['created_feature'].append({'name':i+'_bins','dtype':str(data[i].dtype),'created':True})
                     self.one_click['bin_columns']=bin_list
 
             else:
-                if 0.1*data[i].count()<data[i].nunique():
+                if data[i].nunique()>0.1*data[i].count():
                     data[i+'_decomposed']= self.categorical_decomposition(data[i])
                     self.one_click['created_feature'].append({'name':i+'_decomposed','dtype':str(data[i].dtype),'created':True})
                     dec_list.append(i)
@@ -254,11 +264,7 @@ class Feature_Engineering:
         return data
 
 
-    def power_transform(self,data):
-        pt = PowerTransformer()
-        temp=np.array(data)
-        temp=temp.reshape(1,-1)
-        pt.fit(temp)
+    def power_transform(self,data,pt,temp):
         try:
             new_list = pt.transform(np.float32(temp))
             data=new_list[0]
@@ -286,7 +292,6 @@ class Feature_Engineering:
         return data
 
     def categorical_decomposition(self,data):
-
         val_count_dict=dict(data.value_counts()/data.count())
         for key in val_count_dict:
             if val_count_dict[key]== min(val_count_dict.values()):
@@ -299,170 +304,166 @@ class Feature_Engineering:
         data_dict={'added':[],'multiplied_encoded_both':[],'multiplied_series_both':[],'multiplied_encoded1_series2':[],'multiplied_encoded2_series1':[]}
         self.one_click['feature_combiner_classification']={}
         name ='_and_'
+        le= sklearn.preprocessing.LabelEncoder()
         for i in col_list:
             for j in col_list[1:]:
-                if (data[target].dtype==object) | (data[target].nunique()<=3) :
-                    if ((data[i].dtype==object) | (data[i].nunique()<=5))  & ((data[j].dtype==object)|(data[j].nunique()<=5)):
-                        if not j+name+i in list(data.columns):
-                            if (self.cramers_corrected_stat(data[i],data[j]) <0.5) & (self.cramers_corrected_stat(data[i],data[target]) <0.5) & (self.cramers_corrected_stat(data[j],data[target]) <0.5):
-                                combined_list1=[]
-                                combined_list1.append(i)
-                                combined_list1.append(j)
-                                labels1=data[i]
-                                labels2=data[j]
-                                le= sklearn.preprocessing.LabelEncoder()
-                                le.fit(labels1)
-                                labels1 = le.transform(labels1)
-                                le.fit(labels2)
-                                labels2 = le.transform(labels2)
-                                data[i+name+j]=labels1+labels2
-                                #self.one_click['created_feature'].append(i+name+j)
-                                self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
-                                data_dict['added'].append(combined_list1)
-                                self.one_click['feature_combiner_classification']=data_dict
-                    elif (((str(data[i].dtype).startswith('int'))| (str(data[i].dtype).startswith('float')) &(data[i].nunique()>0.1*data[i].count())) & (data[j].dtype==object)) | ((data[i].dtype==object) & ((str(data[j].dtype).startswith('int'))| (str(data[j].dtype).startswith('float')) & (data[j].nunique()>0.1*data[i].count()))):
+                if not j+name+i in list(data.columns):
+                    if (data[target].dtype==object) | (data[target].nunique()<=3) :
+                        if ((data[i].dtype==object) | (data[i].nunique()<=5))  & ((data[j].dtype==object)|(data[j].nunique()<=5)):
                             if not j+name+i in list(data.columns):
-                                if data[i].dtype==object:
-                                         labels1=self.bin_columns_for_crammers(data[j])
-                                         if (self.cramers_corrected_stat(data[i],labels1) <0.5) & (self.cramers_corrected_stat(data[i],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
-                                                combined_list2=[]
-                                                combined_list2.append(i)
-                                                combined_list2.append(j)
-                                                labels2=data[i]
-                                                le= sklearn.preprocessing.LabelEncoder()
-                                                try:
-                                                    le.fit(labels1)
-                                                    labels1 = le.transform(labels1)
-                                                except:
-                                                    labels1 = labels1
-                                                try:
-                                                    le.fit(labels2)
-                                                    labels2 = le.transform(labels2)
-                                                except:
-                                                    labels2=labels2
-                                                try:
+                                if (self.cramers_corrected_stat(data[i],data[j]) <0.1) & (self.cramers_corrected_stat(data[i],data[target]) <0.1) & (self.cramers_corrected_stat(data[j],data[target]) <0.1):
+                                    combined_list1=[]
+                                    combined_list1.append(i)
+                                    combined_list1.append(j)
+                                    labels1=data[i]
+                                    labels2=data[j]
+                                    le.fit(labels1)
+                                    labels1 = le.transform(labels1)
+                                    le.fit(labels2)
+                                    labels2 = le.transform(labels2)
+                                    data[i+name+j]=labels1+labels2
+                                    #self.one_click['created_feature'].append(i+name+j)
+                                    self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
+                                    data_dict['added'].append(combined_list1)
+                                    self.one_click['feature_combiner_classification']=data_dict
+                        elif (((str(data[i].dtype).startswith('int'))| (str(data[i].dtype).startswith('float')) &(data[i].nunique()>0.1*data[i].count())) & (data[j].dtype==object)) | ((data[i].dtype==object) & ((str(data[j].dtype).startswith('int'))| (str(data[j].dtype).startswith('float')) & (data[j].nunique()>0.1*data[i].count()))):
+                                if not j+name+i in list(data.columns):
+                                    if data[i].dtype==object:
+                                             labels1=self.bin_columns_for_crammers(data[j])
+                                             if (self.cramers_corrected_stat(data[i],labels1) <0.1) & (self.cramers_corrected_stat(data[i],data[target]) <0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1):
+                                                    combined_list2=[]
+                                                    combined_list2.append(i)
+                                                    combined_list2.append(j)
+                                                    labels2=data[i]
                                                     try:
-                                                        data[i+name+j]=labels1*labels2
-                                                        data_dict['multiplied_encoded_both'].append(combined_list2)
+                                                        le.fit(labels1)
+                                                        labels1 = le.transform(labels1)
                                                     except:
-                                                        data[i+name+j]=data[i]*data[j]
-                                                        data_dict['multiplied_series_both'].append(combined_list2)
-                                                except:
+                                                        labels1 = labels1
                                                     try:
-                                                         data[i+name+j]=data[j]*labels2
-                                                         data_dict['multiplied_encoded1_series2'].append(combined_list2)
+                                                        le.fit(labels2)
+                                                        labels2 = le.transform(labels2)
                                                     except:
-                                                         data[i+name+j]=labels1*data[i]
-                                                         data_dict['multiplied_encoded2_series1'].append(combined_list2)
-                                                #self.one_click['created_feature'].append(i+name+j)
-
-                                                self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
-                                                self.columns_list.append(combined_list2)
-                                                self.one_click['feature_combiner_classification']=data_dict
-                                elif data[j].dtype==object:
-                                         labels1=self.bin_columns_for_crammers(data[i])
-                                         if (self.cramers_corrected_stat(data[j],labels1) <0.5) & (self.cramers_corrected_stat(data[j],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
-                                                combined_list3=[]
-                                                combined_list3.append(i)
-                                                combined_list3.append(j)
-                                                labels2=data[j]
-                                                le= sklearn.preprocessing.LabelEncoder()
-                                                try:
-                                                    le.fit(labels1)
-                                                    labels1 = le.transform(labels1)
-                                                except:
-                                                    labels1=labels1
-                                                try:
-                                                    le.fit(labels2)
-                                                    labels2 = le.transform(labels2)
-                                                except:
-                                                    labels2 = labels2
-                                                try:
+                                                        labels2=labels2
                                                     try:
-                                                         data[i+name+j]=data[i]*labels2
-                                                         data_dict['multiplied_encoded2_series1'].append(combined_list3)
-
+                                                        try:
+                                                            data[i+name+j]=labels1*labels2
+                                                            data_dict['multiplied_encoded_both'].append(combined_list2)
+                                                        except:
+                                                            data[i+name+j]=data[i]*data[j]
+                                                            data_dict['multiplied_series_both'].append(combined_list2)
                                                     except:
-                                                         data[i+name+j]=labels1*data[j]
-                                                         data_dict['multiplied_encoded1_series2'].append(combined_list3)
-
-
-                                                except:
-                                                    try:
-                                                        data[i+name+j]=labels1*labels2
-                                                        data_dict['multiplied_encoded_both'].append(combined_list3)
-                                                    except:
-                                                        data[i+name+j]=data[i]*data[j]
-                                                        data_dict['multiplied_series_both'].append(combined_list3)
+                                                        try:
+                                                             data[i+name+j]=data[j]*labels2
+                                                             data_dict['multiplied_encoded1_series2'].append(combined_list2)
+                                                        except:
+                                                             data[i+name+j]=labels1*data[i]
+                                                             data_dict['multiplied_encoded2_series1'].append(combined_list2)
                                                     #self.one_click['created_feature'].append(i+name+j)
+
+                                                    self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
+                                                    self.columns_list.append(combined_list2)
+                                                    self.one_click['feature_combiner_classification']=data_dict
+                                    elif data[j].dtype==object:
+                                             labels1=self.bin_columns_for_crammers(data[i])
+                                             if (self.cramers_corrected_stat(data[j],labels1) <0.1) & (self.cramers_corrected_stat(data[j],data[target]) <0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1):
+                                                    combined_list3=[]
+                                                    combined_list3.append(i)
+                                                    combined_list3.append(j)
+                                                    labels2=data[j]
+                                                    try:
+                                                        le.fit(labels1)
+                                                        labels1 = le.transform(labels1)
+                                                    except:
+                                                        labels1=labels1
+                                                    try:
+                                                        le.fit(labels2)
+                                                        labels2 = le.transform(labels2)
+                                                    except:
+                                                        labels2 = labels2
+                                                    try:
+                                                        try:
+                                                             data[i+name+j]=data[i]*labels2
+                                                             data_dict['multiplied_encoded2_series1'].append(combined_list3)
+
+                                                        except:
+                                                             data[i+name+j]=labels1*data[j]
+                                                             data_dict['multiplied_encoded1_series2'].append(combined_list3)
+
+
+                                                    except:
+                                                        try:
+                                                            data[i+name+j]=labels1*labels2
+                                                            data_dict['multiplied_encoded_both'].append(combined_list3)
+                                                        except:
+                                                            data[i+name+j]=data[i]*data[j]
+                                                            data_dict['multiplied_series_both'].append(combined_list3)
+                                                        #self.one_click['created_feature'].append(i+name+j)
+                                                        self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
+                                                        self.columns_list.append(combined_list3)
+                                                        self.one_click['feature_combiner_classification']=data_dict
+
+                        elif (((str(data[i].dtype).startswith('int'))| (str(data[i].dtype).startswith('float')) & (data[i].nunique()<=0.1*data[i].count())) & (data[j].dtype==object)) | ((data[i].dtype==object) & ((str(data[j].dtype).startswith('int'))| (str(data[j].dtype).startswith('float')) & (data[j].nunique()<=0.1*data[i].count()))):
+                            if not j+name+i in list(data.columns):
+                                    if data[i].dtype==object:
+                                             labels1=data[j]
+                                             if (self.cramers_corrected_stat(data[i],labels1) <0.1) & (self.cramers_corrected_stat(data[i],data[target]) <0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1):
+                                                    combined_list2=[]
+                                                    combined_list2.append(i)
+                                                    combined_list2.append(j)
+                                                    labels2=data[i]
+                                                    try:
+                                                        le.fit(labels2)
+                                                        labels2 = le.transform(labels2)
+                                                    except:
+                                                        labels2=labels2
+
+
+                                                    data[i+name+j]=labels1*labels2
+                                                    data_dict['multiplied_encoded1_series2'].append(combined_list2)
+                                                    self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
+                                                    self.columns_list.append(combined_list2)
+                                                    self.one_click['feature_combiner_classification']=data_dict
+                                    elif data[j].dtype==object:
+                                             labels1=data[i]
+                                             if (self.cramers_corrected_stat(data[j],labels1) <0.1) & (self.cramers_corrected_stat(data[j],data[target]) <0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1):
+                                                    combined_list3=[]
+                                                    combined_list3.append(i)
+                                                    combined_list3.append(j)
+                                                    labels2=data[j]
+                                                    try:
+                                                        le.fit(labels2)
+                                                        labels2 = le.transform(labels2)
+                                                    except:
+                                                        labels2 = labels2
+
+                                                    data[i+name+j]=labels1*labels2
+                                                    data_dict['multiplied_encoded2_series1'].append(combined_list3)
                                                     self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
                                                     self.columns_list.append(combined_list3)
                                                     self.one_click['feature_combiner_classification']=data_dict
 
-                    elif (((str(data[i].dtype).startswith('int'))| (str(data[i].dtype).startswith('float')) & (data[i].nunique()<=0.1*data[i].count())) & (data[j].dtype==object)) | ((data[i].dtype==object) & ((str(data[j].dtype).startswith('int'))| (str(data[j].dtype).startswith('float')) & (data[j].nunique()<=0.1*data[i].count()))):
-                        if not j+name+i in list(data.columns):
-                                if data[i].dtype==object:
-                                         labels1=data[j]
-                                         if (self.cramers_corrected_stat(data[i],labels1) <0.5) & (self.cramers_corrected_stat(data[i],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
-                                                combined_list2=[]
-                                                combined_list2.append(i)
-                                                combined_list2.append(j)
-                                                labels2=data[i]
-                                                le= sklearn.preprocessing.LabelEncoder()
-                                                try:
-                                                    le.fit(labels2)
-                                                    labels2 = le.transform(labels2)
-                                                except:
-                                                    labels2=labels2
+                        else:
 
-
-                                                data[i+name+j]=labels1*labels2
-                                                data_dict['multiplied_encoded1_series2'].append(combined_list2)
-                                                self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
-                                                self.columns_list.append(combined_list2)
-                                                self.one_click['feature_combiner_classification']=data_dict
-                                elif data[j].dtype==object:
-                                         labels1=data[i]
-                                         if (self.cramers_corrected_stat(data[j],labels1) <0.5) & (self.cramers_corrected_stat(data[j],data[target]) <0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5):
-                                                combined_list3=[]
-                                                combined_list3.append(i)
-                                                combined_list3.append(j)
-                                                labels2=data[j]
-                                                le= sklearn.preprocessing.LabelEncoder()
-                                                try:
-                                                    le.fit(labels2)
-                                                    labels2 = le.transform(labels2)
-                                                except:
-                                                    labels2 = labels2
-
-                                                data[i+name+j]=labels1*labels2
-                                                data_dict['multiplied_encoded2_series1'].append(combined_list3)
-                                                self.one_click['created_feature'].append({'name':i+j,'dtype':data[i+j].dtype,'created':True})
-                                                self.columns_list.append(combined_list3)
-                                                self.one_click['feature_combiner_classification']=data_dict
-
-                    else:
-                        if not j+name+i in list(data.columns):
-                            try:
-                                labels1=bin_columns_for_crammers(data[i])
-                            except:
-                                labels1=data[i]
-                            try:
-                                labels2=bin_columns_for_crammers(data[j])
-                            except:
-                                labels2=data[j]
-                            if (-0.5<(data[i].corr(data[j]))<0.5) & (self.cramers_corrected_stat(labels1,data[target]) <0.5) & (self.cramers_corrected_stat(labels2,data[target]) <0.5):
-                                le= sklearn.preprocessing.LabelEncoder()
-                                combined_list4=[]
-                                combined_list4.append(i)
-                                combined_list4.append(j)
-                                #try:
-                                data[i+name+j]=data[i]*data[j]
-                                #self.one_click['created_feature'].append(i+name+j)
-                                self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
-                                data_dict['multiplied_series_both'].append(combined_list4)
-                                #columns_list.append(combined_list4)
-                                self.one_click['feature_combiner_classification']=data_dict
+                                try:
+                                    labels1=bin_columns_for_crammers(data[i])
+                                except:
+                                    labels1=data[i]
+                                try:
+                                    labels2=bin_columns_for_crammers(data[j])
+                                except:
+                                    labels2=data[j]
+                                if (-0.1<(data[i].corr(data[j]))<0.1) & (self.cramers_corrected_stat(labels1,data[target]) <0.1) & (self.cramers_corrected_stat(labels2,data[target]) <0.1):
+                                    combined_list4=[]
+                                    combined_list4.append(i)
+                                    combined_list4.append(j)
+                                    #try:
+                                    data[i+name+j]=data[i]*data[j]
+                                    #self.one_click['created_feature'].append(i+name+j)
+                                    self.one_click['created_feature'].append({'name':i+name+j,'dtype':str(data[i+name+j].dtype),'created':True})
+                                    data_dict['multiplied_series_both'].append(combined_list4)
+                                    #columns_list.append(combined_list4)
+                                    self.one_click['feature_combiner_classification']=data_dict
         return data
 
 
@@ -856,10 +857,16 @@ class Feature_Engineering:
         cols_to_keep=[cols for cols in cols_to_keep if not is_datetime(self.Dataframe[cols])]
         cols_to_keep.remove(self.target)
         #features = self.feature_creation(self.norm_col)
+        import time
+        start = time.time()
         data1=self.feature_transformation(self.Dataframe,self.target,cols_to_keep)
-
+        end = time.time()
+        print("Time taken for feature transformation",end - start)
         if (self.data_dict2["app_type"].lower() == "classification"):
+               start = time.time()
                data2=self.feature_combiner_classification(self.Dataframe,self.target,cols_to_keep)
+               end = time.time()
+               print("Time taken for feature combiner classification",end - start)
         else:
                data2=self.feature_combiner_regression(self.Dataframe,self.target,cols_to_keep)
         data1['index'] = data1.index

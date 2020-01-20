@@ -75,7 +75,7 @@ def load_dataset(spark,dataframe_context):
 def get_metadata(df,spark,dataframe_context,new_cols_added):
     debugMode = dataframe_context.get_debug_mode()
     jobType = dataframe_context.get_job_type()
-    if df!=None:
+    if df != None:
         metaParserInstance = MetaParser()
         if debugMode != True:
             if jobType != "metaData":

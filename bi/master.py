@@ -17,7 +17,6 @@ from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.algorithms import feature_engineering as feature_engineering
 from bi.algorithms.autoML import auto_ml as autoML
 
-
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
 from bi.common import NarrativesTree,ConfigValidator
@@ -168,16 +167,19 @@ def main(configJson):
             if jobType != "metaData":
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
-                    #temporary
-                    automl_enable = True
+                    automl_enable = False
+                    if dataframe_context.get_trainerMode() == "autoML":
+                        automl_enable = True
+                    one_click_json = {}
                     if automl_enable is True:
-                        print ("KJNKJN"*10)
                         df = df.toPandas()
-                        print (type(df))
-                        if jobType == "training":
-                            autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
-                            one_click_json, linear_df, tree_df = autoML_obj.return_values()
+                        autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+                        one_click_json, linear_df, tree_df = autoML_obj.return_values()
+                        """
+                        # TODO: Get the tree_df and Linear_df wiring
+                        """
                         df = tree_df
+                        dataframe_context.set_consider_columns(list(df))
                         df = spark.createDataFrame(df)
                     else:
                         dataCleansingDict = dataframe_context.get_dataCleansing_info()
@@ -205,7 +207,6 @@ def main(configJson):
                             else:
                                  new_cols_added = None
                             print(df.printSchema())
-
                 metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                 df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 # updating metaData for binned Cols
