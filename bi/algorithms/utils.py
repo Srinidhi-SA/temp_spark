@@ -1554,7 +1554,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = labelMappingDict
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
-        model_configs["fail_card"]=[rfFailCard,nnFailCard,nbFailCard,lrFailCard,xgbFailCard,tfFailCard]
+        model_configs["fail_card"]=[rfFailCard,nnFailCard,nbFailCard,lrFailCard,xgbFailCard,tfFailCard,nnptcFailCard]
         model_dropdowns = [x for x in model_dropdowns if x != None]
         """Rounding the model accuracy"""
         i=0

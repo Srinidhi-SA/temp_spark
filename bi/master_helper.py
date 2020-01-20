@@ -335,7 +335,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     tf_obj.Train()
                     print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_nn_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
+                    result_setter.set_tf_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
