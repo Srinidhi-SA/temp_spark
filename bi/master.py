@@ -175,12 +175,40 @@ def main(configJson):
                         df = df.toPandas()
                         autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
                         one_click_json, linear_df, tree_df = autoML_obj.return_values()
-                        """
-                        # TODO: Get the tree_df and Linear_df wiring
-                        """
-                        df = tree_df
-                        dataframe_context.set_consider_columns(list(df))
-                        df = spark.createDataFrame(df)
+
+                        # linear
+                        print('No. of columns in Linear data :',len(list(linear_df.columns)))
+                        linear_df = spark.createDataFrame(linear_df)
+                        metaParserInstance_linear_df = MasterHelper.get_metadata(linear_df,spark,dataframe_context,new_cols_added)
+                        linear_df,df_helper_linear_df = MasterHelper.set_dataframe_helper(linear_df,dataframe_context,metaParserInstance_linear_df)
+                        dataTypeChangeCols_linear_df= dataframe_context.get_change_datatype_details()
+                        colsToBin_linear_df = df_helper_linear_df.get_cols_to_bin()
+                        updateLevelCountCols_linear_df = colsToBin_linear_df
+                        try:
+                            for i in dataTypeChangeCols_linear_df:
+                                if i["columnType"]=="dimension":
+                                    updateLevelCountCols_linear_df.append(i["colName"])
+                        except:
+                            pass
+                        levelCountDict_linear_df = df_helper_linear_df.get_level_counts(updateLevelCountCols_linear_df)
+                        metaParserInstance_linear_df.update_level_counts(updateLevelCountCols_linear_df,levelCountDict_linear_df)
+
+                        # Tree
+                        print('No. of columns in Tree data :',len(list(tree_df.columns)))
+                        tree_df = spark.createDataFrame(tree_df)
+                        metaParserInstance_tree_df = MasterHelper.get_metadata(tree_df,spark,dataframe_context,new_cols_added)
+                        tree_df,df_helper_tree_df = MasterHelper.set_dataframe_helper(tree_df,dataframe_context,metaParserInstance_tree_df)
+                        dataTypeChangeCols_tree_df = dataframe_context.get_change_datatype_details()
+                        colsToBin_tree_df = df_helper_tree_df.get_cols_to_bin()
+                        updateLevelCountCols_tree_df = colsToBin_tree_df
+                        try:
+                            for i in dataTypeChangeCols_tree_df:
+                                if i["columnType"]=="dimension":
+                                    updateLevelCountCols_tree_df.append(i["colName"])
+                        except:
+                            pass
+                        levelCountDict_tree_df = df_helper_tree_df.get_level_counts(updateLevelCountCols_tree_df)
+                        metaParserInstance_tree_df.update_level_counts(updateLevelCountCols_tree_df,levelCountDict_tree_df)
                     else:
                         dataCleansingDict = dataframe_context.get_dataCleansing_info()
                         featureEngineeringDict = dataframe_context.get_featureEngginerring_info()
@@ -207,20 +235,22 @@ def main(configJson):
                             else:
                                  new_cols_added = None
                             print(df.printSchema())
-                metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
-                df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
-                # updating metaData for binned Cols
-                dataTypeChangeCols=dataframe_context.get_change_datatype_details()
-                colsToBin = df_helper.get_cols_to_bin()
-                updateLevelCountCols=colsToBin
-                try:
-                    for i in dataTypeChangeCols:
-                        if i["columnType"]=="dimension":
-                            updateLevelCountCols.append(i["colName"])
-                except:
-                    pass
-                levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
-                metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
+
+                            metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
+                            df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
+                            # updating metaData for binned Cols
+                            dataTypeChangeCols=dataframe_context.get_change_datatype_details()
+                            colsToBin = df_helper.get_cols_to_bin()
+                            updateLevelCountCols=colsToBin
+                            try:
+                                for i in dataTypeChangeCols:
+                                    if i["columnType"]=="dimension":
+                                        updateLevelCountCols.append(i["colName"])
+                            except:
+                                pass
+                            levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
+                            metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
+
 
         ############################ MetaData Calculation ##########################
 
@@ -247,7 +277,10 @@ def main(configJson):
         ################################ Model Training ############################
         elif jobType == 'training':
             dataframe_context.set_ml_environment("sklearn")
-            MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance,one_click_json)
+            if automl_enable is True:
+                MasterHelper.train_models_automl(spark,linear_df,tree_df,dataframe_context,df_helper_linear_df,df_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df,one_click_json)
+            else:
+                MasterHelper.train_models(spark,df,dataframe_context,df_helper,metaParserInstance,one_click_json)
         ############################################################################
 
         ############################## Model Prediction ############################

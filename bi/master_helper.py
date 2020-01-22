@@ -164,6 +164,200 @@ def set_dataframe_helper(df,dataframe_context,metaParserInstance):
     df = dataframe_helper.get_data_frame()
     return df,dataframe_helper
 
+def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_helper_linear_df,dataframe_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df,one_click_json):
+    st = time.time()
+    LOGGER = dataframe_context.get_logger()
+    jobUrl = dataframe_context.get_job_url()
+    errorURL = dataframe_context.get_error_url()
+    xmlUrl = dataframe_context.get_xml_url()
+    ignoreMsg = dataframe_context.get_message_ignore()
+    messageURL = dataframe_context.get_message_url()
+    APP_NAME = dataframe_context.get_app_name()
+    appid = dataframe_context.get_app_id()
+    mlEnv = dataframe_context.get_ml_environment()
+    print("appid",appid)
+    dataframe_context.initialize_ml_model_training_weight()
+
+    prediction_narrative = NarrativesTree()
+    prediction_narrative.set_name("models")
+    result_setter = ResultSetter(dataframe_context)
+
+    uid_col = dataframe_context.get_uid_column()
+    result_column = dataframe_context.get_result_column()
+    allDateCols = dataframe_context.get_date_columns()
+
+    # Linear
+    dataframe_helper_linear_df.remove_null_rows(dataframe_context.get_result_column())
+    linear_df = dataframe_helper_linear_df.fill_missing_values(linear_df)
+    categorical_columns_linear_df = dataframe_helper_linear_df.get_string_columns()
+    if metaParserInstance_linear_df.check_column_isin_ignored_suggestion(uid_col):
+        categorical_columns_linear_df = list(set(categorical_columns_linear_df) - {uid_col})
+    categorical_columns_linear_df = list(set(categorical_columns_linear_df)-set(allDateCols))
+
+    # Tree
+    dataframe_helper_tree_df.remove_null_rows(dataframe_context.get_result_column())
+    tree_df = dataframe_helper_tree_df.fill_missing_values(tree_df)
+    categorical_columns_tree_df = dataframe_helper_tree_df.get_string_columns()
+    if metaParserInstance_tree_df.check_column_isin_ignored_suggestion(uid_col):
+        categorical_columns_tree_df = list(set(categorical_columns_tree_df) - {uid_col})
+    categorical_columns_tree_df = list(set(categorical_columns_tree_df)-set(allDateCols))
+
+    if mlEnv == "sklearn":
+        linear_df = linear_df.toPandas()
+        tree_df = tree_df.toPandas()
+
+        linear_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in linear_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+        tree_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in tree_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+
+        dataframe_helper_linear_df.set_train_test_data(linear_df)
+        dataframe_helper_tree_df.set_train_test_data(tree_df)
+
+    model_slug = dataframe_context.get_model_path()
+    basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_MODELS
+    subfolders = list(GLOBALSETTINGS.SLUG_MODEL_MAPPING.keys())
+    model_file_path = MLUtils.create_model_folders(model_slug,basefoldername,subfolders=subfolders)
+    dataframe_context.set_model_path(model_file_path)
+    app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
+    algosToRun = dataframe_context.get_algorithms_to_run()
+    scriptWeightDict = dataframe_context.get_ml_model_training_weight()
+    scriptStages = {
+        "preprocessing":{
+            "summary":"Dataset Loading Completed",
+            "weight":4
+            }
+        }
+    CommonUtils.create_update_and_save_progress_message(dataframe_context,scriptWeightDict,scriptStages,"initialization","preprocessing","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+    if len(algosToRun) == 3:
+        completionStatus = 40
+        dataframe_context.update_completion_status(completionStatus)
+    if len(algosToRun) == 2:
+        completionStatus = 50
+        dataframe_context.update_completion_status(completionStatus)
+    if len(algosToRun) == 1:
+        completionStatus = 60
+        dataframe_context.update_completion_status(completionStatus)
+
+    if app_type == "CLASSIFICATION":
+        for obj in algosToRun:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["randomforest"]:
+                try:
+                    st = time.time()
+                    rf_obj = RFClassificationModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
+                    rf_obj.Train()
+                    print("Random Forest Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["xgboost"]:
+                try:
+                    st = time.time()
+                    xgb_obj = XgboostScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
+                    xgb_obj.Train()
+                    print("XGBoost Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]:
+                try:
+                    st = time.time()
+                    lr_obj = LogisticRegressionScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
+                    lr_obj.Train()
+                    print("Logistic Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"Logistic Regression","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesber"] and obj.get_algorithm_name() == "naivebayesber":
+                try:
+                    st = time.time()
+                    nb_obj = NBBClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
+                    nb_obj.Train()
+                    print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesgau"] and obj.get_algorithm_name() == "naivebayesgau":
+                try:
+                    st = time.time()
+                    nb_obj = NBGClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
+                    nb_obj.Train()
+                    print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naive bayes"] and obj.get_algorithm_name() == "naive bayes":
+                try:
+                    st = time.time()
+                    nb_obj = NBMClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
+                    nb_obj.Train()
+                    print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+                    try:
+                        print("Calling Gaussian NB script ..............")
+                        st = time.time()
+                        nb_obj = NBGClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
+                        nb_obj.Train()
+                        print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
+                    except Exception as e:
+                        result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"False"})
+                        CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
+                        CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network"] and obj.get_algorithm_name() == "Neural Network":
+                try:
+                    st = time.time()
+                    nn_obj = NeuralNetworkScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
+                    nn_obj.Train()
+                    print("Neural Network Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+                try:
+                    st = time.time()
+                    tf_obj = TensorFlowScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
+                    tf_obj.Train()
+                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_tf_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+                try:
+                    st = time.time()
+                    nnptc_obj = NNPTClassificationScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
+                    nnptc_obj.Train()
+                    print("Neural Networks(pyTorch) trained in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Networks(pyTorch)", "success": "False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Networks(pyTorch)", e)
+                    CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
+
+    elif app_type == "REGRESSION":
+        pass
+        """
+        # TODO
+        """
+
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","Evaluating And Comparing Performance Of All Predictive Models",85,85,display=True)
+    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+
+    modelJsonOutput = MLUtils.collated_model_summary_card(result_setter,prediction_narrative,app_type,appid=appid,)
+    modelJsonOutput['one_click'] = one_click_json
+    response = CommonUtils.save_result_json(jobUrl,json.dumps(modelJsonOutput))
+    print(modelJsonOutput)
+
+    pmmlModels = result_setter.get_pmml_object()
+    savepmml = CommonUtils.save_pmml_models(xmlUrl,pmmlModels)
+    progressMessage = CommonUtils.create_progress_message_object("final","final","info","mAdvisor Has Successfully Completed Building Machine Learning Models",100,100,display=True)
+    CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
+    print("Model Training Completed in ", time.time() - st, " seconds.")
+
 def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,one_click_json):
     st = time.time()
     LOGGER = dataframe_context.get_logger()

@@ -301,8 +301,8 @@ class Feature_Engineering:
 
 
     def bin_columns_for_crammers(self,data):
-        max_val=round(data.max(),2)
-        min_val=round(data.min(),2)
+        max_val=data.max()
+        min_val=data.min()
         mean_val=data.mean()
         std_val=round(data.std(),2)
         data = pd.cut(data, bins=[min_val,mean_val,max_val], labels=["[{}-{}]".format(min_val,round(mean_val,2)), "[{}-{}]".format(round(mean_val,2),max_val)],right=True,include_lowest=True,duplicates='drop')
