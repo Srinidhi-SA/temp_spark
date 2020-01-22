@@ -192,7 +192,7 @@ class NBBClassificationModelScript(object):
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
                 if self._dataframe_context.get_trainerMode() == "autoML":
-                    automl_enable=True
+                    automl_enable=False
                 else:
                     automl_enable=False
                 if automl_enable:
@@ -770,7 +770,7 @@ class NBGClassificationModelScript(object):
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
                 if self._dataframe_context.get_trainerMode() == "autoML":
-                    automl_enable=True
+                    automl_enable=False
                 else:
                     automl_enable=False
                 if automl_enable:
