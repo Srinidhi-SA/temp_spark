@@ -69,7 +69,7 @@ def get_existing_metadata(dataframe_context):
     slugs = dataframe_context.get_metadata_slugs()
     jsonToken = {"key1":uuid.uuid4().hex,"key2":uuid.uuid4().hex,"signature":None,"generated_at":time.time()}
     secretKey = GLOBALSETTINGS.HDFS_SECRET_KEY
-    try:   
+    try:
         sigString = generate_signature(jsonToken,secretKey)
         jsonToken["signature"] = sigString
         url = "{}{}/?key1={}&key2={}&signature={}&generated_at={}".format(baseUrl,slugs[0],jsonToken["key1"],jsonToken["key2"],jsonToken["signature"],jsonToken["generated_at"])
@@ -251,11 +251,20 @@ def temp_convertor(x):
     except Exception as e:
         return "{}".format(x)
 
+# def convert_python_object_to_json(object):
+#     try:
+#         return json.dumps(object, default=temp_convertor)
+#     except:
+#         return json.dumps(stringify_keys(object.__dict__), default=temp_convertor)
+
 def convert_python_object_to_json(object):
     try:
         return json.dumps(object, default=temp_convertor)
     except:
-        return json.dumps(stringify_keys(object.__dict__), default=temp_convertor)
+        try:
+            return json.dumps(stringify_keys(object.__dict__), default=temp_convertor)
+        except:
+            return json.dumps(stringify_keys(object.__dict__), default=temp_convertor)
 
 def stringify_keys(d):
     """Convert a dict's keys to strings if they are not."""

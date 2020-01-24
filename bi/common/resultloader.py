@@ -233,7 +233,10 @@ class ResultSetter(object):
     def get_score_cards(self):
         return self.scoredtreecards
     def set_score_dtree_cards(self,data,decisionTree):
-        data[0]['decisionTree']=decisionTree
+        try:
+            data[0]['decisionTree']=decisionTree
+        except:
+            pass
         self.scoredtreecards = data
 
         #self.scoredtreecards.append(decisionTree)

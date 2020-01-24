@@ -817,6 +817,7 @@ class LogisticRegressionScript(object):
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
 
             if data_dict["nactual"] > 2:
+                # levelCountDict={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:
@@ -854,4 +855,4 @@ class LogisticRegressionScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card])
+            self._result_setter.set_score_dtree_cards([main_card], {})

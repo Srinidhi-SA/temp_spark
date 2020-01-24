@@ -16,6 +16,7 @@ from bi.settings import *
 from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.algorithms import feature_engineering as feature_engineering
 from bi.algorithms.autoML import auto_ml as autoML
+from bi.algorithms.autoML_score import auto_ml_score as autoMLScore
 
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
@@ -50,7 +51,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "prediction"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -84,6 +85,8 @@ def main(configJson):
     config = configJson["config"]
     jobConfig = configJson["job_config"]
     jobType = jobConfig["job_type"]
+    if jobType == "prediction":
+        one_click = config["one_click"]
     jobName = jobConfig["job_name"]
     jobURL = jobConfig["job_url"]
     messageURL = jobConfig["message_url"]
@@ -172,10 +175,14 @@ def main(configJson):
                         automl_enable = True
                     one_click_json = {}
                     if automl_enable is True:
-                        df = df.toPandas()
-                        autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
-                        one_click_json, linear_df, tree_df = autoML_obj.return_values()
-
+                        if jobType == "training":
+                            df = df.toPandas()
+                            autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+                            one_click_json, linear_df, tree_df = autoML_obj.return_values()
+                        elif jobType == "prediction":
+                            df = df.toPandas()
+                            score_obj =  autoMLScore.Scoring(df, one_click)
+                            linear_df, tree_df = score_obj.run()
                         # linear
                         print('No. of columns in Linear data :',len(list(linear_df.columns)))
                         linear_df = spark.createDataFrame(linear_df)
@@ -236,20 +243,20 @@ def main(configJson):
                                  new_cols_added = None
                             print(df.printSchema())
 
-                            metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
-                            df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
-                            # updating metaData for binned Cols
-                            dataTypeChangeCols=dataframe_context.get_change_datatype_details()
-                            colsToBin = df_helper.get_cols_to_bin()
-                            updateLevelCountCols=colsToBin
-                            try:
-                                for i in dataTypeChangeCols:
-                                    if i["columnType"]=="dimension":
-                                        updateLevelCountCols.append(i["colName"])
-                            except:
-                                pass
-                            levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
-                            metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
+                        metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
+                        df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
+                        # updating metaData for binned Cols
+                        dataTypeChangeCols=dataframe_context.get_change_datatype_details()
+                        colsToBin = df_helper.get_cols_to_bin()
+                        updateLevelCountCols=colsToBin
+                        try:
+                            for i in dataTypeChangeCols:
+                                if i["columnType"]=="dimension":
+                                    updateLevelCountCols.append(i["colName"])
+                        except:
+                            pass
+                        levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
+                        metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
 
 
         ############################ MetaData Calculation ##########################
@@ -285,8 +292,11 @@ def main(configJson):
 
         ############################## Model Prediction ############################
         elif jobType == 'prediction':
-            dataframe_context.set_ml_environment("sklearn")
-            MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
+            if automl_enable is True:
+                MasterHelper.score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linear_df,df_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df)
+            else:
+                dataframe_context.set_ml_environment("sklearn")
+                MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
 
         ############################################################################
         ################################### Test Cases  ############################

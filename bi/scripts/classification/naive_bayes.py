@@ -627,7 +627,7 @@ class NBBClassificationModelScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card])
+            self._result_setter.set_score_dtree_cards([main_card],{})
 
 class NBGClassificationModelScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
@@ -1358,7 +1358,7 @@ class NBGClassificationModelScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card])
+            self._result_setter.set_score_dtree_cards([main_card],{})
 
 class NBMClassificationModelScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
@@ -2133,4 +2133,4 @@ class NBMClassificationModelScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card])
+            self._result_setter.set_score_dtree_cards([main_card],{})

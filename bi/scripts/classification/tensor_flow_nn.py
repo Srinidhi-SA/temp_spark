@@ -788,4 +788,4 @@ class TensorFlowScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card])
+            self._result_setter.set_score_dtree_cards([main_card],{})
