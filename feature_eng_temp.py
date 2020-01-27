@@ -841,12 +841,12 @@ class Feature_Engineering:
         cols_to_keep.remove(self.target)
         #features = self.feature_creation(self.norm_col)
         data1=self.feature_transformation(self.Dataframe,self.target,cols_to_keep)
-        if (self.data_dict2["app_type"] == "classification"):
-               data2=self.feature_combiner_classification(self.Dataframe,self.target,cols_to_keep)
-        else:
-               data2=self.feature_combiner_regression(self.Dataframe,self.target,cols_to_keep)
+        # if (self.data_dict2["app_type"] == "classification"):
+        #        data2=self.feature_combiner_classification(self.Dataframe,self.target,cols_to_keep)
+        # else:
+        #        data2=self.feature_combiner_regression(self.Dataframe,self.target,cols_to_keep)
 
-        self.Dataframe = data1.merge(data2)
+        self.Dataframe = data1
 
         self.split_columns()
 
