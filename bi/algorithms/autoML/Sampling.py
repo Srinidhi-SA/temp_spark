@@ -106,13 +106,13 @@ class Sampling:
                     if len(self.cat_col_names) != 0:
 
                         # getting the categorical column index
-                        cat_cols_index = [X_train.columns.get_loc(c) for c in self.cat_col_names if c in X_train]
-                        # cat_cols_index = []
-                        # for i in self.cat_col_names:
-                        #     cat_col_index = X_train.columns.get_loc(i)
-                        #     X_train[i]=X_train[i].astype(str)
-                        #     print("cat_col_index: i: ", i,X_train[i].dtype)
-                        #     cat_cols_index.append(cat_col_index)
+                        #cat_cols_index = [X_train.columns.get_loc(c) for c in self.cat_col_names if c in X_train]
+                        cat_cols_index = []
+                        for i in self.cat_col_names:
+                            cat_col_index = X_train.columns.get_loc(i)
+                            X_train[i]=X_train[i].astype(str)
+                            print("cat_col_index: i: ", i,X_train[i].dtype)
+                            cat_cols_index.append(cat_col_index)
 
                         X_train_sampled, y_train_sampled = SMOTENC(random_state = 1, sampling_strategy  = ratio, categorical_features = cat_cols_index).fit_sample(X_train,y_train)
 

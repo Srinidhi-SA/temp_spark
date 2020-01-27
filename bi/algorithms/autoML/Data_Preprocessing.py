@@ -19,7 +19,7 @@ class Data_Preprocessing(object):
         for i in range(len(col_settings)):
             col = col_settings[i]["re_column_name"]
             if(col in dataset):
-                if(dataset[col].isna().sum()>(0.99*dataset.shape[0])):
+                if(dataset[col].isna().sum()>(0.75*dataset.shape[0])):
                     dataset = dataset.drop([col],axis=1)
                     col_settings[i]["droped_column"] = True
         return dataset
