@@ -864,7 +864,7 @@ class Feature_Engineering:
         data1['index'] = data1.index
         # data2['index'] = data2.index
         # self.Dataframe = data1.merge(data2)
-        self.DataFrame = data1
+        self.Dataframe = data1
         self.Dataframe.drop(['index'],axis=1,inplace=True)
         self.split_columns()
 
