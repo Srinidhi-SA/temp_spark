@@ -33,7 +33,8 @@ class Data_Preprocessing(object):
             updatedRowNum=Dataframe[column].index
             r1 = random.randint(0, len(updatedRowNum)-1)
             if re.match("^\d*[.]?\d*$",str(column_val[updatedRowNum[r1]])):
-                out=column_val.str.isdigit()
+                #out=column_val.str.isdigit()
+                out = column_val.str.contains("[0-9]+[.]{0,1}[0-9]*\s*")
                 if out[out==False].count() <= 0.01*Dataframe.shape[0]:
                     rowIndex=out.index[out==False].tolist()
                     Dataframe=Dataframe.drop(rowIndex,axis=0)
