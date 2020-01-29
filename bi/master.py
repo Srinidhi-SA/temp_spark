@@ -258,7 +258,21 @@ def main(configJson):
                         levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
                         metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
 
-
+                else:
+                    metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
+                    df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
+                    # updating metaData for binned Cols
+                    dataTypeChangeCols=dataframe_context.get_change_datatype_details()
+                    colsToBin = df_helper.get_cols_to_bin()
+                    updateLevelCountCols=colsToBin
+                    try:
+                        for i in dataTypeChangeCols:
+                            if i["columnType"]=="dimension":
+                                updateLevelCountCols.append(i["colName"])
+                    except:
+                        pass
+                    levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
+                    metaParserInstance.update_level_counts(updateLevelCountCols,levelCountDict)
         ############################ MetaData Calculation ##########################
 
         if jobType == "metaData":
