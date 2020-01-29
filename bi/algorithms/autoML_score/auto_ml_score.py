@@ -14,6 +14,8 @@ import pandas as pd
 
 import ast
 
+import re
+
 class Scoring(object):
 
     def __init__(self,path,data_dict):
@@ -115,7 +117,7 @@ class Scoring(object):
             fe_obj.test_main(data_dict['normalize_column'],data_dict['train_final_cols'])
 #             print("fe_obj: ", fe_obj.original_df)
 #             print("created only: ",fe_obj.only_created_df)
-            return fe_obj.original_df,fe_obj.only_created_df
+            return fe_obj.original_df,fe_obj.only_created_df, fe_obj.date_time_columns
 
 
 
@@ -242,8 +244,10 @@ class Scoring(object):
         print(data.shape)
 
         """FeatureEngineering"""
-        o,c = self.score_feature_eng(data,self.data_dict)
+        o,c,date_col = self.score_feature_eng(data,self.data_dict)
         print(o.columns, c.columns)
+        cols = list(set(o)-set(date_col))
+        o = o[cols]
 
         try:
 #             result = o.merge(c)
@@ -256,6 +260,10 @@ class Scoring(object):
         """Feature_selection"""
         l1,t1 = self.Scoring_feature_selection(result,self.data_dict)
         l,t = self.validate(data,self.data_dict,l1,t1)
+        linear_df_cols = [re.sub('\W+','_', col) for col in l.columns]
+        l.columns = linear_df_cols
+        tree_df_cols = [re.sub('\W+','_', col) for col in t.columns]
+        t.columns = tree_df_cols
         return l,t
 
 

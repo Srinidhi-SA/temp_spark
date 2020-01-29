@@ -7,7 +7,7 @@ from bi.algorithms.autoML.Feature_Engineering import Feature_Engineering
 from bi.algorithms.autoML.Sampling import Sampling
 from bi.algorithms.autoML.Feature_Selection import Main
 import pandas as pd
-
+import re
 
 # In[2]:
 
@@ -70,7 +70,9 @@ class auto_ML:
 
         mr_df1 = obj2.original_df
 
-
+        date_col = obj2.date_time_columns
+        cols = list(set(mr_df1)-set(date_col))
+        mr_df1 = mr_df1[cols]
 
         print("Feature Engineering",'\n')
 #         print(mr_df1.info())
@@ -151,6 +153,11 @@ class auto_ML:
 
         linear_df,tree_df = obj6.run()
 
+        linear_df_cols = [re.sub('\W+','_', col) for col in linear_df.columns]
+        linear_df.columns = linear_df_cols
+
+        tree_df_cols = [re.sub('\W+','_', col) for col in tree_df.columns]
+        tree_df.columns = tree_df_cols
         #print(l.head())
 
         #print(t.head())

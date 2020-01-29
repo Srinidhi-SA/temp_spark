@@ -53,8 +53,9 @@ def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
         df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
-        df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
         cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]","", col) for col in df.columns]
+        df = df.toDF(*cols)
+        df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
         # df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
     else:
         dbConnectionParams = dataframe_context.get_dbconnection_params()
