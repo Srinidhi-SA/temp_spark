@@ -847,7 +847,10 @@ class Feature_Engineering:
 
 
         cols_to_keep=[cols for cols in cols_to_keep if not is_datetime(self.Dataframe[cols])]
-        cols_to_keep.remove(self.target)
+        try:
+            cols_to_keep.remove(self.target)
+        except:
+            pass
         #features = self.feature_creation(self.norm_col)
         import time
         start = time.time()

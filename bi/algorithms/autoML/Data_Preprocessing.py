@@ -129,8 +129,9 @@ class Data_Preprocessing(object):
         output_dict={"Target_analysis":{"target":targetname,"unique_count":int,"value_counts":{},"balanced": None ,"binary": None}}
         target_variable=DataFrame[targetname]
         counts = target_variable.value_counts()
-        DataFrame = DataFrame[~target_variable.isin(counts[counts <= 10].index)]
+
         if (m_type.lower()=='classification'):
+            DataFrame = DataFrame[~target_variable.isin(counts[counts <= 10].index)]
             ## convert target column into object
             output_dict['Target_analysis']['converted_to_str'] = False
             if DataFrame[targetname].dtype != 'O':
