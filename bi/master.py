@@ -51,7 +51,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "prediction"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -178,6 +178,7 @@ def main(configJson):
                         if jobType == "training":
                             df = df.toPandas()
                             autoML_obj =  autoML.auto_ML(df,dataframe_context.get_result_column(),GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+                            autoML_obj.run()
                             one_click_json, linear_df, tree_df = autoML_obj.return_values()
                         elif jobType == "prediction":
                             df = df.toPandas()

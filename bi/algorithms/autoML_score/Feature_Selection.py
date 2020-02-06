@@ -399,7 +399,7 @@ class Utils(object):
 
 """Feature Selection Main Code """
 
-class Main(object):
+class Feature_Selection(object):
 
     def __init__(self,Dataframe,data_dict,pass_2):
 

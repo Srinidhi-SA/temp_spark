@@ -5,49 +5,53 @@ from bi.algorithms.autoML.Data_Validation import Data_Validation
 from bi.algorithms.autoML.Data_Preprocessing import Data_Preprocessing
 from bi.algorithms.autoML.Feature_Engineering import Feature_Engineering
 from bi.algorithms.autoML.Sampling import Sampling
-from bi.algorithms.autoML.Feature_Selection import Main
+from bi.algorithms.autoML.Feature_Selection import Feature_Selection
 import pandas as pd
 import re
 
-# In[2]:
 
 
 class auto_ML:
 
-    def __init__(self,data_path, target, app_type):
+    def __init__(self,df, target, app_type):
 
         # self.config = config
-        self.data_path = data_path
+        #self.data_path = data_path
+        self.df = df
         self.target = target
         self.app_type = app_type
         self.final_json = {}
         self.tree_df = None
         self.linear_df = None
+
+    def run(self):
         """DATA VALIDATION"""
 
-        path = self.data_path
-        # path = '/home/marlabs/fresh/mAdvisor-MLScripts/bi/algorithms/'
-        obj =  Data_Validation(path,target =self.target,method = self.app_type)
-        obj.run()
+        #path = self.df
+        #obj =  Data_Validation(path,target =self.target,method = self.app_type)
+        Data_Validation_auto_obj =  Data_Validation(self.df,target =self.target,method = self.app_type)
+        Data_Validation_auto_obj.run()
 
         #print(obj.df.head())
         #print(obj.data_dict.keys())
 
-        data_dict = obj.data_dict
-        Dataframe = obj.df
+        data_dict = Data_Validation_auto_obj.data_dict
+        Dataframe = Data_Validation_auto_obj.df
         print("DATA VALIDATION",'\n')
 #         print(Dataframe.info())
         print("#"*50)
 
         #self.target = obj.data_dict["target"]
-        obj.data_dict["target"]=self.target
-        if(obj.data_dict["target_fitness_check"] == False):
+        Data_Validation_auto_obj.data_dict["target"]=self.target
+        if(Data_Validation_auto_obj.data_dict["target_fitness_check"] == False):
             sys.exit()
 
         """DATA PREPROCESSING"""
 
-        obj1 =   Data_Preprocessing(data_dict)
-        Dataframe,data_dict  = obj1.main(Dataframe)
+        # this line used before # Data_Preprocessing_auto_obj =   Data_Preprocessing(data_dict)
+        # Dataframe,data_dict  = Data_Preprocessing_auto_obj.main(Dataframe)
+        Data_Preprocessing_auto_obj =   Data_Preprocessing(Data_Validation_auto_obj.data_dict)
+        Dataframe,data_dict  = Data_Preprocessing_auto_obj.main(Data_Validation_auto_obj.df)
         print("DATA PREPROCESSING",'\n')
 #         print(Dataframe.info())
         print("#"*50)
@@ -65,12 +69,12 @@ class auto_ML:
 ########################################################################################
         """Feature Engineering"""
 
-        obj2 =  Feature_Engineering(Dataframe,data_dict)
-        obj2.fe_main()
+        Feature_Engineering_auto_obj =  Feature_Engineering(Dataframe,data_dict)
+        Feature_Engineering_auto_obj.fe_main()
 
-        mr_df1 = obj2.original_df
+        mr_df1 = Feature_Engineering_auto_obj.original_df
 
-        date_col = obj2.date_time_columns
+        date_col = Feature_Engineering_auto_obj.date_time_columns
         cols = list(set(mr_df1)-set(date_col))
         mr_df1 = mr_df1[cols]
 
@@ -79,20 +83,20 @@ class auto_ML:
         print("#"*50)
         #print(mr_df1.shape)
 
-        Dataframe2 = obj2.only_created_df
+        Dataframe2 = Feature_Engineering_auto_obj.only_created_df
 
 #        print(Dataframe2.shape)
 #        print(Dataframe2.head()
 
-        fdata_dict1 = obj2.data_dict2
+        fdata_dict1 = Feature_Engineering_auto_obj.data_dict2
 #         print(Dataframe2.info())
         print("#"*50)
 #
-        print("Target in AutoML: ",self.target, obj2.data_dict2["Target_analysis"])
-        obj3 = Data_Validation(Dataframe2,self.target,self.app_type)
-        obj3.run()
+        print("Target in AutoML: ",self.target, Feature_Engineering_auto_obj.data_dict2["Target_analysis"])
+        Data_Validation_auto_obj2 = Data_Validation(Feature_Engineering_auto_obj.only_created_df,self.target,self.app_type)
+        Data_Validation_auto_obj2.run()
 
-        Dataframe3 = obj3.df
+        Dataframe3 = Data_Validation_auto_obj2.df
 
         print("DATA VALIDATION pass2",'\n')
 #         print(Dataframe3.info())
@@ -100,14 +104,17 @@ class auto_ML:
         #print(Dataframe3.shape)
         #print(Dataframe3.columns)
 
-        data_dict3 = obj3.data_dict
-        print(data_dict3.keys())
+        data_dict3 = Data_Validation_auto_obj2.data_dict
+        # print(data_dict3.keys())
 
 #         obj4 = Data_Preprocessing(data_dict3,Dataframe3,targetname = self.target,m_type =self.app_type)
 #         obj4.fe_main()
 
-        obj4 =   Data_Preprocessing(data_dict)
-        Dataframe,data_dict  = obj4.fe_main(Dataframe3,data_dict3)
+        ### Data_Preprocessing_auto_obj2 =   Data_Preprocessing(data_dict3)
+        Data_Preprocessing_auto_obj2 = Data_Preprocessing(Data_Validation_auto_obj2.data_dict)
+        #Dataframe,data_dict  = obj4.fe_main(Dataframe3)
+        mr_df2,data_dict  = Data_Preprocessing_auto_obj2.fe_main(Data_Validation_auto_obj2.df)
+        ### mr_df2,data_dict  = Data_Preprocessing_auto_obj2.fe_main(Data_Validation_auto_obj2.df,Data_Validation_auto_obj2.data_dict)
 
         print("Data_Preprocessing pass2",'\n')
 #         print(Dataframe.info())
@@ -127,7 +134,7 @@ class auto_ML:
 #
 #        print(self.final_dict)
 
-        mr_df2 = Dataframe
+        # mr_df2 = Dataframe
 
         mr_df2.drop([self.target], axis=1,inplace = True)
 
@@ -139,19 +146,20 @@ class auto_ML:
 
         """ Sampling """
 
-        obj5 = Sampling(result,self.target)
+        Sampling_obj = Sampling(result,self.target)
 
-        obj5.OverSampling()
+        Sampling_obj.OverSampling()
 
-        result = obj5.dataset
+        result = Sampling_obj.dataset
 
 #         print(sum(list(result.isna().sum().values)),"NULLL VALUE")
 
         """ Feature Selection """
 
-        obj6 = Main(result,fdata_dict1,data_dict)
+        ### Feature_Selection_obj = Feature_Selection(result,fdata_dict1,data_dict)
+        Feature_Selection_obj = Feature_Selection(result,Feature_Engineering_auto_obj.data_dict2,data_dict)
 
-        linear_df,tree_df = obj6.run()
+        linear_df,tree_df = Feature_Selection_obj.run()
 
         linear_df_cols = [re.sub('\W+','_', col) for col in linear_df.columns]
         linear_df.columns = linear_df_cols
@@ -170,7 +178,7 @@ class auto_ML:
 
         # with open('data.txt',  'w', encoding='utf-8') as f:
         #     json.dumps(obj6.data_dict)
-        self.final_json = json.dumps(obj6.data_dict)
+        self.final_json = json.dumps(Feature_Selection_obj.data_dict)
         self.linear_df = linear_df
         self.tree_df = tree_df
 

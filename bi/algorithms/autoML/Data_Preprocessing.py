@@ -7,13 +7,18 @@ from pint import UnitRegistry
 import random
 import pickle
 from validate_email import validate_email
+
+
 class Data_Preprocessing(object):
+
     def __init__(self,pre_dict):
         self.pre_dict=pre_dict
+
     def drop_duplicate_rows(self,dataframe):
         '''Drops Duplicate rows of a dataframe and returns a new dataframe'''
         dataframe = dataframe.drop_duplicates()
         return dataframe
+
     def drop_na_columns(self,dataset, pre_dict):
         col_settings = pre_dict['Column_settings']
         for i in range(len(col_settings)):
@@ -23,6 +28,7 @@ class Data_Preprocessing(object):
                     dataset = dataset.drop([col],axis=1)
                     col_settings[i]["droped_column"] = True
         return dataset
+
     def Dimension_Measure(self,Dataframe,columns):
         '''Identifies columns which are measures and have been wrongly identified as dimension
         returns a list of columns to be converted to measure and removes the rows which have other than numeric
@@ -40,6 +46,7 @@ class Data_Preprocessing(object):
                     Dataframe=Dataframe.drop(rowIndex,axis=0)
                     DimToMeasureColumn.append(column)
         return Dataframe,DimToMeasureColumn
+
     def handle_outliers(self,dataset,columns):
         '''Hanles outliers for measure columns and returns a list of columns which have high number of outliers'''
         outlier_col=[]
@@ -59,21 +66,25 @@ class Data_Preprocessing(object):
                 outlier_col.append(column)
             dataset[column]=df1
         return dataset,outlier_col,capped_col
+
     def mean_impute(self,column_val):
         '''Returns a column with mean impute'''
         mean=np.mean(column_val)
         column_val=column_val.fillna(mean)
         return column_val
+
     def median_impute(self,column_val):
         '''Returns a column with median impute'''
         median=np.mean(column_val)
         column_val=column_val.fillna(median)
         return column_val
+
     def mode_impute(self,column_val):
         '''Returns a column with mode impute'''
         mode=column_val.mode()[0]
         column_val=column_val.fillna(mode)
         return column_val
+
     def measureCol_imputation(self,dataset,columns,median_col):
         '''Does missing value imputation for measure columns'''
         mean_impute_cols=[]
@@ -86,11 +97,13 @@ class Data_Preprocessing(object):
                 median_impute_cols.append(column)
                 dataset[column]=self.median_impute(dataset[column])
         return dataset,mean_impute_cols,median_impute_cols
+
     def dimCol_imputation(self,dataset,columns):
         '''Does missing value imputation for dimension columns'''
         for column in columns:
             dataset[column]=self.mode_impute(dataset[column])
         return dataset
+
     def regex_catch(self,dataset,column):
         '''Returns a list of columns and the pattern it has'''
         ## considering currency_list and metric_list are globally defined.
@@ -123,6 +136,7 @@ class Data_Preprocessing(object):
                 Dict["SepSymbols"]["value"]=True
                 Dict["SepSymbols"]["Symbol"]=seperators[0]
         return Dict
+
     def Target_analysis(self,DataFrame, targetname, m_type):
         '''Gives information of target column'''
         DataFrame=DataFrame.dropna(axis=0, subset=[targetname])
@@ -165,6 +179,7 @@ class Data_Preprocessing(object):
             out_dict={"Target_analysis":{"target_name":targetname,"descrp_status":{}}}
             out_dict['Target_analysis']['descrp_status']=target_variable.describe().to_dict()
             return out_dict,DataFrame
+
     def update_column_settings(self,regexd,datad):
             col_settings = datad['Column_settings']
             for i in range(len(col_settings)):
@@ -199,6 +214,7 @@ class Data_Preprocessing(object):
                         col_settings[i]["SepSymbols"]["Symbol"]=regexd[j]["SepSymbols"]["Symbol"]
             datad['Column_settings']=col_settings
             return datad
+
     def main(self,df):
         global currency_list
         global Metric_list
@@ -252,7 +268,10 @@ class Data_Preprocessing(object):
         data_dict['original_cols'] = orginal_columns
         print("Original Columns:  ",orginal_columns)
         return dataFinal,data_dict
-    def fe_main(self,df,data_dict):
+
+    #def fe_main(self,df,data_dict):
+    def fe_main(self,df):
+        data_dict=self.pre_dict
         target = self.pre_dict['target']
         app_type = self.pre_dict['app_type']
         try:

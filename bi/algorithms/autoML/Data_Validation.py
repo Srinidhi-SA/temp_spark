@@ -11,6 +11,7 @@ warnings.filterwarnings('ignore')
 # get_ipython().run_line_magic('matplotlib', 'inline')
 
 class Data_Validation:
+    
     def __init__(self,path,target,method):
         self.dataframe = path
         self.target = target
@@ -18,12 +19,14 @@ class Data_Validation:
         self.charencode = None
         self.method = method
         self.data_dict = {}
+
     def find_encoding(self):
         ''' This Function Finds and returns the Encoding required for the Dataset '''
         r_file = open(self.dataframe, 'rb').read()
         result = chardet.detect(r_file)
         self.charencode = result['encoding']
         return self.charencode
+
     def deal_columns(self,column):
         Dict = {
                     "column_name":column,
@@ -63,6 +66,7 @@ class Data_Validation:
                 self.df.drop([re_column], axis = 1,inplace = True)
         self.df.dropna(how = 'all',axis = 0,inplace = True)
         return Dict
+
     def target_fitness_check(self):
         '''Checks if target is fit for the type of analysis'''
         '''replace nan values with nan_class '''
@@ -86,6 +90,7 @@ class Data_Validation:
                 flag = True
         print("No.Of Target categories: ",target_val.nunique())
         return flag
+
     def run(self):
         na_values = ["NO CLUE","no clue", "No Clue","na","NA","N/A", "n/a","n a","N A", "not available","Not Available", "NOT AVAILABLE","?","!","NONE","None","none","null","-"]
         if(type(self.dataframe) == str):
