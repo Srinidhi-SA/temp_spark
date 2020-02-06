@@ -35,8 +35,8 @@ class auto_ML:
         #print(obj.df.head())
         #print(obj.data_dict.keys())
 
-        data_dict = Data_Validation_auto_obj.data_dict
-        Dataframe = Data_Validation_auto_obj.df
+        # data_dict = Data_Validation_auto_obj.data_dict
+        # Dataframe = Data_Validation_auto_obj.df
         print("DATA VALIDATION",'\n')
 #         print(Dataframe.info())
         print("#"*50)
@@ -83,12 +83,12 @@ class auto_ML:
         print("#"*50)
         #print(mr_df1.shape)
 
-        Dataframe2 = Feature_Engineering_auto_obj.only_created_df
+        # Dataframe2 = Feature_Engineering_auto_obj.only_created_df
 
 #        print(Dataframe2.shape)
 #        print(Dataframe2.head()
 
-        fdata_dict1 = Feature_Engineering_auto_obj.data_dict2
+        # fdata_dict1 = Feature_Engineering_auto_obj.data_dict2
 #         print(Dataframe2.info())
         print("#"*50)
 #
@@ -96,7 +96,7 @@ class auto_ML:
         Data_Validation_auto_obj2 = Data_Validation(Feature_Engineering_auto_obj.only_created_df,self.target,self.app_type)
         Data_Validation_auto_obj2.run()
 
-        Dataframe3 = Data_Validation_auto_obj2.df
+        # Dataframe3 = Data_Validation_auto_obj2.df
 
         print("DATA VALIDATION pass2",'\n')
 #         print(Dataframe3.info())
@@ -104,7 +104,7 @@ class auto_ML:
         #print(Dataframe3.shape)
         #print(Dataframe3.columns)
 
-        data_dict3 = Data_Validation_auto_obj2.data_dict
+        # data_dict3 = Data_Validation_auto_obj2.data_dict
         # print(data_dict3.keys())
 
 #         obj4 = Data_Preprocessing(data_dict3,Dataframe3,targetname = self.target,m_type =self.app_type)
@@ -150,14 +150,14 @@ class auto_ML:
 
         Sampling_obj.OverSampling()
 
-        result = Sampling_obj.dataset
+        # result = Sampling_obj.dataset
 
 #         print(sum(list(result.isna().sum().values)),"NULLL VALUE")
 
         """ Feature Selection """
 
         ### Feature_Selection_obj = Feature_Selection(result,fdata_dict1,data_dict)
-        Feature_Selection_obj = Feature_Selection(result,Feature_Engineering_auto_obj.data_dict2,data_dict)
+        Feature_Selection_obj = Feature_Selection(Sampling_obj.dataset,Feature_Engineering_auto_obj.data_dict2,data_dict)
 
         linear_df,tree_df = Feature_Selection_obj.run()
 
