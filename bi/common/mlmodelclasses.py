@@ -698,6 +698,7 @@ class SklearnGridSearchResult(object):
             st = time.time()
             estimator = self.estimator.set_params(**paramsObj)
             estimator.fit(self.x_train, self.y_train)
+            estimator.feature_names = list(self.x_train.columns.values)
             y_score = estimator.predict(self.x_test)
             try:
                 y_prob = estimator.predict_proba(self.x_test)
@@ -835,6 +836,7 @@ class SkleanrKFoldResult(object):
             y_train_fold, y_test_fold = self.y_train.iloc[train_index], self.y_train.iloc[test_index]
             x_train_fold.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train_fold.columns.values]
             self.estimator.fit(x_train_fold, y_train_fold)
+            self.estimator.feature_names = list(x_train_fold.columns.values)
             y_score_fold = self.estimator.predict(x_test_fold)
             metricsFold = {}
             if self.appType == "CLASSIFICATION":

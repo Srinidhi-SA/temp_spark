@@ -282,6 +282,7 @@ class GBTRegressionModelScript(object):
                     bestEstimator = kFoldClass.get_best_estimator()
                 elif validationDict["name"] == "trainAndtest":
                     est.fit(x_train, y_train)
+                    est.feature_names = list(x_train.columns.values)
                     bestEstimator = est
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -583,6 +584,7 @@ class GBTRegressionModelScript(object):
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+            pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
 
             scoreKpiArray = MLUtils.get_scored_data_summary(y_score)

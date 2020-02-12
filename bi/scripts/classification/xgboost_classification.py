@@ -688,6 +688,9 @@ class XgboostScript(object):
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+            feature_names = trained_model.get_booster().feature_names
+            print(feature_names)
+            pandas_df=pandas_df[feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)

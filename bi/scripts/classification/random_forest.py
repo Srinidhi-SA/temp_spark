@@ -233,6 +233,7 @@ class RFClassificationModelScript(object):
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
                     bestEstimator.fit(x_train,y_train)
+                    bestEstimator.feature_names = list(x_train.columns.values)
 
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
@@ -297,6 +298,7 @@ class RFClassificationModelScript(object):
                         bestEstimator = kFoldClass.get_best_estimator()
                     elif validationDict["name"] == "trainAndtest":
                         clf.fit(x_train, y_train)
+                        clf.feature_names = list(x_train.columns.values)
                         bestEstimator = clf
 
             trainingTime = time.time()-st
@@ -703,6 +705,7 @@ class RFClassificationModelScript(object):
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+            pandas_df = pandas_df[trained_model.feature_names]
 
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)

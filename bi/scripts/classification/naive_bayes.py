@@ -223,6 +223,7 @@ class NBBClassificationModelScript(object):
                         bestEstimator = kFoldClass.get_best_estimator()
                     elif validationDict["name"] == "trainAndtest":
                         clf.fit(x_train, y_train)
+                        clf.feature_names = list(x_train.columns.values)
                         bestEstimator = clf
 
             trainingTime = time.time()-st
@@ -449,6 +450,7 @@ class NBBClassificationModelScript(object):
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
 
+            pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
@@ -1180,6 +1182,7 @@ class NBGClassificationModelScript(object):
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
 
+            pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
@@ -1955,6 +1958,7 @@ class NBMClassificationModelScript(object):
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
 
+            pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)

@@ -325,6 +325,7 @@ class LinearRegressionModelScript(object):
                     bestEstimator = kFoldClass.get_best_estimator()
                 elif validationDict["name"] == "trainAndtest":
                     est.fit(x_train, y_train)
+                    est.feature_names = list(x_train.columns.values)
                     bestEstimator = est
             # print x_train.columns
             trainingTime = time.time()-st
@@ -616,6 +617,7 @@ class LinearRegressionModelScript(object):
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             print(len(model_columns),len(pandas_df.columns))
+            pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             coefficients = trained_model.coef_
             coefficientsArray = [(col_name, coefficients[idx]) for idx, col_name in enumerate(pandas_df.columns)]
