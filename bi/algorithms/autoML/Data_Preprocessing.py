@@ -97,7 +97,7 @@ class Data_Preprocessing(object):
         for column in columns:
             if column not in median_col:
                 mean_impute_cols.append(column)
-                self.dataframe[column]=self.mean_impute(dataself.dataframeset[column])
+                self.dataframe[column]=self.mean_impute(self.dataframe[column])
             else:
                 median_impute_cols.append(column)
                 self.dataframe[column]=self.median_impute(self.dataframe[column])
@@ -166,7 +166,7 @@ class Data_Preprocessing(object):
             if (n == 0):
                 out_dict={"Target_analysis":{"target_name":targetname,"descrp_status":{}}}
                 out_dict['Target_analysis']['descrp_status']=target_variable.describe().to_dict()
-                return out_dict,DataFrame
+                return out_dict,self.dataframe
             if((percen_level_count[percen_level_count < ((1/(2*n))*100)]).empty==False):
                 output_dict['Target_analysis']['balanced']=False
                 if (len(count_check)==2):
