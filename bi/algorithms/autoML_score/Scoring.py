@@ -71,7 +71,7 @@ class Scoring(object):
 
     def null_handling(self,df):
 
-        cls=Data_Preprocessing(self.data_dict)
+        cls=Data_Preprocessing(self.data_dict,df)
 
         measureCol,dim = [],[]
 
@@ -85,17 +85,17 @@ class Scoring(object):
 
                 dim.append(i)
 
-        df,outlier_columns,capped_cols=cls.handle_outliers(df,measureCol)
+        outlier_columns,capped_cols=cls.handle_outliers(measureCol)
 
-        measureColImpu = [i for i in measureCol if df[i].isna().sum()>0 ]
+        measureColImpu = [i for i in measureCol if cls.dataframe[i].isna().sum()>0 ]
 
-        dimColImpu = [i for i in dim if df[i].isna().sum()>0 ]
+        dimColImpu = [i for i in dim if cls.dataframe[i].isna().sum()>0 ]
 
-        df,mean_impute_cols,median_impute_cols = cls.measureCol_imputation(df,measureColImpu,outlier_columns)
+        mean_impute_cols,median_impute_cols = cls.measureCol_imputation(measureColImpu,outlier_columns)
 
-        df = cls.dimCol_imputation(df,dimColImpu)
+        cls.dimCol_imputation(dimColImpu)
 
-        return df
+        return cls.dataframe
 
 
     def score_feature_eng(self,df,data_dict):
@@ -249,5 +249,3 @@ class Scoring(object):
         l,t = self.validate(data,self.data_dict,l1,t1)
 
         return l,t
-
-        

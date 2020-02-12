@@ -50,8 +50,8 @@ class auto_ML:
 
         # this line used before # Data_Preprocessing_auto_obj =   Data_Preprocessing(data_dict)
         # Dataframe,data_dict  = Data_Preprocessing_auto_obj.main(Dataframe)
-        Data_Preprocessing_auto_obj =   Data_Preprocessing(Data_Validation_auto_obj.data_dict)
-        Dataframe,data_dict  = Data_Preprocessing_auto_obj.main(Data_Validation_auto_obj.df)
+        Data_Preprocessing_auto_obj =   Data_Preprocessing(Data_Validation_auto_obj.data_dict, Data_Validation_auto_obj.df)
+        data_dict  = Data_Preprocessing_auto_obj.main()
         print("DATA PREPROCESSING",'\n')
 #         print(Dataframe.info())
         print("#"*50)
@@ -69,7 +69,7 @@ class auto_ML:
 ########################################################################################
         """Feature Engineering"""
 
-        Feature_Engineering_auto_obj =  Feature_Engineering(Dataframe,data_dict)
+        Feature_Engineering_auto_obj =  Feature_Engineering(Data_Preprocessing_auto_obj.dataframe,data_dict)
         Feature_Engineering_auto_obj.fe_main()
 
         mr_df1 = Feature_Engineering_auto_obj.original_df
@@ -111,9 +111,9 @@ class auto_ML:
 #         obj4.fe_main()
 
         ### Data_Preprocessing_auto_obj2 =   Data_Preprocessing(data_dict3)
-        Data_Preprocessing_auto_obj2 = Data_Preprocessing(Data_Validation_auto_obj2.data_dict)
+        Data_Preprocessing_auto_obj2 = Data_Preprocessing(Data_Validation_auto_obj2.data_dict,Data_Validation_auto_obj2.df)
         #Dataframe,data_dict  = obj4.fe_main(Dataframe3)
-        mr_df2,data_dict  = Data_Preprocessing_auto_obj2.fe_main(Data_Validation_auto_obj2.df)
+        data_dict  = Data_Preprocessing_auto_obj2.fe_main()
         ### mr_df2,data_dict  = Data_Preprocessing_auto_obj2.fe_main(Data_Validation_auto_obj2.df,Data_Validation_auto_obj2.data_dict)
 
         print("Data_Preprocessing pass2",'\n')
@@ -136,9 +136,9 @@ class auto_ML:
 
         # mr_df2 = Dataframe
 
-        mr_df2.drop([self.target], axis=1,inplace = True)
+        Data_Preprocessing_auto_obj2.dataframe.drop([self.target], axis=1,inplace = True)
 
-        result = pd.concat([mr_df1, mr_df2], axis=1, sort=False)
+        result = pd.concat([mr_df1, Data_Preprocessing_auto_obj2.dataframe], axis=1, sort=False)
         print(result.info())
 
         # result.to_csv("for_sampling.csv")

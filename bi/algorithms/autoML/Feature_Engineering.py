@@ -101,6 +101,7 @@ class Feature_Engineering:
                 data[new_col_first] = None
                 data[new_col_second] = None
 
+                ## why two loops if it can be done in one TO:DO 
                 for idx in data.index.to_list():
                         if sep!='':
                             data.loc[idx,[new_col_first]] = data[col].str.strip().str.split(sep,n = 1)[idx][0]

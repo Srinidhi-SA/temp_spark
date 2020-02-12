@@ -150,6 +150,7 @@ class Feature_Engineering:
 
         orginal_columns=data.columns.to_list()
 
+        ## TO DO : do same as training.
         date_time_columns= data.select_dtypes(include=['datetime'])
         self.date_time_columns=date_time_columns
         for col_name in data.select_dtypes(include='datetime'):
@@ -262,27 +263,27 @@ class Feature_Engineering:
         return data
 
 
-    # def power_transform(self,data):
-    #     pt = PowerTransformer()
-    #     temp=np.array(data)
-    #     temp=temp.reshape(1,-1)
-    #     pt.fit(temp)
-    #     try:
-    #         new_list = pt.transform(np.float32(temp))
-    #         data=new_list[0]
-    #     except:
-    #         new_list = pt.transform(np.float64(temp))
-    #         data=new_list[0]
-    #     return data
+    def power_transform(self,data):
+        pt = PowerTransformer()
+        temp=np.array(data)
+        temp=temp.reshape(1,-1)
+        pt.fit(temp)
+        try:
+            new_list = pt.transform(np.float32(temp))
+            data=new_list[0]
+        except:
+            new_list = pt.transform(np.float64(temp))
+            data=new_list[0]
+        return data
 
-    # def bin_columns(self,data):
-    #     max_val=round(data.max(),2)
-    #     min_val=round(data.min(),2)
-    #     print(min_val,max_val)
-    #     mean_val=round(data.mean(),2)
-    #     std_val=round(data.std(),2)
-    #     data = pd.cut(data, bins=[min_val,mean_val,mean_val+std_val,max_val], labels=["[{}-{}]".format(min_val,round(mean_val,2)), "[{}-{}]".format(round(mean_val,2),round(mean_val+std_val)), "[{}-{}]".format(round(mean_val+std_val),max_val)],right=True,include_lowest=True)
-    #     return data
+    def bin_columns(self,data):
+        max_val=round(data.max(),2)
+        min_val=round(data.min(),2)
+        print(min_val,max_val)
+        mean_val=round(data.mean(),2)
+        std_val=round(data.std(),2)
+        data = pd.cut(data, bins=[min_val,mean_val,mean_val+std_val,max_val], labels=["[{}-{}]".format(min_val,round(mean_val,2)), "[{}-{}]".format(round(mean_val,2),round(mean_val+std_val)), "[{}-{}]".format(round(mean_val+std_val),max_val)],right=True,include_lowest=True)
+        return data
 
 
     # def bin_columns_for_crammers(self,data):
@@ -907,6 +908,7 @@ class Feature_Engineering:
         self.split_columns()
         self.date_column_split()
         cols_to_keep =self.Dataframe.iloc[:,(self.Dataframe.nunique()/len(self.Dataframe)<.9).values].columns.to_list()
+        ## TO DO :self already has calculated date time columns we can use that, than doing again
         cols_to_keep=[cols for cols in cols_to_keep if not is_datetime(self.Dataframe[cols])]
         print(len(self.Dataframe.columns),"self.Dataframe.columns")
         data1=self.feature_transformation_score(self.Dataframe,self.data_dict2.copy())
@@ -922,6 +924,8 @@ class Feature_Engineering:
         self.Dataframe = data1
         test_data = self.Dataframe#[final_col]
         test_data.drop(['index'],axis=1,inplace=True)
+        ## TO DO : I dont think this is required . We know what to create and what is created ,
+        ## why so many loops for making only created DF
         featue_col_list  =[x['name'] for x in  self.data_dict2['created_feature']]
         new_created = [x for x in featue_col_list if x in final_col]
         original_cols=self.data_dict2['original_cols']

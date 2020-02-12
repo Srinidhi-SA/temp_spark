@@ -668,6 +668,7 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
     if result_column in linear_df.columns:
         df_helper_linear_df.remove_null_rows(result_column)
     linear_df = df_helper_linear_df.get_data_frame()
+    ## TO DO : Unnecessary function , mostly need to be removed on discussion
     linear_df = df_helper_linear_df.fill_missing_values(linear_df)
 
     # Tree

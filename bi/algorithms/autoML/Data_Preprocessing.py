@@ -11,61 +11,66 @@ from validate_email import validate_email
 
 class Data_Preprocessing(object):
 
-    def __init__(self,pre_dict):
+    def __init__(self,pre_dict,dataframe):
         self.pre_dict=pre_dict
+        self.dataframe=dataframe
 
-    def drop_duplicate_rows(self,dataframe):
+    def drop_duplicate_rows(self):
         '''Drops Duplicate rows of a dataframe and returns a new dataframe'''
-        dataframe = dataframe.drop_duplicates()
-        return dataframe
+        self.dataframe = self.dataframe.drop_duplicates()
+        #return dataframe
 
-    def drop_na_columns(self,dataset, pre_dict):
+    def drop_na_columns(self, pre_dict):
+        pre_dict["Dropped_columns"]=[]
         col_settings = pre_dict['Column_settings']
         for i in range(len(col_settings)):
             col = col_settings[i]["re_column_name"]
-            if(col in dataset):
-                if(dataset[col].isna().sum()>(0.75*dataset.shape[0])):
-                    dataset = dataset.drop([col],axis=1)
+            if(col in self.dataframe):
+                if(self.dataframe[col].isna().sum()>(0.75*self.dataframe.shape[0])):
+                    self.dataframe = self.dataframe.drop([col],axis=1)
                     col_settings[i]["droped_column"] = True
-        return dataset
+                    pre_dict["Dropped_columns"].append(col)
+        #return dataset
 
-    def Dimension_Measure(self,Dataframe,columns):
+    def Dimension_Measure(self,columns):
         '''Identifies columns which are measures and have been wrongly identified as dimension
         returns a list of columns to be converted to measure and removes the rows which have other than numeric
         for that particular column'''
         DimToMeasureColumn=[]
         for column in columns:
-            column_val=Dataframe[column]
-            updatedRowNum=Dataframe[column].index
+            column_val=self.dataframe[column]
+            updatedRowNum=self.dataframe[column].index
             r1 = random.randint(0, len(updatedRowNum)-1)
             if re.match("^\d*[.]?\d*$",str(column_val[updatedRowNum[r1]])):
                 #out=column_val.str.isdigit()
                 out = column_val.str.contains("[0-9]+[.]{0,1}[0-9]*\s*")
-                if out[out==False].count() <= 0.01*Dataframe.shape[0]:
+                if out[out==False].count() <= 0.01*self.dataframe.shape[0]:
                     rowIndex=out.index[out==False].tolist()
-                    Dataframe=Dataframe.drop(rowIndex,axis=0)
+                    self.dataframe=self.dataframe.drop(rowIndex,axis=0)
                     DimToMeasureColumn.append(column)
-        return Dataframe,DimToMeasureColumn
+                    ## below line code change during optimization
+                    self.dataframe[column]=pd.to_numeric(self.dataframe[column])
+        return DimToMeasureColumn
 
-    def handle_outliers(self,dataset,columns):
+    def handle_outliers(self,columns):
         '''Hanles outliers for measure columns and returns a list of columns which have high number of outliers'''
         outlier_col=[]
         capped_col=[]
         for column in columns:
-            df1=dataset[column]
+            df1=self.dataframe[column]
             #print(column)  ## Commented
-            col_summary=dataset[column].describe()
+            col_summary=self.dataframe[column].describe()
             #print(col_summary) ## Commented
             outlier_LR, outlier_UR = col_summary["mean"] - (3*col_summary["std"]), col_summary["mean"] + (3*col_summary["std"])
-            outlier_per = len(df1[(df1 > outlier_UR) | (df1 < outlier_LR)])/dataset.shape[0]
+            outlier_per = len(df1[(df1 > outlier_UR) | (df1 < outlier_LR)])/self.dataframe.shape[0]
             if outlier_per < 8/100 and outlier_per>0:
                 capped_col.append(column)
                 df1=df1.replace(to_replace = df1[df1>outlier_UR], value =outlier_UR)
                 df1=df1.replace(to_replace = df1[df1<outlier_LR],value = outlier_LR)
             elif outlier_per!=0 :
                 outlier_col.append(column)
-            dataset[column]=df1
-        return dataset,outlier_col,capped_col
+            self.dataframe[column]=df1
+        return outlier_col,capped_col
 
     def mean_impute(self,column_val):
         '''Returns a column with mean impute'''
@@ -85,32 +90,32 @@ class Data_Preprocessing(object):
         column_val=column_val.fillna(mode)
         return column_val
 
-    def measureCol_imputation(self,dataset,columns,median_col):
+    def measureCol_imputation(self,columns,median_col):
         '''Does missing value imputation for measure columns'''
         mean_impute_cols=[]
         median_impute_cols=[]
         for column in columns:
             if column not in median_col:
                 mean_impute_cols.append(column)
-                dataset[column]=self.mean_impute(dataset[column])
+                self.dataframe[column]=self.mean_impute(dataself.dataframeset[column])
             else:
                 median_impute_cols.append(column)
-                dataset[column]=self.median_impute(dataset[column])
-        return dataset,mean_impute_cols,median_impute_cols
+                self.dataframe[column]=self.median_impute(self.dataframe[column])
+        return mean_impute_cols,median_impute_cols
 
-    def dimCol_imputation(self,dataset,columns):
+    def dimCol_imputation(self,columns):
         '''Does missing value imputation for dimension columns'''
         for column in columns:
-            dataset[column]=self.mode_impute(dataset[column])
-        return dataset
+            self.dataframe[column]=self.mode_impute(self.dataframe[column])
+        #return dataset
 
-    def regex_catch(self,dataset,column):
+    def regex_catch(self,column):
         '''Returns a list of columns and the pattern it has'''
         ## considering currency_list and metric_list are globally defined.
         Dict={"Column_name":column,"email-id":False,"website":False,"Percentage":False,"CurrencyCol":{"value":False,"currency":None},"MetricCol":{"value":False,"metric":None},"SepSymbols":{"value":False,"Symbol":None}}
-        column_val=dataset[column].astype(str).str.strip()
-        df1 = dataset[column_val.apply(validate_email)]
-        if(df1.shape[0]>=(0.8*dataset.shape[0])):
+        column_val=self.dataframe[column].astype(str).str.strip()
+        df1 = self.dataframe[column_val.apply(validate_email)]
+        if(df1.shape[0]>=(0.8*self.dataframe.shape[0])):
             Dict["email-id"]=True
         elif column_val.str.contains("%$",na=True).all():
             Dict["Percentage"]=True
@@ -137,18 +142,18 @@ class Data_Preprocessing(object):
                 Dict["SepSymbols"]["Symbol"]=seperators[0]
         return Dict
 
-    def Target_analysis(self,DataFrame, targetname, m_type):
+    def Target_analysis(self, targetname, m_type):
         '''Gives information of target column'''
-        DataFrame=DataFrame.dropna(axis=0, subset=[targetname])
+        self.dataframe=self.dataframe.dropna(axis=0, subset=[targetname])
         output_dict={"Target_analysis":{"target":targetname,"unique_count":int,"value_counts":{},"balanced": None ,"binary": None}}
-        target_variable=DataFrame[targetname]
+        target_variable=self.dataframe[targetname]
         counts = target_variable.value_counts()
-        DataFrame = DataFrame[~target_variable.isin(counts[counts <= 10].index)]
+        self.dataframe = self.dataframe[~target_variable.isin(counts[counts <= 10].index)]
         if (m_type.lower()=='classification'):
             ## convert target column into object
             output_dict['Target_analysis']['converted_to_str'] = False
-            if DataFrame[targetname].dtype != 'O':
-                DataFrame[targetname] = "'" + DataFrame[targetname].astype(str) + "'"
+            if self.dataframe[targetname].dtype != 'O':
+                self.dataframe[targetname] = "'" + self.dataframe[targetname].astype(str) + "'"
                 output_dict['Target_analysis']['converted_to_str'] = True
                 print("!!!!!!! Converted to str!!!!!!")
             unique_count=target_variable.nunique()
@@ -174,11 +179,11 @@ class Data_Preprocessing(object):
                        output_dict['Target_analysis']['binary']=True # binary (true)
                 else:
                     output_dict['Target_analysis']['binary']=False# not binary(False)
-            return output_dict,DataFrame
+            return output_dict
         else:
             out_dict={"Target_analysis":{"target_name":targetname,"descrp_status":{}}}
             out_dict['Target_analysis']['descrp_status']=target_variable.describe().to_dict()
-            return out_dict,DataFrame
+            return out_dict
 
     def update_column_settings(self,regexd,datad):
             col_settings = datad['Column_settings']
@@ -215,7 +220,7 @@ class Data_Preprocessing(object):
             datad['Column_settings']=col_settings
             return datad
 
-    def main(self,df):
+    def main(self):
         global currency_list
         global Metric_list
         target = self.pre_dict['target']
@@ -236,41 +241,43 @@ class Data_Preprocessing(object):
             currency_list=['₹', 'kr.', '₱', 'P', 'R', '£', '₦', '€', 'HK$', '$']
         currency_list
         Metric_list=list(set(dir(UnitRegistry())))
-        df1=self.drop_duplicate_rows(df)
-        df = self.drop_na_columns(df1,data_dict)
-        data_dict['Dropped_columns']=list(set(df1)-set(df))
-        a,df=self.Target_analysis(df,target,app_type)
+        self.drop_duplicate_rows()
+        self.drop_na_columns(data_dict)
+        ## check the below line to improve
+        #data_dict['Dropped_columns']=list(set(df1)-set(df))
+        a=self.Target_analysis(target,app_type)
         measureCol=[]
         dimCol=[]
-        measureCol = list(df.select_dtypes(include=['int32','int64','float32','float64','int','float']).columns) ## measureCol = list(df.select_dtypes(include=['int','float']).columns)
-        dimCol = list(df.select_dtypes(include=['object','datetime64','category','bool']).columns)
+        ## pass this measure column and dim col to other modules
+        measureCol = list(self.dataframe.select_dtypes(include=['int32','int64','float32','float64','int','float']).columns) ## measureCol = list(df.select_dtypes(include=['int','float']).columns)
+        dimCol = list(self.dataframe.select_dtypes(include=['object','datetime64','category','bool']).columns)
         data_dict["Target_analysis"]=a["Target_analysis"]
-        df,outlier_columns,capped_cols=self.handle_outliers(df,measureCol)
+        outlier_columns,capped_cols=self.handle_outliers(measureCol)
         print("capped_cols: ",capped_cols)
         data_dict["Cap_outlier"]=capped_cols
-        measureColImpu=[i for i in measureCol if df[i].isna().sum()>0 ]
-        dimColImpu=[i for i in dimCol if df[i].isna().sum()>0 ]
-        df,mean_impute_cols,median_impute_cols=self.measureCol_imputation(df,measureColImpu,outlier_columns)
+        measureColImpu=[i for i in measureCol if self.dataframe[i].isna().sum()>0 ]
+        dimColImpu=[i for i in dimCol if self.dataframe[i].isna().sum()>0 ]
+        mean_impute_cols,median_impute_cols=self.measureCol_imputation(measureColImpu,outlier_columns)
         data_dict["Mean_imputeCols"]=mean_impute_cols
         data_dict["Median_imputeCols"]=median_impute_cols
-        df=self.dimCol_imputation(df,dimColImpu)
+        self.dimCol_imputation(dimColImpu)
         data_dict["Mode_imputeCols"]=dimColImpu
-        dimRegex=[i for i in dimCol if df[i].dtypes == "object" ]
+        dimRegex=[i for i in dimCol if self.dataframe[i].dtypes == "object" ]
         if data_dict['target'] in dimRegex:
             dimRegex.remove(data_dict['target'])
-        regex_dic=[self.regex_catch(df,i)for i in dimRegex]
+        regex_dic=[self.regex_catch(i)for i in dimRegex]
         data_dict=self.update_column_settings(regex_dic,data_dict)
-        dataFinal,data_dict["MeasureColsToDim"]=self.Dimension_Measure(df,dimCol)
+        data_dict["MeasureColsToDim"]=self.Dimension_Measure(dimCol)
         for column in data_dict["MeasureColsToDim"]:
-            dataFinal[column]=pd.to_numeric(dataFinal[column])
+            self.dataframe[column]=pd.to_numeric(self.dataframe[column])
         ### Setting orginal_columns value in the dictionary:
-        orginal_columns=dataFinal.columns.to_list()
+        orginal_columns=self.dataframe.columns.to_list()
         data_dict['original_cols'] = orginal_columns
         print("Original Columns:  ",orginal_columns)
-        return dataFinal,data_dict
+        return data_dict
 
     #def fe_main(self,df,data_dict):
-    def fe_main(self,df):
+    def fe_main(self):
         data_dict=self.pre_dict
         target = self.pre_dict['target']
         app_type = self.pre_dict['app_type']
@@ -291,21 +298,21 @@ class Data_Preprocessing(object):
         Metric_list=list(set(dir(UnitRegistry())))
         measureCol=[]
         dimCol=[]
-        measureCol = list(df.select_dtypes(include=['int32','int64','float32','float64','int','float']).columns) ## measureCol = list(df.select_dtypes(include=['int','float']).columns)
-        dimCol = list(df.select_dtypes(include=['object','datetime64','category','bool']).columns)
-        df,outlier_columns,capped_cols=self.handle_outliers(df,measureCol)
+        measureCol = list(self.dataframe.select_dtypes(include=['int32','int64','float32','float64','int','float']).columns) ## measureCol = list(df.select_dtypes(include=['int','float']).columns)
+        dimCol = list(self.dataframe.select_dtypes(include=['object','datetime64','category','bool']).columns)
+        outlier_columns,capped_cols=self.handle_outliers(measureCol)
         data_dict["Cap_outlier"]=capped_cols
-        measureColImpu=[i for i in measureCol if df[i].isna().sum()>0 ]
-        dimColImpu=[i for i in dimCol if df[i].isna().sum()>0 ]
-        df,mean_impute_cols,median_impute_cols=self.measureCol_imputation(df,measureColImpu,outlier_columns)
+        measureColImpu=[i for i in measureCol if self.dataframe[i].isna().sum()>0 ]
+        dimColImpu=[i for i in dimCol if self.dataframe[i].isna().sum()>0 ]
+        mean_impute_cols,median_impute_cols=self.measureCol_imputation(measureColImpu,outlier_columns)
         data_dict["Mean_imputeCols"]=mean_impute_cols
         data_dict["Median_imputeCols"]=median_impute_cols
-        df=self.dimCol_imputation(df,dimColImpu)
+        self.dimCol_imputation(dimColImpu)
         data_dict["Mode_imputeCols"]=dimColImpu
-        dimRegex=[i for i in dimCol if df[i].dtypes == "object" ]
-        regex_dic=[self.regex_catch(df,i)for i in dimRegex]
+        dimRegex=[i for i in dimCol if self.dataframe[i].dtypes == "object" ]
+        regex_dic=[self.regex_catch(i)for i in dimRegex]
         data_dict=self.update_column_settings(regex_dic,data_dict)
-        dataFinal,data_dict["MeasureColsToDim"]=self.Dimension_Measure(df,dimCol)
+        data_dict["MeasureColsToDim"]=self.Dimension_Measure(dimCol)
         for column in data_dict["MeasureColsToDim"]:
-            dataFinal[column]=pd.to_numeric(dataFinal[column])
-        return dataFinal,data_dict
+            self.dataframe[column]=pd.to_numeric(self.dataframe[column])
+        return data_dict
