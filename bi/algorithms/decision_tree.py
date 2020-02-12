@@ -38,7 +38,7 @@ class DecisionTrees(object):
     # @accepts(object, DataFrame)
     def __init__(self, data_frame, df_helper, df_context, spark, meta_parser,scriptWeight=None, analysisName=None):
         self._spark = spark
-        self._maxDepth = 5
+        self._maxDepth = 4
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -181,12 +181,20 @@ class DecisionTrees(object):
 
             if ' <= ' in rule:
                 var,limit = re.split(' <= ',rule)
-
                 DFF.values_below(var,limit)
+                data_dict={}
+                for rows in DFF.get_count_result(colname):
+                    if rows is not None:
+                        data_dict[rows[0]]=rows[1]
+                dict_tree.append(data_dict)
             elif ' > ' in rule:
                 var,limit = re.split(' > ',rule)
-
                 DFF.values_above(var,limit)
+                data_dict={}
+                for rows in DFF.get_count_result(colname):
+                    if rows is not None:
+                        data_dict[rows[0]]=rows[1]
+                dict_tree.append(data_dict)
             elif ' not in ' in rule:
                 var,levels = rule.split(' not in (')
                 levels=levels[0:-1].split(",")
@@ -366,6 +374,7 @@ class DecisionTrees(object):
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
+        all_dimensions.append(dimension)#this has been done for scoring error
         self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
         print(self._data_frame.show(1))
         # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
@@ -415,7 +424,6 @@ class DecisionTrees(object):
         correct_count_list=[i[0] for i in  self._count_list]
         tree_dict=dict(list(zip(node_list,correct_count_list)))
         self._new_tree = self.wrap_tree(self._new_tree,tree_dict)
-        print((self._new_tree,"self._new_treeself._new_tree"))
         self._path_dict=self.path_dict_creator(node_list,self._new_tree)
         print("==="*40)
         decision_tree_result.set_params(self._new_tree, self._new_rules, self._total, self._success, self._probability,self._path_dict)

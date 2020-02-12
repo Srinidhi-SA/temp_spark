@@ -54,12 +54,11 @@ def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=N
     if target_measure is None:
         target_measure = []
     df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
-
     measures_with_same_val = []
-    for measure_column in measure_columns:
+    measure_list=measure_columns.copy()
+    for measure_column in measure_list:
         min_, max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
         diff = (max_ - min_)*1.0
-
         if diff == 0.0:
             measures_with_same_val.append(measure_column)
             measure_columns.remove(measure_column)
