@@ -58,7 +58,11 @@ class Scoring(object):
 
             re_column = data_dict["Column_settings"][idx]['re_column_name']
 
-            column = data_dict["Column_settings"][idx]['column_name']
+            # column = data_dict["Column_settings"][idx]['column_name']
+            try:
+                column = data_dict["Column_settings"][idx]['column_name']
+            except:
+                column = re.sub('\W+','_', data_dict["Column_settings"][idx]['column_name'])
             #print (column)
             ## TO DO : why all columns are being renamed , check re_name =True then do all this.
 

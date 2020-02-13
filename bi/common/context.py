@@ -8,6 +8,7 @@ from bi.common.decorators import accepts
 from bi.settings import setting as GLOBALSETTINGS
 from cryptography.fernet import Fernet
 from bi.common import AlgorithmParameterConfig
+import re
 
 
 class ContextSetter(object):
@@ -224,7 +225,8 @@ class ContextSetter(object):
                         GLOBALSETTINGS.CONSIDERED_COLUMNS.append(str(colSetting["name"]))
                         self.considercolumns.append(str(colSetting["name"]))
                     if colSetting["targetColumn"] == True:
-                        self.resultcolumn = str(colSetting["name"])
+                        # self.resultcolumn = str(colSetting["name"])
+                        self.resultcolumn = re.sub('\W+','_', str(colSetting["name"]))
                         if colSetting["columnType"] == "measure":
                             if colSetting["targetColSetVarAs"] != None or colSetting["setVarAs"] in ["percentage","index","average"]:
                                 self.analysistype = "dimension"

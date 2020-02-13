@@ -57,6 +57,8 @@ class DataFrameTransformer(object):
             for transformObj in existingColTransforms:
                 transformActionList = [obj["actionName"]  for obj in transformObj["columnSetting"]]
                 colName = self._metaParser.get_name_from_slug(transformObj["slug"])
+                if colName == None:
+                    colName = transformObj['name']
                 if "delete" in transformActionList:
                     self.delete_column(colName)
                 else:
@@ -64,6 +66,7 @@ class DataFrameTransformer(object):
                         if obj["actionName"] == "replace":
                             self.update_column_data(colName,obj["replacementValues"])
                         if obj["actionName"] == "rename":
+                            colName = obj['prevName']
                             self.update_column_name(colName,obj["newName"])
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
