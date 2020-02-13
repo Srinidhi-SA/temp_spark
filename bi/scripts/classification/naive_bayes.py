@@ -525,6 +525,7 @@ class NBBClassificationModelScript(object):
             columns_to_drop += ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         print("columns_to_drop",columns_to_drop)
+        columns_to_drop = ["predicted_probability"]
         df.drop(columns_to_drop, axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
@@ -1257,6 +1258,7 @@ class NBGClassificationModelScript(object):
             columns_to_drop += ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         print("columns_to_drop",columns_to_drop)
+        columns_to_drop = ["predicted_probability"]
         df.drop(columns_to_drop, axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
@@ -2033,6 +2035,7 @@ class NBMClassificationModelScript(object):
             columns_to_drop += ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         print("columns_to_drop",columns_to_drop)
+        columns_to_drop = ["predicted_probability"]
         df.drop(columns_to_drop, axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
