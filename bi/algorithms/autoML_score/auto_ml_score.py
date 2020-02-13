@@ -1,12 +1,10 @@
-from bi.algorithms.autoML_score.Feature_Engineering import Feature_Engineering
-
-from bi.algorithms.autoML_score.Data_Validation import Data_Validation
+from bi.algorithms.autoML.Feature_Engineering import Feature_Engineering
 
 from bi.algorithms.autoML_score.ScoringDataPreprocessing import Score_Preprocessing
 
-from bi.algorithms.autoML_score.Data_Preprocessing import Data_Preprocessing
+#from bi.algorithms.autoML_score.Data_Preprocessing import Data_Preprocessing
 
-from bi.algorithms.autoML_score.Feature_Selection import Utils
+from bi.algorithms.autoML.Feature_Selection import Utils
 
 import chardet
 
@@ -30,26 +28,26 @@ class Scoring(object):
         # obj.run()
 
 
-    def find_encoding(self):
+    # def find_encoding(self):
+    #
+    #     ## TO DO : Not be used , check and remove
+    #
+    #     r_file = open(self.path, 'rb').read()
+    #
+    #     result = chardet.detect(r_file)
+    #
+    #     charencode = result['encoding']
+    #
+    #     return charencode
 
-        r_file = open(self.path, 'rb').read()
-
-        result = chardet.detect(r_file)
-
-        charencode = result['encoding']
-
-        return charencode
-
-    def read_df(self):
-
-        na_values = ["NO CLUE","no clue", "No Clue","na","NA","N/A", "n/a","n a","N A", "not available",
-             "Not Available", "NOT AVAILABLE","?","!","NONE","None","none","null","-"]
-
-        # df = pd.read_csv(self.path,encoding=self.find_encoding(),error_bad_lines=False,
-        #                           sep=",",na_values=na_values)
-        df = pd.read_csv(self.path,error_bad_lines=False,
-                                  sep=",",na_values=na_values)
-        return df
+    # def read_df(self):
+    #
+    #     na_values = ["NO CLUE","no clue", "No Clue","na","NA","N/A", "n/a","n a","N A", "not available",
+    #          "Not Available", "NOT AVAILABLE","?","!","NONE","None","none","null","-"]
+    #
+    #     df = pd.read_csv(self.path,error_bad_lines=False,
+    #                               sep=",",na_values=na_values)
+    #     return df
 
 
     def validation(self,data,data_dict):
@@ -82,46 +80,53 @@ class Scoring(object):
 
         return data
 
-    def null_handling(self,df):
-
-        cls=Data_Preprocessing(self.data_dict,df)
-
-        measureCol,dim = [],[]
-
-        for i in df.columns:
-
-            if df[i].dtypes != "object" and df[i].dtypes != "datetime64[ns]":
-
-                measureCol.append(i)
-
-            else :
-
-                dim.append(i)
-
-        outlier_columns,capped_cols=cls.handle_outliers(measureCol)
-
-        measureColImpu = [i for i in measureCol if cls.dataframe[i].isna().sum()>0 ]
-
-        dimColImpu = [i for i in dim if cls.dataframe[i].isna().sum()>0 ]
-
-        mean_impute_cols,median_impute_cols = cls.measureCol_imputation(measureColImpu,outlier_columns)
-
-        cls.dimCol_imputation(dimColImpu)
-
-        return cls.dataframe
+    # def null_handling(self,df):
+    #
+    #     ## TO DO : Not being used , check and remove.
+    #
+    #     cls=Data_Preprocessing(self.data_dict,df)
+    #
+    #     measureCol,dim = [],[]
+    #
+    #     for i in df.columns:
+    #
+    #         if df[i].dtypes != "object" and df[i].dtypes != "datetime64[ns]":
+    #
+    #             measureCol.append(i)
+    #
+    #         else :
+    #
+    #             dim.append(i)
+    #
+    #     outlier_columns,capped_cols=cls.handle_outliers(measureCol)
+    #
+    #     measureColImpu = [i for i in measureCol if cls.dataframe[i].isna().sum()>0 ]
+    #
+    #     dimColImpu = [i for i in dim if cls.dataframe[i].isna().sum()>0 ]
+    #
+    #     mean_impute_cols,median_impute_cols = cls.measureCol_imputation(measureColImpu,outlier_columns)
+    #
+    #     cls.dimCol_imputation(dimColImpu)
+    #
+    #     return cls.dataframe
 
 
     def score_feature_eng(self,df,data_dict):
         fe_obj=Feature_Engineering(df,data_dict)
 
         if len(data_dict['created_feature'])>0:
-            #print ("\n\n\n\n\n\n\n\n\n\n")
-            #print(data_dict['train_final_cols'], "\n\n\n\n\n\n\n\n\n\n\n")
 
             fe_obj.test_main(data_dict['normalize_column'],data_dict['train_final_cols'])
-#             print("fe_obj: ", fe_obj.original_df)
-#             print("created only: ",fe_obj.only_created_df)
             return fe_obj.original_df,fe_obj.only_created_df, fe_obj.date_time_columns
+        else:
+            original_cols=data_dict['original_cols']
+            original_cols.remove(data_dict['target'])
+            original_df=df[original_cols]
+            self.original_df=original_df
+            self.only_created_df=None
+            date_time_columns_df=pd.DataFrame()
+            self.date_time_columns=date_time_columns_df
+            return self.original_df,self.only_created_df,self.date_time_columns
 
 
 
@@ -134,17 +139,17 @@ class Scoring(object):
 
         tree_dataframe = Dataframe[data_dict['tree_features']]
 
-        obj = Utils()
+        Utils_obj = Utils()
 
         """ Label encoding transform"""
 
         if data_dict['labelencoder']['tree'] != []:
 
-            tree_dataframe = obj.label_en(tree_dataframe,data_dict['labelencoder']['tree'])
+            tree_dataframe = Utils_obj.label_en(tree_dataframe,data_dict['labelencoder']['tree'])
 
         if data_dict['labelencoder']['linear'] != []:
 
-            linear_dataframe = obj.label_en(linear_dataframe,data_dict['labelencoder']['linear'])
+            linear_dataframe = Utils_obj.label_en(linear_dataframe,data_dict['labelencoder']['linear'])
 
         """ Dummy transform"""
 
@@ -152,13 +157,13 @@ class Scoring(object):
 
             for col in data_dict['dummy']['tree']:
 
-                tree_dataframe = obj.Onehotencoder(tree_dataframe,col)
+                tree_dataframe = Utils_obj.Onehotencoder(tree_dataframe,col)
 
         if data_dict['dummy']['linear'] != []:
 
             for col in data_dict['dummy']['linear']:
 
-                linear_dataframe = obj.Onehotencoder(linear_dataframe,col)
+                linear_dataframe = Utils_obj.Onehotencoder(linear_dataframe,col)
 
         return linear_dataframe,tree_dataframe
 
@@ -242,34 +247,33 @@ class Scoring(object):
 
         """preprocessing"""
 
-        obj = Score_Preprocessing(self.data_dict)
+        Score_Preprocessing_obj = Score_Preprocessing(self.data_dict)
 
-        data = obj.preprocessing(data,self.data_dict)
+        data = Score_Preprocessing_obj.preprocessing(data,self.data_dict)
         print(data.shape)
 
         """FeatureEngineering"""
-        o,c,date_col = self.score_feature_eng(data,self.data_dict)
-        print(o.columns, c.columns)
-        cols = list(set(o)-set(date_col))
-        o = o[cols]
+        original_df,created_df,date_col = self.score_feature_eng(data,self.data_dict)
+        print(original_df.columns, created_df.columns)
+        cols = list(set(original_df)-set(date_col))
+        original_df = original_df[cols]
 
         try:
-#             result = o.merge(c)
-            result = pd.concat([o,c], axis=1)
+            result = pd.concat([original_df,created_df], axis=1)
         except:
-            result = o.merge(c, left_on=o.index,right_on=c.index,copy=False)
+            result = original_df.merge(created_df, left_on=original_df.index,right_on=created_df.index,copy=False)
 
         print('result: ',result.shape)
 
         """Feature_selection"""
-        l1,t1 = self.Scoring_feature_selection(result,self.data_dict)
+        linear_df,tree_df = self.Scoring_feature_selection(result,self.data_dict)
         ## TO DO: the working of validate function below , could be removed.
-        l,t = self.validate(data,self.data_dict,l1,t1)
-        linear_df_cols = [re.sub('\W+','_', col) for col in l.columns]
-        l.columns = linear_df_cols
-        tree_df_cols = [re.sub('\W+','_', col) for col in t.columns]
-        t.columns = tree_df_cols
-        return l,t
+        linear_df,tree_df = self.validate(data,self.data_dict,linear_df,tree_df)
+        linear_df_cols = [re.sub('\W+','_', col) for col in linear_df.columns]
+        linear_df.columns = linear_df_cols
+        tree_df_cols = [re.sub('\W+','_', col) for col in tree_df.columns]
+        tree_df.columns = tree_df_cols
+        return linear_df,tree_df
 
 
 # directory = 'D:/mAdvisor/AutoML/SCORING+TRAINING/OneClick_AutoML (copy)/soccer_train/'

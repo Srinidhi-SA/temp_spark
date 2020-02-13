@@ -58,12 +58,16 @@ class FeatureEngineering(object):
                                         self._df = feature_engineering_helper_obj.cuberoot_transform_column(column["name"])
                                     if column["transformation_type"] == "square_root_transform":
                                         self._df = feature_engineering_helper_obj.squareroot_transform_column(column["name"])
+                            col = []
                             if operation['name'] == 'encoding_dimensions':
                                 for column in operation['columns']:
                                     if column["encoding_type"] == "label_encoding":
                                         self._df = feature_engineering_helper_obj.label_encoding_column(column["name"])
+                                        col.append(column["name"])
                                     if column["encoding_type"] == "one_hot_encoding":
                                         self._df = feature_engineering_helper_obj.onehot_encoding_column(column["name"])
+                                        col.append(column["name"])
+                                self._df = self._df.drop(*col)
                             if operation['name'] == 'return_character_count':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.character_count_string(column["name"])

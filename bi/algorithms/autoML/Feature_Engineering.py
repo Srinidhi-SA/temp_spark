@@ -101,7 +101,7 @@ class Feature_Engineering:
                 data[new_col_first] = None
                 data[new_col_second] = None
 
-                ## why two loops if it can be done in one TO:DO 
+                ## why two loops if it can be done in one TO:DO
                 for idx in data.index.to_list():
                         if sep!='':
                             data.loc[idx,[new_col_first]] = data[col].str.strip().str.split(sep,n = 1)[idx][0]
@@ -589,17 +589,20 @@ class Feature_Engineering:
     #                 data[vals[0]+name+vals[1]]=labels1+labels2
     #     return data
 
-    # def feature_transformation_score(self,data,data_dict):
-    #     if 'power_transform' in data_dict.keys():
-    #         for i in data_dict['power_transform']:
-    #                 data[i+'_pt']=self.power_transform(data[i])
-    #     if 'bin_columns' in  data_dict.keys():
-    #         for i in data_dict['bin_columns']:
-    #                 data[i+'_bins']= self.bin_columns(data[i])
-    #     if 'categorical_decomposition' in data_dict.keys():
-    #         for i in data_dict['categorical_decomposition']:
-    #                 data[i+'_decomposed']= self.categorical_decomposition(data[i])
-    #     return data
+    def feature_transformation_score(self,data,data_dict):
+        if 'log_transform' in data_dict.keys():
+            for i in data_dict['log_transform']:
+                data[i+'_lt']=data[i].apply(lambda x:np.log(x) if x>0 else np.log(x+abs(min(data[i])+1)))
+        if 'power_transform' in data_dict.keys():
+            for i in data_dict['power_transform']:
+                data[i+'_pt']=self.power_transform(data[i])
+        if 'bin_columns' in  data_dict.keys():
+            for i in data_dict['bin_columns']:
+                data[i+'_bins']= self.bin_columns(data[i])
+        if 'categorical_decomposition' in data_dict.keys():
+            for i in data_dict['categorical_decomposition']:
+                data[i+'_decomposed']= self.categorical_decomposition(data[i])
+        return data
 
 
     # def cramers_corrected_stat(self,x,y):
