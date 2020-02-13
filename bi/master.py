@@ -16,7 +16,7 @@ from bi.settings import *
 from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.algorithms import feature_engineering as feature_engineering
 from bi.algorithms.autoML import auto_ml as autoML
-from bi.algorithms.autoML_score import auto_ml_score as autoMLScore
+from bi.algorithms.autoML import auto_ml_score as autoMLScore
 
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
@@ -51,7 +51,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "prediction"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:

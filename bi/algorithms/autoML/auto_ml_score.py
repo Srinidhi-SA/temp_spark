@@ -1,6 +1,6 @@
 from bi.algorithms.autoML.Feature_Engineering import Feature_Engineering
 
-from bi.algorithms.autoML_score.ScoringDataPreprocessing import Score_Preprocessing
+from bi.algorithms.autoML.ScoringDataPreprocessing import Score_Preprocessing
 
 #from bi.algorithms.autoML_score.Data_Preprocessing import Data_Preprocessing
 
@@ -254,7 +254,10 @@ class Scoring(object):
 
         """FeatureEngineering"""
         original_df,created_df,date_col = self.score_feature_eng(data,self.data_dict)
-        print(original_df.columns, created_df.columns)
+        try :
+            print(original_df.columns, created_df.columns)
+        except :
+            print("No created columns")
         cols = list(set(original_df)-set(date_col))
         original_df = original_df[cols]
 
