@@ -213,7 +213,8 @@ class auto_ML:
 
         # with open('data.txt',  'w', encoding='utf-8') as f:
         #     json.dumps(obj6.data_dict)
-        self.final_json = json.dumps(Feature_Selection_obj.data_dict)
+        #self.final_json = json.dumps(Feature_Selection_obj.data_dict)
+        self.final_json = Feature_Selection_obj.data_dict
         self.linear_df = linear_df
         self.tree_df = tree_df
 
