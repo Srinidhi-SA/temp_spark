@@ -20,7 +20,8 @@ class Scoring(object):
 
         self.path = path
 
-        self.data_dict = ast.literal_eval(data_dict)
+        #self.data_dict = ast.literal_eval(data_dict)
+        self.data_dict = data_dict
 
         # path = self.path
         #
