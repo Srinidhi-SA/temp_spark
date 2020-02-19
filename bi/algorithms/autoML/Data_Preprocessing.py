@@ -310,6 +310,8 @@ class Data_Preprocessing(object):
         self.dimCol_imputation(dimColImpu)
         data_dict["Mode_imputeCols"]=dimColImpu
         dimRegex=[i for i in dimCol if self.dataframe[i].dtypes == "object" ]
+        if data_dict['target'] in dimRegex:
+            dimRegex.remove(data_dict['target'])
         regex_dic=[self.regex_catch(i)for i in dimRegex]
         data_dict=self.update_column_settings(regex_dic,data_dict)
         data_dict["MeasureColsToDim"]=self.Dimension_Measure(dimCol)
