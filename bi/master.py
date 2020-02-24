@@ -51,7 +51,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "stockAdvisor"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -419,5 +419,5 @@ if __name__ == '__main__':
         while str(resp.text) != '{"result": "success"}':
             data = {"status": "killed", "jobURL": jobURL}
             resp = send_kill_command(killURL, data)
-        # print resp.text
+        print (e)
         print('Main Method Did Not End ....., ', str(e))
