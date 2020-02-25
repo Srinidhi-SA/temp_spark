@@ -61,8 +61,8 @@ class StockAdvisor(object):
         print ("############req_data#######################"*3)
         print (req_data)
         print ("#########json.loads(req_data)############"*3)
-        print (json.loads(req_data))
-        return json.loads(req_data)
+        print (json.loads(req_data.decode('utf-8')))
+        return json.loads(req_data.decode('utf-8'))
 
     def read_ankush_json(self,url):
         req = urllib.request.urlopen(url)
