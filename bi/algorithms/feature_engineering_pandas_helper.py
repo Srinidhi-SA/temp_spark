@@ -4,6 +4,7 @@ from builtins import str
 from builtins import range
 from builtins import object
 from past.utils import old_div
+import numpy as np
 import math
 from datetime import datetime
 from scipy import linspace
@@ -18,7 +19,7 @@ class FeatureEngineeringHelperPandas(object):
 
     def __init__(self, df, dataframe_context):
         self._data_frame = df
-        self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.count())
+        #self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.shape[0])
         self._dataframe_context = dataframe_context
 
         # self._dataframe_helper = dataframe_helper
@@ -31,7 +32,7 @@ class FeatureEngineeringHelperPandas(object):
             self._data_frame = self.create_equal_sized_measure_bins(column_name,number_of_bins)
         return self._data_frame
 
-    def check_key(x, bin_label):
+    def check_key(self, x, bin_label):
         if x!= None:
             for key in list(bin_label.keys()):
                 if (x >= bin_label[key][0] and x <= bin_label[key][1]):
@@ -39,7 +40,7 @@ class FeatureEngineeringHelperPandas(object):
         else :
             return "None"
 
-    def create_level(x, level_dict, selected_list):
+    def create_level(self, x, level_dict, selected_list):
         for key in list(level_dict.keys()):
             if x in selected_list:
                 if x in level_dict[key]:
@@ -51,7 +52,7 @@ class FeatureEngineeringHelperPandas(object):
         selected_list = []
         for key in list(level_dict.keys()):
             selected_list = selected_list + level_dict[key]
-        self._data_frame[column_name+"_level"] = self._data_frame[column_name].apply(create_level,level_dict=level_dict,selected_list=selected_list)
+        self._data_frame[column_name+"_level"] = self._data_frame[column_name].apply(self.create_level,level_dict=level_dict,selected_list=selected_list)
         return self._data_frame
 
     def create_level_udf_time(self, dict, date_format):
@@ -60,7 +61,7 @@ class FeatureEngineeringHelperPandas(object):
     def create_new_levels_datetimes(self, col_for_timelevels, dict):
         pass
 
-     def create_equal_sized_measure_bins(self, column_name,number_of_bins):
+    def create_equal_sized_measure_bins(self, column_name,number_of_bins):
         def create_dict_for_bin():
             min_value = np.min(self._data_frame[column_name])
             max_value = np.max(self._data_frame[column_name])
@@ -72,7 +73,7 @@ class FeatureEngineeringHelperPandas(object):
                 temp = temp+interval_size
             return bin_dict
         bin_dict = create_dict_for_bin()
-        self._data_frame[column_name+"_bin"] = self._data_frame[column_name].apply(check_key, bin_label=bin_dict)
+        self._data_frame[column_name+"_bin"] = self._data_frame[column_name].apply(self.check_key, bin_label=bin_dict)
         return self._data_frame
 
     def create_custom_measure_bins(self,column_name,list_of_intervals):
@@ -90,7 +91,7 @@ class FeatureEngineeringHelperPandas(object):
 
             return bin_dict
         bin_dict = create_dict_for_bin()
-        self._data_frame[column_name+"_c_bin"] = self._data_frame[column_name].apply(check_key,bin_label=bin_dict)
+        self._data_frame[column_name+"_c_bin"] = self._data_frame[column_name].apply(self.check_key,bin_label=bin_dict)
         return self._data_frame
 
     def replace_values_in_column(self, column_name, range, value):
