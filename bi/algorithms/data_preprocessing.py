@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from builtins import object
 from .data_preprocessing_helper import DataPreprocessingHelper
+from .data_preprocessing_helper_pandas import DataPreprocessingHelperPandas
 
 
 class DataPreprocessing(object):
@@ -10,6 +11,7 @@ class DataPreprocessing(object):
         self._spark = spark
         self._df = df
         self._dataframe_context = dataframe_context
+        self._pandas_flag = True
         # self._dataframe_helper = dataframe_helper
         # self._metaParserInstance = metaParserInstance
         self._dataCleansingDict = dataCleansingDict
@@ -17,7 +19,11 @@ class DataPreprocessing(object):
 
     def data_cleansing(self):
         print("Cleaning The Data")
-        data_preprocessing_helper_obj = DataPreprocessingHelper(self._df, self._dataframe_context)
+        if self._pandas_flag == True:
+            data_preprocessing_helper_obj = DataPreprocessingHelperPandas(self._df, self._dataframe_context)
+        else:
+            data_preprocessing_helper_obj = DataPreprocessingHelper(self._df, self._dataframe_context)
+
         for settings in self._dataCleansingDict['overall_settings']:
             if settings['name'] == "duplicate_row" and settings['selected'] == True:
                 self._df = data_preprocessing_helper_obj.drop_duplicate_rows()
