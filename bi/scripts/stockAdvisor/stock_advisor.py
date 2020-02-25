@@ -54,8 +54,14 @@ class StockAdvisor(object):
         return df
 
     def read_ankush_concepts(self,url):
+        print ("Inside read_ankus_concepts")
         req = urllib.request.urlopen(url)
+        print ("#########req###############", req)
         req_data = req.read()
+        print ("############req_data#######################"*3)
+        print (req_data)
+        print ("#########json.loads(req_data)############"*3)
+        print (json.loads(req_data))
         return json.loads(req_data)
 
     def read_ankush_json(self,url):
@@ -474,8 +480,10 @@ class StockAdvisor(object):
             self.concepts = self.load_concepts_from_json()
         else:
             conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
+            print ("Before read_ankus_concepts")
+            print (self.dataFilePath.format("concepts",""))
             self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
-
+            print("after Before read_ankus_concepts")
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
