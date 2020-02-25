@@ -226,6 +226,10 @@ def main(configJson):
                             progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Performing Required Data Preprocessing And Feature Transformation Tasks",completionStatus,completionStatus)
                             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                             dataframe_context.update_completion_status(completionStatus)
+                            ## TO DO : Change flag later this is only for testing
+                            pandas_flag = True
+                            if pandas_flag :
+                                df = df.toPandas()
                             if dataCleansingDict['selected']:
                                 data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict, dataframe_context)
                                 df = data_preprocessing_obj.data_cleansing()
