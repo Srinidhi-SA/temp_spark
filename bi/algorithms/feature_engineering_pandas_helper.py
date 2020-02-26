@@ -12,7 +12,7 @@ from bi.common.column import ColumnType
 from bi.common import MetaDataHelper
 from bi.settings import setting as GLOBALSETTINGS
 
-from .data_preprocessing_helper import DataPreprocessingHelper
+from .data_preprocessing_helper_pandas import DataPreprocessingHelperPandas
 
 class FeatureEngineeringHelperPandas(object):
     """Contains Feature Engineering Operation Functions"""
@@ -96,18 +96,18 @@ class FeatureEngineeringHelperPandas(object):
 
     def replace_values_in_column(self, column_name, range, value):
         if value == "median":
-            dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
+            dp_helper_obj = DataPreprocessingHelperPandas(self._data_frame, self._dataframe_context)
             median_val = dp_helper_obj.get_median(self._data_frame, column_name)
             replace_value = median_val
             self._data_frame[column_name+"_treated_"+str(range)+"_median"] = self._data_frame[column_name].apply(lambda x: replace_value if x==range else x)
         elif value == "mode":
-            dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
+            dp_helper_obj = DataPreprocessingHelperPandas(self._data_frame, self._dataframe_context)
             mode_val = dp_helper_obj.get_mode(self._data_frame, column_name)
             replace_value = mode_val
             self._data_frame[column_name+"_treated_"+str(range)+"_mode"] = self._data_frame[column_name].apply(lambda x: replace_value if x==range else x)
         elif value == "mean":
-            dp_helper_obj = DataPreprocessingHelper(self._data_frame, self._dataframe_context)
-            mean_value = self._data_frame.agg(avg(column_name)).first()[0]
+            dp_helper_obj = DataPreprocessingHelperPandas(self._data_frame, self._dataframe_context)
+            mean_value = np.mean(self._data_frame[column_name])
             replace_value = mean_value
             self._data_frame[column_name+"_treated_"+str(range)+"_mean"] = self._data_frame[column_name].apply(lambda x: replace_value if x==range else x)
         else:
