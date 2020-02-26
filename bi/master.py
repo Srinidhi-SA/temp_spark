@@ -246,6 +246,8 @@ def main(configJson):
                                 new_cols_added = list(set(new_cols_list) - set(old_cols_list))
                             else:
                                  new_cols_added = None
+                            if pandas_flag:
+                                df=spark.createDataFrame(df)
                             print(df.printSchema())
 
                         metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)

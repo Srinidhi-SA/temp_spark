@@ -99,7 +99,7 @@ class MetaDataHelper(object):
         outlier = len(df1[(df1 > outlier_UR) | (df1 < outlier_LR)])
 
         for k,v in list(col_stat.items()):
-            if "." in v:
+            if "." in str(v):
                 col_stat[k] = round(float(v),2)
             elif v != "NaN":
                 col_stat[k] = int(v)
@@ -255,7 +255,14 @@ class MetaDataHelper(object):
         total_count = df.count()
         output = {}
         chart_data = {}
-        summary_df = df.describe().toPandas()
+        if pandas_flag:
+            summary_df = pandas_df.describe()
+            summary_df.drop(index=["25%","50%","75%"],inplace = True)
+            summary_df.rename(index={'std': 'stddev'}, inplace=True)
+            summary_df=summary_df.reset_index()
+            summary_df.rename(columns={'index': 'summary'}, inplace=True)
+        else :
+            summary_df = df.describe().toPandas()
         displayNameDict = {
                             "count":"Count",
                             "mean":"Mean",
