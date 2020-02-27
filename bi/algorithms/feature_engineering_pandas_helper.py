@@ -19,7 +19,7 @@ class FeatureEngineeringHelperPandas(object):
 
     def __init__(self, df, dataframe_context):
         self._data_frame = df
-        #self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.shape[0])
+        self._metaHelperInstance = MetaDataHelper(self._data_frame, self._data_frame.shape[0])
         self._dataframe_context = dataframe_context
 
         # self._dataframe_helper = dataframe_helper

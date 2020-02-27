@@ -843,11 +843,18 @@ class MetaDataHelper(object):
         return pandasDf.values.tolist()
 
     def set_sample_data(self):
-        if self.rows > 100:
-            sample_data = self.df.sample(False, float(100)/self.rows, seed=420)
-            return sample_data
-        else:
-            return self.df
+        try :
+            if self.rows > 100:
+                sample_data = self.df.sample(False, float(100)/self.rows, seed=420)
+                return sample_data
+            else:
+                return self.df
+        except :
+            if self.rows > 100:
+                sample_data = self.df.sample(replace=False, frac=float(100)/self.rows,random_state=420)
+                return sample_data
+            else:
+                return self.df
 
     def get_sample_data(self):
         return self._sample_data
