@@ -12,7 +12,7 @@ class FeatureEngineering(object):
         self._df = df
         self._dataframe_context = dataframe_context
         ## TO DO : this flag will be taken from dataframe context later.
-        self._pandas_flag = True
+        self._pandas_flag = False 
         # self._dataframe_helper = dataframe_helper
         # self._metaParserInstance = metaParserInstance
         self._featureEngineeringDict = featureEngineeringDict
@@ -73,7 +73,10 @@ class FeatureEngineering(object):
                                     if column["encoding_type"] == "one_hot_encoding":
                                         self._df = feature_engineering_helper_obj.onehot_encoding_column(column["name"])
                                         col.append(column["name"])
-                                self._df = self._df.drop(*col)
+                                try:
+                                    self._df = self._df.drop([*col],axis=1)
+                                except:
+                                    self._df = self._df.drop(*col)
                             if operation['name'] == 'return_character_count':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.character_count_string(column["name"])

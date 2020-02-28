@@ -227,7 +227,7 @@ def main(configJson):
                             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                             dataframe_context.update_completion_status(completionStatus)
                             ## TO DO : Change flag later this is only for testing
-                            pandas_flag = True
+                            pandas_flag = False
                             if pandas_flag :
                                 df = df.toPandas()
                             if dataCleansingDict['selected']:

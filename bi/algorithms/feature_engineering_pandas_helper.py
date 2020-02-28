@@ -13,6 +13,9 @@ from bi.common import MetaDataHelper
 from bi.settings import setting as GLOBALSETTINGS
 
 from .data_preprocessing_helper_pandas import DataPreprocessingHelperPandas
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder as OneHotEncoder_pandas
+import pandas as pd
 
 class FeatureEngineeringHelperPandas(object):
     """Contains Feature Engineering Operation Functions"""
@@ -57,9 +60,38 @@ class FeatureEngineeringHelperPandas(object):
 
     def create_level_udf_time(self, dict, date_format):
         pass
-
+    def convert_to_date(self,value,date_format):
+        if isinstance(value, str):
+            value=pd.to_datetime(value,format='%d/%m/%Y')
+        elif isinstance(value, str):
+            value=pd.to_datetime(value,format='%d/%m/%Y')
+        else:
+            value=value
+        return value
+    def convert_to_date_from_level_value(self,value):
+        value=pd.to_datetime(value,format='%d/%m/%Y')
+        return value
+    def check_key_date_bins(self,date, dict,date_format):
+        if date!=None:
+            date = self.convert_to_date(date,date_format)
+            for key, value in list(dict.items()):
+                val1_date = self.convert_to_date_from_level_value(value[0])
+                val2_date = self.convert_to_date_from_level_value(value[1])
+                date_range = [val1_date, val2_date]
+                if (date >= date_range[0] and date <= date_range[1]):
+                    return key
+                else:
+                    return "None"
     def create_new_levels_datetimes(self, col_for_timelevels, dict):
-        pass
+        self._data_frame[col_for_timelevels + '_temp'] = pd.to_datetime(self._data_frame[col_for_timelevels], errors='ignore')
+        uniqueVals = self._data_frame[col_for_timelevels + '_temp'].head(15)
+        try:
+            date_format=self._metaHelperInstance.get_datetime_format_pandas(uniqueVals)
+        except:
+                date_format=None
+        self._data_frame[col_for_timelevels + '_t_level']=self._data_frame[col_for_timelevels + '_temp'].apply(self.check_key_date_bins,dict=dict, date_format=date_format)
+        self._data_frame=self._data_frame.drop(col_for_timelevels + '_temp',axis=1)
+        return self._data_frame
 
     def create_equal_sized_measure_bins(self, column_name,number_of_bins):
         def create_dict_for_bin():
@@ -116,31 +148,92 @@ class FeatureEngineeringHelperPandas(object):
         return self._data_frame
 
     def standardize_column(self, column_name):
-        pass
+        def standardize_column_helper(mean, sd):
+            return [lambda x: round(float((x-mean)*1.0/sd),3) if x!=None else x]
+        mean,StdDev = self._data_frame[column_name].mean(),self._data_frame[column_name].std()
+        self._data_frame[column_name+'_fs_standardized'] = self._data_frame[column_name].apply(standardize_column_helper(mean,StdDev))
+        return self._data_frame
 
     def normalize_column(self, column_name):
-        pass
+        def normalize_column_helper(min, max):
+            return [lambda x: round(float((x - min)*1.0/(max - min)),3) if x!=None else x]
+        max_value,min_value = self._data_frame[column_name].max(),self._data_frame[column_name].min()
+        self._data_frame[column_name+'_fs_normalized'] = self._data_frame[column_name].apply(normalize_column_helper(min_value,max_value))
+        return self._data_frame
 
-    def replacerUDF(self, value, operation):
-        pass
+    def replacerUDF(self,value, operation):
+        if operation == "prod":
+            return [lambda x: x*value if x!=None else x]
+        if operation == "add":
+            return [lambda x: x+value if x!=None else x]
+        if operation == "subs":
+            return [lambda x: x - value if x!=None else x]
+        if operation == "divide":
+            return [(lambda x: int(x,value) if x!=None else x)]
+        if operation == "Reciprocal":
+            return [(lambda x: int(1,x) if x!=None else x)]
+        if operation == "NthRoot":
+            try:
+                return [(lambda x: x**(1.0/value) if x!=None else x)]
+            except:
+                return [(lambda x: x)]
+        if operation == "exponential":
+            return [(lambda x: x**value if x!=None else x)]
+        if operation == "logTransform":
+            return [lambda x: math.log(x, 10) if x!=None else x]
+        if operation == "modulus":
+            return [(lambda x: abs(x) if x!=None else x)]
 
-    def logTransform_column(self, column_name):
-        pass
+    def logTransform_column(self,column_name):
+        column_min = self._data_frame[column_name].min()
+        value_to_be_added = abs(column_min) + 1
+        if column_min > 0:
+            self._data_frame[column_name + "_vt_log_transformed"]=self._data_frame[column_name].apply(self.replacerUDF(10, "logTransform"))
+            self._data_frame[column_name + "_vt_log_transformed"]=self._data_frame[column_name + "_vt_log_transformed"].astype('float')
+        else:
+            self._data_frame[column_name + "_temp_transformed"]=self._data_frame[column_name].apply(self.replacerUDF(value_to_be_added, "add"))
+            self._data_frame[column_name + "_vt_log_transformed"]=self._data_frame[column_name + "_temp_transformed"].apply(self.replacerUDF(10, "logTransform"))
+            self._data_frame[column_name + "_vt_log_transformed"]=self._data_frame[column_name + "_vt_log_transformed"].astype('float')
+            self._data_frame = self._data_frame.drop(column_name + "_temp_transformed",axis=1)
+        return self._data_frame
 
-    def modulus_transform_column(self, column_name):
-        pass
+    def modulus_transform_column(self,column_name):
+        self._data_frame[column_name + "_vt_modulus_transformed"]=self._data_frame[column_name].apply(self.replacerUDF(10, "modulus"))
+        self._data_frame[column_name + "_vt_modulus_transformed"]=self._data_frame[column_name + "_vt_modulus_transformed"].astype('float')
+        return self._data_frame
 
     def cuberoot_transform_column(self, column_name):
-        pass
+        self._data_frame[column_name + "_vt_cuberoot_transformed"]=self._data_frame[column_name].apply(self.replacerUDF(3, "NthRoot"))
+        self._data_frame[column_name + "_vt_cuberoot_transformed"]=self._data_frame[column_name + "_vt_cuberoot_transformed"].astype('float')
+        return self._data_frame
+
 
     def squareroot_transform_column(self, column_name):
-        pass
+        column_min=self._data_frame[column_name].min()
+        if column_min >= 0:
+            self._data_frame[column_name + "_vt_squareroot_transformed"]=self._data_frame[column_name].apply(self.replacerUDF(2, "NthRoot"))
+            self._data_frame[column_name + "_vt_squareroot_transformed"]=self._data_frame[column_name + "_vt_squareroot_transformed"].astype('float')
+        else:
+            self._data_frame[column_name + "_vt_squareroot_transformed"]= 0
+        return self._data_frame
 
     def label_encoding_column(self, column_name):
-        pass
+        self._data_frame[column_name+'_ed_label_encoded']=LabelEncoder().fit_transform(self._data_frame[column_name].astype(str))
+        return self._data_frame
 
     def onehot_encoding_column(self, column_name):
-        pass
+        if (self._data_frame[column_name].isnull().any())==True:
+           self._data_frame[column_name].fillna(self._data_frame[column_name].mode()[0],inplace=True)
+        temp = self._data_frame[[column_name]]
+        enc = OneHotEncoder_pandas(drop='first')
+        k1 = enc.fit_transform(temp).toarray()
+        temp = pd.DataFrame(k1,columns=list(enc.get_feature_names()))
+        feature_names = list(enc.get_feature_names())
+        temp.set_index(self._data_frame.index,inplace = True)
+        for col_name in feature_names:
+            self._data_frame[column_name+'_'+col_name.partition('_')[2]+'_one_hot'] = temp[col_name].astype('int')
+        #X.drop(column_name,axis = 1,inplace = True)
+        return self._data_frame
 
     def character_count_string(self, column_name):
         self._data_frame[column_name+"_character_count"] = self._data_frame[column_name].apply(lambda x:x.count("")-1 if x!=None else 0)
@@ -156,16 +249,89 @@ class FeatureEngineeringHelperPandas(object):
         pass
 
     def count_time_since(self, col_for_time_since, time_since_date):
-        pass
+        self._data_frame[col_for_time_since+'_temp'] = pd.to_datetime(self._data_frame[col_for_time_since], errors='coerce')
+        uniqueVals=self._data_frame[col_for_time_since].drop_duplicates().head(10)
+        try:
+            date_format = self._metaHelperInstance.get_datetime_format_pandas(uniqueVals)
+            self._data_frame['TIME_SINCE_DATE'] = time_since_date
+            self._data_frame[col_for_time_since+'_temp'] = pd.to_datetime(self._data_frame[col_for_time_since+'_temp'],format=date_format)
+            self._data_frame['TIME_SINCE_DATE_Timestamped'] = pd.to_datetime(self._data_frame['TIME_SINCE_DATE'],format='%d/%m/%Y')
+            self._data_frame[col_for_time_since+"_time_since"] = self._data_frame['TIME_SINCE_DATE_Timestamped']-self._data_frame[col_for_time_since+'_temp']
+            self._data_frame[col_for_time_since+"_time_since"] = self._data_frame[col_for_time_since+"_time_since"]/np.timedelta64(1, 'D')
+            self._data_frame[col_for_time_since+"_time_since"] = self._data_frame[col_for_time_since+"_time_since"].apply(np.ceil)
+        except :
+            self._data_frame['TIME_SINCE_DATE'] = time_since_date
+            self._data_frame['TIME_SINCE_DATE_Timestamped']=pd.to_datetime(self._data_frame['TIME_SINCE_DATE'],format='%d/%m/%Y',infer_datetime_format=True)
+            self._data_frame[col_for_time_since+"_time_since"] = self._data_frame['TIME_SINCE_DATE_Timestamped']-self._data_frame[col_for_time_since+'_temp']
+            self._data_frame[col_for_time_since+"_time_since"] = self._data_frame[col_for_time_since+"_time_since"]/np.timedelta64(1, 'D')
+            self._data_frame[col_for_time_since+"_time_since"] = self._data_frame[col_for_time_since+"_time_since"].apply(np.ceil)
+        self._data_frame = self._data_frame.drop(["TIME_SINCE_DATE", "TIME_SINCE_DATE_Timestamped"],axis=1)
+        self._data_frame = self._data_frame.drop([col_for_time_since +'_temp'],axis=1)
+        return self._data_frame
+
 
     def month_to_string(self,dict):
         pass
 
     def extract_datetime_info(self, datetime_col, info_to_extract):
-        pass
+        self._data_frame[datetime_col] = pd.to_datetime(self._data_frame[datetime_col], errors='ignore')
+        self._data_frame[datetime_col + '_temp']=self._data_frame[datetime_col].dt.date
+        uniqueVals = self._data_frame[datetime_col + '_temp'].head(15)
+        try:
+            date_format = self._metaHelperInstance.get_datetime_format_pandas(uniqueVals)
+            if info_to_extract == "year":
+                self._data_frame[datetime_col + '_year']= self._data_frame[datetime_col].dt.year
+            if info_to_extract == "month_of_year":
+                self._data_frame[datetime_col + '_etf_month_of_year']= self._data_frame[datetime_col].dt.month
+            if info_to_extract == "day_of_month":
+                self._data_frame[datetime_col + '_day_of_month']= self._data_frame[datetime_col].dt.day
+            if info_to_extract == "day_of_year":
+                self._data_frame[datetime_col + '_day_of_year']= self._data_frame[datetime_col].dt.dayofyear
+            if info_to_extract == "day_of_week":
+                self._data_frame[datetime_col + '_etf_day_of_week']=self._data_frame[datetime_col].dt.dayofweek
+            if info_to_extract == "week_of_year":
+                self._data_frame[datetime_col + '_week_of_year']=self._data_frame[datetime_col].dt.weekofyear
+            if info_to_extract == "hour":
+                self._data_frame[datetime_col + '_hour']=self._data_frame[datetime_col].dt.hour
+            if info_to_extract == "minute":
+                self._data_frame[datetime_col + '_minute']=self._data_frame[datetime_col].dt.minute
+            if info_to_extract == "date":
+                self._data_frame[datetime_col + '_date']=self._data_frame[datetime_col].dt.date
+            else:
+                pass
+        except :
+            if info_to_extract == "year":
+                self._data_frame[datetime_col + '_year']= self._data_frame[datetime_col].dt.year
+            if info_to_extract == "month_of_year":
+                self._data_frame[datetime_col + '_etf_month_of_year']= self._data_frame[datetime_col].dt.month
+            if info_to_extract == "day_of_month":
+                self._data_frame[datetime_col + '_day_of_month']= self._data_frame[datetime_col].dt.day
+            if info_to_extract == "day_of_year":
+                self._data_frame[datetime_col + '_day_of_year']= self._data_frame[datetime_col].dt.dayofyear
+            if info_to_extract == "day_of_week":
+                self._data_frame[datetime_col + '_etf_day_of_week']=self._data_frame[datetime_col].dt.dayofweek
+            if info_to_extract == "week_of_year":
+                self._data_frame[datetime_col + '_week_of_year']=self._data_frame[datetime_col].dt.weekofyear
+            if info_to_extract == "hour":
+                self._data_frame[datetime_col + '_hour']=self._data_frame[datetime_col].dt.hour
+            if info_to_extract == "minute":
+                self._data_frame[datetime_col + '_minute']=self._data_frame[datetime_col].dt.minute
+            if info_to_extract == "date":
+                self._data_frame[datetime_col + '_date']=self._data_frame[datetime_col].dt.date
+        self._data_frame = self._data_frame.drop(datetime_col +'_temp',axis=1)
+        return self._data_frame
 
     def is_weekend_helper(self):
         pass
 
     def is_weekend(self, datetime_col):
-        pass
+        self._data_frame[datetime_col+'_temp'] = pd.to_datetime(self._data_frame[datetime_col], errors='coerce')
+        uniqueVals=self._data_frame[datetime_col].drop_duplicates().head(10)
+        try:
+            date_format = self._metaHelperInstance.get_datetime_format_pandas(uniqueVals)
+            self._data_frame[datetime_col+'_temp']=pd.to_datetime(self._data_frame[datetime_col+'_temp'],format=date_format)
+            self._data_frame[datetime_col+'is_weekend']=np.where((self._data_frame[datetime_col].dt.dayofweek)>=5,'True','False')
+        except :
+            self._data_frame[datetime_col+'is_weekend']=np.where((self._data_frame[datetime_col+'_temp'].dt.dayofweek)>=5,'True','False')
+        self._data_frame = self._data_frame.drop(datetime_col +'_temp',axis=1)
+        return self._data_frame
