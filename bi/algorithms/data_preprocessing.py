@@ -11,7 +11,7 @@ class DataPreprocessing(object):
         self._spark = spark
         self._df = df
         self._dataframe_context = dataframe_context
-        self._pandas_flag = True
+        self._pandas_flag = False
         # self._dataframe_helper = dataframe_helper
         # self._metaParserInstance = metaParserInstance
         self._dataCleansingDict = dataCleansingDict
