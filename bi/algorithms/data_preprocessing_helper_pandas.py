@@ -31,13 +31,40 @@ class DataPreprocessingHelperPandas(object):
                 for j in range(i+1, lcs):
                     jv = vs.iloc[:,j].tolist()
                     if iv == jv:
-                        dups.append(cs[i])
+                        dups.append(cs[j]) # i is first column, j is the last duplicate column/columns
                         break
 
         self.removed_col = dups
         self._data_frame = self._data_frame.drop(dups, axis=1)
 
         return self._data_frame
+
+    # def get_frequency_of_unique_val(self, df, col_for_uvf):
+    #     df_counts = df.astype(str).groupby(col_for_uvf).size().reset_index(name="count")
+    #     return df_counts
+
+    # def get_n_most_common(self, col_for_nmc, n):
+    #     '''Only returns first n most commmon even if there are multiple duplicate values'''
+    #     df_nmc = self.get_frequency_of_unique_val(self._data_frame, col_for_nmc)
+    #     df_nmc.sort_values(by='count', ascending=False)
+    #     row_count = len(df_nmc)
+    #     if n >= row_count:
+    #         return df_nmc
+    #     else:
+    #         df_nmc = df_nmc[0:n]
+    #         return df_nmc
+
+    # def get_proportion_of_unique_val(self, col_for_uvpro):
+    #     df_counts = self._data_frame.astype(str).groupby(col_for_uvpro).size().reset_index(name="count")
+    #     total = df_counts['count'].sum()
+    #     df_counts['PROPORTION'] = df_counts['count'] / total
+    #     return df_counts.drop('count', axis=1)
+
+    # def get_percentage_of_unique_val(self, col_for_uvper):
+    #     df_counts = self._data_frame.astype(str).groupby(col_for_uvper).size().reset_index(name="count")
+    #     total = df_counts['count'].sum()
+    #     df_counts['PERCENTAGE'] = (df_counts['count'] / total) * 100
+    #     return df_counts.drop('count', axis=1)
 
     def get_removed_columns(self):
         return self.removed_col
