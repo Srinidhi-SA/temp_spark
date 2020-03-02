@@ -1,6 +1,6 @@
 from bi.algorithms.autoML.Feature_Engineering import FeatureEngineeringAutoMl
 
-from bi.algorithms.autoML.ScoringDataPreprocessing import Score_Preprocessing
+from bi.algorithms.autoML.ScoringDataPreprocessing import ScorePreprocessing
 
 #from bi.algorithms.autoML_score.Data_Preprocessing import Data_Preprocessing
 
@@ -248,7 +248,7 @@ class Scoring(object):
 
         """preprocessing"""
 
-        Score_Preprocessing_obj = Score_Preprocessing(self.data_dict)
+        Score_Preprocessing_obj = ScorePreprocessing(self.data_dict)
 
         data = Score_Preprocessing_obj.preprocessing(data,self.data_dict)
         print(data.shape)
