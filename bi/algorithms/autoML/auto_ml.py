@@ -1,9 +1,9 @@
 import os
 import sys
 import json
-from bi.algorithms.autoML.Data_Validation import Data_Validation
-from bi.algorithms.autoML.Data_Preprocessing import Data_Preprocessing
-from bi.algorithms.autoML.Feature_Engineering import Feature_Engineering
+from bi.algorithms.autoML.Data_Validation import DataValidation
+from bi.algorithms.autoML.Data_Preprocessing import DataPreprocessingAutoMl
+from bi.algorithms.autoML.Feature_Engineering import FeatureEngineeringAutoMl
 from bi.algorithms.autoML.Sampling import Sampling
 from bi.algorithms.autoML.Feature_Selection import Feature_Selection
 import pandas as pd
@@ -34,7 +34,7 @@ class auto_ML:
         #path = self.df
         #obj =  Data_Validation(path,target =self.target,method = self.app_type)
         try :
-            Data_Validation_auto_obj =  Data_Validation(self.df,target =self.target,method = self.app_type)
+            Data_Validation_auto_obj =  DataValidation(self.df, target =self.target, method = self.app_type)
             Data_Validation_auto_obj.run()
 
             #print(obj.df.head())
@@ -59,7 +59,7 @@ class auto_ML:
         # this line used before # Data_Preprocessing_auto_obj =   Data_Preprocessing(data_dict)
         # Dataframe,data_dict  = Data_Preprocessing_auto_obj.main(Dataframe)
         try :
-            Data_Preprocessing_auto_obj =   Data_Preprocessing(Data_Validation_auto_obj.data_dict, Data_Validation_auto_obj.df)
+            Data_Preprocessing_auto_obj =   DataPreprocessingAutoMl(Data_Validation_auto_obj.data_dict, Data_Validation_auto_obj.df)
             data_dict  = Data_Preprocessing_auto_obj.main()
             print("DATA PREPROCESSING",'\n')
     #         print(Dataframe.info())
@@ -81,7 +81,7 @@ class auto_ML:
 ########################################################################################
         """Feature Engineering"""
         try :
-            Feature_Engineering_auto_obj =  Feature_Engineering(Data_Preprocessing_auto_obj.dataframe,data_dict)
+            Feature_Engineering_auto_obj =  FeatureEngineeringAutoMl(Data_Preprocessing_auto_obj.dataframe, data_dict)
             Feature_Engineering_auto_obj.fe_main()
 
             mr_df1 = Feature_Engineering_auto_obj.original_df
@@ -104,13 +104,13 @@ class auto_ML:
     #         print(Dataframe2.info())
             print("#"*50)
     #
-            print("Target in AutoML: ",self.target, Feature_Engineering_auto_obj.data_dict2["Target_analysis"])
+            print("Target in AutoML: ",self.target, Feature_Engineering_auto_obj.data_dict2["target_analysis"])
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(self.LOGGER,"Feature Engineering",e)
             CommonUtils.save_error_messages(self.errorURL,self.app_type,e,ignore=self.ignoreMsg)
 
         try:
-            Data_Validation_auto_obj2 = Data_Validation(Feature_Engineering_auto_obj.only_created_df,self.target,self.app_type)
+            Data_Validation_auto_obj2 = DataValidation(Feature_Engineering_auto_obj.only_created_df, self.target, self.app_type)
             Data_Validation_auto_obj2.run()
 
             # Dataframe3 = Data_Validation_auto_obj2.df
@@ -133,9 +133,9 @@ class auto_ML:
             CommonUtils.save_error_messages(self.errorURL,self.app_type,e,ignore=self.ignoreMsg)
 
         try :
-            Data_Preprocessing_auto_obj2 = Data_Preprocessing(Data_Validation_auto_obj2.data_dict,Data_Validation_auto_obj2.df)
+            Data_Preprocessing_auto_obj2 = DataPreprocessingAutoMl(Data_Validation_auto_obj2.data_dict, Data_Validation_auto_obj2.df)
             #Dataframe,data_dict  = obj4.fe_main(Dataframe3)
-            data_dict  = Data_Preprocessing_auto_obj2.fe_main()
+            data_dict  = Data_Preprocessing_auto_obj2.pass2_run()
             ### mr_df2,data_dict  = Data_Preprocessing_auto_obj2.fe_main(Data_Validation_auto_obj2.df,Data_Validation_auto_obj2.data_dict)
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(self.LOGGER,"Data_Preprocessing pass2",e)
@@ -176,7 +176,7 @@ class auto_ML:
         try :
             Sampling_obj = Sampling(result,self.target)
 
-            Sampling_obj.OverSampling()
+            Sampling_obj.over_sampling()
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(self.LOGGER,"sampling automl",e)
             CommonUtils.save_error_messages(self.errorURL,self.app_type,e,ignore=self.ignoreMsg)

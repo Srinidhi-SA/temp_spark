@@ -1,4 +1,4 @@
-from bi.algorithms.autoML.Feature_Engineering import Feature_Engineering
+from bi.algorithms.autoML.Feature_Engineering import FeatureEngineeringAutoMl
 
 from bi.algorithms.autoML.ScoringDataPreprocessing import Score_Preprocessing
 
@@ -105,15 +105,15 @@ class Scoring(object):
     #
     #     dimColImpu = [i for i in dim if cls.dataframe[i].isna().sum()>0 ]
     #
-    #     mean_impute_cols,median_impute_cols = cls.measureCol_imputation(measureColImpu,outlier_columns)
+    #     mean_impute_cols,median_impute_cols = cls.measure_col_imputation(measureColImpu,outlier_columns)
     #
-    #     cls.dimCol_imputation(dimColImpu)
+    #     cls.dim_col_imputation(dimColImpu)
     #
     #     return cls.dataframe
 
 
     def score_feature_eng(self,df,data_dict):
-        fe_obj=Feature_Engineering(df,data_dict)
+        fe_obj=FeatureEngineeringAutoMl(df, data_dict)
 
         if len(data_dict['created_feature'])>0:
 

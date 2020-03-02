@@ -1,4 +1,5 @@
 import warnings
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 from imblearn.over_sampling import SMOTE, SMOTENC
@@ -6,9 +7,9 @@ from collections import Counter
 import math
 import pandas as pd
 
-class Sampling:
 
-    '''
+class Sampling:
+    """
 
         Docstring:
 
@@ -25,8 +26,7 @@ class Sampling:
         target : str
             string containing Target column name
 
-    '''
-
+    """
 
     def __init__(self, dataset, target):
 
@@ -34,16 +34,16 @@ class Sampling:
         self.target = target
         self.cat_col_names = None
 
-    def OverSampling(self):
+    def over_sampling(self):
 
-        '''  function to sample the dataset '''
+        """  function to sample the dataset """
 
         # getting Independent Variables and Dependent Variable
-        X_train, y_train = self.dataset.drop(self.target, inplace=False,axis = 1), self.dataset[self.target]
+        x_train, y_train = self.dataset.drop(self.target, inplace=False, axis=1), self.dataset[self.target]
 
         # getting the Categorical Column names (if any)
-        all_columns = X_train.columns
-        numeric_columns = X_train._get_numeric_data().columns
+        all_columns = x_train.columns
+        numeric_columns = x_train._get_numeric_data().columns
         self.cat_col_names = list(set(all_columns) - set(numeric_columns))
 
         # no. of classes limit for sampling # constraint is adjustable
@@ -74,19 +74,20 @@ class Sampling:
                 big_data = 25000
 
             # second check for sampling
-            if  dataset_size <= big_data:
+            if dataset_size <= big_data:
 
                 # percentages of each class in the target variable
-                percentage =[(i*100)/dataset_size for i in list(class_value_counts)]
+                percentage = [(i * 100) / dataset_size for i in list(class_value_counts)]
 
                 # threshold for class imbalance problem
-                threshold = 1/(2*float(num_classes))
+                threshold = 1 / (2 * float(num_classes))
 
                 # minority Classes to over-sample
-                to_oversample_classes = [class_value_counts.index[i] for i,d in enumerate(percentage) if d < (threshold*100)]
+                to_oversample_classes = [class_value_counts.index[i] for i, d in enumerate(percentage) if
+                                         d < (threshold * 100)]
 
                 # third check for sampling
-                if len(to_oversample_classes)>0:
+                if len(to_oversample_classes) > 0:
 
                     # for Binary
                     if num_classes == binary:
@@ -94,44 +95,47 @@ class Sampling:
                         # size of majority class
                         majority_class_size = class_value_counts[0]
 
-                        threshold_count = math.ceil((majority_class_size*threshold)/(1-threshold))
-                        ratio = {to_oversample_classes[i]: math.ceil(threshold_count) for i in range(len(to_oversample_classes))}
+                        threshold_count = math.ceil((majority_class_size * threshold) / (1 - threshold))
+                        ratio = {to_oversample_classes[i]: math.ceil(threshold_count) for i in
+                                 range(len(to_oversample_classes))}
 
                     # for Multi-class
                     else:
-                        threshold_count = math.ceil(threshold*dataset_size)
+                        threshold_count = math.ceil(threshold * dataset_size)
                         ratio = {to_oversample_classes[i]: threshold_count for i in range(len(to_oversample_classes))}
 
                     # Over-sample using SMOTE-NC for dataset containing continuous and categorical features(Date columns also included).
                     if len(self.cat_col_names) != 0:
 
                         # getting the categorical column index
-                        #cat_cols_index = [X_train.columns.get_loc(c) for c in self.cat_col_names if c in X_train]
+                        # cat_cols_index = [x_train.columns.get_loc(c) for c in self.cat_col_names if c in x_train]
                         cat_cols_index = []
                         for i in self.cat_col_names:
-                            cat_col_index = X_train.columns.get_loc(i)
-                            X_train[i]=X_train[i].astype(str)
-                            print("cat_col_index: i: ", i,X_train[i].dtype)
+                            cat_col_index = x_train.columns.get_loc(i)
+                            x_train[i] = x_train[i].astype(str)
+                            print("cat_col_index: i: ", i, x_train[i].dtype)
                             cat_cols_index.append(cat_col_index)
 
-                        X_train_sampled, y_train_sampled = SMOTENC(random_state = 1, sampling_strategy  = ratio, categorical_features = cat_cols_index).fit_sample(X_train,y_train)
+                        x_train_sampled, y_train_sampled = SMOTENC(random_state=1, sampling_strategy=ratio,
+                                                                   categorical_features=cat_cols_index).fit_sample(x_train, y_train)
 
                     # Over-sample using SMOTE for for dataset containing only continuous.
                     else:
 
-                        X_train_sampled, y_train_sampled = SMOTE(random_state = 1, sampling_strategy  = ratio).fit_sample(X_train,y_train)
+                        x_train_sampled, y_train_sampled = SMOTE(random_state=1, sampling_strategy=ratio).fit_sample(
+                            x_train, y_train)
 
-                    # X_train_sampled = pd.DataFrame(X_train_sampled)
+                    # x_train_sampled = pd.DataFrame(x_train_sampled)
 
                     # updating the dataset with sampled dataset
-                    self.dataset = pd.concat([X_train_sampled, y_train_sampled], axis = 1)
+                    self.dataset = pd.concat([x_train_sampled, y_train_sampled], axis=1)
 
-                    print("*"*10 + "SAMPLING SUCCESSFUL" + "*"*10)
+                    print("*" * 10 + "SAMPLING SUCCESSFUL" + "*" * 10)
 
                 else:
-                    print("*"*10 + "SAMPLING NOT REQUIRED" + "*"*10)
+                    print("*" * 10 + "SAMPLING NOT REQUIRED" + "*" * 10)
             else:
-                print("*"*10 + "DATASET TOO BIG FOR SAMPLING" + "*"*10)
+                print("*" * 10 + "DATASET TOO BIG FOR SAMPLING" + "*" * 10)
 
         else:
-            print("*"*10 + "DATASET NOT ELIGIBLE FOR SAMPLING" + "*"*10)
+            print("*" * 10 + "DATASET NOT ELIGIBLE FOR SAMPLING" + "*" * 10)

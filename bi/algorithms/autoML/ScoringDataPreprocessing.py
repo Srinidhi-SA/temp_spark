@@ -13,7 +13,7 @@ class Score_Preprocessing(object):
         self.data_dict=data_dict
 
     def preprocessing(self,dataframe,valid_dict):
-        cls=Data_Preprocessing(valid_dict,dataframe)
+        cls=DataPreprocessingAutoMl(valid_dict, dataframe)
         #dataframe=cls.drop_duplicate_rows(dataframe)
         try:
             if valid_dict['Dropped_columns']!=[]:
@@ -24,7 +24,7 @@ class Score_Preprocessing(object):
         ## TO DO:
         # if valid_dict['MeasureColsToDim']!=[]:
         #     ## TO DO :
-        #     mea_dim_df,_=cls.Dimension_Measure(dataframe,vali_dict['MeasureColsToDim'])
+        #     mea_dim_df,_=cls.dimension_measure(dataframe,vali_dict['MeasureColsToDim'])
         #     temp=set(dataframe.columns)-set(mea_dim_df.columns)
         #     temp = df[temp]
         #     test_df=pd.merge(temp,mea_dim_df,right_index=True,left_index=True)
@@ -79,7 +79,7 @@ class Score_Preprocessing(object):
     #     cls=Data_Preprocessing(valid_dict,dataframe)
     #
     #     if valid_dict['MeasureColsToDim']!=[]:
-    #         _=cls.Dimension_Measure(dataframe,vali_dict['MeasureColsToDim'])
+    #         _=cls.dimension_measure(dataframe,vali_dict['MeasureColsToDim'])
     #         temp=set(dataframe.columns)-set(cls.dataframe.columns)
     #         temp = df[temp]
     #         test_df=pd.merge(temp,cls.dataframe,right_index=True,left_index=True)
