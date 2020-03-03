@@ -177,7 +177,7 @@ def main(configJson):
                     if automl_enable is True:
                         if jobType == "training":
                             df = df.toPandas()
-                            autoML_obj =  autoML.auto_ML(df,dataframe_context,GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+                            autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
                             autoML_obj.run()
                             one_click_json, linear_df, tree_df = autoML_obj.return_values()
                         elif jobType == "prediction":
