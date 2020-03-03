@@ -113,38 +113,38 @@ class DataPreprocessingAutoMl(object):
     def regex_catch(self, column):
         """Returns a list of columns and the pattern it has"""
         ## considering currency_list and metric_list are globally defined.
-        dict = {"Column_name": column, "email-id": False, "website": False, "Percentage": False,
+        pattern_dict = {"Column_name": column, "email-id": False, "website": False, "Percentage": False,
                 "CurrencyCol": {"value": False, "currency": None}, "MetricCol": {"value": False, "metric": None},
                 "SepSymbols": {"value": False, "Symbol": None}}
         column_val = self.dataframe[column].astype(str).str.strip()
         df1 = self.dataframe[column_val.apply(validate_email)]
         if df1.shape[0] >= (0.8 * self.dataframe.shape[0]):
-            dict["email-id"] = True
+            pattern_dict["email-id"] = True
         elif column_val.str.contains("%$", na=True).all():
-            dict["Percentage"] = True
+            pattern_dict["Percentage"] = True
         elif column_val.str.contains("^https:|^http:|^www.", na=True).all():
-            dict["website"] = True
+            pattern_dict["website"] = True
         elif column_val.str.contains("[0-9]+[.]{0,1}[0-9]*\s*[Aa-zZ]{1,2}$").all():
             metric = list(map(lambda x: re.sub("[0-9]+[.]{0,1}[0-9]*\s*", "", x), column_val))
             if len(set(metric)) == 1:
                 if metric[0] in Metric_list:
-                    dict["MetricCol"]["value"] = True
-                    dict["MetricCol"]["metric"] = metric[0]
+                    pattern_dict["MetricCol"]["value"] = True
+                    pattern_dict["MetricCol"]["metric"] = metric[0]
         elif column_val.str.contains("([0-9]+[.]{0,1}[0-9]*\s*\W$)|(^\W[0-9]+[.]{0,1}[0-9]*)").all():
             currency = list(map(lambda x: re.sub("[0-9.\s]+", "", x), column_val))
             if len(set(currency)) == 1:
                 if currency[0] in currency_list:
-                    dict["CurrencyCol"]["value"] = True
-                    dict["CurrencyCol"]["currency"] = currency[0]
+                    pattern_dict["CurrencyCol"]["value"] = True
+                    pattern_dict["CurrencyCol"]["currency"] = currency[0]
         elif column_val.str.contains("\S+\s*[\W_]+\s*\S+").all():
             seperators = list(map(lambda x: re.sub("\s*[a-zA-Z0-9]+$", "", x),
                                   list(map(lambda x: re.sub('^[a-zA-Z0-9]+\s*', '', x), column_val))))
             if len(set(seperators)) == 1:
                 if seperators[0] == "":
                     seperators[0] = ' '
-                dict["SepSymbols"]["value"] = True
-                dict["SepSymbols"]["Symbol"] = seperators[0]
-        return dict
+                pattern_dict["SepSymbols"]["value"] = True
+                pattern_dict["SepSymbols"]["Symbol"] = seperators[0]
+        return pattern_dict
 
     def target_analysis(self, targetname, m_type):
         '''Gives information of target column'''

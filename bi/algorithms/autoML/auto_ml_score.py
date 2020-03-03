@@ -158,13 +158,13 @@ class Scoring(object):
 
             for col in data_dict['dummy']['tree']:
 
-                tree_dataframe = Utils_obj.Onehotencoder(tree_dataframe,col)
+                tree_dataframe = Utils_obj.one_hot_encoder(tree_dataframe,col)
 
         if data_dict['dummy']['linear'] != []:
 
             for col in data_dict['dummy']['linear']:
 
-                linear_dataframe = Utils_obj.Onehotencoder(linear_dataframe,col)
+                linear_dataframe = Utils_obj.one_hot_encoder(linear_dataframe,col)
 
         return linear_dataframe,tree_dataframe
 

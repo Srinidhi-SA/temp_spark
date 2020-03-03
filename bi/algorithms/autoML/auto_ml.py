@@ -5,7 +5,7 @@ from bi.algorithms.autoML.Data_Validation import DataValidation
 from bi.algorithms.autoML.Data_Preprocessing import DataPreprocessingAutoMl
 from bi.algorithms.autoML.Feature_Engineering import FeatureEngineeringAutoMl
 from bi.algorithms.autoML.Sampling import Sampling
-from bi.algorithms.autoML.Feature_Selection import Feature_Selection
+from bi.algorithms.autoML.Feature_Selection import FeatureSelection
 import pandas as pd
 import re
 from bi.common import utils as CommonUtils
@@ -187,11 +187,11 @@ class auto_ML:
 
         """ Feature Selection """
 
-        ### Feature_Selection_obj = Feature_Selection(result,fdata_dict1,data_dict)
+        ### feature_selection_obj = FeatureSelection(result,fdata_dict1,data_dict)
         try :
-            Feature_Selection_obj = Feature_Selection(Sampling_obj.dataset,Feature_Engineering_auto_obj.data_dict2,data_dict)
+            feature_selection_obj = FeatureSelection(Sampling_obj.dataset,Feature_Engineering_auto_obj.data_dict2,data_dict)
 
-            linear_df,tree_df = Feature_Selection_obj.run()
+            linear_df,tree_df = feature_selection_obj.run()
 
             linear_df_cols = [re.sub('\W+','_', col) for col in linear_df.columns]
             linear_df.columns = linear_df_cols
@@ -213,8 +213,8 @@ class auto_ML:
 
         # with open('data.txt',  'w', encoding='utf-8') as f:
         #     json.dumps(obj6.data_dict)
-        #self.final_json = json.dumps(Feature_Selection_obj.data_dict)
-        self.final_json = Feature_Selection_obj.data_dict
+        #self.final_json = json.dumps(feature_selection_obj.data_dict)
+        self.final_json = feature_selection_obj.data_dict
         self.linear_df = linear_df
         self.tree_df = tree_df
 
