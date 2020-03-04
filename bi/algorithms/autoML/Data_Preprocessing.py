@@ -43,7 +43,7 @@ class DataPreprocessingAutoMl(object):
             r1 = random.randint(0, len(updated_row_num) - 1)
             if re.match("^\d*[.]?\d*$", str(column_val[updated_row_num[r1]])):
                 # out=column_val.str.isdigit()
-                out = column_val.str.contains("[0-9]+[.]{0,1}[0-9]*\s*")
+                out = column_val.str.contains("^[0-9]+[.]{0,1}[0-9]*\s*$")
                 if out[out == False].count() <= 0.01 * self.dataframe.shape[0]:
                     row_index = out.index[out == False].tolist()
                     self.dataframe = self.dataframe.drop(row_index, axis=0)
