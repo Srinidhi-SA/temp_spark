@@ -99,7 +99,7 @@ class MetaDataHelper(object):
         outlier = len(df1[(df1 > outlier_UR) | (df1 < outlier_LR)])
 
         for k,v in list(col_stat.items()):
-            if "." in v:
+            if "." in str(v):
                 col_stat[k] = round(float(v),2)
             elif v != "NaN":
                 col_stat[k] = int(v)
@@ -255,7 +255,14 @@ class MetaDataHelper(object):
         total_count = df.count()
         output = {}
         chart_data = {}
-        summary_df = df.describe().toPandas()
+        if pandas_flag:
+            summary_df = pandas_df.describe()
+            summary_df.drop(index=["25%","50%","75%"],inplace = True)
+            summary_df.rename(index={'std': 'stddev'}, inplace=True)
+            summary_df=summary_df.reset_index()
+            summary_df.rename(columns={'index': 'summary'}, inplace=True)
+        else :
+            summary_df = df.describe().toPandas()
         displayNameDict = {
                             "count":"Count",
                             "mean":"Mean",
@@ -728,6 +735,54 @@ class MetaDataHelper(object):
                 pass
         return detectedFormat
 
+    def get_datetime_format_pandas(self,columnVector):
+        """
+        suggest candidate for datetime column.
+        checks against a list of datetime formats
+
+        Arguments:
+        columnVector -- an array of strings of any size.
+
+        Return:
+        detectedFormat -- datetime format
+        """
+        detectedFormat = None
+        # availableDateTimeFormat = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+        # sample1 = str(columnVector[0])
+        # for dt_format in availableDateTimeFormat:
+        #     try:
+        #         t = datetime.strptime(sample1,dt_format)
+        #         detectedFormat = dt_format
+        #         break
+        #     except ValueError as err:
+        #         pass
+        formats = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["formats"]
+        dual_checks = GLOBALSETTINGS.SUPPORTED_DATETIME_FORMATS["dual_checks"]
+        if columnVector[0] == None and  len(columnVector)>1:
+            x = columnVector[1]
+        elif columnVector[0] != None:
+            x = columnVector[0]
+        else:
+            return detectedFormat
+        for format1 in formats:
+            try:
+                t = datetime.strptime(str(x),str(format1))
+                if (format1 in dual_checks):
+                    for x1 in columnVector:
+                        if x1 != None:
+                            try:
+                                t = datetime.strptime(str(x),str(format1))
+                            except ValueError as err:
+                                format1 = '%d'+format1[2]+'%m'+format1[5:]
+                                break
+                        else:
+                            pass
+                detectedFormat = format1
+                break
+            except ValueError as err:
+                pass
+        return detectedFormat
+
 
     def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
         ignore = False
@@ -836,11 +891,18 @@ class MetaDataHelper(object):
         return pandasDf.values.tolist()
 
     def set_sample_data(self):
-        if self.rows > 100:
-            sample_data = self.df.sample(False, float(100)/self.rows, seed=420)
-            return sample_data
-        else:
-            return self.df
+        try :
+            if self.rows > 100:
+                sample_data = self.df.sample(False, float(100)/self.rows, seed=420)
+                return sample_data
+            else:
+                return self.df
+        except :
+            if self.rows > 100:
+                sample_data = self.df.sample(replace=False, frac=float(100)/self.rows,random_state=420)
+                return sample_data
+            else:
+                return self.df
 
     def get_sample_data(self):
         return self._sample_data

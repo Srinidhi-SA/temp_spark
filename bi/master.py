@@ -51,7 +51,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "stockAdvisor"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -177,7 +177,7 @@ def main(configJson):
                     if automl_enable is True:
                         if jobType == "training":
                             df = df.toPandas()
-                            autoML_obj =  autoML.auto_ML(df,dataframe_context,GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+                            autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
                             autoML_obj.run()
                             one_click_json, linear_df, tree_df = autoML_obj.return_values()
                         elif jobType == "prediction":
@@ -226,6 +226,10 @@ def main(configJson):
                             progressMessage = CommonUtils.create_progress_message_object("scriptInitialization","scriptInitialization","info","Performing Required Data Preprocessing And Feature Transformation Tasks",completionStatus,completionStatus)
                             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                             dataframe_context.update_completion_status(completionStatus)
+                            ## TO DO : Change flag later this is only for testing
+                            pandas_flag = False
+                            if pandas_flag :
+                                df = df.toPandas()
                             if dataCleansingDict['selected']:
                                 data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict, dataframe_context)
                                 df = data_preprocessing_obj.data_cleansing()
@@ -242,6 +246,8 @@ def main(configJson):
                                 new_cols_added = list(set(new_cols_list) - set(old_cols_list))
                             else:
                                  new_cols_added = None
+                            if pandas_flag:
+                                df=spark.createDataFrame(df)
                             print(df.printSchema())
 
                         metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)

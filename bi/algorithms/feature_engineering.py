@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from builtins import object
 from .feature_engineering_helper import FeatureEngineeringHelper
+from .feature_engineering_pandas_helper import FeatureEngineeringHelperPandas
 
 
 class FeatureEngineering(object):
@@ -10,6 +11,8 @@ class FeatureEngineering(object):
         self._spark = spark
         self._df = df
         self._dataframe_context = dataframe_context
+        ## TO DO : this flag will be taken from dataframe context later.
+        self._pandas_flag = False 
         # self._dataframe_helper = dataframe_helper
         # self._metaParserInstance = metaParserInstance
         self._featureEngineeringDict = featureEngineeringDict
@@ -17,7 +20,10 @@ class FeatureEngineering(object):
 
     def feature_engineering(self):
         print("Performing Feature Engineering Operations")
-        feature_engineering_helper_obj = FeatureEngineeringHelper(self._df, self._dataframe_context)
+        if self._pandas_flag == True:
+            feature_engineering_helper_obj = FeatureEngineeringHelperPandas(self._df, self._dataframe_context)
+        else :
+            feature_engineering_helper_obj = FeatureEngineeringHelper(self._df, self._dataframe_context)
         feature_engineering_helper_obj.consider_columns=self.consider_columns
         columns_to_be_considered_for_binning=self.consider_columns
         for settings in self._featureEngineeringDict['overall_settings']:
@@ -67,7 +73,10 @@ class FeatureEngineering(object):
                                     if column["encoding_type"] == "one_hot_encoding":
                                         self._df = feature_engineering_helper_obj.onehot_encoding_column(column["name"])
                                         col.append(column["name"])
-                                self._df = self._df.drop(*col)
+                                try:
+                                    self._df = self._df.drop([*col],axis=1)
+                                except:
+                                    self._df = self._df.drop(*col)
                             if operation['name'] == 'return_character_count':
                                 for column in operation['columns']:
                                     self._df = feature_engineering_helper_obj.character_count_string(column["name"])

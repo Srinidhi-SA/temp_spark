@@ -1,8 +1,8 @@
-from bi.algorithms.autoML.Feature_Engineering import Feature_Engineering
+from bi.algorithms.autoML.Feature_Engineering import FeatureEngineeringAutoMl
 
-from bi.algorithms.autoML.ScoringDataPreprocessing import Score_Preprocessing
+from bi.algorithms.autoML.ScoringDataPreprocessing import ScorePreprocessing
 
-#from bi.algorithms.autoML_score.Data_Preprocessing import Data_Preprocessing
+# from bi.algorithms.autoML_score.Data_Preprocessing import Data_Preprocessing
 
 from bi.algorithms.autoML.Feature_Selection import Utils
 
@@ -14,20 +14,20 @@ import ast
 
 import re
 
+
 class Scoring(object):
 
-    def __init__(self,path,data_dict):
+    def __init__(self, path, data_dict):
 
         self.path = path
 
-        #self.data_dict = ast.literal_eval(data_dict)
+        # self.data_dict = ast.literal_eval(data_dict)
         self.data_dict = data_dict
 
         # path = self.path
         #
         # obj =  Data_Validation(path,target =self.target,method = self.app_type)
         # obj.run()
-
 
     # def find_encoding(self):
     #
@@ -50,8 +50,7 @@ class Scoring(object):
     #                               sep=",",na_values=na_values)
     #     return df
 
-
-    def validation(self,data,data_dict):
+    def validation(self, data, data_dict):
 
         for idx in range(len(data_dict["Column_settings"])):
 
@@ -61,23 +60,23 @@ class Scoring(object):
             try:
                 column = data_dict["Column_settings"][idx]['column_name']
             except:
-                column = re.sub('\W+','_', data_dict["Column_settings"][idx]['column_name'])
-            #print (column)
+                column = re.sub('\W+', '_', data_dict["Column_settings"][idx]['column_name'])
+            # print (column)
             ## TO DO : why all columns are being renamed , check re_name =True then do all this.
 
             if data_dict['target'] != re_column:
 
-                if data_dict["Column_settings"][idx]['droped_column'] == False:
+                if not data_dict["Column_settings"][idx]['droped_column']:
 
-                    data.rename(columns = {column:re_column}, inplace = True)
+                    data.rename(columns={column: re_column}, inplace=True)
 
                 else:
 
-                    data.drop([column], axis = 1,inplace = True)
-
+                    data.drop([column], axis=1, inplace=True)
 
                 if data_dict["Column_settings"][idx]['data_type'] == 'datetime64[ns]':
-                    data[re_column] = pd.to_datetime(data[re_column], infer_datetime_format=True) #data[re_column].astype['datetime64[ns]']
+                    data[re_column] = pd.to_datetime(data[re_column],
+                                                     infer_datetime_format=True)  # data[re_column].astype['datetime64[ns]']
 
         return data
 
@@ -105,73 +104,65 @@ class Scoring(object):
     #
     #     dimColImpu = [i for i in dim if cls.dataframe[i].isna().sum()>0 ]
     #
-    #     mean_impute_cols,median_impute_cols = cls.measureCol_imputation(measureColImpu,outlier_columns)
+    #     mean_impute_cols,median_impute_cols = cls.measure_col_imputation(measureColImpu,outlier_columns)
     #
-    #     cls.dimCol_imputation(dimColImpu)
+    #     cls.dim_col_imputation(dimColImpu)
     #
     #     return cls.dataframe
 
+    def score_feature_eng(self, df, data_dict):
+        fe_obj = FeatureEngineeringAutoMl(df, data_dict)
 
-    def score_feature_eng(self,df,data_dict):
-        fe_obj=Feature_Engineering(df,data_dict)
+        if len(data_dict['created_feature']) > 0:
 
-        if len(data_dict['created_feature'])>0:
-
-            fe_obj.test_main(data_dict['normalize_column'],data_dict['train_final_cols'])
-            return fe_obj.original_df,fe_obj.only_created_df, fe_obj.date_time_columns
+            fe_obj.test_main(data_dict['normalize_column'], data_dict['train_final_cols'])
+            return fe_obj.original_df, fe_obj.only_created_df, fe_obj.date_time_columns
         else:
-            original_cols=data_dict['original_cols']
+            original_cols = data_dict['original_cols']
             original_cols.remove(data_dict['target'])
-            original_df=df[original_cols]
-            self.original_df=original_df
-            self.only_created_df=None
-            date_time_columns_df=pd.DataFrame()
-            self.date_time_columns=date_time_columns_df
-            return self.original_df,self.only_created_df,self.date_time_columns
+            original_df = df[original_cols]
+            self.original_df = original_df
+            self.only_created_df = None
+            date_time_columns_df = pd.DataFrame()
+            self.date_time_columns = date_time_columns_df
+            return self.original_df, self.only_created_df, self.date_time_columns
 
+    def scoring_feature_selection(self, Dataframe, data_dict):
 
-
-    def Scoring_feature_selection(self,Dataframe,data_dict):
-
-        print("linear features: ",data_dict['linear_features'])
-        print("tree features: ",data_dict['tree_features'])
+        print("linear features: ", data_dict['linear_features'])
+        print("tree features: ", data_dict['tree_features'])
 
         linear_dataframe = Dataframe[data_dict['linear_features']]
 
         tree_dataframe = Dataframe[data_dict['tree_features']]
 
-        Utils_obj = Utils()
+        utils_obj = Utils()
 
         """ Label encoding transform"""
 
-        if data_dict['labelencoder']['tree'] != []:
+        if data_dict['labelencoder']['tree']:
+            tree_dataframe = utils_obj.label_en(tree_dataframe, data_dict['labelencoder']['tree'])
 
-            tree_dataframe = Utils_obj.label_en(tree_dataframe,data_dict['labelencoder']['tree'])
-
-        if data_dict['labelencoder']['linear'] != []:
-
-            linear_dataframe = Utils_obj.label_en(linear_dataframe,data_dict['labelencoder']['linear'])
+        if data_dict['labelencoder']['linear']:
+            linear_dataframe = utils_obj.label_en(linear_dataframe, data_dict['labelencoder']['linear'])
 
         """ Dummy transform"""
 
-        if data_dict['dummy']['tree'] != []:
+        if data_dict['dummy']['tree']:
 
             for col in data_dict['dummy']['tree']:
+                tree_dataframe = utils_obj.one_hot_encoder(tree_dataframe, col)
 
-                tree_dataframe = Utils_obj.Onehotencoder(tree_dataframe,col)
-
-        if data_dict['dummy']['linear'] != []:
+        if data_dict['dummy']['linear']:
 
             for col in data_dict['dummy']['linear']:
+                linear_dataframe = utils_obj.one_hot_encoder(linear_dataframe, col)
 
-                linear_dataframe = Utils_obj.Onehotencoder(linear_dataframe,col)
+        return linear_dataframe, tree_dataframe
 
-        return linear_dataframe,tree_dataframe
+    def validate(self, Dataframe, data_dict, linear_dataframe, tree_dataframe):
 
-
-    def validate(self,Dataframe,data_dict,linear_dataframe,tree_dataframe):
-
-        if data_dict['dummified_columns']['linear'] != []:
+        if data_dict['dummified_columns']['linear']:
 
             for i in data_dict['dummified_columns']['linear']:
 
@@ -181,24 +172,21 @@ class Scoring(object):
 
                 labels.pop(0)
 
-                if len(labels)<len(data_dict['dummified_columns']['linear'][i]):
+                if len(labels) < len(data_dict['dummified_columns']['linear'][i]):
 
+                    missing_labels = set(data_dict['dummified_columns']['linear'][i]) - set(labels)
 
-                    missing_labels =  set(data_dict['dummified_columns']['linear'][i]) - set(labels)
+                    for j in missing_labels:
+                        linear_dataframe[j] = 0
 
-                    for i in missing_labels:
+                elif len(labels) > len(data_dict['dummified_columns']['linear'][i]):
 
-                        linear_dataframe[i] = 0
+                    excess_labels = set(data_dict['dummified_columns']['linear'][i]) - set(labels)
 
-                elif len(labels) > len(data_dict['dummified_columns']['linear'][i]) :
+                    for k in excess_labels:
+                        linear_dataframe.drop(k, inplace=True)
 
-                    excess_labels =  set(data_dict['dummified_columns']['linear'][i]) - set(labels)
-
-                    for i in excess_labels:
-
-                        linear_dataframe.drop(i, inplace = True)
-
-        if data_dict['dummified_columns']['tree'] != []:
+        if data_dict['dummified_columns']['tree']:
 
             for i in data_dict['dummified_columns']['tree']:
 
@@ -208,31 +196,27 @@ class Scoring(object):
 
                 labels.pop(0)
 
-                if len(labels)<len(data_dict['dummified_columns']['tree'][i]):
+                if len(labels) < len(data_dict['dummified_columns']['tree'][i]):
 
+                    missing_labels = set(data_dict['dummified_columns']['tree'][i]) - set(labels)
 
-                    missing_labels =  set(data_dict['dummified_columns']['tree'][i]) - set(labels)
+                    for j in missing_labels:
+                        tree_dataframe[j] = 0
 
-                    for i in missing_labels:
+                elif len(labels) > len(data_dict['dummified_columns']['tree'][i]):
 
-                        tree_dataframe[i] = 0
+                    excess_labels = set(data_dict['dummified_columns']['tree'][i]) - set(labels)
 
-                elif len(labels) > len(data_dict['dummified_columns']['tree'][i]) :
+                    for k in excess_labels:
+                        tree_dataframe.drop(k, inplace=True)
 
-                    excess_labels =  set(data_dict['dummified_columns']['tree'][i]) - set(labels)
+        return linear_dataframe, tree_dataframe
 
-                    for i in excess_labels:
-
-                        tree_dataframe.drop(i, inplace = True)
-
-        return linear_dataframe,tree_dataframe
-
-    def scoring_data_distribution(self,data,data_dict):
+    def scoring_data_distribution(self, data, data_dict):
         print(len(data.columns))
-        l=data[data_dict['linear_features']]
-        t=data[data_dict['tree_features']]
-        return l,t
-
+        l = data[data_dict['linear_features']]
+        t = data[data_dict['tree_features']]
+        return l, t
 
     def run(self):
 
@@ -243,42 +227,41 @@ class Scoring(object):
         # data = self.read_df()
         data = self.path
 
-        data = self.validation(data,self.data_dict)
+        data = self.validation(data, self.data_dict)
         print(data.shape)
 
         """preprocessing"""
 
-        Score_Preprocessing_obj = Score_Preprocessing(self.data_dict)
+        score_preprocessing_obj = ScorePreprocessing(self.data_dict)
 
-        data = Score_Preprocessing_obj.preprocessing(data,self.data_dict)
+        data = score_preprocessing_obj.preprocessing(data, self.data_dict)
         print(data.shape)
 
         """FeatureEngineering"""
-        original_df,created_df,date_col = self.score_feature_eng(data,self.data_dict)
-        try :
+        original_df, created_df, date_col = self.score_feature_eng(data, self.data_dict)
+        try:
             print(original_df.columns, created_df.columns)
-        except :
+        except:
             print("No created columns")
-        cols = list(set(original_df)-set(date_col))
+        cols = list(set(original_df) - set(date_col))
         original_df = original_df[cols]
 
         try:
-            result = pd.concat([original_df,created_df], axis=1)
+            result = pd.concat([original_df, created_df], axis=1)
         except:
-            result = original_df.merge(created_df, left_on=original_df.index,right_on=created_df.index,copy=False)
+            result = original_df.merge(created_df, left_on=original_df.index, right_on=created_df.index, copy=False)
 
-        print('result: ',result.shape)
+        print('result: ', result.shape)
 
         """Feature_selection"""
-        linear_df,tree_df = self.Scoring_feature_selection(result,self.data_dict)
+        linear_df, tree_df = self.scoring_feature_selection(result, self.data_dict)
         ## TO DO: the working of validate function below , could be removed.
-        linear_df,tree_df = self.validate(data,self.data_dict,linear_df,tree_df)
-        linear_df_cols = [re.sub('\W+','_', col) for col in linear_df.columns]
+        linear_df, tree_df = self.validate(data, self.data_dict, linear_df, tree_df)
+        linear_df_cols = [re.sub('\W+', '_', col) for col in linear_df.columns]
         linear_df.columns = linear_df_cols
-        tree_df_cols = [re.sub('\W+','_', col) for col in tree_df.columns]
+        tree_df_cols = [re.sub('\W+', '_', col) for col in tree_df.columns]
         tree_df.columns = tree_df_cols
-        return linear_df,tree_df
-
+        return linear_df, tree_df
 
 # directory = 'D:/mAdvisor/AutoML/SCORING+TRAINING/OneClick_AutoML (copy)/soccer_train/'
 # path = directory + 'test.csv'
