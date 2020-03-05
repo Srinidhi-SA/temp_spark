@@ -192,10 +192,8 @@ class StockAdvisor(object):
         return data_dict_overall
 
     def identify_concepts_python(self,df):
-        pandasDf = df.toPandas()
-        pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_sub_concepts_for_item_python)
-        # print pandasDf[["sentiment","time"]].head(2)
-        return pandasDf
+        df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
+        return df
 
     def get_sub_concepts_for_item_python(self, item):
         cur_keywords = [k["text"].lower() for k in item]
@@ -506,7 +504,9 @@ class StockAdvisor(object):
                 stockPriceData = stockPriceData.fillna(0)
 
                 df = df.filter(df.sentiment. isNotNull())
-                self.pandasDf = self.identify_concepts_python(df)
+                df1 =df.toPandas()
+                df1=df1[df1['sentiment'].notnull()]
+                self.pandasDf = self.identify_concepts_python(df1)
 
 
 
