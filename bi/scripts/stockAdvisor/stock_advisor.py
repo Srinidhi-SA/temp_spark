@@ -193,6 +193,8 @@ class StockAdvisor(object):
 
     def identify_concepts_python(self,df):
         df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
+        print ("HErre"*10)
+        print (df["concepts"])
         return df
 
     def get_sub_concepts_for_item_python(self, item):
@@ -506,6 +508,8 @@ class StockAdvisor(object):
                 df = df.filter(df.sentiment. isNotNull())
                 df1 =df.toPandas()
                 df1=df1[df1['sentiment'].notnull()]
+                print ("Here df1"*10)
+                print (df1)
                 self.pandasDf = self.identify_concepts_python(df1)
 
 
