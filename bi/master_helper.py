@@ -32,7 +32,7 @@ from bi.scripts.regression.generalized_linear_regression_model import Generalize
 from bi.scripts.regression.gbt_regression_model import GBTRegressionModelScript
 from bi.scripts.regression.rf_regression_model import RFRegressionModelScript
 from bi.scripts.regression.dtree_regression_model import DTREERegressionModelScript
-
+from bi.scripts.metadata_pandas import MetaDataScriptPandas
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
 
@@ -1088,14 +1088,20 @@ def run_metadata(spark,df,dataframe_context):
     errorURL = dataframe_context.get_error_url()
     jobUrl = dataframe_context.get_job_url()
     ignoreMsg = dataframe_context.get_message_ignore()
-
-
-    meta_data_class = MetaDataScript(df,spark,dataframe_context)
+    pandas_flag = True
+    if pandas_flag:
+        df = df.toPandas()
+        meta_data_class_pandas = MetaDataScriptPandas(df, dataframe_context)
+    else:
+        meta_data_class = MetaDataScript(df,spark,dataframe_context)
     completionStatus = dataframe_context.get_completion_status()
     progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Metadata For The Dataset",completionStatus,completionStatus,display=True)
     CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg)
     try:
-        meta_data_object = meta_data_class.run()
+        if pandas_flag:
+            meta_data_object = meta_data_class_pandas.run()
+        else:
+            meta_data_object = meta_data_class.run()
         metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
         print(metaDataJson)
         print("metaData Analysis Done in ", time.time() - fs, " seconds.")
