@@ -197,17 +197,9 @@ class StockAdvisor(object):
 
     def get_sub_concepts_for_item_python(self, item):
         cur_keywords = [k["text"].lower() for k in item]
-        print ("cur_keywords"*10)
-        print (cur_keywords)
         cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
-        print ("cur_sentiments"*10)
-        print (cur_sentiments)
         sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
-        print ("sentimentsDict"*10)
-        print (sentimentsDict)
         cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
-        print ("cur_concepts"*10)
-        print (cur_concepts)
         for key in self.concepts:
             keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
             if len(keywordIntersection) > 0:
@@ -497,13 +489,17 @@ class StockAdvisor(object):
                     # df = self.read_ankush_json(self.dataFilePath.format("bluemix",stock_symbol))
                     # df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
                     newsFilepath = self._hdfsBaseDir+"/news/"+stock_symbol+".json"
+                    print ("newsFilepath"*10)
+                    print (newsFilepath)
                     historicFilepath = self._hdfsBaseDir+"/historic/"+stock_symbol+"_historic.json"
+                    print("historicFilepath" * 10)
+                    print(historicFilepath)
                     # print "newsFilepath",newsFilepath
                     # print "historicFilepath",historicFilepath
                     df = self.read_hdfs_json(newsFilepath)
-                    # print "df columns",df.columns
+                    print "df columns",df.columns
                     df_historic = self.read_hdfs_json(historicFilepath)
-                    # print "df_historic Columns",df_historic.columns
+                    print "df_historic Columns",df_historic.columns
                 stockPriceData = df_historic.select(["date","close","open"]).toPandas()
                 stockPriceData["close"] = stockPriceData["close"].apply(float)
                 stockPriceData["open"] = stockPriceData["open"].apply(float)
@@ -514,8 +510,6 @@ class StockAdvisor(object):
                 df = df.filter(df.sentiment. isNotNull())
                 df1 =df.toPandas()
                 df1=df1[df1['sentiment'].notnull()]
-                print ("Here df1"*10)
-                print (df1)
                 self.pandasDf = self.identify_concepts_python(df1)
 
 
