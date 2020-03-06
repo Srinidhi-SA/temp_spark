@@ -56,7 +56,7 @@ class StockAdvisor(object):
     def read_ankush_concepts(self,url):
         req = urllib.request.urlopen(url)
         req_data = req.read()
-        return json.loads(req_data)
+        return json.loads(req_data.decode('utf-8'))
 
     def read_ankush_json(self,url):
         req = urllib.request.urlopen(url)
@@ -192,10 +192,10 @@ class StockAdvisor(object):
         return data_dict_overall
 
     def identify_concepts_python(self,df):
-        pandasDf = df.toPandas()
-        pandasDf["concepts"] = pandasDf["keywords"].apply(self.get_sub_concepts_for_item_python)
-        # print pandasDf[["sentiment","time"]].head(2)
-        return pandasDf
+        df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
+        print ("HErre"*10)
+        print (df["concepts"])
+        return df
 
     def get_sub_concepts_for_item_python(self, item):
         cur_keywords = [k["text"].lower() for k in item]
@@ -475,7 +475,6 @@ class StockAdvisor(object):
         else:
             conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
             self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
-
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
@@ -507,7 +506,11 @@ class StockAdvisor(object):
                 stockPriceData = stockPriceData.fillna(0)
 
                 df = df.filter(df.sentiment. isNotNull())
-                self.pandasDf = self.identify_concepts_python(df)
+                df1 =df.toPandas()
+                df1=df1[df1['sentiment'].notnull()]
+                print ("Here df1"*10)
+                print (df1)
+                self.pandasDf = self.identify_concepts_python(df1)
 
 
 
