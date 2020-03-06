@@ -117,8 +117,8 @@ class MetaDataScript(object):
             self._stripTimestamp = True
             ## TODO: Change after data loader is in pandas
             self._data_frame = data_frame.toPandas()
-            self._total_columns = self._data_frame.shape[0]
-            self._total_rows = self._data_frame.shape[1]
+            self._total_columns = self._data_frame.shape[1]
+            self._total_rows = self._data_frame.shape[0]
             self._max_levels = min(200, round(self._total_rows ** 0.5))
             self._percentage_columns = []
             numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
@@ -126,12 +126,10 @@ class MetaDataScript(object):
             self._string_columns = self._data_frame.select_dtypes(include=object).columns.tolist()
             for column in self._string_columns:
                 try:
-                    #print(column)
                     self._data_frame[column] = pd.to_datetime(self._data_frame[column], infer_datetime_format=True)
                 except:
                     pass
             self._timestamp_columns = self._data_frame.select_dtypes(include='datetime64').columns.tolist()
-            print(self._timestamp_columns)
             self._string_columns = list(set(self._string_columns) - set(self._timestamp_columns))
             self._boolean_columns = self._data_frame.select_dtypes(include=bool).columns.tolist()
             self._dataSize = {"nRows": self._total_rows, "nCols": self._total_columns, "nBooleans": None,
@@ -361,21 +359,38 @@ class MetaDataScript(object):
         measureDupCols=self.checkDupColName(measureColumnStat)
         dimensionDupCols=self.checkDupColName(dimensionColumnStat)
         timeDimensionDupCols=self.checkDupColName(timeDimensionColumnStat)
-        for i in measureDupCols:
-            if self.checkDuplicateCols(i[0],i[1]) == True:
-                for j in i[1:]:
-                    if dict(name="Duplicate",value=True) not in measureColumnStat[j]:
-                        measureColumnStat[j].append(dict(name="Duplicate",value=i[0]))
-        for i in dimensionDupCols:
-            if self.checkDuplicateCols(i[0],i[1],True) == True:
-                for j in i[1:]:
-                    if dict(name="Duplicate",value=True) not in dimensionColumnStat[j]:
-                        dimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
-        for i in timeDimensionDupCols:
-            if self.checkDuplicateCols(i[0],i[1]) == True:
-                for j in i[1:]:
-                    if dict(name="Duplicate",value=True) not in timeDimensionColumnStat[j]:
-                        timeDimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+        if self._pandas_flag:
+            for i in measureDupCols:
+                if self.checkDuplicateCols_pandas(i[0],i[1]) == True:
+                    for j in i[1:]:
+                        if dict(name="Duplicate",value=True) not in measureColumnStat[j]:
+                            measureColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+            for i in dimensionDupCols:
+                if self.checkDuplicateCols_pandas(i[0],i[1]) == True:
+                    for j in i[1:]:
+                        if dict(name="Duplicate",value=True) not in dimensionColumnStat[j]:
+                            dimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+            for i in timeDimensionDupCols:
+                if self.checkDuplicateCols_pandas(i[0],i[1]) == True:
+                    for j in i[1:]:
+                        if dict(name="Duplicate",value=True) not in timeDimensionColumnStat[j]:
+                            timeDimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+        else:
+            for i in measureDupCols:
+                if self.checkDuplicateCols(i[0],i[1]) == True:
+                    for j in i[1:]:
+                        if dict(name="Duplicate",value=True) not in measureColumnStat[j]:
+                            measureColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+            for i in dimensionDupCols:
+                if self.checkDuplicateCols(i[0],i[1],True) == True:
+                    for j in i[1:]:
+                        if dict(name="Duplicate",value=True) not in dimensionColumnStat[j]:
+                            dimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
+            for i in timeDimensionDupCols:
+                if self.checkDuplicateCols(i[0],i[1]) == True:
+                    for j in i[1:]:
+                        if dict(name="Duplicate",value=True) not in timeDimensionColumnStat[j]:
+                            timeDimensionColumnStat[j].append(dict(name="Duplicate",value=i[0]))
 
         for column in self._data_frame.columns:
             random_slug = uuid.uuid4().hex
@@ -422,7 +437,7 @@ class MetaDataScript(object):
                     data.set_actual_datatype(self._column_type_dict[column]["actual"])
             if self._column_type_dict[column]["abstract"] == "measure":
                 #if column not in self._real_columns:
-                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
+                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,self._total_rows,column,"measure",measureColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
@@ -431,7 +446,7 @@ class MetaDataScript(object):
                     data.set_ignore_suggestion_flag(True)
                     data.set_ignore_suggestion_message(ignoreReason)
             elif self._column_type_dict[column]["abstract"] == "dimension":
-                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
+                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,self._total_rows,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
@@ -447,7 +462,7 @@ class MetaDataScript(object):
                     utf8Suggestion = False
                 if utf8Suggestion:
                     utf8ColumnSuggestion.append(column)
-                    ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
+                    ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,self._total_rows,column,"dimension",dimensionColumnStat[column],max_levels=self._max_levels)
                     if ignoreSuggestion:
                         ignoreColumnSuggestions.append(column)
                         ignoreColumnReason.append(ignoreReason)
@@ -457,7 +472,7 @@ class MetaDataScript(object):
                         data.set_ignore_suggestion_message(ignoreReason)
 
             elif self._column_type_dict[column]["abstract"] == "datetime":
-                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,column,"datetime",timeDimensionColumnStat[column],max_levels=self._max_levels)
+                ignoreSuggestion,ignoreReason = metaHelperInstance.get_ignore_column_suggestions(self._data_frame,self._total_rows,column,"datetime",timeDimensionColumnStat[column],max_levels=self._max_levels)
                 if ignoreSuggestion:
                     ignoreColumnSuggestions.append(column)
                     ignoreColumnReason.append(ignoreReason)
@@ -538,3 +553,8 @@ class MetaDataScript(object):
             return dupCols
         else :
             return []
+    def checkDuplicateCols_pandas(self,col1,col2):
+        if self._data_frame[col1].equals(self._data_frame[col2]):
+            return True
+        else:
+            return False

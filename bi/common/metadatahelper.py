@@ -828,10 +828,9 @@ class MetaDataHelper(object):
         return detectedFormat
 
 
-    def get_ignore_column_suggestions(self,df,column_name,dataType,colStat,max_levels=100):
+    def get_ignore_column_suggestions(self,df,total_rows,column_name,dataType,colStat,max_levels=100):
         ignore = False
         reason = None
-        total_rows = df.count()
         modifiedColStat = {}
         for obj in colStat:
             modifiedColStat[obj["name"]] = obj["value"]
@@ -849,9 +848,15 @@ class MetaDataHelper(object):
                     ignore = True
                     reason = "Only one Unique Value"
             if (colStat["numberOfNulls"] == 0):
-                if (colStat["numberOfUniqueValues"] == total_rows) and (df.schema[column_name].dataType == 'IntegerType'):
-                    ignore = True
-                    reason = "Index column (all values are distinct)"
+                try:
+                    if (colStat["numberOfUniqueValues"] == total_rows) and (df.schema[column_name].dataType == 'IntegerType'):
+                        ignore = True
+                        reason = "Index column (all values are distinct)"
+                except:
+                    if (colStat["numberOfUniqueValues"] == total_rows) and (df[column_name].dtype in ['int32','int16','int64']):
+                        ignore = True
+                        reason = "Index column (all values are distinct)"
+
             else:
                 if (colStat["numberOfNulls"] > colStat["numberOfNotNulls"]):
                     ignore = True
