@@ -193,8 +193,6 @@ class StockAdvisor(object):
 
     def identify_concepts_python(self,df):
         df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
-        print ("HErre"*10)
-        print (df["concepts"])
         return df
 
     def get_sub_concepts_for_item_python(self, item):
@@ -470,11 +468,11 @@ class StockAdvisor(object):
         print("In stockAdvisor")
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
-        if self._runEnv == "debugMode":
-            self.concepts = self.load_concepts_from_json()
-        else:
-            conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
-            self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
+        # if self._runEnv == "debugMode":
+        #     self.concepts = self.load_concepts_from_json()
+        # else:
+        conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
+        self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
@@ -491,13 +489,17 @@ class StockAdvisor(object):
                     # df = self.read_ankush_json(self.dataFilePath.format("bluemix",stock_symbol))
                     # df_historic = self.read_ankush_json(self.dataFilePath.format("historical",stock_symbol))
                     newsFilepath = self._hdfsBaseDir+"/news/"+stock_symbol+".json"
+                    print ("newsFilepath"*10)
+                    print (newsFilepath)
                     historicFilepath = self._hdfsBaseDir+"/historic/"+stock_symbol+"_historic.json"
+                    print("historicFilepath" * 10)
+                    print(historicFilepath)
                     # print "newsFilepath",newsFilepath
                     # print "historicFilepath",historicFilepath
                     df = self.read_hdfs_json(newsFilepath)
-                    # print "df columns",df.columns
+                    print ("df columns",df.columns)
                     df_historic = self.read_hdfs_json(historicFilepath)
-                    # print "df_historic Columns",df_historic.columns
+                    print ("df_historic Columns",df_historic.columns)
                 stockPriceData = df_historic.select(["date","close","open"]).toPandas()
                 stockPriceData["close"] = stockPriceData["close"].apply(float)
                 stockPriceData["open"] = stockPriceData["open"].apply(float)
@@ -508,8 +510,6 @@ class StockAdvisor(object):
                 df = df.filter(df.sentiment. isNotNull())
                 df1 =df.toPandas()
                 df1=df1[df1['sentiment'].notnull()]
-                print ("Here df1"*10)
-                print (df1)
                 self.pandasDf = self.identify_concepts_python(df1)
 
 
