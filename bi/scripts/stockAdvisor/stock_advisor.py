@@ -193,15 +193,21 @@ class StockAdvisor(object):
 
     def identify_concepts_python(self,df):
         df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
-        print ("HErre"*10)
-        print (df["concepts"])
         return df
 
     def get_sub_concepts_for_item_python(self, item):
         cur_keywords = [k["text"].lower() for k in item]
+        print ("cur_keywords"*10)
+        print (cur_keywords)
         cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
+        print ("cur_sentiments"*10)
+        print (cur_sentiments)
         sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
+        print ("sentimentsDict"*10)
+        print (sentimentsDict)
         cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
+        print ("cur_concepts"*10)
+        print (cur_concepts)
         for key in self.concepts:
             keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
             if len(keywordIntersection) > 0:
@@ -470,11 +476,11 @@ class StockAdvisor(object):
         print("In stockAdvisor")
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
-        if self._runEnv == "debugMode":
-            self.concepts = self.load_concepts_from_json()
-        else:
-            conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
-            self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
+        # if self._runEnv == "debugMode":
+        #     self.concepts = self.load_concepts_from_json()
+        # else:
+        conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
+        self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
