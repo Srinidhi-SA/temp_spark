@@ -238,31 +238,53 @@ class MetaDataHelper(object):
 
     def calculate_measure_column_stats(self, df, measure_columns, **kwargs):
         i = 0
-        n_rows, n_cols = df.count(), len(df.columns)
-        if n_rows < 100000 and n_cols < 500:
-            pandas_flag = True
-        else:
-            pandas_flag = False
-        binned_stat_flag = True
-        xtraArgs = {}
-        for key in kwargs:
-            xtraArgs[key] =  kwargs[key]
-        if "binColumn" in xtraArgs:
-            binned_stat_flag = xtraArgs["binColumn"]
-        df = df.select(measure_columns)
-        if pandas_flag:
-            pandas_df = df.toPandas()
-        total_count = df.count()
-        output = {}
-        chart_data = {}
-        if pandas_flag:
-            summary_df = pandas_df.describe()
+        pandas_flag = True
+        if kwargs["pandas_flag"]:
+            n_rows, n_cols = df.shape[0], len(df.columns)
+            binned_stat_flag = True
+            xtraArgs = {}
+            for key in kwargs:
+                xtraArgs[key] =  kwargs[key]
+            if "binColumn" in xtraArgs:
+                binned_stat_flag = xtraArgs["binColumn"]
+            df = df[measure_columns]
+            pandas_df = df.copy()
+            total_count = df.shape[0]
+            output = {}
+            chart_data = {}
+            summary_df = df.describe()
             summary_df.drop(index=["25%","50%","75%"],inplace = True)
             summary_df.rename(index={'std': 'stddev'}, inplace=True)
             summary_df=summary_df.reset_index()
             summary_df.rename(columns={'index': 'summary'}, inplace=True)
-        else :
-            summary_df = df.describe().toPandas()
+        else:
+            n_rows, n_cols = df.count(), len(df.columns)
+            if n_rows < 100000 and n_cols < 500:
+                pandas_flag = True
+            else:
+                pandas_flag = False
+            binned_stat_flag = True
+            xtraArgs = {}
+            for key in kwargs:
+                xtraArgs[key] =  kwargs[key]
+            if "binColumn" in xtraArgs:
+                binned_stat_flag = xtraArgs["binColumn"]
+            df = df.select(measure_columns)
+            if pandas_flag:
+                pandas_df = df.toPandas()
+            total_count = df.count()
+            output = {}
+            chart_data = {}
+            ## TODO : Remove if pyspark df doesnt need this.
+            if pandas_flag:
+                ## was done cause preprocessing and feature Engineering was done on pandas to handle NA
+                summary_df = pandas_df.describe()
+                summary_df.drop(index=["25%","50%","75%"],inplace = True)
+                summary_df.rename(index={'std': 'stddev'}, inplace=True)
+                summary_df=summary_df.reset_index()
+                summary_df.rename(columns={'index': 'summary'}, inplace=True)
+            else :
+                summary_df = df.describe().toPandas()
         displayNameDict = {
                             "count":"Count",
                             "mean":"Mean",
@@ -293,7 +315,7 @@ class MetaDataHelper(object):
         for column in measure_columns:
             print("COLUMN NUMBER IN MEASURE - ", i)
             i+=1
-            if pandas_flag:
+            if pandas_flag or kwargs["pandas_flag"]:
                 output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, pandas_df, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict, output, chart_data, pandas_flag)
             else:
                 output[column],chart_data[column] = self.calculate_measure_column_stats_per_column(df, None, column, summary_df, total_count, binned_stat_flag, displayNameDict, displayOrderDict, output, chart_data, False)
@@ -444,23 +466,35 @@ class MetaDataHelper(object):
     def calculate_dimension_column_stats(self, df, dimension_columns, **kwargs):
         i = 0
         level_count_flag = True
+        pandas_flag = True
         xtraArgs = {}
         for key in kwargs:
             xtraArgs[key] =  kwargs[key]
         if "levelCount" in xtraArgs:
             level_count_flag = xtraArgs["levelCount"]
-        df = df.select(dimension_columns)
-        n_rows, n_cols = df.count(), len(df.columns)
-        if n_rows < 100000 and n_cols < 500:
-            pandas_flag = True
+        if xtraArgs["pandas_flag"]:
+            df = df[dimension_columns]
+            n_rows, n_cols = df.shape[0], len(df.columns)
+            pandas_df = df.copy()
+            total_count = df.shape[0]
+            output = {}
+            chart_data = {}
+            summary_df = df.describe()
+            summary_df=summary_df.reset_index()
+            summary_df.rename(columns={'index': 'summary'}, inplace=True)
         else:
-            pandas_flag = False
-        if pandas_flag:
-            pandas_df = df.toPandas()
-        total_count = df.count()
-        output = {}
-        chart_data = {}
-        summary_df = df.describe().toPandas()
+            df = df.select(dimension_columns)
+            n_rows, n_cols = df.count(), len(df.columns)
+            if n_rows < 100000 and n_cols < 500:
+                pandas_flag = True
+            else:
+                pandas_flag = False
+            if pandas_flag:
+                pandas_df = df.toPandas()
+            total_count = df.count()
+            output = {}
+            chart_data = {}
+            summary_df = df.describe().toPandas()
         displayNameDict = {
                             "count":"Count",
                             "numberOfNulls":"Null Values",
@@ -485,7 +519,7 @@ class MetaDataHelper(object):
         for column in dimension_columns:
             print("COLUMN NUMBER IN DIMENSION - ", i)
             i+=1
-            if pandas_flag:
+            if pandas_flag or xtraArgs["pandas_flag"]:
                 output[column], chart_data[column] = self.calculate_dimension_column_stats_per_column(df, pandas_df, column, summary_df, total_count, level_count_flag, displayNameDict, displayOrderDict, output, chart_data, pandas_flag)
             else:
                 output[column], chart_data[column] = self.calculate_dimension_column_stats_per_column(df,None, column, summary_df, total_count, level_count_flag,displayNameDict, displayOrderDict, output, chart_data,False)
@@ -619,17 +653,32 @@ class MetaDataHelper(object):
     def calculate_time_dimension_column_stats(self, df, td_columns, **kwargs):
         i = 0
         level_count_flag = True
+        pandas_flag = True
         xtraArgs = {}
         for key in kwargs:
             xtraArgs[key] =  kwargs[key]
         if "level_count_flag" in xtraArgs:
             level_count_flag = xtraArgs[key]
-        df = df.select(td_columns)
-        pandas_df = df.toPandas()
-        total_count = df.count()
-        output = {}
-        chart_data = {}
-        unprocessed_columns=[]
+        if xtraArgs["pandas_flag"]:
+            df = df[td_columns]
+            pandas_df = df.copy()
+            total_count = df.shape[0]
+            output = {}
+            chart_data = {}
+            unprocessed_columns = []
+            n_rows, n_cols = df.shape[0], len(df.columns)
+        else:
+            df = df.select(td_columns)
+            pandas_df = df.toPandas()
+            total_count = df.count()
+            output = {}
+            chart_data = {}
+            unprocessed_columns=[]
+            n_rows, n_cols = df.count(), len(df.columns)
+            if n_rows < 100000 and n_cols < 500:
+                pandas_flag = True
+            else:
+                pandas_flag = False
         displayNameDict = {
                             "count":"Count",
                             "numberOfNulls":"Null Values",
@@ -646,11 +695,6 @@ class MetaDataHelper(object):
         displayOrderDict = {"firstDate": 0, "lastDate": 1, "MinLevel": 9, "MaxLevel": 10, "numberOfUniqueValues": 2,
                             "numberOfNulls": 3, "numberOfUniqueValues": 5, "numberOfNotNulls": 6, "count": 7, "LevelCount": 8, "percentOfNulls": 4}
 
-        n_rows, n_cols = df.count(), len(df.columns)
-        if n_rows < 100000 and n_cols < 500:
-            pandas_flag = True
-        else:
-            pandas_flag = False
 
         print("+"*60)
         print("TIME DIMENSION COLUMNS - ", td_columns)

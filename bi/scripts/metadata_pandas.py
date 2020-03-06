@@ -128,6 +128,7 @@ class MetaDataScriptPandas(object):
                 pass
         self._timestamp_columns = self._data_frame.select_dtypes(include='datetime64').columns.tolist()
         print(self._timestamp_columns)
+        self._string_columns = list(set(self._string_columns)-set(self._timestamp_columns))
         self._boolean_columns = self._data_frame.select_dtypes(include=bool).columns.tolist()
         self._dataSize = {"nRows":self._total_rows,"nCols":self._total_columns,"nBooleans":None,"nMeasures":None,"nDimensions":None,"nTimeDimensions":None,"dimensionLevelCountDict":{},"totalLevels":None}
         self.actual_col_datatype_update=[]

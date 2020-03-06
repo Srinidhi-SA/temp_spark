@@ -15,6 +15,7 @@ from bi.settings import setting as GLOBALSETTINGS
 
 from pyspark.sql.functions import coalesce, to_date
 from pyspark.sql.functions import date_format, lit
+import pandas as pd
 
 class MetaDataScript(object):
     '''
@@ -22,6 +23,8 @@ class MetaDataScript(object):
     '''
     def __init__(self, data_frame, spark, dataframe_context):
         self._dataframe_context = dataframe_context
+        ## TODO : make getter for pandas_flag
+        self._pandas_flag = dataframe_context._pandas_flag
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._start_time = time.time()
         self._analysisName = "metadata"
@@ -108,34 +111,64 @@ class MetaDataScript(object):
                     "weight":5
                     },
                 }
+        if self._pandas_flag:
+            self._binned_stat_flag = True
+            self._level_count_flag = True
+            self._stripTimestamp = True
+            ## TODO: Change after data loader is in pandas
+            self._data_frame = data_frame.toPandas()
+            self._total_columns = self._data_frame.shape[0]
+            self._total_rows = self._data_frame.shape[1]
+            self._max_levels = min(200, round(self._total_rows ** 0.5))
+            self._percentage_columns = []
+            numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+            self._numeric_columns = self._data_frame.select_dtypes(include=numerics).columns.tolist()
+            self._string_columns = self._data_frame.select_dtypes(include=object).columns.tolist()
+            for column in self._string_columns:
+                try:
+                    #print(column)
+                    self._data_frame[column] = pd.to_datetime(self._data_frame[column], infer_datetime_format=True)
+                except:
+                    pass
+            self._timestamp_columns = self._data_frame.select_dtypes(include='datetime64').columns.tolist()
+            print(self._timestamp_columns)
+            self._string_columns = list(set(self._string_columns) - set(self._timestamp_columns))
+            self._boolean_columns = self._data_frame.select_dtypes(include=bool).columns.tolist()
+            self._dataSize = {"nRows": self._total_rows, "nCols": self._total_columns, "nBooleans": None,
+                              "nMeasures": None, "nDimensions": None, "nTimeDimensions": None,
+                              "dimensionLevelCountDict": {}, "totalLevels": None}
+            self.actual_col_datatype_update = []
+            self.update_column_type_dict()
+            time_taken_schema = time.time() - self._start_time
+            print("schema rendering takes", time_taken_schema)
+        else:
+            self._binned_stat_flag = True
+            self._level_count_flag = True
+            self._stripTimestamp = True
+            self._data_frame = data_frame
+            self._spark = spark
+            self._total_columns = len([field.name for field in self._data_frame.schema.fields])
+            self._total_rows = self._data_frame.count()
+            self._max_levels = min(200, round(self._total_rows**0.5))
+            #self._max_levels = 100000
 
-        self._binned_stat_flag = True
-        self._level_count_flag = True
-        self._stripTimestamp = True
-        self._data_frame = data_frame
-        self._spark = spark
-        self._total_columns = len([field.name for field in self._data_frame.schema.fields])
-        self._total_rows = self._data_frame.count()
-        self._max_levels = min(200, round(self._total_rows**0.5))
-        #self._max_levels = 100000
-
-        self._percentage_columns = []
-        self._numeric_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
-        self._string_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
-        self._timestamp_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
-        self._boolean_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
-        self._real_columns = [field.name for field in self._data_frame.schema.fields if
-                ColumnType(type(field.dataType)).get_actual_data_type() == ColumnType.REAL]
-        self._column_type_dict = {}
-        self._dataSize = {"nRows":self._total_rows,"nCols":self._total_columns,"nBooleans":None,"nMeasures":None,"nDimensions":None,"nTimeDimensions":None,"dimensionLevelCountDict":{},"totalLevels":None}
-        self.actual_col_datatype_update=[]
-        self.update_column_type_dict()
-        time_taken_schema = time.time()-self._start_time
-        print("schema rendering takes",time_taken_schema)
+            self._percentage_columns = []
+            self._numeric_columns = [field.name for field in self._data_frame.schema.fields if
+                    ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE]
+            self._string_columns = [field.name for field in self._data_frame.schema.fields if
+                    ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION]
+            self._timestamp_columns = [field.name for field in self._data_frame.schema.fields if
+                    ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION]
+            self._boolean_columns = [field.name for field in self._data_frame.schema.fields if
+                    ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN]
+            self._real_columns = [field.name for field in self._data_frame.schema.fields if
+                    ColumnType(type(field.dataType)).get_actual_data_type() == ColumnType.REAL]
+            self._column_type_dict = {}
+            self._dataSize = {"nRows":self._total_rows,"nCols":self._total_columns,"nBooleans":None,"nMeasures":None,"nDimensions":None,"nTimeDimensions":None,"dimensionLevelCountDict":{},"totalLevels":None}
+            self.actual_col_datatype_update=[]
+            self.update_column_type_dict()
+            time_taken_schema = time.time()-self._start_time
+            print("schema rendering takes",time_taken_schema)
 
 
 
@@ -161,7 +194,8 @@ class MetaDataScript(object):
         self._start_time = time.time()
         metaHelperInstance = MetaDataHelper(self._data_frame, self._total_rows)
         sampleData = metaHelperInstance.get_sample_data()
-        sampleData = sampleData.toPandas()
+        if not self._pandas_flag:
+            sampleData = sampleData.toPandas()
         time_taken_sampling = time.time()-self._start_time
         self._completionStatus += self._scriptStages["sampling"]["weight"]
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
@@ -181,35 +215,47 @@ class MetaDataScript(object):
         uniqueVals = []
         dateTimeSuggestions = {}
 
-        for column in self._string_columns:
-            if self._column_type_dict[column]["actual"] != "boolean":
-                # uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(10).collect()
-                uniqueVals = sampleData[column].unique().tolist()
-            else:
-                uniqueVals = []
-            if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
-                dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
-            else:
-                dateColumnFormat = None
+        if not self._pandas_flag:
+            for column in self._string_columns:
+                if self._column_type_dict[column]["actual"] != "boolean":
+                    # uniqueVals = self._data_frame.select(column).na.drop().distinct().limit(10).collect()
+                    uniqueVals = sampleData[column].unique().tolist()
+                else:
+                    uniqueVals = []
+                ## TODO : remove pandas if not needed later
+                if self._pandas_flag:
+                    if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format_pandas([self._data_frame.sort_values(by=column,ascending=False)[column][0]])!=None:
+                        dateColumnFormat = metaHelperInstance.get_datetime_format_pandas(uniqueVals)
+                    else:
+                        dateColumnFormat = None
+                else:
+                    if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
+                        dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
+                    else:
+                        dateColumnFormat = None
 
-            if dateColumnFormat:
-                dateTimeSuggestions.update({column:dateColumnFormat})
-                data=ColumnData()
-                data.set_level_count_to_null()
-                data.set_chart_data_to_null()
-                data.set_date_suggestion_flag(True)
-                data.set_abstract_datatype("datetime")
-                data.set_actual_datatype("datetime")
-                self._timestamp_string_columns.append(column)
-                self._data_frame = self._data_frame.withColumn(column, self.to_date_(column))
-        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
-        print("sampling takes",time_taken_sampling)
-        self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
+                if dateColumnFormat:
+                    dateTimeSuggestions.update({column:dateColumnFormat})
+                    data=ColumnData()
+                    data.set_level_count_to_null()
+                    data.set_chart_data_to_null()
+                    data.set_date_suggestion_flag(True)
+                    data.set_abstract_datatype("datetime")
+                    data.set_actual_datatype("datetime")
+                    self._timestamp_string_columns.append(column)
+                    ## TO DO : remove pandas if not needed later
+                    if self._pandas_flag:
+                        self._data_frame[column] = pd.to_datetime(self._data_frame[column],format=dateColumnFormat)
+                    else:
+                        self._data_frame = self._data_frame.withColumn(column, self.to_date_(column))
+            sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
+            print("sampling takes",time_taken_sampling)
+            self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
 
-        self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
-        # self.update_column_type_dict()
+            self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
+            # self.update_column_type_dict()
 
-        print("time taken for separating date columns from string is :", time.time()-separation_time)
+            print("time taken for separating date columns from string is :", time.time()-separation_time)
 
 
         # if len(self._percentage_columns)>0:
@@ -231,7 +277,7 @@ class MetaDataScript(object):
 
         self._start_time = time.time()
         print("Count of Numeric columns",len(self._numeric_columns))
-        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag)
+        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag,pandas_flag=self._pandas_flag)
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
         print("measure stats takes",time_taken_measurestats)
@@ -248,7 +294,7 @@ class MetaDataScript(object):
         # time_columns=self._timestamp_columns
         # time_string_columns=self._timestamp_string_columns
         # original_timestamp_columns=list(set(self._timestamp_columns)-set(self._timestamp_string_columns))
-        timeDimensionColumnStat,timeDimensionCharts, unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag)
+        timeDimensionColumnStat,timeDimensionCharts, unprocessed_columns = metaHelperInstance.calculate_time_dimension_column_stats(self._data_frame,self._timestamp_columns,level_count_flag=self._level_count_flag,pandas_flag=self._pandas_flag)
         self._string_columns = self._string_columns + unprocessed_columns
         self._timestamp_columns = list(set(self._timestamp_columns) - set(unprocessed_columns))
         self.update_column_type_dict()
@@ -290,7 +336,7 @@ class MetaDataScript(object):
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
-        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag)
+        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag,pandas_flag=self._pandas_flag)
         self._dataSize["dimensionLevelCountDict"] = {k:[x for x in v if x["name"]=="numberOfUniqueValues"][0]["value"] for k,v in list(dimensionColumnStat.items())}
         self._dataSize["totalLevels"] = sum(self._dataSize["dimensionLevelCountDict"].values())
 
