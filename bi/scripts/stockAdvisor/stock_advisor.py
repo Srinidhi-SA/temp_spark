@@ -497,9 +497,9 @@ class StockAdvisor(object):
                     # print "newsFilepath",newsFilepath
                     # print "historicFilepath",historicFilepath
                     df = self.read_hdfs_json(newsFilepath)
-                    print "df columns",df.columns
+                    print ("df columns",df.columns)
                     df_historic = self.read_hdfs_json(historicFilepath)
-                    print "df_historic Columns",df_historic.columns
+                    print ("df_historic Columns",df_historic.columns)
                 stockPriceData = df_historic.select(["date","close","open"]).toPandas()
                 stockPriceData["close"] = stockPriceData["close"].apply(float)
                 stockPriceData["open"] = stockPriceData["open"].apply(float)
