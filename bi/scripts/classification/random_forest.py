@@ -416,7 +416,10 @@ class RFClassificationModelScript(object):
 
             feature_importance={}
             try:
-                feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+                try:
+                    feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+                except:
+                    feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.best_estimator_.feature_importances_),key=lambda x: x[1],reverse=True))
                 for k, v in feature_importance.items():
                     feature_importance[k] = CommonUtils.round_sig(v)
             except:
