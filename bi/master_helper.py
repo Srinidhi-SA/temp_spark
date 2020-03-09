@@ -101,6 +101,7 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                         for x in range(len(metaDataObj_new['columnData'])):
                             metaDataObj['columnData'].append(metaDataObj_new['columnData'][x])
                     except:
+                        fs = time.time()
                         print("starting Metadata")
                         dataframe_context.set_metadata_ignore_msg_flag(True)
                         meta_data_class = MetaDataScript(df,spark,dataframe_context)
