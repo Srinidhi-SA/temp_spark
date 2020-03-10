@@ -2,7 +2,7 @@ from __future__ import division
 
 from builtins import object
 from past.utils import old_div
-import pattern.en
+#import pattern.en
 from pyspark.sql import functions as FN
 from scipy.stats import f as FDistribution
 from pyspark.sql.functions import *
