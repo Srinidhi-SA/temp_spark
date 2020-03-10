@@ -277,7 +277,10 @@ class MetaDataScript(object):
 
         self._start_time = time.time()
         print("Count of Numeric columns",len(self._numeric_columns))
-        measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag,pandas_flag=self._pandas_flag)
+        try:
+            measureColumnStat,measureCharts = metaHelperInstance.calculate_measure_column_stats(self._data_frame,self._numeric_columns,binColumn=self._binned_stat_flag,pandas_flag=self._pandas_flag)
+        except:
+            print (throw_error_and_catch)
         time_taken_measurestats = time.time()-self._start_time
         self._completionStatus += self._scriptStages["measurestats"]["weight"]
         print("measure stats takes",time_taken_measurestats)
@@ -336,7 +339,10 @@ class MetaDataScript(object):
         CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsgFlag)
 
         self._start_time = time.time()
-        dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag,pandas_flag=self._pandas_flag)
+        try :
+            dimensionColumnStat,dimensionCharts = metaHelperInstance.calculate_dimension_column_stats(self._data_frame,self._string_columns+self._boolean_columns,levelCount=self._level_count_flag,pandas_flag=self._pandas_flag)
+        except:
+            print(throw_error_and_catch)
         self._dataSize["dimensionLevelCountDict"] = {k:[x for x in v if x["name"]=="numberOfUniqueValues"][0]["value"] for k,v in list(dimensionColumnStat.items())}
         self._dataSize["totalLevels"] = sum(self._dataSize["dimensionLevelCountDict"].values())
 
