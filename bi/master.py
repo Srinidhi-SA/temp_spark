@@ -419,7 +419,7 @@ if __name__ == '__main__':
         main(sys.argv[1])
         print('Main Method End .....')
     except Exception as e:
-        print jobURL, killURL
+        print (jobURL, killURL)
         data = {"status": "killed", "jobURL": jobURL}
         resp = send_kill_command(killURL, data)
         while str(resp.text) != '{"result": "success"}':
