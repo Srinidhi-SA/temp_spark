@@ -24,7 +24,10 @@ class MetaDataScript(object):
     def __init__(self, data_frame, spark, dataframe_context):
         self._dataframe_context = dataframe_context
         ## TODO : make getter for pandas_flag
-        self._pandas_flag = dataframe_context._pandas_flag
+        try:
+            self._pandas_flag = dataframe_context._pandas_flag
+        except:
+            self._pandas_flag = False
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._start_time = time.time()
         self._analysisName = "metadata"
@@ -212,7 +215,6 @@ class MetaDataScript(object):
         self._timestamp_string_columns=[]
         uniqueVals = []
         dateTimeSuggestions = {}
-
         if not self._pandas_flag:
             for column in self._string_columns:
                 if self._column_type_dict[column]["actual"] != "boolean":
@@ -246,14 +248,14 @@ class MetaDataScript(object):
                         self._data_frame[column] = pd.to_datetime(self._data_frame[column],format=dateColumnFormat)
                     else:
                         self._data_frame = self._data_frame.withColumn(column, self.to_date_(column))
-            sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
-            print("sampling takes",time_taken_sampling)
-            self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
+        sampleData = metaHelperInstance.format_sampledata_timestamp_columns(sampleData,self._timestamp_columns,self._stripTimestamp)
+        print("sampling takes",time_taken_sampling)
+        self._string_columns = list(set(self._string_columns)-set(self._timestamp_string_columns))
 
-            self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
-            # self.update_column_type_dict()
+        self._timestamp_columns = self._timestamp_columns+self._timestamp_string_columns
+        # self.update_column_type_dict()
 
-            print("time taken for separating date columns from string is :", time.time()-separation_time)
+        print("time taken for separating date columns from string is :", time.time()-separation_time)
 
 
         # if len(self._percentage_columns)>0:

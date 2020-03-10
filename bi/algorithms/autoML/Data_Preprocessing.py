@@ -154,9 +154,9 @@ class DataPreprocessingAutoMl(object):
                                 "binary": None}}
         target_variable = self.dataframe[targetname]
         counts = target_variable.value_counts()
-        self.dataframe = self.dataframe[~target_variable.isin(counts[counts <= 10].index)]
         if (m_type.lower() == 'classification'):
             ## convert target column into object
+            self.dataframe = self.dataframe[~target_variable.isin(counts[counts <= 10].index)]
             output_dict['target_analysis']['converted_to_str'] = False
             if self.dataframe[targetname].dtype != 'O':
                 self.dataframe[targetname] = "'" + self.dataframe[targetname].astype(str) + "'"
