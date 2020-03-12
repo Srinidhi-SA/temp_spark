@@ -135,8 +135,9 @@ class StockAdvisor(object):
 
     def get_stock_change(self, df_historic):
         sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
-        start_price = float(sorted_list[-1]['close'])
-        end_price = float(sorted_list[0]['close'])
+        start_price = float(sorted_list[0]['close'])
+        end_price = float(sorted_list[-1]['close'])
+        print(start_price,end_price)
         return (end_price-start_price, old_div(((end_price-start_price)*100.0),start_price) )
 
     def get_stock_start_end_value(self, df_historic):
@@ -679,9 +680,9 @@ class StockAdvisor(object):
         data_dict_overall["number_articles_by_concept"] = self.get_number_articles_per_concept(data_dict_overall["nArticlesAndSentimentsPerConcept"])
 
         key, value = max(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
-        data_dict_overall["max_value_change_overall"] = (self.get_capitalized_name(key),value)
+        data_dict_overall["max_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
         key, value = min(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
-        data_dict_overall["min_value_change_overall"] = (self.get_capitalized_name(key),value)
+        data_dict_overall["min_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
 
         key,value = max(iter(data_dict_overall["max_sentiment_change"].items()), key = lambda p: p[1])
         data_dict_overall["max_sentiment_change_overall"] = (self.get_capitalized_name(key),value)
