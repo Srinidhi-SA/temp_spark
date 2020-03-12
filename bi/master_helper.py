@@ -1150,7 +1150,7 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
             print("output_filepath",output_filepath)
             try:
                 transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
-            except Exception as e:
+            except:
                 print ("####################could not save the dataset in the output path ###################")
 
             print("starting Metadata for the Filtered Dataframe")
