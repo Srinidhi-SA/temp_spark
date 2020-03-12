@@ -142,8 +142,8 @@ class StockAdvisor(object):
 
     def get_stock_start_end_value(self, df_historic):
         sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
-        start_price = float(sorted_list[-1]['close'])
-        end_price = float(sorted_list[0]['close'])
+        start_price = float(sorted_list[0]['close'])
+        end_price = float(sorted_list[-1]['close'])
         return (start_price,end_price)
 
     def get_capitalized_name(self,word):
