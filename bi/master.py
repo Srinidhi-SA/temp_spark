@@ -171,7 +171,7 @@ def main(configJson):
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
                     automl_enable = False
-                    if dataframe_context.get_trainerMode() == "autoML":
+                    if dataframe_context.get_trainerMode() == "autoML" and GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]=="CLASSIFICATION":
                         automl_enable = True
                     one_click_json = {}
                     if dataframe_context.get_trainerMode() == "autoML" and GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]=="CLASSIFICATION":
