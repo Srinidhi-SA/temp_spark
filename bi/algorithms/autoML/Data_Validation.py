@@ -63,11 +63,11 @@ class DataValidation:
         if column == self.target:
             self.data_dict['target'] = self.df[re_column].name
             self.target = self.data_dict['target']
-        if re_column != self.target:
-            if len(self.df[re_column].value_counts()) == 1 or len(self.df[re_column].value_counts()) == self.df.shape[0]:
-                Dict["droped_column"] = True
-                self.df.drop([re_column], axis=1, inplace=True)
-        self.df.dropna(how='all', axis=0, inplace=True)
+        # if re_column != self.target:
+        #     if len(self.df[re_column].value_counts()) == 1 or len(self.df[re_column].value_counts()) == self.df.shape[0]:
+        #         Dict["droped_column"] = True
+        #         self.df.drop([re_column], axis=1, inplace=True)
+        # self.df.dropna(how='all', axis=0, inplace=True)
         return Dict
 
     def target_fitness_check(self):
@@ -104,6 +104,21 @@ class DataValidation:
         else:
             self.df = self.dataframe
         self.data_dict['Column_settings'] = [self.deal_columns(i) for i in self.df.columns]
+        self.df = self.df.loc[:, (self.df.nunique() != 1)]
+        self.df = self.df.loc[:, (self.df.nunique() != self.df.shape[0])]
+        # for i in range(len(self.data_dict['Column_settings'])):
+        #     if self.data_dict['Column_settings'][i]["column_name"] not in self.df.columns:
+        #         self.data_dict['Column_settings'][i]["droped_column"] = True
+
+        def dropped_col_update(list_element):
+            if list_element["column_name"] not in self.df.columns:
+                list_element["droped_column"] = True
+            else:
+                pass
+            return list_element
+
+        self.data_dict['Column_settings'] = [dropped_col_update(list_element) for list_element in self.data_dict['Column_settings']]
+
         self.data_dict['app_type'] = self.method
         self.data_dict["target_fitness_check"] = self.target_fitness_check()
         if self.data_dict["target_fitness_check"] == False:

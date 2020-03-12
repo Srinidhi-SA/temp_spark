@@ -21,7 +21,8 @@ class DataPreprocessingAutoMl(object):
         # return dataframe
 
     def drop_na_columns(self, pre_dict):
-        pre_dict["Dropped_columns"] = []
+        #optimization scope
+        # pre_dict["Dropped_columns"] = []
         col_settings = pre_dict['Column_settings']
         for i in range(len(col_settings)):
             col = col_settings[i]["re_column_name"]
@@ -248,6 +249,7 @@ class DataPreprocessingAutoMl(object):
 
         Metric_list = list(set(dir(UnitRegistry())))
         self.drop_duplicate_rows()
+        data_dict["Dropped_columns"] = []
         self.drop_na_columns(data_dict)
         ## check the below line to improve
         # data_dict['Dropped_columns']=list(set(df1)-set(df))

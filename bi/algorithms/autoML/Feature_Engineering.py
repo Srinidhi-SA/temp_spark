@@ -217,6 +217,7 @@ class FeatureEngineeringAutoMl:
     #     return df_train,self.norm_col
 
     def feature_transformation(self, data, target, col_list):
+        #optimiazation scope
         data_dict = {}
         pt_list = []
         lt_list = []
