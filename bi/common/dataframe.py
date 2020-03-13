@@ -47,7 +47,12 @@ class DataFrameHelper(object):
     def __init__(self, data_frame, df_context, meta_parser):
         # stripping spaces from column names
         self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
-        self.columns = self._data_frame.columns
+        self._pandas_flag = False
+        if self._pandas_flag:
+            self._data_frame = data_frame.toPandas()
+            self.columns = list(self._data_frame)
+        else:
+            self.columns = self._data_frame.columns
         self._dataframe_context = df_context
         self._metaParser = meta_parser
 
@@ -75,7 +80,10 @@ class DataFrameHelper(object):
         self.colsToBin = []
 
     def set_dataframe(self,sparkDf):
-        self._data_frame = sparkDf
+        if self._pandas_flag:
+            pass
+        else:
+            self._data_frame = sparkDf
 
     def set_params(self):
         print("Setting the dataframe")
@@ -106,7 +114,10 @@ class DataFrameHelper(object):
         if app_type != "REGRESSION":
             if self._dataframe_context.get_job_type() != "subSetting":
                 if self._dataframe_context.get_job_type() != "prediction":
-                    print (self._data_frame.printSchema())
+                    if self._pandas_flag:
+                        pass
+                    else:
+                        print (self._data_frame.printSchema())
                     self._data_frame = self._data_frame#select(colsToKeep)
                 else:
                     if app_type == "CLASSIFICATION":
@@ -118,7 +129,10 @@ class DataFrameHelper(object):
                             # self._data_frame = self._data_frame.select(colsToKeep)
                             pass
                     elif app_type == "REGRESSION":
-                        self._data_frame = self._data_frame.select(colsToKeep)
+                        if self._pandas_flag:
+                            pass
+                        else:
+                            self._data_frame = self._data_frame.select(colsToKeep)
         self.columns = self._data_frame.columns
         self.bin_columns(colsToBin)
         self.update_column_data()
@@ -130,44 +144,61 @@ class DataFrameHelper(object):
         self.update_column_data()
 
     def update_column_data(self):
-        dfSchemaFields = self._data_frame.schema.fields
-        self.columns = [field.name for field in dfSchemaFields]
-        self.num_columns = len(self._data_frame.columns)
-        self.num_rows = self._metaParser.get_num_rows()
-        self.column_data_types = {field.name: field.dataType for field in dfSchemaFields}
-        self.numeric_columns = []
-        self.string_columns = []
-        self.boolean_columns = []
-        self.timestamp_columns = []
-        for field in dfSchemaFields:
-            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
-                self.numeric_columns.append(field.name)
-            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION:
-                self.string_columns.append(field.name)
-            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN:
-                self.boolean_columns.append(field.name)
-            if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION:
-                self.timestamp_columns.append(field.name)
-        # print self.string_columns
+        if self._pandas_flag:
+            self.columns = list(self._data_frame)
+            self.num_columns = len(list(self._data_frame))
+            self.num_rows = self._metaParser.get_num_rows()
+            self.column_data_types = self._data_frame.dtypes.apply(lambda x: x.name).to_dict()
+            self.numeric_columns = list(self._data_frame.select_dtypes(include=['int32', 'int64', 'float32', 'float64', 'int',
+                                                                    'float']))
+            self.string_columns = list(self._data_frame.select_dtypes(include=['object', 'category']))
+            self.boolean_columns = list(self._data_frame.select_dtypes(include=['bool']))
+            self.timestamp_columns = list(self._data_frame.select_dtypes(include=['datetime64']))
+        else:
+            dfSchemaFields = self._data_frame.schema.fields
+            self.columns = [field.name for field in dfSchemaFields]
+            self.num_columns = len(self._data_frame.columns)
+            self.num_rows = self._metaParser.get_num_rows()
+            self.column_data_types = {field.name: field.dataType for field in dfSchemaFields}
+            self.numeric_columns = []
+            self.string_columns = []
+            self.boolean_columns = []
+            self.timestamp_columns = []
+            for field in dfSchemaFields:
+                if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.MEASURE:
+                    self.numeric_columns.append(field.name)
+                if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.DIMENSION:
+                    self.string_columns.append(field.name)
+                if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.BOOLEAN:
+                    self.boolean_columns.append(field.name)
+                if ColumnType(type(field.dataType)).get_abstract_data_type() == ColumnType.TIME_DIMENSION:
+                    self.timestamp_columns.append(field.name)
+            # print self.string_columns
 
 
     def boolean_to_string(self,colsToConvert):
         if len(colsToConvert) > 0:
             for column in colsToConvert:
-                self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType()))
+                if self._pandas_flag:
+                    self._data_frame[column] = self._data_frame[column].astype(str)
+                else:
+                    self._data_frame = self._data_frame.withColumn(column, self._data_frame[column].cast(StringType()))
 
     def change_data_type(self,dataTypeChange):
         print("Updating column data type")
         for obj in dataTypeChange:
-            try:
-                if obj["columnType"] == "dimension":
-                    self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(StringType()))
-                elif obj["columnType"] == "measure":
-                    self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(FloatType()))
-                print(self._data_frame.printSchema())
-                self._data_frame.show()
-            except:
+            if self._pandas_flag:
                 pass
+            else:
+                try:
+                    if obj["columnType"] == "dimension":
+                        self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(StringType()))
+                    elif obj["columnType"] == "measure":
+                        self._data_frame = self._data_frame.withColumn(obj["colName"], self._data_frame[obj["colName"]].cast(FloatType()))
+                    print(self._data_frame.printSchema())
+                    self._data_frame.show()
+                except:
+                    pass
 
     def set_train_test_data(self,df):
         result_column = self._dataframe_context.get_result_column()
@@ -215,34 +246,49 @@ class DataFrameHelper(object):
             replacement_dict[col] = 0
         for col in categorical_columns:
             replacement_dict[col] = "NA"
-        df = df.fillna(replacement_dict)
+        if self._pandas_flag:
+            pass
+        else:
+            df = df.fillna(replacement_dict)
         return df
 
     def remove_null_rows(self, column_name):
         """
         remove rows where the given column has null values
         """
-        self._data_frame = self._data_frame.na.drop(subset=[column_name])
-        self.num_rows = self._data_frame.count()
-
+        if self._pandas_flag:
+            self._data_frame.dropna(axis=0, subset=[column_name], inplace=True)
+            self.num_rows = len(self._data_frame)
+        else:
+            self._data_frame = self._data_frame.na.drop(subset=[column_name])
+            self.num_rows = self._data_frame.count()
 
     def bin_columns(self,colsToBin):
         for bincol in colsToBin:
-            try:
-                minval,maxval = self._data_frame.select([FN.max(bincol).alias("max"),FN.min(bincol).alias("min")]).collect()[0]
-                n_split=10
-                splitsData = CommonUtils.get_splits(minval,maxval,n_split)
-                splits = splitsData["splits"]
-                self._data_frame = self._data_frame.withColumn(bincol, self._data_frame[bincol].cast(DoubleType()))
-                bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
-                bucketizer.setSplits(splits)
-                self._data_frame = bucketizer.transform(self._data_frame)
-                mapping_expr = create_map([lit(x) for x in chain(*list(splitsData["bin_mapping"].items()))])
-                # self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
-                self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
-                self._data_frame = self._data_frame.select(self.columns)
-            except Exception as e:
-                print("Binning failed for : ", bincol)
+            if self._pandas_flag:
+                try:
+                    minval, maxval = float(min(self._data_frame[bincol])), float(max(self._data_frame[bincol]))
+                    n_split=10
+                    splitsData = CommonUtils.get_splits(minval,maxval,n_split)
+                    self._data_frame[bincol] = pd.cut(self._data_frame[bincol], bins=splitsData["splits"], labels= list(splitsData['bin_mapping'].values()), right=True, include_lowest=True)
+                except Exception as e:
+                    print("Binning failed for : ", bincol)
+            else:
+                try:
+                    minval,maxval = self._data_frame.select([FN.max(bincol).alias("max"),FN.min(bincol).alias("min")]).collect()[0]
+                    n_split=10
+                    splitsData = CommonUtils.get_splits(minval,maxval,n_split)
+                    splits = splitsData["splits"]
+                    self._data_frame = self._data_frame.withColumn(bincol, self._data_frame[bincol].cast(DoubleType()))
+                    bucketizer = Bucketizer(inputCol=bincol,outputCol="BINNED_INDEX")
+                    bucketizer.setSplits(splits)
+                    self._data_frame = bucketizer.transform(self._data_frame)
+                    mapping_expr = create_map([lit(x) for x in chain(*list(splitsData["bin_mapping"].items()))])
+                    # self._data_frame = self._data_frame.withColumnRenamed("bincol",bincol+"JJJLLLLKJJ")
+                    self._data_frame = self._data_frame.withColumn(bincol,mapping_expr.getItem(col("BINNED_INDEX")))
+                    self._data_frame = self._data_frame.select(self.columns)
+                except Exception as e:
+                    print("Binning failed for : ", bincol)
 
     def get_cols_to_bin(self):
         return self.colsToBin
@@ -271,10 +317,16 @@ class DataFrameHelper(object):
         return self.string_columns
 
     def get_all_levels(self,column_name):
-        return [levels[0] for levels in self._data_frame.select(column_name).distinct().collect()]
+        if self._pandas_flag:
+            return list(self._data_frame[column_name].unique())
+        else:
+            return [levels[0] for levels in self._data_frame.select(column_name).distinct().collect()]
 
     def get_num_unique_values(self,column_name):
-        return self._data_frame.select(column_name).distinct().count()
+        if self._pandas_flag:
+            pass
+        else:
+            return self._data_frame.select(column_name).distinct().count()
 
     @accepts(object, basestring)
     def is_string_column(self, column_name):
@@ -314,9 +366,11 @@ class DataFrameHelper(object):
     def get_num_null_values(self, column_name):
         if not self.has_column(column_name):
             raise BIException('No such column exists: %s' %(column_name,))
-
-        column = FN.col(column_name)
-        rows = self._data_frame.select(column).groupBy(FN.isnull(column)).agg({'*': 'count'}).collect()
+        if self._pandas_flag:
+            pass
+        else:
+            column = FN.col(column_name)
+            rows = self._data_frame.select(column).groupBy(FN.isnull(column)).agg({'*': 'count'}).collect()
         for row in rows:
             if row[0] == True:
                 return row[1]
@@ -326,72 +380,114 @@ class DataFrameHelper(object):
         if type(values) == str:
             values = values[1:-1]
             values = values.split(',')
-        df = self._data_frame.where(col(colname).isin(values))
+        if self._pandas_flag:
+            df = self._data_frame[self._data_frame[colname].isin(values)]
+        else:
+            df = self._data_frame.where(col(colname).isin(values))
         return df
 
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
         self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
-        if existingDateFormat != None and requestedDateFormat != None:
-            print(existingDateFormat,requestedDateFormat)
-            # def date(s):
-            #   return str(s.date())
-            # date_udf = udf(date, StringType())
-            # Below line is just for testing a special scenario
-            # func = udf(lambda x: datetime.strptime(x.strip("*"),existingDateFormat).strftime(requestedDateFormat), StringType())
-            func = udf(lambda x: datetime.strptime(x,existingDateFormat).strftime(requestedDateFormat), StringType())
-
-            self._data_frame = self._data_frame.select(*[func(column).alias(aggregate_column) if column==aggregate_column else column for column in self._data_frame.columns])
-            # subset_data = self._data_frame.select(aggregate_column,measure_column, date_udf(aggregate_column).alias("dateString"))
-            subset_data = self._data_frame.select(aggregate_column,measure_column, aggregate_column)
-            agg_data = subset_data.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
-            agg_data.columns = ["key","value"]
+        if self._pandas_flag:
+            pass
         else:
-            agg_data = self._data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
-            agg_data.columns = ["key","value"]
+            if existingDateFormat != None and requestedDateFormat != None:
+                print(existingDateFormat,requestedDateFormat)
+                # def date(s):
+                #   return str(s.date())
+                # date_udf = udf(date, StringType())
+                # Below line is just for testing a special scenario
+                # func = udf(lambda x: datetime.strptime(x.strip("*"),existingDateFormat).strftime(requestedDateFormat), StringType())
+                func = udf(lambda x: datetime.strptime(x,existingDateFormat).strftime(requestedDateFormat), StringType())
+
+                self._data_frame = self._data_frame.select(*[func(column).alias(aggregate_column) if column==aggregate_column else column for column in self._data_frame.columns])
+                # subset_data = self._data_frame.select(aggregate_column,measure_column, date_udf(aggregate_column).alias("dateString"))
+                subset_data = self._data_frame.select(aggregate_column,measure_column, aggregate_column)
+                agg_data = subset_data.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
+                agg_data.columns = ["key","value"]
+            else:
+                agg_data = self._data_frame.groupBy(aggregate_column).agg(FN.sum(measure_column)).toPandas()
+                agg_data.columns = ["key","value"]
         return agg_data
 
     def get_agg_data_frame(self,aggregate_column, measure_column, result_column,existingDateFormat=None,requestedDateFormat=None):
         data_frame = self._data_frame
-        if existingDateFormat != None and requestedDateFormat != None:
-            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
-            try:
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
-            except Exception as e:
-                print(e)
-                print('----  ABOVE EXCEPTION  ----' * 10)
-                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
-            agg_data = agg_data.sort_values('date_col')
-            agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
-            agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
-            agg_data = agg_data[[aggregate_column,measure_column, result_column]]
-        elif existingDateFormat != None:
-            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
-            try:
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
-            except Exception as e:
-                print(e)
-                print('----  ABOVE EXCEPTION  ----' * 10)
-                existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
-                agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
-            agg_data = agg_data.sort_values('date_col')
-            agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
-            agg_data = agg_data[['Date','measure']]
+        if self._pandas_flag:
+            if existingDateFormat != None and requestedDateFormat != None:
+                agg_data = data_frame.groupby(aggregate_column, as_index = False)[[measure_column,result_column]].aggregate('sum')
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                except Exception as e:
+                    print(e)
+                    print('----  ABOVE EXCEPTION  ----' * 10)
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                agg_data = agg_data.sort_values('date_col')
+                agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
+                agg_data = agg_data[[aggregate_column,measure_column, result_column]]
+            elif existingDateFormat != None:
+                agg_data = data_frame.groupby(aggregate_column, as_index = False)[[measure_column,result_column]].aggregate('sum')
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                except Exception as e:
+                    print(e)
+                    print('----  ABOVE EXCEPTION  ----' * 10)
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                agg_data = agg_data.sort_values('date_col')
+                agg_data = agg_data[[aggregate_column,measure_column, result_column]]
+            else:
+                agg_data = data_frame.groupby(aggregate_column, as_index = False)[[measure_column,result_column]].aggregate('sum')
         else:
-            agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
-            agg_data.columns = [aggregate_column,measure_column,result_column]
+            if existingDateFormat != None and requestedDateFormat != None:
+                agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                except Exception as e:
+                    print(e)
+                    print('----  ABOVE EXCEPTION  ----' * 10)
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                agg_data = agg_data.sort_values('date_col')
+                agg_data[aggregate_column] = agg_data['date_col'].dt.strftime(requestedDateFormat)
+                agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
+                agg_data = agg_data[[aggregate_column,measure_column, result_column]]
+            elif existingDateFormat != None:
+                agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+                try:
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                except Exception as e:
+                    print(e)
+                    print('----  ABOVE EXCEPTION  ----' * 10)
+                    existingDateFormat = existingDateFormat[3:6]+existingDateFormat[0:3]+existingDateFormat[6:]
+                    agg_data['date_col'] = pd.to_datetime(agg_data[aggregate_column], format = existingDateFormat)
+                agg_data = agg_data.sort_values('date_col')
+                agg_data.columns = [aggregate_column,measure_column,result_column,"date_col"]
+                agg_data = agg_data[['Date','measure']]
+            else:
+                agg_data = data_frame.groupBy(aggregate_column).agg({measure_column : 'sum', result_column : 'sum'}).toPandas()
+                agg_data.columns = [aggregate_column,measure_column,result_column]
         return agg_data
 
     def fill_na_measure_mean(self):
-        stats = self._data_frame.agg(*(avg(c).alias(c) for c in self.numeric_columns))
-        self._data_frame = self._data_frame.na.fill(stats.first().asDict())
-        #return self._data_frame.na.fill(stats.first().asDict())
+        if self._pandas_flag:
+            pass
+        else:
+            stats = self._data_frame.agg(*(avg(c).alias(c) for c in self.numeric_columns))
+            self._data_frame = self._data_frame.na.fill(stats.first().asDict())
+            #return self._data_frame.na.fill(stats.first().asDict())
 
     def fill_na_dimension_nulls(self):
-        self._data_frame = self._data_frame.na.fill(value='nulls',subset=self.string_columns)
+        if self._pandas_flag:
+            self._data_frame[self.string_columns] = self._data_frame[self.string_columns].fillna(value='nan') # or np.nan # NaN if not string
+        else:
+            self._data_frame = self._data_frame.na.fill(value='nulls',subset=self.string_columns)
 
     def fill_na_zero(self):
-        self._data_frame = self._data_frame.na.fill(0)
+        if self._pandas_flag:
+            pass
+        else:
+            self._data_frame = self._data_frame.na.fill(0)
 
     def get_train_test_data(self):
         train_test_data = self.train_test_data
@@ -405,7 +501,10 @@ class DataFrameHelper(object):
     def get_level_counts(self,colList):
         levelCont = {}
         for column in colList:
-            levelCont[column] = dict(self._data_frame.groupBy(column).count().collect())
+            if self._pandas_flag:
+                levelCont[column] = self._data_frame[column].value_counts(dropna = False).to_dict()
+            else:
+                levelCont[column] = dict(self._data_frame.groupBy(column).count().collect())
         return levelCont
 
 class DataFrameColumnMetadata(object):
