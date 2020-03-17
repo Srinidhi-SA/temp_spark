@@ -47,13 +47,19 @@ class DataFrameHelper(object):
     def __init__(self, data_frame, df_context, meta_parser):
         # stripping spaces from column names
         self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
-        self._pandas_flag = False
+        self._dataframe_context = df_context
+
+        try:
+            self._pandas_flag = self._dataframe_context._pandas_flag
+        except:
+            self._pandas_flag = False
+
+
         if self._pandas_flag:
             self._data_frame = data_frame.toPandas()
             self.columns = list(self._data_frame)
         else:
             self.columns = self._data_frame.columns
-        self._dataframe_context = df_context
         self._metaParser = meta_parser
 
         self.column_data_types = {}
@@ -79,11 +85,8 @@ class DataFrameHelper(object):
         self.dollar_columns = self._dataframe_context.get_dollar_columns()
         self.colsToBin = []
 
-    def set_dataframe(self,sparkDf):
-        if self._pandas_flag:
-            pass
-        else:
-            self._data_frame = sparkDf
+    def set_dataframe(self,df):
+            self._data_frame = df
 
     def set_params(self):
         print("Setting the dataframe")
@@ -115,7 +118,7 @@ class DataFrameHelper(object):
             if self._dataframe_context.get_job_type() != "subSetting":
                 if self._dataframe_context.get_job_type() != "prediction":
                     if self._pandas_flag:
-                        pass
+                        print(self._data_frame.dtypes)
                     else:
                         print (self._data_frame.printSchema())
                     self._data_frame = self._data_frame#select(colsToKeep)
@@ -130,7 +133,7 @@ class DataFrameHelper(object):
                             pass
                     elif app_type == "REGRESSION":
                         if self._pandas_flag:
-                            pass
+                            self._data_frame = self._data_frame[colsToKeep]
                         else:
                             self._data_frame = self._data_frame.select(colsToKeep)
         self.columns = self._data_frame.columns
@@ -188,7 +191,15 @@ class DataFrameHelper(object):
         print("Updating column data type")
         for obj in dataTypeChange:
             if self._pandas_flag:
-                pass
+                try:
+                    if obj["columnType"] == "dimension":
+                        self._data_frame[obj["colName"]] = self._data_frame[obj["colName"]].astype(str)
+                    elif obj["columnType"] == "measure":
+                        self._data_frame[obj["colName"]] = self._data_frame[obj["colName"]].astype(float)
+                        print(self._data_frame.dtypes)
+                        print(self._data_frame.head())
+                except:
+                    pass
             else:
                 try:
                     if obj["columnType"] == "dimension":
@@ -247,7 +258,7 @@ class DataFrameHelper(object):
         for col in categorical_columns:
             replacement_dict[col] = "NA"
         if self._pandas_flag:
-            pass
+            df = df.fillna(replacement_dict)
         else:
             df = df.fillna(replacement_dict)
         return df
@@ -324,7 +335,7 @@ class DataFrameHelper(object):
 
     def get_num_unique_values(self,column_name):
         if self._pandas_flag:
-            pass
+            return self._data_frame[column_name].value_counts(dropna = False)
         else:
             return self._data_frame.select(column_name).distinct().count()
 
@@ -367,14 +378,15 @@ class DataFrameHelper(object):
         if not self.has_column(column_name):
             raise BIException('No such column exists: %s' %(column_name,))
         if self._pandas_flag:
-            pass
+            count = self._data_frame[column_name].isnull().sum()
+            return count
         else:
             column = FN.col(column_name)
             rows = self._data_frame.select(column).groupBy(FN.isnull(column)).agg({'*': 'count'}).collect()
-        for row in rows:
-            if row[0] == True:
-                return row[1]
-        return 0
+            for row in rows:
+                if row[0] == True:
+                    return row[1]
+            return 0
 
     def filter_dataframe(self, colname, values):
         if type(values) == str:
@@ -387,10 +399,20 @@ class DataFrameHelper(object):
         return df
 
     def get_aggregate_data(self, aggregate_column, measure_column, existingDateFormat = None, requestedDateFormat = None):
-        self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
         if self._pandas_flag:
-            pass
+            self._data_frame = self._data_frame.dropna(axis = 0, subset = [aggregate_column])
+            if existingDateFormat != None and requestedDateFormat != None:
+                print(existingDateFormat,requestedDateFormat)
+                self._data_frame[aggregate_column] = pd.to_datetime(self._data_frame[aggregate_column], format = existingDateFormat)
+                self._data_frame[aggregate_column] = self._data_frame[aggregate_column].dt.strftime(requestedDateFormat)
+                agg_data = self._data_frame[[aggregate_column,measure_column]]
+                agg_data = agg_data.groupby(aggregate_column, as_index = False,sort = False)[[measure_column]].aggregate('sum')
+                agg_data.columns = ["key","value"]
+            else:
+                agg_data = self._data_frame.groupby(aggregate_column, as_index = False,sort = False)[[measure_column]].aggregate('sum')
+                agg_data.columns = ["key","value"]
         else:
+            self._data_frame = self._data_frame.na.drop(subset=aggregate_column)
             if existingDateFormat != None and requestedDateFormat != None:
                 print(existingDateFormat,requestedDateFormat)
                 # def date(s):
@@ -471,7 +493,9 @@ class DataFrameHelper(object):
 
     def fill_na_measure_mean(self):
         if self._pandas_flag:
-            pass
+            for i in self._data_frame:
+                if i in self.numeric_columns:
+                    self._data_frame = self._data_frame.fillna(self._data_frame.mean())
         else:
             stats = self._data_frame.agg(*(avg(c).alias(c) for c in self.numeric_columns))
             self._data_frame = self._data_frame.na.fill(stats.first().asDict())
@@ -485,7 +509,7 @@ class DataFrameHelper(object):
 
     def fill_na_zero(self):
         if self._pandas_flag:
-            pass
+            self._data_frame = self._data_frame.fillna(0)
         else:
             self._data_frame = self._data_frame.na.fill(0)
 
