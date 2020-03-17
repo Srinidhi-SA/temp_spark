@@ -120,6 +120,9 @@ def main(configJson):
     dataframe_context.set_logger(LOGGER)
     dataframe_context.set_xml_url(jobConfig["xml_url"])
     dataframe_context.set_job_name(jobName)
+
+    ######  pandas Flag  ################
+    dataframe_context._pandas_flag=False
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
