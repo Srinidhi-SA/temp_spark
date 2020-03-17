@@ -218,8 +218,11 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
     categorical_columns_tree_df = list(set(categorical_columns_tree_df)-set(allDateCols))
 
     if mlEnv == "sklearn":
-        linear_df = linear_df.toPandas()
-        tree_df = tree_df.toPandas()
+        try:
+            linear_df = linear_df.toPandas()
+            tree_df = tree_df.toPandas()
+        except:
+            pass
 
         linear_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in linear_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         tree_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in tree_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -420,7 +423,10 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
 
     if mlEnv == "sklearn":
-        df = df.toPandas()
+        try:
+            df = df.toPandas()
+        except:
+            pass
         df.columns = [re.sub("[[]|[]]|[<]","", col) for col in df.columns.values]
         # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         dataframe_helper.set_train_test_data(df)
@@ -1100,8 +1106,8 @@ def run_metadata(spark,df,dataframe_context):
     jobUrl = dataframe_context.get_job_url()
     ignoreMsg = dataframe_context.get_message_ignore()
     ## TO DO : remove hard coded pandas flag
-    pandas_flag = True
-    dataframe_context._pandas_flag = pandas_flag
+    # pandas_flag = True
+    # dataframe_context._pandas_flag = pandas_flag
     meta_data_class = MetaDataScript(df,spark,dataframe_context)
     completionStatus = dataframe_context.get_completion_status()
     progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Metadata For The Dataset",completionStatus,completionStatus,display=True)

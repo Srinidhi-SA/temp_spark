@@ -122,7 +122,7 @@ def main(configJson):
     dataframe_context.set_job_name(jobName)
 
     ######  pandas Flag  ################
-    dataframe_context._pandas_flag=False
+    dataframe_context._pandas_flag = False
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
@@ -230,7 +230,7 @@ def main(configJson):
                             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                             dataframe_context.update_completion_status(completionStatus)
                             ## TO DO : Change flag later this is only for testing
-                            pandas_flag = False
+                            pandas_flag = dataframe_context._pandas_flag
                             if pandas_flag :
                                 df = df.toPandas()
                             if dataCleansingDict['selected']:
