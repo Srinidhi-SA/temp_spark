@@ -46,7 +46,7 @@ class DataFrameHelper(object):
     @accepts(object,data_frame=DataFrame,df_context=ContextSetter,meta_parser=MetaParser)
     def __init__(self, data_frame, df_context, meta_parser):
         # stripping spaces from column names
-        self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
+
         self._dataframe_context = df_context
 
         try:
@@ -56,9 +56,13 @@ class DataFrameHelper(object):
 
 
         if self._pandas_flag:
-            self._data_frame = data_frame.toPandas()
+            try:
+                self._data_frame = data_frame.toPandas()
+            except:
+                self._data_frame = data_frame
             self.columns = list(self._data_frame)
         else:
+            self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
             self.columns = self._data_frame.columns
         self._metaParser = meta_parser
 
@@ -86,7 +90,7 @@ class DataFrameHelper(object):
         self.colsToBin = []
 
     def set_dataframe(self,df):
-            self._data_frame = df
+        self._data_frame = df
 
     def set_params(self):
         print("Setting the dataframe")
@@ -257,10 +261,7 @@ class DataFrameHelper(object):
             replacement_dict[col] = 0
         for col in categorical_columns:
             replacement_dict[col] = "NA"
-        if self._pandas_flag:
-            df = df.fillna(replacement_dict)
-        else:
-            df = df.fillna(replacement_dict)
+        df = df.fillna(replacement_dict)
         return df
 
     def remove_null_rows(self, column_name):
