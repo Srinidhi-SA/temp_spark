@@ -250,6 +250,7 @@ def main(configJson):
                             else:
                                  new_cols_added = None
                             if pandas_flag:
+                                ## TODO: has to be removed now that metadata and DFhelper are in pandas
                                 df=spark.createDataFrame(df)
                             print(df.printSchema())
 

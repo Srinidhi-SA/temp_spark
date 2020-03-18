@@ -16,7 +16,7 @@ class FreqDimensions(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-
+        self._pandas_flag = df_context._pandas_flag
         self._completionStatus = self._dataframe_context.get_completion_status()
         if analysisName == None:
             self._analysisName = self._dataframe_context.get_analysis_name()
@@ -50,7 +50,11 @@ class FreqDimensions(object):
         freq_dimension_result = FreqDimensionResult()
         dimension = dimension_columns[0]
         frequency_dict = {}
-        grouped_dataframe = self._data_frame.groupby(dimension).count().toPandas()
+        if self._pandas_flag:
+            preGroup = self._data_frame[dimension].value_counts()
+            grouped_dataframe = preGroup.reset_index().rename(columns={'index': dimension,dimension:"count"})
+        else:
+            grouped_dataframe = self._data_frame.groupby(dimension).count().toPandas()
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"groupby","info",weightKey="script")
 
         frequency_dict[dimension] = grouped_dataframe.to_dict()
