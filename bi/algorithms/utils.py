@@ -2187,7 +2187,8 @@ def stock_sense_individual_stock_cards(stockDict):
         ]
         summaryDataClass = DataBox(data=summaryData)
         overviewCardData.append(summaryDataClass)
-
+        for i in dataDict["articlesAndSentimentsPerSource"]:
+            i["avgSentiment"] = round(i["avgSentiment"], 2)
         sentimentNdArticlesBySource = NormalChartData(data=dataDict["articlesAndSentimentsPerSource"])
         chart_json = ChartJson()
         chart_json.set_data(sentimentNdArticlesBySource.get_data())
@@ -2211,7 +2212,10 @@ def stock_sense_individual_stock_cards(stockDict):
         chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
         chart_json = ChartJson()
-        chart_json.set_data(sentimentNdArticlesByConcept.get_data())
+        sentimentNdArticlesByConcept_get_data = sentimentNdArticlesByConcept.get_data()
+        for i in sentimentNdArticlesByConcept_get_data:
+            i["avgSentiment"] = round(i["avgSentiment"], 2)
+        chart_json.set_data(sentimentNdArticlesByConcept_get_data)
         chart_json.set_chart_type("combination")
         chart_json.set_axes({"x":"concept","y":"articles","y2":"avgSentiment"})
         chart_json.set_label_text({'x':'concept','y':'No. of Articles',"y2":"Average Sentiment Score"})
