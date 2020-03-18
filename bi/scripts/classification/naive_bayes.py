@@ -1175,8 +1175,10 @@ class NBGClassificationModelScript(object):
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
-
-            df = self._data_frame.toPandas()
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -1952,8 +1954,10 @@ class NBMClassificationModelScript(object):
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
-
-            df = self._data_frame.toPandas()
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
