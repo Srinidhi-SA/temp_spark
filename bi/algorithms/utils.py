@@ -2067,7 +2067,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_data(priceTrendData.get_data())
     chart_json.set_subchart(True)
     chart_json.set_title("Stock Performance Analysis")
-    chart_json.set_label_text({"x":"DATE","Y":"Close Price "})
+    chart_json.set_label_text({"x":"DATE","y":"Close Price "})
     chart_json.set_chart_type("line")
     chart_json.set_yaxis_number_format(".2f")
     chart_json.set_axes({"x":"date","y":" "})
