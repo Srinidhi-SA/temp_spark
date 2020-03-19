@@ -2234,7 +2234,7 @@ def stock_sense_individual_stock_cards(stockDict):
         chart_json.set_subchart(True)
         chart_json.set_title("Stock Performance Vs Sentiment Score")
         chart_json.set_axes({"x":"date","y":"close","y2":"overallSentiment"})
-        chart_json.set_label_text({"x":"Date","Y":"Stock Value","y2":"Sentiment Score"})
+        chart_json.set_label_text({"x":"Date","y":"Stock Value","y2":"Sentiment Score"})
         chart_json.set_chart_type("line")
         chart_json.set_yaxis_number_format(".2f")
         chart_json.set_y2axis_number_format(".2f")
