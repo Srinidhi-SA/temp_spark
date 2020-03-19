@@ -5,6 +5,81 @@ import torch.optim as optim
 import numpy as np
 
 
+def get_kernel_weights(kernel_weight_init, main_layer, input_units, output_units):
+    if kernel_weight_init != None:
+        layer_units_ip = input_units
+        layer_units_op = output_units
+        weights = main_layer.weight
+        if kernel_weight_init["name"] == "Uniform":
+            nn.init.uniform_(weights, a = kernel_weight_init["lower_bound"], b = kernel_weight_init["upper_bound"])
+        if kernel_weight_init["name"] == "Normal":
+            nn.init.normal_(weights, mean = kernel_weight_init["mean"], std = kernel_weight_init["std"])
+        if kernel_weight_init["name"] == "Constant":
+            nn.init.constant_(weights, val = kernel_weight_init["val"])
+        if kernel_weight_init["name"] == "Ones":
+            nn.init.ones_(weights)
+        if kernel_weight_init["name"] == "Zeros":
+            nn.init.zeros_(weights)
+        if kernel_weight_init["name"] == "Eye":
+            nn.init.eye_(weights)
+        if kernel_weight_init["name"] == "Xavier_Uniform":
+            nn.init.xavier_uniform_(weights, gain = nn.init.calculate_gain('relu'))
+        if kernel_weight_init["name"] == "Xavier_Normal":
+            nn.init.xavier_normal_(weights, gain = nn.init.calculate_gain('relu'))
+        if kernel_weight_init["name"] == "Kaiming_Uniform":
+            nn.init.kaiming_uniform_(weights, a = 0,mode = 'fan_in', nonlinearity = 'leaky_relu')
+        if kernel_weight_init["name"] == "Kaiming_Normal":
+            nn.init.kaiming_normal_(weights, a = 0,mode = 'fan_in',nonlinearity = 'leaky_relu')
+        if kernel_weight_init["name"] == "Orthogonal":
+            nn.init.orthogonal_(weights, gain = 4)
+        if kernel_weight_init["name"] == "Sparse":
+            nn.init.sparse_(weights, sparsity = kernel_weight_init["sparsity"], std = kernel_weight_init["std"])
+    else:
+        pass
+
+
+def get_kernel_bias(kernel_bias_init, main_layer, input_units, output_units):
+    if kernel_bias_init != None:
+        layer_units_ip = input_units
+        layer_units_op = output_units
+        bias = main_layer.bias
+        if kernel_bias_init["name"] == "Uniform":
+            nn.init.uniform_(bias, a = kernel_bias_init["lower_bound"], b = kernel_bias_init["upper_bound"])
+        if kernel_bias_init["name"] == "Normal":
+            nn.init.normal_(bias, mean = 0, std = 0.5) #kernel_bias_init["mean"] kernel_bias_init["std"]
+        if kernel_bias_init["name"] == "Constant":
+            nn.init.constant_(bias, val = kernel_bias_init["val"])
+        if kernel_bias_init["name"] == "Ones":
+            nn.init.ones_(bias)
+        if kernel_bias_init["name"] == "Zeros":
+            nn.init.zeros_(bias)
+        if kernel_bias_init["name"] == "Eye":
+            nn.init.eye_(bias)
+        if kernel_bias_init["name"] == "Default":
+            return bias
+        else:
+            bias.data.zero_()
+        # if kernel_bias_init["name"] == "Xavier_Uniform":
+        #     bias.data.zero_()
+        #     nn.init.xavier_uniform_(bias, gain = nn.init.calculate_gain('relu'))
+        # if kernel_bias_init["name"] == "Xavier_Normal":
+        #     bias.data.zero_()
+        #     nn.init.xavier_normal_(bias, gain = nn.init.calculate_gain('relu'))
+        # if kernel_bias_init["name"] == "Kaiming_Uniform":
+        #     bias.data.zero_()
+        #     nn.init.kaiming_uniform_(bias, a = 0, nonlinearity = 'leaky_relu')#mode = layer_units_ip)
+        # if kernel_bias_init["name"] == "Kaiming_Normal":
+        #     bias.data.zero_()
+        #     nn.init.kaiming_normal_(bias, a = 0,nonlinearity = 'leaky_relu')#mode = layer_units_ip)
+        # if kernel_bias_init["name"] == "Orthogonal":
+        #     bias.data.zero_()
+        #     nn.init.orthogonal_(bias, gain = 4)
+        # if kernel_bias_init["name"] == "Sparse":
+        #     bias.data.zero_()
+        #     nn.init.sparse_(bias, sparsity = kernel_bias_init["sparsity"], std = kernel_bias_init["std"])
+    else:
+        pass
+
 def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
     layers = []
     nnpt_params["hidden_layer_info"] =  {int(key): val for key, val in nnpt_params['hidden_layer_info'].items()}
@@ -26,8 +101,11 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
                 layer_units_ip = first_layer_units
             else:
                 layer_units_ip = layer_dict["units_ip"]
+
+            kernel_weight_init = layer_dict["weight_init"]
+            kernel_bias_init = layer_dict["bias_init"]
             layer_units_op = layer_dict["units_op"]
-            layer_bias = layer_dict["bias"]
+            #layer_bias = layer_dict["bias"]
             layer_activation = layer_dict["activation"]
             layer_batchnormalization = layer_dict["batchnormalization"]
             layer_dropout = layer_dict["dropout"]
@@ -38,7 +116,13 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
             print("~"*50)
 
             if layer_name == "Linear":
-                main_layer = nn.Linear(in_features = layer_units_ip, out_features = layer_units_op, bias = layer_bias)
+                main_layer = nn.Linear(in_features = layer_units_ip, out_features = layer_units_op)
+                # print("Here are the Weights [default] ", main_layer.weight)
+                # print("Here are the Bias [default] ", main_layer.bias)
+                get_kernel_weights(kernel_weight_init, main_layer,layer_units_ip,layer_units_op)
+                get_kernel_bias(kernel_bias_init, main_layer,layer_units_ip,layer_units_op)
+                # print("Here are the Weights [Kaiming_Normal Weights] ", main_layer.weight)
+                # print("Here are the Bias [Normal Bias] ", main_layer.bias)
                 layers.append(main_layer)
                 if layer_activation != None:
                     if layer_activation["name"] == "ELU":
@@ -311,27 +395,34 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
 
     return layers
 
-
 def get_other_pytorch_params(nnpt_params, task_type, network_params):
     loss_criterion_dict = nnpt_params["loss"]
     loss_name = loss_criterion_dict["loss"]
     optimizer_dict = nnpt_params["optimizer"]
-    optimizer_name = optimizer_dict["optimizer"]
+    #optimizer_name = optimizer_dict["optimizer"]
+    reg_l1loss = nnpt_params["reg_l1loss"]
+    reg_l2loss = nnpt_params["reg_l2loss"]
 
     batch_size = nnpt_params["batch_size"]
     number_of_epochs = nnpt_params["number_of_epochs"]
+
     loss_criterion = get_loss_criterion(loss_name, loss_criterion_dict)
-    optimizer = get_optimizer(optimizer_name, optimizer_dict, network_params)
+    #optimizer = get_optimizer(optimizer_name, optimizer_dict, network_params)
 
     other_params_dict = {}
+    other_params_dict["loss_name"] = loss_criterion_dict["loss"]
     other_params_dict["number_of_epochs"] = number_of_epochs
     other_params_dict["batch_size"] = batch_size
     other_params_dict["loss_criterion"] = loss_criterion
-    other_params_dict["optimizer"] = optimizer
+    other_params_dict["optimizer"] = optimizer_dict
+    other_params_dict["reg_l1loss"] = reg_l1loss
+    other_params_dict["reg_l2loss"] = reg_l2loss
+    other_params_dict["reduction"] = nnpt_params["loss"]["reduction"]
+
+    if "weight" in loss_criterion_dict:
+        other_params_dict["loss_weight"] = nnpt_params["loss"]["weight"]
 
     return other_params_dict
-
-
 
 def get_loss_criterion(loss_name, loss_criterion_dict):
     if loss_name == "CrossEntropyLoss":
@@ -343,20 +434,19 @@ def get_loss_criterion(loss_name, loss_criterion_dict):
     if loss_name == "CTCLoss":
         loss_criterion = nn.CTCLoss(reduction = loss_criterion_dict["reduction"], blank = loss_criterion_dict["blank"], zero_infinity = loss_criterion_dict["zero_infinity"])
     if loss_name == "NLLLoss":
-        loss_criterion = nn.NLLLoss(reduction = loss_criterion_dict["reduction"], weight = loss_criterion_dict["weight"])
+        loss_criterion = nn.NLLLoss(reduction = loss_criterion_dict["reduction"], weight = None)
     if loss_name == "PoissonNLLLoss":
         loss_criterion = nn.PoissonNLLLoss(reduction = loss_criterion_dict["reduction"], log_input = loss_criterion_dict["log_input"], full = loss_criterion_dict["full"], eps = loss_criterion_dict["eps"])
     if loss_name == "KLDivLoss":
         loss_criterion = nn.KLDivLoss(reduction = loss_criterion_dict["reduction"])
     if loss_name == "BCELoss":
-        loss_criterion = nn.BCELoss(reduction = loss_criterion_dict["reduction"], weight = loss_criterion_dict["weight"])
+        loss_criterion = nn.BCELoss(reduction = loss_criterion_dict["reduction"], weight = None)
     if loss_name == "BCEWithLogitsLoss":
-        loss_criterion = nn.BCEWithLogitsLoss(reduction = loss_criterion_dict["reduction"], weight = loss_criterion_dict["weight"], pos_weight = loss_criterion_dict["pos_weight"])
+        loss_criterion = nn.BCEWithLogitsLoss(reduction = loss_criterion_dict["reduction"], weight = None , pos_weight = None)
     if loss_name == "SoftMarginLoss":
         loss_criterion = nn.SoftMarginLoss(reduction = loss_criterion_dict["reduction"])
     if loss_name == "None":
         pass
-
     return loss_criterion
 
 
