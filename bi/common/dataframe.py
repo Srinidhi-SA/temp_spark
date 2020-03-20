@@ -336,7 +336,7 @@ class DataFrameHelper(object):
 
     def get_num_unique_values(self,column_name):
         if self._pandas_flag:
-            return self._data_frame[column_name].value_counts(dropna = False)
+            return self._data_frame[column_name].nunique()
         else:
             return self._data_frame.select(column_name).distinct().count()
 

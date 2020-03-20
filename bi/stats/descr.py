@@ -88,9 +88,9 @@ class DescriptiveStats(object):
             min_value = self._data_frame[measure_column].min().item()
             max_value = self._data_frame[measure_column].max().item()
             total_value = self._data_frame[measure_column].sum().item()
-            mean = self._data_frame[measure_column].mean().item()
-            variance = self._data_frame[measure_column].var().item()
-            std_dev = self._data_frame[measure_column].std().item()
+            mean = self._data_frame[measure_column].mean()
+            variance = self._data_frame[measure_column].var()
+            std_dev = self._data_frame[measure_column].std()
         else:
             num_values = self._data_frame.select(measure_column).count()
             min_value = Stats.min(self._data_frame, measure_column)

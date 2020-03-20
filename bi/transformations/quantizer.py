@@ -159,10 +159,10 @@ class Quantizer(object):
         quartile_sums['q4'] = data_frame[data_frame >= q3].sum().item()
 
         quartile_means = {}
-        quartile_means['q1'] = data_frame[data_frame < q1].mean().item()
-        quartile_means['q2'] = data_frame[(data_frame >= q1) & (data_frame < median)].mean().item()
-        quartile_means['q3'] = data_frame[(data_frame >= median) & (data_frame < q3)].mean().item()
-        quartile_means['q4'] = data_frame[data_frame >= q3].mean().item()
+        quartile_means['q1'] = data_frame[data_frame < q1].mean()
+        quartile_means['q2'] = data_frame[(data_frame >= q1) & (data_frame < median)].mean()
+        quartile_means['q3'] = data_frame[(data_frame >= median) & (data_frame < q3)].mean()
+        quartile_means['q4'] = data_frame[data_frame >= q3].mean()
 
         FPS = FivePointSummary(left_hinge_value=left_hinge, q1_value=q1, median=median, q3_value=q3,
                                 right_hinge_value=right_hinge, num_left_outliers=num_left_outliers,
