@@ -88,17 +88,28 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                     df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
                     print("starting Metadata for newly added columns")
                     dataframe_context.set_metadata_ignore_msg_flag(True)
-                    meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)
-                    meta_data_object_new = meta_data_class_new.run()
-                    metaDataObj_new = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object_new))
-                    metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
-                    for x in range(len(metaDataObj_new['headers'])):
-                        metaDataObj['headers'].append(metaDataObj_new['headers'][x])
-                    # metaDataObj['sampleData'].append(metaDataObj_new['sampleData'])
-                    for x in range(len(metaDataObj_new['metaData'])):
-                        metaDataObj['metaData'].append(metaDataObj_new['metaData'][x])
-                    for x in range(len(metaDataObj_new['columnData'])):
-                        metaDataObj['columnData'].append(metaDataObj_new['columnData'][x])
+                    try:
+                        meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)
+                        meta_data_object_new = meta_data_class_new.run()
+                        metaDataObj_new = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object_new))
+                        metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
+                        for x in range(len(metaDataObj_new['headers'])):
+                            metaDataObj['headers'].append(metaDataObj_new['headers'][x])
+                        # metaDataObj['sampleData'].append(metaDataObj_new['sampleData'])
+                        for x in range(len(metaDataObj_new['metaData'])):
+                            metaDataObj['metaData'].append(metaDataObj_new['metaData'][x])
+                        for x in range(len(metaDataObj_new['columnData'])):
+                            metaDataObj['columnData'].append(metaDataObj_new['columnData'][x])
+                    except:
+                        fs = time.time()
+                        print("starting Metadata")
+                        dataframe_context.set_metadata_ignore_msg_flag(True)
+                        meta_data_class = MetaDataScript(df,spark,dataframe_context)
+                        meta_data_object = meta_data_class.run()
+                        metaDataObj = json.loads(CommonUtils.convert_python_object_to_json(meta_data_object))
+                        print("metaData Analysis Done in ", time.time() - fs, " seconds.")
+                        metaParserInstance.set_params(metaDataObj)
+
                 else:
                     metaDataObj = CommonUtils.get_existing_metadata(dataframe_context)
                 if metaDataObj:
@@ -1137,7 +1148,11 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
         if filtered_df.count() > 0 and transformed_df.count() > 0:
             output_filepath = dataframe_context.get_output_filepath()
             print("output_filepath",output_filepath)
-            transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
+            try:
+                transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
+            except:
+                print ("####################could not save the dataset in the output path ###################")
+
             print("starting Metadata for the Filtered Dataframe")
             meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
             try:

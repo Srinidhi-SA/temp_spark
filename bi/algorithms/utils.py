@@ -14,7 +14,6 @@ import math
 import random
 import shutil
 import copy
-
 import numpy as np
 import pandas as pd
 from sklearn import linear_model
@@ -2038,7 +2037,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_label_text({'x':'Stock','y':'No. of Articles'})
     chart_json.set_title("Articles by Stock")
     chart_json.set_subchart(False)
-    chart_json.set_yaxis_number_format(".2s")
+    chart_json.set_yaxis_number_format("d")
     articlesByStockChart = C3ChartData(data=chart_json)
     articlesByStockChart.set_width_percent(50)
     overviewCardData.append(articlesByStockChart)
@@ -2068,7 +2067,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_data(priceTrendData.get_data())
     chart_json.set_subchart(True)
     chart_json.set_title("Stock Performance Analysis")
-    chart_json.set_label_text({"x":"DATE","Y":" "})
+    chart_json.set_label_text({"x":"DATE","y":"Close Price "})
     chart_json.set_chart_type("line")
     chart_json.set_yaxis_number_format(".2f")
     chart_json.set_axes({"x":"date","y":" "})
@@ -2088,7 +2087,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_label_text({'x':'Source','y':'No. of Articles'})
     chart_json.set_title("Top Sources")
     chart_json.set_subchart(False)
-    chart_json.set_yaxis_number_format(".2s")
+    chart_json.set_yaxis_number_format("d")
     articlesBySourceChart = C3ChartData(data=chart_json)
     articlesBySourceChart.set_width_percent(50)
     overviewCardData.append(articlesBySourceChart)
@@ -2188,7 +2187,8 @@ def stock_sense_individual_stock_cards(stockDict):
         ]
         summaryDataClass = DataBox(data=summaryData)
         overviewCardData.append(summaryDataClass)
-
+        for i in dataDict["articlesAndSentimentsPerSource"]:
+            i["avgSentiment"] = round(i["avgSentiment"], 2)
         sentimentNdArticlesBySource = NormalChartData(data=dataDict["articlesAndSentimentsPerSource"])
         chart_json = ChartJson()
         chart_json.set_data(sentimentNdArticlesBySource.get_data())
@@ -2212,7 +2212,10 @@ def stock_sense_individual_stock_cards(stockDict):
         chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
         chart_json = ChartJson()
-        chart_json.set_data(sentimentNdArticlesByConcept.get_data())
+        sentimentNdArticlesByConcept_get_data = sentimentNdArticlesByConcept.get_data()
+        for i in sentimentNdArticlesByConcept_get_data:
+            i["avgSentiment"] = round(i["avgSentiment"], 2)
+        chart_json.set_data(sentimentNdArticlesByConcept_get_data)
         chart_json.set_chart_type("combination")
         chart_json.set_axes({"x":"concept","y":"articles","y2":"avgSentiment"})
         chart_json.set_label_text({'x':'concept','y':'No. of Articles',"y2":"Average Sentiment Score"})
@@ -2231,7 +2234,7 @@ def stock_sense_individual_stock_cards(stockDict):
         chart_json.set_subchart(True)
         chart_json.set_title("Stock Performance Vs Sentiment Score")
         chart_json.set_axes({"x":"date","y":"close","y2":"overallSentiment"})
-        chart_json.set_label_text({"x":"Date","Y":"Stock Value","y2":"Sentiment Score"})
+        chart_json.set_label_text({"x":"Date","y":"Stock Value","y2":"Sentiment Score"})
         chart_json.set_chart_type("line")
         chart_json.set_yaxis_number_format(".2f")
         chart_json.set_y2axis_number_format(".2f")

@@ -160,6 +160,10 @@ class RFClassificationModelScript(object):
             print("TARGET LEVEL - ", self._targetLevel)
             print("APP TYPE - ", appType)
             print("="*150)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
 
 
             if algoSetting.is_hyperparameter_tuning_enabled():
@@ -252,10 +256,7 @@ class RFClassificationModelScript(object):
                 # print "ALGO-PARAMS", algoParams
                 # print "[]" * 30
                 algoParams["random_state"] = 42
-                if self._dataframe_context.get_trainerMode() == "autoML":
-                    automl_enable=True
-                else:
-                    automl_enable=False
+
                 if automl_enable:
                     params_grid={'max_depth': [3,4,5,10,20],
                                 'min_samples_split': [2, 4,6],
@@ -416,7 +417,10 @@ class RFClassificationModelScript(object):
 
             feature_importance={}
             try:
-                feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+                try:
+                    feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+                except:
+                    feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.best_estimator_.feature_importances_),key=lambda x: x[1],reverse=True))
                 for k, v in feature_importance.items():
                     feature_importance[k] = CommonUtils.round_sig(v)
             except:
@@ -557,9 +561,9 @@ class RFClassificationModelScript(object):
                     self._model_management.set_target_variable(result_column)#target column name
                     self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
                     self._model_management.set_datasetName(self._datasetName)
-                if not automl_enable:
+                try:
                     set_model_params('param_grid')
-                else:
+                except:
                     set_model_params('param_distributions')
 
             modelManagementSummaryJson = [
