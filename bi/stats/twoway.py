@@ -40,6 +40,7 @@ class TwoWayAnova(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._metaParser = meta_parser
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
@@ -105,7 +106,7 @@ class TwoWayAnova(object):
             if self._dateFormatDetected:
                 print("self._existingDateFormat",self._existingDateFormat)
                 print("self._existingDateFormat",self._existingDateFormat)
-                self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_columns_suggested,self._trend_on_td_column)
+                self._data_frame,self._dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_columns_suggested,self._trend_on_td_column,self._pandas_flag)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -176,7 +177,7 @@ class TwoWayAnova(object):
             self._anova_result = MeasureAnovaResult(measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
             print(self._dataRangeStats)
             if self._dateFormatDetected:
-                grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataRangeStats["dataLevel"],measure,"measure")
+                grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataRangeStats["dataLevel"],measure,"measure",self._pandas_flag)
                 trendData = TrendData()
                 trendData.set_params(grouped_data,None,\
                                     self._dataRangeStats["lastDate"],\
@@ -218,7 +219,7 @@ class TwoWayAnova(object):
                     topLevelDf = self._data_frame.where(col(dimension).isin([toplevelStats.levels]))
                     if self._dateFormatDetected:
                         levelPivot = NarrativesUtils.get_level_pivot(self._data_frame,self._dataRangeStats["dataLevel"],measure,dimension,index_col=None)
-                        topLevelGroupedData = NarrativesUtils.get_grouped_data_for_trend(topLevelDf,self._dataRangeStats["dataLevel"],measure,"measure")
+                        topLevelGroupedData = NarrativesUtils.get_grouped_data_for_trend(topLevelDf,self._dataRangeStats["dataLevel"],measure,"measure",self._pandas_flag)
                         trendData = TrendData()
                         trendData.set_grouped_data(topLevelGroupedData)
                         trendData.set_level_pivot(levelPivot)
