@@ -133,3 +133,42 @@ class Quantizer(object):
         FPS.set_sums(quartile_sums)
 
         return FPS
+
+    @staticmethod
+    def approxQuantize_pandas(data_frame, measure_column, dataframe_helper):
+        if not dataframe_helper.is_numeric_column(measure_column):
+           raise BIException.non_numeric_column(measure_column)
+        data_frame = data_frame[measure_column]
+        q1 = data_frame.describe()[4]
+        median = data_frame.describe()[5]
+        q3 = data_frame.describe()[6]
+        iqr = (q3 - q1)
+        left_hinge = (q1 - 1.5 * iqr)
+        right_hinge = (q3 + 1.5 * iqr)
+        num_left_outliers = data_frame[data_frame < left_hinge].count().item()
+        num_right_outliers = data_frame[data_frame > right_hinge].count().item()
+        q1_freq = data_frame[data_frame < q1].count().item()
+        q2_freq = data_frame[(data_frame >= q1) & (data_frame < median)].count().item()
+        q3_freq = data_frame[(data_frame >= median) & (data_frame < q3)].count().item()
+        q4_freq = data_frame[data_frame >= q3].count().item()
+
+        quartile_sums = {}
+        quartile_sums['q1'] = data_frame[data_frame < q1].sum().item()
+        quartile_sums['q2'] = data_frame[(data_frame >= q1) & (data_frame < median)].sum().item()
+        quartile_sums['q3'] = data_frame[(data_frame >= median) & (data_frame < q3)].sum().item()
+        quartile_sums['q4'] = data_frame[data_frame >= q3].sum().item()
+
+        quartile_means = {}
+        quartile_means['q1'] = data_frame[data_frame < q1].mean().item()
+        quartile_means['q2'] = data_frame[(data_frame >= q1) & (data_frame < median)].mean().item()
+        quartile_means['q3'] = data_frame[(data_frame >= median) & (data_frame < q3)].mean().item()
+        quartile_means['q4'] = data_frame[data_frame >= q3].mean().item()
+
+        FPS = FivePointSummary(left_hinge_value=left_hinge, q1_value=q1, median=median, q3_value=q3,
+                                right_hinge_value=right_hinge, num_left_outliers=num_left_outliers,
+                                num_right_outliers=num_right_outliers, q1_freq=q1_freq, q2_freq=q2_freq,
+                                q3_freq=q3_freq, q4_freq=q4_freq)
+        FPS.set_means(quartile_means)
+        FPS.set_sums(quartile_sums)
+
+        return FPS

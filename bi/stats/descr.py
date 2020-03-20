@@ -22,7 +22,7 @@ class DescriptiveStats(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-
+        self._pandas_flag = self._dataframe_context._pandas_flag
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._messageURL = self._dataframe_context.get_message_url()
         if analysisName == None:
@@ -71,7 +71,10 @@ class DescriptiveStats(object):
     @accepts(object, basestring)
     def five_point_summary(self, measure_column):
         # return Quantizer.quantize(self._data_frame, measure_column, self._dataframe_helper)
-        return Quantizer.approxQuantize(self._data_frame, measure_column, self._dataframe_helper)
+        if self._pandas_flag:
+            return Quantizer.approxQuantize_pandas(self._data_frame, measure_column, self._dataframe_helper)
+        else:
+            return Quantizer.approxQuantize(self._data_frame, measure_column, self._dataframe_helper)
 
 
     @accepts(object, basestring)
@@ -80,20 +83,33 @@ class DescriptiveStats(object):
             raise BIException.non_numeric_column(measure_column)
 
         descr_stats = MeasureDescriptiveStats()
-        num_values = self._data_frame.select(measure_column).count()
-        min_value = Stats.min(self._data_frame, measure_column)
-        max_value = Stats.max(self._data_frame, measure_column)
-        total_value = Stats.total(self._data_frame, measure_column)
-        mean = Stats.mean(self._data_frame, measure_column)
-        variance = Stats.variance(self._data_frame, measure_column)
-        std_dev = Stats.std_dev(self._data_frame, measure_column)
+        if self._pandas_flag:
+            num_values = self._data_frame[measure_column].count().item()
+            min_value = self._data_frame[measure_column].min().item()
+            max_value = self._data_frame[measure_column].max().item()
+            total_value = self._data_frame[measure_column].sum().item()
+            mean = self._data_frame[measure_column].mean().item()
+            variance = self._data_frame[measure_column].var().item()
+            std_dev = self._data_frame[measure_column].std().item()
+        else:
+            num_values = self._data_frame.select(measure_column).count()
+            min_value = Stats.min(self._data_frame, measure_column)
+            max_value = Stats.max(self._data_frame, measure_column)
+            total_value = Stats.total(self._data_frame, measure_column)
+            mean = Stats.mean(self._data_frame, measure_column)
+            variance = Stats.variance(self._data_frame, measure_column)
+            std_dev = Stats.std_dev(self._data_frame, measure_column)
 
         if min_value==max_value:
             skewness = 0
             kurtosis = 0
         else:
-            skewness = Stats.skew(self._data_frame, measure_column)
-            kurtosis = Stats.kurtosis(self._data_frame, measure_column)
+            if self._pandas_flag:
+                skewness = self._data_frame[measure_column].skew().item()
+                kurtosis = self._data_frame[measure_column].kurtosis().item()
+            else:
+                skewness = Stats.skew(self._data_frame, measure_column)
+                kurtosis = Stats.kurtosis(self._data_frame, measure_column)
 
         descr_stats.set_summary_stats(num_values=num_values, min_value=min_value, max_value=max_value,
                                       total=total_value,
@@ -122,11 +138,15 @@ class DescriptiveStats(object):
         if not self._dataframe_helper.is_string_column(dimension_column):
             raise BIException.non_string_column(dimension_column)
 
-        col_non_nulls = FN.count(dimension_column).alias('non_nulls')
-        col_nulls = FN.sum(FN.col(dimension_column).isNull().cast('integer')).alias('nulls')
-        aggregate_columns = (col_non_nulls, col_nulls)
-        result = self._data_frame.select(*aggregate_columns).collect()[0].asDict()
-        cardinality = self._data_frame.select(FN.col(dimension_column)).distinct().count()
+        ''' TO DO: this method used only in stat within the class and stat being not used anywhere '''
+        if self._pandas_flag:
+            pass
+        else:
+            col_non_nulls = FN.count(dimension_column).alias('non_nulls')
+            col_nulls = FN.sum(FN.col(dimension_column).isNull().cast('integer')).alias('nulls')
+            aggregate_columns = (col_non_nulls, col_nulls)
+            result = self._data_frame.select(*aggregate_columns).collect()[0].asDict()
+            cardinality = self._data_frame.select(FN.col(dimension_column)).distinct().count()
 
         # TODO column value frequencies
         descr_stats = DimensionDescriptiveStats(num_null_values=result.get('nulls'),
@@ -136,7 +156,10 @@ class DescriptiveStats(object):
             return descr_stats
 
         freq = {}
-        level_and_counts = self._data_frame.groupBy(dimension_column).count().sort(FN.desc('count')).collect()
+        if self._pandas_flag:
+            pass
+        else:
+            level_and_counts = self._data_frame.groupBy(dimension_column).count().sort(FN.desc('count')).collect()
         for row in level_and_counts:
             freq[row[0]] = row[1]
 
