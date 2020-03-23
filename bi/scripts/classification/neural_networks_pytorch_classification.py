@@ -365,9 +365,14 @@ class NNPTClassificationScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            pandas_flag = False
+            if pandas_flag:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
+            else:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
