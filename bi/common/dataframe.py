@@ -107,7 +107,7 @@ class DataFrameHelper(object):
             if self._dataframe_context.get_job_type() != "subSetting":
                 if self._dataframe_context.get_job_type() != "prediction":
                     print (self._data_frame.printSchema())
-                    self._data_frame = self._data_frame#select(colsToKeep)
+                    self._data_frame = self._data_frame.select(colsToKeep)
                 else:
                     if app_type == "CLASSIFICATION":
                         if self._dataframe_context.get_story_on_scored_data() == False:
