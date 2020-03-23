@@ -19,6 +19,8 @@ from bi.common.decorators import accepts
 from bi.common.results import ChiSquareResult
 from bi.common.results import DFChiSquareResult
 from bi.common.results.chisquare import ContingencyTable
+import numpy as np
+import pandas as pd
 
 """
 Chi Square Test
@@ -34,6 +36,7 @@ class ChiSquare(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._metaParser = meta_parser
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
@@ -98,9 +101,14 @@ class ChiSquare(object):
                 continue
         for m in all_measures:
             try:
-                if self._data_frame.select(F.countDistinct(m)).collect()[0][0]>self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
-                    chisquare_result = self.test_measures(targetDimension, m)
-                    df_chisquare_result.add_chisquare_result(targetDimension, m, chisquare_result)
+                if self._pandas_flag :
+                    if len(self._data_frame[m].unique())>self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
+                        chisquare_result = self.test_measures(targetDimension, m)
+                        df_chisquare_result.add_chisquare_result(targetDimension, m, chisquare_result)
+                else:
+                    if self._data_frame.select(F.countDistinct(m)).collect()[0][0]>self._analysisDict['Dimension vs. Dimension']['binSetting']['binCardinality']:
+                        chisquare_result = self.test_measures(targetDimension, m)
+                        df_chisquare_result.add_chisquare_result(targetDimension, m, chisquare_result)
             except Exception as e:
                 print(str(e), m)
                 continue
@@ -113,10 +121,14 @@ class ChiSquare(object):
         if not targetDimension in self._dataframe_helper.get_string_columns():
             raise BIException.non_string_column(testDimension)
         chisquare_result = ChiSquareResult()
-        pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testDimension)
-        # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
-        rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
-        data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns) - 1, rdd)
+        if self._pandas_flag:
+            pivot_table = pd.crosstab([self._data_frame[targetDimension]], self._data_frame[testDimension])
+            data_matrix = np.array(pivot_table.as_matrix(columns=None)).astype(np.int)
+        else:
+            pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testDimension)
+            # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
+            rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
+            data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns) - 1, rdd)
         result = Statistics.chiSqTest(data_matrix)
         chisquare_result.set_params(result)
         freq_table = self._get_contingency_table_of_freq(pivot_table, need_sorting = True)
@@ -134,42 +146,61 @@ class ChiSquare(object):
     @accepts(object, basestring, basestring)
     def test_measures(self, targetDimension, testMeasure):
         chisquare_result = ChiSquareResult()
-        dtype = self._data_frame.schema[testMeasure].dataType
-        if dtype is IntegerType():
-            # df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
-            measureSummaryDict = dict(self._data_frame.describe([testMeasure]).toPandas().values)
-            if float(measureSummaryDict["count"]) > 10:
-                maxval = int(measureSummaryDict["max"])
-                minval = int(measureSummaryDict["min"])
-                step = (maxval - minval) / 5.0
-                splits = [round(math.floor(minval)), round(minval + step), round(minval + (step * 2)), round(minval + (step * 3)), round(minval + (step * 4)), round(math.ceil(maxval))]
-                splits = list(set(splits))
-                splits.sort()
-                bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
-                # bucketedData = bucketizer.transform(df)
-                bucketedData = bucketizer.transform(self._data_frame.na.drop(subset=testMeasure))
-                pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
-                keshav = pivot_table.toPandas()
-            else:
-                pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testMeasure)
+        if self._pandas_flag:
+            if [self._data_frame[testMeasure].dtypes == 'int64' or 'float64']:
+                measureSummaryDict = dict(self._data_frame[testMeasure].describe())
+                if float(measureSummaryDict["count"]) > 10:
+                    maxval = int(measureSummaryDict["max"])
+                    minval = int(measureSummaryDict["min"])
+                    step = (maxval - minval) / 5.0
+                    splits = [round(math.floor(minval)), round(minval + step), round(minval + (step * 2)),
+                              round(minval + (step * 3)), round(minval + (step * 4)), round(math.ceil(maxval))]
+                    splits = list(set(splits))
+                    splits.sort()
+                    self._data_frame['bucketedColumn'] = pd.cut(self._data_frame[testMeasure], bins=splits, labels=np.arange(0, 5, 1.0))
+                    self._data_frame = self._data_frame.dropna()
+                    pivot_table = pd.crosstab([self._data_frame[targetDimension]], self._data_frame['bucketedColumn'])
+                else:
+                    pivot_table = pd.crosstab([self._data_frame[targetDimension]], self._data_frame[testMeasure])
         else:
-            df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
-            measureSummaryDict = dict(df.describe([testMeasure]).toPandas().values)
-            if float(measureSummaryDict["count"]) > 10:
-                maxval = float(measureSummaryDict["max"])
-                minval = float(measureSummaryDict["min"])
-                step = (maxval - minval) / 5.0
-                splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3),
-                          minval + (step * 4), math.ceil(maxval)]
-                bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
-                # bucketedData = bucketizer.transform(df)
-                bucketedData = bucketizer.transform(df.na.drop(subset=testMeasure))
-                pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
+            dtype = self._data_frame.schema[testMeasure].dataType
+            if dtype is IntegerType():
+                # df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
+                measureSummaryDict = dict(self._data_frame.describe([testMeasure]).toPandas().values)
+                if float(measureSummaryDict["count"]) > 10:
+                    maxval = int(measureSummaryDict["max"])
+                    minval = int(measureSummaryDict["min"])
+                    step = (maxval - minval) / 5.0
+                    splits = [round(math.floor(minval)), round(minval + step), round(minval + (step * 2)), round(minval + (step * 3)), round(minval + (step * 4)), round(math.ceil(maxval))]
+                    splits = list(set(splits))
+                    splits.sort()
+                    bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
+                    # bucketedData = bucketizer.transform(df)
+                    bucketedData = bucketizer.transform(self._data_frame.na.drop(subset=testMeasure))
+                    pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
+                    keshav = pivot_table.toPandas()
+                else:
+                    pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testMeasure)
             else:
-                pivot_table = df.stat.crosstab("{}".format(targetDimension), testMeasure)
-
-        rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
-        data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
+                df = self._data_frame.withColumn(testMeasure, self._data_frame[testMeasure].cast(DoubleType()))
+                measureSummaryDict = dict(df.describe([testMeasure]).toPandas().values)
+                if float(measureSummaryDict["count"]) > 10:
+                    maxval = float(measureSummaryDict["max"])
+                    minval = float(measureSummaryDict["min"])
+                    step = (maxval - minval) / 5.0
+                    splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3),
+                              minval + (step * 4), math.ceil(maxval)]
+                    bucketizer = Bucketizer(splits=splits, inputCol=testMeasure, outputCol="bucketedColumn")
+                    # bucketedData = bucketizer.transform(df)
+                    bucketedData = bucketizer.transform(df.na.drop(subset=testMeasure))
+                    pivot_table = bucketedData.stat.crosstab("{}".format(targetDimension), 'bucketedColumn')
+                else:
+                    pivot_table = df.stat.crosstab("{}".format(targetDimension), testMeasure)
+        if self._pandas_flag:
+            data_matrix = np.array(pivot_table.as_matrix(columns=None)).astype(np.int)
+        else:
+            rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
+            data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
         result = Statistics.chiSqTest(data_matrix)
         chisquare_result.set_params(result)
         freq_table = self._get_contingency_table_of_freq(pivot_table)
@@ -196,21 +227,27 @@ class ChiSquare(object):
                 values in first column correspond to unique values of column one
         :return:
         """
+        if self._pandas_flag:
+            column_one_values = list(pivot_table.index)
+            column_two_values = list(pivot_table.columns)
 
-        column_one_values = []
-        column_two_values = pivot_table.columns[1:]
-        rows = pivot_table.collect()
-        # first column value in every row is a unique column one value used to build contingency table
-        for row in rows:
-            column_one_values.append(row[0])
-
+        else:
+            column_one_values = []
+            column_two_values = pivot_table.columns[1:]
+            rows = pivot_table.collect()
+            # first column value in every row is a unique column one value used to build contingency table
+            for row in rows:
+                column_one_values.append(row[0])
         contigency_table = ContingencyTable(column_one_values, column_two_values)
         if need_sorting:
             contigency_table.update_col2_order()
-        for row in rows:
-            column_one_val = row[0]
-            contigency_table.add_row(column_one_val, [float(value) for value in row[1:]])
-
+        if self._pandas_flag:
+            for j in range(len(pivot_table.index)):
+                contigency_table.add_row(pivot_table.index[j], list((pivot_table.ix[j][0:]).astype('float')))
+        else:
+            for row in rows:
+                column_one_val = row[0]
+                contigency_table.add_row(column_one_val, [float(value) for value in row[1:]])
         return contigency_table
 
     def _get_contigency_table_of_percentages(self, pivot_table):

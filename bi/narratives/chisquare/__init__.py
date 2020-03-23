@@ -23,6 +23,7 @@ class ChiSquareNarratives(object):
         self._result_setter = result_setter
         self._data_frame = data_frame
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._dataframe_helper = df_helper
         self._storyOnScoredData = self._dataframe_context.get_story_on_scored_data()
         self._measure_columns = df_helper.get_numeric_columns()
@@ -39,7 +40,10 @@ class ChiSquareNarratives(object):
 
         ############################DataFrame Measure to Dimesion Column#####################
 
-        pandas_df = self._data_frame.toPandas()
+        if self._pandas_flag:
+            pandas_df = self._data_frame
+        else:
+            pandas_df = self._data_frame.toPandas()
         target_dimension = list(self._df_chisquare_result.keys())
 
         bin_data = {}
