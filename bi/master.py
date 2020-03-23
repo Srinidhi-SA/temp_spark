@@ -51,7 +51,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "story"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -122,7 +122,7 @@ def main(configJson):
     dataframe_context.set_job_name(jobName)
 
     ######  pandas Flag  ################
-    dataframe_context._pandas_flag = False
+    dataframe_context._pandas_flag = True
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
