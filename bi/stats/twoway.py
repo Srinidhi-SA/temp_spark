@@ -170,10 +170,16 @@ class TwoWayAnova(object):
         self._dimensions_to_test = [x for x in dimensions_to_test if x in self._data_frame.columns]
         print("dimensions to test ",self._dimensions_to_test)
         for measure in measures:
-            measureColStat = self._data_frame.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
+            if self._pandas_flag:
+                measureColStat = [[self._data_frame[measure].sum().item(), self._data_frame[measure].mean(), self._data_frame[measure].count().item()]]
+            else:
+                measureColStat = self._data_frame.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
             measureColMean = measureColStat[0][1]
             measureColCount = measureColStat[0][2]
-            measureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
+            if self._pandas_flag:
+                measureColSst = ((self._data_frame[measure] - measureColMean)**2).sum()
+            else:
+                measureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
             self._anova_result = MeasureAnovaResult(measureColMean=measureColMean,measureColCount=measureColCount, measureColSst=measureColSst)
             print(self._dataRangeStats)
             if self._dateFormatDetected:
@@ -216,19 +222,29 @@ class TwoWayAnova(object):
                     toplevelStats = levelDf.ix[levelDf["total"].argmax()]
                     print("toplevelStats",toplevelStats)
                     topLevelAnova.set_top_level_stat(toplevelStats)
-                    topLevelDf = self._data_frame.where(col(dimension).isin([toplevelStats.levels]))
+                    if self._pandas_flag:
+                        topLevelDf = self._data_frame[self._data_frame[dimension].isin([toplevelStats.levels])]
+                    else:
+                        topLevelDf = self._data_frame.where(col(dimension).isin([toplevelStats.levels]))
                     if self._dateFormatDetected:
-                        levelPivot = NarrativesUtils.get_level_pivot(self._data_frame,self._dataRangeStats["dataLevel"],measure,dimension,index_col=None)
+                        levelPivot = NarrativesUtils.get_level_pivot(self._data_frame,'day',measure,dimension,index_col=None,pandas_flag=self._pandas_flag)
                         topLevelGroupedData = NarrativesUtils.get_grouped_data_for_trend(topLevelDf,self._dataRangeStats["dataLevel"],measure,"measure",self._pandas_flag)
                         trendData = TrendData()
                         trendData.set_grouped_data(topLevelGroupedData)
                         trendData.set_level_pivot(levelPivot)
                         topLevelAnova.set_trend_data(trendData)
 
-                    topLevelDfMeasureColStat = topLevelDf.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
+                    if self._pandas_flag:
+                        topLevelDfMeasureColStat = [[topLevelDf[measure].sum().item(), topLevelDf[measure].mean(), topLevelDf[measure].count().item()]]
+                    else:
+                        topLevelDfMeasureColStat = topLevelDf.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
                     topLevelDfMeasureColMean = measureColStat[0][1]
                     topLevelDfMeasureColCount = measureColStat[0][2]
-                    topLevelDfMeasureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
+                    if self._pandas_flag:
+                        topLevelDfMeasureColSst = ((self._data_frame[measure] - measureColMean)**2).sum()
+                    else:
+                        topLevelDfMeasureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
+
                     dimensions_to_test_for_top_level = list(set(self._dimensions_to_test) - {dimension})
                     topLevelAnovaDimensions = {}
                     for dimensionlTopLevel in dimensions_to_test_for_top_level:
@@ -277,32 +293,61 @@ class TwoWayAnova(object):
     def one_way_anova_test(self,df,measure,dimension,measureColMean=None,measureColCount=None,measureColSst=None):
         st=time.time()
         print("running anova for :-","measure-",measure,"|***|","dimension-",dimension)
-        if measureColMean == None:
-            measureColStat = df.select([sum(measure).alias("total"),mean(measure).alias("average")]).collect()
-            overallMean = measureColStat[0][1]
+        if self._pandas_flag:
+            if measureColMean == None:
+                overallMean = df[measure].mean()
+            else:
+                overallMean = measureColMean
+            level_aggregate_pandasdf = df.dropna(subset=[dimension])[[dimension, measure]].groupby(dimension)[measure].describe().reset_index()[[dimension, 'count', 'mean']]
+            level_aggregate_pandasdf['count'] = level_aggregate_pandasdf['count'].astype(int)
+            level_aggregate_pandasdf = pd.merge(level_aggregate_pandasdf, df[[dimension, measure]].groupby(dimension, as_index = False)[measure].sum(), on=dimension)
+            level_aggregate_pandasdf.rename(columns={"mean":"average",measure:'total'},inplace=True)
+            if measureColCount != None:
+                n_total = df.shape[0]
+            else:
+                n_total = measureColCount
+            n_groups = level_aggregate_pandasdf.shape[0]
         else:
-            overallMean = measureColMean
-        level_aggregate_df = df.na.drop(subset=dimension).groupby(dimension).agg(*[count(col(measure)).alias("count"),mean(col(measure)).alias("average")])
-        level_aggregate_df = level_aggregate_df.withColumn("total",col("count")*col("average"))
-        level_aggregate_pandasdf = level_aggregate_df.toPandas()
-        if measureColCount != None:
-            n_total = df.count()
-        else:
-            n_total = measureColCount
-        n_groups = level_aggregate_df.count()
+            if measureColMean == None:
+                measureColStat = df.select([sum(measure).alias("total"),mean(measure).alias("average")]).collect()
+                overallMean = measureColStat[0][1]
+            else:
+                overallMean = measureColMean
+            level_aggregate_df = df.na.drop(subset=dimension).groupby(dimension).agg(*[count(col(measure)).alias("count"),mean(col(measure)).alias("average")])
+            level_aggregate_df = level_aggregate_df.withColumn("total",col("count")*col("average"))
+            level_aggregate_pandasdf = level_aggregate_df.toPandas()
+            if measureColCount != None:
+                n_total = df.count()
+            else:
+                n_total = measureColCount
+            n_groups = level_aggregate_df.count()
+
         df_total = n_total-1
         df_within = n_total-n_groups
         df_between = n_groups-1
-        if measureColSst == None:
-            ss_total = df.select(sum(pow(col(measure)-overallMean,2))).collect()[0][0]
+
+        if self._pandas_flag:
+            if measureColSst == None:
+                ss_total = df[[measure]].subtract(overallMean).pow(2).sum()
+            else:
+                ss_total = measureColSst
+            ss_between = float(level_aggregate_pandasdf[['average']].subtract(overallMean).pow(2).sum())
+            ss_within = 0
+            for index, row in level_aggregate_pandasdf.iterrows():
+                filtered_df = df[df[dimension]==row[dimension]]
+                group_sse = float(filtered_df[[measure]].subtract(row["average"]).pow(2).sum())
+                ss_within = ss_within+group_sse
         else:
-            ss_total = measureColSst
-        ss_between = level_aggregate_df.select(sum(pow(col("average")-overallMean,2))).collect()[0][0]
-        ss_within = 0
-        for index, row in level_aggregate_pandasdf.iterrows():
-            filtered_df = df.filter(col(dimension)==row[dimension])
-            group_sse = filtered_df.select(sum(pow(col(measure)-row["average"],2))).collect()[0][0]
-            ss_within = ss_within+group_sse
+            if measureColSst == None:
+                ss_total = df.select(sum(pow(col(measure)-overallMean,2))).collect()[0][0]
+            else:
+                ss_total = measureColSst
+            ss_between = level_aggregate_df.select(sum(pow(col("average")-overallMean,2))).collect()[0][0]
+            ss_within = 0
+            for index, row in level_aggregate_pandasdf.iterrows():
+                filtered_df = df.filter(col(dimension)==row[dimension])
+                group_sse = filtered_df.select(sum(pow(col(measure)-row["average"],2))).collect()[0][0]
+                ss_within = ss_within+group_sse
         try:
             ms_between = old_div(ss_between,df_between)
         except:
@@ -342,14 +387,25 @@ class TwoWayAnova(object):
 
 
     def test_anova_interaction(self,measure,dimension1,dimension2):
-        var = self._data_frame.groupby(dimension1,dimension2).agg(*[count(col(measure)),mean(col(measure))]).collect()
-        var = pd.DataFrame(var,columns=['level1','level2', 'counts', 'means'])
-        var['total'] = var.means*var.counts
+        if self._pandas_flag:
+            var = self._data_frame.groupby([dimension1,dimension2])[measure].agg(['count','mean'])
+            var.reset_index(inplace=True)
+            var.rename(columns = {dimension1:"level1", dimension1:"level2"}, inplace=True)
+            var['total'] = (self._data_frame["mean"])*(self._data_frame["count"])
+        else:
+            var = self._data_frame.groupby(dimension1,dimension2).agg(*[count(col(measure)),mean(col(measure))]).collect()
+            var = pd.DataFrame(var,columns=['level1','level2', 'counts', 'means'])
+            var['total'] = var.means*var.counts
         #var['var5'] = var.counts*var.means*var.means
         sse = 0
         for i in range(len(var)):
-            group_sse = self._data_frame.filter((col(dimension1)==var.level1[i]) & (col(dimension2)==var.level2[i])).\
-                        select((col(measure)-var.means[i])*(col(measure)-var.means[i])).\
-                        agg({'*':'sum'}).collect()
-            sse = sse+group_sse[0][0]
+            if self._pandas_flag:
+                 df1 = self._data_frame[(self._data_frame[dimension1] == var["level1"][i]) & (self._data_frame[dimension2] == var["level2"][i])]
+                 group_sse = ((df1[measure]-x["mean"][i])*(df1[measure]-x["mean"][i])).sum()
+                 sse = sse+group_sse
+            else:
+                group_sse = self._data_frame.filter((col(dimension1)==var.level1[i]) & (col(dimension2)==var.level2[i])).\
+                            select((col(measure)-var.means[i])*(col(measure)-var.means[i])).\
+                            agg({'*':'sum'}).collect()
+                sse = sse+group_sse[0][0]
         self._anova_result.set_TwoWayAnovaResult(dimension1,dimension2,var,sse)

@@ -812,23 +812,32 @@ def get_significant_digit_settings(param):
     else:
         return 2
 
-def get_level_pivot(df,dataLevel,value_col,pivot_col,index_col=None):
+def get_level_pivot(df,dataLevel,value_col,pivot_col,index_col=None,pandas_flag=None):
     if index_col == None:
         if dataLevel == "day":
             index_col = "suggestedDate"
         elif dataLevel == "month":
             index_col = "year_month"
-    pivotdf = df.groupBy(index_col).pivot(pivot_col).sum(value_col)
-    if dataLevel == "day":
-        pivotdf = pivotdf.orderBy("suggestedDate",ascending=True)
-        pivotdf = pivotdf.withColumnRenamed(pivotdf.columns[0],"key")
-        pivotdf = pivotdf.toPandas()
-    elif dataLevel == "month":
-        pivotdf = pivotdf.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y") if x != None else None)("year_month"))
-        pivotdf = pivotdf.orderBy("suggestedDate",ascending=True)
-        pivotdf = pivotdf.withColumnRenamed("suggestedDate","key")
-        pivotdf = pivotdf.toPandas()
-        pivotdf["key"] = pivotdf["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date() if x!= None else None)
+    if pandas_flag:
+        pivotdf = df.pivot_table(index=index_col, columns=pivot_col,values=value_col,aggfunc=np.sum)
+        pivotdf.reset_index(inplace=True)
+        if dataLevel == "day":
+            pivotdf = pivotdf.sort_values(by =index_col, ascending=True)
+            pivotdf.rename(columns = {pivotdf.columns[0]: 'key'}, inplace = True)
+        elif dataLevel == "month":
+            pivotdf["key"] = pivotdf["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date() if x!= None else None)
+    else:
+        pivotdf = df.groupBy(index_col).pivot(pivot_col).sum(value_col)
+        if dataLevel == "day":
+            pivotdf = pivotdf.orderBy("suggestedDate",ascending=True)
+            pivotdf = pivotdf.withColumnRenamed(pivotdf.columns[0],"key")
+            pivotdf = pivotdf.toPandas()
+        elif dataLevel == "month":
+            pivotdf = pivotdf.withColumn("suggestedDate",PysparkFN.udf(lambda x:datetime.strptime(x,"%b-%y") if x != None else None)("year_month"))
+            pivotdf = pivotdf.orderBy("suggestedDate",ascending=True)
+            pivotdf = pivotdf.withColumnRenamed("suggestedDate","key")
+            pivotdf = pivotdf.toPandas()
+            pivotdf["key"] = pivotdf["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date() if x!= None else None)
     return pivotdf
 
 @accepts(df=DataFrame,dataLevel=basestring,resultCol=basestring,analysistype=basestring,pandasFlag=bool)
