@@ -105,7 +105,7 @@ class DataFrameHelper(object):
             app_type = None
         if app_type != "REGRESSION":
             if self._dataframe_context.get_job_type() != "subSetting":
-                if self._dataframe_context.get_job_type() != "prediction":
+                if self._dataframe_context.get_job_type() != "prediction" and app_type != "CLASSIFICATION":
                     print (self._data_frame.printSchema())
                     self._data_frame = self._data_frame.select(colsToKeep)
                 else:
