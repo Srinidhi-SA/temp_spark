@@ -234,7 +234,9 @@ class StockAdvisor(object):
         conceptCounterDf = pd.DataFrame(np.array(conceptCountArray),columns=[x+"_count" for x in list(self.concepts.keys())]+["totalCount"])
         sentimentCounterDf = pd.DataFrame(np.array(sentimentArray),columns=[x+"_sentiment" for x in list(self.concepts.keys())])
         self.pandasDf = pd.concat([pandasDf,conceptCounterDf,sentimentCounterDf], axis=1)
-        self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
+        #self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
+        self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x: x["document"]["score"])
+        # print "*"*50
         # print "*"*50
         # print self.pandasDf[["overallSentiment","source"]].head(3)
         # print "*"*50
@@ -363,15 +365,22 @@ class StockAdvisor(object):
         output = sorted(output,key=lambda x:x["articles"],reverse=True)
         return output
 
-    def get_datewise_stock_value_and_sentiment(self,pandasDf,stockPriceData):
-        relevantDf = pandasDf[["time","overallSentiment"]]
-        relevantDf.columns = ["date","overallSentiment"]
-        merged = pd.merge(relevantDf,stockPriceData[["close","date"]],on="date",how="inner")
-        merged["date"] = merged["date"].apply(self.change_date_format)
+    #def get_datewise_stock_value_and_sentiment(self,pandasDf,stockPriceData):
+        #relevantDf = pandasDf[["time","overallSentiment"]]
+        #relevantDf.columns = ["date","overallSentiment"]
+        #merged = pd.merge(relevantDf,stockPriceData[["close","date"]],on="date",how="inner")
+        #merged["date"] = merged["date"].apply(self.change_date_format)
+        #output = list(merged.T.to_dict().values())
+        #output = sorted(output,key = lambda x:datetime.strptime(x["date"],"%Y-%m-%d"))
+        #return output
+    def get_datewise_stock_value_and_sentiment(self,pandasDf, stockPriceData):
+        relevantDf = pandasDf.groupby("date").agg({"overallSentiment": 'mean'}).reset_index(drop=False)
+        relevantDf.columns = ['date', 'overallSentiment']
+        merged = pd.merge(relevantDf, stockPriceData[["close", "date"]], on="date", how="inner")
+        merged['date'] = merged.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
         output = list(merged.T.to_dict().values())
-        output = sorted(output,key = lambda x:datetime.strptime(x["date"],"%Y-%m-%d"))
+        output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
         return output
-
     def apply_counter(self,keyWordArray):
         output = [x["text"] for x in keyWordArray]
         countDict = dict(Counter(output))
@@ -409,6 +418,7 @@ class StockAdvisor(object):
         relevantDf = pandasDf[["time","source","title","overallSentiment"]]
         relevantDf["sentimentPerChange"] = relevantDf["overallSentiment"].pct_change()
         relevantDf = relevantDf.fillna(0)
+        relevantDf['sentimentPerChange'].replace([np.inf, -np.inf], 100, inplace=True)
 
         relevantDf = relevantDf.sort_values(by=['overallSentiment'],ascending=False)
         topIncrease = relevantDf.iloc[0:3] #top3
