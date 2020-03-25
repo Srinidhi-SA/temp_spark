@@ -153,7 +153,7 @@ class TrendNarrative(object):
         # dataDict["table_data"] = table_data
         return dataDict
 
-    def get_xtra_calculations(self,df,grouped_data,significant_columns,index_col,value_col,dateColDateFormat,reference_time,dataLevel):
+    def get_xtra_calculations(self, df, grouped_data, significant_columns, index_col, value_col, dateColDateFormat, reference_time, dataLevel, pandas_flag):
         print("dateColDateFormat",dateColDateFormat)
         if type(grouped_data["key"][0]) == "str":
             grouped_data["key"] = grouped_data["key"].apply(lambda x:datetime.strptime(x,"%Y-%M-%d" ).date())
@@ -167,14 +167,14 @@ class TrendNarrative(object):
         else:
             index_col = "year_month"
             dateColDateFormat = "%b-%y"
-        try:
+        if not pandas_flag:
             max_levels = min(200, round(df.count()**0.5))
             ignoreColumnSuggestions = []
 
             for col in significant_columns:
                 if df.select(col).distinct().count() > max_levels:
                     ignoreColumnSuggestions.append(col)
-        except:
+        else:
             max_levels = min(200, round(df.shape[0]**0.5))
             ignoreColumnSuggestions = []
 
@@ -183,7 +183,7 @@ class TrendNarrative(object):
                     ignoreColumnSuggestions.append(col)
 
         significant_columns = [col for col in significant_columns if col not in ignoreColumnSuggestions]
-        level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,dateColDateFormat,value_col,reference_time, self._metaParser)
+        level_cont = NarrativesUtils.calculate_level_contribution(df,significant_columns,index_col,dateColDateFormat,value_col,reference_time, self._metaParser, pandas_flag)
         print("level_cont finished in ",time.time()-st)
         level_cont_dict = NarrativesUtils.get_level_cont_dict(level_cont)
         bucket_dict = NarrativesUtils.calculate_bucket_data(grouped_data,dataLevel)

@@ -498,7 +498,7 @@ def calculate_dimension_contribution(levelContObject):
     output["negGrowthArray"] = [x for x in increasingDataArray if x[1]["growth"] != None and float(x[1]["growth"]) < 0][:2]
     return output
 
-def calculate_level_contribution(df,columns,index_col,dateColDateFormat,value_col,max_time, meta_parser):
+def calculate_level_contribution(df, columns, index_col, dateColDateFormat, value_col, max_time, meta_parser, pandas_flag):
     """
     calculates level contribution dictionary for each level each column
     sample Dict = {
@@ -532,15 +532,15 @@ def calculate_level_contribution(df,columns,index_col,dateColDateFormat,value_co
         try:
             column_levels = meta_parser.get_unique_level_names(column_name)
         except:
-            try:
+            if not pandas_flag:
                 column_levels = [x[0] for x in df.select(column_name).distinct().collect()]
-            except:
+            else:
                 column_levels = list(df[column_name].unique())
         out[column_name] = dict(list(zip(column_levels,[data_dict]*len(column_levels))))
         # st = time.time()
-        try:
+        if not pandas_flag:
             pivotdf = df.groupBy(index_col).pivot(column_name).sum(value_col)
-        except:
+        else:
             pivotdf = df.pivot_table(
                 values=value_col, index=index_col, columns=column_name, aggfunc='sum')
             pivotdf.reset_index(inplace=True)
@@ -549,9 +549,9 @@ def calculate_level_contribution(df,columns,index_col,dateColDateFormat,value_co
         # pivotdf = pivotdf.withColumn('total', sum([pivotdf[col] for col in pivotdf.columns if col != index_col]))
         # st=time.time()
         # print "converting to pandas"
-        try:
+        if not pandas_flag:
             k = pivotdf.toPandas()
-        except:
+        else:
             k = pivotdf.copy()
         # print "time taken for pandas conversion of pivotdf",time.time()-st
         k["total"] = k.sum(axis=1)
