@@ -449,7 +449,8 @@ class DecisionTrees(object):
             self._data_frame.to_csv("/Users/apple/weatherBeforeDTstory.csv",index=False)
             x = self._data_frame.drop(dimension,axis=1)
             y = self._data_frame[dimension]
-            x = x.fillna(x.mean())
+            for i in x.columns:
+                x[i] = x[i].fillna(x[i].mode()[0])
             model = DecisionTreeClassifier(criterion='gini', max_depth=self._maxDepth)
             model = model.fit(x,y)
             output_result = self.tree_to_code(model,list(x.columns))
