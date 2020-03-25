@@ -354,6 +354,68 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
 
     elif app_type == "REGRESSION":
+        for obj in algosToRun:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
+                try:
+                    st = time.time()
+                    lin_obj = LinearRegressionModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_linear_df)
+                    lin_obj.Train()
+                    print("Linear Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+                try:
+                    st = time.time()
+                    lin_obj = TensorFlowRegScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    lin_obj.Train()
+                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"TensorFlow","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+                try:
+                    st = time.time()
+                    nnptr_obj = NNPTRegressionScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    nnptr_obj.Train()
+                    print("Neural Networks(pyTorch)-R trained in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
+                try:
+                    st = time.time()
+                    gbt_obj = GBTRegressionModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    gbt_obj.Train()
+                    print("GBT Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_gbt_fail_card({"Algorithm_Name":"gbtregression","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
+                try:
+                    st = time.time()
+                    dtree_obj = DTREERegressionModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    dtree_obj.Train()
+                    print("DTREE Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_dtr_fail_card({"Algorithm_Name":"DecisionTree","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
+                print("randomn forest is running")
+                try:
+                    st = time.time()
+                    rf_obj = RFRegressionModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    rf_obj.Train()
+                    print("RF Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_rf_fail_card({"Algorithm_Name":"rfRegression","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
         pass
         """
         # TODO
@@ -806,6 +868,68 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
         '''
         To be done later when regression scoring is wired
         '''
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        dataframe_context.set_model_path(model_path)
+        dataframe_context.set_score_path(score_file_path)
+        selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
+        print("selected_model_for_prediction", selected_model_for_prediction)
+        if "dtreeregression" in  selected_model_for_prediction:
+            trainedModel = DTREERegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+        headNode = NarrativesTree()
+        if headNode != None:
+            headNode.set_name(jobName)
+        # headNode["name"] = jobName
+        # distributionNode = result_setter.get_distribution_node()
+        # if distributionNode != None:
+        #     headNode["listOfNodes"].append(distributionNode)
+        # anovaNode = result_setter.get_anova_node()
+        # if anovaNode != None:
+        #     headNode["listOfNodes"].append(anovaNode)
+        # decisionTreeNode = result_setter.get_decision_tree_node()
+        # if decisionTreeNode != None:
+        #     headNode["listOfNodes"].append(decisionTreeNode)
+
+        kpiCard = result_setter.get_kpi_card_regression_score()
+        kpiCard = json.loads(CommonUtils.convert_python_object_to_json(kpiCard))
+
+        coeffCard = result_setter.get_coeff_card_regression_score()
+
+        overviewCard = NormalCard(cardData=[HtmlData("<h4>Overview</h4>")])
+        headNode.add_a_card(overviewCard)
+        headNode.add_a_card(kpiCard)
+        distributionNode = result_setter.get_distribution_node()
+        if distributionNode != None:
+            headNode.add_cards(distributionNode["listOfCards"])
+        if coeffCard != None:
+            headNode.add_a_card(coeffCard)
+        anovaNarratives = result_setter.get_anova_narratives_scored_data()
+        anovaCharts = result_setter.get_anova_charts_scored_data()
+        if anovaNarratives != {}:
+            anovaHeaderCard = NormalCard(cardData=[HtmlData("<h4>Analysis by Key Factors</h4>")])
+            headNode.add_a_card(anovaHeaderCard)
+            significantDims = len(anovaNarratives)
+            anovaNarrativesArray = list(anovaNarratives.items())
+            anovaCardWidth = 100
+            if significantDims == 1:
+                anovaCardWidth = 100
+            elif significantDims % 2 == 0:
+                anovaCardWidth = 50
+            else:
+                anovaCardWidth = 50
+                anovaNarrativesArray = anovaNarrativesArray[:-1]
+
+            for k,v in anovaNarrativesArray:
+                anovaCard = NormalCard()
+                anovaCard.set_card_width(anovaCardWidth)
+                chartobj = anovaCharts[k].get_dict_object()
+                anovaCard.add_card_data([anovaCharts[k],HtmlData(data=v)])
+                headNode.add_a_card(anovaCard)
         headNodeJson = CommonUtils.convert_python_object_to_json(headNode)
         print(headNodeJson)
         response = CommonUtils.save_result_json(jobUrl,headNodeJson)

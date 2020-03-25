@@ -836,9 +836,12 @@ class FeatureEngineeringAutoMl:
         cols_to_keep = self.Dataframe.iloc[:,
                        (self.Dataframe.nunique() / len(self.Dataframe) < .9).values].columns.to_list()
 
-        cols_to_keep = [cols for cols in cols_to_keep if not is_datetime(self.Dataframe[cols])]
-        cols_to_keep.remove(self.target)
-        # features = self.feature_creation(self.norm_col)
+        cols_to_keep=[cols for cols in cols_to_keep if not is_datetime(self.Dataframe[cols])]
+        try:
+            cols_to_keep.remove(self.target)
+        except:
+            pass
+        #features = self.feature_creation(self.norm_col)
         import time
         start = time.time()
         data1 = self.feature_transformation(self.Dataframe, self.target, cols_to_keep)
