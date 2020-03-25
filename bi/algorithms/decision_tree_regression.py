@@ -39,6 +39,7 @@ class DecisionTreeRegression(object):
         self._data_frame1 = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
         self._dimension_columns = self._dataframe_helper.get_string_columns()
         self._date_columns = self._dataframe_context.get_date_columns()
@@ -318,7 +319,7 @@ class DecisionTreeRegression(object):
                 yield el
 
     def transform_data_frames(self):
-        self._data_frame, self._mapping_dict = MLUtils.add_string_index(self._data_frame, self._dimension_columns)
+        self._data_frame, self._mapping_dict = MLUtils.add_string_index(self._data_frame, self._dimension_columns, self._pandas_flag)
         # self._data_frame, clusters = MLUtils.cluster_by_column(self._data_frame, self._target_dimension)
         # self._data_frame1, self._aggr_data = MLUtils.cluster_by_column(self._data_frame1, self._target_dimension, get_aggregation=True)
         # self._data_frame, clusters = MLUtils.bin_column(self._data_frame, self._target_dimension)

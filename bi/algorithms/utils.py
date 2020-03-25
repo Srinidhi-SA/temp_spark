@@ -17,7 +17,7 @@ import copy
 
 import numpy as np
 import pandas as pd
-from sklearn import linear_model
+from sklearn import linear_model,preprocessing
 from sklearn.metrics import mean_squared_error, r2_score
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
@@ -50,25 +50,39 @@ def normalize_coefficients(coefficientsArray):
         outArray.append({"key":obj["key"],"value":v})
     return outArray
 
-def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
+def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None, pandas_flag=False):
     if target_measure is None:
         target_measure = []
-    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
-    measures_with_same_val = []
-    measure_list=measure_columns.copy()
-    for measure_column in measure_list:
-        min_, max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
-        diff = (max_ - min_)*1.0
-        if diff == 0.0:
-            measures_with_same_val.append(measure_column)
-            measure_columns.remove(measure_column)
-        else:
-            splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
-            bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
-            bucketizer.setSplits(splits_new)
-            df = bucketizer.transform(df)
-            df = df.select([c for c in df.columns if c!=measure_column])
-            df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
+    if pandas_flag:
+        df[measure_columns] = df[measure_columns].astype("float64")
+        measures_with_same_val = []
+        measure_list=measure_columns.copy()
+        for measure_column in measure_list:
+            min_, max_ = np.min(df[measure_column]),np.max(df[measure_column])
+            diff = (max_ - min_)*1.0
+            if diff == 0.0:
+                measures_with_same_val.append(measure_column)
+                measure_columns.remove(measure_column)
+            else:
+                splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
+                df[measure_column] = pd.cut(df[measure_column], splits_new, labels=False, retbins=True, right=False)[0]
+    else:
+        df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
+        measures_with_same_val = []
+        measure_list=measure_columns.copy()
+        for measure_column in measure_list:
+            min_, max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
+            diff = (max_ - min_)*1.0
+            if diff == 0.0:
+                measures_with_same_val.append(measure_column)
+                measure_columns.remove(measure_column)
+            else:
+                splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
+                bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+                bucketizer.setSplits(splits_new)
+                df = bucketizer.transform(df)
+                df = df.select([c for c in df.columns if c!=measure_column])
+                df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
     return df
 
 def generate_random_number_array(df):
@@ -402,18 +416,31 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
         return final_df, aggr
     return final_df, model.clusterCenters()
 
-def add_string_index(df,string_columns):
+def add_string_index(df,string_columns,pandas_flag):
     string_columns = list(set(string_columns))
-    my_df = df.select(df.columns)
-    column_name_maps = {}
-    mapping_dict = {}
-    for c in string_columns:
-        my_df = StringIndexer(inputCol=c, outputCol=c+'_index',handleInvalid="keep").fit(my_df).transform(my_df)
-        column_name_maps[c+'_index'] = c
-        mapping_dict[c] = dict(enumerate(my_df[[c+'_index']].schema[0].metadata['ml_attr']['vals']))
-    my_df = my_df.select([c for c in my_df.columns if c not in string_columns])
-    my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in list(column_name_maps.keys()) \
-                            else col(c) for c in my_df.columns])
+    if pandas_flag:
+        my_df = df[df.columns]
+        column_name_maps = {}
+        mapping_dict = {}
+        for c in string_columns:
+            le = preprocessing.LabelEncoder()
+            le.fit(my_df[c])
+            classes = le.classes_
+            transformed = le.transform(classes)
+            my_df[c] = le.transform(my_df[c])
+            mapping_dict[c] = dict(list(zip(transformed,classes)))
+
+    else:
+        my_df = df.select(df.columns)
+        column_name_maps = {}
+        mapping_dict = {}
+        for c in string_columns:
+            my_df = StringIndexer(inputCol=c, outputCol=c+'_index',handleInvalid="keep").fit(my_df).transform(my_df)
+            column_name_maps[c+'_index'] = c
+            mapping_dict[c] = dict(enumerate(my_df[[c+'_index']].schema[0].metadata['ml_attr']['vals']))
+        my_df = my_df.select([c for c in my_df.columns if c not in string_columns])
+        my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in list(column_name_maps.keys()) \
+                                else col(c) for c in my_df.columns])
     return my_df, mapping_dict
 
 ##################################Spark ML Pipelines ###########################

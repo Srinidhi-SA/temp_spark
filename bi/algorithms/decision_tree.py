@@ -7,6 +7,7 @@ from builtins import object
 from past.utils import old_div
 import json
 import re
+import numpy as np
 import ast
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.tree import DecisionTree
@@ -21,7 +22,7 @@ from bi.common.decorators import accepts
 from bi.common.results import DecisionTreeResult
 from bi.settings import setting as GLOBALSETTINGS
 from sklearn.datasets import *
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier,_tree
 from sklearn.tree import export_graphviz
 from pyspark.sql.functions import col, countDistinct
 import pydotplus
@@ -42,6 +43,7 @@ class DecisionTrees(object):
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._analysisDict = self._dataframe_context.get_analysis_dict()
         self._measure_columns = self._dataframe_helper.get_numeric_columns()
@@ -56,7 +58,7 @@ class DecisionTrees(object):
             self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
-        self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns)
+        self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns,pandas_flag=self._pandas_flag)
         self._data_frame1 = self._data_frame
         self._mapping_dict = {}
         self._new_rules = {}
@@ -145,16 +147,21 @@ class DecisionTrees(object):
         return block
 
 
-    def tree_json(self, tree, df):
-        data = []
-        for line in tree.splitlines() :
-            if line.strip():
-                line = line.strip()
-                data.append(line)
-            else : break
-            if not line : break
+    def tree_json(self, tree, df, pandas_flag):
+        if not pandas_flag:
+            data = []
+            for line in tree.splitlines() :
+                if line.strip():
+                    line = line.strip()
+                    data.append(line)
+                else : break
+                if not line : break
         res = []
-        res.append({'name': 'Root', 'children':self.parse(data[1:], df)}) #,'count':self.parse_count(data[1:],df)})
+        if pandas_flag:
+            ## TODO: parse has to be done for pandas
+            res.append({'name': 'Root', 'children':self.parse(tree, df)}) #,'count':self.parse_count(data[1:],df)})
+        else:
+            res.append({'name': 'Root', 'children':self.parse(data[1:], df)}) #,'count':self.parse_count(data[1:],df)})
         return res[0]
 
 
@@ -352,7 +359,27 @@ class DecisionTrees(object):
             new_tree['name1']="Probability:"+str(tree['probability']) + "%"
             return new_tree
 
+    def tree_to_code(self, tree, feature_names):
+        tree_ = tree.tree_
+        feature_name = [
+            feature_names[i] if i != _tree.TREE_UNDEFINED else "undefined!"
+            for i in tree_.feature
+        ]
+        l=[]
+        def recurse(node, depth):
+            indent = "  " * depth
+            if tree_.feature[node] != _tree.TREE_UNDEFINED:
+                name = feature_name[node]
+                threshold = tree_.threshold[node]
+                l.append("{}if {} <= {}:".format(indent, name, threshold))
+                recurse(tree_.children_left[node], depth + 1)
+                l.append("{}else:  # if {} > {}".format(indent, name, threshold))
+                recurse(tree_.children_right[node], depth + 1)
+            else:
+                l.append("{}return {}".format(indent, np.argmax(tree_.value[node][0])))
 
+        recurse(0, 1)
+        return l
 
     @accepts(object, measure_columns=(list, tuple), dimension_columns=(list, tuple))
     def test_all(self, measure_columns=None, dimension_columns=None):
@@ -375,8 +402,11 @@ class DecisionTrees(object):
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
         all_dimensions.append(dimension)#this has been done for scoring error
-        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions)
-        print(self._data_frame.show(1))
+        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions, self._pandas_flag)
+        if self._pandas_flag:
+            print(self._data_frame.head(1))
+        else:
+            print(self._data_frame.show(1))
         # standard_measure_index = {0.0:'Low',1.0:'Medium',2.0:'High'}
         standard_measure_index = {0.0:'Low',1.0:'Below Average',2.0:'Average',3.0:'Above Average',4.0:'High'}
         for measure in all_measures:
@@ -391,7 +421,10 @@ class DecisionTrees(object):
         self._mapping_dict = mapping_dict
 
         for c in columns_without_dimension:
-            cat_feature_info.append(self._data_frame.select(c).distinct().count())
+            if self._pandas_flag:
+                cat_feature_info.append(len(self._data_frame[c].unique()))
+            else:
+                cat_feature_info.append(self._data_frame.select(c).distinct().count())
         for c in all_measures:
             cat_feature_info.append(5)
         columns_without_dimension = columns_without_dimension+all_measures
@@ -401,7 +434,10 @@ class DecisionTrees(object):
         else:
             max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
-        dimension_classes = self._data_frame.select(dimension).distinct().count()
+        if self._pandas_flag:
+            dimension_classes = len(self._data_frame[dimension].unique())
+        else:
+            dimension_classes = self._data_frame.select(dimension).distinct().count()
         self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         print("="*200)
         # print self._data_frame.rdd.first()
@@ -409,15 +445,25 @@ class DecisionTrees(object):
         print("maxDepth",self._maxDepth)
         print("maxBins",max_length)
         print("="*200)
-        data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
-        (trainingData, testData) = data.randomSplit([1.0, 0.0])
-        # TO DO : set maxBins at least equal to the max level of categories in dimension column
-        # model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
-        # Removed categoricalFeaturesInfo to be passed to DecisionTree to get all levels and consider all feature as continuous variables
-        #But that results in wrong result in Prediction Rule eg: columns containing "yes" or "no" as its value is considered as float value(0.5) so removing categoricalFeaturesInfo={} with categoricalFeaturesInfo=cat_feature_info
-        model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
-        output_result = model.toDebugString()
-        decision_tree = self.tree_json(output_result, self._data_frame)
+        if self._pandas_flag:
+            self._data_frame.to_csv("/Users/apple/weatherBeforeDTstory.csv",index=False)
+            x = self._data_frame.drop(dimension,axis=1)
+            y = self._data_frame[dimension]
+            x = x.fillna(x.mean())
+            model = DecisionTreeClassifier(criterion='gini', max_depth=self._maxDepth)
+            model = model.fit(x,y)
+            output_result = self.tree_to_code(model,list(x.columns))
+            output_result = list(map(lambda x:x.strip(),output_result))
+        else:
+            data = self._data_frame.rdd.map(lambda x: LabeledPoint(x[0], x[1:]))
+            (trainingData, testData) = data.randomSplit([1.0, 0.0])
+            # TO DO : set maxBins at least equal to the max level of categories in dimension column
+            # model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
+            # Removed categoricalFeaturesInfo to be passed to DecisionTree to get all levels and consider all feature as continuous variables
+            #But that results in wrong result in Prediction Rule eg: columns containing "yes" or "no" as its value is considered as float value(0.5) so removing categoricalFeaturesInfo={} with categoricalFeaturesInfo=cat_feature_info
+            model = DecisionTree.trainClassifier(trainingData, numClasses=dimension_classes, categoricalFeaturesInfo=cat_feature_info, impurity='gini', maxDepth=self._maxDepth, maxBins=max_length)
+            output_result = model.toDebugString()
+        decision_tree = self.tree_json(output_result, self._data_frame, self._pandas_flag)
         self._new_tree = self.generate_new_tree(decision_tree)
         node_list = self.node_name_extractor(self._new_tree)
         node_list=list(self.flatten(node_list))
