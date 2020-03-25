@@ -122,7 +122,7 @@ def main(configJson):
     dataframe_context.set_job_name(jobName)
 
     ######  pandas Flag  ################
-    dataframe_context._pandas_flag = True
+    dataframe_context._pandas_flag = False
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
