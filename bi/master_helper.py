@@ -1418,7 +1418,10 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             correlations = correlation_obj.Run()
             print("Correlation Analysis Done in ", time.time() - fs ," seconds.")
             try:
-                df = df.na.drop(subset=measure_columns)
+                try:
+                    df = df.na.drop(subset=measure_columns)
+                except:
+                    df = df.drop_duplicates()
                 fs = time.time()
                 regression_obj = LinearRegressionScript(df, dataframe_helper, dataframe_context, result_setter, spark, correlations, story_narrative,metaParserInstance)
                 regression_obj.Run()

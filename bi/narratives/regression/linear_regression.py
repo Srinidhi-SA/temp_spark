@@ -12,7 +12,7 @@ import numpy as np
 import pyspark.sql.functions as FN
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.types import DoubleType
-
+from scipy.stats.stats import pearsonr
 # from nltk import tokenize
 from bi.algorithms import LinearRegression
 from bi.common import ScatterChartData, ChartJson
@@ -30,6 +30,7 @@ class LinearRegressionNarrative(object):
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._metaParser = meta_parser
+        self._pandas_flag = self._dataframe_context._pandas_flag
         self._regression_result = regression_result
         self._data_frame = self._dataframe_helper.get_data_frame()
         self._spark = spark
@@ -74,7 +75,10 @@ class LinearRegressionNarrative(object):
         data_dict["significant_measures"] = self._regression_result.get_input_columns()
         data_dict["n_sig_measures"] = len(data_dict["significant_measures"])
         data_dict["coefficient"] = round(self._regression_result.get_all_coeff()[measure_column]["coefficient"],2)
-        data_dict["correlation"] = self._data_frame.corr(self._result_column,measure_column)
+        if not self._pandas_flag:
+            data_dict["correlation"] = self._data_frame.corr(self._result_column,measure_column)
+        else:
+            data_dict["correlation"], p_value = pearsonr(self._data_frame[self._result_column],self._data_frame[measure_column])
         # input_cols = [self._result_column,measure_column]
         # df = self._data_frame
         # kmeans_obj = KmeansClustering(df, self._dataframe_helper, self._dataframe_context, self._spark)
@@ -206,18 +210,32 @@ class LinearRegressionNarrative(object):
         else:
             cat_columns = self._dataframe_helper.get_string_columns()[:10]
 
-        col1_mean = Stats.mean(self._data_frame,col1)
-        col2_mean = Stats.mean(self._data_frame,col2)
+        if not self._pandas_flag:
+            col1_mean = Stats.mean(self._data_frame,col1)
+            col2_mean = Stats.mean(self._data_frame,col2)
+        else:
+            col1_mean = self._data_frame[col1].mean()
+            col2_mean = self._data_frame[col2].mean()
         print("col1=>",col1," | col2=>",col2)
         print(col1_mean,col2_mean)
-        low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) < col2_mean)
-        low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) >= col2_mean)
-        high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) >= col2_mean)
-        high1low2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) < col2_mean)
-        low1low2Count = low1low2.count()
-        low1high2Count = low1high2.count()
-        high1high2Count = high1high2.count()
-        high1low2Count = high1low2.count()
+        if not self._pandas_flag:
+            low1low2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) < col2_mean)
+            low1high2 = self._data_frame.filter(FN.col(col1) < col1_mean).filter(FN.col(col2) >= col2_mean)
+            high1high2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) >= col2_mean)
+            high1low2 = self._data_frame.filter(FN.col(col1) >= col1_mean).filter(FN.col(col2) < col2_mean)
+            low1low2Count = low1low2.count()
+            low1high2Count = low1high2.count()
+            high1high2Count = high1high2.count()
+            high1low2Count = high1low2.count()
+        else:
+            low1low2 = self._data_frame[(self._data_frame[col1] < col1_mean) & (self._data_frame[col2] < col2_mean)]
+            low1high2 = self._data_frame[(self._data_frame[col1] < col1_mean) & (self._data_frame[col2] >= col2_mean)]
+            high1high2 = self._data_frame[(self._data_frame[col1] >= col1_mean) & (self._data_frame[col2] >= col2_mean)]
+            high1low2 = self._data_frame[(self._data_frame[col1] >= col1_mean) & (self._data_frame[col2] < col2_mean)]
+            low1low2Count = low1low2.shape[0]
+            low1high2Count = low1high2.shape[0]
+            high1high2Count = high1high2.shape[0]
+            high1low2Count = high1low2.shape[0]
         contribution = {}
         freq = {}
         elasticity_dict = {}
@@ -272,7 +290,10 @@ class LinearRegressionNarrative(object):
         fs = time.time()
         # overall_coeff = self._regression_result.get_coeff(col2)
         overall_coeff = self._regression_result.get_all_coeff()[col2]["coefficient"]
-        elasticity_value = old_div(overall_coeff * Stats.mean(self._data_frame,col1),Stats.mean(self._data_frame,col2))
+        if not self._pandas_flag:
+            elasticity_value = old_div(overall_coeff * Stats.mean(self._data_frame,col1),Stats.mean(self._data_frame,col2))
+        else:
+            elasticity_value = old_div(overall_coeff * self._data_frame[col1].mean(),self._data_frame[col2].mean())
         data_dict["overall_elasticity"] = elasticity_value
         label_dict = dict(list(zip(dfs,labels)))
 
@@ -302,9 +323,14 @@ class LinearRegressionNarrative(object):
         plotColors = []
         if low1low2Count > 0:
             sample_rows = min(100.0, float(low1low2Count))
-            low1low2 = low1low2.sample(False, old_div(sample_rows,low1low2Count), seed = 50)
-            low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
-            low1low2_col2 = [x[0] for x in low1low2.select(col2).collect()]
+            if not self._pandas_flag:
+                low1low2 = low1low2.sample(False, old_div(sample_rows,low1low2Count), seed = 50)
+                low1low2_col1 = [x[0] for x in low1low2.select(col1).collect()]
+                low1low2_col2 = [x[0] for x in low1low2.select(col2).collect()]
+            else:
+                low1low2 = low1low2.sample(replace=False,frac=old_div(sample_rows,low1low2Count),random_state = 50)
+                low1low2_col1 =  low1low2[col1].tolist()
+                low1low2_col2 =  low1low2[col2].tolist()
             low1low2_color = ["#DD2E1F"]*len(low1low2_col2)
             col1_data += low1low2_col1
             col2_data += low1low2_col2
@@ -312,9 +338,14 @@ class LinearRegressionNarrative(object):
             plotColors.append("#DD2E1F")
         if low1high2Count > 0:
             sample_rows = min(100.0, float(low1high2Count))
-            low1high2 = low1high2.sample(False, old_div(sample_rows,low1high2Count), seed = 50)
-            low1high2_col1 = [x[0] for x in low1high2.select(col1).collect()]
-            low1high2_col2 = [x[0] for x in low1high2.select(col2).collect()]
+            if not self._pandas_flag:
+                low1high2 = low1high2.sample(False, old_div(sample_rows,low1high2Count), seed = 50)
+                low1high2_col1 = [x[0] for x in low1high2.select(col1).collect()]
+                low1high2_col2 = [x[0] for x in low1high2.select(col2).collect()]
+            else:
+                low1high2 = low1high2.sample(replace=False,frac=old_div(sample_rows,low1high2Count), random_state = 50)
+                low1high2_col1 =  low1high2[col1].tolist()
+                low1high2_col2 =  low1high2[col2].tolist()
             low1high2_color = ["#7C5BBB"]*len(low1high2_col2)
             col1_data += low1high2_col1
             col2_data += low1high2_col2
@@ -322,9 +353,14 @@ class LinearRegressionNarrative(object):
             plotColors.append("#7C5BBB")
         if high1high2Count > 0:
             sample_rows = min(100.0, float(high1high2Count))
-            high1high2 = high1high2.sample(False, old_div(sample_rows,high1high2Count), seed = 50)
-            high1high2_col1 = [x[0] for x in high1high2.select(col1).collect()]
-            high1high2_col2 = [x[0] for x in high1high2.select(col2).collect()]
+            if not self._pandas_flag:
+                high1high2 = high1high2.sample(False, old_div(sample_rows,high1high2Count), seed = 50)
+                high1high2_col1 = [x[0] for x in high1high2.select(col1).collect()]
+                high1high2_col2 = [x[0] for x in high1high2.select(col2).collect()]
+            else:
+                high1high2 = high1high2.sample(replace=False,frac=old_div(sample_rows,high1high2Count), random_state = 50)
+                high1high2_col1 =  high1high2[col1].tolist()
+                high1high2_col2 =  high1high2[col2].tolist()
             high1high2_color = ["#00AEB3"]*len(high1high2_col2)
             col1_data += high1high2_col1
             col2_data += high1high2_col2
@@ -332,9 +368,14 @@ class LinearRegressionNarrative(object):
             plotColors.append("#00AEB3")
         if high1low2Count > 0:
             sample_rows = min(100.0, float(high1low2Count))
-            high1low2 = high1low2.sample(False, old_div(sample_rows,high1low2Count), seed = 50)
-            high1low2_col1 = [x[0] for x in high1low2.select(col1).collect()]
-            high1low2_col2 = [x[0] for x in high1low2.select(col2).collect()]
+            if not self._pandas_flag:
+                high1low2 = high1low2.sample(False, old_div(sample_rows,high1low2Count), seed = 50)
+                high1low2_col1 = [x[0] for x in high1low2.select(col1).collect()]
+                high1low2_col2 = [x[0] for x in high1low2.select(col2).collect()]
+            else:
+                high1low2 = high1low2.sample(replace=False, frac=old_div(sample_rows,high1low2Count), random_state = 50)
+                high1low2_col1 =  high1low2[col1].tolist()
+                high1low2_col2 =  high1low2[col2].tolist()
             high1low2_color = ["#EC640C"]*len(high1low2_col2)
             col1_data += high1low2_col1
             col2_data += high1low2_col2
@@ -370,8 +411,12 @@ class LinearRegressionNarrative(object):
         column_tuple = list(zip(columns,[{}]*len(columns)))
         output = []
         for val in column_tuple:
-            freq_df = df.groupby(val[0]).count().toPandas()
-            freq_dict = dict(list(zip(freq_df[val[0]],freq_df["count"])))
+            if not self._pandas_flag:
+                freq_df = df.groupby(val[0]).count().toPandas()
+                freq_dict = dict(list(zip(freq_df[val[0]],freq_df["count"])))
+            else:
+                freq_df = df[val[0]].value_counts().reset_index()
+                freq_dict = dict(list(zip(freq_df.iloc[:,0],freq_df.iloc[:,1])))
             print(freq_dict)
             if freq_dict != {}:
                 max_level = max(freq_dict,key=freq_dict.get)
