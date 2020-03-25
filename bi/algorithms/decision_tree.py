@@ -446,7 +446,6 @@ class DecisionTrees(object):
         print("maxBins",max_length)
         print("="*200)
         if self._pandas_flag:
-            self._data_frame.to_csv("/Users/apple/weatherBeforeDTstory.csv",index=False)
             x = self._data_frame.drop(dimension,axis=1)
             y = self._data_frame[dimension]
             for i in x.columns:
