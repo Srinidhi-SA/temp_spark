@@ -196,17 +196,38 @@ class StockAdvisor(object):
         df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
         return df
 
+    # def get_sub_concepts_for_item_python(self, item):
+    #     cur_keywords = [k["text"].lower() for k in item]
+    #     cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
+    #     sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
+    #     cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
+    #     for key in self.concepts:
+    #         keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
+    #         if len(keywordIntersection) > 0:
+    #             cur_concepts["conceptList"].append(key)
+    #             cur_concepts["conceptKeywordDict"][key] = keywordIntersection
+    #             cur_concepts["conceptAvgSentimentDict"][key] = np.mean(np.array([sentimentsDict[x]  for x in keywordIntersection]))
+    #     return cur_concepts
+
     def get_sub_concepts_for_item_python(self, item):
-        cur_keywords = [k["text"].lower() for k in item]
-        cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
-        sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
-        cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
-        for key in self.concepts:
-            keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
-            if len(keywordIntersection) > 0:
-                cur_concepts["conceptList"].append(key)
-                cur_concepts["conceptKeywordDict"][key] = keywordIntersection
-                cur_concepts["conceptAvgSentimentDict"][key] = np.mean(np.array([sentimentsDict[x]  for x in keywordIntersection]))
+        cur_concepts = {"conceptList": [], "conceptKeywordDict": {}, "conceptAvgSentimentDict": {}}
+        for dic in item:
+            if dic['concept'] != None:
+                if dic['concept'] not in cur_concepts["conceptList"]:
+                    cur_concepts["conceptList"].append(dic['concept'])
+                if dic['concept'] not in cur_concepts["conceptKeywordDict"]:
+                    cur_concepts["conceptKeywordDict"][dic['concept']] = []
+                    cur_concepts["conceptKeywordDict"][dic['concept']].append({dic['text']: dic['sentiment']['score']})
+                else:
+                    cur_concepts["conceptKeywordDict"][dic['concept']].append({dic['text']: dic['sentiment']['score']})
+                if dic['concept'] not in cur_concepts["conceptAvgSentimentDict"]:
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']] = []
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']].append(dic['sentiment']['score'])
+                else:
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']].append(dic['sentiment']['score'])
+
+        for key in cur_concepts['conceptAvgSentimentDict'].keys():
+            cur_concepts['conceptAvgSentimentDict'][key] = np.mean(cur_concepts['conceptAvgSentimentDict'][key])
         return cur_concepts
 
     def get_number_articles_and_sentiments_per_concept(self,pandasDf):
@@ -263,8 +284,8 @@ class StockAdvisor(object):
             absSentimentScore = dfRow["sentiment"]["document"]["score"]
             label = dfRow["sentiment"]["document"]["label"]
             sentimentScore = absSentimentScore if label == "positive" else -absSentimentScore
-            counterDict[concept]["totalSentiment"] += dfRow["sentiment"]["document"]["score"]
-            if self.check_an_article_is_positive_or_not(dfRow["keywords"]) == True:
+            counterDict[concept]["totalSentiment"] += dfRow['concepts']['conceptAvgSentimentDict'][concept]
+            if (True if dfRow['sentiment']['document']['score']>0 else False):
                 counterDict[concept]["posArticles"] += 1
             else:
                 counterDict[concept]["negArticles"] += 1
@@ -479,11 +500,11 @@ class StockAdvisor(object):
         print("In stockAdvisor")
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
-        # if self._runEnv == "debugMode":
-        #     self.concepts = self.load_concepts_from_json()
-        # else:
-        conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
-        self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
+        if self._runEnv == "debugMode":
+            self.concepts = self.load_concepts_from_json()
+        else:
+            conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
+            self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
