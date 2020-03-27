@@ -29,6 +29,7 @@ import pydotplus
 from io import BytesIO
 import collections
 import unicodedata
+import math
 """
 Decision Tree
 """
@@ -147,6 +148,47 @@ class DecisionTrees(object):
         return block
 
 
+    def parse_pandas(self, lines, df):
+        block = []
+        while lines :
+
+            if lines[0].startswith('if'):
+
+                bl = ' '.join(lines.pop(0).split()[1:]).replace(':', '').replace(')', '')
+                feature_mapping = bl.split()[0]
+                if "<=" or "<" in bl:
+                    sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(bl.split()[-1]))]
+                    sub_mappings_string = '(' +  ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                    bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+
+                elif ">=" or ">" in bl:
+                    sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x >= math.ceil(float(bl.split()[-1]))]
+                    sub_mappings_string = '(' +  ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                    bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+                block.append({'name':bl, 'children':self.parse_pandas(lines, df)})
+                if lines[0].startswith('else'):
+
+                    be = ' '.join(lines.pop(0).split()[3:]).replace('#', '').replace(':', '')
+                    feature_mapping = be.split()[0]
+
+                    if ">" or ">=" in be:
+                        sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(be.split()[-1]))]
+                        sub_mappings_string = '(' + ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                        be = "%s not in %s" % (feature_mapping, sub_mappings_string)
+                    block.append({'name':be, 'children':self.parse_pandas(lines, df)})
+            elif not lines[0].startswith(('if','else')):
+                block2 = lines.pop(0)
+                if "return" in block2:
+                    outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(' ')[1].strip()))]
+                    block2 = "Predict: %s" % (outcome)
+                block.append({'name':block2})
+            else:
+                break
+
+        return block
+
+# look into floor/ceil for measure columns: binned in the pandas tree?
+
     def tree_json(self, tree, df, pandas_flag):
         if not pandas_flag:
             data = []
@@ -156,12 +198,19 @@ class DecisionTrees(object):
                     data.append(line)
                 else : break
                 if not line : break
+            print ("data", data)
         res = []
         if pandas_flag:
+            print ("tree", type(tree), tree)
+            print ("\n\n")
+            print ("parse output pandas", self.parse_pandas(tree, df))
             ## TODO: parse has to be done for pandas
-            res.append({'name': 'Root', 'children':self.parse(tree, df)}) #,'count':self.parse_count(data[1:],df)})
+            res.append({'name': 'Root', 'children':self.parse_pandas(tree, df)}) #,'count':self.parse_count(data[1:],df)})
         else:
+            print ("\n\n")
+            print ("parse output", self.parse(data[1:], df))
             res.append({'name': 'Root', 'children':self.parse(data[1:], df)}) #,'count':self.parse_count(data[1:],df)})
+
         return res[0]
 
 
@@ -169,7 +218,7 @@ class DecisionTrees(object):
     def extract_rules(self, rule_list, target):
         if target not in self._important_vars:
             self._important_vars[target] = []
-        DFF = DataFrameFilterer(self._data_frame1)
+        DFF = DataFrameFilterer(self._data_frame1, self._pandas_flag)
         colname = self._target_dimension
         success = 0
         total = 0

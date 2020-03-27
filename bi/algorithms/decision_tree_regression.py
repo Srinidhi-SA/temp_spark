@@ -141,7 +141,7 @@ class DecisionTreeRegression(object):
         if target not in self._important_vars:
             self._important_vars[target] = []
         target = self._reverse_map[target]
-        DFF = DataFrameFilterer(self._data_frame1)
+        DFF = DataFrameFilterer(self._data_frame1, self._pandas_flag)
         colname = self._target_dimension
         success = 0
         total = 0
