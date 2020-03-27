@@ -123,17 +123,13 @@ class DataFrameFilterer(object):
 
     def get_aggregated_result(self, colname, target):
         if self._pandas_flag:
-            self._data_frame = self._data_frame.groupby([colname])[colname].agg(['count'])
-            self._data_frame.reset_index(inplace=True)
-            return self._data_frame.values
+            return self._data_frame.groupby([colname])[colname].agg(['count']).reset_index(inplace=False).values
         else:
             return self._data_frame.select(colname).groupBy(colname).agg({'*': 'count'}).collect()
 
     def get_count_result(self,target):
         if self._pandas_flag:
-            self._data_frame =  self._data_frame.groupby([target])[target].agg(['count'])
-            self._data_frame.reset_index(inplace=True)
-            return self._data_frame.values
+            return self._data_frame.groupby([target])[target].agg(['count']).reset_index(inplace=False).values
         else:
             return self._data_frame.groupBy(target).count().collect()
 
