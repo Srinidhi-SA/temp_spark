@@ -355,24 +355,39 @@ def transform_feature_importance(feature_importance_dict):
     output = [feature_importance_new[0][:6],feature_importance_new[1][:6]]
     return output
 
-def bin_column(df, measure_column,get_aggregation = False):
-    allCols = df.columns
-    df = df.select([col(c).cast('double').alias(c) if c == measure_column else col(c) for c in allCols])
-    min_,max_,mean_,stddev_,total = df.agg(FN.min(measure_column), FN.max(measure_column), FN.mean(measure_column), FN.stddev(measure_column), FN.sum(measure_column)).collect()[0]
-    df_without_outlier = df.filter(col(measure_column)>=mean_-3*stddev_).filter(col(measure_column)<=mean_+3*stddev_)
-    diff = (max_ - min_)*1.0
-    splits_new = [min_-1,min_+diff*0.4,min_+diff*0.7,max_+1]
-    bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
-    bucketizer.setSplits(splits_new)
-    df = bucketizer.transform(df)
-    if (get_aggregation):
-        agg_df = df.groupby("bucket").agg(FN.sum(measure_column).alias('sum'), FN.count(measure_column).alias('count'))
-        aggr = {}
-        for row in agg_df.collect():
-            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1]*100.0,total), 'count_percent': old_div(row[2]*100.0,df.count())}
+def bin_column(df, measure_column,get_aggregation = False, pandas_flag = False):
+    if pandas_flag:
+        df[measure_column] = df[measure_column].astype("float64")
+        min_, max_, mean_, stddev_, total = np.min(df[measure_column]), np.max(df[measure_column]), np.mean(df[measure_column]), np.std(df[measure_column]), np.sum(df[measure_column])
+        diff = (max_ - min_) * 1.0
+        splits_new = [min_ - 1, min_ + diff * 0.4, min_ + diff * 0.7, max_ + 1]
+        df['bucket'] = pd.cut(df[measure_column], bins=splits_new, labels=np.arange(0, 3, 1.0), retbins=True, right=False)[0]
+        if (get_aggregation):
+            agg_df = df.groupby("bucket").agg({measure_column: ["sum", "size"]}).reset_index(level="bucket",col_level=1)
+            agg_df.columns = agg_df.columns.droplevel(0)
+            aggr = {}
+            for row in agg_df.values:
+                aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1] * 100.0, total),'count_percent': old_div(row[2] * 100.0, df.count())}
+        df = df[[c for c in df.columns if c != measure_column]]
+        df = df.rename(columns={'bucket': measure_column})
+    else:
+        allCols = df.columns
+        df = df.select([col(c).cast('double').alias(c) if c == measure_column else col(c) for c in allCols])
+        min_,max_,mean_,stddev_,total = df.agg(FN.min(measure_column), FN.max(measure_column), FN.mean(measure_column), FN.stddev(measure_column), FN.sum(measure_column)).collect()[0]
+        df_without_outlier = df.filter(col(measure_column)>=mean_-3*stddev_).filter(col(measure_column)<=mean_+3*stddev_)
+        diff = (max_ - min_)*1.0
+        splits_new = [min_-1,min_+diff*0.4,min_+diff*0.7,max_+1]
+        bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+        bucketizer.setSplits(splits_new)
+        df = bucketizer.transform(df)
+        if (get_aggregation):
+            agg_df = df.groupby("bucket").agg(FN.sum(measure_column).alias('sum'), FN.count(measure_column).alias('count'))
+            aggr = {}
+            for row in agg_df.collect():
+                aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1]*100.0,total), 'count_percent': old_div(row[2]*100.0,df.count())}
 
-    df = df.select([c for c in df.columns if c!=measure_column])
-    df = df.withColumnRenamed("bucket",measure_column)
+        df = df.select([c for c in df.columns if c!=measure_column])
+        df = df.withColumnRenamed("bucket",measure_column)
     if splits_new[0] > 1:
         splitRanges = ["("+str(round(splits_new[0]))+" to "+str(round(splits_new[1]))+")",
                     "("+str(round(splits_new[1]))+" to "+str(round(splits_new[2]))+")",

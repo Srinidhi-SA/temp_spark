@@ -12,7 +12,7 @@ from .utils import accepts
 #import bi.common.dataframe
 revmap_dict = {'Low':0.0,'Below Average':1.0,'Average':2.0,'Above Average':3.0,'High':4.0}
 class DataFrameFilterer(object):
-    @accepts(object,DataFrame,pandas_flag=bool)
+    @accepts(object,dataframe=DataFrame,pandas_flag=bool)
     def __init__(self, dataframe, pandas_flag):
         self._data_frame = dataframe
         self._pandas_flag = pandas_flag
