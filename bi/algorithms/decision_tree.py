@@ -201,9 +201,6 @@ class DecisionTrees(object):
             print ("data", data)
         res = []
         if pandas_flag:
-            print ("tree", type(tree), tree)
-            print ("\n\n")
-            print ("parse output pandas", self.parse_pandas(tree, df))
             ## TODO: parse has to be done for pandas
             res.append({'name': 'Root', 'children':self.parse_pandas(tree, df)}) #,'count':self.parse_count(data[1:],df)})
         else:
