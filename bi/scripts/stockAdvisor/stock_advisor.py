@@ -37,7 +37,9 @@ class StockAdvisor(object):
         self._runEnv = dataframe_context.get_environement()
         self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/"
         self._dateFormat = "%Y%m%d"
-
+        self._dataframe_context = dataframe_context
+        self._percentage = int((80 /(((len(self._stockNameList)*2))+1)))
+        self._stock_per = 0
 
     def read_csv(self, file_name):
         # print "-"*50
@@ -48,7 +50,9 @@ class StockAdvisor(object):
          .option("header", "true")
          .load(name))
         return df
-
+    def stock_status(self,value):
+        self._stock_per = value + self._stock_per
+        return self._stock_per
     def read_json(self, filepath):
         df = self._spark.read.json(filepath)
         return df
@@ -498,6 +502,8 @@ class StockAdvisor(object):
 
     def Run(self):
         print("In stockAdvisor")
+        messageURL = self._dataframe_context.get_message_url()
+        ignoreMsg = self._dataframe_context.get_message_ignore()
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
         if self._runEnv == "debugMode":
@@ -513,6 +519,15 @@ class StockAdvisor(object):
             print("Analyzing data for Stock: " +stock_symbol)
             try:
                 #-------------- Read Operations ----------------
+                weights = self.stock_status(self._percentage)
+                progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                             stageName="custom",
+                                                                             messageType="info",
+                                                                             shortExplanation="Analyzing " + str.upper(stock_symbol) + " Data",
+                                                                             stageCompletionPercentage=weights,
+                                                                             globalCompletionPercentage=weights,
+                                                                             display=True)
+                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
                 stockDict[stock_symbol] = {}
                 if self._runEnv == "debugMode":
                     df = self.read_json(self.BASE_DIR+stock_symbol+".json")
@@ -646,6 +661,16 @@ class StockAdvisor(object):
         working_stock_list = []
         for current_stock in self._stockNameList:
             try:
+                weights = self.stock_status(self._percentage)
+                progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                             stageName="custom",
+                                                                             messageType="info",
+                                                                             shortExplanation="Applying Regression on  " + str.upper(current_stock) + " Data",
+                                                                             stageCompletionPercentage=weights,
+                                                                             globalCompletionPercentage=weights,
+                                                                             display=True)
+                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
+                regressionDf = masterDfDict[current_stock]
                 regressionDf = masterDfDict[current_stock]
                 regressionDf.index = regressionDf["time"]
                 remaining_stocks = list(set(self._stockNameList) - {current_stock})
@@ -668,7 +693,15 @@ class StockAdvisor(object):
             except Exception as e:
                 stockDict.pop(current_stock, None)
                 print("Failed for : ", current_stock, " with error : ", str(e))
-
+        weights = self.stock_status(self._percentage)
+        progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                     stageName="custom",
+                                                                     messageType="info",
+                                                                     shortExplanation="Calculating Stock Price Trend",
+                                                                     stageCompletionPercentage=weights,
+                                                                     globalCompletionPercentage=weights,
+                                                                     display=True)
+        CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
         # print "#"*100
         self._stockNameList = working_stock_list
         number_stocks = len(self._stockNameList)
