@@ -214,7 +214,10 @@ class TimeSeriesNarrative(object):
                 if self._selected_date_columns != None:
                     if self._dateFormatDetected:
                         grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataLevel,self._result_column,self._analysistype,self._pandas_flag)
-                        self._data_frame = self._data_frame.drop(self._date_column_suggested, axis=1)
+                        if self._pandas_flag:
+                            self._data_frame = self._data_frame.drop(self._date_column_suggested, axis=1)
+                        else:
+                            self._data_frame = self._data_frame.drop(self._date_column_suggested)
                         # self._data_frame = self._data_frame.withColumnRenamed("year_month", self._date_column_suggested)
 
                         significant_dimensions = []

@@ -234,7 +234,7 @@ class DecisionTrees(object):
 
             if ' <= ' in rule:
                 var,limit = re.split(' <= ',rule)
-                DFF.values_below(var,limit)
+                DFF.values_below(var,float(limit))
                 data_dict={}
                 for rows in DFF.get_count_result(colname):
                     if rows is not None:
@@ -242,7 +242,7 @@ class DecisionTrees(object):
                 dict_tree.append(data_dict)
             elif ' > ' in rule:
                 var,limit = re.split(' > ',rule)
-                DFF.values_above(var,limit)
+                DFF.values_above(var,float(limit))
                 data_dict={}
                 for rows in DFF.get_count_result(colname):
                     if rows is not None:

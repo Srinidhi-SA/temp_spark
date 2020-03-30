@@ -41,7 +41,7 @@ class ChiSquareNarratives(object):
         ############################DataFrame Measure to Dimesion Column#####################
 
         if self._pandas_flag:
-            pandas_df = self._data_frame
+            pandas_df = self._data_frame.copy(deep=True)
         else:
             pandas_df = self._data_frame.toPandas()
         target_dimension = list(self._df_chisquare_result.keys())

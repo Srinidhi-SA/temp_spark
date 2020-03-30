@@ -23,7 +23,7 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.common import DataLoader
 from bi.common import DataFrameHelper
 import collections
-
+import math
 """
 Decision Tree
 """
@@ -57,7 +57,7 @@ class DecisionTreeRegression(object):
         self._important_vars = {}
         self._numCluster = None
         self._count_list=[]
-        self._total_list=[]
+
         self._data_frame = self._dataframe_helper.fill_missing_values(self._data_frame)
         self._data_frame1 = self._dataframe_helper.fill_missing_values(self._data_frame1)
 
@@ -124,6 +124,52 @@ class DecisionTreeRegression(object):
                 break
         return block
 
+    def parse_pandas(self, lines, df):
+        block = []
+        while lines :
+
+            if lines[0].startswith('if'):
+
+                bl = ' '.join(lines.pop(0).split()[1:]).replace(':', '').replace(')', '')
+                feature_mapping = bl.split()[0]
+                try:
+                    if "<=" or "<" in bl:
+                        sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(bl.split()[-1]))]
+                        sub_mappings_string = '(' +  ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                        bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+
+                    elif ">=" or ">" in bl:
+                        sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x >= math.ceil(float(bl.split()[-1]))]
+                        sub_mappings_string = '(' +  ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                        bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+                except:
+                    pass
+                block.append({'name':bl, 'children':self.parse_pandas(lines, df)})
+                if lines[0].startswith('else'):
+
+                    be = ' '.join(lines.pop(0).split()[3:]).replace('#', '').replace(':', '')
+                    feature_mapping = be.split()[0]
+
+                    try:
+                        if ">" or ">=" in be:
+                            sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(be.split()[-1]))]
+                            sub_mappings_string = '(' + ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                            be = "%s not in %s" % (feature_mapping, sub_mappings_string)
+                    except:
+                        pass
+                    block.append({'name':be, 'children':self.parse_pandas(lines, df)})
+            elif not lines[0].startswith(('if','else')):
+                block2 = lines.pop(0)
+                if "return" in block2:
+                    outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(' ')[1].replace(']', '').replace('[', '').strip()))]
+                    block2 = "Predict: %s" % (outcome)
+                block.append({'name':block2})
+            else:
+                break
+
+        return block
+
+
     def tree_json(self, tree, df, pandas_flag):
         if not pandas_flag:
             data = []
@@ -138,16 +184,20 @@ class DecisionTreeRegression(object):
         res = []
         if pandas_flag:
             ## TODO: parse has to be done for pandas
-            res.append({'name': 'Root', 'children': self.parse(tree, df)})  # ,'count':self.parse_count(data[1:],df)})
+            res.append({'name': 'Root', 'children':self.parse_pandas(tree, df)})  # ,'count':self.parse_count(data[1:],df)})
         else:
+            # print("\n\n")
+            # print("parse output", self.parse(data[1:], df))
             res.append(
                 {'name': 'Root', 'children': self.parse(data[1:], df)})  # ,'count':self.parse_count(data[1:],df)})
+        # print(res[0]["children"])
         return res[0]
 
     @accepts(object, rule_list=list,target=str)
     def extract_rules(self, rule_list, target):
         if target not in self._important_vars:
             self._important_vars[target] = []
+        target = self._reverse_map[target]
         DFF = DataFrameFilterer(self._data_frame1, self._pandas_flag)
         colname = self._target_dimension
         success = 0
@@ -164,7 +214,7 @@ class DecisionTreeRegression(object):
         for rule in rule_list:
             if ' <= ' in rule:
                 var,limit = re.split(' <= ',rule)
-                DFF.values_below(var,limit)
+                DFF.values_below(var,float(limit))
                 data_dict={}
                 for rows in DFF.get_count_result(colname):
                     if rows is not None:
@@ -172,15 +222,15 @@ class DecisionTreeRegression(object):
                 dict_tree.append(data_dict)
             elif ' > ' in rule:
                 var,limit = re.split(' > ',rule)
-                DFF.values_above(var,limit)
+                DFF.values_above(var,float(limit))
                 data_dict={}
                 for rows in DFF.get_count_result(colname):
                     if rows is not None:
                         data_dict[rows[0]]=rows[1]
                 dict_tree.append(data_dict)
             elif ' not in ' in rule:
-                var,levels = re.split(' not in ',rule)
-                levels=levels[1:-1].split(",")
+                var, levels = re.split(' not in ', rule)
+                levels = levels[1:-1].split(",")
                 #levels = [self._alias_dict[x] for x in levels]
                 levels1 = [key if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 DFF.values_not_in(var,levels1,self._measure_columns)
@@ -190,8 +240,8 @@ class DecisionTreeRegression(object):
                         data_dict[rows[0]]=rows[1]
                 dict_tree.append(data_dict)
             elif ' in ' in rule:
-                var, levels = rule.split(' in ')
-                levels = levels[0:-1].split(",")
+                var, levels = re.split(' in ', rule)
+                levels = levels[1:-1].split(",")
                 #levels = [self._alias_dict[x] for x in levels]
                 levels1 = [key if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 DFF.values_in(var,levels1,self._measure_columns)
@@ -205,7 +255,7 @@ class DecisionTreeRegression(object):
             if(rows[0]==target):
                 success = rows[1]
             total = total + rows[1]
-            self._total_list.append(total)
+        target = self._mapping_dict[self._target_dimension][target]
         self._important_vars[target] = list(set(self._important_vars[target] + important_vars))
         if (total > 0):
             if target not in self._new_rules:
