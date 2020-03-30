@@ -220,6 +220,7 @@ class NNPTClassificationScript(object):
                     for param in network.parameters():
                         l1_loss += torch.norm(param,1)
                         loss += l1_decay * l1_loss
+                return loss
 
                 if l2_decay > 0:
                     l2_loss = 0
