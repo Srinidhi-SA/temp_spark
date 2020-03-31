@@ -123,7 +123,10 @@ class ChiSquare(object):
         chisquare_result = ChiSquareResult()
         if self._pandas_flag:
             pivot_table = pd.crosstab([self._data_frame[targetDimension]], self._data_frame[testDimension])
-            data_matrix = np.array(pivot_table.as_matrix(columns=None)).astype(np.int)
+            try:
+                data_matrix = np.array(pivot_table.as_matrix(columns=None)).astype(np.int)
+            except:
+                data_matrix = np.array(pivot_table.values).astype(np.int)
         else:
             pivot_table = self._data_frame.stat.crosstab("{}".format(targetDimension), testDimension)
             # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
@@ -213,7 +216,10 @@ class ChiSquare(object):
                 else:
                     pivot_table = df.stat.crosstab("{}".format(targetDimension), testMeasure)
         if self._pandas_flag:
-            data_matrix = np.array(pivot_table.as_matrix(columns=None)).astype(np.int)
+            try:
+                data_matrix = np.array(pivot_table.as_matrix(columns=None)).astype(np.int)
+            except:
+                data_matrix = np.array(pivot_table.values).astype(np.int)
         else:
             rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
             data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
@@ -259,7 +265,10 @@ class ChiSquare(object):
             contigency_table.update_col2_order()
         if self._pandas_flag:
             for j in range(len(pivot_table.index)):
-                contigency_table.add_row(pivot_table.index[j], list((pivot_table.ix[j][0:]).astype('float')))
+                try:
+                    contigency_table.add_row(pivot_table.index[j], list((pivot_table.ix[j][0:]).astype('float')))
+                except:
+                    contigency_table.add_row(pivot_table.index[j], list((pivot_table.iloc[j][0:]).astype('float')))
         else:
             for row in rows:
                 column_one_val = row[0]
