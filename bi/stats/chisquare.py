@@ -147,7 +147,7 @@ class ChiSquare(object):
     def test_measures(self, targetDimension, testMeasure):
         chisquare_result = ChiSquareResult()
         if self._pandas_flag:
-            if [self._data_frame[testMeasure].dtypes == 'int64' or 'float64']:
+            if self._data_frame[testMeasure].dtypes == 'int64':
                 measureSummaryDict = dict(self._data_frame[testMeasure].describe())
                 if float(measureSummaryDict["count"]) > 10:
                     maxval = int(measureSummaryDict["max"])
@@ -157,11 +157,27 @@ class ChiSquare(object):
                               round(minval + (step * 3)), round(minval + (step * 4)), round(math.ceil(maxval))]
                     splits = list(set(splits))
                     splits.sort()
-                    self._data_frame['bucketedColumn'] = pd.cut(self._data_frame[testMeasure], bins=splits, labels=np.arange(0, 5, 1.0))
+                    self._data_frame['bucketedColumn'] = pd.cut(self._data_frame[testMeasure], bins=splits,labels=list(range(len(splits)-1)), retbins=True, right=False)[0]
                     self._data_frame = self._data_frame.dropna()
                     pivot_table = pd.crosstab([self._data_frame[targetDimension]], self._data_frame['bucketedColumn'])
                 else:
                     pivot_table = pd.crosstab([self._data_frame[targetDimension]], self._data_frame[testMeasure])
+
+            else:
+                df = self._data_frame
+                if [df[testMeasure].dtypes == 'float64']:
+                    measureSummaryDict = dict(df[testMeasure].describe())
+                    if float(measureSummaryDict["count"]) > 10:
+                        maxval = float(measureSummaryDict["max"])
+                        minval = float(measureSummaryDict["min"])
+                        step = (maxval - minval) / 5.0
+                        splits = [math.floor(minval), minval + step, minval + (step * 2), minval + (step * 3),
+                                  minval + (step * 4), math.ceil(maxval)]
+                        df['bucketedColumn'] = pd.cut(df[testMeasure], bins=splits, labels=list(range(len(splits)-1)), retbins=True, right=False)[0]
+                        df = df.dropna()
+                        pivot_table = pd.crosstab([df[targetDimension]], df['bucketedColumn'])
+                    else:
+                        pivot_table = pd.crosstab([df[targetDimension]], df[testMeasure])
         else:
             dtype = self._data_frame.schema[testMeasure].dataType
             if dtype is IntegerType():
