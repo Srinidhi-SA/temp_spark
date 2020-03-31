@@ -135,14 +135,15 @@ class StockAdvisor(object):
 
     def get_stock_change(self, df_historic):
         sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
-        start_price = float(sorted_list[-1]['close'])
-        end_price = float(sorted_list[0]['close'])
+        start_price = float(sorted_list[0]['close'])
+        end_price = float(sorted_list[-1]['close'])
+        print(start_price,end_price)
         return (end_price-start_price, old_div(((end_price-start_price)*100.0),start_price) )
 
     def get_stock_start_end_value(self, df_historic):
         sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
-        start_price = float(sorted_list[-1]['close'])
-        end_price = float(sorted_list[0]['close'])
+        start_price = float(sorted_list[0]['close'])
+        end_price = float(sorted_list[-1]['close'])
         return (start_price,end_price)
 
     def get_capitalized_name(self,word):
@@ -233,7 +234,9 @@ class StockAdvisor(object):
         conceptCounterDf = pd.DataFrame(np.array(conceptCountArray),columns=[x+"_count" for x in list(self.concepts.keys())]+["totalCount"])
         sentimentCounterDf = pd.DataFrame(np.array(sentimentArray),columns=[x+"_sentiment" for x in list(self.concepts.keys())])
         self.pandasDf = pd.concat([pandasDf,conceptCounterDf,sentimentCounterDf], axis=1)
-        self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
+        #self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
+        self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x: x["document"]["score"])
+        # print "*"*50
         # print "*"*50
         # print self.pandasDf[["overallSentiment","source"]].head(3)
         # print "*"*50
@@ -362,15 +365,22 @@ class StockAdvisor(object):
         output = sorted(output,key=lambda x:x["articles"],reverse=True)
         return output
 
-    def get_datewise_stock_value_and_sentiment(self,pandasDf,stockPriceData):
-        relevantDf = pandasDf[["time","overallSentiment"]]
-        relevantDf.columns = ["date","overallSentiment"]
-        merged = pd.merge(relevantDf,stockPriceData[["close","date"]],on="date",how="inner")
-        merged["date"] = merged["date"].apply(self.change_date_format)
+    #def get_datewise_stock_value_and_sentiment(self,pandasDf,stockPriceData):
+        #relevantDf = pandasDf[["time","overallSentiment"]]
+        #relevantDf.columns = ["date","overallSentiment"]
+        #merged = pd.merge(relevantDf,stockPriceData[["close","date"]],on="date",how="inner")
+        #merged["date"] = merged["date"].apply(self.change_date_format)
+        #output = list(merged.T.to_dict().values())
+        #output = sorted(output,key = lambda x:datetime.strptime(x["date"],"%Y-%m-%d"))
+        #return output
+    def get_datewise_stock_value_and_sentiment(self,pandasDf, stockPriceData):
+        relevantDf = pandasDf.groupby("date").agg({"overallSentiment": 'mean'}).reset_index(drop=False)
+        relevantDf.columns = ['date', 'overallSentiment']
+        merged = pd.merge(relevantDf, stockPriceData[["close", "date"]], on="date", how="inner")
+        merged['date'] = merged.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
         output = list(merged.T.to_dict().values())
-        output = sorted(output,key = lambda x:datetime.strptime(x["date"],"%Y-%m-%d"))
+        output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
         return output
-
     def apply_counter(self,keyWordArray):
         output = [x["text"] for x in keyWordArray]
         countDict = dict(Counter(output))
@@ -408,6 +418,7 @@ class StockAdvisor(object):
         relevantDf = pandasDf[["time","source","title","overallSentiment"]]
         relevantDf["sentimentPerChange"] = relevantDf["overallSentiment"].pct_change()
         relevantDf = relevantDf.fillna(0)
+        relevantDf['sentimentPerChange'].replace([np.inf, -np.inf], 100, inplace=True)
 
         relevantDf = relevantDf.sort_values(by=['overallSentiment'],ascending=False)
         topIncrease = relevantDf.iloc[0:3] #top3
@@ -679,9 +690,9 @@ class StockAdvisor(object):
         data_dict_overall["number_articles_by_concept"] = self.get_number_articles_per_concept(data_dict_overall["nArticlesAndSentimentsPerConcept"])
 
         key, value = max(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
-        data_dict_overall["max_value_change_overall"] = (self.get_capitalized_name(key),value)
+        data_dict_overall["max_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
         key, value = min(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
-        data_dict_overall["min_value_change_overall"] = (self.get_capitalized_name(key),value)
+        data_dict_overall["min_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
 
         key,value = max(iter(data_dict_overall["max_sentiment_change"].items()), key = lambda p: p[1])
         data_dict_overall["max_sentiment_change_overall"] = (self.get_capitalized_name(key),value)

@@ -155,6 +155,10 @@ class LogisticRegressionScript(object):
             print("TARGET LEVEL - ", self._targetLevel)
             print("APP TYPE - ", appType)
             print("="*150)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
 
             if len(levels) > 2:
                 clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
@@ -242,10 +246,7 @@ class LogisticRegressionScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                if self._dataframe_context.get_trainerMode() == "autoML":
-                    automl_enable=True
-                else:
-                    automl_enable=False
+
                 if automl_enable:
                     params_grid={'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
                                 'fit_intercept':[True],
@@ -538,9 +539,9 @@ class LogisticRegressionScript(object):
                     self._model_management.set_target_variable(result_column)#target column name
                     self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                     self._model_management.set_datasetName(self._datasetName)
-                if  automl_enable:
+                try:
                     set_model_params('param_grid')
-                else:
+                except:
                     set_model_params('param_distributions')
 
 

@@ -362,6 +362,8 @@ class TwoWayAnova(object):
             f_stat = 0
         f_critical = f.ppf(q=1-0.05, dfn=df_between, dfd=df_within)
         p_value = f.cdf(f_stat, df_between, df_within)
+        if ss_between is None:
+            ss_between =  0
         eta_squared = old_div(ss_between,ss_total)
         level_aggregate_pandasdf.columns = ["levels"]+list(level_aggregate_pandasdf.columns[1:])
         anovaOutput = {

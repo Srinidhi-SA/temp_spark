@@ -22,4 +22,4 @@ class PyTorchNetwork(nn.Module):
 #     def __init__(self, pandas_df, target_column):
 #         super(PyTorchDataset, self).__init__()
 #
-#         self.X = 
+#         self.X =

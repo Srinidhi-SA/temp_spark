@@ -284,7 +284,10 @@ class MetaDataHelper(object):
                 summary_df=summary_df.reset_index()
                 summary_df.rename(columns={'index': 'summary'}, inplace=True)
             else :
-                summary_df = df.describe().toPandas()
+                if len(measure_columns) > 0:
+                    summary_df = df.describe().toPandas()
+                else:
+                    summary_df = None
         displayNameDict = {
                             "count":"Count",
                             "mean":"Mean",
@@ -494,7 +497,10 @@ class MetaDataHelper(object):
             total_count = df.count()
             output = {}
             chart_data = {}
-            summary_df = df.describe().toPandas()
+            if len(dimension_columns) > 0:
+                summary_df = df.describe().toPandas()
+            else:
+                summary_df = None
         displayNameDict = {
                             "count":"Count",
                             "numberOfNulls":"Null Values",

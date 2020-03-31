@@ -125,7 +125,7 @@ class DataFrameHelper(object):
                         print(self._data_frame.dtypes)
                     else:
                         print (self._data_frame.printSchema())
-                    self._data_frame = self._data_frame#select(colsToKeep)
+                    self._data_frame = self._data_frame.select(colsToKeep)
                 else:
                     if app_type == "CLASSIFICATION":
                         if self._dataframe_context.get_story_on_scored_data() == False:

@@ -187,6 +187,48 @@ class NNPTClassificationScript(object):
 
             nnptc_params = algoSetting.get_nnptc_params_dict()[0]
             layers_for_network = PYTORCHUTILS.get_layers_for_network_module(nnptc_params, task_type = "CLASSIFICATION", first_layer_units = x_train.shape[1])
+
+            def get_optimizer(optimizer_name, optimizer_dict, network_params):
+                if optimizer_name == "Adadelta":
+                    optimizer = optim.Adadelta(network_params, weight_decay = optimizer_dict["weight_decay"], rho = optimizer_dict["rho"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
+                if optimizer_name == "Adagrad":
+                    optimizer = optim.Adagrad(network_params, weight_decay = optimizer_dict["weight_decay"], lr_decay = optimizer_dict["lr_decay"], eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
+                if optimizer_name == "Adam":
+                    optimizer = optim.Adam(network_params, weight_decay = optimizer_dict["weight_decay"], betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
+                if optimizer_name == "AdamW":
+                    optimizer = optim.AdamW(network_params, weight_decay = optimizer_dict["weight_decay"], betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], amsgrad = optimizer_dict["amsgrad"])
+                if optimizer_name == "SparseAdam":
+                    optimizer = optim.SparseAdam(network_params, betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"])
+                if optimizer_name == "Adamax":
+                    optimizer = optim.Adamax(network_params, betas = eval(optimizer_dict["betas"]), eps = optimizer_dict["eps"], lr = optimizer_dict["lr"], weight_decay = optimizer_dict["weight_decay"])
+                if optimizer_name == "ASGD":
+                    optimizer = optim.ASGD(network_params, lr = optimizer_dict["lr"], lambd = optimizer_dict["lambd"], alpha = optimizer_dict["alpha"], t0 = optimizer_dict["t0"], weight_decay = optimizer_dict["weight_decay"])
+                if optimizer_name == "LBFGS":
+                    optimizer = optim.LBFGS(network_params, lr = optimizer_dict["lr"], max_iter = optimizer_dict["max_iter"], max_eval = optimizer_dict["max_eval"], tolerance_grad = optimizer_dict["tolerance_grad"], tolerance_change = optimizer_dict["tolerance_change"], history_size = optimizer_dict["history_size"], line_search_fn = optimizer_dict["line_search_fn"])
+                if optimizer_name == "RMSprop":
+                    optimizer = optim.RMSprop(network_params, weight_decay = optimizer_dict["weight_decay"], lr = optimizer_dict["lr"], momentum = optimizer_dict["momentum"], alpha = optimizer_dict["alpha"], eps = optimizer_dict["eps"], centered = optimizer_dict["centered"])
+                if optimizer_name == "Rprop":
+                    optimizer = optim.Rprop(network_params, lr = optimizer_dict["lr"], eta = optimizer_dict["eta"], step_sizes = optimizer_dict["step_sizes"])
+                if optimizer_name == "SGD":
+                    optimizer = optim.SGD(network_params, weight_decay = optimizer_dict["weight_decay"], momentum = optimizer_dict["momentum"], dampening = optimizer_dict["dampening"], lr = optimizer_dict["lr"], nesterov = optimizer_dict["nesterov"])
+                if optimizer_name == None:
+                    optimizer = None
+                return optimizer
+
+            def reg_loss(l1_decay,l2_decay,loss):
+                if l1_decay > 0:
+                    l1_loss = 0
+                    for param in network.parameters():
+                        l1_loss += torch.norm(param,1)
+                        loss += l1_decay * l1_loss
+
+                if l2_decay > 0:
+                    l2_loss = 0
+                    for param in network.parameters():
+                        l2_loss += torch.norm(param,2)
+                        loss += l2_decay * l2_loss
+                return loss
+
             # Use GPU if available
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             network = PyTorchNetwork(layers_for_network).to(device)
@@ -206,16 +248,24 @@ class NNPTClassificationScript(object):
             print("NEURAL-NETWORK - ", network)
             print("~"*50)
 
+            loss_name = other_params_dict["loss_name"]
             criterion = other_params_dict["loss_criterion"]
             n_epochs = other_params_dict["number_of_epochs"]
             batch_size = other_params_dict["batch_size"]
-            optimizer = other_params_dict["optimizer"]
-            optimizer = optim.Adam(network.parameters(), weight_decay=0.0001)
+            optimizer_dict = other_params_dict["optimizer"]
+            optimizer_name = optimizer_dict["optimizer"]
+            optimizer = get_optimizer(optimizer_name, optimizer_dict, network.parameters())
+            l1_decay = other_params_dict["reg_l1loss"]["l1_decay"]
+            l2_decay = other_params_dict["reg_l2loss"]["l2_decay"]
+
+            if "loss_weight" in other_params_dict:
+                loss_weight = other_params_dict["loss_weight"]
+            reduction = other_params_dict["reduction"]
 
             dataloader_params = {
             "batch_size": batch_size,
             "shuffle": True
-            # "num_workers":
+            #"num_workers": 2
             }
 
             train_loader = torch_data_utils.DataLoader(trainset, **dataloader_params)
@@ -232,19 +282,37 @@ class NNPTClassificationScript(object):
                 average_loss = 0.0
 
                 for i, (inputs, labels) in enumerate(train_loader):
+
                     inputs = inputs.to(device)
                     labels = labels.to(device)
+                    # Forward + backward + optimize
+                    outputs = network(inputs).float()
+                    if loss_name != "CrossEntropyLoss":
+                        outputs = torch.max(outputs,1).values
+                        if loss_name in ['BCELoss','BCEWithLogitsLoss','NLLLoss'] and loss_weight != None:
+                            weight = torch.tensor(loss_weight)
+                            weight = weight[labels.data.view(-1).long()].view_as(labels)
+                            if loss_name == "BCELoss":
+                                criterion = nn.BCELoss(reduce = reduction,weight = weight)
+                            if loss_name == "BCEWithLogitsLoss":
+                                criterion = nn.BCEWithLogitsLoss(reduction = reduction, weight = weight , pos_weight = None)
+                            if loss_name == "NLLLoss":
+                                criterion = nn.NLLLoss(reduction = reduction, weight = weight)
 
+                        loss = criterion(outputs, labels.float())
+                    else:
+                        #outputs = torch.max(outputs,1).values
+                        loss = criterion(outputs, labels.long())
                     # Zero the parameter gradients
                     optimizer.zero_grad()
 
-                    # Forward + backward + optimize
-                    outputs = network(inputs.float())
-                    loss = criterion(outputs, labels.long())
-                    loss.backward()
-                    optimizer.step()
+                    loss = reg_loss(l1_decay,l2_decay,loss)
 
                     average_loss += loss.item()
+                    loss.backward()
+                    ## update model params
+                    optimizer.step()
+                    #average_loss += loss.item()
                     batchwise_losses.append(loss.item())
 
                 average_loss_per_epoch = old_div(average_loss,(i + 1))
@@ -254,15 +322,18 @@ class NNPTClassificationScript(object):
                 print("AVERAGE LOSS PER EPOCH - ", average_loss_per_epoch)
                 print("+"*80)
 
+
             trainingTime = time.time()-st
             bestEstimator = network
 
             outputs_x_test_tensored = network(x_test_tensored.float())
             softmax = torch.nn.Softmax()
             y_prob = softmax(outputs_x_test_tensored)
-            _, y_score = torch.max(outputs_x_test_tensored, 1)
+
+            _, y_score = torch.max(y_prob, 1)
 
             y_score = y_score.tolist()
+
             y_prob = y_prob.tolist()
 
             accuracy = metrics.accuracy_score(y_test,y_score)
@@ -509,6 +580,8 @@ class NNPTClassificationScript(object):
                         ["Created On",str(self._model_management.get_creation_date())]
 
                         ]
+
+            print(modelManagementSummaryJson)
 
             modelManagementModelSettingsJson =[
 

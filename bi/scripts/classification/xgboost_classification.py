@@ -158,6 +158,10 @@ class XgboostScript(object):
             print("TARGET LEVEL - ", self._targetLevel)
             print("APP TYPE - ", appType)
             print("="*150)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
 
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -240,10 +244,7 @@ class XgboostScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                if self._dataframe_context.get_trainerMode() == "autoML":
-                    automl_enable=True
-                else:
-                    automl_enable=False
+
                 if automl_enable:
                     params_grid={"learning_rate"    : [0.05, 0.10, 0.15,0.20,0.25,0.30],
                                 #"booster"           : ['gbtree'],
@@ -544,9 +545,9 @@ class XgboostScript(object):
                     self._model_management.set_target_variable(result_column)#target column name
                     self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
                     self._model_management.set_datasetName(self._datasetName)
-                if not automl_enable:
+                try:
                     set_model_params('param_grid')
-                else:
+                except:
                     set_model_params('param_distributions')
 
 

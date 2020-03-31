@@ -177,7 +177,7 @@ def main(configJson):
                     if dataframe_context.get_trainerMode() == "autoML":
                         automl_enable = True
                     one_click_json = {}
-                    if dataframe_context.get_trainerMode() == "autoML" and GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]=="CLASSIFICATION":
+                    if dataframe_context.get_trainerMode() == "autoML":
                         if jobType == "training":
                             df = df.toPandas()
                             autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
@@ -423,7 +423,7 @@ if __name__ == '__main__':
         main(sys.argv[1])
         print('Main Method End .....')
     except Exception as e:
-        # print jobURL, killURL
+        print (jobURL, killURL)
         data = {"status": "killed", "jobURL": jobURL}
         resp = send_kill_command(killURL, data)
         while str(resp.text) != '{"result": "success"}':

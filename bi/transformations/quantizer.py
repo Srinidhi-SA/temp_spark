@@ -115,15 +115,15 @@ class Quantizer(object):
 
         quartile_sums = {}
         quartile_sums['q1'] = q1_stats[0]['sum'] if q1_stats[0]['sum'] != None else 0
-        quartile_sums['q2'] = q2_stats[0]['sum'] if q1_stats[0]['sum'] != None else 0
+        quartile_sums['q2'] = q2_stats[0]['sum'] if q2_stats[0]['sum'] != None else 0 ##### Geeta:changed q1_stats[0]['sum'] to q2_stats[0]['sum']
         quartile_sums['q3'] = q3_stats[0]['sum'] if q3_stats[0]['sum'] != None else 0
         quartile_sums['q4'] = q4_stats[0]['sum'] if q4_stats[0]['sum'] != None else 0
 
         quartile_means = {}
         quartile_means['q1'] = old_div(quartile_sums['q1'],q1_stats[0]['count']) if q1_stats[0]['count'] != 0 else None
         quartile_means['q2'] = old_div(quartile_sums['q2'],q2_stats[0]['count']) if q2_stats[0]['count'] != 0 else None
-        quartile_means['q3'] = old_div(quartile_sums['q3'],q3_stats[0]['count']) if q2_stats[0]['count'] != 0 else None
-        quartile_means['q4'] = old_div(quartile_sums['q4'],q4_stats[0]['count']) if q2_stats[0]['count'] != 0 else None
+        quartile_means['q3'] = old_div(quartile_sums['q3'],q3_stats[0]['count']) if q3_stats[0]['count'] != 0 else None ##### Geeta:changed q2_stats[0]['count'] to q3_stats[0]['count']
+        quartile_means['q4'] = old_div(quartile_sums['q4'],q4_stats[0]['count']) if q4_stats[0]['count'] != 0 else None ##### Geeta:changed q2_stats[0]['count'] to q4_stats[0]['count']
 
         FPS = FivePointSummary(left_hinge_value=left_hinge, q1_value=q1, median=median, q3_value=q3,
                                 right_hinge_value=right_hinge, num_left_outliers=num_left_outliers,
