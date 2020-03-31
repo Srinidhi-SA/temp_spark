@@ -138,11 +138,22 @@ class StockAdvisor(object):
         return (positive_articles, negative_articles)
 
     def get_stock_change(self, df_historic):
-        sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
-        start_price = float(sorted_list[0]['close'])
-        end_price = float(sorted_list[-1]['close'])
-        print(start_price,end_price)
-        return (end_price-start_price, old_div(((end_price-start_price)*100.0),start_price) )
+        df_historic = df_historic.toPandas()
+        df_historic= df_historic.sort_values(by='date')
+        df_historic["close"] = df_historic["close"].astype("float32")
+        df_historic["close_pct_change"] = df_historic["close"].pct_change()
+        df_historic = df_historic.fillna(0)
+        max_increase_close = max(df_historic["close_pct_change"])
+        max_decrease_close = min(df_historic["close_pct_change"])
+        max_values = [max_decrease_close,max_increase_close]
+        start_price = float(df_historic['close'][0])
+        end_price = float(df_historic['close'][df_historic.shape[0]-1])
+        #sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
+        #start_price = float(sorted_list[0]['close'])
+        #end_price = float(sorted_list[-1]['close'])
+        #print(start_price,end_price)
+        #return (end_price-start_price, old_div(((end_price-start_price)*100.0),start_price) )
+        return (max_values,end_price-start_price, old_div(((end_price - start_price) * 100.0), start_price))
 
     def get_stock_start_end_value(self, df_historic):
         sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
@@ -187,6 +198,7 @@ class StockAdvisor(object):
         data_dict_overall["stock_value_change"] = 0
         data_dict_overall["stock_percent_change"] = 0
         data_dict_overall["max_value_change"] = {}
+        data_dict_overall["min_value_change"] = {}
         data_dict_overall["max_sentiment_change"] = {}
         data_dict_overall["number_articles_by_stock"] = {}
         data_dict_overall["number_articles_per_source"] = {}
@@ -614,12 +626,14 @@ class StockAdvisor(object):
                 data_dict_overall["max_sentiment_change"][stock_symbol]=sentiment_change  #verify: this is start to end sentiment change
                 # print "sentiment_change : ", sentiment_change
 
-                (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
+                (max_values,stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
                 stockDict[stock_symbol]["stockValueChange"] = stock_value_change
                 stockDict[stock_symbol]["stockValuePercentChange"] = stock_percent_change
                 data_dict_overall["stock_value_change"] += stock_value_change
                 data_dict_overall["stock_percent_change"] += stock_percent_change
-                data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
+                #data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
+                data_dict_overall["max_value_change"][stock_symbol] = max_values[-1]
+                data_dict_overall["min_value_change"][stock_symbol] = max_values[0]
                 # print "stock_value_change : ", stock_value_change
                 # print "stock_percent_change : ", stock_percent_change
 
@@ -745,7 +759,7 @@ class StockAdvisor(object):
 
         key, value = max(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
         data_dict_overall["max_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
-        key, value = min(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
+        key, value = min(iter(data_dict_overall["min_value_change"].items()), key = lambda p: p[1])
         data_dict_overall["min_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
 
         key,value = max(iter(data_dict_overall["max_sentiment_change"].items()), key = lambda p: p[1])
