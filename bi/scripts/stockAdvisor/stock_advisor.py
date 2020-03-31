@@ -37,7 +37,9 @@ class StockAdvisor(object):
         self._runEnv = dataframe_context.get_environement()
         self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/"
         self._dateFormat = "%Y%m%d"
-
+        self._dataframe_context = dataframe_context
+        self._percentage = int((80 /(((len(self._stockNameList)*2))+1)))
+        self._stock_per = 0
 
     def read_csv(self, file_name):
         # print "-"*50
@@ -48,7 +50,9 @@ class StockAdvisor(object):
          .option("header", "true")
          .load(name))
         return df
-
+    def stock_status(self,value):
+        self._stock_per = value + self._stock_per
+        return self._stock_per
     def read_json(self, filepath):
         df = self._spark.read.json(filepath)
         return df
@@ -196,17 +200,38 @@ class StockAdvisor(object):
         df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
         return df
 
+    # def get_sub_concepts_for_item_python(self, item):
+    #     cur_keywords = [k["text"].lower() for k in item]
+    #     cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
+    #     sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
+    #     cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
+    #     for key in self.concepts:
+    #         keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
+    #         if len(keywordIntersection) > 0:
+    #             cur_concepts["conceptList"].append(key)
+    #             cur_concepts["conceptKeywordDict"][key] = keywordIntersection
+    #             cur_concepts["conceptAvgSentimentDict"][key] = np.mean(np.array([sentimentsDict[x]  for x in keywordIntersection]))
+    #     return cur_concepts
+
     def get_sub_concepts_for_item_python(self, item):
-        cur_keywords = [k["text"].lower() for k in item]
-        cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
-        sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
-        cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
-        for key in self.concepts:
-            keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
-            if len(keywordIntersection) > 0:
-                cur_concepts["conceptList"].append(key)
-                cur_concepts["conceptKeywordDict"][key] = keywordIntersection
-                cur_concepts["conceptAvgSentimentDict"][key] = np.mean(np.array([sentimentsDict[x]  for x in keywordIntersection]))
+        cur_concepts = {"conceptList": [], "conceptKeywordDict": {}, "conceptAvgSentimentDict": {}}
+        for dic in item:
+            if dic['concept'] != None:
+                if dic['concept'] not in cur_concepts["conceptList"]:
+                    cur_concepts["conceptList"].append(dic['concept'])
+                if dic['concept'] not in cur_concepts["conceptKeywordDict"]:
+                    cur_concepts["conceptKeywordDict"][dic['concept']] = []
+                    cur_concepts["conceptKeywordDict"][dic['concept']].append({dic['text']: dic['sentiment']['score']})
+                else:
+                    cur_concepts["conceptKeywordDict"][dic['concept']].append({dic['text']: dic['sentiment']['score']})
+                if dic['concept'] not in cur_concepts["conceptAvgSentimentDict"]:
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']] = []
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']].append(dic['sentiment']['score'])
+                else:
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']].append(dic['sentiment']['score'])
+
+        for key in cur_concepts['conceptAvgSentimentDict'].keys():
+            cur_concepts['conceptAvgSentimentDict'][key] = np.mean(cur_concepts['conceptAvgSentimentDict'][key])
         return cur_concepts
 
     def get_number_articles_and_sentiments_per_concept(self,pandasDf):
@@ -263,8 +288,8 @@ class StockAdvisor(object):
             absSentimentScore = dfRow["sentiment"]["document"]["score"]
             label = dfRow["sentiment"]["document"]["label"]
             sentimentScore = absSentimentScore if label == "positive" else -absSentimentScore
-            counterDict[concept]["totalSentiment"] += dfRow["sentiment"]["document"]["score"]
-            if self.check_an_article_is_positive_or_not(dfRow["keywords"]) == True:
+            counterDict[concept]["totalSentiment"] += dfRow['concepts']['conceptAvgSentimentDict'][concept]
+            if (True if dfRow['sentiment']['document']['score']>0 else False):
                 counterDict[concept]["posArticles"] += 1
             else:
                 counterDict[concept]["negArticles"] += 1
@@ -477,13 +502,15 @@ class StockAdvisor(object):
 
     def Run(self):
         print("In stockAdvisor")
+        messageURL = self._dataframe_context.get_message_url()
+        ignoreMsg = self._dataframe_context.get_message_ignore()
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
-        # if self._runEnv == "debugMode":
-        #     self.concepts = self.load_concepts_from_json()
-        # else:
-        conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
-        self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
+        if self._runEnv == "debugMode":
+            self.concepts = self.load_concepts_from_json()
+        else:
+            conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
+            self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
@@ -492,6 +519,15 @@ class StockAdvisor(object):
             print("Analyzing data for Stock: " +stock_symbol)
             try:
                 #-------------- Read Operations ----------------
+                weights = self.stock_status(self._percentage)
+                progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                             stageName="custom",
+                                                                             messageType="info",
+                                                                             shortExplanation="Analyzing " + str.upper(stock_symbol) + " Data",
+                                                                             stageCompletionPercentage=weights,
+                                                                             globalCompletionPercentage=weights,
+                                                                             display=True)
+                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
                 stockDict[stock_symbol] = {}
                 if self._runEnv == "debugMode":
                     df = self.read_json(self.BASE_DIR+stock_symbol+".json")
@@ -625,6 +661,16 @@ class StockAdvisor(object):
         working_stock_list = []
         for current_stock in self._stockNameList:
             try:
+                weights = self.stock_status(self._percentage)
+                progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                             stageName="custom",
+                                                                             messageType="info",
+                                                                             shortExplanation="Applying Regression on  " + str.upper(current_stock) + " Data",
+                                                                             stageCompletionPercentage=weights,
+                                                                             globalCompletionPercentage=weights,
+                                                                             display=True)
+                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
+                regressionDf = masterDfDict[current_stock]
                 regressionDf = masterDfDict[current_stock]
                 regressionDf.index = regressionDf["time"]
                 remaining_stocks = list(set(self._stockNameList) - {current_stock})
@@ -647,7 +693,15 @@ class StockAdvisor(object):
             except Exception as e:
                 stockDict.pop(current_stock, None)
                 print("Failed for : ", current_stock, " with error : ", str(e))
-
+        weights = self.stock_status(self._percentage)
+        progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                     stageName="custom",
+                                                                     messageType="info",
+                                                                     shortExplanation="Calculating Stock Price Trend",
+                                                                     stageCompletionPercentage=weights,
+                                                                     globalCompletionPercentage=weights,
+                                                                     display=True)
+        CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
         # print "#"*100
         self._stockNameList = working_stock_list
         number_stocks = len(self._stockNameList)

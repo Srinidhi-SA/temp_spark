@@ -34,6 +34,8 @@ def get_kernel_weights(kernel_weight_init, main_layer, input_units, output_units
             nn.init.orthogonal_(weights, gain = 4)
         if kernel_weight_init["name"] == "Sparse":
             nn.init.sparse_(weights, sparsity = kernel_weight_init["sparsity"], std = kernel_weight_init["std"])
+        if kernel_weight_init["name"] == "Default":
+            return weights
     else:
         pass
 
@@ -46,7 +48,7 @@ def get_kernel_bias(kernel_bias_init, main_layer, input_units, output_units):
         if kernel_bias_init["name"] == "Uniform":
             nn.init.uniform_(bias, a = kernel_bias_init["lower_bound"], b = kernel_bias_init["upper_bound"])
         if kernel_bias_init["name"] == "Normal":
-            nn.init.normal_(bias, mean = 0, std = 0.5) #kernel_bias_init["mean"] kernel_bias_init["std"]
+            nn.init.normal_(bias, mean = kernel_bias_init["mean"], std = kernel_bias_init["std"])
         if kernel_bias_init["name"] == "Constant":
             nn.init.constant_(bias, val = kernel_bias_init["val"])
         if kernel_bias_init["name"] == "Ones":
@@ -57,7 +59,7 @@ def get_kernel_bias(kernel_bias_init, main_layer, input_units, output_units):
             nn.init.eye_(bias)
         if kernel_bias_init["name"] == "Default":
             return bias
-        else:
+        if kernel_bias_init["name"] == "Other":
             bias.data.zero_()
         # if kernel_bias_init["name"] == "Xavier_Uniform":
         #     bias.data.zero_()
@@ -79,6 +81,12 @@ def get_kernel_bias(kernel_bias_init, main_layer, input_units, output_units):
         #     nn.init.sparse_(bias, sparsity = kernel_bias_init["sparsity"], std = kernel_bias_init["std"])
     else:
         pass
+
+def get_kernel_weight_constraint(kernel_weight_constraint,main_layer):
+    if(kernel_weight_constraint["name"] == True):
+        weights = main_layer.weight
+        new_weights = weights.clamp(kernel_weight_constraint["min"],kernel_weight_constraint["max"])
+        main_layer.weight = torch.nn.Parameter(new_weights)
 
 def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
     layers = []
@@ -104,6 +112,7 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
 
             kernel_weight_init = layer_dict["weight_init"]
             kernel_bias_init = layer_dict["bias_init"]
+            kernel_weight_constraint = layer_dict["weight_constraint"]
             layer_units_op = layer_dict["units_op"]
             #layer_bias = layer_dict["bias"]
             layer_activation = layer_dict["activation"]
@@ -117,12 +126,9 @@ def get_layers_for_network_module(nnpt_params, task_type, first_layer_units):
 
             if layer_name == "Linear":
                 main_layer = nn.Linear(in_features = layer_units_ip, out_features = layer_units_op)
-                # print("Here are the Weights [default] ", main_layer.weight)
-                # print("Here are the Bias [default] ", main_layer.bias)
                 get_kernel_weights(kernel_weight_init, main_layer,layer_units_ip,layer_units_op)
                 get_kernel_bias(kernel_bias_init, main_layer,layer_units_ip,layer_units_op)
-                # print("Here are the Weights [Kaiming_Normal Weights] ", main_layer.weight)
-                # print("Here are the Bias [Normal Bias] ", main_layer.bias)
+                get_kernel_weight_constraint(kernel_weight_constraint,main_layer)
                 layers.append(main_layer)
                 if layer_activation != None:
                     if layer_activation["name"] == "ELU":
