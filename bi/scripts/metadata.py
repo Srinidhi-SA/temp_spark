@@ -119,7 +119,10 @@ class MetaDataScript(object):
             self._level_count_flag = True
             self._stripTimestamp = True
             ## TODO: Change after data loader is in pandas
-            self._data_frame = data_frame.toPandas()
+            try:
+                self._data_frame = data_frame.toPandas()
+            except:
+                self._data_frame = data_frame.copy()
             self._total_columns = self._data_frame.shape[1]
             self._total_rows = self._data_frame.shape[0]
             self._max_levels = min(200, round(self._total_rows ** 0.5))

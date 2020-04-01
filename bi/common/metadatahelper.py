@@ -252,11 +252,14 @@ class MetaDataHelper(object):
             total_count = df.shape[0]
             output = {}
             chart_data = {}
-            summary_df = df.describe()
-            summary_df.drop(index=["25%","50%","75%"],inplace = True)
-            summary_df.rename(index={'std': 'stddev'}, inplace=True)
-            summary_df=summary_df.reset_index()
-            summary_df.rename(columns={'index': 'summary'}, inplace=True)
+            if measure_columns:
+                summary_df = df.describe()
+                summary_df.drop(index=["25%", "50%", "75%"], inplace=True)
+                summary_df.rename(index={'std': 'stddev'}, inplace=True)
+                summary_df=summary_df.reset_index()
+                summary_df.rename(columns={'index': 'summary'}, inplace=True)
+            else:
+                summary_df = None
         else:
             n_rows, n_cols = df.count(), len(df.columns)
             if n_rows < 100000 and n_cols < 500:
@@ -277,12 +280,13 @@ class MetaDataHelper(object):
             chart_data = {}
             ## TODO : Remove if pyspark df doesnt need this.
             if pandas_flag:
-                ## was done cause preprocessing and feature Engineering was done on pandas to handle NA
-                summary_df = pandas_df.describe()
-                summary_df.drop(index=["25%","50%","75%"],inplace = True)
-                summary_df.rename(index={'std': 'stddev'}, inplace=True)
-                summary_df=summary_df.reset_index()
-                summary_df.rename(columns={'index': 'summary'}, inplace=True)
+                if measure_columns:
+                    ## was done cause preprocessing and feature Engineering was done on pandas to handle NA
+                    summary_df = pandas_df.describe()
+                    summary_df.drop(index=["25%","50%","75%"],inplace = True)
+                    summary_df.rename(index={'std': 'stddev'}, inplace=True)
+                    summary_df=summary_df.reset_index()
+                    summary_df.rename(columns={'index': 'summary'}, inplace=True)
             else :
                 if len(measure_columns) > 0:
                     summary_df = df.describe().toPandas()
@@ -482,9 +486,12 @@ class MetaDataHelper(object):
             total_count = df.shape[0]
             output = {}
             chart_data = {}
-            summary_df = df.describe()
-            summary_df=summary_df.reset_index()
-            summary_df.rename(columns={'index': 'summary'}, inplace=True)
+            if dimension_columns:
+                summary_df = df.describe()
+                summary_df = summary_df.reset_index()
+                summary_df.rename(columns={'index': 'summary'}, inplace=True)
+            else:
+                summary_df = None
         else:
             df = df.select(dimension_columns)
             n_rows, n_cols = df.count(), len(df.columns)

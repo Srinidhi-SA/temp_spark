@@ -79,13 +79,16 @@ def load_dataset(spark,dataframe_context):
 def get_metadata(df,spark,dataframe_context,new_cols_added):
     debugMode = dataframe_context.get_debug_mode()
     jobType = dataframe_context.get_job_type()
-    if df != None:
+    if df is not None:
         metaParserInstance = MetaParser()
         if debugMode != True:
             if jobType != "metaData":
                 print("Retrieving MetaData")
                 if new_cols_added != None:
-                    df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                    try:
+                        df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                    except:
+                        df_new_added_cols = df[[c for c in df.columns if c in new_cols_added]]
                     print("starting Metadata for newly added columns")
                     dataframe_context.set_metadata_ignore_msg_flag(True)
                     try:
@@ -130,7 +133,10 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                 # while running in debug mode the dataset_slug should be correct or some random String
                 try:
                     if new_cols_added != None:
-                        df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                        try:
+                            df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                        except:
+                            df_new_added_cols = df[[c for c in df.columns if c in new_cols_added]]
                         print("starting Metadata for newly added columns")
                         dataframe_context.set_metadata_ignore_msg_flag(True)
                         meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)

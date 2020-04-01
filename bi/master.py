@@ -178,6 +178,7 @@ def main(configJson):
                         automl_enable = True
                     one_click_json = {}
                     if dataframe_context.get_trainerMode() == "autoML":
+                        dataframe_context._pandas_flag = True
                         if jobType == "training":
                             df = df.toPandas()
                             autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
@@ -189,7 +190,7 @@ def main(configJson):
                             linear_df, tree_df = score_obj.run()
                         # linear
                         print('No. of columns in Linear data :',len(list(linear_df.columns)))
-                        linear_df = spark.createDataFrame(linear_df)
+                        #linear_df = spark.createDataFrame(linear_df)
                         metaParserInstance_linear_df = MasterHelper.get_metadata(linear_df,spark,dataframe_context,new_cols_added)
                         linear_df,df_helper_linear_df = MasterHelper.set_dataframe_helper(linear_df,dataframe_context,metaParserInstance_linear_df)
                         dataTypeChangeCols_linear_df= dataframe_context.get_change_datatype_details()
@@ -206,7 +207,7 @@ def main(configJson):
 
                         # Tree
                         print('No. of columns in Tree data :',len(list(tree_df.columns)))
-                        tree_df = spark.createDataFrame(tree_df)
+                        #tree_df = spark.createDataFrame(tree_df)
                         metaParserInstance_tree_df = MasterHelper.get_metadata(tree_df,spark,dataframe_context,new_cols_added)
                         tree_df,df_helper_tree_df = MasterHelper.set_dataframe_helper(tree_df,dataframe_context,metaParserInstance_tree_df)
                         dataTypeChangeCols_tree_df = dataframe_context.get_change_datatype_details()
