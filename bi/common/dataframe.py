@@ -50,18 +50,11 @@ class DataFrameHelper(object):
 
         self._dataframe_context = df_context
 
-        try:
-            self._pandas_flag = self._dataframe_context._pandas_flag
-        except:
-            self._pandas_flag = False
-
+        self._pandas_flag = self._dataframe_context._pandas_flag
 
         if self._pandas_flag:
-            try:
-                self._data_frame = data_frame.toPandas()
-            except:
-                self._data_frame = data_frame
-            self.columns = list(self._data_frame)
+            self._data_frame = data_frame
+            self.columns = [col.strip() for col in self._data_frame.columns]
         else:
             self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
             self.columns = self._data_frame.columns
