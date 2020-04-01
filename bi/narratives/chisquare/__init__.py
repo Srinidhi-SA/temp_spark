@@ -65,11 +65,14 @@ class ChiSquareNarratives(object):
                       temp.append(split)
                     else: temp.append(row_value_)
                 pandas_df[bin_col] = temp
-        fields = [StructField(field_name, StringType(), True) for field_name in pandas_df.columns]
-        schema = StructType(fields)
+        if self._pandas_flag:
+            self._data_frame = pandas_df
+        else:
+            fields = [StructField(field_name, StringType(), True) for field_name in pandas_df.columns]
+            schema = StructType(fields)
 
-        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        self._data_frame = SQLctx.createDataFrame(pandas_df,schema)
+            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+            self._data_frame = SQLctx.createDataFrame(pandas_df,schema)
 
         # print self._data_frame
         ############################DataFrame Measure to Dimesion Column#####################
