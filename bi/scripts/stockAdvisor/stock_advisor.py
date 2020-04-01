@@ -103,7 +103,7 @@ class StockAdvisor(object):
             if sentimentLabel in ["positive","neutral"]:
                 sentiment += row['sentiment']['document']['score']
             else:
-                sentiment += -(row['sentiment']['document']['score'])
+                sentiment += (row['sentiment']['document']['score'])
         return sentiment/float(df.count())
 
     def get_sentiment_change(self, df):
