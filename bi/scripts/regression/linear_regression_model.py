@@ -247,6 +247,10 @@ class LinearRegressionModelScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
             # x_train.to_csv("/home/gulshan/marlabs/datasets/lrTest/x_train.csv",index=False)
             # x_test.to_csv("/home/gulshan/marlabs/datasets/lrTest/x_test.csv",index=False)
             # y_train.to_csv("/home/gulshan/marlabs/datasets/lrTest/y_train.csv",index=False)
@@ -312,21 +316,41 @@ class LinearRegressionModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
-                est.set_params(**algoParams)
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
-                    kFoldClass.train_and_save_result()
-                    kFoldOutput = kFoldClass.get_kfold_result()
-                    bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    est.fit(x_train, y_train)
-                    est.feature_names = list(x_train.columns.values)
-                    bestEstimator = est
+                if automl_enable:
+                    params_grid={'fit_intercept': [False, True],
+                                'normalize': [False, True],
+                                'copy_X': [False, True]}
+                    hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
+                    grid_param={}
+                    grid_param['params']=ParameterGrid(params_grid)
+                    #bestEstimator = estGrid.best_estimator_
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    #self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    #self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
+                    print("Linear Regression AuTO ML GridSearch CV#######################3")
+                else:
+                    est.set_params(**algoParams)
+
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        est.fit(x_train, y_train)
+                        est.feature_names = list(x_train.columns.values)
+                        bestEstimator = est
             # print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -341,6 +365,7 @@ class LinearRegressionModelScript(object):
             coefficientsArray = [(col_name, coefficients[idx]) for idx, col_name in enumerate(x_train.columns)]
             interceptValue = None
             interceptValue = objs["trained_model"].intercept_
+
 
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"

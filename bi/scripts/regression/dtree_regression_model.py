@@ -233,6 +233,10 @@ class DTREERegressionModelScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
 
             st = time.time()
             est = DecisionTreeRegressor()
@@ -246,7 +250,6 @@ class DTREERegressionModelScript(object):
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
                 params_grid = {k:v for k,v in list(params_grid.items()) if k in est.get_params()}
-                print(params_grid)
                 if hyperParamAlgoName == "gridsearchcv":
                     estGrid = GridSearchCV(est,params_grid)
                     gridParams = estGrid.get_params()
@@ -275,21 +278,44 @@ class DTREERegressionModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
-                est.set_params(**algoParams)
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
-                    kFoldClass.train_and_save_result()
-                    kFoldOutput = kFoldClass.get_kfold_result()
-                    bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    est.fit(x_train, y_train)
-                    est.feature_names = list(x_train.columns.values)
-                    bestEstimator = est
+                if automl_enable:
+                    params_grid={'max_depth': [3, 4],
+                                'min_samples_split': [2, 3],
+                                'min_samples_leaf': [1, 2, 3],
+                                'max_features': [0.1, 0.2, 0.3],
+                                'criterion': ['friedman_mse', 'mse', 'mae'],
+                                'splitter': ['best', 'random']}
+                    hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
+                    grid_param={}
+                    grid_param['params']=ParameterGrid(params_grid)
+                    #bestEstimator = estGrid.best_estimator_
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    #self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    #self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
+                    print("Decision Tree AuTO ML Grid Search#######################3")
+                else:
+                    est.set_params(**algoParams)
+
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        est.fit(x_train, y_train)
+                        est.feature_names = list(x_train.columns.values)
+                        bestEstimator = est
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
