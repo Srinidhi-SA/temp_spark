@@ -693,7 +693,10 @@ class SklearnGridSearchResult(object):
         if  evaluationMetric == "Rmse":
             evaluationMetric = "RMSE"
 
-        evalMetricVal = -1
+        if evaluationMetric in ["MSE","RMSE","MAE"]:
+            evalMetricVal = 1
+        else:
+            evalMetricVal = -1
         for idx,paramsObj in enumerate(self.resultDf["params"]):
             st = time.time()
             estimator = self.estimator.set_params(**paramsObj)
@@ -739,10 +742,16 @@ class SklearnGridSearchResult(object):
 
                     algoEvaluationMetrics["ROC-AUC"] = self.getMultiClassAucRoc(y_prob,y_score)
 
-            if algoEvaluationMetrics[evaluationMetric] > evalMetricVal:
-                self.bestModel = estimator
-                self.bestParam = paramsObj
-                evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+            if evaluationMetric not in ["MAE","MSE","RMSE"]:
+                if algoEvaluationMetrics[evaluationMetric] > evalMetricVal:
+                    self.bestModel = estimator
+                    self.bestParam = paramsObj
+                    evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+            else:
+                if algoEvaluationMetrics[evaluationMetric] < evalMetricVal:
+                    self.bestModel = estimator
+                    self.bestParam = paramsObj
+                    evalMetricVal = algoEvaluationMetrics[evaluationMetric]
 
             algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in list(algoEvaluationMetrics.items())}
             # algoEvaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in algoEvaluationMetrics.items()}
