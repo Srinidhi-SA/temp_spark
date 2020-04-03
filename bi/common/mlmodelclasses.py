@@ -694,7 +694,7 @@ class SklearnGridSearchResult(object):
             evaluationMetric = "RMSE"
 
         if evaluationMetric in ["MSE","RMSE","MAE"]:
-            evalMetricVal = 1
+            initial = True
         else:
             evalMetricVal = -1
         for idx,paramsObj in enumerate(self.resultDf["params"]):
@@ -742,13 +742,19 @@ class SklearnGridSearchResult(object):
 
                     algoEvaluationMetrics["ROC-AUC"] = self.getMultiClassAucRoc(y_prob,y_score)
 
-            if evaluationMetric not in ["MAE","MSE","RMSE"]:
-                if algoEvaluationMetrics[evaluationMetric] > evalMetricVal:
+            if evaluationMetric in ["MAE","MSE","RMSE"]:
+                if initial:
+                    evalMetricVal = algoEvaluationMetrics[evaluationMetric]
                     self.bestModel = estimator
                     self.bestParam = paramsObj
-                    evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+                    initial = False
+                else:
+                    if algoEvaluationMetrics[evaluationMetric] < evalMetricVal:
+                        self.bestModel = estimator
+                        self.bestParam = paramsObj
+                        evalMetricVal = algoEvaluationMetrics[evaluationMetric]
             else:
-                if algoEvaluationMetrics[evaluationMetric] < evalMetricVal:
+                if algoEvaluationMetrics[evaluationMetric] > evalMetricVal:
                     self.bestModel = estimator
                     self.bestParam = paramsObj
                     evalMetricVal = algoEvaluationMetrics[evaluationMetric]
