@@ -83,7 +83,7 @@ def get_kernel_bias(kernel_bias_init, main_layer, input_units, output_units):
         pass
 
 def get_kernel_weight_constraint(kernel_weight_constraint,main_layer):
-    if(kernel_weight_constraint["name"] == True):
+    if(kernel_weight_constraint["constraint"] == True):
         weights = main_layer.weight
         new_weights = weights.clamp(kernel_weight_constraint["min"],kernel_weight_constraint["max"])
         main_layer.weight = torch.nn.Parameter(new_weights)
@@ -406,23 +406,19 @@ def get_other_pytorch_params(nnpt_params, task_type, network_params):
     loss_name = loss_criterion_dict["loss"]
     optimizer_dict = nnpt_params["optimizer"]
     #optimizer_name = optimizer_dict["optimizer"]
-    reg_l1loss = nnpt_params["reg_l1loss"]
-    reg_l2loss = nnpt_params["reg_l2loss"]
-
+    regularizer = nnpt_params["regularizer"]
     batch_size = nnpt_params["batch_size"]
     number_of_epochs = nnpt_params["number_of_epochs"]
 
     loss_criterion = get_loss_criterion(loss_name, loss_criterion_dict)
     #optimizer = get_optimizer(optimizer_name, optimizer_dict, network_params)
-
     other_params_dict = {}
     other_params_dict["loss_name"] = loss_criterion_dict["loss"]
     other_params_dict["number_of_epochs"] = number_of_epochs
     other_params_dict["batch_size"] = batch_size
     other_params_dict["loss_criterion"] = loss_criterion
     other_params_dict["optimizer"] = optimizer_dict
-    other_params_dict["reg_l1loss"] = reg_l1loss
-    other_params_dict["reg_l2loss"] = reg_l2loss
+    other_params_dict["regularizer"] = regularizer
     other_params_dict["reduction"] = nnpt_params["loss"]["reduction"]
 
     if "weight" in loss_criterion_dict:

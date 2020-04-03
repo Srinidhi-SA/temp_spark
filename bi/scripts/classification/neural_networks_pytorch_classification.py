@@ -249,19 +249,20 @@ class NNPTClassificationScript(object):
             print("~"*50)
 
             loss_name = other_params_dict["loss_name"]
+            if "loss_weight" in other_params_dict:
+                loss_weight = other_params_dict["loss_weight"]
             criterion = other_params_dict["loss_criterion"]
             n_epochs = other_params_dict["number_of_epochs"]
             batch_size = other_params_dict["batch_size"]
             optimizer_dict = other_params_dict["optimizer"]
             optimizer_name = optimizer_dict["optimizer"]
             optimizer = get_optimizer(optimizer_name, optimizer_dict, network.parameters())
-            l1_decay = other_params_dict["reg_l1loss"]["l1_decay"]
-            l2_decay = other_params_dict["reg_l2loss"]["l2_decay"]
-
-            if "loss_weight" in other_params_dict:
-                loss_weight = other_params_dict["loss_weight"]
+            l1_decay,l2_decay = 0,0
+            if "l1_regularizer" in other_params_dict["regularizer"]["regularizer"]:
+                l1_decay = other_params_dict["regularizer"]["l1_decay"]
+            else:
+                l2_decay = other_params_dict["regularizer"]["l2_decay"]
             reduction = other_params_dict["reduction"]
-
             dataloader_params = {
             "batch_size": batch_size,
             "shuffle": True
@@ -287,6 +288,7 @@ class NNPTClassificationScript(object):
                     labels = labels.to(device)
                     # Forward + backward + optimize
                     outputs = network(inputs).float()
+
                     if loss_name != "CrossEntropyLoss":
                         outputs = torch.max(outputs,1).values
                         if loss_name in ['BCELoss','BCEWithLogitsLoss','NLLLoss'] and loss_weight != None:
