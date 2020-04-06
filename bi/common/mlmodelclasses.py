@@ -438,6 +438,10 @@ class MLModelSummary(object):
         self.alpha = data
     def get_alpha(self):
         return self.alpha
+    def set_l1_ratio(self,data):
+        self.l1Ratio = data
+    def get_l1_ratio(self):
+        return self.l1Ratio
     def set_booster_function(self,data):
         self.boosterFunction = data
     def get_booster_function(self):

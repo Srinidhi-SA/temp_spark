@@ -62,7 +62,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import ParameterGrid
-
+from sklearn.linear_model import ElasticNet
 
 
 class LinearRegressionModelScript(object):
@@ -318,9 +318,10 @@ class LinearRegressionModelScript(object):
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if automl_enable:
-                    params_grid={'fit_intercept': [False, True],
-                                'normalize': [False, True],
-                                'copy_X': [False, True]}
+                    est = ElasticNet()
+                    params_grid=param_grid = {"max_iter": [1, 5, 10],
+                                            "alpha": [0,0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+                                            "l1_ratio": np.arange(0, 1.0, 0.1)}
                     hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)
@@ -489,10 +490,15 @@ class LinearRegressionModelScript(object):
             self._model_management.set_training_status(data="completed")# training status
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
             self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["RMSE"])
-            self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
             self._model_management.set_normalize_value(data=str(modelmanagement_['normalize']))
             self._model_management.set_copy_x(data=str(modelmanagement_['copy_X']))
+            if automl_enable:
+                self._model_management.set_l1_ratio(data=str(modelmanagement_['l1_ratio']))
+                self._model_management.set_alpha(data=str(modelmanagement_['alpha']))
+            else:
+                self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
+
         else:
             self._model_management.set_datasetName(self._datasetName)
             self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
@@ -523,10 +529,14 @@ class LinearRegressionModelScript(object):
                     ["Algorithm", self._model_management.get_algorithm_name()],
                     ["Model Validation", self._model_management.get_validation_method()],
                     ["Fit Intercept", str(self._model_management.get_fit_intercept())],
-                    ["N jobs", self._model_management.get_no_of_jobs()],
                     ["Normalize",self._model_management.get_normalize_value()],
                     ["Copy_X", self._model_management.get_copy_x()]
                     ]
+        if automl_enable:
+            modelManagementModelSettingsJson.append(["Alpha", self._model_management.get_alpha()])
+            modelManagementModelSettingsJson.append(["L1 ratio",self._model_management.get_l1_ratio()])
+        else:
+            modelManagementModelSettingsJson.append(["N jobs", self._model_management.get_no_of_jobs()])
 
         linrOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
         linrPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards_regression(self._model_summary)]

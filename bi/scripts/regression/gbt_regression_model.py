@@ -59,7 +59,8 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import ParameterGrid
-
+from sklearn.experimental import enable_hist_gradient_boosting
+from sklearn.ensemble import HistGradientBoostingRegressor
 
 
 class GBTRegressionModelScript(object):
@@ -275,8 +276,10 @@ class GBTRegressionModelScript(object):
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if automl_enable:
-                    params_grid={'learning_rate': [0.1, 0.2, 0.3],
-                                'loss': ['ls', 'lad', 'huber', 'quantile']}
+                    est = HistGradientBoostingRegressor(random_state=20)
+                    params_grid={'l2_regularization': [0.005,0.003,0.02],
+                                'max_depth' :[2,3],
+                                'learning_rate' :[0.1,0.09,0.05,0.2]}
                     hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)
@@ -316,8 +319,11 @@ class GBTRegressionModelScript(object):
             featureImportance={}
 
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":featureImportance,"featureList":list(x_train.columns),"labelMapping":{}}
-            featureImportance = objs["trained_model"].feature_importances_
-            featuresArray = [(col_name, featureImportance[idx]) for idx, col_name in enumerate(x_train.columns)]
+            try:
+                featureImportance = objs["trained_model"].feature_importances_
+                featuresArray = [(col_name, featureImportance[idx]) for idx, col_name in enumerate(x_train.columns)]
+            except:
+                featuresArray=[]
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
                 modelFilepathArr = model_filepath.split("/")[:-1]
