@@ -2118,13 +2118,19 @@ def stock_sense_overview_card(data_dict_overall):
 def aggregate_concept_stats(conceptDictArray):
     # {"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]}
     concepts = list(set([obj["concept"].split("__")[0] for obj in conceptDictArray]))
-    articlesDict = dict(list(zip(concepts,[0]*len(concepts))))
+    #articlesDict = dict(list(zip(concepts,[0]*len(concepts))))
+    articlesDict= {'corporate': [], 'market potential & growth': [], 'expansion - geography/segment': [],'financial & market performance': [], 'innovation & product launch': [], 'legal': []}
     sentimentDict = dict(list(zip(concepts,[0]*len(concepts))))
+    conceptVal = dict(list(zip(concepts,[0]*len(concepts))))
     for conceptDict in conceptDictArray:
         for concept in concepts:
             if conceptDict["concept"].split("__")[0] == concept:
-                articlesDict[concept] += conceptDict["articles"]
-                sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
+                #articlesDict[concept] += conceptDict["articles"]
+                #sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
+                articlesDict[concept].extend(conceptDict["articleNumber"])
+                sentimentDict[concept] += conceptDict["avgSentiment"]
+                if conceptDict["articles"]!=0:
+                    conceptVal[concept]+= 1
     outArray = []
     conceptTableDict = dict(list(zip(concepts,[[]]*len(concepts))))
     for obj in conceptDictArray:
@@ -2140,9 +2146,9 @@ def aggregate_concept_stats(conceptDictArray):
         if len(conceptTableDict[val]) < maxNoSubConcepts:
             conceptTableDict[val] += [{"text":"","value":0}]*(maxNoSubConcepts-len(conceptTableDict[val]))
         if articlesDict[val] != 0:
-            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(old_div(sentimentDict[val],articlesDict[val]),2)}
+            obj = {"concept":val,"articles":len(set(articlesDict[val])),"avgSentiment":round(old_div(sentimentDict[val],conceptVal[val]),2)}
         else:
-            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":0.0}
+            obj = {"concept":val,"articles":len(set(articlesDict[val])),"avgSentiment":0.0}
         outArray.append(obj)
     outArray = sorted(outArray,key=lambda x:x["articles"],reverse=True)
 
@@ -2208,7 +2214,7 @@ def stock_sense_individual_stock_cards(stockDict):
         conceptData = dataDict["articlesAndSentimentsPerConcept"]
         chartData = []
         for k,v in list(dataDict["articlesAndSentimentsPerConcept"].items()):
-            chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
+            chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"],"articleNumber":v["recordNumber"]})
         # chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
         chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)

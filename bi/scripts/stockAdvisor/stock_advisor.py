@@ -250,12 +250,12 @@ class StockAdvisor(object):
         conceptNames = list(self.concepts.keys())
         valArray = []
         for val in conceptNames:
-            valArray.append({"articlesCount":0,"posArticles":0,"negArticles":0,"totalSentiment":0})
+            valArray.append({"recordNumber":[],"articlesCount":0,"posArticles":0,"negArticles":0,"totalSentiment":0})
         conceptNameDict = dict(list(zip(conceptNames,valArray)))
         conceptCountArray = []
         sentimentArray = []
         for index, dfRow in pandasDf.iterrows():
-            conceptNameDict = self.update_article_count_and_sentiment_score(conceptNameDict,dfRow)
+            conceptNameDict = self.update_article_count_and_sentiment_score(conceptNameDict,dfRow,index)
             rowConceptArray = [1 if x in dfRow["concepts"]["conceptList"] else 0 for x in list(self.concepts.keys())]
             rowConceptArray.append(np.sum(np.array(rowConceptArray)))
             conceptCountArray.append(rowConceptArray)
@@ -294,9 +294,10 @@ class StockAdvisor(object):
         return newDict
 
 
-    def update_article_count_and_sentiment_score(self,counterDict,dfRow):
+    def update_article_count_and_sentiment_score(self,counterDict,dfRow,index):
         for concept in dfRow["concepts"]["conceptList"]:
             counterDict[concept]["articlesCount"] += 1
+            counterDict[concept]["recordNumber"].append(index)
             absSentimentScore = dfRow["sentiment"]["document"]["score"]
             label = dfRow["sentiment"]["document"]["label"]
             sentimentScore = absSentimentScore if label == "positive" else -absSentimentScore
