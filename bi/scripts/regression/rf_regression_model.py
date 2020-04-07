@@ -281,13 +281,32 @@ class RFRegressionModelScript(object):
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if automl_enable:
-                    params_grid={'n_estimators': [10, 20],
-                                 'max_depth': [3, 4],
-                                     'min_samples_split': [2, 3],
-                                      'min_samples_leaf': [1, 10],
-                                       'max_features': [0.2, 0.3],
-                                        'criterion': ['friedman_mse', 'mse', 'mae'],
-                                         'bootstrap': [False, True]}
+                    params_grid = { 'random_state': [42] }
+
+                    if x_train.shape[0]*x_train.shape[1] < 10000:
+                        params_grid.update({
+                                            'bootstrap': [False, True],
+                                            'n_estimators': [10, 25, 50, 100],
+                                            'max_depth': [None, 3, 4, 5],
+                                            'min_samples_split': [2, 3, 5],
+                                            'min_samples_leaf': [1, 2, 3],
+                                            'max_features': ['auto', 'sqrt', 'log2'],
+                                            'criterion': ['friedman_mse', 'mse', 'mae'] })
+
+                    elif (x_train.shape[0]*x_train.shape[1] > 10000) & (x_train.shape[0]*x_train.shape[1] < 75000):
+                        params_grid.update({
+                                            'n_estimators': [50, 100, 150, 200],
+                                            'max_depth': [None, 5, 10, 15],
+                                            'min_samples_split': [2, 5, 10],
+                                            'min_samples_leaf': [1, 3, 5],
+                                            'max_features': ['auto', 'sqrt'] })
+                    else:
+                        params_grid.update({
+                                            'n_estimators': [50, 100, 200, 400],
+                                            'max_depth': [None, 10, 25, 50],
+                                            'min_samples_split': [2, 10, 15],
+                                            'min_samples_leaf': [1, 5, 10],
+                                            'max_features': ['auto', 'sqrt'] })
                     hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)

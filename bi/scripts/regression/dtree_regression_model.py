@@ -280,12 +280,15 @@ class DTREERegressionModelScript(object):
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 if automl_enable:
-                    params_grid={'max_depth': [3, 4],
-                                'min_samples_split': [2, 3],
-                                'min_samples_leaf': [1, 2, 3],
-                                'max_features': [0.1, 0.2, 0.3],
-                                'criterion': ['friedman_mse', 'mse', 'mae'],
-                                'splitter': ['best', 'random']}
+                    params_grid={'max_depth': [3, 5, 8],
+                        'min_samples_split': [2, 3],
+                        'min_samples_leaf': [1, 2, 3],
+                        'criterion': ['friedman_mse', 'mse', 'mae'],
+                        'splitter': ['best']}
+                    if x_train.shape[0] > 1000:
+                        params_grid['min_samples_split'] : [5,10,15]
+                    else:
+                        params_grid['min_samples_split'] : [2,3]
                     hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)
