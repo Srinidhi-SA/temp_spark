@@ -286,9 +286,9 @@ class DTREERegressionModelScript(object):
                         'criterion': ['friedman_mse', 'mse', 'mae'],
                         'splitter': ['best']}
                     if x_train.shape[0] > 1000:
-                        params_grid['min_samples_split'] : [5,10,15]
+                        params_grid['min_samples_split'] = [5,10,15]
                     else:
-                        params_grid['min_samples_split'] : [2,3]
+                        params_grid['min_samples_split'] = [2,3]
                     hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)
