@@ -876,23 +876,52 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
         print("Model Scoring Completed in ", time.time() - st, " seconds.")
 
     elif app_type == "REGRESSION":
-        pass
+
         '''
         To be done later when regression scoring is wired
         '''
         model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
         dataframe_context.set_model_path(model_path)
         dataframe_context.set_score_path(score_file_path)
+        dataframe_context.set_story_on_scored_data(True)
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
         print("selected_model_for_prediction", selected_model_for_prediction)
+        if "linearregression" in  selected_model_for_prediction:
+            trainedModel = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"linearregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+
+        if "gbtregression" in  selected_model_for_prediction:
+            trainedModel = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+
         if "dtreeregression" in  selected_model_for_prediction:
-            trainedModel = DTREERegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df)
+            trainedModel = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeregression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
+
+        if "rfregression" in  selected_model_for_prediction:
+            trainedModel = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"rfregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+
         headNode = NarrativesTree()
         if headNode != None:
             headNode.set_name(jobName)
