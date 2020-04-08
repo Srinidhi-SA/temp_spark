@@ -131,6 +131,8 @@ class RFClassificationModelScript(object):
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
 
+            print(len(x_train),len(x_test),len(y_train),len(y_test))
+
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
             st = time.time()
@@ -258,21 +260,21 @@ class RFClassificationModelScript(object):
                 algoParams["random_state"] = 42
 
                 if automl_enable:
-                    params_grid={'max_depth': [3,4,5,10,20],
+                    params_grid={'max_depth': [3,4,5,10,12],
                                 'min_samples_split': [2, 4,6],
                                 'min_samples_leaf': [1, 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [200],
-                                'criterion': ['gini', 'entropy'],
+                                'n_estimators': [100,200],
+                                'criterion': ['gini'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
-                    hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
-                    numFold=5
+                    numFold=10
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -710,7 +712,6 @@ class RFClassificationModelScript(object):
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             pandas_df = pandas_df[trained_model.feature_names]
-
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
@@ -795,7 +796,7 @@ class RFClassificationModelScript(object):
         self._dataframe_context.set_story_on_scored_data(True)
         SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
         spark_scored_df = SQLctx.createDataFrame(df.drop(columns_to_drop, axis=1))
-        # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
+        spark_scored_df.toPandas().to_csv("/home/vishnu/Downloads/titanic/scored_df.csv")
         # TODO update metadata for the newly created dataframe
         self._dataframe_context.update_consider_columns(columns_to_keep)
 

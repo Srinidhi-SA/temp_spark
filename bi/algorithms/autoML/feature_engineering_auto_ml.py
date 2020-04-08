@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import OneHotEncoder
 class FeatureEngineeringAutoML():
 
     def __init__(self, data_frame, target, data_change_dict, numeric_cols, dimension_cols, datetime_cols,problem_type):
@@ -31,11 +32,19 @@ class FeatureEngineeringAutoML():
 
     def one_hot_encoding(self, col_list):
         for col in col_list:
-            dummy = pd.get_dummies(self.data_frame[col])
+            dummy = enc.fit_transform(col)
             self.data_frame = pd.concat([self.data_frame,dummy], axis = 1)
             self.data_change_dict['one_hot_encoded'].append(col)
+        #print(self.data_frame)
+    def sk_one_hot_encoding(self,col_list):
+        oh_enc=OneHotEncoder(sparse=False)
+        encoded_df=pd.DataFrame(oh_enc.fit_transform(self.data_frame[col_list]),columns=oh_enc.get_feature_names())
+        self.data_frame=self.data_frame[self.data_frame.columns.difference(col_list)]
+        self.data_frame = pd.concat([self.data_frame,encoded_df], axis = 1)
+        self.data_change_dict['one_hot_encoded']=col_list
+        #print(self.data_frame)
 
     def feature_engineering_run(self):
         self.date_column_split(self.datetime_cols)
         self.data_frame = self.data_frame.apply(lambda x: x.mask(x.map(x.value_counts()/x.count())<0.01, 'other') if x.name in self.dimension_cols else x)
-        self.one_hot_encoding(self.dimension_cols)
+        self.sk_one_hot_encoding(self.dimension_cols)

@@ -245,21 +245,20 @@ class XgboostScript(object):
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={"learning_rate"    : [0.05, 0.10, 0.15,0.20,0.25,0.30],
-                                #"booster"           : ['gbtree'],
-                                 "subsample"         : [0.8],
-                                  "max_depth"        : [ 3, 4, 6, 8,10],
-                                  "min_child_weight" : [ 1, 3, 5, 6,7],
-                                  'n_estimators': [200],
-                                "gamma"            : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
-                                 "colsample_bytree" : [0.8]}#[ 0.3, 0.4, 0.5, 0.6,0.8, 1.0 ] }
-                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 10}
+                    params_grid={ "learning_rate"      : [0.05, 0.10, 0.15,0.20,0.25,0.30],
+                                  "booster"            : ['gbtree'],
+                                  "max_depth"          : [ 3, 4, 6, 8,10],
+                                  'n_estimators'       : [10],
+                                  "gamma"              : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
+                                  "objective"          :['binary:logistic'],
+                                   }
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
-                    numFold=5
+                    numFold=10
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -780,6 +779,7 @@ class XgboostScript(object):
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         spark_scored_df = df_helper.get_data_frame()
+        spark_scored_df.toPandas().to_csv("/home/vishnu/Downloads/forest-cover-type-prediction/scored_df.csv",index=False)
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"

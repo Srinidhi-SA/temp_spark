@@ -2,7 +2,7 @@ from pandas.api.types import is_datetime64_any_dtype as is_datetime
 import numpy as np
 import pandas as pd
 class DataValidation:
-    def __init__(self, data_frame, target,problem_type):
+    def __init__(self,data_frame,target,problem_type):
         self.data_frame = data_frame
         data = self.data_frame
         data = data.apply(lambda col: pd.to_datetime(col, errors='ignore') if col.dtypes == object else col, axis=0)
@@ -23,7 +23,7 @@ class DataValidation:
             "special_char": False,
             "dropped_column_flag": False
         }
-        if self.data_frame [column].dtype != 'object':
+        if self.data_frame[column].dtype!= np.object:
             Dict["data_type"] = "{}".format(self.data_frame[column].dtype)
             if column != self.target:
                 self.numeric_cols.append(column)
@@ -70,3 +70,4 @@ class DataValidation:
     def data_validation_run(self):
         self.data_change_dict['Column_settings'] = [self.find_dataType(i) for i in self.data_frame.columns]
         target_fitness_flag = self.target_fitness_check()
+        self.data_change_dict['target_fitness_check']=target_fitness_flag

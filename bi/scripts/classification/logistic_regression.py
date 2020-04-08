@@ -247,22 +247,23 @@ class LogisticRegressionScript(object):
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+                    params_grid={'C': [0.001,0.01,0.55,1.0,10,100,1000],
+                                'solver' : ['lbfgs', 'liblinear','newton-cg'],
+                                'penalty':['l1', 'l2'],
                                 'fit_intercept':[True],
-                                'solver' : ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
-                                'penalty':['l1','l2']
+                                'max_iter':[100,500,100]
                                  }
-                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfGrid = GridSearchCV(clf,params_grid)
                     gridParams = clfGrid.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
-                    numFold=5
+                    numFold=10
                     kFoldClass = SkleanrKFoldResult(numFold,clfGrid,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
-                    bestEstimator = kFoldClass.get_best_estimator()
+                    bestEstimator =kFoldClass.get_best_estimator()
                     print("LogisticRegression AuTO ML gridSearch CV#######################3")
                 else:
                     algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
