@@ -96,7 +96,7 @@ def main(configJson):
     messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
     messages_for_API = messages.send_messages()
     messages_for_API = json.dumps(messages_for_API)
-    res = requests.put(url=initialMessageURL,data=messages_for_API)
+    #res = requests.put(url=initialMessageURL,data=messages_for_API)
     try:
         errorURL = jobConfig["error_reporting_url"]
     except:
@@ -176,11 +176,10 @@ def main(configJson):
                     one_click_json = {}
                     if dataframe_context.get_trainerMode() == "autoML" and GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]=="CLASSIFICATION":
                         if jobType == "training":
-                            s_time = time.time()
                             df = df.toPandas()
                             autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
+
                             one_click_json, linear_df, tree_df = autoML_obj.run()
-                            print ("AutoMl FE task runtime: ", s_time - time.time())
                         elif jobType == "prediction":
                             df = df.toPandas()
                             score_obj =  autoMLScore.Scoring(df, one_click)
@@ -416,14 +415,14 @@ def submit_job_through_yarn():
         print('Main Method Did Not End ....., ', str(e))
 if __name__ == '__main__':
     jobURL, killURL = killer_setting(sys.argv[1])
-    # try:
-    main(sys.argv[1])
-    print('Main Method End .....')
-    # except Exception as e:
-    #     print (jobURL, killURL)
-    #     data = {"status": "killed", "jobURL": jobURL}
-    #     resp = send_kill_command(killURL, data)
-    #     while str(resp.text) != '{"result": "success"}':
-    #         data = {"status": "killed", "jobURL": jobURL}
-    #         resp = send_kill_command(killURL, data)
-    #     print('Main Method Did Not End ....., ', str(e))
+    try:
+       main(sys.argv[1])
+       print('Main Method End .....')
+    except Exception as e:
+         print (jobURL, killURL)
+         data = {"status": "killed", "jobURL": jobURL}
+         resp = send_kill_command(killURL, data)
+         while str(resp.text) != '{"result": "success"}':
+             data = {"status": "killed", "jobURL": jobURL}
+             resp = send_kill_command(killURL, data)
+         print('Main Method Did Not End ....., ', str(e))
