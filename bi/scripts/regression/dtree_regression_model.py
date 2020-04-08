@@ -630,7 +630,7 @@ class DTREERegressionModelScript(object):
             try:
                 df = self._data_frame.toPandas()
             except:
-                df = self._data_frame
+                df = self._data_frame.copy()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -665,7 +665,10 @@ class DTREERegressionModelScript(object):
 
             columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
             print("columns_to_drop",columns_to_drop)
-            pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
+            try:
+                pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
+            except:
+                pandas_scored_df = df.copy()
             spark_scored_df = SQLctx.createDataFrame(pandas_scored_df)
             # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
             # TODO update metadata for the newly created dataframe

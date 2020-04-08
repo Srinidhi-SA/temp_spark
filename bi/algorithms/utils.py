@@ -53,6 +53,10 @@ def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=N
     if target_measure is None:
         target_measure = []
     if pandas_flag:
+        try:
+            df = df.toPandas()
+        except:
+            pass
         df[measure_columns] = df[measure_columns].astype("float64")
         measures_with_same_val = []
         measure_list=measure_columns.copy()

@@ -257,6 +257,8 @@ class DataPreprocessingAutoMl(object):
         ## pass this measure column and dim col to other modules
         measure_col = list(self.dataframe.select_dtypes(include=['int32', 'int64', 'float32', 'float64', 'int',
                                                                 'float']).columns)  ## measure_col = list(df.select_dtypes(include=['int','float']).columns)
+        if app_type.lower() != 'classification':
+            measure_col.remove(target)
         dim_col = list(self.dataframe.select_dtypes(include=['object', 'datetime64', 'category', 'bool']).columns)
         data_dict["target_analysis"] = a["target_analysis"]
         outlier_columns, capped_cols = self.handle_outliers(measure_col)
@@ -308,6 +310,8 @@ class DataPreprocessingAutoMl(object):
         measure_col = list(self.dataframe.select_dtypes(include=['int32', 'int64', 'float32', 'float64', 'int',
                                                                 'float']).columns)
         ## measure_col = list(df.select_dtypes(include=['int','float']).columns)
+        if app_type.lower() != 'classification':
+            measure_col.remove(target)
         dim_col = list(self.dataframe.select_dtypes(include=['object', 'datetime64', 'category', 'bool']).columns)
         outlier_columns, capped_cols = self.handle_outliers(measure_col)
         data_dict["Cap_outlier"] = capped_cols

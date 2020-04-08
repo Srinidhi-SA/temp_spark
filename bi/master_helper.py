@@ -887,7 +887,7 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
         print("selected_model_for_prediction", selected_model_for_prediction)
         if "linearregression" in  selected_model_for_prediction:
-            trainedModel = LinearRegressionModelScript(linear_df, df_helper_linear_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_linear_df)
+            trainedModel = LinearRegressionModelScript(linear_df, df_helper_linear_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_linear_df)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -896,7 +896,7 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
             print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "gbtregression" in  selected_model_for_prediction:
-            trainedModel = GBTRegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+            trainedModel = GBTRegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_tree_df)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -905,7 +905,7 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
             print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "dtreeregression" in  selected_model_for_prediction:
-            trainedModel = DTREERegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+            trainedModel = DTREERegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_tree_df)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -914,7 +914,7 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
             print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "rfregression" in  selected_model_for_prediction:
-            trainedModel = RFRegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+            trainedModel = RFRegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_tree_df)
             try:
                 trainedModel.Predict()
             except Exception as e:

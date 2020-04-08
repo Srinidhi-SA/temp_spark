@@ -53,7 +53,10 @@ class DataFrameHelper(object):
         self._pandas_flag = self._dataframe_context._pandas_flag
 
         if self._pandas_flag:
-            self._data_frame = data_frame
+            try:
+                self._data_frame = data_frame.toPandas()
+            except:
+                self._data_frame = data_frame.copy()
             self.columns = [col.strip() for col in self._data_frame.columns]
         else:
             self._data_frame = data_frame.select(*[col(c.name).alias(c.name.strip()) for c in data_frame.schema.fields])
@@ -115,7 +118,7 @@ class DataFrameHelper(object):
             app_type = None
         if app_type != "REGRESSION":
             if self._dataframe_context.get_job_type() != "subSetting":
-                if self._dataframe_context.get_job_type() != "prediction":
+                if self._dataframe_context.get_job_type() != "prediction" and app_type != "CLASSIFICATION":
                     if self._pandas_flag:
                         print(self._data_frame.dtypes)
                         self._data_frame = self._data_frame[colsToKeep]

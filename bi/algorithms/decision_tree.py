@@ -60,7 +60,10 @@ class DecisionTrees(object):
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
         self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns,pandas_flag=self._pandas_flag)
-        self._data_frame1 = self._data_frame
+        try:
+            self._data_frame1 = self._data_frame.copy()
+        except:
+            self._data_frame1 = self._data_frame
         self._mapping_dict = {}
         self._new_rules = {}
         self._total = {}
