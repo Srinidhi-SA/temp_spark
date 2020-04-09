@@ -38,6 +38,7 @@ from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableDa
 from bi.common import NormalChartData, ChartJson, ScatterChartData
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
+from datetime import datetime
 
 def normalize_coefficients(coefficientsArray):
     valArray = [abs(obj["value"]) for obj in coefficientsArray]
@@ -2062,14 +2063,18 @@ def stock_sense_overview_card(data_dict_overall):
     overviewCardData.append(articlesByConceptChart)
 
     # print data_dict_overall["price_trend"]
+    for i in data_dict_overall["price_trend"]:
+        date_object = datetime.strptime(i["date"], '%Y-%m-%d').date()
+        #i["date"] = date_object
+        i["date"] = date_object.strftime('%b %d,%Y')
     priceTrendData = NormalChartData(data=data_dict_overall["price_trend"])
     chart_json = ChartJson()
     chart_json.set_data(priceTrendData.get_data())
-    chart_json.set_subchart(True)
+    chart_json.set_subchart(False)
     chart_json.set_title("Stock Performance Analysis")
     chart_json.set_label_text({"x":"DATE","y":"Close Price "})
     chart_json.set_chart_type("line")
-    chart_json.set_yaxis_number_format(".2f")
+    chart_json.set_yaxis_number_format(".d")
     chart_json.set_axes({"x":"date","y":" "})
     trendChart = C3ChartData(data=chart_json)
     overviewCardData.append(trendChart)
@@ -2107,7 +2112,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_label_text({'x':'Stock','y':'Avg. Sentiment Score'})
     chart_json.set_title("Sentiment Score by Stocks")
     chart_json.set_subchart(False)
-    chart_json.set_yaxis_number_format(".4f")
+    chart_json.set_yaxis_number_format(".2f")
     sentimentByStockDataChart = C3ChartData(data=chart_json)
     sentimentByStockDataChart.set_width_percent(50)
     overviewCardData.append(sentimentByStockDataChart)
@@ -2235,7 +2240,8 @@ def stock_sense_individual_stock_cards(stockDict):
         sentimentNdArticlesByConceptChart = C3ChartData(data=chart_json)
         sentimentNdArticlesByConceptChart.set_width_percent(50)
         overviewCardData.append(sentimentNdArticlesByConceptChart)
-
+        for i in dataDict["stockPriceAndSentimentTrend"]:
+            i["overallSentiment"] = round(i["overallSentiment"], 2)
         priceAndSentimentTrendData = NormalChartData(data=dataDict["stockPriceAndSentimentTrend"])
         chart_json = ChartJson()
         chart_json.set_data(priceAndSentimentTrendData.get_data())

@@ -106,9 +106,24 @@ class StockAdvisor(object):
                 sentiment += (row['sentiment']['document']['score'])
         return sentiment/float(df.count())
 
+    def avg_sentiment_wrt_date(self,change, date):
+        count = 0
+        sentiment_sum = 0
+        for tup in change:
+            if tup[0] == date:
+                sentiment_sum = sentiment_sum + tup[1]
+                count = count + 1
+        avg_sentiment = sentiment_sum / count
+        return avg_sentiment
+
     def get_sentiment_change(self, df):
         change = list((x["time"], x["sentiment"]["document"]["score"]) for x in df.rdd.sortBy(lambda x : x["time"], ascending=True).collect())
-        return change[len(change)-1][1] - change[0][1]
+        latest_date = change[-1][0]
+        old_date = change[0][0]
+        latest_avg = self.avg_sentiment_wrt_date(change, latest_date)
+        old_avg = self.avg_sentiment_wrt_date(change, old_date)
+        #return change[len(change)-1][1] - change[0][1]
+        return latest_avg - old_avg
 
     def get_number_articles_per_source(self, df):
         output = dict(df.groupby('source').count().rdd.collect())
@@ -119,14 +134,29 @@ class StockAdvisor(object):
 
     def get_average_sentiment_per_source(self, df, number_articles_per_source):
         return_dict = {}
-        for item in list(number_articles_per_source.keys()):
-            return_dict[item] = list(df.filter(df.source == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
+        for item in number_articles_per_source.items():
+            temp = df.filter(df.source == item[0])
+            avg_sum = 0
+            for inner_row in temp.select("sentiment").collect():
+                avg_sum = avg_sum + inner_row["sentiment"]["document"]["score"]
+            avg_sent = round(avg_sum/item[1],2)
+            return_dict.update({item[0]:avg_sent})
+        #for item in list(number_articles_per_source.keys()):
+            #return_dict[item] = list(df.filter(df.source == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
         return return_dict
 
     def get_average_sentiment_per_date(self, df):
         return_dict = {}
         for item in dict(df.groupby('time').count().rdd.collect()):
-            return_dict[item] = list(df.filter(df.time == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
+            temp = df.filter(df.time == item)
+            avg_sum = 0
+            count = 0
+            for inner_row in temp.select("sentiment").collect():
+                avg_sum = avg_sum + inner_row["sentiment"]["document"]["score"]
+                count = count+1
+            avg_sent = round(avg_sum / count, 2)
+            return_dict.update({item: avg_sent})
+            #return_dict[item] = list(df.filter(df.time == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
         return return_dict
 
     def get_top_keywords(self, df):
