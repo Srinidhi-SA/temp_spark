@@ -8,6 +8,7 @@ import datetime as dt
 import datetime as dt
 from datetime import datetime
 from itertools import chain
+import re
 
 # import dateparser
 import pandas as pd
@@ -88,10 +89,11 @@ class DataFrameHelper(object):
         self.consider_columns = list(set(self.consider_columns)-set(self.utf8columns))
         print("self.resultcolumn",self.resultcolumn)
         if self.resultcolumn != "":
-            colsToKeep = list(set(self.consider_columns).union(set([self.resultcolumn])))
+            colsToKeep = list(set([re.sub('\W+', '_', col) for col in self.consider_columns]).union(set([self.resultcolumn])))
             colsToKeep=list(set(colsToKeep)-set(self.ignorecolumns))
         else:
             colsToKeep = list(set(self.consider_columns))
+            colsToKeep = list(set([re.sub('\W+', '_', col) for col in self.consider_columns]))
             colsToKeep=list(set(colsToKeep)-set(self.ignorecolumns))
         colsToBin = list(set(colsToBin)&set(colsToKeep))
         self.cols_ignored = list(set(self.columns) - set(colsToKeep))
@@ -105,9 +107,9 @@ class DataFrameHelper(object):
             app_type = None
         if app_type != "REGRESSION":
             if self._dataframe_context.get_job_type() != "subSetting":
-                if self._dataframe_context.get_job_type() != "prediction":
+                if self._dataframe_context.get_job_type() != "prediction" and app_type != "CLASSIFICATION":
                     print (self._data_frame.printSchema())
-                    self._data_frame = self._data_frame#select(colsToKeep)
+                    self._data_frame = self._data_frame.select(colsToKeep)
                 else:
                     if app_type == "CLASSIFICATION":
                         if self._dataframe_context.get_story_on_scored_data() == False:

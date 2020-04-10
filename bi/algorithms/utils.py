@@ -38,6 +38,7 @@ from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData, TableDa
 from bi.common import NormalChartData, ChartJson, ScatterChartData
 from bi.common import utils as CommonUtils
 from bi.settings import setting as GLOBALSETTINGS
+from datetime import datetime
 
 def normalize_coefficients(coefficientsArray):
     valArray = [abs(obj["value"]) for obj in coefficientsArray]
@@ -2062,14 +2063,18 @@ def stock_sense_overview_card(data_dict_overall):
     overviewCardData.append(articlesByConceptChart)
 
     # print data_dict_overall["price_trend"]
+    for i in data_dict_overall["price_trend"]:
+        date_object = datetime.strptime(i["date"], '%Y-%m-%d').date()
+        #i["date"] = date_object
+        i["date"] = date_object.strftime('%b %d,%Y')
     priceTrendData = NormalChartData(data=data_dict_overall["price_trend"])
     chart_json = ChartJson()
     chart_json.set_data(priceTrendData.get_data())
-    chart_json.set_subchart(True)
+    chart_json.set_subchart(False)
     chart_json.set_title("Stock Performance Analysis")
     chart_json.set_label_text({"x":"DATE","y":"Close Price "})
     chart_json.set_chart_type("line")
-    chart_json.set_yaxis_number_format(".2f")
+    chart_json.set_yaxis_number_format(".d")
     chart_json.set_axes({"x":"date","y":" "})
     trendChart = C3ChartData(data=chart_json)
     overviewCardData.append(trendChart)
@@ -2107,7 +2112,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_label_text({'x':'Stock','y':'Avg. Sentiment Score'})
     chart_json.set_title("Sentiment Score by Stocks")
     chart_json.set_subchart(False)
-    chart_json.set_yaxis_number_format(".4f")
+    chart_json.set_yaxis_number_format(".2f")
     sentimentByStockDataChart = C3ChartData(data=chart_json)
     sentimentByStockDataChart.set_width_percent(50)
     overviewCardData.append(sentimentByStockDataChart)
@@ -2118,13 +2123,19 @@ def stock_sense_overview_card(data_dict_overall):
 def aggregate_concept_stats(conceptDictArray):
     # {"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]}
     concepts = list(set([obj["concept"].split("__")[0] for obj in conceptDictArray]))
-    articlesDict = dict(list(zip(concepts,[0]*len(concepts))))
+    #articlesDict = dict(list(zip(concepts,[0]*len(concepts))))
+    articlesDict= {'corporate': [], 'market potential & growth': [], 'expansion - geography/segment': [],'financial & market performance': [], 'innovation & product launch': [], 'legal': []}
     sentimentDict = dict(list(zip(concepts,[0]*len(concepts))))
+    conceptVal = dict(list(zip(concepts,[0]*len(concepts))))
     for conceptDict in conceptDictArray:
         for concept in concepts:
             if conceptDict["concept"].split("__")[0] == concept:
-                articlesDict[concept] += conceptDict["articles"]
-                sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
+                #articlesDict[concept] += conceptDict["articles"]
+                #sentimentDict[concept] += conceptDict["articles"]*conceptDict["avgSentiment"]
+                articlesDict[concept].extend(conceptDict["articleNumber"])
+                sentimentDict[concept] += conceptDict["avgSentiment"]
+                if conceptDict["articles"]!=0:
+                    conceptVal[concept]+= 1
     outArray = []
     conceptTableDict = dict(list(zip(concepts,[[]]*len(concepts))))
     for obj in conceptDictArray:
@@ -2140,9 +2151,9 @@ def aggregate_concept_stats(conceptDictArray):
         if len(conceptTableDict[val]) < maxNoSubConcepts:
             conceptTableDict[val] += [{"text":"","value":0}]*(maxNoSubConcepts-len(conceptTableDict[val]))
         if articlesDict[val] != 0:
-            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":round(old_div(sentimentDict[val],articlesDict[val]),2)}
+            obj = {"concept":val,"articles":len(set(articlesDict[val])),"avgSentiment":round(old_div(sentimentDict[val],conceptVal[val]),2)}
         else:
-            obj = {"concept":val,"articles":articlesDict[val],"avgSentiment":0.0}
+            obj = {"concept":val,"articles":len(set(articlesDict[val])),"avgSentiment":0.0}
         outArray.append(obj)
     outArray = sorted(outArray,key=lambda x:x["articles"],reverse=True)
 
@@ -2198,8 +2209,9 @@ def stock_sense_individual_stock_cards(stockDict):
         chart_json.set_types({"source":"line","articles":"bar","avgSentiment":"line"})
         chart_json.set_title("Sentiment Score by Source")
         chart_json.set_subchart(True)
-        chart_json.set_yaxis_number_format(".2s")
+        chart_json.set_yaxis_number_format(".d")
         chart_json.set_y2axis_number_format(".2f")
+        chart_json.set_legend({"a1": "articles", "b1": "avgSentiment"})
         sentimentNdArticlesBySourceChart = C3ChartData(data=chart_json)
         sentimentNdArticlesBySourceChart.set_width_percent(50)
         overviewCardData.append(sentimentNdArticlesBySourceChart)
@@ -2207,7 +2219,7 @@ def stock_sense_individual_stock_cards(stockDict):
         conceptData = dataDict["articlesAndSentimentsPerConcept"]
         chartData = []
         for k,v in list(dataDict["articlesAndSentimentsPerConcept"].items()):
-            chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"]})
+            chartData.append({"concept":k,"articles":v["articlesCount"],"avgSentiment":v["avgSentiment"],"articleNumber":v["recordNumber"]})
         # chartData = sorted(chartData,key=lambda x:x["articles"],reverse=True)
         chartData,conceptSubConceptTableData = aggregate_concept_stats(chartData)
         sentimentNdArticlesByConcept = NormalChartData(data=chartData)
@@ -2218,16 +2230,18 @@ def stock_sense_individual_stock_cards(stockDict):
         chart_json.set_data(sentimentNdArticlesByConcept_get_data)
         chart_json.set_chart_type("combination")
         chart_json.set_axes({"x":"concept","y":"articles","y2":"avgSentiment"})
-        chart_json.set_label_text({'x':'concept','y':'No. of Articles',"y2":"Average Sentiment Score"})
+        chart_json.set_label_text({'x':'Concept','y':'No. of Articles',"y2":"Average Sentiment Score"})
         chart_json.set_types({"concept":"line","articles":"bar","avgSentiment":"line"})
         chart_json.set_title("Sentiment Score by Concept")
         chart_json.set_subchart(False)
-        chart_json.set_yaxis_number_format(".2s")
+        chart_json.set_yaxis_number_format(".d")
         chart_json.set_y2axis_number_format(".2f")
+        chart_json.set_legend({"a1": "articles", "b1": "avgSentiment"})
         sentimentNdArticlesByConceptChart = C3ChartData(data=chart_json)
         sentimentNdArticlesByConceptChart.set_width_percent(50)
         overviewCardData.append(sentimentNdArticlesByConceptChart)
-
+        for i in dataDict["stockPriceAndSentimentTrend"]:
+            i["overallSentiment"] = round(i["overallSentiment"], 2)
         priceAndSentimentTrendData = NormalChartData(data=dataDict["stockPriceAndSentimentTrend"])
         chart_json = ChartJson()
         chart_json.set_data(priceAndSentimentTrendData.get_data())
@@ -2238,6 +2252,7 @@ def stock_sense_individual_stock_cards(stockDict):
         chart_json.set_chart_type("line")
         chart_json.set_yaxis_number_format(".2f")
         chart_json.set_y2axis_number_format(".2f")
+        chart_json.set_legend({"a1": "close", "b1": "overallSentiment"})
         priceAndSentimentTrendChart = C3ChartData(data=chart_json)
         overviewCardData.append(priceAndSentimentTrendChart)
 
@@ -2281,7 +2296,7 @@ def stock_sense_individual_stock_cards(stockDict):
         coefficientsChartJson = ChartJson()
         coefficientsChartJson.set_data(coefficientsArray)
         coefficientsChartJson.set_chart_type("bar")
-        coefficientsChartJson.set_label_text({'x':' ','y':'Coefficients'})
+        coefficientsChartJson.set_label_text({'x':'Concepts','y':'Coefficients'})
         coefficientsChartJson.set_axes({"x":"key","y":"value"})
         # coefficientsChartJson.set_title("Influence of Key Features on {}".format(targetVariable))
         # coefficientsChartJson.set_yaxis_number_format(".4f")

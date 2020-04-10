@@ -37,7 +37,9 @@ class StockAdvisor(object):
         self._runEnv = dataframe_context.get_environement()
         self.BASE_DIR = "file:///home/marlabs/Documents/mAdvisor/Datasets/"
         self._dateFormat = "%Y%m%d"
-
+        self._dataframe_context = dataframe_context
+        self._percentage = int((80 /(((len(self._stockNameList)*2))+1)))
+        self._stock_per = 0
 
     def read_csv(self, file_name):
         # print "-"*50
@@ -48,7 +50,9 @@ class StockAdvisor(object):
          .option("header", "true")
          .load(name))
         return df
-
+    def stock_status(self,value):
+        self._stock_per = value + self._stock_per
+        return self._stock_per
     def read_json(self, filepath):
         df = self._spark.read.json(filepath)
         return df
@@ -99,12 +103,27 @@ class StockAdvisor(object):
             if sentimentLabel in ["positive","neutral"]:
                 sentiment += row['sentiment']['document']['score']
             else:
-                sentiment += -(row['sentiment']['document']['score'])
+                sentiment += (row['sentiment']['document']['score'])
         return sentiment/float(df.count())
+
+    def avg_sentiment_wrt_date(self,change, date):
+        count = 0
+        sentiment_sum = 0
+        for tup in change:
+            if tup[0] == date:
+                sentiment_sum = sentiment_sum + tup[1]
+                count = count + 1
+        avg_sentiment = sentiment_sum / count
+        return avg_sentiment
 
     def get_sentiment_change(self, df):
         change = list((x["time"], x["sentiment"]["document"]["score"]) for x in df.rdd.sortBy(lambda x : x["time"], ascending=True).collect())
-        return change[len(change)-1][1] - change[0][1]
+        latest_date = change[-1][0]
+        old_date = change[0][0]
+        latest_avg = self.avg_sentiment_wrt_date(change, latest_date)
+        old_avg = self.avg_sentiment_wrt_date(change, old_date)
+        #return change[len(change)-1][1] - change[0][1]
+        return latest_avg - old_avg
 
     def get_number_articles_per_source(self, df):
         output = dict(df.groupby('source').count().rdd.collect())
@@ -115,14 +134,29 @@ class StockAdvisor(object):
 
     def get_average_sentiment_per_source(self, df, number_articles_per_source):
         return_dict = {}
-        for item in list(number_articles_per_source.keys()):
-            return_dict[item] = list(df.filter(df.source == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
+        for item in number_articles_per_source.items():
+            temp = df.filter(df.source == item[0])
+            avg_sum = 0
+            for inner_row in temp.select("sentiment").collect():
+                avg_sum = avg_sum + inner_row["sentiment"]["document"]["score"]
+            avg_sent = round(avg_sum/item[1],2)
+            return_dict.update({item[0]:avg_sent})
+        #for item in list(number_articles_per_source.keys()):
+            #return_dict[item] = list(df.filter(df.source == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
         return return_dict
 
     def get_average_sentiment_per_date(self, df):
         return_dict = {}
         for item in dict(df.groupby('time').count().rdd.collect()):
-            return_dict[item] = list(df.filter(df.time == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
+            temp = df.filter(df.time == item)
+            avg_sum = 0
+            count = 0
+            for inner_row in temp.select("sentiment").collect():
+                avg_sum = avg_sum + inner_row["sentiment"]["document"]["score"]
+                count = count+1
+            avg_sent = round(avg_sum / count, 2)
+            return_dict.update({item: avg_sent})
+            #return_dict[item] = list(df.filter(df.time == item).groupBy(df.sentiment.document.score).avg().collect()[0].asDict().values())[0]
         return return_dict
 
     def get_top_keywords(self, df):
@@ -134,11 +168,22 @@ class StockAdvisor(object):
         return (positive_articles, negative_articles)
 
     def get_stock_change(self, df_historic):
-        sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
-        start_price = float(sorted_list[0]['close'])
-        end_price = float(sorted_list[-1]['close'])
-        print(start_price,end_price)
-        return (end_price-start_price, old_div(((end_price-start_price)*100.0),start_price) )
+        df_historic = df_historic.toPandas()
+        df_historic= df_historic.sort_values(by='date')
+        df_historic["close"] = df_historic["close"].astype("float32")
+        df_historic["close_pct_change"] = df_historic["close"].pct_change()
+        df_historic = df_historic.fillna(0)
+        max_increase_close = max(df_historic["close_pct_change"])
+        max_decrease_close = min(df_historic["close_pct_change"])
+        max_values = [max_decrease_close,max_increase_close]
+        start_price = float(df_historic['close'][0])
+        end_price = float(df_historic['close'][df_historic.shape[0]-1])
+        #sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
+        #start_price = float(sorted_list[0]['close'])
+        #end_price = float(sorted_list[-1]['close'])
+        #print(start_price,end_price)
+        #return (end_price-start_price, old_div(((end_price-start_price)*100.0),start_price) )
+        return (max_values,end_price-start_price, old_div(((end_price - start_price) * 100.0), start_price))
 
     def get_stock_start_end_value(self, df_historic):
         sorted_list = df_historic.rdd.sortBy(lambda x: x['date'], ascending=True).collect()
@@ -183,6 +228,7 @@ class StockAdvisor(object):
         data_dict_overall["stock_value_change"] = 0
         data_dict_overall["stock_percent_change"] = 0
         data_dict_overall["max_value_change"] = {}
+        data_dict_overall["min_value_change"] = {}
         data_dict_overall["max_sentiment_change"] = {}
         data_dict_overall["number_articles_by_stock"] = {}
         data_dict_overall["number_articles_per_source"] = {}
@@ -196,29 +242,50 @@ class StockAdvisor(object):
         df["concepts"] = df["keywords"].apply(self.get_sub_concepts_for_item_python)
         return df
 
+    # def get_sub_concepts_for_item_python(self, item):
+    #     cur_keywords = [k["text"].lower() for k in item]
+    #     cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
+    #     sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
+    #     cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
+    #     for key in self.concepts:
+    #         keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
+    #         if len(keywordIntersection) > 0:
+    #             cur_concepts["conceptList"].append(key)
+    #             cur_concepts["conceptKeywordDict"][key] = keywordIntersection
+    #             cur_concepts["conceptAvgSentimentDict"][key] = np.mean(np.array([sentimentsDict[x]  for x in keywordIntersection]))
+    #     return cur_concepts
+
     def get_sub_concepts_for_item_python(self, item):
-        cur_keywords = [k["text"].lower() for k in item]
-        cur_sentiments = [k["sentiment"]["score"] if True in [k["sentiment"]["label"] == "positive",k["sentiment"]["label"] == "neutral"]  else -k["sentiment"]["score"] for k in item]
-        sentimentsDict = dict(list(zip(cur_keywords,cur_sentiments)))
-        cur_concepts = {"conceptList":[],"conceptKeywordDict":{},"conceptAvgSentimentDict":{}}
-        for key in self.concepts:
-            keywordIntersection = list(set(self.concepts[key]).intersection(set(cur_keywords)))
-            if len(keywordIntersection) > 0:
-                cur_concepts["conceptList"].append(key)
-                cur_concepts["conceptKeywordDict"][key] = keywordIntersection
-                cur_concepts["conceptAvgSentimentDict"][key] = np.mean(np.array([sentimentsDict[x]  for x in keywordIntersection]))
+        cur_concepts = {"conceptList": [], "conceptKeywordDict": {}, "conceptAvgSentimentDict": {}}
+        for dic in item:
+            if dic['concept'] != None:
+                if dic['concept'] not in cur_concepts["conceptList"]:
+                    cur_concepts["conceptList"].append(dic['concept'])
+                if dic['concept'] not in cur_concepts["conceptKeywordDict"]:
+                    cur_concepts["conceptKeywordDict"][dic['concept']] = []
+                    cur_concepts["conceptKeywordDict"][dic['concept']].append({dic['text']: dic['sentiment']['score']})
+                else:
+                    cur_concepts["conceptKeywordDict"][dic['concept']].append({dic['text']: dic['sentiment']['score']})
+                if dic['concept'] not in cur_concepts["conceptAvgSentimentDict"]:
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']] = []
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']].append(dic['sentiment']['score'])
+                else:
+                    cur_concepts["conceptAvgSentimentDict"][dic['concept']].append(dic['sentiment']['score'])
+
+        for key in cur_concepts['conceptAvgSentimentDict'].keys():
+            cur_concepts['conceptAvgSentimentDict'][key] = np.mean(cur_concepts['conceptAvgSentimentDict'][key])
         return cur_concepts
 
     def get_number_articles_and_sentiments_per_concept(self,pandasDf):
         conceptNames = list(self.concepts.keys())
         valArray = []
         for val in conceptNames:
-            valArray.append({"articlesCount":0,"posArticles":0,"negArticles":0,"totalSentiment":0})
+            valArray.append({"recordNumber":[],"articlesCount":0,"posArticles":0,"negArticles":0,"totalSentiment":0})
         conceptNameDict = dict(list(zip(conceptNames,valArray)))
         conceptCountArray = []
         sentimentArray = []
         for index, dfRow in pandasDf.iterrows():
-            conceptNameDict = self.update_article_count_and_sentiment_score(conceptNameDict,dfRow)
+            conceptNameDict = self.update_article_count_and_sentiment_score(conceptNameDict,dfRow,index)
             rowConceptArray = [1 if x in dfRow["concepts"]["conceptList"] else 0 for x in list(self.concepts.keys())]
             rowConceptArray.append(np.sum(np.array(rowConceptArray)))
             conceptCountArray.append(rowConceptArray)
@@ -234,7 +301,9 @@ class StockAdvisor(object):
         conceptCounterDf = pd.DataFrame(np.array(conceptCountArray),columns=[x+"_count" for x in list(self.concepts.keys())]+["totalCount"])
         sentimentCounterDf = pd.DataFrame(np.array(sentimentArray),columns=[x+"_sentiment" for x in list(self.concepts.keys())])
         self.pandasDf = pd.concat([pandasDf,conceptCounterDf,sentimentCounterDf], axis=1)
-        self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
+        #self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x:x["document"]["score"] if x["document"]["label"] == "positive" else -x["document"]["score"])
+        self.pandasDf["overallSentiment"] = self.pandasDf["sentiment"].apply(lambda x: x["document"]["score"])
+        # print "*"*50
         # print "*"*50
         # print self.pandasDf[["overallSentiment","source"]].head(3)
         # print "*"*50
@@ -255,14 +324,15 @@ class StockAdvisor(object):
         return newDict
 
 
-    def update_article_count_and_sentiment_score(self,counterDict,dfRow):
+    def update_article_count_and_sentiment_score(self,counterDict,dfRow,index):
         for concept in dfRow["concepts"]["conceptList"]:
             counterDict[concept]["articlesCount"] += 1
+            counterDict[concept]["recordNumber"].append(index)
             absSentimentScore = dfRow["sentiment"]["document"]["score"]
             label = dfRow["sentiment"]["document"]["label"]
             sentimentScore = absSentimentScore if label == "positive" else -absSentimentScore
-            counterDict[concept]["totalSentiment"] += dfRow["sentiment"]["document"]["score"]
-            if self.check_an_article_is_positive_or_not(dfRow["keywords"]) == True:
+            counterDict[concept]["totalSentiment"] += dfRow['concepts']['conceptAvgSentimentDict'][concept]
+            if (True if dfRow['sentiment']['document']['score']>0 else False):
                 counterDict[concept]["posArticles"] += 1
             else:
                 counterDict[concept]["negArticles"] += 1
@@ -363,15 +433,22 @@ class StockAdvisor(object):
         output = sorted(output,key=lambda x:x["articles"],reverse=True)
         return output
 
-    def get_datewise_stock_value_and_sentiment(self,pandasDf,stockPriceData):
-        relevantDf = pandasDf[["time","overallSentiment"]]
-        relevantDf.columns = ["date","overallSentiment"]
-        merged = pd.merge(relevantDf,stockPriceData[["close","date"]],on="date",how="inner")
-        merged["date"] = merged["date"].apply(self.change_date_format)
+    #def get_datewise_stock_value_and_sentiment(self,pandasDf,stockPriceData):
+        #relevantDf = pandasDf[["time","overallSentiment"]]
+        #relevantDf.columns = ["date","overallSentiment"]
+        #merged = pd.merge(relevantDf,stockPriceData[["close","date"]],on="date",how="inner")
+        #merged["date"] = merged["date"].apply(self.change_date_format)
+        #output = list(merged.T.to_dict().values())
+        #output = sorted(output,key = lambda x:datetime.strptime(x["date"],"%Y-%m-%d"))
+        #return output
+    def get_datewise_stock_value_and_sentiment(self,pandasDf, stockPriceData):
+        relevantDf = pandasDf.groupby("date").agg({"overallSentiment": 'mean'}).reset_index(drop=False)
+        relevantDf.columns = ['date', 'overallSentiment']
+        merged = pd.merge(relevantDf, stockPriceData[["close", "date"]], on="date", how="inner")
+        merged['date'] = merged.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
         output = list(merged.T.to_dict().values())
-        output = sorted(output,key = lambda x:datetime.strptime(x["date"],"%Y-%m-%d"))
+        output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
         return output
-
     def apply_counter(self,keyWordArray):
         output = [x["text"] for x in keyWordArray]
         countDict = dict(Counter(output))
@@ -409,6 +486,7 @@ class StockAdvisor(object):
         relevantDf = pandasDf[["time","source","title","overallSentiment"]]
         relevantDf["sentimentPerChange"] = relevantDf["overallSentiment"].pct_change()
         relevantDf = relevantDf.fillna(0)
+        relevantDf['sentimentPerChange'].replace([np.inf, -np.inf], 100, inplace=True)
 
         relevantDf = relevantDf.sort_values(by=['overallSentiment'],ascending=False)
         topIncrease = relevantDf.iloc[0:3] #top3
@@ -467,13 +545,15 @@ class StockAdvisor(object):
 
     def Run(self):
         print("In stockAdvisor")
+        messageURL = self._dataframe_context.get_message_url()
+        ignoreMsg = self._dataframe_context.get_message_ignore()
         data_dict_stocks = {}
         data_dict_overall = self.initialize_overall_dict()
-        # if self._runEnv == "debugMode":
-        #     self.concepts = self.load_concepts_from_json()
-        # else:
-        conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
-        self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
+        if self._runEnv == "debugMode":
+            self.concepts = self.load_concepts_from_json()
+        else:
+            conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
+            self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
@@ -482,6 +562,15 @@ class StockAdvisor(object):
             print("Analyzing data for Stock: " +stock_symbol)
             try:
                 #-------------- Read Operations ----------------
+                weights = self.stock_status(self._percentage)
+                progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                             stageName="custom",
+                                                                             messageType="info",
+                                                                             shortExplanation="Analyzing " + str.upper(stock_symbol) + " Data",
+                                                                             stageCompletionPercentage=weights,
+                                                                             globalCompletionPercentage=weights,
+                                                                             display=True)
+                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
                 stockDict[stock_symbol] = {}
                 if self._runEnv == "debugMode":
                     df = self.read_json(self.BASE_DIR+stock_symbol+".json")
@@ -568,12 +657,14 @@ class StockAdvisor(object):
                 data_dict_overall["max_sentiment_change"][stock_symbol]=sentiment_change  #verify: this is start to end sentiment change
                 # print "sentiment_change : ", sentiment_change
 
-                (stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
+                (max_values,stock_value_change, stock_percent_change) = self.get_stock_change(df_historic)
                 stockDict[stock_symbol]["stockValueChange"] = stock_value_change
                 stockDict[stock_symbol]["stockValuePercentChange"] = stock_percent_change
                 data_dict_overall["stock_value_change"] += stock_value_change
                 data_dict_overall["stock_percent_change"] += stock_percent_change
-                data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
+                #data_dict_overall["max_value_change"][stock_symbol]=stock_value_change
+                data_dict_overall["max_value_change"][stock_symbol] = max_values[-1]
+                data_dict_overall["min_value_change"][stock_symbol] = max_values[0]
                 # print "stock_value_change : ", stock_value_change
                 # print "stock_percent_change : ", stock_percent_change
 
@@ -615,6 +706,16 @@ class StockAdvisor(object):
         working_stock_list = []
         for current_stock in self._stockNameList:
             try:
+                weights = self.stock_status(self._percentage)
+                progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                             stageName="custom",
+                                                                             messageType="info",
+                                                                             shortExplanation="Applying Regression on  " + str.upper(current_stock) + " Data",
+                                                                             stageCompletionPercentage=weights,
+                                                                             globalCompletionPercentage=weights,
+                                                                             display=True)
+                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
+                regressionDf = masterDfDict[current_stock]
                 regressionDf = masterDfDict[current_stock]
                 regressionDf.index = regressionDf["time"]
                 remaining_stocks = list(set(self._stockNameList) - {current_stock})
@@ -637,7 +738,15 @@ class StockAdvisor(object):
             except Exception as e:
                 stockDict.pop(current_stock, None)
                 print("Failed for : ", current_stock, " with error : ", str(e))
-
+        weights = self.stock_status(self._percentage)
+        progressMessage = CommonUtils.create_progress_message_object(analysisName="stockAdvisor",
+                                                                     stageName="custom",
+                                                                     messageType="info",
+                                                                     shortExplanation="Calculating Stock Price Trend",
+                                                                     stageCompletionPercentage=weights,
+                                                                     globalCompletionPercentage=weights,
+                                                                     display=True)
+        CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
         # print "#"*100
         self._stockNameList = working_stock_list
         number_stocks = len(self._stockNameList)
@@ -681,7 +790,7 @@ class StockAdvisor(object):
 
         key, value = max(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
         data_dict_overall["max_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
-        key, value = min(iter(data_dict_overall["max_value_change"].items()), key = lambda p: p[1])
+        key, value = min(iter(data_dict_overall["min_value_change"].items()), key = lambda p: p[1])
         data_dict_overall["min_value_change_overall"] = (self.get_capitalized_name(key),round(value,4))
 
         key,value = max(iter(data_dict_overall["max_sentiment_change"].items()), key = lambda p: p[1])
