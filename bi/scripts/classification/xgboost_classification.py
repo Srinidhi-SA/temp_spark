@@ -56,6 +56,7 @@ class XgboostScript(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
@@ -394,9 +395,13 @@ class XgboostScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            if self._pandas_flag:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            else:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -684,7 +689,10 @@ class XgboostScript(object):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
             # pandas_df = self._data_frame.toPandas()
-            df = self._data_frame.toPandas()
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -779,7 +787,7 @@ class XgboostScript(object):
         df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
         spark_scored_df = df_helper.get_data_frame()
-        spark_scored_df.toPandas().to_csv("/home/vishnu/Downloads/forest-cover-type-prediction/scored_df.csv",index=False)
+        #spark_scored_df.toPandas().to_csv("/home/vishnu/Downloads/forest-cover-type-prediction/scored_df.csv",index=False)
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"

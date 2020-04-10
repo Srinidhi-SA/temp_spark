@@ -9,7 +9,10 @@ from bi.common import utils as CommonUtils
 from bi.common import DataLoader
 from bi.common import DataFrameHelper
 from bi.algorithms import utils as MLUtils
-
+import numpy as np
+from sklearn.linear_model import LinearRegression as pandaslr
+import statsmodels.api as sm
+from sklearn import metrics
 
 import time
 
@@ -26,7 +29,7 @@ class LinearRegression(object):
         self._dataframe_context = df_context
         self._metaParser = meta_parser
         self._spark = spark
-
+        self._pandas_flag = self._dataframe_context._pandas_flag
         self._ignoreRegressionElasticityMessages = self._dataframe_context.get_ignore_msg_regression_elasticity()
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._dataframe_context.get_analysis_name()
@@ -88,44 +91,69 @@ class LinearRegression(object):
             raise BIException('At least one of the input columns %r is not a measure column' % (input_columns,))
 
         all_measures = input_columns+[output_column]
-        print(all_measures)
-        measureDf = self._data_frame.select(all_measures)
-        lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
-                elasticNetParam=1.0, labelCol=LinearRegression.LABEL_COLUMN_NAME,
-                featuresCol=LinearRegression.FEATURES_COLUMN_NAME)
+        if self._pandas_flag:
+            ind_columns = self._data_frame[input_columns]
+            tar_column  = self._data_frame[output_column]
+            lr = pandaslr()
+            lr.fit(ind_columns, tar_column)
+            prediction = lr.predict(ind_columns)
+            st = time.time()
+            lr_model = sm.OLS(tar_column, ind_columns).fit()
+            print("lr model summary", time.time()-st)
+            sample_data_dict = {}
+            for input_col in input_columns:
+                sample_data_dict[input_col] = None
+            coefficients = lr.coef_
+            try:
+                p_values = [float(val) if val != None else None for val in lr_model.pvalues]
+            except:
+                p_values = [0]*len(coefficients)
+            regression_result = RegressionResult(output_column, sorted(list(set(input_columns))))
+            regression_result.set_params(intercept=lr.intercept_.tolist(),\
+                                         coefficients=coefficients,\
+                                         p_values = p_values,\
+                                         rmse=np.sqrt(metrics.mean_squared_error(tar_column,prediction)), \
+                                         r2=metrics.r2_score(tar_column,prediction),\
+                                         sample_data_dict=sample_data_dict)
 
-        st = time.time()
-        pipeline = MLUtils.create_pyspark_ml_pipeline(input_columns,[],output_column)
-        pipelineModel = pipeline.fit(measureDf)
-        training_df = pipelineModel.transform(measureDf)
-        training_df = training_df.withColumn("label",training_df[output_column])
-        print("time taken to create training_df",time.time()-st)
-        # st = time.time()
-        # training_df.cache()
-        # print "caching in ",time.time()-st
-        st = time.time()
-        lr_model = lr.fit(training_df)
-        lr_summary = lr_model.evaluate(training_df)
-        print("lr model summary", time.time()-st)
-        sample_data_dict = {}
-        for input_col in input_columns:
-            sample_data_dict[input_col] = None
+        else:
+            measureDf = self._data_frame.select(all_measures)
+            lr = LR(maxIter=LinearRegression.MAX_ITERATIONS, regParam=LinearRegression.REGULARIZATION_PARAM,
+                    elasticNetParam=1.0, labelCol=LinearRegression.LABEL_COLUMN_NAME,
+                    featuresCol=LinearRegression.FEATURES_COLUMN_NAME)
+            st = time.time()
+            pipeline = MLUtils.create_pyspark_ml_pipeline(input_columns,[],output_column)
+            pipelineModel = pipeline.fit(measureDf)
+            training_df = pipelineModel.transform(measureDf)
+            training_df = training_df.withColumn("label",training_df[output_column])
+            print("time taken to create training_df",time.time()-st)
+            print(training_df)
 
-        coefficients = [float(val) if val != None else None for val in lr_model.coefficients.values]
-        try:
-            p_values = [float(val) if val != None else None for val in lr_model.summary.pValues]
-        except:
-            p_values = [0]*len(coefficients)
-        # print p_values
-        # print coefficients
-        regression_result = RegressionResult(output_column, sorted(list(set(input_columns))))
-        regression_result.set_params(intercept=float(lr_model.intercept),\
-                                     coefficients=coefficients,\
-                                     p_values = p_values,\
-                                     rmse=float(lr_summary.rootMeanSquaredError), \
-                                     r2=float(lr_summary.r2),\
-                                     sample_data_dict=sample_data_dict)
+            # st = time.time()
+            # training_df.cache()
+            # print "caching in ",time.time()-st
+            st = time.time()
+            lr_model = lr.fit(training_df)
+            lr_summary = lr_model.evaluate(training_df)
+            print("lr model summary", time.time()-st)
+            sample_data_dict = {}
+            for input_col in input_columns:
+                sample_data_dict[input_col] = None
 
+            coefficients = [float(val) if val != None else None for val in lr_model.coefficients.values]
+            try:
+                p_values = [float(val) if val != None else None for val in lr_model.summary.pValues]
+            except:
+                p_values = [0]*len(coefficients)
+            # print p_values
+            # print coefficients
+            regression_result = RegressionResult(output_column, sorted(list(set(input_columns))))
+            regression_result.set_params(intercept=float(lr_model.intercept),\
+                                         coefficients=coefficients,\
+                                         p_values = p_values,\
+                                         rmse=float(lr_summary.rootMeanSquaredError), \
+                                         r2=float(lr_summary.r2),\
+                                         sample_data_dict=sample_data_dict)
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._completionStatus += self._scriptWeightDict[self._analysisName]["script"]
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\

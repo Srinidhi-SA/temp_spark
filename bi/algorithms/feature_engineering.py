@@ -12,7 +12,7 @@ class FeatureEngineering(object):
         self._df = df
         self._dataframe_context = dataframe_context
         ## TO DO : this flag will be taken from dataframe context later.
-        self._pandas_flag = False 
+        self._pandas_flag = dataframe_context._pandas_flag 
         # self._dataframe_helper = dataframe_helper
         # self._metaParserInstance = metaParserInstance
         self._featureEngineeringDict = featureEngineeringDict

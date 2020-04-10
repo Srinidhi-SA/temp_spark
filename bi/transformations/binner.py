@@ -13,6 +13,7 @@ from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
 from bi.common.results import DataFrameHistogram
 from bi.common.results import Histogram
+import pandas as pd
 
 """
 Constants for Binner classes
@@ -41,7 +42,7 @@ class Binner(object):
         self._numeric_columns = dataframe_helper.get_numeric_columns()
         self._column_data_types = dataframe_helper.get_column_data_types()
         self._num_rows = dataframe_helper.get_num_rows()
-
+        self._pandas_flag = dataframe_helper._pandas_flag
     @accepts(object, num_bins=int)
     def get_bins_for_all_measure_columns(self, num_bins=10):
         """
@@ -73,11 +74,18 @@ class Binner(object):
 
         splits = None
         if split_points == None:
-            min_max = self._data_frame.agg(FN.min(column_name).alias('min'), FN.max(column_name).alias('max')).collect()
-            min_value = min_max[0]['min']
-            max_value = min_max[0]['max']
+            if self._pandas_flag:
+                min_value = self._data_frame[column_name].min()
+                max_value = self._data_frame[column_name].max()
+            else:
+                min_max = self._data_frame.agg(FN.min(column_name).alias('min'), FN.max(column_name).alias('max')).collect()
+                min_value = min_max[0]['min']
+                max_value = min_max[0]['max']
             # splits = CommonUtils.frange(min_value, max_value, num_bins)
-            splits = CommonUtils.return_optimum_bins(self._data_frame.select(column_name).toPandas()[column_name])
+            if self._pandas_flag:
+                splits = CommonUtils.return_optimum_bins(self._data_frame[column_name])
+            else:
+                splits = CommonUtils.return_optimum_bins(self._data_frame.select(column_name).toPandas()[column_name])
             if splits[0]>min_value:
                 splits = [min_value-1]+list(splits)
                 print("Min Point Added")
@@ -88,14 +96,20 @@ class Binner(object):
             splits = split_points
         # cast column_name to double type if needed, otherwise Bucketizer does not work
         column_df = None
-        if self._column_data_types.get(column_name) != DoubleType:
-            column_df = self._data_frame.select(
-                FN.col(column_name).cast('double').alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
+        if self._pandas_flag:
+            binning_df = pd.DataFrame()
+            binning_df[BinnerConstants.ORIGINAL_COLUMN_NAME] = self._data_frame[column_name]
         else:
-            column_df = self._data_frame.select(FN.col(column_name).alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
-        bucketizer = Bucketizer(inputCol=BinnerConstants.ORIGINAL_COLUMN_NAME,
-                                outputCol=BinnerConstants.BINNED_COLUMN_NAME)
-        bucketizer.setSplits(splits)
+            if self._column_data_types.get(column_name) != DoubleType:
+                column_df = self._data_frame.select(
+                    FN.col(column_name).cast('double').alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
+            else:
+                column_df = self._data_frame.select(FN.col(column_name).alias(BinnerConstants.ORIGINAL_COLUMN_NAME))
+
+            bucketizer = Bucketizer(inputCol=BinnerConstants.ORIGINAL_COLUMN_NAME,
+                                    outputCol=BinnerConstants.BINNED_COLUMN_NAME)
+            bucketizer.setSplits(splits)
+
         if min_value==max_value:
             histogram = Histogram(column_name, self._num_rows)
             bin_number = 0
@@ -103,13 +117,23 @@ class Binner(object):
             end_value = max_value+0.5
             histogram.add_bin(bin_number, start_value, end_value, self._num_rows)
         else:
-            buckets_and_counts = bucketizer.transform(column_df).groupBy(BinnerConstants.BINNED_COLUMN_NAME).agg({'*': 'count'}).collect()
-            histogram = Histogram(column_name, self._num_rows)
-            for row in buckets_and_counts:
-                bin_number = int(row[0])
-                start_value = splits[bin_number]
-                end_value = splits[bin_number + 1]
-                histogram.add_bin(bin_number, start_value, end_value, row[1])
+            if self._pandas_flag:
+                binning_df[BinnerConstants.BINNED_COLUMN_NAME] = pd.cut(self._data_frame[column_name], bins=splits, labels= list(range(len(splits)-1)), right=False, include_lowest=True)
+                buckets_counts_df = binning_df.groupby(BinnerConstants.BINNED_COLUMN_NAME, as_index = False,sort = False).count()
+                histogram = Histogram(column_name, self._num_rows)
+                for row in buckets_counts_df.iterrows():
+                    bin_number = int(row[1][0])
+                    start_value = splits[bin_number]
+                    end_value = splits[bin_number + 1]
+                    histogram.add_bin(bin_number, start_value, end_value, row[1][1])
+            else:
+                buckets_and_counts = bucketizer.transform(column_df).groupBy(BinnerConstants.BINNED_COLUMN_NAME).agg({'*': 'count'}).collect()
+                histogram = Histogram(column_name, self._num_rows)
+                for row in buckets_and_counts:
+                    bin_number = int(row[0])
+                    start_value = splits[bin_number]
+                    end_value = splits[bin_number + 1]
+                    histogram.add_bin(bin_number, start_value, end_value, row[1])
 
         return histogram
 

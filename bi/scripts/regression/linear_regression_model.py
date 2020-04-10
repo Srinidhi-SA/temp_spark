@@ -62,7 +62,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import ParameterGrid
-
+from sklearn.linear_model import ElasticNet
 
 
 class LinearRegressionModelScript(object):
@@ -247,6 +247,10 @@ class LinearRegressionModelScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
             # x_train.to_csv("/home/gulshan/marlabs/datasets/lrTest/x_train.csv",index=False)
             # x_test.to_csv("/home/gulshan/marlabs/datasets/lrTest/x_test.csv",index=False)
             # y_train.to_csv("/home/gulshan/marlabs/datasets/lrTest/y_train.csv",index=False)
@@ -312,21 +316,42 @@ class LinearRegressionModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
-                est.set_params(**algoParams)
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
-                    kFoldClass.train_and_save_result()
-                    kFoldOutput = kFoldClass.get_kfold_result()
-                    bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    est.fit(x_train, y_train)
-                    est.feature_names = list(x_train.columns.values)
-                    bestEstimator = est
+                if automl_enable:
+                    est = ElasticNet()
+                    params_grid=param_grid = {"max_iter": [1, 5, 10],
+                                            "alpha": [0,0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+                                            "l1_ratio": np.arange(0, 1.0, 0.1)}
+                    hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
+                    grid_param={}
+                    grid_param['params']=ParameterGrid(params_grid)
+                    #bestEstimator = estGrid.best_estimator_
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    #self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    #self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
+                    print("Linear Regression AuTO ML GridSearch CV#######################3")
+                else:
+                    est.set_params(**algoParams)
+
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        est.fit(x_train, y_train)
+                        est.feature_names = list(x_train.columns.values)
+                        bestEstimator = est
             # print x_train.columns
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
@@ -341,6 +366,7 @@ class LinearRegressionModelScript(object):
             coefficientsArray = [(col_name, coefficients[idx]) for idx, col_name in enumerate(x_train.columns)]
             interceptValue = None
             interceptValue = objs["trained_model"].intercept_
+
 
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
@@ -464,10 +490,15 @@ class LinearRegressionModelScript(object):
             self._model_management.set_training_status(data="completed")# training status
             self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
             self._model_management.set_rmse(data=self._model_summary.get_model_evaluation_metrics()["RMSE"])
-            self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
             self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
             self._model_management.set_normalize_value(data=str(modelmanagement_['normalize']))
             self._model_management.set_copy_x(data=str(modelmanagement_['copy_X']))
+            if automl_enable:
+                self._model_management.set_l1_ratio(data=str(modelmanagement_['l1_ratio']))
+                self._model_management.set_alpha(data=str(modelmanagement_['alpha']))
+            else:
+                self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
+
         else:
             self._model_management.set_datasetName(self._datasetName)
             self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
@@ -498,10 +529,14 @@ class LinearRegressionModelScript(object):
                     ["Algorithm", self._model_management.get_algorithm_name()],
                     ["Model Validation", self._model_management.get_validation_method()],
                     ["Fit Intercept", str(self._model_management.get_fit_intercept())],
-                    ["N jobs", self._model_management.get_no_of_jobs()],
                     ["Normalize",self._model_management.get_normalize_value()],
                     ["Copy_X", self._model_management.get_copy_x()]
                     ]
+        if automl_enable:
+            modelManagementModelSettingsJson.append(["Alpha", self._model_management.get_alpha()])
+            modelManagementModelSettingsJson.append(["L1 ratio",self._model_management.get_l1_ratio()])
+        else:
+            modelManagementModelSettingsJson.append(["N jobs", self._model_management.get_no_of_jobs()])
 
         linrOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
         linrPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards_regression(self._model_summary)]
@@ -609,8 +644,10 @@ class LinearRegressionModelScript(object):
             trained_model = joblib.load(trained_model_path)
             model_columns = self._dataframe_context.get_model_features()
             # print "model_columns",model_columns
-
-            df = self._data_frame.toPandas()
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame.copy()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -667,7 +704,10 @@ class LinearRegressionModelScript(object):
 
             columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
             print("columns_to_drop",columns_to_drop)
-            pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
+            try:
+                pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
+            except:
+                pandas_scored_df = df.copy()
             spark_scored_df = SQLctx.createDataFrame(pandas_scored_df)
             # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
             # TODO update metadata for the newly created dataframe

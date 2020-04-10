@@ -438,6 +438,10 @@ class MLModelSummary(object):
         self.alpha = data
     def get_alpha(self):
         return self.alpha
+    def set_l1_ratio(self,data):
+        self.l1Ratio = data
+    def get_l1_ratio(self):
+        return self.l1Ratio
     def set_booster_function(self,data):
         self.boosterFunction = data
     def get_booster_function(self):
@@ -693,13 +697,17 @@ class SklearnGridSearchResult(object):
         if  evaluationMetric == "Rmse":
             evaluationMetric = "RMSE"
 
-        evalMetricVal = -1
+        if evaluationMetric in ["MSE","RMSE","MAE"]:
+            initial = True
+        else:
+            evalMetricVal = -1
         for idx,paramsObj in enumerate(self.resultDf["params"]):
             st = time.time()
             estimator = self.estimator.set_params(**paramsObj)
             estimator.fit(self.x_train, self.y_train)
             estimator.feature_names = list(self.x_train.columns.values)
             y_score = estimator.predict(self.x_test)
+            train_score = estimator.predict(self.x_train)
             try:
                 y_prob = estimator.predict_proba(self.x_test)
             except:
@@ -708,20 +716,21 @@ class SklearnGridSearchResult(object):
 
             print("#"*100)
             print("Feature Importance ",modelName)
-            try:
-                print(estimator.feature_importances_)
-            except:
-                print("Feature Importance Not Defined")
+            # try:
+            #     print(estimator.feature_importances_)
+            # except:
+            #     print("Feature Importance Not Defined")
 
             print("#"*100)
             slug = self.modelFilepath.split("/")[-1]
             algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
-            joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
+            #joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
             row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False","Run Time(Secs)":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
             # row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time(Secs)":str(CommonUtils.round_sig(time.time()-st))}
             algoEvaluationMetrics = {}
             if self.appType == "REGRESSION":
                 algoEvaluationMetrics["R-Squared"] = metrics.r2_score(self.y_test, y_score)
+                overfit_check = metrics.r2_score(self.y_train, train_score)
                 algoEvaluationMetrics["MSE"] = metrics.mean_squared_error(self.y_test, y_score)
                 algoEvaluationMetrics["MAE"] = metrics.mean_absolute_error(self.y_test, y_score)
                 algoEvaluationMetrics["RMSE"] = sqrt(algoEvaluationMetrics["MSE"])
@@ -739,10 +748,28 @@ class SklearnGridSearchResult(object):
 
                     algoEvaluationMetrics["ROC-AUC"] = self.getMultiClassAucRoc(y_prob,y_score)
 
-            if algoEvaluationMetrics[evaluationMetric] > evalMetricVal:
-                self.bestModel = estimator
-                self.bestParam = paramsObj
-                evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+            if evaluationMetric in ["MAE","MSE","RMSE"]:
+                if initial:
+                    evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+                    self.bestModel = estimator
+                    self.bestParam = paramsObj
+                    initial = False
+                else:
+                    if algoEvaluationMetrics[evaluationMetric] < evalMetricVal:
+                        if 0.15 > (overfit_check-algoEvaluationMetrics["R-Squared"]):
+                            self.bestModel = estimator
+                            self.bestParam = paramsObj
+                            evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+            else:
+                if algoEvaluationMetrics[evaluationMetric] > evalMetricVal and self.appType == "CLASSIFICATION":
+                    self.bestModel = estimator
+                    self.bestParam = paramsObj
+                    evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+                elif algoEvaluationMetrics[evaluationMetric] > evalMetricVal and self.appType == "REGRESSION":
+                    if 0.15 > (overfit_check-algoEvaluationMetrics["R-Squared"]):
+                        self.bestModel = estimator
+                        self.bestParam = paramsObj
+                        evalMetricVal = algoEvaluationMetrics[evaluationMetric]
 
             algoEvaluationMetrics = {k:CommonUtils.round_sig(v) for k,v in list(algoEvaluationMetrics.items())}
             # algoEvaluationMetrics = {k:str(CommonUtils.round_sig(v)) for k,v in algoEvaluationMetrics.items()}
@@ -750,6 +777,7 @@ class SklearnGridSearchResult(object):
             paramsObj = dict([(k,str(v)) if (v == None) | (v in [True,False]) else (k,v) for k,v in list(paramsObj.items())])
             row.update(paramsObj)
             tableOutput.append(row)
+        joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
         if self.appType == "REGRESSION":
             if self.evaluationMetricDict["name"] == "r2":
                 tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)

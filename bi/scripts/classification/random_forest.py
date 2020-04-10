@@ -61,6 +61,7 @@ class RFClassificationModelScript(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._spark = spark
         self._model_summary =  MLModelSummary()
@@ -410,9 +411,13 @@ class RFClassificationModelScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            if self._pandas_flag:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            else:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -704,8 +709,12 @@ class RFClassificationModelScript(object):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
 
-            shape = (self._data_frame.count(), len(self._data_frame.columns))
-            df = self._data_frame.toPandas()
+            # TODO:shape is not being used, remove later
+            #shape = (self._data_frame.count(), len(self._data_frame.columns))
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
