@@ -42,6 +42,8 @@ class FeatureSelection():
         X_train = self.data_frame.drop(self.target, axis=1)
         Y_train=le.fit_transform(self.data_frame[self.target])
         #Y_train = self.data_frame[self.target]
+        X_train = X_train[X_train._get_numeric_data().columns]
+
         for c in list(X_train.columns):
             pearson_coef, p_value = stats.pearsonr(X_train[c],Y_train)
             if p_value < 0.05 :
