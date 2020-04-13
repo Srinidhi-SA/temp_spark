@@ -51,10 +51,9 @@ class TrendNarrative(object):
         dataDict["dataLevel"] = dataLevel
         dataDict["durationString"] = durationString
         # df["perChange"] = [round((y-x)*100/float(x),self._num_significant_digits) for x,y in zip(df["value"],df["value"].iloc[1:])]+[round((df["value"].iloc[-1]-df["value"].iloc[-2])*100/float(df["value"].iloc[-2]),self._num_significant_digits)]
-        df["perChange"] = [0]+[round((x-y)*100/float(y),self._num_significant_digits) for x,y in zip(df["value"].iloc[1:],df["value"])]
+        df["perChange"] = [0]+[round((x-y)*100/float(y),self._num_significant_digits) if y!=0 else 0 for x,y in zip(df["value"].iloc[1:],df["value"])]
         dataDict["measure"] = self._measure_column
         df["trendDirection"] = df["perChange"].apply(lambda x: "P" if x>=0 else "N")
-        # print df
         trendString = "".join(df["trendDirection"])
         maxRuns = NarrativesUtils.longestRun(trendString)
         # list(set(zip([x.strftime('%m') for x in df["key"]],[x.strftime('%Y') for x in df["key"]])))
