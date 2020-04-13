@@ -77,6 +77,19 @@ class DataPreprocessingAutoML:
                         self.data_frame[column] = pd.to_numeric(self.data_frame[column])
                         self.numeric_cols.append(column)
 
+    def dimension_measure_test(self, columns):
+        for column in columns:
+            if (str(self.data_frame[column].dtype).startswith('int')) | (str(self.data_frame[column].dtype).startswith('float')):
+                continue
+            else:
+                column_val = self.data_frame[column]
+                out = column_val.str.contains("^[0-9]+[.]{0,1}[0-9]*\s*$")
+                if out[out == False].count() <= 0.01 * self.data_frame.shape[0]:
+                    row_index = out.index[out == False].tolist()
+                    self.data_frame[column] = pd.to_numeric(self.data_frame[column])
+                    self.data_frame.iloc[row_index] = int(np.mean(self.data_frame[column]))
+                    self.dimension_cols.remove(column)
+                    self.numeric_cols.append(column)
 
     def handle_outliers(self):
         '''

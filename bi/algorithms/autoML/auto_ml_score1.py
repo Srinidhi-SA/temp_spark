@@ -16,7 +16,7 @@ class Scoring(object):
     def run(self):
         if len(self.train_json['MeasureColsToDim']) > 0:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
-            DataPreprocessingAutoML_obj.dimension_measure(self.train_json['MeasureColsToDim'])
+            DataPreprocessingAutoML_obj.dimension_measure_test(self.train_json['MeasureColsToDim'])
             self.data_frame = DataPreprocessingAutoML_obj.data_frame
         if len(self.train_json['MeanImputeCols']) > 0:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
