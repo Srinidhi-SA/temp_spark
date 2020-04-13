@@ -721,7 +721,7 @@ class NNPTClassificationScript(object):
             try:
                 df = self._data_frame.toPandas()
             except:
-                df = self._data_frame
+                df = self._data_frame.copy()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -818,8 +818,11 @@ class NNPTClassificationScript(object):
             # self._metaParser.update_level_counts(result_column,resultColLevelCount)
             self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
             self._dataframe_context.set_story_on_scored_data(True)
-            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-            spark_scored_df = SQLctx.createDataFrame(df)
+            if self._pandas_flag:
+                spark_scored_df = df.copy()
+            else:
+                SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+                spark_scored_df = SQLctx.createDataFrame(df)
             # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
             self._dataframe_context.update_consider_columns(columns_to_keep)
             df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)

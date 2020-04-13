@@ -121,6 +121,19 @@ class DataPreprocessingAutoML:
             if column in self.col_with_nulls:
                 self.data_frame[column] = self.mode_impute(self.data_frame[column])
                 self.data_change_dict['ModeImputeCols'].append(column)
+
+    def test_data_imputation(self):
+        null_cols = self.data_frame.columns[self.data_frame.isna().any()].tolist()
+        if len(null_cols) != 0:
+            numeric_columns = self.data_frame[null_cols]._get_numeric_data().columns
+            cat_col_names = list(set(null_cols) - set(numeric_columns))
+            for col in null_cols:
+                if col in cat_col_names:
+                    mode_df = self.mode_impute(self.data_frame[col])
+                    self.data_frame[col] = mode_df
+                else:
+                    mean_df = self.mean_impute(self.data_frame[col])
+                    self.data_frame[col] = mean_df
     #ON HOLD
     def regex_catch(self, column):
         """Returns a list of columns and the pattern it has"""
