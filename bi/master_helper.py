@@ -52,11 +52,21 @@ from bi.scripts.business_impact import BusinessCard
 def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
-        df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+        try:
+            df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+            cols = [re.sub('\W+','_', col.strip()) for col in df.columns]
+            df = df.toDF(*cols)
+            df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
+            dataframe_context._pandas_flag = False
+            pyspark=True
+        except:
+            df = DataLoader.load_csv_file_pandas(dataframe_context.get_input_file())
+            df.columns = [re.sub('\W+','_', col.strip()) for col in df.columns]
+            df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
+            dataframe_context._pandas_flag = True
+            pyspark=False
+
         # cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]","", col) for col in df.columns]
-        cols = [re.sub('\W+','_', col.strip()) for col in df.columns]
-        df = df.toDF(*cols)
-        df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
         # df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
     else:
         dbConnectionParams = dataframe_context.get_dbconnection_params()
@@ -64,16 +74,25 @@ def load_dataset(spark,dataframe_context):
         # cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
         cols = [re.sub('\W+','_', col.strip()) for col in df.columns]
         df = df.toDF(*cols)
+        pyspark=True
         # df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
-    if df != None:
-        # Dropping blank rows
-        df = df.dropna(how='all', thresh=None, subset=None)
+    if pyspark:
+        if df != None:
+            # Dropping blank rows
+            df = df.dropna(how='all', thresh=None, subset=None)
 
-    if df != None:
-        print("DATASET LOADED")
-        print(df.printSchema())
+        if df != None:
+            print("DATASET LOADED")
+            print(df.printSchema())
+        else:
+            print("DATASET NOT LOADED")
     else:
-        print("DATASET NOT LOADED")
+        try:
+            df = df.dropna(how='all', thresh=None, subset=None)
+            print(df.dtypes)
+            print("DATASET LOADED")
+        except:
+            print("DATASET NOT LOADED")
     return df
 
 def get_metadata(df,spark,dataframe_context,new_cols_added):

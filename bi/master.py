@@ -51,7 +51,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "training"
+            jobType = "metaData"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -121,8 +121,7 @@ def main(configJson):
     dataframe_context.set_xml_url(jobConfig["xml_url"])
     dataframe_context.set_job_name(jobName)
 
-    ######  pandas Flag  ################
-    dataframe_context._pandas_flag = False
+
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
@@ -166,7 +165,12 @@ def main(configJson):
                 dataframe_context.update_completion_status(completionStatus)
             ########################## Load the dataframe ##############################
             df = MasterHelper.load_dataset(spark,dataframe_context)
-            df = df.persist()
+            ######  pandas Flag  ################
+            #dataframe_context._pandas_flag = False
+            try:
+                df = df.persist()
+            except:
+                pass
             rowscols = (df.count(), len(df.columns))
             removed_col=[]
             new_cols_added = None
@@ -180,12 +184,18 @@ def main(configJson):
                     if dataframe_context.get_trainerMode() == "autoML":
                         dataframe_context._pandas_flag = True
                         if jobType == "training":
-                            df = df.toPandas()
+                            try:
+                                df = df.toPandas()
+                            except:
+                                pass
                             autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
 
                             one_click_json, linear_df, tree_df = autoML_obj.run()
                         elif jobType == "prediction":
-                            df = df.toPandas()
+                            try:
+                                df = df.toPandas()
+                            except:
+                                pass
                             score_obj =  autoMLScore.Scoring(df, one_click)
                             linear_df, tree_df = score_obj.run()
                         # linear
@@ -233,7 +243,10 @@ def main(configJson):
                             ## TO DO : Change flag later this is only for testing
                             pandas_flag = dataframe_context._pandas_flag
                             if pandas_flag :
-                                df = df.toPandas()
+                                try:
+                                    df = df.toPandas()
+                                except:
+                                    pass
                             if dataCleansingDict['selected']:
                                 data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict, dataframe_context)
                                 df = data_preprocessing_obj.data_cleansing()
@@ -250,10 +263,13 @@ def main(configJson):
                                 new_cols_added = list(set(new_cols_list) - set(old_cols_list))
                             else:
                                  new_cols_added = None
-                            if pandas_flag:
-                                ## TODO: has to be removed now that metadata and DFhelper are in pandas
-                                df=spark.createDataFrame(df)
-                            print(df.printSchema())
+                            # if pandas_flag:
+                            #     ## TODO: has to be removed now that metadata and DFhelper are in pandas
+                            #     df=spark.createDataFrame(df)
+                            try:
+                                print(df.printSchema())
+                            except:
+                                print(df.dtypes)
 
                         metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                         df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
