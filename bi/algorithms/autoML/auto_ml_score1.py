@@ -16,7 +16,7 @@ class Scoring(object):
     def run(self):
         if len(self.train_json['MeasureColsToDim']) > 0:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
-            DataPreprocessingAutoML_obj.dimension_measure(self.train_json['MeasureColsToDim'])
+            DataPreprocessingAutoML_obj.dimension_measure_test(self.train_json['MeasureColsToDim'])
             self.data_frame = DataPreprocessingAutoML_obj.data_frame
         if len(self.train_json['MeanImputeCols']) > 0:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
@@ -25,6 +25,7 @@ class Scoring(object):
         if len(self.train_json['ModeImputeCols']) > 0:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
             DataPreprocessingAutoML_obj.dim_col_imputation(self.train_json['MeasureColsToDim'])
+            DataPreprocessingAutoML_obj.test_data_imputation()
             self.data_frame = DataPreprocessingAutoML_obj.data_frame
         if len(self.train_json['date_column_split']) > 0:
             FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None)

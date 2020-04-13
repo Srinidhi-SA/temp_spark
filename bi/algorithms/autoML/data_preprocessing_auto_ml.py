@@ -77,6 +77,19 @@ class DataPreprocessingAutoML:
                         self.data_frame[column] = pd.to_numeric(self.data_frame[column])
                         self.numeric_cols.append(column)
 
+    def dimension_measure_test(self, columns):
+        for column in columns:
+            if (str(self.data_frame[column].dtype).startswith('int')) | (str(self.data_frame[column].dtype).startswith('float')):
+                continue
+            else:
+                column_val = self.data_frame[column]
+                out = column_val.str.contains("^[0-9]+[.]{0,1}[0-9]*\s*$")
+                if out[out == False].count() <= 0.01 * self.data_frame.shape[0]:
+                    row_index = out.index[out == False].tolist()
+                    self.data_frame[column] = pd.to_numeric(self.data_frame[column])
+                    self.data_frame.iloc[row_index] = int(np.mean(self.data_frame[column]))
+                    self.dimension_cols.remove(column)
+                    self.numeric_cols.append(column)
 
     def handle_outliers(self):
         '''
@@ -121,6 +134,19 @@ class DataPreprocessingAutoML:
             if column in self.col_with_nulls:
                 self.data_frame[column] = self.mode_impute(self.data_frame[column])
                 self.data_change_dict['ModeImputeCols'].append(column)
+
+    def test_data_imputation(self):
+        null_cols = self.data_frame.columns[self.data_frame.isna().any()].tolist()
+        if len(null_cols) != 0:
+            numeric_columns = self.data_frame[null_cols]._get_numeric_data().columns
+            cat_col_names = list(set(null_cols) - set(numeric_columns))
+            for col in null_cols:
+                if col in cat_col_names:
+                    mode_df = self.mode_impute(self.data_frame[col])
+                    self.data_frame[col] = mode_df
+                else:
+                    mean_df = self.mean_impute(self.data_frame[col])
+                    self.data_frame[col] = mean_df
     #ON HOLD
     def regex_catch(self, column):
         """Returns a list of columns and the pattern it has"""
