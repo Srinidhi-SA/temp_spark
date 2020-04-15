@@ -86,8 +86,9 @@ class DataPreprocessingAutoML:
                 out = column_val.str.contains("^[0-9]+[.]{0,1}[0-9]*\s*$")
                 if out[out == False].count() <= 0.01 * self.data_frame.shape[0]:
                     row_index = out.index[out == False].tolist()
+                    pure_column = self.data_frame[column].drop(row_index, axis=0)
                     self.data_frame[column] = pd.to_numeric(self.data_frame[column])
-                    self.data_frame.iloc[row_index] = int(np.mean(self.data_frame[column]))
+                    self.data_frame.iloc[row_index] = int(np.mean(pure_column))
                     self.dimension_cols.remove(column)
                     self.numeric_cols.append(column)
 
