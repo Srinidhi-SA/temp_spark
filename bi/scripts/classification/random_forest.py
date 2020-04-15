@@ -805,16 +805,16 @@ class RFClassificationModelScript(object):
         self._dataframe_context.set_story_on_scored_data(True)
         if self._pandas_flag:
             df = df.drop(columns_to_drop, axis=1)
-            spark_scored_df = df.copy()
+            scored_df = df.copy()
         else:
             SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-            spark_scored_df = SQLctx.createDataFrame(df.drop(columns_to_drop, axis=1))
+            scored_df = SQLctx.createDataFrame(df.drop(columns_to_drop, axis=1))
         # TODO update metadata for the newly created dataframe
         self._dataframe_context.update_consider_columns(columns_to_keep)
 
-        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
+        df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
-        # spark_scored_df = df_helper.get_data_frame()
+        scored_df = df_helper.get_data_frame()
 
         # try:
         #     fs = time.time()
@@ -861,7 +861,7 @@ class RFClassificationModelScript(object):
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print(narratives_obj)
             except:
