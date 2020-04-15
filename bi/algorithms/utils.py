@@ -2146,6 +2146,8 @@ def stock_sense_overview_card(data_dict_overall):
 
 
     sentimentByStockCardData = data_dict_overall["stocks_by_sentiment"]
+    for i in data_dict_overall["stocks_by_sentiment"].items():
+        data_dict_overall["stocks_by_sentiment"][i[0]] = round(i[1], 3)
     plotData = []
     for k,v in list(sentimentByStockCardData.items()):
         plotData.append({"name":k,"value":v})
@@ -2158,7 +2160,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_label_text({'x':'Stock','y':'Avg. Sentiment Score'})
     chart_json.set_title("Sentiment Score by Stocks")
     chart_json.set_subchart(False)
-    chart_json.set_yaxis_number_format(".2f")
+    chart_json.set_yaxis_number_format(".3f")
     sentimentByStockDataChart = C3ChartData(data=chart_json)
     sentimentByStockDataChart.set_width_percent(50)
     overviewCardData.append(sentimentByStockDataChart)
