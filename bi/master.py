@@ -264,7 +264,10 @@ def main(configJson):
                         try:
                             for i in dataTypeChangeCols:
                                 if i["columnType"]=="dimension":
-                                    updateLevelCountCols.append(i["colName"])
+                                    if  jobType != "prediction":
+                                        updateLevelCountCols.append(i["colName"])
+                                    elif i["colName"] != self.dataframe_context.get_result_column() and jobType == "prediction":#in prediction we should not add target
+                                        updateLevelCountCols.append(i["colName"])
                         except:
                             pass
                         levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
