@@ -441,11 +441,37 @@ class StockAdvisor(object):
         #output = list(merged.T.to_dict().values())
         #output = sorted(output,key = lambda x:datetime.strptime(x["date"],"%Y-%m-%d"))
         #return output
+#    def get_datewise_stock_value_and_sentiment(self,pandasDf, stockPriceData):
+#        relevantDf = pandasDf.groupby("date").agg({"overallSentiment": 'mean'}).reset_index(drop=False)
+#        relevantDf.columns = ['date', 'overallSentiment']
+#        merged = pd.merge(relevantDf, stockPriceData[["close", "date"]], on="date", how="inner")
+#        merged['date'] = merged.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
+#        output = list(merged.T.to_dict().values())
+#        output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
+#        return output
+
+    def sentiment_score_compute(self, pandasDf1):
+        score = []
+        for index, datarow in pandasDf1.iterrows():
+            score.append(datarow['sentiment']['document']['score'])
+        return score
+
     def get_datewise_stock_value_and_sentiment(self,pandasDf, stockPriceData):
-        relevantDf = pandasDf.groupby("date").agg({"overallSentiment": 'mean'}).reset_index(drop=False)
-        relevantDf.columns = ['date', 'overallSentiment']
-        merged = pd.merge(relevantDf, stockPriceData[["close", "date"]], on="date", how="inner")
-        merged['date'] = merged.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
+        pandasDf['pre_date'] = pandasDf.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
+        date_list = list(dict.fromkeys(pandasDf.pre_date))
+        senti_dict = {}
+        for i in range(len(date_list) - 1):
+            pandasDf1 = pandasDf[(pandasDf.pre_date >= date_list[i + 1]) & (pandasDf.pre_date <= date_list[i])]
+            senti_dict.update({date_list[i]: np.mean(self.sentiment_score_compute(pandasDf1))})
+        pandasDf1 = pandasDf[(pandasDf.pre_date == date_list[len(date_list) - 1])]
+        senti_dict.update({date_list[len(date_list) - 1]: np.mean(self.sentiment_score_compute(pandasDf1))})
+        relevantDf = pd.DataFrame(senti_dict.items(), columns=['date', 'overallSentiment'])
+
+        stockPriceData['close'] = stockPriceData['close'].apply(lambda x: float(x))
+        stockPriceData['date1'] = stockPriceData.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
+        stockPriceData.dropna(inplace=True)
+
+        merged = pd.merge(relevantDf,stockPriceData[["close","date1"]],left_on="date",right_on='date1',how="inner")
         output = list(merged.T.to_dict().values())
         output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
         return output
@@ -570,7 +596,7 @@ class StockAdvisor(object):
                                                                              stageCompletionPercentage=weights,
                                                                              globalCompletionPercentage=weights,
                                                                              display=True)
-                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
+                #CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
                 stockDict[stock_symbol] = {}
                 if self._runEnv == "debugMode":
                     df = self.read_json(self.BASE_DIR+stock_symbol+".json")
@@ -620,14 +646,19 @@ class StockAdvisor(object):
 
                 regDf = self.pandasDf[["time","overallSentiment","totalCount"]+[x+"_count" for x in list(self.concepts.keys())]]
                 regDfgrouped = regDf.groupby("time").sum().reset_index()
-                regDfgrouped.index = regDfgrouped["time"]
+                regDfgrouped["date"] = regDfgrouped["time"]
+                #regDfgrouped.index = regDfgrouped["time"]
                 stockDf  = stockPriceData[["close","date"]]
+                #stockDf.index = stockDf["date"]
+                #priceTrendDict = stockDf.to_dict()["close"]
+                #tockPriceTrendDict[stock_symbol] = priceTrendDict
+                regDfFinal =  pd.merge(regDfgrouped, stockDf, on='date')
                 stockDf.index = stockDf["date"]
                 priceTrendDict = stockDf.to_dict()["close"]
                 stockPriceTrendDict[stock_symbol] = priceTrendDict
                 # print regDfgrouped.columns
                 # print stockDf.columns
-                regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
+                #regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
                 regDfFinal.drop(["date"],axis = 1,inplace=True)
                 regDfFinal.columns = ["time","overallSentiment"+"_"+stock_symbol,"totalCount"+"_"+stock_symbol]+[x+"_count" for x in list(self.concepts.keys())]+["close"+"_"+stock_symbol]
                 masterDfDict[stock_symbol] = regDfFinal
@@ -714,7 +745,7 @@ class StockAdvisor(object):
                                                                              stageCompletionPercentage=weights,
                                                                              globalCompletionPercentage=weights,
                                                                              display=True)
-                CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
+                #CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
                 regressionDf = masterDfDict[current_stock]
                 regressionDf = masterDfDict[current_stock]
                 regressionDf.index = regressionDf["time"]
@@ -746,7 +777,7 @@ class StockAdvisor(object):
                                                                      stageCompletionPercentage=weights,
                                                                      globalCompletionPercentage=weights,
                                                                      display=True)
-        CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
+        #CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
         # print "#"*100
         self._stockNameList = working_stock_list
         number_stocks = len(self._stockNameList)
