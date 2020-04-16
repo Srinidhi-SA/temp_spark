@@ -249,11 +249,15 @@ class LogisticRegressionScript(object):
 
                 if automl_enable:
                     params_grid={'C': [0.001,0.01,0.55,1.0,10,100,1000],
-                                'solver' : ['lbfgs', 'liblinear','newton-cg'],
-                                'penalty':['l1', 'l2'],
                                 'fit_intercept':[True],
                                 'max_iter':[100,500,100]
                                  }
+                    if x_train.shape[0] < 1000:
+                        params_grid['solver'] = ['liblinear']
+                        params_grid['penalty'] = ['l1']
+                    else:
+                        params_grid['solver'] = ['lbfgs', 'newton-cg', 'saga']
+                        params_grid['penalty'] = ['l2']
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfGrid = GridSearchCV(clf,params_grid)
                     gridParams = clfGrid.get_params()

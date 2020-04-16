@@ -49,7 +49,10 @@ class AutoMl:
             CommonUtils.print_errors_and_store_traceback(self.LOGGER, "Feature Selection", e)
             CommonUtils.save_error_messages(self.errorURL, self.app_type, e, ignore=self.ignoreMsg)
         self.df = FeatureEngineeringAutoML_obj.data_frame
-        self.linear_df = self.df[cols_considered_linear]
+        if len(cols_considered_linear) == 1:
+            self.linear_df = self.df[cols_considered_tree]
+        else:
+            self.linear_df = self.df[cols_considered_linear]
         self.tree_df=self.df[cols_considered_tree]
         self.final_json = FeatureSelection_obj.data_change_dict
         self.final_json["target"] = FeatureEngineeringAutoML_obj.target

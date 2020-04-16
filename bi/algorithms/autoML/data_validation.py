@@ -4,6 +4,9 @@ import pandas as pd
 class DataValidation:
     def __init__(self,data_frame,target,problem_type):
         self.data_frame = data_frame
+        na_values = ["NO CLUE", "no clue", "No Clue", "na", "NA", "N/A", "n/a", "n a", "N A", "not available",
+                     "Not Available", "NOT AVAILABLE", "?", "!", "NONE", "None", "none", "null", "-"]
+        self.data_frame = self.data_frame.replace(to_replace =na_values, value = np.nan)
         data = self.data_frame
         data = data.apply(lambda col: pd.to_datetime(col, errors='ignore') if col.dtypes == object else col, axis=0)
         self.target = target
