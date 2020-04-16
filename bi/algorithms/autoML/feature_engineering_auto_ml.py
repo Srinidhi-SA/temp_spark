@@ -40,6 +40,8 @@ class FeatureEngineeringAutoML():
         oh_enc=OneHotEncoder(sparse=False)
         encoded_df=pd.DataFrame(oh_enc.fit_transform(self.data_frame[col_list]),columns=oh_enc.get_feature_names())
         self.data_frame=self.data_frame[self.data_frame.columns.difference(col_list)]
+        self.data_frame.reset_index(drop=True, inplace=True)
+        encoded_df.reset_index(drop=True, inplace=True)
         self.data_frame = pd.concat([self.data_frame,encoded_df], axis = 1)
         self.data_change_dict['one_hot_encoded']=col_list
         #print(self.data_frame)

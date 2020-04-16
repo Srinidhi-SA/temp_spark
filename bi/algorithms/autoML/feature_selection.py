@@ -40,7 +40,10 @@ class FeatureSelection():
         linear_list=[]
         le=LabelEncoder()
         X_train = self.data_frame.drop(self.target, axis=1)
-        Y_train=le.fit_transform(self.data_frame[self.target])
+        try:
+            Y_train=le.fit_transform(self.data_frame[self.target])
+        except:
+            Y_train = le.fit_transform(self.data_frame[self.target].astype(str))
         #Y_train = self.data_frame[self.target]
         X_train = X_train[X_train._get_numeric_data().columns]
 
