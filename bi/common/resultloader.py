@@ -31,7 +31,7 @@ class ResultSetter(object):
         self.logisticRegressionModelSummary = None
         self.svmModelSummary = None
         self.nnptcModelSummary = None
-
+        self.lgbmModelSummary=None
         self.linearRegressionModelSummary = None
         self.generalizedLinearRegressionModelSummary = None
         self.gbtRegressionModelSummary = None
@@ -48,6 +48,7 @@ class ResultSetter(object):
         self.nncards = []
         self.tfcards = []
         self.nnptccards = []
+        self.lgbmcards=[]
 
         self.linrcards = []
         self.glinrcards = []
@@ -68,6 +69,7 @@ class ResultSetter(object):
         self.xgbnodes = []
         self.lrnodes = []
         self.nnptcnodes = []
+        self.lgbmnodes=[]
 
         self.stockAdvisorNode = None
         self.uidTable = None
@@ -100,7 +102,7 @@ class ResultSetter(object):
         self.gbtfailcard = []
         self.tfregfailcard = []
         self.nnptrfailcard = []
-
+        self.lgbmfailcard =[]
     def set_dtr_fail_card(self,data):
         self.dtrfailcard=data
     def get_dtr_fail_card(self):
@@ -147,6 +149,11 @@ class ResultSetter(object):
     def get_rf_fail_card(self):
         return self.rffailcard
 
+    def set_lgbm_fail_card(self,data):
+        self.lgbmfailcard=data
+    def get_lgbm_fail_card(self):
+        return self.lgbmfailcard
+
     def set_dtree_nodes(self,data):
         self.dtreenodes = data
     def set_tfreg_nodes(self,data):
@@ -187,6 +194,8 @@ class ResultSetter(object):
         self.xgbnodes = data
     def set_nnptc_nodes(self,data):
         self.nnptcnodes = data
+    def set_lgbm_nodes(self,data):
+        self.lgbmnodes = data
 
     def get_all_rf_classification_nodes(self):
         return self.rfnodes
@@ -198,6 +207,8 @@ class ResultSetter(object):
         return self.lrnodes
     def get_all_xgb_classification_nodes(self):
         return self.xgbnodes
+    def get_all_lgbm_classification_nodes(self):
+        return self.lgbmnodes
     def get_all_nb_classification_nodes(self):
         return self.nbnodes
     def get_all_nnptc_classification_nodes(self):
@@ -281,9 +292,11 @@ class ResultSetter(object):
         self.tfcards = data
     def set_nnptc_cards(self,data):
         self.nnptccards = data
+    def set_lgbm_cards(self,data):
+        self.lgbmcards = data
 
     def get_all_classification_cards(self):
-        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards,'TensorFlow':self.tfcards, "Neural Networks(pyTorch)":self.nnptccards}
+        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards,'LightGBM':self.lgbmcards,  'Random Forest':self.rfcards,'TensorFlow':self.tfcards, "Neural Networks(pyTorch)":self.nnptccards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
@@ -313,7 +326,8 @@ class ResultSetter(object):
         self.svmModelSummary = data
     def set_nnptc_model_summary(self,data):
         self.nnptcModelSummary = data
-
+    def set_lgbm_model_summary(self,data):
+        self.lgbmModelSummary =data
     def set_linear_regression_model_summary(self,data):
         self.linearRegressionModelSummary = data
     def set_generalized_linear_regression_model_summary(self,data):
@@ -345,6 +359,8 @@ class ResultSetter(object):
         return self.tfModelSummary
     def get_nnptc_model_summary(self):
         return self.nnptcModelSummary
+    def get_lgbm_model_summary(self):
+        return self.lgbmModelSummary
 
     def get_linear_regression_model_summary(self):
         return self.linearRegressionModelSummary

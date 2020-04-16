@@ -22,6 +22,7 @@ class messages_list(object):
         "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Training Started", "Logistic Regression Model Training Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Training Started", "Random Forest Model Training Finished"),
         "XGBoost": ("Initialized The Xgboost Scripts", "Xgboost Model Training Started", "Xgboost Model Training Finished"),
+        "LightGBM": ("Initialized The LightGBM Scripts", "LightGBM Model Training Started", "LightGBM Model Training Finished"),
         "naive bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Training Started", "Naive Bayes Model Training Finished"),
         "SVM": ("Initialized the SVM Scripts", "SVM Model Training Started", "SVM Model Training Finished"),
         "Neural Network": ("Initialized The Neural Network Scripts", "Neural Network Model Training Started", "Neural Network Model Training Finished"),

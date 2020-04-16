@@ -11,7 +11,8 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.common import utils as CommonUtils
 from sklearn.model_selection import KFold,StratifiedKFold,StratifiedShuffleSplit
 from sklearn import metrics
-
+import lightgbm as lgb
+import numpy as np
 
 
 
@@ -866,6 +867,56 @@ class SkleanrKFoldResult(object):
                 self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
             else:
                 self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=False)
+
+
+    def train_and_save_result_lgbm(self,params):
+        evaluationMetric = self.evaluationMetricDict["name"]
+        for train_index, test_index in self.kfObject.split(self.x_train):
+            x_train_fold, x_test_fold = self.x_train.iloc[train_index,:], self.x_train.iloc[test_index,:]
+            y_train_fold, y_test_fold = self.y_train.iloc[train_index], self.y_train.iloc[test_index]
+            x_train_fold.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train_fold.columns.values]
+            x_train_fold.columns = ["".join (c if c.isalnum() else "_" for c in str(x)) for x in x_train_fold.columns]
+            x_test_fold.columns = ["".join (c if c.isalnum() else "_" for c in str(x)) for x in x_test_fold.columns]
+            d_train = lgb.Dataset(data=x_train_fold, label= y_train_fold)
+            d_test = lgb.Dataset(data=x_test_fold, label=y_test_fold)
+            self.estimator = lgb.train(train_set=d_train,
+                 params=params,
+                 valid_sets=[d_train, d_test],
+                 valid_names=['Train', 'Test'],
+                 num_boost_round=144,
+                )
+
+            self.estimator.feature_names = list(x_train_fold.columns.values)
+            y_score_fold = np.round(self.estimator.predict(x_test_fold))
+            metricsFold = {}
+            if self.appType == "CLASSIFICATION":
+                metricsFold["accuracy"] = metrics.accuracy_score(y_test_fold,y_score_fold)
+                if len(self.levels) <= 2:
+                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
+                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
+                    metricsFold["roc_auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                elif len(self.levels) > 2:
+                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
+                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
+                    metricsFold["roc_auc"] = "NA"
+            elif self.appType == "REGRESSION":
+                metricsFold["r2"] = metrics.r2_score(y_test_fold, y_score_fold)
+                metricsFold["neg_mean_squared_error"] = metrics.mean_squared_error(y_test_fold, y_score_fold)
+                metricsFold["neg_mean_absolute_error"] = metrics.mean_absolute_error(y_test_fold, y_score_fold)
+                try:
+                    metricsFold["neg_mean_squared_log_error"] = metrics.mean_squared_log_error(y_test_fold, y_score_fold)
+                except:
+                    metricsFold["neg_mean_squared_log_error"] = "NA"
+                metricsFold["RMSE"] = sqrt(metricsFold["neg_mean_squared_error"])
+            self.kFoldOutput.append((self.estimator,metricsFold))
+        if self.appType == "CLASSIFICATION":
+            self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
+        elif self.appType == "REGRESSION":
+            if self.evaluationMetricDict["name"] == "r2":
+                self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
+            else:
+                self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=False)
+
 
 
     def get_kfold_result(self):

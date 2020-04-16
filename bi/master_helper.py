@@ -20,6 +20,7 @@ from bi.scripts.classification.naive_bayes import NBBClassificationModelScript
 from bi.scripts.classification.naive_bayes import NBGClassificationModelScript
 from bi.scripts.classification.naive_bayes import NBMClassificationModelScript
 from bi.scripts.classification.xgboost_classification import XgboostScript
+from bi.scripts.classification.lgbm_classification import LgbmScript
 from bi.scripts.classification.logistic_regression import LogisticRegressionScript
 from bi.scripts.classification.neural_network import NeuralNetworkScript
 from bi.scripts.classification.tensor_flow_nn import TensorFlowScript
@@ -273,6 +274,16 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                 except Exception as e:
                     result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["LightGBM"]:
+                try:
+                    st = time.time()
+                    lgb_obj = LgbmScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
+                    lgb_obj.Train()
+                    print("lightgbm Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lgbm_fail_card({"Algorithm_Name":"LightGBM","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"LightGBM",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]:
                 try:
@@ -737,6 +748,14 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+        elif "LightGBM" in selected_model_for_prediction:
+            trainedModel = LgbmScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"LightGBM",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "Neural Network" in selected_model_for_prediction:
