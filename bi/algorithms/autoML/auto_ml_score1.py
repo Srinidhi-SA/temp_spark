@@ -25,8 +25,12 @@ class Scoring(object):
         if len(self.train_json['ModeImputeCols']) > 0:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
             DataPreprocessingAutoML_obj.dim_col_imputation(self.train_json['ModeImputeCols'])
-            DataPreprocessingAutoML_obj.test_data_imputation()
             self.data_frame = DataPreprocessingAutoML_obj.data_frame
+        try:
+            DataPreprocessingAutoML_obj.test_data_imputation()
+        except:
+            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
+            DataPreprocessingAutoML_obj.test_data_imputation()
         if len(self.train_json['date_column_split']) > 0:
             FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None)
             FeatureEngineeringAutoML_obj.date_column_split(self.train_json['date_column_split'])
