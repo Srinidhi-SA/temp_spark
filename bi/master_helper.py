@@ -58,11 +58,13 @@ def load_dataset(spark,dataframe_context):
             df = df.toDF(*cols)
             df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
             dataframe_context._pandas_flag = False
+            print("####### PYSPARK ########### STARTED PYSPARK FLOW ################ PYSPARK #########")
             pyspark=True
         except:
             df = DataLoader.load_csv_file_pandas(dataframe_context.get_input_file())
             df.columns = [re.sub('\W+','_', col.strip()) for col in df.columns]
             df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
+            print("######## PANDAS ########### STARTED PANDAS FLOW ############# PANDAS ##############")
             dataframe_context._pandas_flag = True
             pyspark=False
 
