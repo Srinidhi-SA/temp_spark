@@ -654,10 +654,10 @@ class StockAdvisor(object):
             conceptFilepath = self.BASE_DIR + "concepts.json"
             self.concepts = self.load_concepts_from_json(conceptFilepath)
         else:
-            #conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
-            #self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
-            conceptFilepath = self._hdfsBaseDir + "/concepts/concepts.json"
-            self.concepts = self.load_concepts_from_json(conceptFilepath)
+            conceptFilepath = self._hdfsBaseDir+"/concepts/concepts.json"
+            self.concepts = self.read_ankush_concepts(self.dataFilePath.format("concepts",""))
+            #conceptFilepath = self._hdfsBaseDir + "/concepts/concepts.json"
+            #self.concepts = self.load_concepts_from_json(conceptFilepath)
         masterDfDict = {}
         stockDict = {}
         stockPriceTrendDict = {}
