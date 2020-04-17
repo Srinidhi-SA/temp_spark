@@ -15,6 +15,7 @@ import re
 import time
 from datetime import datetime
 
+import pandas as pd
 import enchant
 import humanize
 import jinja2
@@ -556,7 +557,13 @@ def calculate_level_contribution(df, columns, index_col, dateColDateFormat, valu
         # print "time taken for pandas conversion of pivotdf",time.time()-st
         k["total"] = k.sum(axis=1)
         k[index_col] = k[index_col].apply(str)
-        k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,dateColDateFormat) if x != 'None' else None)
+        try:
+            k["rank"] = k[index_col].apply(lambda x: datetime.strptime(x,dateColDateFormat) if x != 'None' else None)
+        except Exception as e:
+            print("Exception in /bi/narratives/utils.py calculate_level_contribution: ", e)
+            k[index_col] = pd.to_datetime(k[index_col])
+            k["rank"] = k[index_col].apply(lambda x: datetime.strftime(x, dateColDateFormat) if x != 'None' else None)
+
         k = k.sort_values(by="rank", ascending=True)
         occurance_index = np.where(k[index_col] == max_time)
         # print "occurance_index",occurance_index

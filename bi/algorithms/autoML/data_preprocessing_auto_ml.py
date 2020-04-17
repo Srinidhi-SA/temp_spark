@@ -35,7 +35,7 @@ class DataPreprocessingAutoML:
         self.data_change_dict['dropped_columns_list'] = []
         def dropped_col_update(list_element):
             if list_element["column_name"] not in self.data_frame.columns:
-                list_element["droped_column_flag"] = True
+                list_element["dropped_column_flag"] = True
                 self.data_change_dict['dropped_columns_list'].append(list_element["column_name"])
                 self.numeric_cols, self.dimension_cols, self.col_with_nulls = drop_cols_from_list(list_element["column_name"],self.numeric_cols, self.dimension_cols, self.col_with_nulls)
             else:
@@ -48,7 +48,7 @@ class DataPreprocessingAutoML:
         self.data_frame  = self.data_frame .loc[:, (self.data_frame.isna().sum() < (0.75 * self.data_frame.shape[0]))]
         def dropped_col_update(list_element):
             if list_element["column_name"] not in self.data_frame.columns:
-                list_element["droped_column_flag"] = True
+                list_element["dropped_column_flag"] = True
                 self.data_change_dict['dropped_columns_list'].append(list_element["column_name"])
                 self.numeric_cols, self.dimension_cols, self.col_with_nulls = drop_cols_from_list(list_element["column_name"],self.numeric_cols, self.dimension_cols, self.col_with_nulls)
             else:

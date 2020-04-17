@@ -4,7 +4,7 @@ from bi.algorithms.autoML.data_validation import DataValidation
 from bi.algorithms.autoML.data_preprocessing_auto_ml import DataPreprocessingAutoML
 from bi.algorithms.autoML.feature_engineering_auto_ml import FeatureEngineeringAutoML
 from bi.algorithms.autoML.feature_selection import FeatureSelection
-
+from bi.algorithms import utils as MLUtils
 class Scoring(object):
 
     def __init__(self, df, train_json):
@@ -40,6 +40,6 @@ class Scoring(object):
         final_list_tree=self.train_json['SelectedColsTree']
         final_list_linear.remove(self.train_json['target'])
         final_list_tree.remove(self.train_json['target'])
-        score_df_linear = self.data_frame[final_list_linear]
-        score_df_tree = self.data_frame[final_list_linear]
+        score_df_linear = MLUtils.fill_missing_columns(self.data_frame,final_list_linear,self.train_json['target'])
+        score_df_tree = MLUtils.fill_missing_columns(self.data_frame,final_list_tree,self.train_json['target'])
         return score_df_linear, score_df_tree
