@@ -125,7 +125,10 @@ class Binner(object):
                     bin_number = int(row[1][0])
                     start_value = splits[bin_number]
                     end_value = splits[bin_number + 1]
-                    histogram.add_bin(bin_number, start_value, end_value, row[1][1])
+                    try:
+                        histogram.add_bin(bin_number, start_value, end_value, row[1][1])
+                    except:
+                        histogram.add_bin(bin_number, float(start_value), float(end_value), row[1][1])
             else:
                 buckets_and_counts = bucketizer.transform(column_df).groupBy(BinnerConstants.BINNED_COLUMN_NAME).agg({'*': 'count'}).collect()
                 histogram = Histogram(column_name, self._num_rows)

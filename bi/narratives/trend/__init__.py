@@ -288,7 +288,10 @@ class TimeSeriesNarrative(object):
                         if self._dataLevel == "month":
                             forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%b-%y")
                         elif self._dataLevel == "day":
-                            forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%Y-%m-%d")
+                            try:
+                                forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%Y-%m-%d")
+                            except:
+                                forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"], '%Y-%m-%d %H:%M:%S')
                         for val in range(prediction_window):
                             if self._dataLevel == "month":
                                 key = forecast_start_time+relativedelta(months=1+val)
