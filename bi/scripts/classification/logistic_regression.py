@@ -253,7 +253,7 @@ class LogisticRegressionScript(object):
                                 'max_iter':[100,500,100]
                                  }
                     if x_train.shape[0] < 1000:
-                        params_grid['solver'] = ['liblinear']
+                        params_grid['solver'] = ['liblinear', 'saga']
                         params_grid['penalty'] = ['l1']
                     else:
                         params_grid['solver'] = ['lbfgs', 'newton-cg', 'saga']

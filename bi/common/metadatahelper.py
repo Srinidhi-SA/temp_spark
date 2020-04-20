@@ -780,7 +780,7 @@ class MetaDataHelper(object):
                     for x1 in columnVector:
                         if x1 != None:
                             try:
-                                t = datetime.strptime(x,format1)
+                                t = datetime.strptime(x1,format1)
                             except ValueError as err:
                                 format1 = '%d'+format1[2]+'%m'+format1[5:]
                                 break
@@ -828,7 +828,7 @@ class MetaDataHelper(object):
                     for x1 in columnVector:
                         if x1 != None:
                             try:
-                                t = datetime.strptime(str(x),str(format1))
+                                t = datetime.strptime(str(x1),str(format1))
                             except ValueError as err:
                                 format1 = '%d'+format1[2]+'%m'+format1[5:]
                                 break

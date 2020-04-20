@@ -96,7 +96,7 @@ def main(configJson):
     messages = scriptStages.messages_list(config, jobConfig, jobType, jobName)
     messages_for_API = messages.send_messages()
     messages_for_API = json.dumps(messages_for_API)
-    #res = requests.put(url=initialMessageURL,data=messages_for_API)
+    res = requests.put(url=initialMessageURL,data=messages_for_API)
     try:
         errorURL = jobConfig["error_reporting_url"]
     except:
