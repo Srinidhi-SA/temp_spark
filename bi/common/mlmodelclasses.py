@@ -724,7 +724,7 @@ class SklearnGridSearchResult(object):
             print("#"*100)
             slug = self.modelFilepath.split("/")[-1]
             algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
-            #joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
+            joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
             row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False","Run Time(Secs)":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
             # row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time(Secs)":str(CommonUtils.round_sig(time.time()-st))}
             algoEvaluationMetrics = {}
@@ -777,7 +777,7 @@ class SklearnGridSearchResult(object):
             paramsObj = dict([(k,str(v)) if (v == None) | (v in [True,False]) else (k,v) for k,v in list(paramsObj.items())])
             row.update(paramsObj)
             tableOutput.append(row)
-        joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
+        #joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
         if self.appType == "REGRESSION":
             if self.evaluationMetricDict["name"] == "r2":
                 tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
