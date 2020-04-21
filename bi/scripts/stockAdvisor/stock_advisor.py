@@ -449,29 +449,27 @@ class StockAdvisor(object):
 #        output = list(merged.T.to_dict().values())
 #        output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
 #        return output
-
-    def sentiment_score_compute(self, pandasDf1):
+    def sentiment_score_compute(self,pandasDf1):
         score = []
         for index, datarow in pandasDf1.iterrows():
             score.append(datarow['sentiment']['document']['score'])
         return score
-
     def get_datewise_stock_value_and_sentiment(self,pandasDf, stockPriceData):
         pandasDf['pre_date'] = pandasDf.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
+        pandasDf.sort_values(by='pre_date', inplace=True)
         date_list = list(dict.fromkeys(pandasDf.pre_date))
         senti_dict = {}
+        pandasDf1 = pandasDf[(pandasDf.pre_date == date_list[0])]
+        senti_dict.update({date_list[0]: np.mean(self.sentiment_score_compute(pandasDf1))})
         for i in range(len(date_list) - 1):
-            pandasDf1 = pandasDf[(pandasDf.pre_date >= date_list[i + 1]) & (pandasDf.pre_date <= date_list[i])]
-            senti_dict.update({date_list[i]: np.mean(self.sentiment_score_compute(pandasDf1))})
-        pandasDf1 = pandasDf[(pandasDf.pre_date == date_list[len(date_list) - 1])]
-        senti_dict.update({date_list[len(date_list) - 1]: np.mean(self.sentiment_score_compute(pandasDf1))})
+            pandasDf1 = pandasDf[(pandasDf.pre_date >= date_list[i]) & (pandasDf.pre_date <= date_list[i + 1])]
+            senti_dict.update({date_list[i + 1]: np.mean(self.sentiment_score_compute(pandasDf1))})
         relevantDf = pd.DataFrame(senti_dict.items(), columns=['date', 'overallSentiment'])
 
         stockPriceData['close'] = stockPriceData['close'].apply(lambda x: float(x))
         stockPriceData['date1'] = stockPriceData.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
-        stockPriceData.dropna(inplace=True)
 
-        merged = pd.merge(relevantDf,stockPriceData[["close","date1"]],left_on="date",right_on='date1',how="inner")
+        merged = pd.merge(relevantDf, stockPriceData[["close", "date1"]], left_on="date", right_on='date1', how="inner")
         output = list(merged.T.to_dict().values())
         output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
         return output
@@ -790,7 +788,6 @@ class StockAdvisor(object):
         capNameList = [self.get_capitalized_name(x) for x in self._stockNameList]
         capNameDict = dict(list(zip(self._stockNameList,capNameList)))
         stockPriceTrendArray = [{"date":obj[0],capNameList[0]:CommonUtils.round_sig(obj[1],sig=2)} for obj in stockPriceTrendArray]
-
         for obj in stockPriceTrendArray:
             for stockName in self._stockNameList[1:]:
                 # print "stockName : ", stockName

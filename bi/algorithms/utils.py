@@ -2198,7 +2198,8 @@ def aggregate_concept_stats(conceptDictArray):
     for idx,val in enumerate(concepts):
         if len(conceptTableDict[val]) < maxNoSubConcepts:
             conceptTableDict[val] += [{"text":"","value":0}]*(maxNoSubConcepts-len(conceptTableDict[val]))
-        if articlesDict[val] != 0:
+        #if articlesDict[val] != 0:
+        if sentimentDict[val] != 0 or conceptVal[val] != 0:
             obj = {"concept":val,"articles":len(set(articlesDict[val])),"avgSentiment":round(old_div(sentimentDict[val],conceptVal[val]),2)}
         else:
             obj = {"concept":val,"articles":len(set(articlesDict[val])),"avgSentiment":0.0}
