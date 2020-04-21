@@ -33,7 +33,7 @@ from bi.scripts.regression.generalized_linear_regression_model import Generalize
 from bi.scripts.regression.gbt_regression_model import GBTRegressionModelScript
 from bi.scripts.regression.rf_regression_model import RFRegressionModelScript
 from bi.scripts.regression.dtree_regression_model import DTREERegressionModelScript
-
+from bi.scripts.metadata_pandas import MetaDataScriptPandas
 from bi.transformations import DataFrameFilterer
 from bi.transformations import DataFrameTransformer
 
@@ -53,40 +53,62 @@ from bi.scripts.business_impact import BusinessCard
 def load_dataset(spark,dataframe_context):
     datasource_type = dataframe_context.get_datasource_type()
     if datasource_type == "fileUpload":
-        df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+        try:
+            df = DataLoader.load_csv_file(spark, dataframe_context.get_input_file())
+            cols = [re.sub('\W+','_', col.strip()) for col in df.columns]
+            df = df.toDF(*cols)
+            df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
+            dataframe_context._pandas_flag = False
+            pyspark=True
+        except:
+            df = DataLoader.load_csv_file_pandas(dataframe_context.get_input_file())
+            df.columns = [re.sub('\W+','_', col.strip()) for col in df.columns]
+            df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
+            dataframe_context._pandas_flag = True
+            pyspark=False
+
         # cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]","", col) for col in df.columns]
-        cols = [re.sub('\W+','_', col) for col in df.columns]
-        df = df.toDF(*cols)
-        df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
         # df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
     else:
         dbConnectionParams = dataframe_context.get_dbconnection_params()
         df = DataLoader.create_dataframe_from_jdbc_connector(spark, datasource_type, dbConnectionParams)
         # cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", "", col) for col in df.columns]
-        cols = [re.sub('\W+','_', col) for col in df.columns]
+        cols = [re.sub('\W+','_', col.strip()) for col in df.columns]
         df = df.toDF(*cols)
+        pyspark=True
         # df = reduce(lambda data, idx: data.withColumnRenamed(df.columns[idx], cols[idx]), xrange(len(df.columns)), df)
-    if df != None:
-        # Dropping blank rows
-        df = df.dropna(how='all', thresh=None, subset=None)
+    if pyspark:
+        if df != None:
+            # Dropping blank rows
+            df = df.dropna(how='all', thresh=None, subset=None)
 
-    if df != None:
-        print("DATASET LOADED")
-        print(df.printSchema())
+        if df != None:
+            print("DATASET LOADED")
+            print(df.printSchema())
+        else:
+            print("DATASET NOT LOADED")
     else:
-        print("DATASET NOT LOADED")
+        try:
+            df = df.dropna(how='all', thresh=None, subset=None)
+            print(df.dtypes)
+            print("DATASET LOADED")
+        except:
+            print("DATASET NOT LOADED")
     return df
 
 def get_metadata(df,spark,dataframe_context,new_cols_added):
     debugMode = dataframe_context.get_debug_mode()
     jobType = dataframe_context.get_job_type()
-    if df != None:
+    if df is not None:
         metaParserInstance = MetaParser()
         if debugMode != True:
             if jobType != "metaData":
                 print("Retrieving MetaData")
                 if new_cols_added != None:
-                    df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                    try:
+                        df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                    except:
+                        df_new_added_cols = df[[c for c in df.columns if c in new_cols_added]]
                     print("starting Metadata for newly added columns")
                     dataframe_context.set_metadata_ignore_msg_flag(True)
                     try:
@@ -131,7 +153,10 @@ def get_metadata(df,spark,dataframe_context,new_cols_added):
                 # while running in debug mode the dataset_slug should be correct or some random String
                 try:
                     if new_cols_added != None:
-                        df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                        try:
+                            df_new_added_cols = df.select([c for c in df.columns if c in new_cols_added])
+                        except:
+                            df_new_added_cols = df[[c for c in df.columns if c in new_cols_added]]
                         print("starting Metadata for newly added columns")
                         dataframe_context.set_metadata_ignore_msg_flag(True)
                         meta_data_class_new = MetaDataScript(df_new_added_cols,spark,dataframe_context)
@@ -219,8 +244,11 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
     categorical_columns_tree_df = list(set(categorical_columns_tree_df)-set(allDateCols))
 
     if mlEnv == "sklearn":
-        linear_df = linear_df.toPandas()
-        tree_df = tree_df.toPandas()
+        try:
+            linear_df = linear_df.toPandas()
+            tree_df = tree_df.toPandas()
+        except:
+            pass
 
         linear_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in linear_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         tree_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in tree_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
@@ -365,6 +393,68 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
 
     elif app_type == "REGRESSION":
+        for obj in algosToRun:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
+                try:
+                    st = time.time()
+                    lin_obj = LinearRegressionModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_linear_df)
+                    lin_obj.Train()
+                    print("Linear Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+                try:
+                    st = time.time()
+                    lin_obj = TensorFlowRegScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    lin_obj.Train()
+                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"TensorFlow","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+                try:
+                    st = time.time()
+                    nnptr_obj = NNPTRegressionScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    nnptr_obj.Train()
+                    print("Neural Networks(pyTorch)-R trained in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
+                try:
+                    st = time.time()
+                    gbt_obj = GBTRegressionModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    gbt_obj.Train()
+                    print("GBT Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_gbt_fail_card({"Algorithm_Name":"gbtregression","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
+                try:
+                    st = time.time()
+                    dtree_obj = DTREERegressionModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    dtree_obj.Train()
+                    print("DTREE Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_dtr_fail_card({"Algorithm_Name":"DecisionTree","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
+                print("randomn forest is running")
+                try:
+                    st = time.time()
+                    rf_obj = RFRegressionModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
+                    rf_obj.Train()
+                    print("RF Regression Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_rf_fail_card({"Algorithm_Name":"rfRegression","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"rfRegression",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
         pass
         """
         # TODO
@@ -431,7 +521,10 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
     categorical_columns = list(set(categorical_columns)-set(allDateCols))
 
     if mlEnv == "sklearn":
-        df = df.toPandas()
+        try:
+            df = df.toPandas()
+        except:
+            pass
         df.columns = [re.sub("[[]|[]]|[<]","", col) for col in df.columns.values]
         # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         dataframe_helper.set_train_test_data(df)
@@ -821,10 +914,101 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
         print("Model Scoring Completed in ", time.time() - st, " seconds.")
 
     elif app_type == "REGRESSION":
-        pass
+
         '''
         To be done later when regression scoring is wired
         '''
+        model_path = score_file_path.split(basefoldername)[0]+"/"+GLOBALSETTINGS.BASEFOLDERNAME_MODELS+"/"+model_slug+"/"+algorithm_name
+        dataframe_context.set_model_path(model_path)
+        dataframe_context.set_score_path(score_file_path)
+        dataframe_context.set_story_on_scored_data(True)
+        selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
+        print("selected_model_for_prediction", selected_model_for_prediction)
+        if "linearregression" in  selected_model_for_prediction:
+            trainedModel = LinearRegressionModelScript(linear_df, df_helper_linear_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_linear_df)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"linearregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+
+        if "gbtregression" in  selected_model_for_prediction:
+            trainedModel = GBTRegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_tree_df)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"gbtregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+
+        if "dtreeregression" in  selected_model_for_prediction:
+            trainedModel = DTREERegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_tree_df)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"dtreeregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+
+        if "rfregression" in  selected_model_for_prediction:
+            trainedModel = RFRegressionModelScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative, result_setter, metaParserInstance_tree_df)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"rfregression",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+
+        headNode = NarrativesTree()
+        if headNode != None:
+            headNode.set_name(jobName)
+        # headNode["name"] = jobName
+        # distributionNode = result_setter.get_distribution_node()
+        # if distributionNode != None:
+        #     headNode["listOfNodes"].append(distributionNode)
+        # anovaNode = result_setter.get_anova_node()
+        # if anovaNode != None:
+        #     headNode["listOfNodes"].append(anovaNode)
+        # decisionTreeNode = result_setter.get_decision_tree_node()
+        # if decisionTreeNode != None:
+        #     headNode["listOfNodes"].append(decisionTreeNode)
+
+        kpiCard = result_setter.get_kpi_card_regression_score()
+        kpiCard = json.loads(CommonUtils.convert_python_object_to_json(kpiCard))
+
+        coeffCard = result_setter.get_coeff_card_regression_score()
+
+        overviewCard = NormalCard(cardData=[HtmlData("<h4>Overview</h4>")])
+        headNode.add_a_card(overviewCard)
+        headNode.add_a_card(kpiCard)
+        distributionNode = result_setter.get_distribution_node()
+        if distributionNode != None:
+            headNode.add_cards(distributionNode["listOfCards"])
+        if coeffCard != None:
+            headNode.add_a_card(coeffCard)
+        anovaNarratives = result_setter.get_anova_narratives_scored_data()
+        anovaCharts = result_setter.get_anova_charts_scored_data()
+        if anovaNarratives != {}:
+            anovaHeaderCard = NormalCard(cardData=[HtmlData("<h4>Analysis by Key Factors</h4>")])
+            headNode.add_a_card(anovaHeaderCard)
+            significantDims = len(anovaNarratives)
+            anovaNarrativesArray = list(anovaNarratives.items())
+            anovaCardWidth = 100
+            if significantDims == 1:
+                anovaCardWidth = 100
+            elif significantDims % 2 == 0:
+                anovaCardWidth = 50
+            else:
+                anovaCardWidth = 50
+                anovaNarrativesArray = anovaNarrativesArray[:-1]
+
+            for k,v in anovaNarrativesArray:
+                anovaCard = NormalCard()
+                anovaCard.set_card_width(anovaCardWidth)
+                chartobj = anovaCharts[k].get_dict_object()
+                anovaCard.add_card_data([anovaCharts[k],HtmlData(data=v)])
+                headNode.add_a_card(anovaCard)
         headNodeJson = CommonUtils.convert_python_object_to_json(headNode)
         print(headNodeJson)
         response = CommonUtils.save_result_json(jobUrl,headNodeJson)
@@ -1118,8 +1302,9 @@ def run_metadata(spark,df,dataframe_context):
     errorURL = dataframe_context.get_error_url()
     jobUrl = dataframe_context.get_job_url()
     ignoreMsg = dataframe_context.get_message_ignore()
-
-
+    ## TO DO : remove hard coded pandas flag
+    # pandas_flag = True
+    # dataframe_context._pandas_flag = pandas_flag
     meta_data_class = MetaDataScript(df,spark,dataframe_context)
     completionStatus = dataframe_context.get_completion_status()
     progressMessage = CommonUtils.create_progress_message_object("metaData","custom","info","Creating Metadata For The Dataset",completionStatus,completionStatus,display=True)
@@ -1434,7 +1619,10 @@ def run_measure_analysis(spark,df,dataframe_context,dataframe_helper,metaParserI
             correlations = correlation_obj.Run()
             print("Correlation Analysis Done in ", time.time() - fs ," seconds.")
             try:
-                df = df.na.drop(subset=measure_columns)
+                try:
+                    df = df.na.drop(subset=measure_columns)
+                except:
+                    df = df.drop_duplicates()
                 fs = time.time()
                 regression_obj = LinearRegressionScript(df, dataframe_helper, dataframe_context, result_setter, spark, correlations, story_narrative,metaParserInstance)
                 regression_obj.Run()

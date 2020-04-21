@@ -203,7 +203,10 @@ class DataFrameTransformer(object):
             existingCols = self._data_frame.columns
             # self._data_frame = self._data_frame.withColumnRenamed(colName,str(colName)+"JJJLLLLKJJ")
             # self._data_frame = self._data_frame.withColumn(colName,mapping_expr.getItem(col(str(colName)+"JJJLLLLKJJ")))
-            self._data_frame = self._data_frame.select(existingCols)
+            try:
+                self._data_frame = self._data_frame.select(existingCols)
+            except:
+                self._data_frame = self._data_frame[existingCols]
             self._dataframe_helper.set_dataframe(self._data_frame)
             self._metaParser.update_level_counts(colName,dict(newLevelCount))
 

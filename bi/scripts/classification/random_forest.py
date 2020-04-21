@@ -61,6 +61,7 @@ class RFClassificationModelScript(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._spark = spark
         self._model_summary =  MLModelSummary()
@@ -130,6 +131,8 @@ class RFClassificationModelScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+
+            print(len(x_train),len(x_test),len(y_train),len(y_test))
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -258,21 +261,21 @@ class RFClassificationModelScript(object):
                 algoParams["random_state"] = 42
 
                 if automl_enable:
-                    params_grid={'max_depth': [3,4,5,10,20],
+                    params_grid={'max_depth': [3,4,5,10,12],
                                 'min_samples_split': [2, 4,6],
                                 'min_samples_leaf': [1, 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [200],
-                                'criterion': ['gini', 'entropy'],
+                                'n_estimators': [100,200],
+                                'criterion': ['gini'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
-                    hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
-                    numFold=5
+                    numFold=10
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -408,9 +411,13 @@ class RFClassificationModelScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            if self._pandas_flag:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            else:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -702,15 +709,18 @@ class RFClassificationModelScript(object):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
 
-            shape = (self._data_frame.count(), len(self._data_frame.columns))
-            df = self._data_frame.toPandas()
+            # TODO:shape is not being used, remove later
+            #shape = (self._data_frame.count(), len(self._data_frame.columns))
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame.copy()
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             pandas_df = pandas_df[trained_model.feature_names]
-
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
@@ -793,15 +803,18 @@ class RFClassificationModelScript(object):
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
         self._dataframe_context.set_story_on_scored_data(True)
-        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        spark_scored_df = SQLctx.createDataFrame(df.drop(columns_to_drop, axis=1))
-        # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
+        if self._pandas_flag:
+            df = df.drop(columns_to_drop, axis=1)
+            scored_df = df.copy()
+        else:
+            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+            scored_df = SQLctx.createDataFrame(df.drop(columns_to_drop, axis=1))
         # TODO update metadata for the newly created dataframe
         self._dataframe_context.update_consider_columns(columns_to_keep)
 
-        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
+        df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
-        # spark_scored_df = df_helper.get_data_frame()
+        scored_df = df_helper.get_data_frame()
 
         # try:
         #     fs = time.time()
@@ -848,7 +861,7 @@ class RFClassificationModelScript(object):
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print(narratives_obj)
             except:

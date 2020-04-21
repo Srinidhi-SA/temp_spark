@@ -233,6 +233,10 @@ class RFRegressionModelScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
 
             st = time.time()
             est = RandomForestRegressor()
@@ -275,21 +279,66 @@ class RFRegressionModelScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in list(algoParams.items()) if k in list(est.get_params().keys())}
-                est.set_params(**algoParams)
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
-                    kFoldClass.train_and_save_result()
-                    kFoldOutput = kFoldClass.get_kfold_result()
-                    bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    est.fit(x_train, y_train)
-                    est.feature_names = list(x_train.columns.values)
-                    bestEstimator = est
+                if automl_enable:
+                    params_grid = { 'random_state': [42] }
+
+                    if x_train.shape[0]*x_train.shape[1] < 10000:
+                        params_grid.update({
+                                            'bootstrap': [False, True],
+                                            'n_estimators': [10, 25, 50, 100],
+                                            'max_depth': [None, 3, 4, 5],
+                                            'min_samples_split': [2, 3, 5],
+                                            'min_samples_leaf': [1, 2, 3],
+                                            'max_features': ['auto', 'sqrt', 'log2'] })
+                        print('\n****************SMALL DATASET PARAMS****************\n')
+
+                    elif (x_train.shape[0]*x_train.shape[1] >= 10000) & (x_train.shape[0]*x_train.shape[1] < 75000):
+                        params_grid.update({
+                                            'n_estimators': [50, 100, 150, 200],
+                                            'max_depth': [None, 5, 10, 15],
+                                            'min_samples_leaf': [1, 3, 5],
+                                            'max_features': ['auto', 'sqrt'] })
+                        print('\n****************MEDIUM DATASET PARAMS****************\n')
+
+                    else:
+                        params_grid.update({
+                                            'n_estimators': [50, 100, 200, 400],
+                                            'max_depth': [None, 10, 25, 50],
+                                            'min_samples_leaf': [1, 5, 10],
+                                            'max_features': ['auto', 'sqrt'] })
+                        print('\n****************LARGE DATASET PARAMS****************\n')
+
+                    hyperParamInitParam={'evaluationMetric': 'accuracy', 'kFold': 10}
+                    grid_param={}
+                    grid_param['params']=ParameterGrid(params_grid)
+                    #bestEstimator = estGrid.best_estimator_
+                    modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,est,x_train,x_test,y_train,y_test,appType,modelFilepath,evaluationMetricDict=evaluationMetricDict)
+                    resultArray = sklearnHyperParameterResultObj.train_and_save_models()
+                    #self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
+                    #self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
+                    bestEstimator = sklearnHyperParameterResultObj.getBestModel()
+                    bestParams = sklearnHyperParameterResultObj.getBestParam()
+                    bestEstimator = bestEstimator.set_params(**bestParams)
+                    bestEstimator.fit(x_train,y_train)
+                    print("RandomForest Regression AuTO ML GridSearch#######################3")
+                else:
+                    est.set_params(**algoParams)
+
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,est,x_train,x_test,y_train,y_test,appType,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        est.fit(x_train, y_train)
+                        est.feature_names = list(x_train.columns.values)
+                        bestEstimator = est
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
@@ -612,8 +661,10 @@ class RFRegressionModelScript(object):
             trained_model = joblib.load(trained_model_path)
             model_columns = self._dataframe_context.get_model_features()
             print("model_columns",model_columns)
-
-            df = self._data_frame.toPandas()
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame.copy()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -647,7 +698,10 @@ class RFRegressionModelScript(object):
 
             columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
             print("columns_to_drop",columns_to_drop)
-            pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
+            try:
+                pandas_scored_df = df[list(set(columns_to_keep+[result_column]))]
+            except:
+                pandas_scored_df = df.copy()
             spark_scored_df = SQLctx.createDataFrame(pandas_scored_df)
             # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
             # TODO update metadata for the newly created dataframe

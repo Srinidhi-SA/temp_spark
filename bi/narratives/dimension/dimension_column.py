@@ -24,7 +24,11 @@ class DimensionColumnNarrative(object):
         self._result_setter = result_setter
         self._column_name = column_name.lower()
         self._data_frame = data_frame
-        self._total_rows = self._data_frame.count()
+        self._pandas_flag = df_context._pandas_flag
+        try:
+            self._total_rows = self._data_frame.shape[0]
+        except:
+            self._total_rows = self._data_frame.count()
         self._colname = column_name
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._dimension_col_freq_dict = freq_dimension_stats.get_frequency_dict()
@@ -119,17 +123,24 @@ class DimensionColumnNarrative(object):
             ignored_columns = []
         metaHelperInstance = MetaDataHelper(self._data_frame, self._total_rows)
         sampleData = metaHelperInstance.get_sample_data()
-        sampleData = sampleData.toPandas()
+        try:
+            sampleData = sampleData.toPandas()
+        except:
+            pass
         l1=[]
         l2=[]
-        for column in self._dataframe_helper.get_string_columns():
-            uniqueVals = sampleData[column].unique().tolist()
-            if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
-                dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
-                l1.append(column)
-            else:
-                dateColumnFormat = None
-                l2.append(column)
+        if self._pandas_flag:
+            l1 = self._dataframe_helper.get_timestamp_columns()
+            l2 = self._dataframe_helper.get_string_columns()
+        else:
+            for column in self._dataframe_helper.get_string_columns():
+                uniqueVals = sampleData[column].unique().tolist()
+                if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
+                    dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
+                    l1.append(column)
+                else:
+                    dateColumnFormat = None
+                    l2.append(column)
 
 
         data_dict = {"n_c" : len(self._dataframe_helper.get_columns()),

@@ -4,10 +4,10 @@ from past.builtins import basestring
 from builtins import object
 from past.utils import old_div
 import math
-
+from scipy.stats.stats import pearsonr
 # from bi.common import ALPHA_LEVELS
 ALPHA_LEVELS = (0.1, 0.05, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001)
-#substitue for time being 
+#substitue for time being
 from bi.common.decorators import accepts
 from bi.common.exception import BIException
 from bi.common.results import ColumnCorrelations
@@ -25,6 +25,7 @@ class Correlation(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = self._dataframe_context._pandas_flag
 
 
     def all_correlations(self):
@@ -79,8 +80,12 @@ class Correlation(object):
         :param column_two:
         :return:
         """
-        corr = self._data_frame.corr(column_one, column_two)
-        num_of_samples = self._data_frame.select(column_one).count()
+        if self._pandas_flag:
+            corr, p = pearsonr(self._data_frame[column_one],self._data_frame[column_two])
+            num_of_samples = self._data_frame[column_one].shape[0]
+        else:
+            corr = self._data_frame.corr(column_one, column_two)
+            num_of_samples = self._data_frame.select(column_one).count()
         df = num_of_samples - 2
         std_error = math.sqrt(old_div((1 - math.pow(corr, 2)), df))
         t_value = old_div(corr, std_error)

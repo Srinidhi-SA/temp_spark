@@ -16,7 +16,7 @@ import shutil
 import copy
 import numpy as np
 import pandas as pd
-from sklearn import linear_model
+from sklearn import linear_model,preprocessing
 from sklearn.metrics import mean_squared_error, r2_score
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassificationModel, OneVsRestModel, LogisticRegressionModel
@@ -50,25 +50,43 @@ def normalize_coefficients(coefficientsArray):
         outArray.append({"key":obj["key"],"value":v})
     return outArray
 
-def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None):
+def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None, pandas_flag=False):
     if target_measure is None:
         target_measure = []
-    df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
-    measures_with_same_val = []
-    measure_list=measure_columns.copy()
-    for measure_column in measure_list:
-        min_, max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
-        diff = (max_ - min_)*1.0
-        if diff == 0.0:
-            measures_with_same_val.append(measure_column)
-            measure_columns.remove(measure_column)
-        else:
-            splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
-            bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
-            bucketizer.setSplits(splits_new)
-            df = bucketizer.transform(df)
-            df = df.select([c for c in df.columns if c!=measure_column])
-            df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
+    if pandas_flag:
+        try:
+            df = df.toPandas()
+        except:
+            pass
+        df[measure_columns] = df[measure_columns].astype("float64")
+        measures_with_same_val = []
+        measure_list=measure_columns.copy()
+        for measure_column in measure_list:
+            min_, max_ = np.min(df[measure_column]),np.max(df[measure_column])
+            diff = (max_ - min_)*1.0
+            if diff == 0.0:
+                measures_with_same_val.append(measure_column)
+                measure_columns.remove(measure_column)
+            else:
+                splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
+                df[measure_column] = pd.cut(df[measure_column], splits_new, labels=False, retbins=True, right=False)[0]
+    else:
+        df = df.select([col(c).cast('double').alias(c) if c in measure_columns else col(c) for c in list(set(measure_columns+dimension_columns+target_measure))])
+        measures_with_same_val = []
+        measure_list=measure_columns.copy()
+        for measure_column in measure_list:
+            min_, max_ = df.agg(FN.min(measure_column), FN.max(measure_column)).collect()[0]
+            diff = (max_ - min_)*1.0
+            if diff == 0.0:
+                measures_with_same_val.append(measure_column)
+                measure_columns.remove(measure_column)
+            else:
+                splits_new = [min_-1,min_+diff*0.2,min_+diff*0.4,min_+diff*0.6,min_+diff*0.8,max_+1]
+                bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+                bucketizer.setSplits(splits_new)
+                df = bucketizer.transform(df)
+                df = df.select([c for c in df.columns if c!=measure_column])
+                df = df.select([col(c).alias(measure_column) if c=='bucket' else col(c) for c in df.columns])
     return df
 
 def generate_random_number_array(df):
@@ -341,24 +359,39 @@ def transform_feature_importance(feature_importance_dict):
     output = [feature_importance_new[0][:6],feature_importance_new[1][:6]]
     return output
 
-def bin_column(df, measure_column,get_aggregation = False):
-    allCols = df.columns
-    df = df.select([col(c).cast('double').alias(c) if c == measure_column else col(c) for c in allCols])
-    min_,max_,mean_,stddev_,total = df.agg(FN.min(measure_column), FN.max(measure_column), FN.mean(measure_column), FN.stddev(measure_column), FN.sum(measure_column)).collect()[0]
-    df_without_outlier = df.filter(col(measure_column)>=mean_-3*stddev_).filter(col(measure_column)<=mean_+3*stddev_)
-    diff = (max_ - min_)*1.0
-    splits_new = [min_-1,min_+diff*0.4,min_+diff*0.7,max_+1]
-    bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
-    bucketizer.setSplits(splits_new)
-    df = bucketizer.transform(df)
-    if (get_aggregation):
-        agg_df = df.groupby("bucket").agg(FN.sum(measure_column).alias('sum'), FN.count(measure_column).alias('count'))
-        aggr = {}
-        for row in agg_df.collect():
-            aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1]*100.0,total), 'count_percent': old_div(row[2]*100.0,df.count())}
+def bin_column(df, measure_column,get_aggregation = False, pandas_flag = False):
+    if pandas_flag:
+        df[measure_column] = df[measure_column].astype("float64")
+        min_, max_, mean_, stddev_, total = np.min(df[measure_column]), np.max(df[measure_column]), np.mean(df[measure_column]), np.std(df[measure_column]), np.sum(df[measure_column])
+        diff = (max_ - min_) * 1.0
+        splits_new = [min_ - 1, min_ + diff * 0.4, min_ + diff * 0.7, max_ + 1]
+        df['bucket'] = pd.cut(df[measure_column], bins=splits_new, labels=np.arange(0, 3, 1.0), retbins=True, right=False)[0]
+        if (get_aggregation):
+            agg_df = df.groupby("bucket").agg({measure_column: ["sum", "size"]}).reset_index(level="bucket",col_level=1)
+            agg_df.columns = agg_df.columns.droplevel(0)
+            aggr = {}
+            for row in agg_df.values:
+                aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1] * 100.0, total),'count_percent': old_div(row[2] * 100.0, df.count())}
+        df = df[[c for c in df.columns if c != measure_column]]
+        df = df.rename(columns={'bucket': measure_column})
+    else:
+        allCols = df.columns
+        df = df.select([col(c).cast('double').alias(c) if c == measure_column else col(c) for c in allCols])
+        min_,max_,mean_,stddev_,total = df.agg(FN.min(measure_column), FN.max(measure_column), FN.mean(measure_column), FN.stddev(measure_column), FN.sum(measure_column)).collect()[0]
+        df_without_outlier = df.filter(col(measure_column)>=mean_-3*stddev_).filter(col(measure_column)<=mean_+3*stddev_)
+        diff = (max_ - min_)*1.0
+        splits_new = [min_-1,min_+diff*0.4,min_+diff*0.7,max_+1]
+        bucketizer = Bucketizer(inputCol=measure_column,outputCol='bucket')
+        bucketizer.setSplits(splits_new)
+        df = bucketizer.transform(df)
+        if (get_aggregation):
+            agg_df = df.groupby("bucket").agg(FN.sum(measure_column).alias('sum'), FN.count(measure_column).alias('count'))
+            aggr = {}
+            for row in agg_df.collect():
+                aggr[row[0]] = {'sum': row[1], 'count': row[2], 'sum_percent': old_div(row[1]*100.0,total), 'count_percent': old_div(row[2]*100.0,df.count())}
 
-    df = df.select([c for c in df.columns if c!=measure_column])
-    df = df.withColumnRenamed("bucket",measure_column)
+        df = df.select([c for c in df.columns if c!=measure_column])
+        df = df.withColumnRenamed("bucket",measure_column)
     if splits_new[0] > 1:
         splitRanges = ["("+str(round(splits_new[0]))+" to "+str(round(splits_new[1]))+")",
                     "("+str(round(splits_new[1]))+" to "+str(round(splits_new[2]))+")",
@@ -402,18 +435,31 @@ def cluster_by_column(df, col_to_cluster, get_aggregation = False):
         return final_df, aggr
     return final_df, model.clusterCenters()
 
-def add_string_index(df,string_columns):
+def add_string_index(df,string_columns,pandas_flag):
     string_columns = list(set(string_columns))
-    my_df = df.select(df.columns)
-    column_name_maps = {}
-    mapping_dict = {}
-    for c in string_columns:
-        my_df = StringIndexer(inputCol=c, outputCol=c+'_index',handleInvalid="keep").fit(my_df).transform(my_df)
-        column_name_maps[c+'_index'] = c
-        mapping_dict[c] = dict(enumerate(my_df[[c+'_index']].schema[0].metadata['ml_attr']['vals']))
-    my_df = my_df.select([c for c in my_df.columns if c not in string_columns])
-    my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in list(column_name_maps.keys()) \
-                            else col(c) for c in my_df.columns])
+    if pandas_flag:
+        my_df = df[df.columns]
+        column_name_maps = {}
+        mapping_dict = {}
+        for c in string_columns:
+            le = preprocessing.LabelEncoder()
+            le.fit(my_df[c])
+            classes = le.classes_
+            transformed = le.transform(classes)
+            my_df[c] = le.transform(my_df[c])
+            mapping_dict[c] = dict(list(zip(transformed,classes)))
+
+    else:
+        my_df = df.select(df.columns)
+        column_name_maps = {}
+        mapping_dict = {}
+        for c in string_columns:
+            my_df = StringIndexer(inputCol=c, outputCol=c+'_index',handleInvalid="keep").fit(my_df).transform(my_df)
+            column_name_maps[c+'_index'] = c
+            mapping_dict[c] = dict(enumerate(my_df[[c+'_index']].schema[0].metadata['ml_attr']['vals']))
+        my_df = my_df.select([c for c in my_df.columns if c not in string_columns])
+        my_df = my_df.select([col(c).alias(column_name_maps[c]) if c in list(column_name_maps.keys()) \
+                                else col(c) for c in my_df.columns])
     return my_df, mapping_dict
 
 ##################################Spark ML Pipelines ###########################
@@ -2117,6 +2163,8 @@ def stock_sense_overview_card(data_dict_overall):
 
 
     sentimentByStockCardData = data_dict_overall["stocks_by_sentiment"]
+    for i in data_dict_overall["stocks_by_sentiment"].items():
+        data_dict_overall["stocks_by_sentiment"][i[0]] = round(i[1], 3)
     plotData = []
     for k,v in list(sentimentByStockCardData.items()):
         plotData.append({"name":k,"value":v})
@@ -2129,7 +2177,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json.set_label_text({'x':'Stock','y':'Avg. Sentiment Score'})
     chart_json.set_title("Sentiment Score by Stocks")
     chart_json.set_subchart(False)
-    chart_json.set_yaxis_number_format(".2f")
+    chart_json.set_yaxis_number_format(".3f")
     sentimentByStockDataChart = C3ChartData(data=chart_json)
     sentimentByStockDataChart.set_width_percent(50)
     overviewCardData.append(sentimentByStockDataChart)

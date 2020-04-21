@@ -94,13 +94,13 @@ class messages_list(object):
             for i in self._metaData_messages:
                 output_messages.append(i)
 
-        if self._jobType == 'stockAdvisor':
-            stocks = self._config["STOCK_SETTINGS"]["stockSymbolList"]
-            for stock in stocks:
-                output_messages.append("Analyzing " + str.upper(stock) + " Data")
-            for stock in stocks:
-                output_messages.append("Applying Regression on  " + str.upper(stock) + " Data")
-            output_messages.extend(["Calculating Stock Price Trend"])
+#        if self._jobType == 'stockAdvisor':
+#            stocks = self._config["STOCK_SETTINGS"]["stockSymbolList"]
+#            for stock in stocks:
+#                output_messages.append("Analyzing " + str.upper(stock) + " Data")
+#            for stock in stocks:
+#                output_messages.append("Applying Regression on  " + str.upper(stock) + " Data")
+#            output_messages.extend(["Calculating Stock Price Trend"])
 
         if self._jobType == 'story':
             storyType = ''
