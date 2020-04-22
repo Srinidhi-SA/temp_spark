@@ -472,6 +472,7 @@ class StockAdvisor(object):
         merged = pd.merge(relevantDf, stockPriceData[["close", "date1"]], left_on="date", right_on='date1', how="inner")
         output = list(merged.T.to_dict().values())
         output = sorted(output, key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d"))
+        print(output)
         return output
     def apply_counter(self,keyWordArray):
         output = [x["text"] for x in keyWordArray]
