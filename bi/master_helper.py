@@ -63,6 +63,8 @@ def load_dataset(spark,dataframe_context):
         except:
             df = DataLoader.load_csv_file_pandas(dataframe_context.get_input_file())
             df.columns = [re.sub('\W+','_', col.strip()) for col in df.columns]
+            bool_cols= list(df.select_dtypes(include=['bool']).columns)
+            df[bool_cols] =df[bool_cols].astype('object')
             df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
             print("######## PANDAS ########### STARTED PANDAS FLOW ############# PANDAS ##############")
             dataframe_context._pandas_flag = True
