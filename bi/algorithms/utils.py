@@ -622,7 +622,7 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary,evaluvation_metric):
     summary = []
     algos = list(collated_summary.keys())
-    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","lgbm":"LightGBM","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network":"Neural Network","TensorFlow":"TensorFlow", "Neural Networks(pyTorch)":"Neural Networks(pyTorch)"}
+    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","adaboost":"Adaboost","lgbm":"LightGBM","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network":"Neural Network","TensorFlow":"TensorFlow", "Neural Networks(pyTorch)":"Neural Networks(pyTorch)"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -804,6 +804,10 @@ def create_model_summary_para(modelSummaryClass):
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using LightGBM. The model has an overall accuracy of <b>{}%</b>. The model using LightGBM was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
+        elif modelSummaryClass.get_algorithm_name() == 'Adaboost':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Adaboost. The model has an overall accuracy of <b>{}%</b>. The model using Adaboost was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Naive Bayes':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
@@ -847,6 +851,11 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using LightGBM. The model has an overall accuracy of <b>{}%</b>. The model using LightGBM was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
+        elif modelSummaryClass.get_algorithm_name() == 'Adaboost':
+            target_level = modelSummaryClass.get_target_level()
+            confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
+            target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
+            paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using Adaboost. The model has an overall accuracy of <b>{}%</b>. The model using Adaboost was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
         elif modelSummaryClass.get_algorithm_name() == 'Neural Network':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
@@ -1411,6 +1420,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrModelSummary = result_setter.get_logistic_regression_model_summary()
         xgbModelSummary = result_setter.get_xgboost_model_summary()
         lgbmModelSummary = result_setter.get_lgbm_model_summary()
+        adabModelSummary = result_setter.get_adaboost_model_summary()
         nnModelSummary = result_setter.get_nn_model_summary()
         tfModelSummary = result_setter.get_tf_model_summary()
         nnptcModelSummary = result_setter.get_nnptc_model_summary()
@@ -1428,6 +1438,9 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
             print(evaluvation_metric)
         elif lgbmModelSummary !=None:
             evaluvation_metric=lgbmModelSummary["dropdown"]["evaluationMetricName"]
+            print(evaluvation_metric)
+        elif adabModelSummary !=None:
+            evaluvation_metric=adabModelSummary["dropdown"]["evaluationMetricName"]
             print(evaluvation_metric)
         elif nnModelSummary!=None:
             evaluvation_metric=nnModelSummary["dropdown"]["evaluationMetricName"]
@@ -1513,6 +1526,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrModelSummary = result_setter.get_logistic_regression_model_summary()
         xgbModelSummary = result_setter.get_xgboost_model_summary()
         lgbmModelSummary = result_setter.get_lgbm_model_summary()
+        adabModelSummary = result_setter.get_adaboost_model_summary()
         svmModelSummary = result_setter.get_svm_model_summary()
         nnModelSummary = result_setter.get_nn_model_summary()
         tfModelSummary = result_setter.get_tf_model_summary()
@@ -1531,14 +1545,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         counter = 1
         hyperParameterFlagDict = {}
         hyperParameterFlag = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,lgbmModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary, nnptcModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,adabModelSummary,lgbmModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary, nnptcModelSummary]:
             if obj != None:
                 if result_setter.get_hyper_parameter_results(obj["slug"]) != None:
                     hyperParameterFlagDict[obj["slug"]] = True
                     hyperParameterFlag = True
                 else:
                     hyperParameterFlagDict[obj["slug"]] = False
-        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,lgbmModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary, nnptcModelSummary]:
+        for obj in [rfModelSummary,lrModelSummary,xgbModelSummary,adabModelSummary,lgbmModelSummary,svmModelSummary,nbModelSummary,nnModelSummary,tfModelSummary, nnptcModelSummary]:
             if obj != None:
                 model_dropdowns.append(obj["dropdown"])
                 model_features[obj["slug"]] = obj["modelFeatureList"]
@@ -1609,13 +1623,14 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrFailCard = result_setter.get_lr_fail_card()
         xgbFailCard = result_setter.get_xgb_fail_card()
         lgbmFailCard = result_setter.get_lgbm_fail_card()
+        adabFailCard= result_setter.get_adab_fail_card()
         tfFailCard = result_setter.get_tf_fail_card()
         nnptcFailCard = result_setter.get_nnptc_fail_card()
         model_configs = {"target_variable":[target_variable]}
         model_configs["modelFeatures"] = model_features
         model_configs["labelMappingDict"] = labelMappingDict
         model_configs["targetVariableLevelcount"] = [targetVariableLevelcount]
-        model_configs["fail_card"]=[rfFailCard,nnFailCard,nbFailCard,lrFailCard,xgbFailCard,lgbmFailCard,tfFailCard,nnptcFailCard]
+        model_configs["fail_card"]=[rfFailCard,nnFailCard,nbFailCard,lrFailCard,xgbFailCard,adabFailCard,tfFailCard,nnptcFailCard]
         model_dropdowns = [x for x in model_dropdowns if x != None]
         """Rounding the model accuracy"""
         i=0
@@ -1636,6 +1651,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrManagementNode = NarrativesTree(name='Logistic Regression')
         xgbManagementNode = NarrativesTree(name='Xgboost')
         lgbmManagementNode = NarrativesTree(name='LightGBM')
+        adabManagementNode = NarrativesTree(name='Adaboost')
         nbManagementNode = NarrativesTree(name='Naive Bayes')
         nnManagementNode = NarrativesTree(name='Neural Network')
         tfManagementNode = NarrativesTree(name='TensorFlow')
@@ -1645,10 +1661,11 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         lrManagementNode.add_nodes(result_setter.get_all_lr_classification_nodes())
         xgbManagementNode.add_nodes(result_setter.get_all_xgb_classification_nodes())
         lgbmManagementNode.add_nodes(result_setter.get_all_lgbm_classification_nodes())
+        adabManagementNode.add_nodes(result_setter.get_all_adab_classification_nodes())
         nbManagementNode.add_nodes(result_setter.get_all_nb_classification_nodes())
         tfManagementNode.add_nodes(result_setter.get_all_tf_classification_nodes())
         nnptcManagementNode.add_nodes(result_setter.get_all_nnptc_classification_nodes())
-        modelManagement = [rfManagementNode,lrManagementNode,xgbManagementNode,lgbmManagementNode,nbManagementNode,nnManagementNode,tfManagementNode,nnptcManagementNode]
+        modelManagement = [rfManagementNode,lrManagementNode,xgbManagementNode,lgbmManagementNode,adabManagementNode,nbManagementNode,nnManagementNode,tfManagementNode,nnptcManagementNode]
         modelManagement = json.loads(CommonUtils.convert_python_object_to_json(modelManagement))
         modelJsonOutput.set_model_management_summary(modelManagement)
         modelJsonOutput.set_model_dropdown(model_dropdowns)

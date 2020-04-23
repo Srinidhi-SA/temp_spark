@@ -25,8 +25,8 @@ from sklearn.externals import joblib
 from sklearn import metrics
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
-import lightgbm as lgb
-from lightgbm import LGBMClassifier
+from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
@@ -48,7 +48,7 @@ from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
-class LgbmScript(object):
+class AdaboostScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -60,7 +60,7 @@ class LgbmScript(object):
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["LightGBM"]
+        self._slug = self._model_slug_map["adaboost"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -74,15 +74,15 @@ class LgbmScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Lgbm Scripts",
+                "summary":"Initialized The adaboost Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Lgbm Model Training Started",
+                "summary":"Adaboost Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Lgbm Model Training Finished",
+                "summary":"Adaboost Model Training Finished",
                 "weight":4
                 },
             }
@@ -132,11 +132,7 @@ class LgbmScript(object):
 
             st = time.time()
             levels = df[result_column].unique()
-            clf = lgb.LGBMClassifier(boosting_type='dart', objective='binary', num_leaves=50,
-                                learning_rate=0.1, n_estimators=100, max_depth=10,
-                                bagging_fraction=0.8, feature_fraction=0.9, reg_lambda=0.2,verbose = -1)
-
-
+            clf =  AdaBoostClassifier(DecisionTreeClassifier(max_depth=20),n_estimators=500,learning_rate=1,algorithm='SAMME.R')
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
             y_train = pd.Series(labelEncoder.transform(y_train))
@@ -248,15 +244,16 @@ class LgbmScript(object):
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={'num_leaves': randint(6, 50),
-                                 'min_child_samples': randint(100, 500),
-                                 'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
-                                 'subsample': uniform(loc=0.2, scale=0.8),
-                                 'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                                 'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
-                                 'reg_lambda': [0, 1e-1, 1, 5, 10, 20, 50, 100]
+                    params_grid = {
+                                    # "base_estimator": [DecisionTreeClassifier(), RandomForestClassifier()],
+                                    # "n_estimators": [100, 200, 500],
+                                    # "base_estimator__max_depth": [5,10,20],
+                                    # "base_estimator__max_features":["auto","sqrt","log2"],
+                                    # "base_estimator__n_estimators":[10,20,30,40,50],
+                                    # "learning_rate": [0.1, 0.5, 1],
+                                    "algorithm":["SAMME","SAMME.R"]
                                  }
-                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 10}
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
@@ -267,7 +264,7 @@ class LgbmScript(object):
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                    print("Lgbm AuTO ML Random CV#######################3")
+                    print("Adaboost AuTO ML Random CV#######################3")
                 else:
                     algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
                     clf.set_params(**algoParams)
@@ -440,8 +437,8 @@ class LgbmScript(object):
             cat_cols = list(set(categorical_columns) - {result_column})
             overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("LightGBM")
-            self._model_summary.set_algorithm_display_name("LightGBM")
+            self._model_summary.set_algorithm_name("Adaboost")
+            self._model_summary.set_algorithm_display_name("Adaboost")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -517,7 +514,7 @@ class LgbmScript(object):
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("LightGBM")#algorithm name
+                self._model_management.set_algorithm_name("Adaboost")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
@@ -538,7 +535,7 @@ class LgbmScript(object):
                     self._model_management.set_target_level(self._targetLevel) # target column value
                     self._model_management.set_training_time(runtime) # run time
                     self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                    self._model_management.set_algorithm_name("LightGBM")#algorithm name
+                    self._model_management.set_algorithm_name("Adaboost")#algorithm name
                     self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                     self._model_management.set_target_variable(result_column)#target column name
                     self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
@@ -581,30 +578,30 @@ class LgbmScript(object):
                             ]
 
 
-            lgbmOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            lgbmPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
-            lgbmDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
-            lgbmCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-            LGBM_Overview_Node = NarrativesTree()
-            LGBM_Overview_Node.set_name("Overview")
-            LGBM_Performance_Node = NarrativesTree()
-            LGBM_Performance_Node.set_name("Performance")
-            LGBM_Deployment_Node = NarrativesTree()
-            LGBM_Deployment_Node.set_name("Deployment")
-            for card in lgbmOverviewCards:
-                LGBM_Overview_Node.add_a_card(card)
-            for card in lgbmPerformanceCards:
-                LGBM_Performance_Node.add_a_card(card)
-            for card in lgbmDeploymentCards:
-                LGBM_Deployment_Node.add_a_card(card)
-            for card in lgbmCards:
+            adaboostOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            adaboostPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+            adaboostDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+            adaboostCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            Adaboost_Overview_Node = NarrativesTree()
+            Adaboost_Overview_Node.set_name("Overview")
+            Adaboost_Performance_Node = NarrativesTree()
+            Adaboost_Performance_Node.set_name("Performance")
+            Adaboost_Deployment_Node = NarrativesTree()
+            Adaboost_Deployment_Node.set_name("Deployment")
+            for card in adaboostOverviewCards:
+                Adaboost_Overview_Node.add_a_card(card)
+            for card in adaboostPerformanceCards:
+                Adaboost_Performance_Node.add_a_card(card)
+            for card in adaboostDeploymentCards:
+                Adaboost_Deployment_Node.add_a_card(card)
+            for card in adaboostCards:
                 self._prediction_narrative.add_a_card(card)
 
-            self._result_setter.set_model_summary({"lgbm":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_lgbm_model_summary(modelSummaryJson)
-            self._result_setter.set_lgbm_cards(lgbmCards)
-            self._result_setter.set_lgbm_nodes([LGBM_Overview_Node,LGBM_Performance_Node,LGBM_Deployment_Node])
-            self._result_setter.set_lgbm_fail_card({"Algorithm_Name":"lgbm","success":"True"})
+            self._result_setter.set_model_summary({"adaboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_adaboost_model_summary(modelSummaryJson)
+            self._result_setter.set_adab_cards(adaboostCards)
+            self._result_setter.set_adab_nodes([Adaboost_Overview_Node,Adaboost_Performance_Node,Adaboost_Deployment_Node])
+            self._result_setter.set_adab_fail_card({"Algorithm_Name":"adaboost","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -617,11 +614,11 @@ class LgbmScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Lgbm Scripts",
+                "summary":"Initialized The Adaboost Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Lgbm Model Prediction Finished",
+                "summary":"Adaboost Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
@@ -687,7 +684,7 @@ class LgbmScript(object):
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
-            # pandas_df = self._data_frame.toPandas()
+            #pandas_df = self._data_frame.toPandas()
             df = self._data_frame#.toPandas()
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
