@@ -525,8 +525,8 @@ class StockAdvisor(object):
         return score
     def get_datewise_stock_value_and_sentiment(self,pandasDf, stockPriceData):
         pandasDf['pre_date'] = pandasDf.date.astype(str).apply(lambda x: x[0:4] + "-" + x[4:6] + "-" + x[6:8])
-        pandasDf.sort_values(by='pre_date', inplace=True)
-        date_list = list(dict.fromkeys(pandasDf.pre_date))
+        #pandasDf.sort_values(by='pre_date', inplace=True)
+        date_list = list(sorted(dict.fromkeys(pandasDf.pre_date)))
         senti_dict = {}
         pandasDf1 = pandasDf[(pandasDf.pre_date == date_list[0])]
         senti_dict.update({date_list[0]: np.mean(self.sentiment_score_compute(pandasDf1))})
