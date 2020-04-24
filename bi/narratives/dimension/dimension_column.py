@@ -130,8 +130,16 @@ class DimensionColumnNarrative(object):
         l1=[]
         l2=[]
         if self._pandas_flag:
-            l1 = self._dataframe_helper.get_timestamp_columns()
-            l2 = self._dataframe_helper.get_string_columns()
+            for column in self._dataframe_helper.get_string_columns():
+                uniqueVals = sampleData[column].unique().tolist()
+                if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format_pandas([self._data_frame[column].sort_values(ascending=False)[0]])!=None:
+                    dateColumnFormat = metaHelperInstance.get_datetime_format_pandas(uniqueVals)
+                    l1.append(column)
+                else:
+                    dateColumnFormat = None
+                    l2.append(column)
+            # l1 = self._dataframe_helper.get_timestamp_columns()
+            # l2 = self._dataframe_helper.get_string_columns()
         else:
             for column in self._dataframe_helper.get_string_columns():
                 uniqueVals = sampleData[column].unique().tolist()

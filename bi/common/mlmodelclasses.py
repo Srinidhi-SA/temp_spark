@@ -11,6 +11,8 @@ from bi.settings import setting as GLOBALSETTINGS
 from bi.common import utils as CommonUtils
 from sklearn.model_selection import KFold,StratifiedKFold,StratifiedShuffleSplit
 from sklearn import metrics
+import warnings
+warnings.filterwarnings('ignore')
 
 
 
@@ -737,6 +739,7 @@ class SklearnGridSearchResult(object):
                 row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
             elif self.appType == "CLASSIFICATION":
                 algoEvaluationMetrics["Accuracy"] = metrics.accuracy_score(self.y_test,y_score)
+                overfit_check =  metrics.accuracy_score(self.y_train, train_score)
                 row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
                 if len(self.levels) <= 2:
                     algoEvaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
@@ -762,11 +765,22 @@ class SklearnGridSearchResult(object):
                             evalMetricVal = algoEvaluationMetrics[evaluationMetric]
             else:
                 if algoEvaluationMetrics[evaluationMetric] > evalMetricVal and self.appType == "CLASSIFICATION":
-                    self.bestModel = estimator
-                    self.bestParam = paramsObj
-                    evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+                    if evalMetricVal== -1:
+                        print("updated initial params")
+                        self.bestModel = estimator
+                        self.bestParam = paramsObj
+                        evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+                    elif 15 > (int(overfit_check)-int(algoEvaluationMetrics["Accuracy"])):
+                        print("updated best params")
+                        self.bestModel = estimator
+                        self.bestParam = paramsObj
+                        evalMetricVal = algoEvaluationMetrics[evaluationMetric]
                 elif algoEvaluationMetrics[evaluationMetric] > evalMetricVal and self.appType == "REGRESSION":
-                    if 0.15 > (overfit_check-algoEvaluationMetrics["R-Squared"]):
+                    if evalMetricVal== -1:
+                        self.bestModel = estimator
+                        self.bestParam = paramsObj
+                        evalMetricVal = algoEvaluationMetrics[evaluationMetric]
+                    elif 0.15 > (overfit_check-algoEvaluationMetrics["R-Squared"]):
                         self.bestModel = estimator
                         self.bestParam = paramsObj
                         evalMetricVal = algoEvaluationMetrics[evaluationMetric]
