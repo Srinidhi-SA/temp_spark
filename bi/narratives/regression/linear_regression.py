@@ -251,7 +251,10 @@ class LinearRegressionNarrative(object):
             fs = time.time()
             freq["low1low2"] = self.get_freq_dict(low1low2,cat_columns)[:3]
             print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
-            contribution["low1low2"] = str(round(old_div(low1low2Count*100,self._data_frame.count())))+"%"
+            if not self._pandas_flag:
+                contribution["low1low2"] = str(round(old_div(low1low2Count*100,self._data_frame.count())))+"%"
+            else:
+                contribution["low1low2"] = str(round(low1low2Count*100/self._data_frame.shape[0]))+"%"
             fs = time.time()
             elasticity_dict["low1low2"] = self.run_regression(low1low2,col2)
             print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
@@ -261,7 +264,10 @@ class LinearRegressionNarrative(object):
             fs = time.time()
             freq["low1high2"] = self.get_freq_dict(low1high2,cat_columns)[:3]
             print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
-            contribution["low1high2"] = str(round(old_div(low1high2Count*100,self._data_frame.count())))+"%"
+            if not self._pandas_flag:
+                contribution["low1high2"] = str(round(old_div(low1high2Count*100,self._data_frame.count())))+"%"
+            else:
+                contribution["low1high2"] = str(round(low1high2Count*100/self._data_frame.shape[0]))+"%"
             fs = time.time()
             elasticity_dict["low1high2"] = self.run_regression(low1high2,col2)
             print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
@@ -271,7 +277,10 @@ class LinearRegressionNarrative(object):
             fs = time.time()
             freq["high1high2"] = self.get_freq_dict(high1high2,cat_columns)[:3]
             print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
-            contribution["high1high2"] = str(round(old_div(high1high2Count*100,self._data_frame.count())))+"%"
+            if not self._pandas_flag:
+                contribution["high1high2"] = str(round(old_div(high1high2Count*100,self._data_frame.count())))+"%"
+            else:
+                contribution["high1high2"] = str(round(high1high2Count*100/self._data_frame.shape[0]))+"%"
             fs = time.time()
             elasticity_dict["high1high2"] = self.run_regression(high1high2,col2)
             print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
@@ -281,7 +290,10 @@ class LinearRegressionNarrative(object):
             fs = time.time()
             freq["high1low2"] = self.get_freq_dict(high1low2,cat_columns)[:3]
             print("get_freq_dict Analysis Done in ", time.time() - fs, " seconds.")
-            contribution["high1low2"] = str(round(old_div(high1low2Count*100,self._data_frame.count())))+"%"
+            if not self._pandas_flag:
+                contribution["high1low2"] = str(round(old_div(high1low2Count*100,self._data_frame.count())))+"%"
+            else:
+                contribution["high1low2"] = str(round(high1low2Count*100/self._data_frame.shape[0]))+"%"
             fs = time.time()
             elasticity_dict["high1low2"] = self.run_regression(high1low2,col2)
             print("run_regression(elasticity) Analysis Done in ", time.time() - fs, " seconds.")
