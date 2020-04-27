@@ -188,9 +188,7 @@ class MetaDataScript(object):
             else:
                 uniqueVals = []
             if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format([self._data_frame.orderBy([column],ascending=[False]).select(column).first()[0]])!=None:
-                uniqueVals.sort(reverse=True)
                 dateColumnFormat = metaHelperInstance.get_datetime_format(uniqueVals)
-                print("date Format: ", dateColumnFormat)
             else:
                 dateColumnFormat = None
 
