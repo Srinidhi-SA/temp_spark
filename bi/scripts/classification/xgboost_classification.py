@@ -56,6 +56,7 @@ class XgboostScript(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
@@ -245,21 +246,20 @@ class XgboostScript(object):
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={"learning_rate"    : [0.05, 0.10, 0.15,0.20,0.25,0.30],
-                                #"booster"           : ['gbtree'],
-                                 "subsample"         : [0.8],
-                                  "max_depth"        : [ 3, 4, 6, 8,10],
-                                  "min_child_weight" : [ 1, 3, 5, 6,7],
-                                  'n_estimators': [200],
-                                "gamma"            : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
-                                 "colsample_bytree" : [0.8]}#[ 0.3, 0.4, 0.5, 0.6,0.8, 1.0 ] }
-                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 10}
+                    params_grid={ "learning_rate"      : [0.05, 0.10, 0.15,0.20,0.25,0.30],
+                                  "booster"            : ['gbtree'],
+                                  "max_depth"          : [ 3, 4, 6, 8,10],
+                                  'n_estimators'       : [10],
+                                  "gamma"              : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
+                                  "objective"          :['binary:logistic'],
+                                   }
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
-                    numFold=5
+                    numFold=10
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -395,9 +395,13 @@ class XgboostScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            if self._pandas_flag:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            else:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -685,7 +689,10 @@ class XgboostScript(object):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
             # pandas_df = self._data_frame.toPandas()
-            df = self._data_frame.toPandas()
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame.copy()
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -773,13 +780,15 @@ class XgboostScript(object):
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
         self._dataframe_context.set_story_on_scored_data(True)
-        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        spark_scored_df = SQLctx.createDataFrame(df)
-        # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
+        if self._pandas_flag:
+            scored_df = df.copy()
+        else:
+            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+            scored_df = SQLctx.createDataFrame(df)
         self._dataframe_context.update_consider_columns(columns_to_keep)
-        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
+        df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
-        spark_scored_df = df_helper.get_data_frame()
+        scored_df = df_helper.get_data_frame()
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
@@ -825,7 +834,7 @@ class XgboostScript(object):
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print(narratives_obj)
             except:

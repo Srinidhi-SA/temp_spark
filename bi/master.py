@@ -15,8 +15,8 @@ import requests
 from bi.settings import *
 from bi.algorithms import data_preprocessing as data_preprocessing
 from bi.algorithms import feature_engineering as feature_engineering
-from bi.algorithms.autoML import auto_ml as autoML
-from bi.algorithms.autoML import auto_ml_score as autoMLScore
+from bi.algorithms.autoML import auto_ml_master as autoML
+from bi.algorithms.autoML import auto_ml_score1 as autoMLScore
 
 from bi.common import utils as CommonUtils
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter
@@ -120,6 +120,8 @@ def main(configJson):
     dataframe_context.set_logger(LOGGER)
     dataframe_context.set_xml_url(jobConfig["xml_url"])
     dataframe_context.set_job_name(jobName)
+
+
     if debugMode == True:
         dataframe_context.set_environment("debugMode")
         dataframe_context.set_message_ignore(True)
@@ -163,7 +165,12 @@ def main(configJson):
                 dataframe_context.update_completion_status(completionStatus)
             ########################## Load the dataframe ##############################
             df = MasterHelper.load_dataset(spark,dataframe_context)
-            df = df.persist()
+            ######  pandas Flag  ################
+            #dataframe_context._pandas_flag = False
+            try:
+                df = df.persist()
+            except:
+                pass
             rowscols = (df.count(), len(df.columns))
             removed_col=[]
             new_cols_added = None
@@ -171,22 +178,29 @@ def main(configJson):
                 # df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
                 if jobType == "training" or jobType == "prediction":
                     automl_enable = False
-                    if dataframe_context.get_trainerMode() == "autoML" and GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]=="CLASSIFICATION":
+                    if dataframe_context.get_trainerMode() == "autoML":
                         automl_enable = True
                     one_click_json = {}
-                    if dataframe_context.get_trainerMode() == "autoML" and GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]=="CLASSIFICATION":
+                    if dataframe_context.get_trainerMode() == "autoML":
+                        dataframe_context._pandas_flag = True
                         if jobType == "training":
-                            df = df.toPandas()
+                            try:
+                                df = df.toPandas()
+                            except:
+                                pass
                             autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
-                            autoML_obj.run()
-                            one_click_json, linear_df, tree_df = autoML_obj.return_values()
+
+                            one_click_json, linear_df, tree_df = autoML_obj.run()
                         elif jobType == "prediction":
-                            df = df.toPandas()
+                            try:
+                                df = df.toPandas()
+                            except:
+                                pass
                             score_obj =  autoMLScore.Scoring(df, one_click)
                             linear_df, tree_df = score_obj.run()
                         # linear
                         print('No. of columns in Linear data :',len(list(linear_df.columns)))
-                        linear_df = spark.createDataFrame(linear_df)
+                        #linear_df = spark.createDataFrame(linear_df)
                         metaParserInstance_linear_df = MasterHelper.get_metadata(linear_df,spark,dataframe_context,new_cols_added)
                         linear_df,df_helper_linear_df = MasterHelper.set_dataframe_helper(linear_df,dataframe_context,metaParserInstance_linear_df)
                         dataTypeChangeCols_linear_df= dataframe_context.get_change_datatype_details()
@@ -203,7 +217,7 @@ def main(configJson):
 
                         # Tree
                         print('No. of columns in Tree data :',len(list(tree_df.columns)))
-                        tree_df = spark.createDataFrame(tree_df)
+                        #tree_df = spark.createDataFrame(tree_df)
                         metaParserInstance_tree_df = MasterHelper.get_metadata(tree_df,spark,dataframe_context,new_cols_added)
                         tree_df,df_helper_tree_df = MasterHelper.set_dataframe_helper(tree_df,dataframe_context,metaParserInstance_tree_df)
                         dataTypeChangeCols_tree_df = dataframe_context.get_change_datatype_details()
@@ -227,9 +241,12 @@ def main(configJson):
                             CommonUtils.save_progress_message(messageURL,progressMessage,ignore=ignoreMsg,emptyBin=True)
                             dataframe_context.update_completion_status(completionStatus)
                             ## TO DO : Change flag later this is only for testing
-                            pandas_flag = False
+                            pandas_flag = dataframe_context._pandas_flag
                             if pandas_flag :
-                                df = df.toPandas()
+                                try:
+                                    df = df.toPandas()
+                                except:
+                                    pass
                             if dataCleansingDict['selected']:
                                 data_preprocessing_obj = data_preprocessing.DataPreprocessing(spark, df, dataCleansingDict, dataframe_context)
                                 df = data_preprocessing_obj.data_cleansing()
@@ -246,9 +263,13 @@ def main(configJson):
                                 new_cols_added = list(set(new_cols_list) - set(old_cols_list))
                             else:
                                  new_cols_added = None
-                            if pandas_flag:
-                                df=spark.createDataFrame(df)
-                            print(df.printSchema())
+                            # if pandas_flag:
+                            #     ## TODO: has to be removed now that metadata and DFhelper are in pandas
+                            #     df=spark.createDataFrame(df)
+                            try:
+                                print(df.printSchema())
+                            except:
+                                print(df.dtypes)
 
                         metaParserInstance = MasterHelper.get_metadata(df,spark,dataframe_context,new_cols_added)
                         df,df_helper = MasterHelper.set_dataframe_helper(df,dataframe_context,metaParserInstance)
@@ -259,7 +280,10 @@ def main(configJson):
                         try:
                             for i in dataTypeChangeCols:
                                 if i["columnType"]=="dimension":
-                                    updateLevelCountCols.append(i["colName"])
+                                    if  jobType != "prediction":
+                                        updateLevelCountCols.append(i["colName"])
+                                    elif i["colName"] != self.dataframe_context.get_result_column() and jobType == "prediction":#in prediction we should not add target
+                                        updateLevelCountCols.append(i["colName"])
                         except:
                             pass
                         levelCountDict = df_helper.get_level_counts(updateLevelCountCols)
@@ -416,13 +440,13 @@ def submit_job_through_yarn():
 if __name__ == '__main__':
     jobURL, killURL = killer_setting(sys.argv[1])
     try:
-        main(sys.argv[1])
-        print('Main Method End .....')
+       main(sys.argv[1])
+       print('Main Method End .....')
     except Exception as e:
-        print (jobURL, killURL)
-        data = {"status": "killed", "jobURL": jobURL}
-        resp = send_kill_command(killURL, data)
-        while str(resp.text) != '{"result": "success"}':
-            data = {"status": "killed", "jobURL": jobURL}
-            resp = send_kill_command(killURL, data)
-        print('Main Method Did Not End ....., ', str(e))
+         print (jobURL, killURL)
+         data = {"status": "killed", "jobURL": jobURL}
+         resp = send_kill_command(killURL, data)
+         while str(resp.text) != '{"result": "success"}':
+             data = {"status": "killed", "jobURL": jobURL}
+             resp = send_kill_command(killURL, data)
+         print('Main Method Did Not End ....., ', str(e))

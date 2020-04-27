@@ -7,6 +7,8 @@ from pyspark.sql import functions as F
 from pyspark.sql import Window
 from pyspark.sql.functions import udf,desc,monotonically_increasing_id
 from pyspark.ml.feature import QuantileDiscretizer
+import pandas as pd
+import numpy as np
 
 
 class GainLiftKS(object):
@@ -45,3 +47,27 @@ class GainLiftKS(object):
         Rank=Rank.withColumn("Total_Lift",F.round(Lift_udf("cum_resp","id"),2))
         Rank=Rank.drop('id')
         return(Rank)
+
+    def Rank_Ordering(self):
+        self._df = self._df.sort_values(self._proba_column, ascending=False)
+        self._df["id"] = self._df.index
+        self._df['deciles'] = pd.qcut(self._df['id'], 10, labels=np.arange(0.0, 10.0, 1))
+        x = self._df
+        y = self._proba_column
+        Target = self._target_column
+        Rank = self._df.groupby('deciles').apply(lambda x: pd.Series([np.size(x[y]), np.sum(x[Target] == int(self._posLabel))],
+        index=(["cnt", "cnt_resp"]))).reset_index()
+        Rank["cnt_non_resp"] = Rank["cnt"] - Rank["cnt_resp"]
+        Rank["cum_resp"] = Rank["cnt_resp"].cumsum()
+        Rank["cum_non_resp"] = Rank["cnt_non_resp"].cumsum()
+        Rank["% Responders(Cumulative)"] = round(Rank["cum_resp"] * 100 / np.sum(Rank["cnt_resp"]), 2)
+        Rank["% Non-Responders(Cumulative)"] = round(Rank["cum_non_resp"] * 100 / np.sum(Rank["cnt_non_resp"]), 2)
+        Rank["cum_population"] = Rank["cnt"].cumsum()
+        Rank["pop_pct_per_decile"] = round(Rank["cnt"] * 100 / np.sum(Rank["cnt"]), 2)
+        Rank["% Population(Cumulative)"] = round(Rank["pop_pct_per_decile"].cumsum(), 2)
+        Rank["KS"] = round(Rank["% Responders(Cumulative)"] - Rank["% Non-Responders(Cumulative)"], 2)
+        Rank["Lift at Decile"] = round(Rank["cnt_resp"] * Rank["pop_pct_per_decile"] * 100 / np.sum(Rank["cnt_resp"]),2)
+        Rank["id"] = Rank.index
+        Rank["Total_Lift"] = round(Rank["cum_resp"] / (Rank["id"] + 1), 2)
+        Rank = Rank.drop(columns="id")
+        return Rank

@@ -154,9 +154,9 @@ class DataPreprocessingAutoMl(object):
                                 "binary": None}}
         target_variable = self.dataframe[targetname]
         counts = target_variable.value_counts()
-        self.dataframe = self.dataframe[~target_variable.isin(counts[counts <= 10].index)]
         if (m_type.lower() == 'classification'):
             ## convert target column into object
+            self.dataframe = self.dataframe[~target_variable.isin(counts[counts <= 10].index)]
             output_dict['target_analysis']['converted_to_str'] = False
             if self.dataframe[targetname].dtype != 'O':
                 self.dataframe[targetname] = "'" + self.dataframe[targetname].astype(str) + "'"
@@ -257,6 +257,8 @@ class DataPreprocessingAutoMl(object):
         ## pass this measure column and dim col to other modules
         measure_col = list(self.dataframe.select_dtypes(include=['int32', 'int64', 'float32', 'float64', 'int',
                                                                 'float']).columns)  ## measure_col = list(df.select_dtypes(include=['int','float']).columns)
+        if app_type.lower() != 'classification':
+            measure_col.remove(target)
         dim_col = list(self.dataframe.select_dtypes(include=['object', 'datetime64', 'category', 'bool']).columns)
         data_dict["target_analysis"] = a["target_analysis"]
         outlier_columns, capped_cols = self.handle_outliers(measure_col)
@@ -308,6 +310,8 @@ class DataPreprocessingAutoMl(object):
         measure_col = list(self.dataframe.select_dtypes(include=['int32', 'int64', 'float32', 'float64', 'int',
                                                                 'float']).columns)
         ## measure_col = list(df.select_dtypes(include=['int','float']).columns)
+        if app_type.lower() != 'classification':
+            measure_col.remove(target)
         dim_col = list(self.dataframe.select_dtypes(include=['object', 'datetime64', 'category', 'bool']).columns)
         outlier_columns, capped_cols = self.handle_outliers(measure_col)
         data_dict["Cap_outlier"] = capped_cols

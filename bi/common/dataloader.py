@@ -16,6 +16,9 @@ import time
 import re
 from functools import reduce
 import subprocess
+import pandas as pd
+import requests
+import io
 
 class DataLoader(object):
 
@@ -24,6 +27,12 @@ class DataLoader(object):
     def load_csv_file(spark_session, csv_file_path, has_header=True, interpret_data_schema=True):
         return spark_session.read.csv(csv_file_path, header=has_header, inferSchema=interpret_data_schema, escape='"',
                                       multiLine=True, ignoreTrailingWhiteSpace=True, nullValue=None and 'na' and 'nan')
+
+    @staticmethod
+    def load_csv_file_pandas(csv_file_path, has_header=True):
+        s=requests.get(csv_file_path).content
+        df=pd.read_csv(io.StringIO(s.decode('utf-8')))
+        return df
 
     @staticmethod
     @accepts(SparkSession, basestring, dict)

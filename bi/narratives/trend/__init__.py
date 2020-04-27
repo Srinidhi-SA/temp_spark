@@ -21,6 +21,7 @@ from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
 from .trend_narratives import TrendNarrative
+from bi.common import MetaDataHelper
 
 
 class TimeSeriesNarrative(object):
@@ -30,6 +31,7 @@ class TimeSeriesNarrative(object):
         self._spark = spark
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._data_frame = df_helper.get_data_frame()
         self._num_significant_digits = NarrativesUtils.get_significant_digit_settings("trend")
         self._metaParser = meta_parser
@@ -107,6 +109,13 @@ class TimeSeriesNarrative(object):
                 }
 
         self._base_dir = "/trend/"
+        if self._pandas_flag and self._selected_date_columns and not self._dateColumnFormatDict and not self._timestamp_columns:
+            for column in self._selected_date_columns:
+                uniqueVals = self._data_frame[column].astype(str).unique().tolist()
+                metaHelperInstance = MetaDataHelper(self._data_frame,self._data_frame.shape[0])
+                if len(uniqueVals) > 0 and metaHelperInstance.get_datetime_format_pandas([self._data_frame.sort_values(by=column,ascending=False)[column][0]])!=None:
+                    dateColumnFormat = metaHelperInstance.get_datetime_format_pandas(uniqueVals)
+                    self._dateColumnFormatDict.update({column:dateColumnFormat})
         dateColCheck = NarrativesUtils.check_date_column_formats(self._selected_date_columns,\
                                                     self._timestamp_columns,\
                                                     self._dateColumnFormatDict,\
@@ -122,7 +131,7 @@ class TimeSeriesNarrative(object):
             # self._date_column_suggested is the column used for trend
             self._date_column_suggested = dateColCheck["suggestedDateColumn"]
         if self._existingDateFormat:
-            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_column_suggested,self._trend_on_td_column)
+            self._data_frame,dataRangeStats = NarrativesUtils.calculate_data_range_stats(self._data_frame,self._existingDateFormat,self._date_column_suggested,self._trend_on_td_column,self._pandas_flag)
             print(dataRangeStats)
             self._durationString = dataRangeStats["durationString"]
             self._duration = dataRangeStats["duration"]
@@ -135,49 +144,52 @@ class TimeSeriesNarrative(object):
                     self._selected_date_columns = self._timestamp_columns
                 else:
                     self._selected_date_columns += self._timestamp_columns
-        if self._trend_subsection=="regression":
-            if self._selected_date_columns != None:
-                if self._dateFormatDetected:
-                    trend_subsection_data = self._result_setter.get_trend_section_data()
-                    measure_column = trend_subsection_data["measure_column"]
-                    result_column = trend_subsection_data["result_column"]
-                    base_dir = trend_subsection_data["base_dir"]
+        if self._pandas_flag:
+            pass
+        else:
+            if self._trend_subsection=="regression":
+                if self._selected_date_columns != None:
+                    if self._dateFormatDetected:
+                        trend_subsection_data = self._result_setter.get_trend_section_data()
+                        measure_column = trend_subsection_data["measure_column"]
+                        result_column = trend_subsection_data["result_column"]
+                        base_dir = trend_subsection_data["base_dir"]
 
-                    card3heading = 'How '+ result_column +' and '+ measure_column + ' changed over time'
-                    if self._dataLevel == "day":
-                        grouped_data = self._data_frame.groupBy("suggestedDate").agg({measure_column : 'sum', result_column : 'sum'})
-                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
-                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
-                        grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
-                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
-                        grouped_data = grouped_data.toPandas()
-                    elif self._dataLevel == "month":
-                        grouped_data = self._data_frame.groupBy("year_month").agg({measure_column : 'sum', result_column : 'sum'})
-                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
-                        grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
-                        grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
-                        grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
-                        grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
-                        grouped_data = grouped_data.select(["key",measure_column,result_column,"year_month"]).toPandas()
-                        grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
+                        card3heading = 'How '+ result_column +' and '+ measure_column + ' changed over time'
+                        if self._dataLevel == "day":
+                            grouped_data = self._data_frame.groupBy("suggestedDate").agg({measure_column : 'sum', result_column : 'sum'})
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
+                            grouped_data = grouped_data.withColumn("year_month",udf(lambda x:x.strftime("%b-%y"))("suggestedDate"))
+                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[0],"key")
+                            grouped_data = grouped_data.toPandas()
+                        elif self._dataLevel == "month":
+                            grouped_data = self._data_frame.groupBy("year_month").agg({measure_column : 'sum', result_column : 'sum'})
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-1],result_column)
+                            grouped_data = grouped_data.withColumnRenamed(grouped_data.columns[-2],measure_column)
+                            grouped_data = grouped_data.withColumn("suggestedDate",udf(lambda x:datetime.strptime(x,"%b-%y"))("year_month"))
+                            grouped_data = grouped_data.orderBy("suggestedDate",ascending=True)
+                            grouped_data = grouped_data.withColumnRenamed("suggestedDate","key")
+                            grouped_data = grouped_data.select(["key",measure_column,result_column,"year_month"]).toPandas()
+                            grouped_data["key"] = grouped_data["year_month"].apply(lambda x: datetime.strptime(x,"%b-%y").date())
 
-                    trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
+                        trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
 
-                    card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column,self._dataLevel,self._durationString)
+                        card3data = trend_narrative_obj.generate_regression_trend_data(grouped_data,measure_column,result_column,self._dataLevel,self._durationString)
 
-                    card3narrative = NarrativesUtils.get_template_output(base_dir,\
-                                                                    'regression_card3.html',card3data)
+                        card3narrative = NarrativesUtils.get_template_output(base_dir,\
+                                                                        'regression_card3.html',card3data)
 
 
-                    card3chart =trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
-                    card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
-                    card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
-                    self.set_regression_trend_card_data(card2)
+                        card3chart =trend_narrative_obj.generate_regression_trend_chart(grouped_data,self._dataLevel)
+                        card3paragraphs = NarrativesUtils.paragraph_splitter(card3narrative)
+                        card2 = {'charts': card3chart, 'paragraphs': card3paragraphs, 'heading': card3heading}
+                        self.set_regression_trend_card_data(card2)
+                    else:
+                        print("NO DATE FORMAT DETECTED")
                 else:
-                    print("NO DATE FORMAT DETECTED")
-            else:
-                print("NO DATE COLUMNS PRESENT")
+                    print("NO DATE COLUMNS PRESENT")
 
 
         if self._analysistype=="measure":
@@ -201,8 +213,11 @@ class TimeSeriesNarrative(object):
                                 }
                 if self._selected_date_columns != None:
                     if self._dateFormatDetected:
-                        grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataLevel,self._result_column,self._analysistype)
-                        self._data_frame = self._data_frame.drop(self._date_column_suggested)
+                        grouped_data = NarrativesUtils.get_grouped_data_for_trend(self._data_frame,self._dataLevel,self._result_column,self._analysistype,self._pandas_flag)
+                        if self._pandas_flag:
+                            self._data_frame = self._data_frame.drop(self._date_column_suggested, axis=1)
+                        else:
+                            self._data_frame = self._data_frame.drop(self._date_column_suggested)
                         # self._data_frame = self._data_frame.withColumnRenamed("year_month", self._date_column_suggested)
 
                         significant_dimensions = []
@@ -228,8 +243,8 @@ class TimeSeriesNarrative(object):
                                 datetimeformat = self._existingDateFormat
                             elif self._dataLevel=="month":
                                 datetimeformat = "%b-%y"
-                            # xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel)
-                            xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,datetimeformat,reference_time,self._dataLevel)
+                            # xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame,grouped_data,significant_dimensions,self._date_column_suggested,self._result_column,self._existingDateFormat,reference_time,self._dataLevel, self._pandas_flag)
+                            xtraData = trend_narrative_obj.get_xtra_calculations(self._data_frame, grouped_data, significant_dimensions, self._date_column_suggested, self._result_column, datetimeformat, reference_time, self._dataLevel, self._pandas_flag)
                             if xtraData != None:
                                 dataDict.update(xtraData)
                         # print 'Trend dataDict:  %s' %(json.dumps(dataDict, indent=2))
@@ -273,7 +288,10 @@ class TimeSeriesNarrative(object):
                         if self._dataLevel == "month":
                             forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%b-%y")
                         elif self._dataLevel == "day":
-                            forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%Y-%m-%d")
+                            try:
+                                forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"],"%Y-%m-%d")
+                            except:
+                                forecast_start_time = datetime.strptime(card1chartdata["actual"][-1]["key"], '%Y-%m-%d %H:%M:%S')
                         for val in range(prediction_window):
                             if self._dataLevel == "month":
                                 key = forecast_start_time+relativedelta(months=1+val)
@@ -401,35 +419,52 @@ class TimeSeriesNarrative(object):
                     try:
                         result_column_levels = self._metaParser.get_unique_level_names(self._result_column)
                     except:
-                        result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
+                        if self._pandas_flag:
+                            result_column_levels = list(self._data_frame[self._result_column].unique())
+                        else:
+                            result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
 
                     print("-"*100)
                     # TODO Implement meta parser getter here
                     print(result_column_levels)
-                    level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
-                    level_count_df_rows =  level_count_df.collect()
-                    top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
+                    if self._pandas_flag:
+                        level_count_df = self._data_frame[self._result_column].value_counts()[0:2]
+                        top2levels = list(level_count_df.index)
+                    else:
+                        level_count_df = self._data_frame.groupBy(self._result_column).count().orderBy("count",ascending=False)
+                        level_count_df_rows =  level_count_df.collect()
+                        top2levels = [level_count_df_rows[0][0],level_count_df_rows[1][0]]
                     cardData = []
                     chart_data = {}
                     cardData1 = []
                     c3_chart = {"dataType":"c3Chart","data":{}}
                     print("#"*40)
-                    overall_count = NarrativesUtils.get_grouped_count_data_for_dimension_trend(self._data_frame,self._dataLevel,self._result_column)
+                    overall_count = NarrativesUtils.get_grouped_count_data_for_dimension_trend(self._data_frame,self._dataLevel,self._result_column,self._pandas_flag)
                     print("#"*40)
                     for idx,level in  enumerate(top2levels):
                         print("calculations in progress for the level :- ",level)
-                        leveldf = self._data_frame.filter(col(self._result_column) == level)
-                        grouped_data = NarrativesUtils.get_grouped_data_for_trend(leveldf,self._dataLevel,self._result_column,self._analysistype )
+                        if self._pandas_flag:
+                            leveldf = self._data_frame[self._data_frame[self._result_column] == level]
+                        else:
+                            leveldf = self._data_frame.filter(col(self._result_column) == level)
+                        grouped_data = NarrativesUtils.get_grouped_data_for_trend(leveldf,self._dataLevel,self._result_column,self._analysistype,self._pandas_flag )
                         grouped_data.rename(columns={"value":"value_count"},inplace=True)
                         grouped_data = pd.merge(grouped_data, overall_count, on='key', how='left')
                         # grouped_data["value"] = grouped_data["value_count"].apply(lambda x:round(x*100/float(self._data_frame.count()),self._num_significant_digits))
                         grouped_data["value"] = old_div(grouped_data["value_count"],grouped_data["totalCount"])
                         grouped_data["value"] = grouped_data["value"].apply(lambda x:round(x*100,self._num_significant_digits))
-                        leveldf = leveldf.drop(self._date_column_suggested)
-                        leveldf = leveldf.withColumnRenamed("year_month", self._date_column_suggested)
-                        if "year_month" not in leveldf.columns:
-                            leveldf = leveldf.withColumn("year_month", col(self._date_column_suggested))
-                        leveldf = leveldf.withColumn('value_col', lit(1))
+                        if self._pandas_flag:
+                            leveldf = leveldf.drop(self._date_column_suggested, axis=1)
+                            leveldf = leveldf.rename(columns={"year_month":self._date_column_suggested})
+                            if "year_month" not in leveldf.columns:
+                                leveldf["year_month"] = leveldf[self._date_column_suggested]
+                            leveldf["value_col"] = 1
+                        else:
+                            leveldf = leveldf.drop(self._date_column_suggested)
+                            leveldf = leveldf.withColumnRenamed("year_month", self._date_column_suggested)
+                            if "year_month" not in leveldf.columns:
+                                leveldf = leveldf.withColumn("year_month", col(self._date_column_suggested))
+                            leveldf = leveldf.withColumn('value_col', lit(1))
 
                         trend_narrative_obj = TrendNarrative(self._result_column,self._date_column_suggested,grouped_data,self._existingDateFormat,self._requestedDateFormat,self._base_dir, self._metaParser)
                         dataDict = trend_narrative_obj.generateDataDict(grouped_data,self._dataLevel,self._durationString)
@@ -453,7 +488,7 @@ class TimeSeriesNarrative(object):
                         dataDict["significant_dimensions"] = significant_dimensions
                         if len(significant_dimensions) > 0:
                             st = time.time()
-                            xtraData = trend_narrative_obj.get_xtra_calculations(leveldf,grouped_data,significant_dimensions,self._date_column_suggested,"value_col",self._existingDateFormat,reference_time,self._dataLevel)
+                            xtraData = trend_narrative_obj.get_xtra_calculations(leveldf, grouped_data, significant_dimensions, self._date_column_suggested, "value_col", self._existingDateFormat, reference_time,self._dataLevel, self._pandas_flag)
                             print("time for get_xtra_calculations" ,time.time()-st)
                             if xtraData != None:
                                 dataDict.update(xtraData)

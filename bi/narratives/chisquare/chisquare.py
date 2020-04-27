@@ -28,6 +28,7 @@ class ChiSquareAnalysis(object):
         self._dimensionNode.set_name(target_dimension)
         self._data_frame = data_frame
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._dataframe_helper = df_helper
         self._chisquare_result = chisquare_result
         self._target_dimension = target_dimension
@@ -374,12 +375,18 @@ class ChiSquareAnalysis(object):
                   overall_second_percentage = old_div(sum_second_target*100.0,total)
 
                   # DataFrame for contribution calculation
-
-                  df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
-                                          filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                  if self._pandas_flag:
+                      df_second_target = self._data_frame[(self._data_frame[self._target_dimension] == targetLevel) & (
+                                  self._data_frame[self._analysed_dimension] == second_target_top_dims[0])][
+                          self._second_level_dimensions]
+                      df_second_dim = self._data_frame[(self._data_frame[self._analysed_dimension] ==
+                      second_target_top_dims[0])][self._second_level_dimensions]
+                  else:
+                      df_second_target = self._data_frame.filter(col(self._target_dimension)==targetLevel).\
+                                              filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
+                                              select(self._second_level_dimensions).toPandas()
+                      df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
                                           select(self._second_level_dimensions).toPandas()
-                  df_second_dim = self._data_frame.filter(col(self._analysed_dimension)==second_target_top_dims[0]).\
-                                      select(self._second_level_dimensions).toPandas()
 
                   # if self._chisquare_result.get_splits():
                   #     splits = self._chisquare_result.get_splits()
@@ -404,7 +411,7 @@ class ChiSquareAnalysis(object):
                   distribution_second = []
                   d_l=[]
                   for d in self._second_level_dimensions:
-                    grouped = df_second_target.sort_values(d,ascending=False,axis = 0).groupby(d).agg({d:'count'})
+                    grouped = df_second_target.groupby(d).agg({d: 'count'})
                     contributions = df_second_dim.groupby(d).agg({d:'count'})
                     contribution_index = list(contributions.index)
                     contributions_val = contributions[d].tolist()

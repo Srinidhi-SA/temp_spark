@@ -48,7 +48,7 @@ DEFAULT_VALIDATION_OBJECT = {
          "value":0.8
        }
 
-DEFAULT_NULL_VALUES = ["Null", "N/A", "NaN", "None", "na", "nan","n/a","#na","#N/A","#NA"]
+DEFAULT_NULL_VALUES = ["Null", "N/A", "NaN", "None", "na", "nan","n/a","#na","#N/A","#NA","NA"]
 
 APPS_ID_MAP = {
     '1': {
@@ -258,6 +258,23 @@ SUPPORTED_DATETIME_FORMATS = {
                     '%B/%d/%Y %H:%M', '%d/%B/%Y %H:%M', '%B/%d/%y %H:%M', '%d/%B/%y %H:%M',
                     '%B-%d-%Y %H:%M', '%d-%B-%Y %H:%M', '%B-%d-%y %H:%M', '%d-%B-%y %H:%M',
                     '%Y-%m-%d %H:%M', '%Y/%m/%d %H:%M', '%Y-%b-%d %H:%M', '%Y-%B-%d %H:%M',
+
+                    '%m/%d/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S', '%m/%d/%y %H:%M:%S', '%d/%m/%y %H:%M:%S',
+                    '%d-%m-%Y %H:%M:%S', '%m-%d-%Y %H:%M:%S', '%m-%d-%y %H:%M:%S', '%d-%m-%y %H:%M:%S',
+                    '%b/%d/%Y %H:%M:%S', '%d/%b/%Y %H:%M:%S', '%b/%d/%y %H:%M:%S', '%d/%b/%y %H:%M:%S',
+                    '%b-%d-%Y %H:%M:%S', '%d-%b-%Y %H:%M:%S', '%b-%d-%y %H:%M:%S', '%d-%b-%y %H:%M:%S',
+                    '%B/%d/%Y %H:%M:%S', '%d/%B/%Y %H:%M:%S', '%B/%d/%y %H:%M:%S', '%d/%B/%y %H:%M:%S',
+                    '%B-%d-%Y %H:%M:%S', '%d-%B-%Y %H:%M:%S', '%B-%d-%y %H:%M:%S', '%d-%B-%y %H:%M:%S',
+                    '%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S', '%Y-%b-%d %H:%M:%S', '%Y-%B-%d %H:%M:%S',
+
+                    '%m/%d/%YT%H:%M:%S.%f', '%d/%m/%YT%H:%M:%S.%f', '%m/%d/%yT%H:%M:%S.%f', '%d/%m/%yT%H:%M:%S.%f',
+                    '%d-%m-%YT%H:%M:%S.%f', '%m-%d-%YT%H:%M:%S.%f', '%m-%d-%yT%H:%M:%S.%f', '%d-%m-%yT%H:%M:%S.%f',
+                    '%b/%d/%YT%H:%M:%S.%f', '%d/%b/%YT%H:%M:%S.%f', '%b/%d/%yT%H:%M:%S.%f', '%d/%b/%yT%H:%M:%S.%f',
+                    '%b-%d-%YT%H:%M:%S.%f', '%d-%b-%YT%H:%M:%S.%f', '%b-%d-%yT%H:%M:%S.%f', '%d-%b-%yT%H:%M:%S.%f',
+                    '%B/%d/%YT%H:%M:%S.%f', '%d/%B/%YT%H:%M:%S.%f', '%B/%d/%yT%H:%M:%S.%f', '%d/%B/%yT%H:%M:%S.%f',
+                    '%B-%d-%YT%H:%M:%S.%f', '%d-%B-%YT%H:%M:%S.%f', '%B-%d-%yT%H:%M:%S.%f', '%d-%B-%yT%H:%M:%S.%f',
+                    '%Y-%m-%dT%H:%M:%S.%f', '%Y/%m/%dT%H:%M:%S.%f', '%Y-%b-%dT%H:%M:%S.%f', '%Y-%B-%dT%H:%M:%S.%f',
+
                     '%m-%d-%Y %r', '%d-%m-%Y %r', '%m-%d-%Y %R',
                     '%d-%m-%Y %R', '%m-%d-%y %r', '%d-%m-%y %r', '%m-%d-%y %R',
                     '%d-%m-%y %R', '%b-%d-%Y %r', '%d-%b-%Y %r', '%Y-%b-%d %r', '%b-%d-%Y %R',

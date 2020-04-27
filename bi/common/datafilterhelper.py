@@ -8,6 +8,7 @@ class DataFilterHelper(object):
     def __init__(self, data_frame, df_context):
         self._data_frame = data_frame
         self._df_context = df_context
+        self._pandas_flag = self._df_context._pandas_flag
 
     def clean_data_frame(self):
         """
@@ -32,7 +33,7 @@ class DataFilterHelper(object):
             if len(self.measure_suggestions)>0:
                     self.clean_data_frame()
 
-        self.df_filterer = DataFrameFilterer(self._data_frame)
+        self.df_filterer = DataFrameFilterer(self._data_frame, self._pandas_flag)
         self.dimension_filter = self._df_context.get_dimension_filters()
         if not self.dimension_filter==None:
             for colmn in list(self.dimension_filter.keys()):

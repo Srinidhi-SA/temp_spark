@@ -62,6 +62,7 @@ class NNPTClassificationScript(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
@@ -220,6 +221,7 @@ class NNPTClassificationScript(object):
                     for param in network.parameters():
                         l1_loss += torch.norm(param,1)
                         loss += l1_decay * l1_loss
+                return loss
 
                 if l2_decay > 0:
                     l2_loss = 0
@@ -248,19 +250,20 @@ class NNPTClassificationScript(object):
             print("~"*50)
 
             loss_name = other_params_dict["loss_name"]
+            if "loss_weight" in other_params_dict:
+                loss_weight = other_params_dict["loss_weight"]
             criterion = other_params_dict["loss_criterion"]
             n_epochs = other_params_dict["number_of_epochs"]
             batch_size = other_params_dict["batch_size"]
             optimizer_dict = other_params_dict["optimizer"]
             optimizer_name = optimizer_dict["optimizer"]
             optimizer = get_optimizer(optimizer_name, optimizer_dict, network.parameters())
-            l1_decay = other_params_dict["reg_l1loss"]["l1_decay"]
-            l2_decay = other_params_dict["reg_l2loss"]["l2_decay"]
-
-            if "loss_weight" in other_params_dict:
-                loss_weight = other_params_dict["loss_weight"]
+            l1_decay,l2_decay = 0,0
+            if "l1_regularizer" in other_params_dict["regularizer"]["regularizer"]:
+                l1_decay = other_params_dict["regularizer"]["l1_decay"]
+            else:
+                l2_decay = other_params_dict["regularizer"]["l2_decay"]
             reduction = other_params_dict["reduction"]
-
             dataloader_params = {
             "batch_size": batch_size,
             "shuffle": True
@@ -286,6 +289,7 @@ class NNPTClassificationScript(object):
                     labels = labels.to(device)
                     # Forward + backward + optimize
                     outputs = network(inputs).float()
+
                     if loss_name != "CrossEntropyLoss":
                         outputs = torch.max(outputs,1).values
                         if loss_name in ['BCELoss','BCEWithLogitsLoss','NLLLoss'] and loss_weight != None:
@@ -436,9 +440,13 @@ class NNPTClassificationScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            if self._pandas_flag:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            else:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -710,8 +718,10 @@ class NNPTClassificationScript(object):
             model_columns = self._dataframe_context.get_model_features()
             #trained_model = joblib.load(trained_model_path)
             trained_model = torch.load(trained_model_path, map_location=torch.device('cpu'))
-
-            df = self._data_frame.toPandas()
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame.copy()
             # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
@@ -808,13 +818,15 @@ class NNPTClassificationScript(object):
             # self._metaParser.update_level_counts(result_column,resultColLevelCount)
             self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
             self._dataframe_context.set_story_on_scored_data(True)
-            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-            spark_scored_df = SQLctx.createDataFrame(df)
-            # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
+            if self._pandas_flag:
+                scored_df = df.copy()
+            else:
+                SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+                scored_df = SQLctx.createDataFrame(df)
             self._dataframe_context.update_consider_columns(columns_to_keep)
-            df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
+            df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
             df_helper.set_params()
-            spark_scored_df = df_helper.get_data_frame()
+            scored_df = df_helper.get_data_frame()
             # try:
             #     fs = time.time()
             #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
@@ -860,7 +872,7 @@ class NNPTClassificationScript(object):
             if len(predictedClasses) >=2:
                 # try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print("NARRATIVES OBJ - ", narratives_obj)
                 # except:
