@@ -163,9 +163,105 @@ class TensorFlowScript(object):
             evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             self._result_setter.set_hyper_parameter_results(self._slug,None)
 
-            params_tf=algoSetting.get_tf_params_dict()
-            algoParams = algoSetting.get_params_dict()
-            algoParams = {k:v for k,v in list(algoParams.items())}
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable = True
+                train_size = x_train.shape[0]
+                if train_size < 10000:
+                    units = '32'
+                    rate = '0.1'
+                elif train_size < 20000:
+                    units = '32'
+                    rate = '0.2'
+                elif train_size > 20000 and train_size < 40000:
+                    units = '64'
+                    rate = '0.3'
+                elif train_size > 60000:
+                    units = '128'
+                    rate = '0.5'
+                params_tf = {
+                              'hidden_layer_info':
+                              {
+                                '1': {
+                                  'layerId': 2,
+                                  'rate': rate,
+                                  'layer': 'Dropout'
+                                },
+                                '3': {
+                                  'layerId': 4,
+                                  'rate': rate,
+                                  'layer': 'Dropout'
+                                },
+                                '4': {
+                                  'bias_constraint': None,
+                                  'units': str(len(levels)),
+                                  'use_bias': True,
+                                  'layer': 'Dense',
+                                  'bias_initializer': 'glorot_uniform',
+                                  'layerId': 5,
+                                  'activity_regularizer': None,
+                                  'kernel_constraint': None,
+                                  'activation': 'softmax',
+                                  'kernel_initializer': 'glorot_uniform',
+                                  'kernel_regularizer': None,
+                                  'batch_normalization': 'True',
+                                  'bias_regularizer': None
+                                },
+                                '0': {
+                                  'bias_constraint': None,
+                                  'units': units,
+                                  'use_bias': True,
+                                  'layer': 'Dense',
+                                  'bias_initializer': 'glorot_uniform',
+                                  'layerId': 1,
+                                  'activity_regularizer': None,
+                                  'kernel_constraint': None,
+                                  'activation': 'relu',
+                                  'kernel_initializer': 'glorot_uniform',
+                                  'kernel_regularizer': None,
+                                  'batch_normalization': 'True',
+                                  'bias_regularizer': None
+                                },
+                                '2': {
+                                  'bias_constraint': None,
+                                  'units': int(int(units)/2),
+                                  'use_bias': True,
+                                  'layer': 'Dense',
+                                  'bias_initializer': 'glorot_uniform',
+                                  'layerId': 3,
+                                  'activity_regularizer': None,
+                                  'kernel_constraint': None,
+                                  'activation': 'relu',
+                                  'kernel_initializer': 'glorot_uniform',
+                                  'kernel_regularizer': None,
+                                  'batch_normalization': 'True',
+                                  'bias_regularizer': None
+                                }
+                              }
+                            }
+                algoParams = {
+                                  'layer': 'Dense',
+                                  'loss': 'sparse_categorical_crossentropy',
+                                  'optimizer': 'Adam',
+                                  'batch_size': min(int(train_size/100), 300),
+                                  'number_of_epochs': 100,
+                                  'metrics': 'sparse_categorical_crossentropy'
+                                  }
+
+                if len(levels) == 2:
+                    params_tf['hidden_layer_info']['3']['activation'] = 'sigmoid'
+                elif len(levels) > 2:
+                    pass
+
+                if train_size <= 500:
+                    algoParams['batch_size'] = int(train_size/10)
+                elif train_size > 500 and train_size < 2000:
+                    algoParams['batch_size'] = int(train_size/50)
+                if train_size > 20000:
+                    algoParams['number_of_epochs'] = 50
+            else:
+                params_tf=algoSetting.get_tf_params_dict()
+                algoParams = algoSetting.get_params_dict()
+                algoParams = {k:v for k,v in list(algoParams.items())}
 
             model = tf.keras.models.Sequential()
 

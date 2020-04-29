@@ -498,3 +498,227 @@ def get_tensored_data(x_train, y_train, x_test, y_test):
         y_test_tensored = torch.tensor(y_test.values, dtype=torch.float)
 
     return x_train_tensored, y_train_tensored, x_test_tensored, y_test_tensored
+
+def get_nnptc_params_dict(levels,columns,rows):
+    large = False
+    if columns > 35 :
+        large = True
+        nnptc_params = {
+            "hidden_layer_info": {
+              "1": {
+                "weight_constraint": {
+                  "constraint": "None"
+                },
+                "units_op": 16,
+                "units_ip": 32,
+                "activation": {
+                  "name": "ReLU"
+                },
+                "bias_init": {
+                  "name": "Uniform",
+                  "lower_bound": 0,
+                  "upper_bound": 1
+                },
+                "weight_init": {
+                  "name": "Kaiming_Normal",
+                  "mode": "fan_in",
+                  "nonlinearity": "leaky_relu",
+                  "a": 0
+                },
+                "layer": "Linear",
+                "dropout": {
+                  "name": "Dropout",
+                  "p": 0.5
+                },
+                "batchnormalization": {
+                  "name": "None"
+                }
+              },
+              "2": {
+                "weight_constraint": {
+                  "constraint": "None"
+                },
+                "units_op": 8,
+                "units_ip": 16,
+                "activation": {
+                  "name": "ReLU"
+                },
+                "bias_init": {
+                  "name": "Uniform",
+                  "lower_bound": 0,
+                  "upper_bound": 1
+                },
+                "weight_init": {
+                  "name": "Kaiming_Normal",
+                  "mode": "fan_in",
+                  "nonlinearity": "leaky_relu",
+                  "a": 0
+                },
+                "layer": "Linear",
+                "dropout": {
+                  "name": "Dropout",
+                  "p": 0.5
+                },
+                "batchnormalization": {
+                  "name": "None"
+                }
+              },
+              "3": {
+                "weight_constraint": {
+                  "constraint": "None"
+                },
+                "units_op": 2,
+                "units_ip": 8,
+                "activation": {
+                  "name": "Sigmoid"
+                },
+                "bias_init": {
+                  "name": "Uniform",
+                  "lower_bound": 0,
+                  "upper_bound": 1
+                },
+                "weight_init": {
+                  "name": "Kaiming_Normal",
+                  "mode": "fan_in",
+                  "nonlinearity": "leaky_relu",
+                  "a": 0
+                },
+                "layer": "Linear",
+                "dropout": {
+                  "name": "None",
+                  "p": "None"
+                },
+                "batchnormalization": {
+                  "name": "None"
+                }
+              }
+            },
+            "number_of_epochs": 50,
+            "loss": {
+              "ignore_index": None,
+              "loss": "CrossEntropyLoss",
+              "weight": None,
+              "reduction": "mean"
+            },
+            "optimizer": {
+              "lr": 0.001,
+              "weight_decay": 0,
+              "betas": "(0.9,0.999)",
+              "amsgrad": "False",
+              "optimizer": "Adam",
+              "eps": 1e-08
+            },
+            "regularizer": {
+              "regularizer": "l2_regularizer",
+              "l2_decay": 0
+            },
+            "batch_size": 32
+          }
+    else:
+        nnptc_params = {
+            "hidden_layer_info": {
+              "1": {
+                "weight_constraint": {
+                  "constraint": "None"
+                },
+                "units_op": 8,
+                "units_ip": 16,
+                "activation": {
+                  "name": "ReLU"
+                },
+                "bias_init": {
+                  "name": "Normal",
+                  "std": 1,
+                  "mean": 0
+                },
+                "weight_init": {
+                  "name": "Kaiming_Normal",
+                  "mode": "fan_in",
+                  "nonlinearity": "leaky_relu",
+                  "a": 0
+                },
+                "layer": "Linear",
+                "dropout": {
+                  "name": "Dropout",
+                  "p": 0.2
+                },
+                "batchnormalization": {
+                  "name": "None"
+                }
+              },
+              "2": {
+                "weight_constraint": {
+                  "constraint": "None"
+                },
+                "units_op": 2,
+                "units_ip": 8,
+                "activation": {
+                  "name": "Sigmoid"
+                },
+                "bias_init": {
+                  "name": "Uniform",
+                  "lower_bound": 0,
+                  "upper_bound": 1
+                },
+                "weight_init": {
+                  "name": "Uniform",
+                  "lower_bound": 0,
+                  "upper_bound": 1
+                },
+                "layer": "Linear",
+                "dropout": {
+                  "name": "None",
+                  "p": "None"
+                },
+                "batchnormalization": {
+                  "name": "None"
+                }
+              }
+            },
+            "number_of_epochs": 50,
+            "loss": {
+              "ignore_index": None,
+              "loss": "CrossEntropyLoss",
+              "weight": None,
+              "reduction": "mean"
+            },
+            "optimizer": {
+              "lr": 0.001,
+              "weight_decay": 0,
+              "betas": "(0.9,0.999)",
+              "amsgrad": "False",
+              "optimizer": "Adam",
+              "eps": 1e-08
+            },
+            "regularizer": {
+              "regularizer": "l2_regularizer",
+              "l2_decay": 0
+            },
+            "batch_size": 32
+          }
+    if not large:
+        if rows > 10000:
+            nnptc_params["batch_size"] = 64
+            nnptc_params["number_of_epochs"] = 250
+        if columns < nnptc_params["hidden_layer_info"]["1"]["units_op"]:
+            nnptc_params["hidden_layer_info"]["1"]["units_op"] = 4
+            nnptc_params["hidden_layer_info"]["2"]["units_ip"] = 4
+        nnptc_params["hidden_layer_info"]["2"]["units_op"] = len(levels)
+    else:
+        if rows > 10000:
+            nnptc_params["batch_size"] = 64
+            nnptc_params["number_of_epochs"] = 250
+        nnptc_params["hidden_layer_info"]["3"]["units_op"] = len(levels)
+    if len(levels) > 2:
+        if not large:
+            nnptc_params["hidden_layer_info"]["2"]["activation"]["name"] = "Softmax"
+            nnptc_params["hidden_layer_info"]["2"]["activation"]["dim"] = None
+        else:
+            nnptc_params["hidden_layer_info"]["3"]["activation"]["name"] = "Softmax"
+            nnptc_params["hidden_layer_info"]["3"]["activation"]["dim"] = None
+    else:
+        if not large:
+            nnptc_params["hidden_layer_info"]["2"]["activation"]["name"] = "Sigmoid"
+        else:
+            nnptc_params["hidden_layer_info"]["3"]["activation"]["name"] = "Sigmoid"
+    return nnptc_params

@@ -185,7 +185,10 @@ class NNPTClassificationScript(object):
             trainset = torch_data_utils.TensorDataset(x_train_tensored, y_train_tensored)
             testset = torch_data_utils.TensorDataset(x_test_tensored, y_test_tensored)
 
-            nnptc_params = algoSetting.get_nnptc_params_dict()[0]
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                nnptc_params = PYTORCHUTILS.get_nnptc_params_dict(levels,x_train.shape[1],x_train.shape[0])
+            else:
+                nnptc_params = algoSetting.get_nnptc_params_dict()[0]
             layers_for_network = PYTORCHUTILS.get_layers_for_network_module(nnptc_params, task_type = "CLASSIFICATION", first_layer_units = x_train.shape[1])
 
             def get_optimizer(optimizer_name, optimizer_dict, network_params):
