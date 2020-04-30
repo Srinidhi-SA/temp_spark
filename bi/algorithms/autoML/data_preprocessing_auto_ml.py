@@ -31,7 +31,12 @@ class DataPreprocessingAutoML:
 
     def drop_constant_unique_cols(self):
         self.data_frame  = self.data_frame .loc[:, (self.data_frame .nunique() != 1)]
-        self.data_frame  = self.data_frame .loc[:, (self.data_frame .nunique() != self.data_frame .shape[0])]
+        new_df  = self.data_frame .loc[:, (self.data_frame.nunique() != self.data_frame .shape[0])]
+        if self.target not in new_df.columns:
+            new_df[self.target] = self.data_frame[self.target]
+            self.data_frame = new_df
+        else:
+            self.data_frame = new_df
         self.data_change_dict['dropped_columns_list'] = []
         def dropped_col_update(list_element):
             if list_element["column_name"] not in self.data_frame.columns:
