@@ -25,6 +25,7 @@ class ResultSetter(object):
 
         self.randomForestModelSummary = None
         self.naiveBayesModelSummary = None
+        self.ensembleModelSummary=None
         self.xgboostModelSummary = None
         self.nnModelSummary = None
         self.tfModelSummary = None
@@ -45,6 +46,7 @@ class ResultSetter(object):
         self.nbcards = []
         self.lrcards = []
         self.svmcards = []
+        self.encards=[]
         self.xgbcards = []
         self.nncards = []
         self.tfcards = []
@@ -60,6 +62,7 @@ class ResultSetter(object):
         self.nnptrcards = []
         self.dtreercards = []
 
+
         self.scorefreqcard = []
         self.scorechicards = []
         self.scoredtreecards = []
@@ -68,6 +71,7 @@ class ResultSetter(object):
         self.nnnodes = []
         self.tfnodes = []
         self.nbnodes = []
+        self.ennodes = []
         self.xgbnodes = []
         self.lrnodes = []
         self.nnptcnodes = []
@@ -97,6 +101,7 @@ class ResultSetter(object):
         self.lrfailcard = []
         self.nnfailcard = []
         self.tffailcard= []
+        self.enfailcard=[]
         self.xgbfailcard = []
         self.nnptcfailcard = []
         self.nbfailcard = []
@@ -140,6 +145,11 @@ class ResultSetter(object):
         self.tffailcard=data
     def get_tf_fail_card(self):
         return self.tffailcard
+    def set_en_fail_card(self,data):
+        self.enfailcard=data
+    def get_en_fail_card(self):
+        return self.enfailcard
+
     def set_xgb_fail_card(self,data):
         self.xgbfailcard=data
     def get_xgb_fail_card(self):
@@ -199,6 +209,8 @@ class ResultSetter(object):
         self.lrnodes = data
     def set_nb_nodes(self,data):
         self.nbnodes = data
+    def set_en_nodes(self,data):
+        self.ennodes = data
     def set_xgb_nodes(self,data):
         self.xgbnodes = data
     def set_nnptc_nodes(self,data):
@@ -218,6 +230,8 @@ class ResultSetter(object):
         return self.lrnodes
     def get_all_xgb_classification_nodes(self):
         return self.xgbnodes
+    def get_all_en_classification_nodes(self):
+        return self.ennodes
     def get_all_lgbm_classification_nodes(self):
         return self.lgbmnodes
     def get_all_adab_classification_nodes(self):
@@ -295,6 +309,8 @@ class ResultSetter(object):
         self.rfrcards = data
     def set_dtreer_cards(self,data):
         self.dtreercards = data
+    def set_en_cards(self,data):
+        self.encards = data
     def set_xgb_cards(self,data):
         self.xgbcards = data
     def set_svm_cards(self,data):
@@ -311,7 +327,7 @@ class ResultSetter(object):
         self.adabcards = data
 
     def get_all_classification_cards(self):
-        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards,'LightGBM':self.lgbmcards,'Adaboost':self.adabcards,  'Random Forest':self.rfcards,'TensorFlow':self.tfcards, "Neural Networks(pyTorch)":self.nnptccards}
+        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'Ensemble':self.encards,'XGBoost':self.xgbcards,'LightGBM':self.lgbmcards,'Adaboost':self.adabcards,  'Random Forest':self.rfcards,'TensorFlow':self.tfcards, "Neural Networks(pyTorch)":self.nnptccards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
@@ -345,6 +361,8 @@ class ResultSetter(object):
         self.lgbmModelSummary =data
     def set_adaboost_model_summary(self,data):
         self.adaboostModelSummary =data
+    def set_ensemble_model_summary(self,data):
+        self.ensembleModelSummary =data
     def set_linear_regression_model_summary(self,data):
         self.linearRegressionModelSummary = data
     def set_generalized_linear_regression_model_summary(self,data):
@@ -380,6 +398,8 @@ class ResultSetter(object):
         return self.lgbmModelSummary
     def get_adaboost_model_summary(self):
         return self.adaboostModelSummary
+    def get_ensemble_model_summary(self):
+        return self.ensembleModelSummary
 
     def get_linear_regression_model_summary(self):
         return self.linearRegressionModelSummary

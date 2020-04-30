@@ -14,7 +14,7 @@ from bi.scripts.metadata import MetaDataScript
 from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.common import DataLoader,MetaParser, DataFrameHelper,ContextSetter,ResultSetter,NormalCard,HtmlData
-
+from bi.scripts.classification.ensemble_model import EnsembleModelScript
 from bi.scripts.classification.random_forest import RFClassificationModelScript
 from bi.scripts.classification.naive_bayes import NBBClassificationModelScript
 from bi.scripts.classification.naive_bayes import NBGClassificationModelScript
@@ -207,6 +207,7 @@ def set_dataframe_helper(df,dataframe_context,metaParserInstance):
     return df,dataframe_helper
 
 def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_helper_linear_df,dataframe_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df,one_click_json):
+    automl_clf_models=[]
     st = time.time()
     LOGGER = dataframe_context.get_logger()
     jobUrl = dataframe_context.get_job_url()
@@ -289,6 +290,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     rf_obj = RFClassificationModelScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     rf_obj.Train()
+                    automl_clf_models.append(rf_obj._model)
                     print("Random Forest Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"False"})
@@ -299,6 +301,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     xgb_obj = XgboostScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     xgb_obj.Train()
+                    automl_clf_models.append(xgb_obj._model)
                     print("XGBoost Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"False"})
@@ -309,6 +312,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     lgb_obj = LgbmScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     lgb_obj.Train()
+                    automl_clf_models.append(lgb_obj._model)
                     print("lightgbm Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_lgbm_fail_card({"Algorithm_Name":"LightGBM","success":"False"})
@@ -319,6 +323,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     adab_obj = AdaboostScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     adab_obj.Train()
+                    automl_clf_models.append(adab_obj._model)
                     print("Adaboost Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_adab_fail_card({"Algorithm_Name":"Adaboost","success":"False"})
@@ -330,6 +335,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     lr_obj = LogisticRegressionScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
                     lr_obj.Train()
                     print("Logistic Regression Model Done in ", time.time() - st,  " seconds.")
+                    automl_clf_models.append(lr_obj._model)
                 except Exception as e:
                     result_setter.set_lr_fail_card({"Algorithm_Name":"Logistic Regression","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
@@ -340,6 +346,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nb_obj = NBBClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
                     nb_obj.Train()
+                    automl_clf_models.append(nb_obj._model)
                     print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
@@ -349,6 +356,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nb_obj = NBGClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
                     nb_obj.Train()
+                    automl_clf_models.append(nb_obj._model)
                     print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
@@ -358,6 +366,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nb_obj = NBMClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
                     nb_obj.Train()
+                    automl_clf_models.append(nb_obj._model)
                     print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
@@ -367,6 +376,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                         st = time.time()
                         nb_obj = NBGClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
                         nb_obj.Train()
+                        automl_clf_models.append(nb_obj._model)
                         print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                     except Exception as e:
                         result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"False"})
@@ -377,6 +387,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nn_obj = NeuralNetworkScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     nn_obj.Train()
+                    automl_clf_models.append(nn_obj._model)
                     print("Neural Network Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"False"})
@@ -387,6 +398,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     tf_obj = TensorFlowScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     tf_obj.Train()
+                    automl_clf_models.append(tf_obj._model)
                     print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_tf_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
@@ -397,12 +409,21 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nnptc_obj = NNPTClassificationScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     nnptc_obj.Train()
+                    automl_clf_models.append(nnptc_obj._model)
                     print("Neural Networks(pyTorch) trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Networks(pyTorch)", "success": "False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Networks(pyTorch)", e)
                     CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
-
+        try:
+           st = time.time()
+           en_obj = EnsembleModelScript(tree_df,linear_df, dataframe_helper_tree_df,dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df,automl_clf_models,)
+           en_obj.Train()
+           print("Ensemble Model trained in ", time.time() - st,  " seconds.")
+        except Exception as e:
+           result_setter.set_en_fail_card({"Algorithm_Name": "Ensemble", "success": "False"})
+           CommonUtils.print_errors_and_store_traceback(LOGGER, "Ensemble", e)
+           CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
     elif app_type == "REGRESSION":
         for obj in algosToRun:
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
@@ -915,6 +936,14 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naive bayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+        elif "ensemble" in selected_model_for_prediction:
+            trainedModel = EnsembleModelScript(tree_df,linear_df, df_helper_tree_df,df_helper_linear_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df,None,)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Ensemble",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
         else:
             print("Could Not Load the Model for Scoring")

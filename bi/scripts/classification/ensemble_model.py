@@ -9,8 +9,7 @@ from builtins import object
 from past.utils import old_div
 import json
 import time
-import re
-from scipy.stats import randint,uniform
+
 import humanize
 import numpy as np
 import pandas as pd
@@ -22,47 +21,57 @@ except:
     import pickle
 
 from sklearn.externals import joblib
-from sklearn import metrics
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
-from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
+from sklearn.ensemble import VotingClassifier,RandomForestClassifier
+from mlxtend.classifier import EnsembleVoteClassifier
+from scipy.optimize import minimize
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import roc_curve, auc, roc_auc_score
+from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
 from sklearn.model_selection import ParameterGrid
+
+
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
-from bi.narratives import utils as NarrativesUtils
-from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
+from bi.algorithms import RandomForest
 from bi.algorithms import utils as MLUtils
+from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
 from bi.common import DataFrameHelper
 from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.narratives import utils as NarrativesUtils
 from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
-class AdaboostScript(object):
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
+
+
+
+
+class EnsembleModelScript(object):
+    def __init__(self, data_frame_tree,data_frame_linear, df_helper_tree,df_helper_linear,df_context, spark, prediction_narrative, result_setter,meta_parser,automl_clf_models,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
-        self._data_frame = data_frame
-        self._dataframe_helper = df_helper
+        self._data_frame = data_frame_tree
+        self._dataframe_helper = df_helper_tree
+        self._data_frame_linear = data_frame_linear
+        self._dataframe_helper_linear = df_helper_linear
         self._dataframe_context = df_context
+        self._pandas_flag = df_context._pandas_flag
+        self._ignoreMsg = self._dataframe_context.get_message_ignore()
         self._spark = spark
-        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
+        self._model_summary =  MLModelSummary()
         self._score_summary = {}
-        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["adaboost"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["ensemble"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
-        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         print(self._completionStatus,"initial completion status")
@@ -70,22 +79,47 @@ class AdaboostScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
         self._model=None
-
+        self._predictions=None
+        self._automl_clf_models=automl_clf_models
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The adaboost Scripts",
+                "summary":"Initialized The Ensemble Model Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Adaboost Model Training Started",
+                "summary":"Ensemble Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Adaboost Model Training Finished",
+                "summary":"Ensemble Forest Model Training Finished",
                 "weight":4
                 },
             }
+
+    def ensemble_weights(self,clfs,test_x,test_y,test_x_linear,test_y_linear,starting_value):
+        predictions = []
+        for clf in clfs:
+            try:
+                predictions.append(clf.predict_proba(test_x))
+            except:
+                predictions.append(clf.predict_proba(test_x_linear))
+        def log_loss_func(weights):
+            ''' scipy minimize will pass the weights as a numpy array '''
+            final_prediction = 0
+            for weight, prediction in zip(weights, predictions):
+                    final_prediction += weight*prediction
+            return log_loss(test_y_linear, final_prediction,labels=test_y_linear)
+        starting_values = [starting_value]*len(predictions)
+        cons = ({'type':'eq','fun':lambda w: 1-sum(w)})
+        #weights are bound between 0 and 1
+        bounds = [(0,1)]*len(predictions)
+        res = minimize(log_loss_func, starting_values, method='nelder-mead', bounds=bounds, constraints=cons)
+        weights=res['x']
+        print('Best Weights: {weights}'.format(weights=res['x']))
+        return weights
+
 
     def Train(self):
         st_global = time.time()
@@ -112,7 +146,7 @@ class AdaboostScript(object):
         pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
-
+        model_list=[(str(idx),model) for idx,model in enumerate(self._automl_clf_models)]
         df = self._data_frame
         if  self._mlEnv == "spark":
             pass
@@ -124,19 +158,25 @@ class AdaboostScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
-            x_train.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train.columns.values]
-            x_test.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_test.columns.values]
+
+
+            x_train_linear,x_test_linear,y_train_linear,y_test_linear = self._dataframe_helper_linear.get_train_test_data()
+            x_train_linear = MLUtils.create_dummy_columns(x_train_linear,[x for x in categorical_columns if x != result_column])
+            x_test_linear = MLUtils.create_dummy_columns(x_test_linear,[x for x in categorical_columns if x != result_column])
+            x_test_linear = MLUtils.fill_missing_columns(x_test_linear,x_train_linear.columns,result_column)
 
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
             st = time.time()
             levels = df[result_column].unique()
-            clf =  AdaBoostClassifier(DecisionTreeClassifier(max_depth=10),n_estimators=500,learning_rate=1,algorithm='SAMME.R')
+
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
             y_train = pd.Series(labelEncoder.transform(y_train))
             y_test = labelEncoder.transform(y_test)
+            y_train_linear = pd.Series(labelEncoder.transform(y_train_linear))
+            y_test_linear = labelEncoder.transform(y_test_linear)
             classes = labelEncoder.classes_
             transformed = labelEncoder.transform(classes)
             transformed_classes_list = list(transformed)
@@ -144,7 +184,9 @@ class AdaboostScript(object):
             inverseLabelMapping = dict(list(zip(classes,transformed)))
             posLabel = inverseLabelMapping[self._targetLevel]
             appType = self._dataframe_context.get_app_type()
-
+            ensemble_weights=self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,1)
+            #clf = VotingClassifier(estimators=model_list, voting='soft',weights=ensemble_weights)
+            clf=EnsembleVoteClassifier(self._automl_clf_models, voting='soft',weights=list(ensemble_weights))
             print("="*150)
             print("TRANSFORMED CLASSES - ", transformed_classes_list)
             print("LEVELS - ", levels)
@@ -161,13 +203,18 @@ class AdaboostScript(object):
             else:
                 automl_enable=False
 
+
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 hyperParamAlgoName = algoSetting.get_hyperparameter_algo_name()
                 params_grid = algoSetting.get_params_dict_hyperparameter()
+                for k,v in list(params_grid.items()):
+                    if k not in clf.get_params():
+                        print(k,v)
                 params_grid = {k:v for k,v in list(params_grid.items()) if k in clf.get_params()}
+                params_grid["random_state"] = [42]
                 print(params_grid)
                 if hyperParamAlgoName == "gridsearchcv":
                     clfGrid = GridSearchCV(clf,params_grid)
@@ -175,11 +222,12 @@ class AdaboostScript(object):
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
-                    # clfGrid.fit(x_train,y_train)
+                    #clfGrid.fit(x_train,y_train)
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)
                     #bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
+                    #sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     #print resultArray
@@ -242,17 +290,16 @@ class AdaboostScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
+                # print "[]"*30
+                # print "ALGO-PARAMS", algoParams
+                # print "[]" * 30
+                algoParams["random_state"] = 423
 
                 if automl_enable:
-                    params_grid = {
-                                    # "base_estimator": [DecisionTreeClassifier(), RandomForestClassifier()],
-                                    # "n_estimators": [100, 200, 500],
-                                     "base_estimator__max_depth": [5,10,12],
-                                     "base_estimator__max_features":["auto","sqrt","log2"],
-                                     "base_estimator__n_estimators":[10,20,30,40,50],
-                                    # "learning_rate": [0.1, 0.5, 1],
-                                    "algorithm":["SAMME","SAMME.R"]
-                                 }
+                    weight1=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.05))
+                    weight2=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.5))
+                    weight3=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,1.0))
+                    params_grid = {"weights":[weight2]}
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
@@ -263,34 +310,12 @@ class AdaboostScript(object):
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
-                    bestEstimator = kFoldClass.get_best_estimator()
-                    print("Adaboost AuTO ML Random CV#######################3")
-                else:
-                    algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                    clf.set_params(**algoParams)
-                    modelmanagement_=clf.get_params()
-                    print("!"*50)
-                    print(clf.get_params())
-                    print("!"*50)
-                    if validationDict["name"] == "kFold":
-                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                        numFold = int(validationDict["value"])
-                        if numFold == 0:
-                            numFold = 3
-                        kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
-                        kFoldClass.train_and_save_result()
-                        kFoldOutput = kFoldClass.get_kfold_result()
-                        bestEstimator = kFoldClass.get_best_estimator()
-                    elif validationDict["name"] == "trainAndtest":
-                        clf.fit(x_train, y_train)
-                        clf.feature_names = list(x_train.columns.values)
-                        bestEstimator = clf
+                    bestEstimator = kFoldClass.get_best_estimator()#######################3")
 
-            # clf.fit(x_train, y_train)
-            # bestEstimator = clf
-            self._model=bestEstimator.best_estimator_
+
             trainingTime = time.time()-st
-            y_score = np.round(bestEstimator.predict(x_test))
+            y_score = bestEstimator.predict(x_test)
+
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
             except:
@@ -308,11 +333,10 @@ class AdaboostScript(object):
             elif len(levels) > 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="macro")
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
-                log_loss = metrics.log_loss(y_test,y_prob)
+                log_loss = metrics.log_loss(y_test,y_prob,labels=y_test)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
-                #auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
+                # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 roc_auc = None
-
             y_prob_for_eval = []
             for i in range(len(y_prob)):
                 if len(y_prob[i]) == 1:
@@ -396,20 +420,28 @@ class AdaboostScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            if self._pandas_flag:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            else:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
 
             feature_importance={}
             try:
-                feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+                try:
+                    feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+                except:
+                    feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.best_estimator_.feature_importances_),key=lambda x: x[1],reverse=True))
+                for k, v in feature_importance.items():
+                    feature_importance[k] = CommonUtils.round_sig(v)
             except:
                 pass
-            for k, v in feature_importance.items():
-                feature_importance[k] = CommonUtils.round_sig(v)
+
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
 
             if not algoSetting.is_hyperparameter_tuning_enabled():
@@ -434,12 +466,11 @@ class AdaboostScript(object):
                 self._result_setter.update_pmml_object({self._slug:pmmlText})
             except:
                 pass
-
             cat_cols = list(set(categorical_columns) - {result_column})
             overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("Adaboost")
-            self._model_summary.set_algorithm_display_name("Adaboost")
+            self._model_summary.set_algorithm_name("Ensemble")
+            self._model_summary.set_algorithm_display_name("Ensemble")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -497,46 +528,51 @@ class AdaboostScript(object):
                     "slug":self._model_summary.get_slug(),
                     "name":self._model_summary.get_algorithm_name()
                 }
+            print (modelmanagement_)
 
-            self._model_management = MLModelSummary()
             if not algoSetting.is_hyperparameter_tuning_enabled() and not automl_enable:
-
-                self._model_management.set_booster_function(data=modelmanagement_['booster'])
-                self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
-                self._model_management.set_minimum_loss_reduction(data=modelmanagement_['gamma'])
+                self._model_management = MLModelSummary()
+                self._model_management.set_criterion(data=modelmanagement_['criterion'])
                 self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
-                self._model_management.set_minimum_child_weight(data=modelmanagement_['min_child_weight'])
-                self._model_management.set_subsampling_ratio(data=modelmanagement_['subsample'])
-                self._model_management.set_subsample_for_each_tree(data=modelmanagement_['colsample_bytree'])
-                self._model_management.set_subsample_for_each_split(data=modelmanagement_['colsample_bylevel'])
+                self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+                self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+                self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+                self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_decrease'])
+                self._model_management.set_no_of_estimators(data=modelmanagement_['n_estimators'])
+                self._model_management.set_bootstrap_sampling(data=modelmanagement_['bootstrap'])
+                self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status
                 self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Adaboost")#algorithm name
+                self._model_management.set_algorithm_name("Ensemble")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
             else:
+                self._model_management = MLModelSummary()
                 def set_model_params(x):
-                    #self._model_management.set_booster_function(data=modelmanagement_[x]['estimator__boosting_type'][0])
-                    # self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
-                    # self._model_management.set_minimum_loss_reduction(data=modelmanagement_[x]['gamma'][0])
+                    # self._model_management.set_criterion(data=modelmanagement_[x]['criterion'][0])
                     # self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
-                    # self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
-                    # self._model_management.set_subsampling_ratio(data=modelmanagement_[x]['subsample'][0])
-                    # self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
-                    # self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
-                    self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                    self._model_management.set_training_status(data="completed")# training status
+                    # self._model_management.set_min_instance_for_split(data=modelmanagement_[x]['min_samples_split'][0])
+                    # self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_[x]['min_samples_leaf'][0])
+                    # self._model_management.set_max_leaf_nodes(data=modelmanagement_['estimator__max_leaf_nodes'])
+                    # self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['estimator__min_impurity_split'])
+                    # self._model_management.set_no_of_estimators(data=modelmanagement_['estimator__max_features'])
+                    # self._model_management.set_bootstrap_sampling(data=modelmanagement_['estimator__bootstrap'])
+                    # self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
+                    # self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
+                    # self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                    # self._model_management.set_training_status(data="completed")# training status
                     self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
                     self._model_management.set_target_level(self._targetLevel) # target column value
                     self._model_management.set_training_time(runtime) # run time
                     self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                    self._model_management.set_algorithm_name("Adaboost")#algorithm name
+                    self._model_management.set_algorithm_name("Ensemble")#algorithm name
                     self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                     self._model_management.set_target_variable(result_column)#target column name
                     self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
@@ -546,8 +582,7 @@ class AdaboostScript(object):
                 except:
                     set_model_params('param_distributions')
 
-
-            modelManagementSummaryJson =[
+            modelManagementSummaryJson = [
 
                             ["Project Name",self._model_management.get_job_type()],
                             ["Algorithm",self._model_management.get_algorithm_name()],
@@ -557,69 +592,69 @@ class AdaboostScript(object):
                             #["Owner",None],
                             ["Created On",self._model_management.get_creation_date()]
 
-                            ]
+                                        ]
 
-            modelManagementModelSettingsJson =[
+            modelManagementModelSettingsJson = [
 
-                            ["Training Dataset",self._model_management.get_datasetName()],
-                            ["Target Column",self._model_management.get_target_variable()],
-                            ["Target Column Value",self._model_management.get_target_level()],
-                            ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
-                            ["Algorithm",self._model_management.get_algorithm_name()],
-                            ["Model Validation",self._model_management.get_validation_method()],
-                            ["Booster Function",self._model_management.get_booster_function()],
-                            ["Learning Rate",self._model_management.get_learning_rate()],
-                            ["Minimum Loss Reduction",self._model_management.get_minimum_loss_reduction()],
-                            ["Maximum Depth",self._model_management.get_max_depth()],
-                            ["Minimum Child Weight",self._model_management.get_minimum_child_weight()],
-                            ["Subsampling Ratio",self._model_management.get_subsampling_ratio()],
-                            ["Subsample of Every Column by each tree",self._model_management.get_subsample_for_each_tree()],
-                            ["Subsample of Every Column by each split",self._model_management.get_subsample_for_each_split()]
+                                  ["Training Dataset",self._model_management.get_datasetName()],
+                                  ["Target Column",self._model_management.get_target_variable()],
+                                  ["Target Column Value",self._model_management.get_target_level()],
+                                  ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Model Validation",self._model_management.get_validation_method()],
+                                  ["Criterion",self._model_management.get_criterion()],
+                                  ["Max Depth",self._model_management.get_max_depth()],
+                                  ["Minimum Instances For Split",self._model_management.get_min_instance_for_split()],
+                                  ["Minimum Instances For Leaf Node",self._model_management.get_min_instance_for_leaf_node()],
+                                  ["Max Leaf Nodes",self._model_management.get_max_leaf_nodes()],
+                                  ["Impurity Decrease cutoff for Split",self._model_management.get_impurity_decrease_cutoff_for_split()],
+                                  ["No of Estimators",self._model_management.get_no_of_estimators()],
+                                  ["Bootstrap Sampling",str(self._model_management.get_bootstrap_sampling())],
+                                  ["No Of Jobs",self._model_management.get_no_of_jobs()]
 
-                            ]
 
+                                                  ]
 
-            adaboostOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            adaboostPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
-            adaboostDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
-            adaboostCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-            Adaboost_Overview_Node = NarrativesTree()
-            Adaboost_Overview_Node.set_name("Overview")
-            Adaboost_Performance_Node = NarrativesTree()
-            Adaboost_Performance_Node.set_name("Performance")
-            Adaboost_Deployment_Node = NarrativesTree()
-            Adaboost_Deployment_Node.set_name("Deployment")
-            for card in adaboostOverviewCards:
-                Adaboost_Overview_Node.add_a_card(card)
-            for card in adaboostPerformanceCards:
-                Adaboost_Performance_Node.add_a_card(card)
-            for card in adaboostDeploymentCards:
-                Adaboost_Deployment_Node.add_a_card(card)
-            for card in adaboostCards:
+            enOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            enPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+            enDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+            enCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            EN_Overview_Node = NarrativesTree()
+            EN_Overview_Node.set_name("Overview")
+            EN_Performance_Node = NarrativesTree()
+            EN_Performance_Node.set_name("Performance")
+            EN_Deployment_Node = NarrativesTree()
+            EN_Deployment_Node.set_name("Deployment")
+            for card in enOverviewCards:
+                EN_Overview_Node.add_a_card(card)
+            for card in enPerformanceCards:
+                EN_Performance_Node.add_a_card(card)
+            for card in enDeploymentCards:
+                EN_Deployment_Node.add_a_card(card)
+            for card in enCards:
                 self._prediction_narrative.add_a_card(card)
-
-            self._result_setter.set_model_summary({"adaboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_adaboost_model_summary(modelSummaryJson)
-            self._result_setter.set_adab_cards(adaboostCards)
-            self._result_setter.set_adab_nodes([Adaboost_Overview_Node,Adaboost_Performance_Node,Adaboost_Deployment_Node])
-            self._result_setter.set_adab_fail_card({"Algorithm_Name":"adaboost","success":"True"})
+            self._result_setter.set_model_summary({"ensemble":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_ensemble_model_summary(modelSummaryJson)
+            self._result_setter.set_en_cards(enCards)
+            self._result_setter.set_en_nodes([EN_Overview_Node,EN_Performance_Node,EN_Deployment_Node])
+            self._result_setter.set_en_fail_card({"Algorithm_Name":"ensemble","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
 
             # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
             # print self._model_summary
             # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
-
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Adaboost Scripts",
+                "summary":"Initialized The Ensemble Model Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Adaboost Model Prediction Finished",
+                "summary":"Ensemble Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
@@ -643,9 +678,9 @@ class AdaboostScript(object):
                                     self._scriptStages["initialization"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
-
+        # Match with the level_counts and then clean the data
         dataSanity = True
         level_counts_train = self._dataframe_context.get_level_count_dict()
         cat_cols = self._dataframe_helper.get_string_columns()
@@ -657,7 +692,6 @@ class AdaboostScript(object):
         #                 dataSanity = False
         #         else:
         #             dataSanity = False
-
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
         if self._metaParser.check_column_isin_ignored_suggestion(uid_col):
@@ -676,23 +710,25 @@ class AdaboostScript(object):
             if score_data_path.startswith("file"):
                 score_data_path = score_data_path[7:]
             trained_model_path = self._dataframe_context.get_model_path()
-            print(trained_model_path)
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
-
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
-            #pandas_df = self._data_frame.toPandas()
-            df = self._data_frame#.toPandas()
+
+            # TODO:shape is not being used, remove later
+            #shape = (self._data_frame.count(), len(self._data_frame.columns))
+            try:
+                df = self._data_frame.toPandas()
+            except:
+                df = self._data_frame.copy()
             model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
-
             pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
@@ -710,7 +746,6 @@ class AdaboostScript(object):
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
-
         uidCol = self._dataframe_context.get_uid_column()
         if uidCol == None:
             uidCols = self._metaParser.get_suggested_uid_columns()
@@ -718,6 +753,8 @@ class AdaboostScript(object):
                 uidCol = uidCols[0]
         uidTableData = []
         predictedClasses = list(df[result_column].unique())
+        print("uidCol",uidCol)
+        print("="*500)
         if uidCol:
             if uidCol in df.columns:
                 for level in predictedClasses:
@@ -735,7 +772,6 @@ class AdaboostScript(object):
                 uidTable.set_table_type("normalHideColumn")
                 self._result_setter.set_unique_identifier_table(json.loads(CommonUtils.convert_python_object_to_json(uidTable)))
 
-
         self._completionStatus += old_div(self._scriptWeightDict[self._analysisName]["total"]*self._scriptStages["prediction"]["weight"],10)
         progressMessage = CommonUtils.create_progress_message_object(self._analysisName,\
                                     "prediction",\
@@ -743,14 +779,15 @@ class AdaboostScript(object):
                                     self._scriptStages["prediction"]["summary"],\
                                     self._completionStatus,\
                                     self._completionStatus)
-        CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         self._dataframe_context.update_completion_status(self._completionStatus)
-
         # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
+
 
         print("STARTING DIMENSION ANALYSIS ...")
         columns_to_keep = []
         columns_to_drop = []
+
         # considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
         # considercolumns = self._dataframe_context.get_score_consider_columns()
         # if considercolumnstype != None:
@@ -759,28 +796,35 @@ class AdaboostScript(object):
         #             columns_to_drop = considercolumns
         #         elif considercolumnstype == ["including"]:
         #             columns_to_keep = considercolumns
+
         columns_to_keep = self._dataframe_context.get_score_consider_columns()
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
             columns_to_drop += ["predicted_probability"]
-        columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         columns_to_drop = ["predicted_probability"]
-        df.drop(columns_to_drop, axis=1, inplace=True)
-        # # Dropping predicted_probability column
-        # df.drop('predicted_probability', axis=1, inplace=True)
+        columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
+        print("columns_to_drop",columns_to_drop)
+        # df.drop(columns_to_drop, axis=1, inplace=True)
 
         resultColLevelCount = dict(df[result_column].value_counts())
+        print("resultColLevelCount",resultColLevelCount)
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
         self._dataframe_context.set_story_on_scored_data(True)
-        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        spark_scored_df = SQLctx.createDataFrame(df)
-        # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
+        if self._pandas_flag:
+            df = df.drop(columns_to_drop, axis=1)
+            scored_df = df.copy()
+        else:
+            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+            scored_df = SQLctx.createDataFrame(df.drop(columns_to_drop, axis=1))
+        # TODO update metadata for the newly created dataframe
         self._dataframe_context.update_consider_columns(columns_to_keep)
-        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
+        #scored_df.to_csv("/home/vishnu/Downloads/titanic/ensemble_scored_df.csv",index=False)
+        df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
-        spark_scored_df = df_helper.get_data_frame()
+        scored_df = df_helper.get_data_frame()
+
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
@@ -803,7 +847,7 @@ class AdaboostScript(object):
         #                                 self._scriptStages["frequency"]["summary"],\
         #                                 self._completionStatus,\
         #                                 self._completionStatus)
-        #     CommonUtils.save_progress_message(self._messageURL,progressMessage)
+        #     CommonUtils.save_progress_message(self._messageURL,progressMessage,ignore=self._ignoreMsg)
         #     self._dataframe_context.update_completion_status(self._completionStatus)
         #     print "Frequency ",self._completionStatus
         # except:
@@ -826,7 +870,7 @@ class AdaboostScript(object):
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print(narratives_obj)
             except:
@@ -840,11 +884,10 @@ class AdaboostScript(object):
                 levelCountDict = resultColLevelCount
                 otherClass = list(set(labelMappingDict.values())-set(predictedClasses))[0]
                 levelCountDict[otherClass] = 0
-
                 print(levelCountDict)
 
             total = float(sum([x for x in list(levelCountDict.values()) if x != None]))
-            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(old_div(v*100,total))+"%"}) for k,v in list(levelCountDict.items()) if v != None]
+            levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(old_div(v*100,total))+"%" if old_div(v*100,total) >=10 else str(int(old_div(v*100,total)))+"%"}) for k,v in list(levelCountDict.items()) if v != None]
             levelCountTuple = sorted(levelCountTuple,key=lambda x:x["count"],reverse=True)
             data_dict["blockSplitter"] = "|~NEWBLOCK~|"
             data_dict["targetcol"] = result_column
@@ -852,7 +895,7 @@ class AdaboostScript(object):
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
             maincardSummary = NarrativesUtils.get_template_output("/apps/",'scorewithoutdtree.html',data_dict)
-            print(data_dict)
+
             main_card = NormalCard()
             main_card_data = []
             main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,"|~NEWBLOCK~|")

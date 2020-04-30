@@ -21,6 +21,7 @@ class messages_list(object):
         self._training_messages = {
         "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Training Started", "Logistic Regression Model Training Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Training Started", "Random Forest Model Training Finished"),
+        "Ensemble": ("Initialized The Ensemble Scripts", "Ensemble Model Training Started", "Ensemble Model Training Finished"),
         "XGBoost": ("Initialized The Xgboost Scripts", "Xgboost Model Training Started", "Xgboost Model Training Finished"),
         "Adaboost": ("Initialized The AdaBoost Scripts", "AdaBoost Model Training Started", "AdaBoost Model Training Finished"),
         "LightGBM": ("Initialized The LightGBM Scripts", "LightGBM Model Training Started", "LightGBM Model Training Finished"),
@@ -38,6 +39,7 @@ class messages_list(object):
         self._score_messages = {
         "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Prediction Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Prediction Finished"),
+        "Ensemble": ("Initialized The Ensemble Scripts", "Ensemble Model Prediction Finished"),
         "XGBoost": ("Initialized The Xgboost Scripts", "XGBoost Model Prediction Finished"),
         "Adaboost": ("Initialized The Adaboost Scripts", "AdaBoost Model Prediction Finished"),
         "Naive Bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Prediction Finished"),

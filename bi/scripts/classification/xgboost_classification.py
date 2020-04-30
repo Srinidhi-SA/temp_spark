@@ -71,6 +71,7 @@ class XgboostScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._model=None
 
 
         self._scriptStages = {
@@ -288,8 +289,11 @@ class XgboostScript(object):
 
             # clf.fit(x_train, y_train)
             # bestEstimator = clf
+            self._model=bestEstimator.best_estimator_
+
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
+
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
             except:

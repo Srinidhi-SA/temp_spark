@@ -73,6 +73,7 @@ class LogisticRegressionScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._model=None
 
         self._scriptStages = {
             "initialization":{
@@ -248,11 +249,11 @@ class LogisticRegressionScript(object):
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={'C': [0.001,0.01,0.55,1.0,10,100,1000],
-                                'solver' : ['lbfgs', 'liblinear','newton-cg'],
-                                'penalty':['l1', 'l2'],
+                    params_grid={'C': [0.55,1.0],
+                                'solver' : ['lbfgs'],#,'liblinear','newton-cg'],
+                                #'penalty':['l1', 'l2'],
                                 'fit_intercept':[True],
-                                'max_iter':[100,500,100]
+                                'max_iter':[100]
                                  }
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfGrid = GridSearchCV(clf,params_grid)
@@ -293,6 +294,7 @@ class LogisticRegressionScript(object):
                         bestEstimator = clf
 
             trainingTime = time.time()-st
+            self._model=bestEstimator.best_estimator_
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)

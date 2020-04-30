@@ -70,6 +70,7 @@ class LgbmScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._model=None
 
 
         self._scriptStages = {
@@ -132,9 +133,8 @@ class LgbmScript(object):
 
             st = time.time()
             levels = df[result_column].unique()
-            clf = lgb.LGBMClassifier(boosting_type='dart', objective='binary', num_leaves=50,
-                                learning_rate=0.1, n_estimators=100, max_depth=10,
-                                bagging_fraction=0.8, feature_fraction=0.9, reg_lambda=0.2,verbose = -1)
+            clf = lgb.LGBMClassifier(boosting_type='dart', num_leaves=50,learning_rate=1.0, n_estimators=100, max_depth=10,
+                                    bagging_fraction=0.8, feature_fraction=0.9, reg_lambda=0.2,verbose = -1)
 
 
             labelEncoder = preprocessing.LabelEncoder()
@@ -254,9 +254,21 @@ class LgbmScript(object):
                                  'subsample': uniform(loc=0.2, scale=0.8),
                                  'colsample_bytree': uniform(loc=0.4, scale=0.6),
                                  'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
-                                 'reg_lambda': [0, 1e-1, 1, 5, 10, 20, 50, 100]
+
+                    #              'min_child_samples': randint(100, 500),
+                    #              'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                    #              'subsample': uniform(loc=0.2, scale=0.8),
+                    #              'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                    #              'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                    #              'reg_lambda': [0, 1e-1, 1, 5, 10, 20, 50, 100],
+                    #              'boosting_type':['gbdt','dart','goss','rf'],
+                    #              'learning_rate':[0.1,0.5,1.0],
+                    #              'n_estimators':[100,200,400,500],
+                    #              'max_depth':[7,10,12],
+                    #              'bagging_freq':[1],
+                    #              'bagging_fraction' :[0.2,0.4,0.6,0.8,1.0]
                                  }
-                    hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 10}
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
@@ -291,6 +303,7 @@ class LgbmScript(object):
 
             # clf.fit(x_train, y_train)
             # bestEstimator = clf
+            self._model=bestEstimator.best_estimator_
             trainingTime = time.time()-st
             y_score = np.round(bestEstimator.predict(x_test))
             try:
