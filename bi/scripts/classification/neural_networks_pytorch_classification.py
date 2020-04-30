@@ -752,7 +752,11 @@ class NNPTClassificationScript(object):
             labelMappingDict = self._dataframe_context.get_label_map()
             df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")
             df["predicted_probability"] = score["predicted_probability"]
-            self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+            try:
+                self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+            except:
+                df["predicted_probability"] = list(map(lambda x: max(x), score["predicted_probability"]))
+                self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
             self._score_summary["result_column"] = result_column
             if result_column in df.columns:
                 df.drop(result_column, axis=1, inplace=True)
