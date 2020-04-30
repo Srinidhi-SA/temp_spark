@@ -179,7 +179,7 @@ class ChartJson(object):
     """
     formats = ['.2s','$','$,'.2f']
     """
-    def __init__(self, data = None, axes=None, label_text=None, legend=None, chart_type = None, types = None):
+    def __init__(self, data = None, axes=None, label_text=None, legend=None, chart_type = None, types = None,message = None,message_popup = False):
         if axes is None:
             axes = {}
         if label_text is None:
@@ -201,6 +201,8 @@ class ChartJson(object):
         self.hide_xtick = False
         self.title = None
         self.point = 1
+        self.message = message
+        self.message_popup = message_popup
 
 
     def get_dict_object(self):
@@ -218,7 +220,9 @@ class ChartJson(object):
             "show_legend":self.show_legend,
             "hide_xtick" : self.hide_xtick,
             "title" : self.title,
-            "point" : self.point
+            "point" : self.point,
+            "message":self.message,
+            "message_popup":self.message_popup
         }
         return out
 
@@ -227,6 +231,10 @@ class ChartJson(object):
             data can be of array type or dictionary
         """
         self.data = data
+    def set_message_popup(self,data):
+        self.message_popup = data
+    def set_message(self,data):
+        self.message = data
 
     def set_axis_rotation(self,data):
         self.axisRotation = data

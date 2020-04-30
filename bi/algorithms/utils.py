@@ -2291,10 +2291,18 @@ def stock_sense_individual_stock_cards(stockDict):
         overviewCardData.append(sentimentNdArticlesByConceptChart)
         for i in dataDict["stockPriceAndSentimentTrend"]:
             i["overallSentiment"] = round(i["overallSentiment"], 2)
+        if len(dataDict["stockPriceAndSentimentTrend"])<5:
+            message = "Insufficient articles found"
+            popup_flag = True
+        else :
+            message = None
+            popup_flag = False
         priceAndSentimentTrendData = NormalChartData(data=dataDict["stockPriceAndSentimentTrend"])
         chart_json = ChartJson()
         chart_json.set_data(priceAndSentimentTrendData.get_data())
         chart_json.set_subchart(True)
+        chart_json.set_message(message)
+        chart_json.set_message_popup(popup_flag)
         chart_json.set_title("Stock Performance Vs Sentiment Score")
         chart_json.set_axes({"x":"date","y":"close","y2":"overallSentiment"})
         chart_json.set_label_text({"x":"Date","y":"Stock Value","y2":"Sentiment Score"})
