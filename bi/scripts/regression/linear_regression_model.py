@@ -66,7 +66,7 @@ from sklearn.linear_model import ElasticNet
 
 
 class LinearRegressionModelScript(object):
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -79,7 +79,7 @@ class LinearRegressionModelScript(object):
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
         self._analysisName = "linearRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
-        self._mlEnv = self._dataframe_context.get_ml_environment()
+        self._mlEnv = mLEnvironment#self._dataframe_context.get_ml_environment()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -735,13 +735,13 @@ class LinearRegressionModelScript(object):
         # except:
         #     print "DTREE FAILED"
         #
-        # try:
-        fs = time.time()
-        two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
-        two_way_obj.Run()
-        print("OneWayAnova Analysis Done in ", time.time() - fs, " seconds.")
-        # except:
-        #     print "Anova Analysis Failed"
+        try:
+            fs = time.time()
+            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
+            two_way_obj.Run()
+            print("OneWayAnova Analysis Done in ", time.time() - fs, " seconds.")
+        except:
+            print("Anova Analysis Failed")
 
 
 

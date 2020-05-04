@@ -44,10 +44,11 @@ def normalize_coefficients(coefficientsArray):
     valArray = [abs(obj["value"]) for obj in coefficientsArray]
     maxVal = max(valArray)
     outArray = []
-    for obj in coefficientsArray:
-        v = obj["value"]
-        v = round(float(v)/maxVal,2)
-        outArray.append({"key":obj["key"],"value":v})
+    if maxVal != 0:
+        for obj in coefficientsArray:
+            v = obj["value"]
+            v = round(float(v)/maxVal,2)
+            outArray.append({"key":obj["key"],"value":v})
     return outArray
 
 def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None, pandas_flag=False):
