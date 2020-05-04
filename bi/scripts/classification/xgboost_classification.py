@@ -249,10 +249,9 @@ class XgboostScript(object):
                 if automl_enable:
                     params_grid={ "learning_rate"      : [0.05, 0.10, 0.15,0.20,0.25,0.30],
                                   "booster"            : ['gbtree'],
-                                  "max_depth"          : [ 3, 4, 6, 8,10],
-                                  'n_estimators'       : [10],
+                                  "max_depth"          : [ 3,6,10],
+                                  'n_estimators'       : [10,30,50],
                                   "gamma"              : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
-                                  "objective"          :['binary:logistic'],
                                    }
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)

@@ -250,8 +250,8 @@ class LogisticRegressionScript(object):
 
                 if automl_enable:
                     params_grid={'C': [0.55,1.0],
-                                'solver' : ['lbfgs'],#,'liblinear','newton-cg'],
-                                #'penalty':['l1', 'l2'],
+                                'solver' : ['lbfgs','liblinear'],#,'newton-cg'],
+                                'penalty':['l1', 'l2'],
                                 'fit_intercept':[True],
                                 'max_iter':[100]
                                  }
