@@ -164,19 +164,27 @@ class TensorFlowScript(object):
             self._result_setter.set_hyper_parameter_results(self._slug,None)
 
             if self._dataframe_context.get_trainerMode() == "autoML":
-                automl_enable = True
+                # automl_enable = True
                 train_size = x_train.shape[0]
                 if train_size < 10000:
                     units = '32'
+                    if len(levels) > 2 and train_size >= 500:
+                        units = '64'
                     rate = '0.1'
-                elif train_size < 20000:
+                elif train_size >= 10000 and train_size < 20000:
                     units = '32'
+                    if len(levels) > 2:
+                        units = '64'
                     rate = '0.2'
-                elif train_size > 20000 and train_size < 40000:
+                elif train_size >= 20000 and train_size < 40000:
                     units = '64'
+                    if len(levels) > 2:
+                        units = '128'
                     rate = '0.3'
-                elif train_size > 60000:
+                elif train_size >= 60000:
                     units = '128'
+                    if len(levels) > 2:
+                        units = '256'
                     rate = '0.5'
                 params_tf = {
                               'hidden_layer_info':
@@ -248,21 +256,28 @@ class TensorFlowScript(object):
                                   }
 
                 if len(levels) == 2:
-                    params_tf['hidden_layer_info']['3']['activation'] = 'sigmoid'
+                    params_tf['hidden_layer_info']['4']['activation'] = 'sigmoid'
+                    algoParams['loss'] = 'binary_crossentropy'
+                    algoParams['metrics'] = 'binary_crossentropy'
                 elif len(levels) > 2:
                     pass
 
                 if train_size <= 500:
                     algoParams['batch_size'] = int(train_size/10)
-                elif train_size > 500 and train_size < 2000:
+                elif len(levels) == 2 and train_size > 500 and train_size < 2000:
                     algoParams['batch_size'] = int(train_size/50)
-                if train_size > 20000:
-                    algoParams['number_of_epochs'] = 50
+                elif len(levels) > 2 and train_size > 500 and train_size < 30000:
+                    batch_size = list(np.random.uniform(low = 100, high = 300, size = (29500,)))
+                    batch_size.sort()
+                    algoParams['batch_size'] = int(batch_size[train_size - 500])
             else:
-                params_tf=algoSetting.get_tf_params_dict()
+                params_tf = algoSetting.get_tf_params_dict()
                 algoParams = algoSetting.get_params_dict()
                 algoParams = {k:v for k,v in list(algoParams.items())}
 
+            print('\n\nparams_tf:\n\n', params_tf)
+            print('\n\nalgoParams:\n\n', algoParams)
+            print('\n\n')
             model = tf.keras.models.Sequential()
 
             first_layer_flag=True

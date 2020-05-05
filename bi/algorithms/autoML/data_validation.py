@@ -50,10 +50,11 @@ class DataValidation:
 
     def target_fitness_check(self):
         """Checks if target is fit for the type of analysis"""
-        '''replace nan values with nan_class '''
+        # '''replace nan values with nan_class '''
         try:
             if self.problem_type.lower() == "classification":
-                self.data_frame[self.target].fillna("nan_class", inplace=True)
+                # self.data_frame[self.target].fillna("nan_class", inplace=True)
+                self.data_frame.dropna(axis=0, inplace=True, subset=[self.target])
                 target_val = self.data_frame[self.target]
             else:
                 self.data_frame[self.target].fillna(self.data_frame[self.target].mean(), inplace=True)

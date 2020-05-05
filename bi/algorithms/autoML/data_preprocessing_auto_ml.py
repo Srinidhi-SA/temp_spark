@@ -141,6 +141,13 @@ class DataPreprocessingAutoML:
                 self.data_frame[column] = self.mode_impute(self.data_frame[column])
                 self.data_change_dict['ModeImputeCols'].append(column)
 
+    def date_col_imputation(self, columns):
+        """Does missing value imputation for date columns"""
+        for column in columns:
+            if column in self.col_with_nulls:
+                self.data_frame[column] = self.mode_impute(self.data_frame[column])
+                self.data_change_dict['ModeImputeCols'].append(column)
+
     def test_data_imputation(self):
         null_cols = self.data_frame.columns[self.data_frame.isna().any()].tolist()
         if len(null_cols) != 0:
@@ -244,3 +251,4 @@ class DataPreprocessingAutoML:
         # self.handle_outliers()
         self.measure_col_imputation(self.numeric_cols)
         self.dim_col_imputation(self.dimension_cols)
+        self.date_col_imputation(self.datetime_cols)
