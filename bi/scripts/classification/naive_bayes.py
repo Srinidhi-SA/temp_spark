@@ -79,7 +79,7 @@ class NBBClassificationModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Naive Bayes Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Naive Bayes Model Training Started",
@@ -87,7 +87,7 @@ class NBBClassificationModelScript(object):
                 },
             "completion":{
                 "summary":"Naive Bayes Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -666,7 +666,7 @@ class NBGClassificationModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Naive Bayes Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Naive Bayes Model Training Started",
@@ -674,7 +674,7 @@ class NBGClassificationModelScript(object):
                 },
             "completion":{
                 "summary":"Naive Bayes Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -1408,7 +1408,7 @@ class NBMClassificationModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Naive Bayes Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Naive Bayes Model Training Started",
@@ -1416,7 +1416,7 @@ class NBMClassificationModelScript(object):
                 },
             "completion":{
                 "summary":"Naive Bayes Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

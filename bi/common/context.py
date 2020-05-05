@@ -605,10 +605,10 @@ class ContextSetter(object):
         return self.mlModelPredictionWeight
 
     def update_completion_status(self,data):
-        self.globalCompletionStatus = data
+        self.globalCompletionStatus = min(data,100)
 
     def get_completion_status(self):
-        return self.globalCompletionStatus
+        return min(self.globalCompletionStatus,100)
 
     def get_existing_column_transform_settings(self):
         return self.existingColumnTransformsSettings

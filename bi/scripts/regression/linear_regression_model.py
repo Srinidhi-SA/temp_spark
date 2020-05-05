@@ -93,7 +93,7 @@ class LinearRegressionModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Linear Regression Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Linear Regression Model Training Started",
@@ -101,7 +101,7 @@ class LinearRegressionModelScript(object):
                 },
             "completion":{
                 "summary":"Linear Regression Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

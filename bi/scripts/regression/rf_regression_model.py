@@ -92,7 +92,7 @@ class RFRegressionModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Random Forest Regression Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Random Forest Regression Model Training Started",
@@ -100,7 +100,7 @@ class RFRegressionModelScript(object):
                 },
             "completion":{
                 "summary":"Random Forest Regression Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

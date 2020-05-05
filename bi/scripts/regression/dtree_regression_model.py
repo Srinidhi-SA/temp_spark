@@ -92,7 +92,7 @@ class DTREERegressionModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Decision Tree Regression Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Decision Tree Regression Model Training Started",
@@ -100,7 +100,7 @@ class DTREERegressionModelScript(object):
                 },
             "completion":{
                 "summary":"Decision Tree Regression Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

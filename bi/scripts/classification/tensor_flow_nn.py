@@ -81,7 +81,7 @@ class TensorFlowScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The TensorFlow Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"TensorFlow Model Training Started",
@@ -89,7 +89,7 @@ class TensorFlowScript(object):
                 },
             "completion":{
                 "summary":"TensorFlow Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

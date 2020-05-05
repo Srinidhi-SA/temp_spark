@@ -77,7 +77,7 @@ class LogisticRegressionScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Logistic Regression Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Logistic Regression Model Training Started",
@@ -85,7 +85,7 @@ class LogisticRegressionScript(object):
                 },
             "completion":{
                 "summary":"Logistic Regression Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

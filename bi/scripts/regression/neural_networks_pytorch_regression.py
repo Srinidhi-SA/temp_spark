@@ -87,7 +87,7 @@ class NNPTRegressionScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Neural Networks(pyTorch) Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Neural Networks(pyTorch) Training Started",
@@ -95,7 +95,7 @@ class NNPTRegressionScript(object):
                 },
             "completion":{
                 "summary":"Neural Networks(pyTorch) Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

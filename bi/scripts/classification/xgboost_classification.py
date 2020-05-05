@@ -76,7 +76,7 @@ class XgboostScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Xgboost Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Xgboost Model Training Started",
@@ -84,7 +84,7 @@ class XgboostScript(object):
                 },
             "completion":{
                 "summary":"Xgboost Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 

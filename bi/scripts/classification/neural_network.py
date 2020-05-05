@@ -77,7 +77,7 @@ class NeuralNetworkScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Neural Network Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Neural Network Model Training Started",
@@ -85,7 +85,7 @@ class NeuralNetworkScript(object):
                 },
             "completion":{
                 "summary":"Neural Network Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
