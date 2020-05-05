@@ -841,6 +841,7 @@ class NeuralNetworkScript(object):
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
 
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:
