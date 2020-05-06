@@ -8,7 +8,6 @@ import json
 import pyhocon
 import unittest
 import requests
-
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
 
@@ -406,7 +405,9 @@ def killer_setting(configJson):
     jobName = jobConfig["job_name"]
     jobURL = jobConfig["job_url"]
     killURL = jobConfig["kill_url"]
-    return jobURL, killURL
+    messageURL = jobConfig["message_url"]
+
+    return jobURL, killURL, messageURL
 
 
 def send_kill_command(url, jsonData):
@@ -438,7 +439,7 @@ def submit_job_through_yarn():
         # print resp.text
         print('Main Method Did Not End ....., ', str(e))
 if __name__ == '__main__':
-    jobURL, killURL = killer_setting(sys.argv[1])
+    jobURL, killURL, messageURL = killer_setting(sys.argv[1])
     try:
        main(sys.argv[1])
        print('Main Method End .....')
@@ -449,4 +450,10 @@ if __name__ == '__main__':
          while str(resp.text) != '{"result": "success"}':
              data = {"status": "killed", "jobURL": jobURL}
              resp = send_kill_command(killURL, data)
+         progressMessage = CommonUtils.create_progress_message_object("Main Method Did Not End .....", "Main Method Did Not End .....",
+                                                                      "Error",
+                                                                      str(e),
+                                                                      "Failed", 100)
+         CommonUtils.save_progress_message(messageURL, progressMessage, emptyBin=True)
+
          print('Main Method Did Not End ....., ', str(e))
