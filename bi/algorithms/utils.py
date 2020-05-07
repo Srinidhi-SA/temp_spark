@@ -44,10 +44,11 @@ def normalize_coefficients(coefficientsArray):
     valArray = [abs(obj["value"]) for obj in coefficientsArray]
     maxVal = max(valArray)
     outArray = []
-    for obj in coefficientsArray:
-        v = obj["value"]
-        v = round(float(v)/maxVal,2)
-        outArray.append({"key":obj["key"],"value":v})
+    if maxVal != 0:
+        for obj in coefficientsArray:
+            v = obj["value"]
+            v = round(float(v)/maxVal,2)
+            outArray.append({"key":obj["key"],"value":v})
     return outArray
 
 def bucket_all_measures(df, measure_columns, dimension_columns, target_measure=None, pandas_flag=False):
@@ -2291,10 +2292,18 @@ def stock_sense_individual_stock_cards(stockDict):
         overviewCardData.append(sentimentNdArticlesByConceptChart)
         for i in dataDict["stockPriceAndSentimentTrend"]:
             i["overallSentiment"] = round(i["overallSentiment"], 2)
+        if len(dataDict["stockPriceAndSentimentTrend"])<5:
+            message = "Insufficient articles found"
+            popup_flag = True
+        else :
+            message = None
+            popup_flag = False
         priceAndSentimentTrendData = NormalChartData(data=dataDict["stockPriceAndSentimentTrend"])
         chart_json = ChartJson()
         chart_json.set_data(priceAndSentimentTrendData.get_data())
         chart_json.set_subchart(True)
+        chart_json.set_message(message)
+        chart_json.set_message_popup(popup_flag)
         chart_json.set_title("Stock Performance Vs Sentiment Score")
         chart_json.set_axes({"x":"date","y":"close","y2":"overallSentiment"})
         chart_json.set_label_text({"x":"Date","y":"Stock Value","y2":"Sentiment Score"})

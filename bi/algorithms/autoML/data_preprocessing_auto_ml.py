@@ -31,7 +31,12 @@ class DataPreprocessingAutoML:
 
     def drop_constant_unique_cols(self):
         self.data_frame  = self.data_frame .loc[:, (self.data_frame .nunique() != 1)]
-        self.data_frame  = self.data_frame .loc[:, (self.data_frame .nunique() != self.data_frame .shape[0])]
+        new_df  = self.data_frame .loc[:, (self.data_frame.nunique() != self.data_frame .shape[0])]
+        if self.target not in new_df.columns:
+            new_df[self.target] = self.data_frame[self.target]
+            self.data_frame = new_df
+        else:
+            self.data_frame = new_df
         self.data_change_dict['dropped_columns_list'] = []
         def dropped_col_update(list_element):
             if list_element["column_name"] not in self.data_frame.columns:
@@ -131,6 +136,13 @@ class DataPreprocessingAutoML:
 
     def dim_col_imputation(self, columns):
         """Does missing value imputation for dimension columns"""
+        for column in columns:
+            if column in self.col_with_nulls:
+                self.data_frame[column] = self.mode_impute(self.data_frame[column])
+                self.data_change_dict['ModeImputeCols'].append(column)
+
+    def date_col_imputation(self, columns):
+        """Does missing value imputation for date columns"""
         for column in columns:
             if column in self.col_with_nulls:
                 self.data_frame[column] = self.mode_impute(self.data_frame[column])
@@ -239,3 +251,4 @@ class DataPreprocessingAutoML:
         # self.handle_outliers()
         self.measure_col_imputation(self.numeric_cols)
         self.dim_col_imputation(self.dimension_cols)
+        self.date_col_imputation(self.datetime_cols)

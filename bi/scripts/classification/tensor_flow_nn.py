@@ -81,7 +81,7 @@ class TensorFlowScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The TensorFlow Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"TensorFlow Model Training Started",
@@ -89,7 +89,7 @@ class TensorFlowScript(object):
                 },
             "completion":{
                 "summary":"TensorFlow Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -163,10 +163,121 @@ class TensorFlowScript(object):
             evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             self._result_setter.set_hyper_parameter_results(self._slug,None)
 
-            params_tf=algoSetting.get_tf_params_dict()
-            algoParams = algoSetting.get_params_dict()
-            algoParams = {k:v for k,v in list(algoParams.items())}
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                # automl_enable = True
+                train_size = x_train.shape[0]
+                if train_size < 10000:
+                    units = '32'
+                    if len(levels) > 2 and train_size >= 500:
+                        units = '64'
+                    rate = '0.1'
+                elif train_size >= 10000 and train_size < 20000:
+                    units = '32'
+                    if len(levels) > 2:
+                        units = '64'
+                    rate = '0.2'
+                elif train_size >= 20000 and train_size < 40000:
+                    units = '64'
+                    if len(levels) > 2:
+                        units = '128'
+                    rate = '0.3'
+                elif train_size >= 60000:
+                    units = '128'
+                    if len(levels) > 2:
+                        units = '256'
+                    rate = '0.5'
+                params_tf = {
+                              'hidden_layer_info':
+                              {
+                                '1': {
+                                  'layerId': 2,
+                                  'rate': rate,
+                                  'layer': 'Dropout'
+                                },
+                                '3': {
+                                  'layerId': 4,
+                                  'rate': rate,
+                                  'layer': 'Dropout'
+                                },
+                                '4': {
+                                  'bias_constraint': None,
+                                  'units': str(len(levels)),
+                                  'use_bias': True,
+                                  'layer': 'Dense',
+                                  'bias_initializer': 'glorot_uniform',
+                                  'layerId': 5,
+                                  'activity_regularizer': None,
+                                  'kernel_constraint': None,
+                                  'activation': 'softmax',
+                                  'kernel_initializer': 'glorot_uniform',
+                                  'kernel_regularizer': None,
+                                  'batch_normalization': 'True',
+                                  'bias_regularizer': None
+                                },
+                                '0': {
+                                  'bias_constraint': None,
+                                  'units': units,
+                                  'use_bias': True,
+                                  'layer': 'Dense',
+                                  'bias_initializer': 'glorot_uniform',
+                                  'layerId': 1,
+                                  'activity_regularizer': None,
+                                  'kernel_constraint': None,
+                                  'activation': 'relu',
+                                  'kernel_initializer': 'glorot_uniform',
+                                  'kernel_regularizer': None,
+                                  'batch_normalization': 'True',
+                                  'bias_regularizer': None
+                                },
+                                '2': {
+                                  'bias_constraint': None,
+                                  'units': int(int(units)/2),
+                                  'use_bias': True,
+                                  'layer': 'Dense',
+                                  'bias_initializer': 'glorot_uniform',
+                                  'layerId': 3,
+                                  'activity_regularizer': None,
+                                  'kernel_constraint': None,
+                                  'activation': 'relu',
+                                  'kernel_initializer': 'glorot_uniform',
+                                  'kernel_regularizer': None,
+                                  'batch_normalization': 'True',
+                                  'bias_regularizer': None
+                                }
+                              }
+                            }
+                algoParams = {
+                                  'layer': 'Dense',
+                                  'loss': 'sparse_categorical_crossentropy',
+                                  'optimizer': 'Adam',
+                                  'batch_size': min(int(train_size/100), 300),
+                                  'number_of_epochs': 100,
+                                  'metrics': 'sparse_categorical_crossentropy'
+                                  }
 
+                if len(levels) == 2:
+                    params_tf['hidden_layer_info']['4']['activation'] = 'sigmoid'
+                    algoParams['loss'] = 'binary_crossentropy'
+                    algoParams['metrics'] = 'binary_crossentropy'
+                elif len(levels) > 2:
+                    pass
+
+                if train_size <= 500:
+                    algoParams['batch_size'] = int(train_size/10)
+                elif len(levels) == 2 and train_size > 500 and train_size < 2000:
+                    algoParams['batch_size'] = int(train_size/50)
+                elif len(levels) > 2 and train_size > 500 and train_size < 30000:
+                    batch_size = list(np.random.uniform(low = 100, high = 300, size = (29500,)))
+                    batch_size.sort()
+                    algoParams['batch_size'] = int(batch_size[train_size - 500])
+            else:
+                params_tf = algoSetting.get_tf_params_dict()
+                algoParams = algoSetting.get_params_dict()
+                algoParams = {k:v for k,v in list(algoParams.items())}
+
+            print('\n\nparams_tf:\n\n', params_tf)
+            print('\n\nalgoParams:\n\n', algoParams)
+            print('\n\n')
             model = tf.keras.models.Sequential()
 
             first_layer_flag=True
@@ -689,6 +800,8 @@ class TensorFlowScript(object):
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
             columns_to_drop += ["predicted_probability"]
+        if set(columns_to_drop) == set(df.columns):
+            columns_to_drop = ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
@@ -760,6 +873,7 @@ class TensorFlowScript(object):
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
 
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

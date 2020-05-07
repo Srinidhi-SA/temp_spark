@@ -79,7 +79,7 @@ class NBBClassificationModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Naive Bayes Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Naive Bayes Model Training Started",
@@ -87,7 +87,7 @@ class NBBClassificationModelScript(object):
                 },
             "completion":{
                 "summary":"Naive Bayes Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -205,6 +205,7 @@ class NBBClassificationModelScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=5
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -601,6 +602,7 @@ class NBBClassificationModelScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:
@@ -666,7 +668,7 @@ class NBGClassificationModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Naive Bayes Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Naive Bayes Model Training Started",
@@ -674,7 +676,7 @@ class NBGClassificationModelScript(object):
                 },
             "completion":{
                 "summary":"Naive Bayes Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -800,6 +802,7 @@ class NBGClassificationModelScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=5
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -1343,6 +1346,7 @@ class NBGClassificationModelScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:
@@ -1408,7 +1412,7 @@ class NBMClassificationModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Naive Bayes Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Naive Bayes Model Training Started",
@@ -1416,7 +1420,7 @@ class NBMClassificationModelScript(object):
                 },
             "completion":{
                 "summary":"Naive Bayes Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -1593,6 +1597,7 @@ class NBMClassificationModelScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=5
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -2129,6 +2134,7 @@ class NBMClassificationModelScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

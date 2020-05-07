@@ -66,7 +66,7 @@ from sklearn.linear_model import ElasticNet
 
 
 class LinearRegressionModelScript(object):
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mLEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -79,7 +79,7 @@ class LinearRegressionModelScript(object):
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]
         self._analysisName = "linearRegression"
         self._dataframe_context.set_analysis_name(self._analysisName)
-        self._mlEnv = self._dataframe_context.get_ml_environment()
+        self._mlEnv = mLEnvironment#self._dataframe_context.get_ml_environment()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -93,7 +93,7 @@ class LinearRegressionModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Linear Regression Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Linear Regression Model Training Started",
@@ -101,7 +101,7 @@ class LinearRegressionModelScript(object):
                 },
             "completion":{
                 "summary":"Linear Regression Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -401,9 +401,10 @@ class LinearRegressionModelScript(object):
             predictionColSummary = transformed["prediction"].describe().to_dict()
             quantileBins = [predictionColSummary["min"],predictionColSummary["25%"],predictionColSummary["50%"],predictionColSummary["75%"],predictionColSummary["max"]]
             quantileBins = sorted(list(set(quantileBins)))
-            transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins)
+            transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins,include_lowest = True)
             quantileDf = transformed.groupby("quantileBinId").agg({"prediction":[np.sum,np.mean,np.size]}).reset_index()
             quantileDf.columns = ["prediction","sum","mean","count"]
+            quantileDf = quantileDf.dropna(axis=0)
             quantileArr = list(quantileDf.T.to_dict().items())
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             runtime = round((time.time() - st_global),2)
@@ -735,13 +736,13 @@ class LinearRegressionModelScript(object):
         # except:
         #     print "DTREE FAILED"
         #
-        # try:
-        fs = time.time()
-        two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
-        two_way_obj.Run()
-        print("OneWayAnova Analysis Done in ", time.time() - fs, " seconds.")
-        # except:
-        #     print "Anova Analysis Failed"
+        try:
+            fs = time.time()
+            two_way_obj = TwoWayAnovaScript(df, df_helper, self._dataframe_context, self._result_setter, self._spark,self._prediction_narrative,self._metaParser,scriptWeight=self._scriptWeightDict,analysisName="Measure vs. Dimension")
+            two_way_obj.Run()
+            print("OneWayAnova Analysis Done in ", time.time() - fs, " seconds.")
+        except:
+            print("Anova Analysis Failed")
 
 
 

@@ -77,7 +77,7 @@ class LogisticRegressionScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Logistic Regression Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Logistic Regression Model Training Started",
@@ -85,7 +85,7 @@ class LogisticRegressionScript(object):
                 },
             "completion":{
                 "summary":"Logistic Regression Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -248,15 +248,15 @@ class LogisticRegressionScript(object):
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={'C': [0.001,0.01,0.55,1.0,10,100,1000],
+                    params_grid={'C': [0.001,0.01,0.55,1.0],
                                 'fit_intercept':[True],
-                                'max_iter':[100,500]
+                                'max_iter':[50,100]
                                  }
                     if x_train.shape[0] < 1000:
-                        params_grid['solver'] = ['liblinear', 'saga']
+                        params_grid['solver'] = ['saga']#['liblinear', 'saga']
                         params_grid['penalty'] = ['l1']
                     else:
-                        params_grid['solver'] = ['lbfgs', 'newton-cg']
+                        params_grid['solver'] = ['saga']#['lbfgs', 'newton-cg']
                         params_grid['penalty'] = ['l2']
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfGrid = GridSearchCV(clf,params_grid)
@@ -265,6 +265,7 @@ class LogisticRegressionScript(object):
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
                     numFold=4
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfGrid,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -839,7 +840,7 @@ class LogisticRegressionScript(object):
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
 
             if data_dict["nactual"] > 2:
-                # levelCountDict={}
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

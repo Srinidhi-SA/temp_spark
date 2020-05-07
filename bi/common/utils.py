@@ -312,7 +312,7 @@ def create_progress_message_object(analysisName,stageName,messageType,shortExpla
         "shortExplanation" : shortExplanation,
         "stageCompletionTimestamp" : timestamp,
         "gmtDateTime":time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(timestamp)),
-        "globalCompletionPercentage" : globalCompletionPercentage,
+        "globalCompletionPercentage" : min(globalCompletionPercentage,100),
         "stageCompletionPercentage" : stageCompletionPercentage,
         "display":display
     }

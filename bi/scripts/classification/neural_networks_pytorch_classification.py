@@ -82,7 +82,7 @@ class NNPTClassificationScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Neural Networks(pyTorch) Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Neural Networks(pyTorch) Training Started",
@@ -90,7 +90,7 @@ class NNPTClassificationScript(object):
                 },
             "completion":{
                 "summary":"Neural Networks(pyTorch) Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -185,7 +185,10 @@ class NNPTClassificationScript(object):
             trainset = torch_data_utils.TensorDataset(x_train_tensored, y_train_tensored)
             testset = torch_data_utils.TensorDataset(x_test_tensored, y_test_tensored)
 
-            nnptc_params = algoSetting.get_nnptc_params_dict()[0]
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                nnptc_params = PYTORCHUTILS.get_nnptc_params_dict(levels,x_train.shape[1],x_train.shape[0])
+            else:
+                nnptc_params = algoSetting.get_nnptc_params_dict()[0]
             layers_for_network = PYTORCHUTILS.get_layers_for_network_module(nnptc_params, task_type = "CLASSIFICATION", first_layer_units = x_train.shape[1])
 
             def get_optimizer(optimizer_name, optimizer_dict, network_params):
@@ -749,7 +752,11 @@ class NNPTClassificationScript(object):
             labelMappingDict = self._dataframe_context.get_label_map()
             df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")
             df["predicted_probability"] = score["predicted_probability"]
-            self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+            try:
+                self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
+            except:
+                df["predicted_probability"] = list(map(lambda x: max(x), score["predicted_probability"]))
+                self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(df)
             self._score_summary["result_column"] = result_column
             if result_column in df.columns:
                 df.drop(result_column, axis=1, inplace=True)
@@ -881,6 +888,7 @@ class NNPTClassificationScript(object):
                 data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
 
                 if data_dict["nactual"] > 2:
+                    levelCountDict ={}
                     levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                     levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
                 else:

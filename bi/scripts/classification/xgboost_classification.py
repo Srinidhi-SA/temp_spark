@@ -76,7 +76,7 @@ class XgboostScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Xgboost Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Xgboost Model Training Started",
@@ -84,7 +84,7 @@ class XgboostScript(object):
                 },
             "completion":{
                 "summary":"Xgboost Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -260,6 +260,7 @@ class XgboostScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=4
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -525,14 +526,14 @@ class XgboostScript(object):
                 self._model_management.set_datasetName(self._datasetName)
             else:
                 def set_model_params(x):
-                    # self._model_management.set_booster_function(data=modelmanagement_[x]['booster'][0])
-                    # self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
-                    # self._model_management.set_minimum_loss_reduction(data=modelmanagement_[x]['gamma'][0])
-                    # self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
-                    # self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
-                    # self._model_management.set_subsampling_ratio(data=modelmanagement_[x]['subsample'][0])
-                    # self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
-                    # self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
+                    self._model_management.set_booster_function(data=modelmanagement_[x]['booster'][0])
+                    self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
+                    self._model_management.set_minimum_loss_reduction(data=modelmanagement_[x]['gamma'][0])
+                    self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
+                    self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
+                    #self._model_management.set_subsampling_ratio(data=modelmanagement_[x]['subsample'][0])
+                    self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
+                    self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
                     self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                     self._model_management.set_training_status(data="completed")# training status
                     self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
@@ -842,6 +843,7 @@ class XgboostScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

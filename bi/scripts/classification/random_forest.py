@@ -80,7 +80,7 @@ class RFClassificationModelScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Random Forest Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Random Forest Model Training Started",
@@ -88,7 +88,7 @@ class RFClassificationModelScript(object):
                 },
             "completion":{
                 "summary":"Random Forest Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -261,11 +261,11 @@ class RFClassificationModelScript(object):
                 algoParams["random_state"] = 42
 
                 if automl_enable:
-                    params_grid={'max_depth': [3,4,5,10,12],
-                                'min_samples_split': [2, 4,6],
-                                'min_samples_leaf': [1, 2, 3],
+                    params_grid={'max_depth': [4,5,10,12],
+                                'min_samples_split': [ 4,6],
+                                'min_samples_leaf': [ 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [100,200],
+                                'n_estimators': [50,100],
                                 'criterion': ['gini'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
@@ -276,6 +276,7 @@ class RFClassificationModelScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=4
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -869,6 +870,7 @@ class RFClassificationModelScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

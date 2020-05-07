@@ -77,7 +77,7 @@ class NeuralNetworkScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The Neural Network Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"Neural Network Model Training Started",
@@ -85,7 +85,7 @@ class NeuralNetworkScript(object):
                 },
             "completion":{
                 "summary":"Neural Network Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
@@ -841,6 +841,7 @@ class NeuralNetworkScript(object):
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
 
             if data_dict["nactual"] > 2:
+                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

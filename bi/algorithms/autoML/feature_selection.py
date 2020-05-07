@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import ExtraTreesRegressor
 from scipy import stats
 from sklearn.preprocessing import LabelEncoder
 
@@ -18,7 +19,10 @@ class FeatureSelection():
         self.data_change_dict['SelectedColsLinear'] = []
 
     def feat_importance_tree(self):
-        model = ExtraTreesClassifier()
+        if self.problem_type  =='REGRESSION':
+            model = ExtraTreesRegressor()
+        else:
+            model = ExtraTreesClassifier()
         X_train = self.data_frame.drop(self.target, axis=1)
         X_train = X_train[X_train._get_numeric_data().columns]
         Y_train = self.data_frame[self.target]
@@ -40,11 +44,13 @@ class FeatureSelection():
         linear_list=[]
         le=LabelEncoder()
         X_train = self.data_frame.drop(self.target, axis=1)
-        try:
-            Y_train=le.fit_transform(self.data_frame[self.target])
-        except:
-            Y_train = le.fit_transform(self.data_frame[self.target].astype(str))
-        #Y_train = self.data_frame[self.target]
+        if self.problem_type !='REGRESSION':
+            try:
+                Y_train=le.fit_transform(self.data_frame[self.target])
+            except:
+                Y_train = le.fit_transform(self.data_frame[self.target].astype(str))
+        else:
+            Y_train = self.data_frame[self.target]
         X_train = X_train[X_train._get_numeric_data().columns]
 
         for c in list(X_train.columns):

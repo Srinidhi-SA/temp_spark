@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import re
 from sklearn.preprocessing import OneHotEncoder
 class FeatureEngineeringAutoML():
 
@@ -39,6 +40,7 @@ class FeatureEngineeringAutoML():
     def sk_one_hot_encoding(self,col_list):
         oh_enc=OneHotEncoder(sparse=False)
         encoded_df=pd.DataFrame(oh_enc.fit_transform(self.data_frame[col_list]),columns=oh_enc.get_feature_names())
+        encoded_df.columns = [re.sub('\W+', '_', col.strip()) for col in encoded_df.columns]
         self.data_frame=self.data_frame[self.data_frame.columns.difference(col_list)]
         self.data_frame.reset_index(drop=True, inplace=True)
         encoded_df.reset_index(drop=True, inplace=True)

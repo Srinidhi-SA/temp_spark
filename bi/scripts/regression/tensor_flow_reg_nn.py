@@ -97,7 +97,7 @@ class TensorFlowRegScript(object):
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized The TensorFlow Regression Scripts",
-                "weight":4
+                "weight":1
                 },
             "training":{
                 "summary":"TensorFlow Regression Model Training Started",
@@ -105,7 +105,7 @@ class TensorFlowRegScript(object):
                 },
             "completion":{
                 "summary":"TensorFlow Regression Model Training Finished",
-                "weight":4
+                "weight":1
                 },
             }
 
