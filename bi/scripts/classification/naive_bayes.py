@@ -205,6 +205,7 @@ class NBBClassificationModelScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=5
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -801,6 +802,7 @@ class NBGClassificationModelScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=5
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -1595,6 +1597,7 @@ class NBMClassificationModelScript(object):
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     numFold=5
+                    validationDict["value"]=numFold
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
