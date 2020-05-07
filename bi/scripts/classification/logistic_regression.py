@@ -248,15 +248,15 @@ class LogisticRegressionScript(object):
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={'C': [0.001,0.01,0.55,1.0,10,100,1000],
+                    params_grid={'C': [0.001,0.01,0.55,1.0],
                                 'fit_intercept':[True],
-                                'max_iter':[100,500]
+                                'max_iter':[50,100]
                                  }
                     if x_train.shape[0] < 1000:
-                        params_grid['solver'] = ['liblinear', 'saga']
+                        params_grid['solver'] = ['saga']#['liblinear', 'saga']
                         params_grid['penalty'] = ['l1']
                     else:
-                        params_grid['solver'] = ['lbfgs', 'newton-cg']
+                        params_grid['solver'] = ['saga']#['lbfgs', 'newton-cg']
                         params_grid['penalty'] = ['l2']
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfGrid = GridSearchCV(clf,params_grid)

@@ -48,8 +48,8 @@ DEFAULT_VALIDATION_OBJECT = {
          "value":0.8
        }
 
-DEFAULT_NULL_VALUES = ["Null", "N/A", "NaN", "None", "na", "nan","n/a","#na","#N/A","#NA","NA"]
-
+DEFAULT_NULL_VALUES = ["Null", "N/A", "NaN", "None", "na", "nan","n/a","#na","#N/A","#NA","NA",'no clue','NO CLUE','-',
+                    'n a','not available','none','No Clue','!','N A','NONE','Not Available','null','NOT AVAILABLE','?']
 APPS_ID_MAP = {
     '1': {
       'displayName': 'Opportunity Scoring',
