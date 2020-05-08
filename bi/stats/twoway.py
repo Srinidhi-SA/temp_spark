@@ -365,6 +365,7 @@ class TwoWayAnova(object):
         if ss_between is None:
             ss_between =  0
         eta_squared = old_div(ss_between,ss_total)
+        eta_squared = float('%.5f' % (eta_squared * 10**3))
         level_aggregate_pandasdf.columns = ["levels"]+list(level_aggregate_pandasdf.columns[1:])
         anovaOutput = {
                        "df_total":df_total,
