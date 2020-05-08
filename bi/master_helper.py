@@ -4,7 +4,7 @@ from builtins import range
 import json
 import time
 import re
-
+import numpy as np
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 
@@ -65,7 +65,7 @@ def load_dataset(spark,dataframe_context):
             df.columns = [re.sub('\W+','_', col.strip()) for col in df.columns]
             bool_cols= list(df.select_dtypes(include=['bool']).columns)
             df[bool_cols] =df[bool_cols].astype('object')
-            df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, None)
+            df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, np.nan)
             print("######## PANDAS ########### STARTED PANDAS FLOW ############# PANDAS ##############")
             dataframe_context._pandas_flag = True
             pyspark=False
