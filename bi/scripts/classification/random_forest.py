@@ -261,11 +261,11 @@ class RFClassificationModelScript(object):
                 algoParams["random_state"] = 42
 
                 if automl_enable:
-                    params_grid={'max_depth': [3,4,5,10,12],
-                                'min_samples_split': [2, 4,6],
-                                'min_samples_leaf': [1, 2, 3],
+                    params_grid={'max_depth': [4,5,10,12],
+                                'min_samples_split': [ 4,6],
+                                'min_samples_leaf': [ 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [100,200],
+                                'n_estimators': [50,100],
                                 'criterion': ['gini'],
                                 'bootstrap': [True],
                                 'random_state': [42]}

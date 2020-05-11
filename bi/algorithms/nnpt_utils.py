@@ -707,7 +707,7 @@ def get_nnptc_params_dict(levels,columns,rows):
     else:
         if rows > 10000:
             nnptc_params["batch_size"] = 64
-            nnptc_params["number_of_epochs"] = 250
+            nnptc_params["number_of_epochs"] = 100
         nnptc_params["hidden_layer_info"]["3"]["units_op"] = len(levels)
     if len(levels) > 2:
         if not large:

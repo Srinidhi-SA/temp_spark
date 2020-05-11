@@ -438,6 +438,13 @@ def submit_job_through_yarn():
             resp = send_kill_command(killURL, data)
         # print resp.text
         print('Main Method Did Not End ....., ', str(e))
+        progressMessage = CommonUtils.create_progress_message_object("Main Method Did Not End .....",
+                                                                     "Main Method Did Not End .....",
+                                                                     "Error",
+                                                                     str(e),
+                                                                     "Failed", 100)
+        CommonUtils.save_progress_message(messageURL, progressMessage, emptyBin=True)
+
 if __name__ == '__main__':
     jobURL, killURL, messageURL = killer_setting(sys.argv[1])
     try:

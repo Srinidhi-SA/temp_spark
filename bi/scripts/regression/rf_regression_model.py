@@ -384,9 +384,10 @@ class RFRegressionModelScript(object):
             predictionColSummary = transformed["prediction"].describe().to_dict()
             quantileBins = [predictionColSummary["min"],predictionColSummary["25%"],predictionColSummary["50%"],predictionColSummary["75%"],predictionColSummary["max"]]
             quantileBins = sorted(list(set(quantileBins)))
-            transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins)
+            transformed["quantileBinId"] = pd.cut(transformed["prediction"],quantileBins,include_lowest = True)
             quantileDf = transformed.groupby("quantileBinId").agg({"prediction":[np.sum,np.mean,np.size]}).reset_index()
             quantileDf.columns = ["prediction","sum","mean","count"]
+            quantileDf = quantileDf.dropna(axis=0)
             quantileArr = list(quantileDf.T.to_dict().items())
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             print(quantileSummaryArr)
