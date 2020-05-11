@@ -250,9 +250,12 @@ class XgboostScript(object):
                                   "booster"            : ['gbtree'],
                                   "max_depth"          : [ 3, 4, 6, 8,10],
                                   'n_estimators'       : [10],
-                                  "gamma"              : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
-                                  "objective"          :['binary:logistic'],
-                                   }
+                                  "gamma"              : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5,1 ]
+                                                                     }
+                    if len(levels) > 2:
+                        params_grid["objective"]=['binary:logistic']
+                    else:
+                        params_grid["objective"]=['multi:softmax']
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid,n_jobs = -1)
                     gridParams = clfRand.get_params()

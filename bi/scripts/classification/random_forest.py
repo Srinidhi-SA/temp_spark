@@ -262,10 +262,10 @@ class RFClassificationModelScript(object):
 
                 if automl_enable:
                     params_grid={'max_depth': [4,5,10,12],
-                                'min_samples_split': [ 4,6],
-                                'min_samples_leaf': [ 2, 3],
+                                'min_samples_split': [ 2,4,6],
+                                'min_samples_leaf': [1, 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [50,100],
+                                'n_estimators': [10,50,100],
                                 'criterion': ['gini'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
