@@ -48,6 +48,9 @@ from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
+import warnings
+warnings.filterwarnings('ignore')
+
 
 class LogisticRegressionScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
@@ -161,7 +164,7 @@ class LogisticRegressionScript(object):
                 automl_enable=False
 
             if len(levels) > 2:
-                clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
+                clf = Logit(multi_class = 'multinomial', solver = 'newton-cg',n_jobs=-1)
             else:
                 clf = Logit()
             if algoSetting.is_hyperparameter_tuning_enabled():

@@ -879,7 +879,10 @@ class SkleanrKFoldResult(object):
             x_train_fold.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train_fold.columns.values]
             self.estimator.fit(x_train_fold, y_train_fold)
             self.estimator.feature_names = list(x_train_fold.columns.values)
-            y_score_fold = self.estimator.predict(x_test_fold)
+            try:
+                y_score_fold = self.estimator.best_estimator_.predict(x_test_fold)
+            except:
+                y_score_fold = self.estimator.predict(x_test_fold)
             metricsFold = {}
             if self.appType == "CLASSIFICATION":
                 metricsFold["accuracy"] = metrics.accuracy_score(y_test_fold,y_score_fold)
@@ -900,7 +903,10 @@ class SkleanrKFoldResult(object):
                 except:
                     metricsFold["neg_mean_squared_log_error"] = "NA"
                 metricsFold["RMSE"] = sqrt(metricsFold["neg_mean_squared_error"])
-            self.kFoldOutput.append((self.estimator,metricsFold))
+            try:
+                self.kFoldOutput.append((self.estimator.best_estimator_,metricsFold))
+            except:
+                self.kFoldOutput.append((self.estimator,metricsFold))
         if self.appType == "CLASSIFICATION":
             self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
         elif self.appType == "REGRESSION":

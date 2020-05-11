@@ -151,7 +151,7 @@ class AnovaNarratives(object):
                     for obj in chart_data:
                         chartDataValues.append(obj["effect_size"])
                 chart_json = ChartJson(data = chart_data,axes={'x':'dimension','y':'effect_size'},
-                                        label_text={'x':'','y':'Effect Size'},chart_type='bar')
+                                        label_text={'x':'','y':'Effect Size (scaled exp values)'},chart_type='bar')
                 chart_json.set_axis_rotation(True)
                 # chart_json.set_yaxis_number_format(".4f")
                 chart_json.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))

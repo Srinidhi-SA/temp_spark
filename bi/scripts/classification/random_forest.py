@@ -138,7 +138,7 @@ class RFClassificationModelScript(object):
 
             st = time.time()
             levels = df[result_column].unique()
-            clf = RandomForestClassifier()
+            clf = RandomForestClassifier(n_jobs = -1)
 
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
@@ -262,15 +262,15 @@ class RFClassificationModelScript(object):
 
                 if automl_enable:
                     params_grid={'max_depth': [4,5,10,12],
-                                'min_samples_split': [ 4,6],
-                                'min_samples_leaf': [ 2, 3],
+                                'min_samples_split': [ 2,4,6],
+                                'min_samples_leaf': [1, 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [50,100],
+                                'n_estimators': [10,50,100],
                                 'criterion': ['gini'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
-                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    clfRand = RandomizedSearchCV(clf,params_grid,n_jobs = -1)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfRand.set_params(**hyperParamInitParam)
