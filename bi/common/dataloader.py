@@ -171,7 +171,7 @@ class DataLoader(object):
             bucket = get_boto_bucket()
             bucket.download_file(file_name, dest_name)
 
-        subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
+        # subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
 
         def read_file(src_name):
             bucket = get_boto_bucket()
