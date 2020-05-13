@@ -186,6 +186,9 @@ class TensorFlowScript(object):
                     if len(levels) > 2:
                         units = '256'
                     rate = '0.5'
+                else:
+                    rate = '0.5'
+                    units = '256'
                 params_tf = {
                               'hidden_layer_info':
                               {
