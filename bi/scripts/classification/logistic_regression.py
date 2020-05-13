@@ -48,6 +48,9 @@ from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
+import warnings
+warnings.filterwarnings('ignore')
+
 
 class LogisticRegressionScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
@@ -161,7 +164,7 @@ class LogisticRegressionScript(object):
                 automl_enable=False
 
             if len(levels) > 2:
-                clf = Logit(multi_class = 'multinomial', solver = 'newton-cg')
+                clf = Logit(multi_class = 'multinomial', solver = 'newton-cg',n_jobs=-1)
             else:
                 clf = Logit()
             if algoSetting.is_hyperparameter_tuning_enabled():
@@ -699,8 +702,12 @@ class LogisticRegressionScript(object):
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             pandas_df = pandas_df[trained_model.feature_names]
-            y_score = trained_model.predict(pandas_df)
-            y_prob = trained_model.predict_proba(pandas_df)
+            try:
+                y_score = trained_model.best_estimator_.predict(pandas_df)
+                y_prob = trained_model.best_estimator_.predict_proba(pandas_df)
+            except:
+                y_score = trained_model.predict(pandas_df)
+                y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
             y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}

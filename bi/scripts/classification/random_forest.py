@@ -262,10 +262,10 @@ class RFClassificationModelScript(object):
 
                 if automl_enable:
                     params_grid={'max_depth': [4,5,10,12],
-                                'min_samples_split': [ 4,6],
-                                'min_samples_leaf': [ 2, 3],
+                                'min_samples_split': [ 2,4,6],
+                                'min_samples_leaf': [1, 2, 3],
                                 'min_impurity_decrease': [0],
-                                'n_estimators': [50,100],
+                                'n_estimators': [10,50,100],
                                 'criterion': ['gini'],
                                 'bootstrap': [True],
                                 'random_state': [42]}
@@ -722,8 +722,12 @@ class RFClassificationModelScript(object):
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
             pandas_df = pandas_df[trained_model.feature_names]
-            y_score = trained_model.predict(pandas_df)
-            y_prob = trained_model.predict_proba(pandas_df)
+            try:
+                y_score = trained_model.best_estimator_.predict(pandas_df)
+                y_prob = trained_model.best_estimator_.predict_proba(pandas_df)
+            except:
+                y_score = trained_model.predict(pandas_df)
+                y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
             y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}

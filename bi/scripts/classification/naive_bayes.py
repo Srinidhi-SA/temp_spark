@@ -457,8 +457,12 @@ class NBBClassificationModelScript(object):
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
 
             pandas_df = pandas_df[trained_model.feature_names]
-            y_score = trained_model.predict(pandas_df)
-            y_prob = trained_model.predict_proba(pandas_df)
+            try:
+                y_score = trained_model.best_estimator_.predict(pandas_df)
+                y_prob = trained_model.best_estimator_.predict_proba(pandas_df)
+            except:
+                y_score = trained_model.predict(pandas_df)
+                y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
             y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
@@ -1201,8 +1205,12 @@ class NBGClassificationModelScript(object):
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
 
             pandas_df = pandas_df[trained_model.feature_names]
-            y_score = trained_model.predict(pandas_df)
-            y_prob = trained_model.predict_proba(pandas_df)
+            try:
+                y_score = trained_model.best_estimator_.predict(pandas_df)
+                y_prob = trained_model.best_estimator_.predict_proba(pandas_df)
+            except:
+                y_score = trained_model.predict(pandas_df)
+                y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
             y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
@@ -1582,14 +1590,7 @@ class NBMClassificationModelScript(object):
                 else:
                     automl_enable=False
                 if automl_enable:
-                    params_grid={'max_depth': [5, 10],
-                                'min_samples_split': [2, 4],
-                                'min_samples_leaf': [1, 2],
-                                'min_impurity_decrease': [0],
-                                'n_estimators': [100],
-                                'criterion': ['gini', 'entropy'],
-                                'bootstrap': [True],
-                                'random_state': [42]}
+                    params_grid={'alpha':[0,1]}
                     hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
@@ -1842,18 +1843,23 @@ class NBMClassificationModelScript(object):
                 self._model_management.set_alpha(modelmanagement_['alpha'])
                 self._model_management.set_datasetName(self._datasetName)
             else:
-                self._model_management = MLModelSummary()
-                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self._model_management.set_training_status(data="completed")# training status
-                self._model_management.set_target_level(self._targetLevel) # target column value
-                self._model_management.set_training_time(runtime) # run time
-                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
-                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
-                self._model_management.set_alpha(modelmanagement_['param_grid']['alpha'][0])
-                self._model_management.set_datasetName(self._datasetName)
+                def set_model_params(x):
+                    self._model_management = MLModelSummary()
+                    self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                    self._model_management.set_training_status(data="completed")# training status
+                    self._model_management.set_target_level(self._targetLevel) # target column value
+                    self._model_management.set_training_time(runtime) # run time
+                    self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                    self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
+                    self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                    self._model_management.set_target_variable(result_column)#target column name
+                    self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+                    self._model_management.set_alpha(modelmanagement_[x]['alpha'][0])
+                    self._model_management.set_datasetName(self._datasetName)
+                try:
+                    set_model_params('param_grid')
+                except:
+                    set_model_params('param_distributions')
             modelManagementSummaryJson = [
 
                                   ["Project Name",self._model_management.get_job_type()],
@@ -1989,8 +1995,12 @@ class NBMClassificationModelScript(object):
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
 
             pandas_df = pandas_df[trained_model.feature_names]
-            y_score = trained_model.predict(pandas_df)
-            y_prob = trained_model.predict_proba(pandas_df)
+            try:
+                y_score = trained_model.best_estimator_.predict(pandas_df)
+                y_prob = trained_model.best_estimator_.predict_proba(pandas_df)
+            except:
+                y_score = trained_model.predict(pandas_df)
+                y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
             y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}

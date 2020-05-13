@@ -250,9 +250,13 @@ class XgboostScript(object):
                                   "booster"            : ['gbtree'],
                                   "max_depth"          : [ 3, 4, 6, 8,10],
                                   'n_estimators'       : [10],
-                                  "gamma"              : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5 ],
-                                  "objective"          :['binary:logistic'],
-                                   }
+                                  "gamma"              : [ 0.0, 0.1, 0.2, 0.3, 0.4 ,0.5]
+                                                                     }
+                    if len(levels) > 2:
+                        params_grid["num_class"]=[len(levels)]
+                        params_grid["objective"]=['multi:softmax']
+                    else:
+                        params_grid["objective"]=['binary:logistic']
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid,n_jobs = -1)
                     gridParams = clfRand.get_params()
@@ -701,8 +705,12 @@ class XgboostScript(object):
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
 
             pandas_df = pandas_df[trained_model.feature_names]
-            y_score = trained_model.predict(pandas_df)
-            y_prob = trained_model.predict_proba(pandas_df)
+            try:
+                y_score = trained_model.best_estimator_.predict(pandas_df)
+                y_prob = trained_model.best_estimator_.predict_proba(pandas_df)
+            except:
+                y_score = trained_model.predict(pandas_df)
+                y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
             y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
