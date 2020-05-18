@@ -19,6 +19,7 @@ import subprocess
 import pandas as pd
 import requests
 import io
+from io import StringIO
 
 class DataLoader(object):
 
@@ -152,68 +153,81 @@ class DataLoader(object):
         s3_bucket_name = dbConnectionParams.get("bucket_name")
         datasetname = dbConnectionParams.get("new_dataset_name")
 
-        def get_boto_session():
-            return boto3.Session(aws_access_key_id=myAccessKey, aws_secret_access_key=mySecretKey)
+        client = boto3.client('s3', aws_access_key_id=myAccessKey,
+        aws_secret_access_key=mySecretKey)
 
-        def get_boto_resourse():
-            session = get_boto_session()
-            return session.resource('s3')
+        bucket_name = s3_bucket_name
 
-        def get_boto_bucket():
-            resource = get_boto_resourse()
-            return resource.Bucket(s3_bucket_name)
+        object_key = file_name
+        csv_obj = client.get_object(Bucket=bucket_name, Key=object_key)
+        body = csv_obj['Body']
+        csv_string = body.read().decode('utf-8')
+        df = pd.read_csv(StringIO(csv_string))
 
-        def upload_file(src_path, dest_name):
-            bucket = get_boto_bucket()
-            bucket.upload_file(src_path, dest_name)
-
-        def download_file(file_name, dest_name):
-            bucket = get_boto_bucket()
-            bucket.download_file(file_name, dest_name)
-
-        subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
-
-        def read_file(src_name):
-            bucket = get_boto_bucket()
-
-        download_file(file_name,'/tmp/'+dst_file_name)
-
-        try:
-            if df is None:
-                df = spark_session.read.csv('file:///tmp/'
-                        + dst_file_name, header=True, inferSchema=True)
-        except Exception as e:
-            print(e)
-
-            try:
-                if df is None:
-                    df = spark_session.read.csv('/tmp/'
-                            + dst_file_name, header=True,
-                            inferSchema=True)
-            except Exception as e:
-                print(e)
-
-            try:
-                if df is None:
-                    df = \
-                        spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'
-                             + dst_file_name, header=True,
-                            inferSchema=True)
-            except Exception as e:
-                print(e)
-
-                try:
-                    if df is None:
-                        df = spark_session.read.csv('/dev/dataset/'
-                                + dst_file_name, header=True,
-                                inferSchema=True)
-                except Exception as e:
-                    print(e)
-                cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", '', col)
-                        for col in df.columns]
-                df = reduce(lambda data, idx: \
-                            data.withColumnRenamed(df.columns[idx],
-                            cols[idx]), range(len(df.columns)), df)
+        #
+        # def get_boto_session():
+        #     return boto3.Session(aws_access_key_id=myAccessKey, aws_secret_access_key=mySecretKey)
+        #
+        # def get_boto_resourse():
+        #     session = get_boto_session()
+        #     return session.resource('s3')
+        #
+        # def get_boto_bucket():
+        #     resource = get_boto_resourse()
+        #     return resource.Bucket(s3_bucket_name)
+        #
+        # def upload_file(src_path, dest_name):
+        #     bucket = get_boto_bucket()
+        #     bucket.upload_file(src_path, dest_name)
+        #
+        # def download_file(file_name, dest_name):
+        #     bucket = get_boto_bucket()
+        #     bucket.download_file(file_name, dest_name)
+        #
+        # # subprocess.Popen(['hdfs', 'dfs', '-put', dest_name, '/dev/dataset'])
+        #
+        # def read_file(src_name):
+        #     bucket = get_boto_bucket()
+        #
+        # download_file(file_name,'/tmp/'+dst_file_name)
+        #
+        # try:
+        #     if df is None:
+        #         df = spark_session.read.csv('file:///tmp/'
+        #                 + dst_file_name, header=True, inferSchema=True)
+        # except Exception as e:
+        #     print(e)
+        #
+        #     try:
+        #         if df is None:
+        #             df = spark_session.read.csv('/tmp/'
+        #                     + dst_file_name, header=True,
+        #                     inferSchema=True)
+        #     except Exception as e:
+        #         print(e)
+        #
+        #     try:
+        #         if df is None:
+        #             df = \
+        #                 spark_session.read.csv('hdfs://172.31.64.29:9000/dev/dataset/'
+        #                      + dst_file_name, header=True,
+        #                     inferSchema=True)
+        #     except Exception as e:
+        #         print(e)
+        #
+        #         try:
+        #             if df is None:
+        #                 df = spark_session.read.csv('/dev/dataset/'
+        #                         + dst_file_name, header=True,
+        #                         inferSchema=True)
+        #         except Exception as e:
+        #             print(e)
+        #         cols = [re.sub("[[]|[]]|[<]|[\.]|[*]|[$]|[#]", '', col)
+        #                 for col in df.columns]
+        #         df = reduce(lambda data, idx: \
+        #                     data.withColumnRenamed(df.columns[idx],
+        #                     cols[idx]), range(len(df.columns)), df)
+        df = spark_session.createDataFrame(df)
         return df
 
 
