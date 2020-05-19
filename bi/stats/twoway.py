@@ -238,12 +238,12 @@ class TwoWayAnova(object):
                         topLevelDfMeasureColStat = [[topLevelDf[measure].sum().item(), topLevelDf[measure].mean(), topLevelDf[measure].count().item()]]
                     else:
                         topLevelDfMeasureColStat = topLevelDf.select([sum(measure).alias("total"),mean(measure).alias("average"),count(measure).alias("count")]).collect()
-                    topLevelDfMeasureColMean = measureColStat[0][1]
-                    topLevelDfMeasureColCount = measureColStat[0][2]
+                    topLevelDfMeasureColMean = topLevelDfMeasureColStat[0][1]
+                    topLevelDfMeasureColCount = topLevelDfMeasureColStat[0][2]
                     if self._pandas_flag:
-                        topLevelDfMeasureColSst = ((self._data_frame[measure] - measureColMean)**2).sum()
+                        topLevelDfMeasureColSst = ((topLevelDf[measure] - topLevelDfMeasureColMean)**2).sum()
                     else:
-                        topLevelDfMeasureColSst = self._data_frame.select(sum(pow(col(measure)-measureColMean,2))).collect()[0][0]
+                        topLevelDfMeasureColSst = topLevelDf.select(sum(pow(col(measure)-topLevelDfMeasureColMean,2))).collect()[0][0]
 
                     dimensions_to_test_for_top_level = list(set(self._dimensions_to_test) - {dimension})
                     topLevelAnovaDimensions = {}

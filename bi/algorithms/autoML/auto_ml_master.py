@@ -27,12 +27,12 @@ class AutoMl:
             DataValidation_obj = DataValidation(self.df, self.target, self.app_type)
             DataValidation_obj.data_validation_run()
             if not DataValidation_obj.data_change_dict["target_fitness_check"]:
-                raise ValueError("Target not suitable for  CLASSIFICATION  analysis")
+                raise ValueError("Target not suitable for "+ str(self.app_type) + " analysis")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(self.LOGGER, "datavalidation", e)
             CommonUtils.save_error_messages(self.errorURL, self.app_type, e, ignore=self.ignoreMsg)
-            if str(e) == "Target not suitable for  CLASSIFICATION  analysis":
-                raise ValueError("Target not suitable for  CLASSIFICATION  analysis")
+            if str(e) == "Target not suitable for "+ str(self.app_type) + " analysis":
+                raise ValueError("Target not suitable for "+ str(self.app_type) + " analysis")
         try:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(DataValidation_obj.data_frame, DataValidation_obj.target, DataValidation_obj.data_change_dict, DataValidation_obj.numeric_cols, DataValidation_obj.dimension_cols, DataValidation_obj.datetime_cols,DataValidation_obj.problem_type)
             DataPreprocessingAutoML_obj.data_preprocessing_run()
