@@ -63,7 +63,7 @@ class NeuralNetworkScript(object):
         self._score_summary = {}
         self._column_separator = "|~|"
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["Neural Network"]
+        self._slug = self._model_slug_map["Neural Network (Sklearn)"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -76,15 +76,15 @@ class NeuralNetworkScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Network Scripts",
+                "summary":"Initialized The Neural Network (Sklearn) Scripts",
                 "weight":1
                 },
             "training":{
-                "summary":"Neural Network Model Training Started",
+                "summary":"Neural Network (Sklearn) Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Neural Network Model Training Finished",
+                "summary":"Neural Network (Sklearn) Model Training Finished",
                 "weight":1
                 },
             }
@@ -407,8 +407,8 @@ class NeuralNetworkScript(object):
             cat_cols = list(set(categorical_columns) - {result_column})
             overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel=self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("Neural Network")
-            self._model_summary.set_algorithm_display_name("Neural Network")
+            self._model_summary.set_algorithm_name("Neural Network (Sklearn)")
+            self._model_summary.set_algorithm_display_name("Neural Network (Sklearn)")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -497,7 +497,7 @@ class NeuralNetworkScript(object):
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Neural Network")#algorithm name
+                self._model_management.set_algorithm_name("Neural Network (Sklearn)")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
@@ -531,7 +531,7 @@ class NeuralNetworkScript(object):
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Neural Network")#algorithm name
+                self._model_management.set_algorithm_name("Neural Network (Sklearn)")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
@@ -605,11 +605,11 @@ class NeuralNetworkScript(object):
             for card in nnCards:
                 self._prediction_narrative.add_a_card(card)
 
-            self._result_setter.set_model_summary({"Neural Network":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_model_summary({"Neural Network (Sklearn)":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_nn_model_summary(modelSummaryJson)
             self._result_setter.set_nn_cards(nnCards)
             self._result_setter.set_nn_nodes([NN_Overview_Node,NN_Performance_Node,NN_Deployment_Node])
-            self._result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"True"})
+            self._result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network (Sklearn)","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -620,11 +620,11 @@ class NeuralNetworkScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Network Scripts",
+                "summary":"Initialized The Neural Network (Sklearn) Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Neural Network Model Prediction Finished",
+                "summary":"Neural Network (Sklearn) Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{

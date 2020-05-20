@@ -67,7 +67,7 @@ class TensorFlowScript(object):
         self._score_summary = {}
         self._column_separator = "|~|"
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["TensorFlow"]
+        self._slug = self._model_slug_map["Neural Network (TensorFlow)"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -80,15 +80,15 @@ class TensorFlowScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The TensorFlow Scripts",
+                "summary":"Initialized The Neural Network (TensorFlow) Scripts",
                 "weight":1
                 },
             "training":{
-                "summary":"TensorFlow Model Training Started",
+                "summary":"Neural Network (TensorFlow) Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"TensorFlow Model Training Finished",
+                "summary":"Neural Network (TensorFlow) Model Training Finished",
                 "weight":1
                 },
             }
@@ -501,8 +501,8 @@ class TensorFlowScript(object):
             cat_cols = list(set(categorical_columns) - {result_column})
             overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel=self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("TensorFlow")
-            self._model_summary.set_algorithm_display_name("TensorFlow")
+            self._model_summary.set_algorithm_name("Neural Network (TensorFlow)")
+            self._model_summary.set_algorithm_display_name("Neural Network (TensorFlow)")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -578,7 +578,7 @@ class TensorFlowScript(object):
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("TensorFlow")#algorithm name
+                self._model_management.set_algorithm_name("Neural Network (TensorFlow)")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
@@ -639,11 +639,11 @@ class TensorFlowScript(object):
             for card in tfCards:
                 self._prediction_narrative.add_a_card(card)
 
-            self._result_setter.set_model_summary({"TensorFlow":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_model_summary({"Neural Network (TensorFlow)":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_tf_model_summary(modelSummaryJson)
             self._result_setter.set_tf_cards(tfCards)
             self._result_setter.set_tf_nodes([TF_Overview_Node,TF_Performance_Node,TF_Deployment_Node])
-            self._result_setter.set_tf_fail_card({"Algorithm_Name":"TensorFlow","success":"True"})
+            self._result_setter.set_tf_fail_card({"Algorithm_Name":"Neural Network (TensorFlow)","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -654,11 +654,11 @@ class TensorFlowScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The TensorFlow Scripts",
+                "summary":"Initialized The Neural Network (TensorFlow) Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"TensorFlow Model Prediction Finished",
+                "summary":"Neural Network (TensorFlow) Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
