@@ -165,10 +165,10 @@ class DataFrameTransformer(object):
                             self._data_frame[column_name] = self._data_frame[column_name].str.replace(key,value, case = False)
                         if replace_type == "startsWith":
                             print(replace_obj)
-                            self._data_frame[column_name] = self._data_frame[column_name].str.replace('^'+key,value)
+                            self._data_frame[column_name] = self._data_frame[column_name].apply([lambda x: replace_obj["replacedValue"]+x[len(replace_obj["valueToReplace"]):] if x.startswith(replace_obj["valueToReplace"]) else x])
                         if replace_type == "endsWith":
                             print(replace_obj)
-                            self._data_frame[column_name] = self._data_frame[column_name].str.replace(key+'$', value)
+                            self._data_frame[column_name] = self._data_frame[column_name].apply([lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x])
                         if replace_type == "equals":
                             self._data_frame[column_name] = self._data_frame[column_name].apply(lambda x: value if key == x else x)
 
