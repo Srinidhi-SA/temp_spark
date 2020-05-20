@@ -72,7 +72,7 @@ class NNPTRegressionScript(object):
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["PyTorch"]
         self._analysisName = self._slug
         self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = mlEnvironment
@@ -86,15 +86,15 @@ class NNPTRegressionScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Networks(pyTorch) Scripts",
+                "summary":"Initialized The PyTorch Scripts",
                 "weight":1
                 },
             "training":{
-                "summary":"Neural Networks(pyTorch) Training Started",
+                "summary":"PyTorch Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Neural Networks(pyTorch) Training Finished",
+                "summary":"PyTorch Training Finished",
                 "weight":1
                 },
             }
@@ -310,8 +310,8 @@ class NNPTRegressionScript(object):
             runtime = round((time.time() - st_global),2)
 
             self._model_summary.set_model_type("regression")
-            self._model_summary.set_algorithm_name("Neural Networks(pyTorch)")
-            self._model_summary.set_algorithm_display_name("Neural Networks(pyTorch)")
+            self._model_summary.set_algorithm_name("PyTorch")
+            self._model_summary.set_algorithm_display_name("PyTorch")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_training_time(trainingTime)
@@ -455,11 +455,11 @@ class NNPTRegressionScript(object):
             nnptr_Deployment_Node.add_a_card(card)
         for card in nnptrCards:
             self._prediction_narrative.add_a_card(card)
-        self._result_setter.set_model_summary({"Neural Networks(pyTorch)":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_model_summary({"PyTorch":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_nnptr_regression_model_summary(modelSummaryJson)
         self._result_setter.set_nnptr_cards(nnptrCards)
         self._result_setter.set_nnptr_nodes([nnptr_Overview_Node, nnptr_Performance_Node, nnptr_Deployment_Node])
-        self._result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","Success":"True"})
+        self._result_setter.set_nnptr_fail_card({"Algorithm_Name":"PyTorch","Success":"True"})
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
@@ -470,15 +470,15 @@ class NNPTRegressionScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Networks(pyTorch) Scripts",
+                "summary":"Initialized The PyTorch Scripts",
                 "weight":2
                 },
             "predictionStart":{
-                "summary":"Neural Networks(pyTorch) Prediction Started",
+                "summary":"PyTorch Prediction Started",
                 "weight":2
                 },
             "predictionFinished":{
-                "summary":"Neural Networks(pyTorch) Prediction Finished",
+                "summary":"PyTorch Prediction Finished",
                 "weight":6
                 }
             }

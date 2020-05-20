@@ -623,7 +623,7 @@ def fill_missing_values(df,replacement_dict):
 def get_model_comparison(collated_summary,evaluvation_metric):
     summary = []
     algos = list(collated_summary.keys())
-    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network":"Neural Network","TensorFlow":"TensorFlow", "Neural Networks(pyTorch)":"Neural Networks(pyTorch)"}
+    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network":"Neural Network","TensorFlow":"TensorFlow", "PyTorch":"PyTorch"}
     out = []
     for val in algos:
         out.append(algos_dict[val])
@@ -812,7 +812,7 @@ def create_model_summary_para(modelSummaryClass):
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using TensorFlow. The model has an overall accuracy of <b>{}%</b>. The model using TensorFlow was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
-        elif modelSummaryClass.get_algorithm_name() == 'Neural Networks(pyTorch)':
+        elif modelSummaryClass.get_algorithm_name() == 'PyTorch':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} and the remaining <b> {}%</b> as {} using Neural Networks in pyTorch. The model has an overall accuracy of <b>{}%</b>. The model using Neural Networks in pyTorch was able to accurately predict {} observations as {} out of the total {}. ".format(prediction_split_array[0][1],prediction_split_array[0][0],prediction_split_array[1][1], prediction_split_array[1][0], modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
@@ -848,7 +848,7 @@ def create_model_summary_para(modelSummaryClass):
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
             paragraph = "mAdvisor was able to predict <b> {}% </b> of observations as {} using TensorFlow. The model has an overall accuracy of <b>{}%</b>. The model using TensorFlow was able to accurately predict {} observations as {} out of the total {}. ".format(target_level_percentage, target_level, modelSummaryClass.get_model_accuracy()*100, confusion_matrix[target_level][target_level], target_level, builtins.sum(confusion_matrix[x][target_level] for x in list(confusion_matrix.keys())))
-        elif modelSummaryClass.get_algorithm_name() == 'Neural Networks(pyTorch)':
+        elif modelSummaryClass.get_algorithm_name() == 'PyTorch':
             target_level = modelSummaryClass.get_target_level()
             confusion_matrix = dict(modelSummaryClass.get_confusion_matrix())
             target_level_percentage = [x[1] for x in prediction_split_array if x[0] == target_level][0]
@@ -1623,7 +1623,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         nbManagementNode = NarrativesTree(name='Naive Bayes')
         nnManagementNode = NarrativesTree(name='Neural Network')
         tfManagementNode = NarrativesTree(name='TensorFlow')
-        nnptcManagementNode = NarrativesTree(name='Neural Networks(pyTorch)')
+        nnptcManagementNode = NarrativesTree(name='PyTorch')
         nnManagementNode.add_nodes(result_setter.get_all_nn_classification_nodes())
         rfManagementNode.add_nodes(result_setter.get_all_rf_classification_nodes())
         lrManagementNode.add_nodes(result_setter.get_all_lr_classification_nodes())
@@ -1862,7 +1862,7 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
         rfregManagementNode = NarrativesTree(name='Random Forest Regression')
         lregManagementNode = NarrativesTree(name='Linear Regression')
         tfregManagementNode = NarrativesTree(name="TensorFlow")
-        nnptrManagementNode = NarrativesTree(name="Neural Networks(pyTorch)")
+        nnptrManagementNode = NarrativesTree(name="PyTorch")
         dtreeManagementNode.add_nodes(result_setter.get_all_dtree_regression_nodes())
         gbtManagementNode.add_nodes(result_setter.get_all_gbt_regression_nodes())
         rfregManagementNode.add_nodes(result_setter.get_all_rfreg_regression_nodes())

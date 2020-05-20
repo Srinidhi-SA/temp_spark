@@ -146,7 +146,7 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"rfr":"rfregression",
             ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
             ALGORITHMRANDOMSLUG+"tfx":"TensorFlow",
-            ALGORITHMRANDOMSLUG+"nnpt":"Neural Networks(pyTorch)"
+            ALGORITHMRANDOMSLUG+"nnpt":"PyTorch"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
@@ -163,7 +163,7 @@ MODEL_SLUG_MAPPING = {
             "rfregression":ALGORITHMRANDOMSLUG+"rfr",
             "Neural Network":ALGORITHMRANDOMSLUG+"mlp",
             "TensorFlow":ALGORITHMRANDOMSLUG+"tfx",
-            "Neural Networks(pyTorch)":ALGORITHMRANDOMSLUG+"nnpt"
+            "PyTorch":ALGORITHMRANDOMSLUG+"nnpt"
                      }
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
@@ -178,7 +178,7 @@ SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"rfr":"Random Forest",
             ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
             ALGORITHMRANDOMSLUG+"tfx":"TensorFlow",
-            ALGORITHMRANDOMSLUG+"nnpt":"Neural Networks(pyTorch)"
+            ALGORITHMRANDOMSLUG+"nnpt":"PyTorch"
             }
 
 scriptsMapping = {
