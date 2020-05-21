@@ -144,9 +144,9 @@ SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
             ALGORITHMRANDOMSLUG+"dtreer":"dtreeregression",
             ALGORITHMRANDOMSLUG+"rfr":"rfregression",
-            ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
-            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow",
-            ALGORITHMRANDOMSLUG+"nnpt":"Neural Networks(pyTorch)"
+            ALGORITHMRANDOMSLUG+"mlp":"Neural Network (Sklearn)",
+            ALGORITHMRANDOMSLUG+"tfx":"Neural Network (TensorFlow)",
+            ALGORITHMRANDOMSLUG+"nnpt":"Neural Network (PyTorch)"
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
@@ -161,9 +161,9 @@ MODEL_SLUG_MAPPING = {
             "gbtregression":ALGORITHMRANDOMSLUG+"gbtr",
             "dtreeregression":ALGORITHMRANDOMSLUG+"dtreer",
             "rfregression":ALGORITHMRANDOMSLUG+"rfr",
-            "Neural Network":ALGORITHMRANDOMSLUG+"mlp",
-            "TensorFlow":ALGORITHMRANDOMSLUG+"tfx",
-            "Neural Networks(pyTorch)":ALGORITHMRANDOMSLUG+"nnpt"
+            "Neural Network (Sklearn)":ALGORITHMRANDOMSLUG+"mlp",
+            "Neural Network (TensorFlow)":ALGORITHMRANDOMSLUG+"tfx",
+            "Neural Network (PyTorch)":ALGORITHMRANDOMSLUG+"nnpt"
                      }
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
@@ -176,9 +176,9 @@ SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"gbtr":"Gradient Boosted Trees",
             ALGORITHMRANDOMSLUG+"dtreer":"Decision Tree",
             ALGORITHMRANDOMSLUG+"rfr":"Random Forest",
-            ALGORITHMRANDOMSLUG+"mlp":"Neural Network",
-            ALGORITHMRANDOMSLUG+"tfx":"TensorFlow",
-            ALGORITHMRANDOMSLUG+"nnpt":"Neural Networks(pyTorch)"
+            ALGORITHMRANDOMSLUG+"mlp":"Neural Network (Sklearn)",
+            ALGORITHMRANDOMSLUG+"tfx":"Neural Network (TensorFlow)",
+            ALGORITHMRANDOMSLUG+"nnpt":"Neural Network (PyTorch)"
             }
 
 scriptsMapping = {

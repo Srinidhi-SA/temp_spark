@@ -81,8 +81,8 @@ class TensorFlowRegScript(object):
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]
-        self._analysisName = "TensorFlow"
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (TensorFlow)"]
+        self._analysisName = "Neural Network (TensorFlow)"
         self._dataframe_context.set_analysis_name(self._analysisName)
         self._mlEnv = mlEnvironment
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
@@ -96,15 +96,15 @@ class TensorFlowRegScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The TensorFlow Regression Scripts",
+                "summary":"Initialized The Neural Network (TensorFlow) Regression Scripts",
                 "weight":1
                 },
             "training":{
-                "summary":"TensorFlow Regression Model Training Started",
+                "summary":"Neural Network (TensorFlow) Regression Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"TensorFlow Regression Model Training Finished",
+                "summary":"Neural Network (TensorFlow) Regression Model Training Finished",
                 "weight":1
                 },
             }
@@ -283,8 +283,8 @@ class TensorFlowRegScript(object):
             runtime = round((time.time() - st_global),2)
 
             self._model_summary.set_model_type("regression")
-            self._model_summary.set_algorithm_name("TensorFlow")
-            self._model_summary.set_algorithm_display_name("TensorFlow")
+            self._model_summary.set_algorithm_name("Neural Network (TensorFlow)")
+            self._model_summary.set_algorithm_display_name("Neural Network (TensorFlow)")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_training_time(trainingTime)
@@ -371,7 +371,7 @@ class TensorFlowRegScript(object):
             self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
             self._model_management.set_training_time(runtime) # run time
             self._model_management.set_rmse(metrics["RMSE"])
-            self._model_management.set_algorithm_name("TensorFlow")#algorithm name
+            self._model_management.set_algorithm_name("Neural Network (TensorFlow)")#algorithm name
             self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
             self._model_management.set_target_variable(result_column)#target column name
             self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
@@ -430,11 +430,11 @@ class TensorFlowRegScript(object):
             TFReg_Deployment_Node.add_a_card(card)
         for card in tfregCards:
             self._prediction_narrative.add_a_card(card)
-        self._result_setter.set_model_summary({"TensorFlow":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_model_summary({"Neural Network (TensorFlow)":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
         self._result_setter.set_tfreg_regression_model_summart(modelSummaryJson)
         self._result_setter.set_tfreg_cards(tfregCards)
         self._result_setter.set_tfreg_nodes([TFReg_Overview_Node,TFReg_Performance_Node,TFReg_Deployment_Node])
-        self._result_setter.set_tfreg_fail_card({"Algorithm_Name":"TensorFlow","Success":"True"})
+        self._result_setter.set_tfreg_fail_card({"Algorithm_Name":"Neural Network (TensorFlow)","Success":"True"})
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
@@ -443,15 +443,15 @@ class TensorFlowRegScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The TensorFlow Regression Scripts",
+                "summary":"Initialized The Neural Network (TensorFlow) Regression Scripts",
                 "weight":2
                 },
             "predictionStart":{
-                "summary":"TensorFlow Regression Model Prediction Started",
+                "summary":"Neural Network (TensorFlow) Regression Model Prediction Started",
                 "weight":2
                 },
             "predictionFinished":{
-                "summary":"TensorFlow Regression Model Prediction Finished",
+                "summary":"Neural Network (TensorFlow) Regression Model Prediction Finished",
                 "weight":6
                 }
             }

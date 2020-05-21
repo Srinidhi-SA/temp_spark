@@ -68,7 +68,7 @@ class NNPTClassificationScript(object):
         self._score_summary = {}
         self._column_separator = "|~|"
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["Neural Networks(pyTorch)"]
+        self._slug = self._model_slug_map["Neural Network (PyTorch)"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -81,15 +81,15 @@ class NNPTClassificationScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Networks(pyTorch) Scripts",
+                "summary":"Initialized The Neural Network (PyTorch)  Scripts",
                 "weight":1
                 },
             "training":{
-                "summary":"Neural Networks(pyTorch) Training Started",
+                "summary":"Neural Network (PyTorch)  Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Neural Networks(pyTorch) Training Finished",
+                "summary":"Neural Network (PyTorch)  Training Finished",
                 "weight":1
                 },
             }
@@ -489,8 +489,8 @@ class NNPTClassificationScript(object):
             cat_cols = list(set(categorical_columns) - {result_column})
             overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel=self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("Neural Networks(pyTorch)")
-            self._model_summary.set_algorithm_display_name("Neural Networks(pyTorch)")
+            self._model_summary.set_algorithm_name("Neural Network (PyTorch)")
+            self._model_summary.set_algorithm_display_name("Neural Network (PyTorch)")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -568,7 +568,7 @@ class NNPTClassificationScript(object):
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Neural Networks(pyTorch)")#algorithm name
+                self._model_management.set_algorithm_name("Neural Network (PyTorch)")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
                 self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
@@ -635,11 +635,11 @@ class NNPTClassificationScript(object):
             for card in nnptcCards:
                 self._prediction_narrative.add_a_card(card)
 
-            self._result_setter.set_model_summary({"Neural Networks(pyTorch)":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_model_summary({"Neural Network (PyTorch)":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_nnptc_model_summary(modelSummaryJson)
             self._result_setter.set_nnptc_cards(nnptcCards)
             self._result_setter.set_nnptc_nodes([nnptc_Overview_Node, nnptc_Performance_Node, nnptc_Deployment_Node])
-            self._result_setter.set_nnptc_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","success":"True"})
+            self._result_setter.set_nnptc_fail_card({"Algorithm_Name":"Neural Network (PyTorch)","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -649,11 +649,11 @@ class NNPTClassificationScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Networks(pyTorch) Scripts",
+                "summary":"Initialized The Neural Network (PyTorch)  Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Neural Networks(pyTorch) Scripts Model Prediction Finished",
+                "summary":"Neural Network (PyTorch)  Scripts Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{

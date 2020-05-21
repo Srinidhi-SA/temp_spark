@@ -22,6 +22,7 @@ class DataFrameTransformer(object):
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
+        self._pandas_flag = self._dataframe_context._pandas_flag
         self._completionStatus = 0
         self._start_time = time.time()
         self._analysisName = "transformation"
@@ -71,16 +72,22 @@ class DataFrameTransformer(object):
                         if obj["actionName"] == "data_type":
                             castDataType = [x["name"] for x in obj["listOfActions"] if x["status"] == True][0]
                             print(castDataType)
-                            if castDataType == "numeric":
-                                newDataType = 'int'
-                            elif castDataType == "text":
-                                newDataType = "string"
-                            elif castDataType == "datetime":
-                                newDataType = "timestamp"
+                            if self._pandas_flag:
+                                if castDataType == "numeric":
+                                    newDataType = 'int'
+                                elif castDataType == "text":
+                                    newDataType = "str"
+                                elif castDataType == "datetime":
+                                    newDataType = "datetime"
+                            else:
+                                if castDataType == "numeric":
+                                    newDataType = 'int'
+                                elif castDataType == "text":
+                                    newDataType = "string"
+                                elif castDataType == "datetime":
+                                    newDataType = "timestamp"
                             self.actual_col_datatype_update.append({colName:newDataType})
                             self.update_column_datatype(colName,newDataType)
-                            print(self._data_frame.printSchema())
-                    print(self._data_frame.printSchema())
 
 
 
@@ -121,7 +128,10 @@ class DataFrameTransformer(object):
         return newdf
 
     def delete_column(self,column):
-        self._data_frame = self._data_frame.drop(column)
+        if self._pandas_flag:
+            self._data_frame = self._data_frame.drop(column, axis=1)
+        else:
+            self._data_frame = self._data_frame.drop(column)
 
     def update_column_data(self,column_name,replace_obj_list):
         for replace_obj in replace_obj_list:
@@ -131,35 +141,56 @@ class DataFrameTransformer(object):
                 key = replace_obj["valueToReplace"]
                 value = replace_obj["replacedValue"]
                 replace_type = replace_obj["replaceType"]
-                if replace_type in self._replaceTypeList:
-                    if replace_type == "contains":
-                        replace_values = udf(lambda x: x.replace(key,value),StringType())
-                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
-                    if replace_type == "startsWith":
-                        print(replace_obj)
-                        replace_values = udf(lambda x: replace_obj["replacedValue"]+x[len(replace_obj["valueToReplace"]):] if x.startswith(replace_obj["valueToReplace"]) else x,StringType())
-                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
-                    if replace_type == "endsWith":
-                        print(replace_obj)
-                        replace_values = udf(lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x,StringType())
-                        self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
-                    if replace_type == "equals":
-                        # replace_values = udf(lambda x: x.replace(key,value) if x==replace_obj["valueToReplace"] else x,StringType())
-                        # self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
-                        self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == key, value)
-                                                                       .otherwise(self._data_frame[column_name]))
+                if not self._pandas_flag:
+                    if replace_type in self._replaceTypeList:
+                        if replace_type == "contains":
+                            replace_values = udf(lambda x: x.replace(key,value),StringType())
+                            self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                        if replace_type == "startsWith":
+                            print(replace_obj)
+                            replace_values = udf(lambda x: replace_obj["replacedValue"]+x[len(replace_obj["valueToReplace"]):] if x.startswith(replace_obj["valueToReplace"]) else x,StringType())
+                            self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                        if replace_type == "endsWith":
+                            print(replace_obj)
+                            replace_values = udf(lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x,StringType())
+                            self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                        if replace_type == "equals":
+                            # replace_values = udf(lambda x: x.replace(key,value) if x==replace_obj["valueToReplace"] else x,StringType())
+                            # self._data_frame = self._data_frame.withColumn(column_name,replace_values(col(column_name)))
+                            self._data_frame = self._data_frame.withColumn(column_name, when(self._data_frame[column_name] == key, value)
+                                                                           .otherwise(self._data_frame[column_name]))
+                else:
+                    if replace_type in self._replaceTypeList:
+                        if replace_type == "contains":
+                            self._data_frame[column_name] = self._data_frame[column_name].str.replace(key,value, case = False)
+                        if replace_type == "startsWith":
+                            print(replace_obj)
+                            self._data_frame[column_name] = self._data_frame[column_name].apply([lambda x: replace_obj["replacedValue"]+x[len(replace_obj["valueToReplace"]):] if x.startswith(replace_obj["valueToReplace"]) else x])
+                        if replace_type == "endsWith":
+                            print(replace_obj)
+                            self._data_frame[column_name] = self._data_frame[column_name].apply([lambda x: x[:-len(replace_obj["valueToReplace"])]+replace_obj["replacedValue"] if x.endswith(replace_obj["valueToReplace"]) else x])
+                        if replace_type == "equals":
+                            self._data_frame[column_name] = self._data_frame[column_name].apply(lambda x: value if key == x else x)
 
     def update_column_datatype(self,column_name,data_type):
         print("Updating column data type")
-        self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
-        print(self._data_frame.printSchema())
+        if self._pandas_flag:
+            self._data_frame[column_name] = self._data_frame.astype(data_type)
+            print(self._data_frame.head())
+        else:
+            self._data_frame = self._data_frame.withColumn(column_name, self._data_frame[column_name].cast(data_type))
+            print(self._data_frame.printSchema())
         # TODO update data type as measure or dimension
 
     def update_column_name(self,old_column_name,new_column_name):
         print("old_column_name",old_column_name)
         print("new_column_name",new_column_name)
         if new_column_name:
-            self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
+            if self._pandas_flag:
+                self._data_frame.rename(columns={old_column_name: new_column_name}, inplace=True)
+                print(self._data_frame.columns)
+            else:
+                self._data_frame = self._data_frame.withColumnRenamed(old_column_name,new_column_name)
             # print self._data_frame.columns
 
     @accepts(object,targetCol = (tuple,list),topnLevel=int,defaltName=basestring,newLevelNameDict=dict)

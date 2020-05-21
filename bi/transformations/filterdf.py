@@ -5,7 +5,7 @@ import time
 from pyspark.sql.functions import col
 
 from bi.common import utils as CommonUtils
-
+import pandas as pd
 
 #import bi.common.dataframe
 
@@ -114,6 +114,7 @@ class DataFrameFilterer(object):
 
     def values_between(self,colname,start_value, end_value, greater_than_equal = 0, less_than_equal=1):
         if self._pandas_flag:
+            self._data_frame[colname] = pd.to_datetime(self._data_frame[colname])
             if (greater_than_equal == 0) and (less_than_equal==1):
                 self._data_frame = self._data_frame[(self._data_frame[colname] > start_value) & (self._data_frame[colname] <= end_value)]
             elif (greater_than_equal == 0) and (less_than_equal==0):

@@ -354,35 +354,35 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                         result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"False"})
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network"] and obj.get_algorithm_name() == "Neural Network":
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (Sklearn)"] and obj.get_algorithm_name() == "Neural Network (Sklearn)":
                 try:
                     st = time.time()
                     nn_obj = NeuralNetworkScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     nn_obj.Train()
-                    print("Neural Network Model Done in ", time.time() - st,  " seconds.")
+                    print("Neural Network (Sklearn) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
+                    result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network (Sklearn)","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (Sklearn)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (TensorFlow)"]:
                 try:
                     st = time.time()
                     tf_obj = TensorFlowScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     tf_obj.Train()
-                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
+                    print("Neural Network (TensorFlow) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_tf_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    result_setter.set_tf_fail_card({"Algorithm_Name":"Neural Network (TensorFlow)","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (TensorFlow)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (PyTorch)"]:
                 try:
                     st = time.time()
                     nnptc_obj = NNPTClassificationScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     nnptc_obj.Train()
-                    print("Neural Networks(pyTorch) trained in ", time.time() - st,  " seconds.")
+                    print("Neural Network (PyTorch)  trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Networks(pyTorch)", "success": "False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Networks(pyTorch)", e)
+                    result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Network (PyTorch)", "success": "False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Network (PyTorch)", e)
                     CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
 
     elif app_type == "REGRESSION":
@@ -397,25 +397,25 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (TensorFlow)"]:
                 try:
                     st = time.time()
                     lin_obj = TensorFlowRegScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
                     lin_obj.Train()
-                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
+                    print("Neural Network (TensorFlow) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_lr_fail_card({"Algorithm_Name":"TensorFlow","Success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"Neural Network (TensorFlow)","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (TensorFlow)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (PyTorch)"]:
                 try:
                     st = time.time()
                     nnptr_obj = NNPTRegressionScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance_tree_df)
                     nnptr_obj.Train()
-                    print("Neural Networks(pyTorch)-R trained in ", time.time() - st,  " seconds.")
+                    print("Neural Network (PyTorch) -R trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","Success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                    result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Network (PyTorch)","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (PyTorch)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
                 try:
@@ -622,37 +622,37 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                         result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"False"})
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
                         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network"] and obj.get_algorithm_name() == "Neural Network":
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (Sklearn)"] and obj.get_algorithm_name() == "Neural Network (Sklearn)":
                 try:
                     st = time.time()
                     nn_obj = NeuralNetworkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     nn_obj.Train()
-                    print("Neural Network Model Done in ", time.time() - st,  " seconds.")
+                    print("Neural Network (Sklearn) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network","success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network",e)
+                    result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network (Sklearn)","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (Sklearn)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (TensorFlow)"]:
                 try:
                     st = time.time()
                     tf_obj = TensorFlowScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     tf_obj.Train()
-                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
+                    print("Neural Network (TensorFlow) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_tf_fail_card({"Algorithm_Name":"TensorFlow","success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    result_setter.set_tf_fail_card({"Algorithm_Name":"Neural Network (TensorFlow)","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (TensorFlow)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+            if  obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (PyTorch)"]:
                 try:
                     st = time.time()
                     nnptc_obj = NNPTClassificationScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     nnptc_obj.Train()
-                    print("Neural Networks(pyTorch) trained in ", time.time() - st,  " seconds.")
+                    print("Neural Network (PyTorch)  trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Networks(pyTorch)", "success": "False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Networks(pyTorch)", e)
+                    result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Network (PyTorch)", "success": "False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Network (PyTorch)", e)
                     CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
                 # try:
@@ -675,25 +675,25 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     result_setter.set_lr_fail_card({"Algorithm_Name":"linearregression","Success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"linearRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["TensorFlow"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (TensorFlow)"]:
                 try:
                     st = time.time()
                     lin_obj = TensorFlowRegScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     lin_obj.Train()
-                    print("TensorFlow Model Done in ", time.time() - st,  " seconds.")
+                    print("Neural Network (TensorFlow) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_lr_fail_card({"Algorithm_Name":"TensorFlow","Success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                    result_setter.set_lr_fail_card({"Algorithm_Name":"Neural Network (TensorFlow)","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (TensorFlow)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Networks(pyTorch)"]:
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (PyTorch)"]:
                 try:
                     st = time.time()
                     nnptr_obj = NNPTRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
                     nnptr_obj.Train()
-                    print("Neural Networks(pyTorch)-R trained in ", time.time() - st,  " seconds.")
+                    print("Neural Network (PyTorch) -R trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
-                    result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Networks(pyTorch)","Success":"False"})
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                    result_setter.set_nnptr_fail_card({"Algorithm_Name":"Neural Network (PyTorch)","Success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (PyTorch)",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
             # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["generalizedlinearregression"]:
@@ -836,7 +836,7 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
-        elif "Neural Network" in selected_model_for_prediction:
+        elif "Neural Network (Sklearn)" in selected_model_for_prediction:
             trainedModel = NeuralNetworkScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df)
             try:
                 trainedModel.Predict()
@@ -852,20 +852,20 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
-        elif "TensorFlow" in selected_model_for_prediction:
+        elif "Neural Network (TensorFlow)" in selected_model_for_prediction:
             trainedModel = TensorFlowScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df)
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (TensorFlow)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
-        elif "Neural Networks(pyTorch)" in selected_model_for_prediction:
+        elif "Neural Network (PyTorch)" in selected_model_for_prediction:
             trainedModel = NNPTClassificationScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df)
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (PyTorch)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "naive bayes" in selected_model_for_prediction:
@@ -1091,7 +1091,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
-        elif "Neural Network" in selected_model_for_prediction:
+        elif "Neural Network (Sklearn)" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = NeuralNetworkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
@@ -1110,24 +1110,24 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
-        elif "TensorFlow" in selected_model_for_prediction:
+        elif "Neural Network (TensorFlow)" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = TensorFlowScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"TensorFlow",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (TensorFlow)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
-        elif "Neural Networks(pyTorch)" in selected_model_for_prediction:
+        elif "Neural Network (PyTorch)" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = NNPTClassificationScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             # trainedModel = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark)
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (PyTorch)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "naive bayes" in selected_model_for_prediction:
@@ -1213,12 +1213,12 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"generalizedlinearregression",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
-        if "Neural Networks(pyTorch)" in  selected_model_for_prediction:
+        if "Neural Network (PyTorch)" in  selected_model_for_prediction:
             trainedModel = NNPTRegressionScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
             try:
                 trainedModel.Predict()
             except Exception as e:
-                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Networks(pyTorch)",e)
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Neural Network (PyTorch)",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
 
@@ -1325,36 +1325,70 @@ def run_subsetting(spark,df,dataframe_context,dataframe_helper,metaParserInstanc
     except Exception as e:
         CommonUtils.print_errors_and_store_traceback(LOGGER,"filterDf",e)
         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+    pandas_flag = dataframe_context._pandas_flag
     try:
-        if filtered_df.count() > 0:
-            transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context,metaParserInstance)
-            transform_class.applyTransformations()
-            try:
-                update_metadata_datatype_change=transform_class.actual_col_datatype_update
-            except:
-                pass
-            transformed_df = transform_class.get_transformed_data_frame()
-        if filtered_df.count() > 0 and transformed_df.count() > 0:
-            output_filepath = dataframe_context.get_output_filepath()
-            print("output_filepath",output_filepath)
-            try:
-                transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
-            except:
-                print ("####################could not save the dataset in the output path ###################")
+        if pandas_flag:
+            if len(filtered_df) >0:
+                transform_class = DataFrameTransformer(filtered_df, dataframe_helper, dataframe_context,metaParserInstance)
+                transform_class.applyTransformations()
+                try:
+                    update_metadata_datatype_change = transform_class.actual_col_datatype_update
+                except:
+                    pass
+                transformed_df = transform_class.get_transformed_data_frame()
+            if len(filtered_df) > 0 and len(transformed_df) > 0:
+                output_filepath = dataframe_context.get_output_filepath()
+                print("output_filepath", output_filepath)
+                try:
+                    transformed_df.write.csv(output_filepath, mode="overwrite", header=True)
+                except:
+                    pass
+                    # print("####################could not save the pandas flow dataset in the output path ###################")
 
-            print("starting Metadata for the Filtered Dataframe")
-            meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
-            try:
-                meta_data_class.actual_col_datatype_update=update_metadata_datatype_change
-            except:
-                pass
-            meta_data_object = meta_data_class.run()
-            metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
-            print(metaDataJson)
-            response = CommonUtils.save_result_json(jobUrl,metaDataJson)
+                print("starting Metadata for the Filtered Dataframe")
+                meta_data_class = MetaDataScript(transformed_df, spark, dataframe_context)
+                try:
+                    meta_data_class.actual_col_datatype_update = update_metadata_datatype_change
+                except:
+                    pass
+                meta_data_object = meta_data_class.run()
+                metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
+                print(metaDataJson)
+                response = CommonUtils.save_result_json(jobUrl, metaDataJson)
+            else:
+                response = CommonUtils.save_result_json(jobUrl, {"status": "failed",
+                                                                 "message": "Filtered Dataframe has no data"})
+            return response
         else:
-            response = CommonUtils.save_result_json(jobUrl,{"status":"failed","message":"Filtered Dataframe has no data"})
-        return response
+            if filtered_df.count() > 0:
+                transform_class = DataFrameTransformer(filtered_df,dataframe_helper,dataframe_context,metaParserInstance)
+                transform_class.applyTransformations()
+                try:
+                    update_metadata_datatype_change=transform_class.actual_col_datatype_update
+                except:
+                    pass
+                transformed_df = transform_class.get_transformed_data_frame()
+            if filtered_df.count() > 0 and transformed_df.count() > 0:
+                output_filepath = dataframe_context.get_output_filepath()
+                print("output_filepath",output_filepath)
+                try:
+                    transformed_df.write.csv(output_filepath, mode="overwrite",header=True)
+                except:
+                    print ("####################could not save the dataset in the output path ###################")
+
+                print("starting Metadata for the Filtered Dataframe")
+                meta_data_class = MetaDataScript(transformed_df,spark,dataframe_context)
+                try:
+                    meta_data_class.actual_col_datatype_update=update_metadata_datatype_change
+                except:
+                    pass
+                meta_data_object = meta_data_class.run()
+                metaDataJson = CommonUtils.convert_python_object_to_json(meta_data_object)
+                print(metaDataJson)
+                response = CommonUtils.save_result_json(jobUrl,metaDataJson)
+            else:
+                response = CommonUtils.save_result_json(jobUrl,{"status":"failed","message":"Filtered Dataframe has no data"})
+            return response
     except Exception as e:
         CommonUtils.print_errors_and_store_traceback(LOGGER,"transformDf",e)
         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)

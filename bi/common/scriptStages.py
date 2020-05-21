@@ -24,13 +24,13 @@ class messages_list(object):
         "XGBoost": ("Initialized The Xgboost Scripts", "Xgboost Model Training Started", "Xgboost Model Training Finished"),
         "naive bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Training Started", "Naive Bayes Model Training Finished"),
         "SVM": ("Initialized the SVM Scripts", "SVM Model Training Started", "SVM Model Training Finished"),
-        "Neural Network": ("Initialized The Neural Network Scripts", "Neural Network Model Training Started", "Neural Network Model Training Finished"),
+        "Neural Network (Sklearn)": ("Initialized The Neural Network (Sklearn) Scripts", "Neural Network (Sklearn) Model Training Started", "Neural Network (Sklearn) Model Training Finished"),
         "Linear Regression": ("Initialized The Linear Regression Scripts", "Linear Regression Model Training Started", "Linear Regression Model Training Finished"),
         "Gradient Boosted Tree Regression": ("Initialized The Gradient Boosted Tree Regression Scripts","Gradient Boosted Tree Regression Model Training Started", "Gradient Boosted Tree Regression Model Training Finished"),
         "Decision Tree Regression": ("Initialized The Decision Tree Regression Scripts", "Decision Tree Regression Model Training Started", "Decision Tree Regression Model Training Finished"),
         "Random Forest Regression": ("Initialized The Random Forest Regression Scripts", "Random Forest Regression Model Training Started", "Random Forest Regression Model Training Finished"),
-        "TensorFlow": ("Initialized The TensorFlow Regression Scripts", "TensorFlow Neural Network Model Training Started", "TensorFlow Neural Network Model Training Finished"),
-        "Neural Networks(pyTorch)": ("Initialized The Neural Networks(pyTorch) Scripts", "Neural Networks(pyTorch) Training Started", "Neural Networks(pyTorch) Training Finished")
+        "Neural Network (TensorFlow)": ("Initialized The Neural Network (TensorFlow) Regression Scripts", "Neural Network Model Training Started", "Neural Network (TensorFlow) Neural Network (Sklearn) Model Training Finished"),
+        "Neural Network (PyTorch)": ("Initialized The Neural Network (PyTorch)  Scripts", "Neural Network (PyTorch)  Training Started", "Neural Network (PyTorch)  Training Finished")
         }
 
         self._score_messages = {
@@ -39,13 +39,13 @@ class messages_list(object):
         "XGBoost": ("Initialized The Xgboost Scripts", "XGBoost Model Prediction Finished"),
         "Naive Bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Prediction Finished"),
         "SVM": ("Initialized the SVM Scripts", "SVM Model Training Started", "SVM Model Training Finished"),
-        "Neural Network": ("Initialized The Neural Network Scripts", "Neural Network Model Prediction Finished"),
+        "Neural Network (Sklearn)": ("Initialized The Neural Network (Sklearn) Scripts", "Neural Network (Sklearn) Model Prediction Finished"),
         "Linear Regression": ("Initialized The Linear Regression Scripts", "Linear Regression Model Prediction Started", "Linear Regression Model Prediction Finished;"),
         "GBT Regression": ("Initialized The Gradient Boosted Tree Regression Scripts","Gradient Boosted Tree Regression Model Prediction Started", "Gradient Boosted Tree Regression Model Prediction Finished"),
         "DTREE Regression": ("Initialized The Decision Tree Regression Scripts", "Decision Tree Regression Model Prediction Started", "Decision Tree Regression Model Prediction Finished"),
         "RF Regression": ("Initialized The Random Forest Regression Scripts", "Random Forest Regression Model Prediction Started", "Random Forest Regression Model Prediction Finished"),
-        "TensorFlow": ("Initialized The TensorFlow Neural Network Scripts", "TensorFlow Neural Network Model Prediction Finished"),
-        "Neural Networks(pyTorch)": ("Initialized The Neural Networks(pyTorch) Scripts", "Neural Networks(pyTorch) Prediction Finished")
+        "Neural Network (TensorFlow)": ("Initialized The Neural Network (TensorFlow) Neural Network Scripts", "Neural Network (TensorFlow) Neural Network  Model Prediction Finished"),
+        "Neural Network (PyTorch)": ("Initialized The Neural Network (PyTorch)  Scripts", "Neural Network (PyTorch)  Prediction Finished")
         }
 
         self._metaData_messages = ('Preparing Data For Loading', 'Initializing The Loading Process', 'Uploading Data', 'Creating Metadata For The Dataset', 'Sampling The Dataframe', 'Calculated Stats For Measure Columns', 'Calculated Stats For Time Dimension Columns', 'Calculated Stats For Dimension Columns', 'Validating Metadata Information', 'Ignore And Date Suggestions', 'Your Data Is Uploaded', 'Job Finished')

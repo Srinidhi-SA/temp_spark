@@ -283,7 +283,7 @@ class ResultSetter(object):
         self.nnptccards = data
 
     def get_all_classification_cards(self):
-        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards,'TensorFlow':self.tfcards, "Neural Networks(pyTorch)":self.nnptccards}
+        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network (Sklearn)':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards,'Neural Network (TensorFlow)':self.tfcards, "Neural Network (PyTorch)":self.nnptccards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
@@ -291,7 +291,7 @@ class ResultSetter(object):
 
     def get_all_regression_cards(self):
         print(self.model_order)
-        map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards,'TensorFlow':self.tfregcards, "Neural Networks(pyTorch)":self.nnptrcards}
+        map_dict={'Linear Regression':self.linrcards, 'Gradient Boosted Tree Regression':self.gbtrcards, 'Decision Tree Regression':self.dtreercards, 'Random Forest Regression':self.rfrcards,'Neural Network (TensorFlow)':self.tfregcards, "Neural Network (PyTorch)":self.nnptrcards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
