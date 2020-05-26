@@ -76,6 +76,8 @@ class RFClassificationModelScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
+        self._model=None
+
 
         self._scriptStages = {
             "initialization":{
@@ -305,9 +307,10 @@ class RFClassificationModelScript(object):
                         clf.fit(x_train, y_train)
                         clf.feature_names = list(x_train.columns.values)
                         bestEstimator = clf
-
+            self._model= bestEstimator.best_estimator_
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
+
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
             except:

@@ -14,7 +14,8 @@ from sklearn import metrics
 import warnings
 warnings.filterwarnings('ignore')
 
-
+import lightgbm as lgb
+import numpy as np
 
 
 class ModelSummary(object):
@@ -914,7 +915,6 @@ class SkleanrKFoldResult(object):
                 self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
             else:
                 self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=False)
-
 
     def get_kfold_result(self):
         return self.kFoldOutput

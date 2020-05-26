@@ -9,7 +9,8 @@ from builtins import object
 from past.utils import old_div
 import json
 import time
-
+import re
+from scipy.stats import randint,uniform
 import humanize
 import numpy as np
 import pandas as pd
@@ -24,7 +25,8 @@ from sklearn.externals import joblib
 from sklearn import metrics
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
-from sklearn.linear_model import LogisticRegression as Logit
+from sklearn.ensemble import AdaBoostClassifier,RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
@@ -32,15 +34,13 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 from sklearn.model_selection import ParameterGrid
 
-
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
-from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import C3ChartData,TableData, NormalCard
+from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
@@ -48,11 +48,7 @@ from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
-import warnings
-warnings.filterwarnings('ignore')
-
-
-class LogisticRegressionScript(object):
+class AdaboostScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -60,13 +56,11 @@ class LogisticRegressionScript(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-        self._pandas_flag = df_context._pandas_flag
         self._spark = spark
         self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
         self._score_summary = {}
-        self._column_separator = "|~|"
         self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["logisticregression"]
+        self._slug = self._model_slug_map["adaboost"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -80,16 +74,16 @@ class LogisticRegressionScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Logistic Regression Scripts",
-                "weight":1
+                "summary":"Initialized The adaboost Scripts",
+                "weight":4
                 },
             "training":{
-                "summary":"Logistic Regression Model Training Started",
+                "summary":"Adaboost Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Logistic Regression Model Training Finished",
-                "weight":1
+                "summary":"Adaboost Model Training Finished",
+                "weight":4
                 },
             }
 
@@ -130,12 +124,15 @@ class LogisticRegressionScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+            x_train.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train.columns.values]
+            x_test.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_test.columns.values]
+
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
             st = time.time()
             levels = df[result_column].unique()
-
+            clf =  AdaBoostClassifier(DecisionTreeClassifier(max_depth=5),n_estimators=500,learning_rate=1,algorithm='SAMME.R')
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
             y_train = pd.Series(labelEncoder.transform(y_train))
@@ -164,10 +161,6 @@ class LogisticRegressionScript(object):
             else:
                 automl_enable=False
 
-            if len(levels) > 2:
-                clf = Logit(multi_class = 'multinomial', solver = 'newton-cg',n_jobs=-1)
-            else:
-                clf = Logit()
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
@@ -182,12 +175,11 @@ class LogisticRegressionScript(object):
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
-                    #clfGrid.fit(x_train,y_train)
+                    # clfGrid.fit(x_train,y_train)
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)
                     #bestEstimator = clfGrid.best_estimator_
                     modelFilepath = "/".join(model_filepath.split("/")[:-1])
-                    #sklearnHyperParameterResultObj = SklearnGridSearchResult(clfGrid.cv_results_,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     sklearnHyperParameterResultObj = SklearnGridSearchResult(grid_param,clf,x_train,x_test,y_train,y_test,appType,modelFilepath,levels,posLabel,evaluationMetricDict)
                     resultArray = sklearnHyperParameterResultObj.train_and_save_models()
                     #print resultArray
@@ -230,7 +222,7 @@ class LogisticRegressionScript(object):
 
                     print("BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen)
                     print(resultArraydf.head(20))
-                    hyper_st=time.time()
+                    hyper_st = time.time()
                     bestEstimator = sklearnHyperParameterResultObj.getBestModel()
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
@@ -240,51 +232,44 @@ class LogisticRegressionScript(object):
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
-                    hyper_st=time.time()
+                    hyper_st = time.time()
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
-                evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="CLASSIFICATION")
+                evaluationMetricDict =algoSetting.get_evaluvation_metric(Type="CLASSIFICATION")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
 
                 if automl_enable:
-                    params_grid={'C': [0.001,0.01,0.55,1.0],
-                                'fit_intercept':[True],
-                                'max_iter':[50,100]
+                    params_grid = {
+                                    # "base_estimator": [DecisionTreeClassifier(), RandomForestClassifier()],
+                                    #"n_estimators": [500,800,1000],
+                                     #"base_estimator__max_depth": [5,10,12],
+                                     # "base_estimator__max_features":["auto","sqrt","log2"],
+                                     # "base_estimator__n_estimators":[10,20,30,40,50],
+                                    # "learning_rate": [0.1, 0.5, 1],
+                                    "algorithm":["SAMME","SAMME.R"]
                                  }
-                    if x_train.shape[0] < 1000:
-                        params_grid['solver'] = ['saga']#['liblinear', 'saga']
-                        params_grid['penalty'] = ['l1']
-                    else:
-                        params_grid['solver'] = ['saga']#['lbfgs', 'newton-cg']
-                        params_grid['penalty'] = ['l2']
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
-                    clfGrid = GridSearchCV(clf,params_grid)
-                    gridParams = clfGrid.get_params()
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
-                    clfGrid.set_params(**hyperParamInitParam)
-                    modelmanagement_=clfGrid.get_params()
+                    clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
                     numFold=4
-                    validationDict["value"]=numFold
-                    kFoldClass = SkleanrKFoldResult(numFold,clfGrid,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
-                    bestEstimator =kFoldClass.get_best_estimator()
-                    print("LogisticRegression AuTO ML gridSearch CV#######################3")
+                    bestEstimator = kFoldClass.get_best_estimator()
+                    print("Adaboost AuTO ML Random CV#######################3")
                 else:
                     algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                    if len(levels) > 2:
-                        algoParams = {k:v for k,v in list(algoParams.items()) if k not in ["multi_class"]}
-                        algoParams["multi_class"] = "multinomial"
-                        algoParams["solver"] = "newton-cg"
                     clf.set_params(**algoParams)
                     modelmanagement_=clf.get_params()
                     print("!"*50)
-                    print(algoParams)
                     print(clf.get_params())
                     print("!"*50)
                     if validationDict["name"] == "kFold":
@@ -301,14 +286,18 @@ class LogisticRegressionScript(object):
                         clf.feature_names = list(x_train.columns.values)
                         bestEstimator = clf
 
-            trainingTime = time.time()-st
+            # clf.fit(x_train, y_train)
+            # bestEstimator = clf
             self._model=bestEstimator.best_estimator_
-            y_score = bestEstimator.predict(x_test)
+            trainingTime = time.time()-st
+            y_score = np.round(bestEstimator.predict(x_test))
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
             except:
                 y_prob = [0]*len(y_score)
 
+            # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
+            # print overall_precision_recall
             accuracy = metrics.accuracy_score(y_test,y_score)
             if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
@@ -321,7 +310,7 @@ class LogisticRegressionScript(object):
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
-                # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
+                #auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 roc_auc = None
 
             y_prob_for_eval = []
@@ -348,6 +337,7 @@ class LogisticRegressionScript(object):
                                     "y_prob" : y_prob,
                                     "positive_label" : posLabel
                                 }
+
                 roc_dataframe = pd.DataFrame(
                                                 {
                                                     "y_score" : y_score,
@@ -365,9 +355,7 @@ class LogisticRegressionScript(object):
                 tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
 
                 rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
-
                 unique_fpr = rounded_roc_df["FPR"].unique()
-
                 final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
@@ -408,20 +396,22 @@ class LogisticRegressionScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            if self._pandas_flag:
-                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
-                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
-            else:
-                pys_df = self._spark.createDataFrame(temp_df)
-                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
-                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
+            pys_df = self._spark.createDataFrame(temp_df)
+            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
+            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
 
-            feature_importance = {}
-
+            feature_importance={}
+            try:
+                feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+            except:
+                pass
+            for k, v in feature_importance.items():
+                feature_importance[k] = CommonUtils.round_sig(v)
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
                 modelFilepathArr = model_filepath.split("/")[:-1]
@@ -446,10 +436,10 @@ class LogisticRegressionScript(object):
                 pass
 
             cat_cols = list(set(categorical_columns) - {result_column})
-            overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel=self._targetLevel)
+            overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("Logistic Regression")
-            self._model_summary.set_algorithm_display_name("Logistic Regression")
+            self._model_summary.set_algorithm_name("Adaboost")
+            self._model_summary.set_algorithm_display_name("Adaboost")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -471,8 +461,9 @@ class LogisticRegressionScript(object):
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
+            self._model_summary.set_num_trees(100)
+            self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
-            # self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
@@ -508,47 +499,47 @@ class LogisticRegressionScript(object):
                 }
 
             self._model_management = MLModelSummary()
-            if not algoSetting.is_hyperparameter_tuning_enabled()and not automl_enable:
+            if not algoSetting.is_hyperparameter_tuning_enabled() and not automl_enable:
 
-                self._model_management.set_fit_intercept(data=modelmanagement_['fit_intercept'])
-                self._model_management.set_solver_used(data=modelmanagement_['solver'])
-                self._model_management.set_multiclass_option(data=modelmanagement_['multi_class'])
-                self._model_management.set_maximum_solver(data=modelmanagement_['max_iter'])
-                self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
-                self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
-                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['tol'])
-                self._model_management.set_inverse_regularization_strength(data=modelmanagement_['C'])
+                self._model_management.set_booster_function(data=modelmanagement_['booster'])
+                self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
+                self._model_management.set_minimum_loss_reduction(data=modelmanagement_['gamma'])
+                self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+                self._model_management.set_minimum_child_weight(data=modelmanagement_['min_child_weight'])
+                self._model_management.set_subsampling_ratio(data=modelmanagement_['subsample'])
+                self._model_management.set_subsample_for_each_tree(data=modelmanagement_['colsample_bytree'])
+                self._model_management.set_subsample_for_each_split(data=modelmanagement_['colsample_bylevel'])
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status
                 self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
+                self._model_management.set_algorithm_name("Adaboost")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
             else:
                 def set_model_params(x):
-                    self._model_management.set_fit_intercept(data=modelmanagement_[x]['fit_intercept'][0])
-                    self._model_management.set_solver_used(data=modelmanagement_[x]['solver'][0])
-                    self._model_management.set_multiclass_option(data=modelmanagement_['estimator__multi_class'])
-                    #self._model_management.set_maximum_solver(data=modelmanagement_[x]['max_iter'][0])
-                    #self._model_management.set_no_of_jobs(data=modelmanagement_['n_jobs'])
-                    #self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
-                    #self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_[x]['tol'][0])
-                    #self._model_management.set_inverse_regularization_strength(data=modelmanagement_[x]['C'][0])
+                    #self._model_management.set_booster_function(data=modelmanagement_[x]['estimator__boosting_type'][0])
+                    # self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
+                    # self._model_management.set_minimum_loss_reduction(data=modelmanagement_[x]['gamma'][0])
+                    # self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
+                    # self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
+                    # self._model_management.set_subsampling_ratio(data=modelmanagement_[x]['subsample'][0])
+                    # self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
+                    # self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
                     self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                     self._model_management.set_training_status(data="completed")# training status
                     self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
                     self._model_management.set_target_level(self._targetLevel) # target column value
                     self._model_management.set_training_time(runtime) # run time
                     self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                    self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
+                    self._model_management.set_algorithm_name("Adaboost")#algorithm name
                     self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                     self._model_management.set_target_variable(result_column)#target column name
-                    self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+                    self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
                     self._model_management.set_datasetName(self._datasetName)
                 try:
                     set_model_params('param_grid')
@@ -558,77 +549,77 @@ class LogisticRegressionScript(object):
 
             modelManagementSummaryJson =[
 
-                        ["Project Name",self._model_management.get_job_type()],
-                        ["Algorithm",self._model_management.get_algorithm_name()],
-                        ["Training Status",self._model_management.get_training_status()],
-                        ["Accuracy",self._model_management.get_model_accuracy()],
-                        ["RunTime",self._model_management.get_training_time()],
-                        #["Owner",None],
-                        ["Created On",self._model_management.get_creation_date()]
+                            ["Project Name",self._model_management.get_job_type()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Training Status",self._model_management.get_training_status()],
+                            ["Accuracy",self._model_management.get_model_accuracy()],
+                            ["RunTime",self._model_management.get_training_time()],
+                            #["Owner",None],
+                            ["Created On",self._model_management.get_creation_date()]
 
-                        ]
+                            ]
 
             modelManagementModelSettingsJson =[
 
-                        ["Training Dataset",self._model_management.get_datasetName()],
-                        ["Target Column",self._model_management.get_target_variable()],
-                        ["Target Column Value",self._model_management.get_target_level()],
-                        ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
-                        ["Algorithm",self._model_management.get_algorithm_name()],
-                        ["Model Validation",self._model_management.get_validation_method()],
-                        ["Fit Intercept",str(self._model_management.get_fit_intercept())],
-                        ["SolverUsed",self._model_management.get_solver_used()],
-                        ["MultiClass Option",self._model_management.get_multiclass_option()],
-                        ["Maximum Solver Iterations",self._model_management.get_maximum_solver()],
-                        ["N jobs",self._model_management.get_no_of_jobs()],
-                        ["Warm Start",str(self._model_management.get_warm_start())],
-                        ["Convergence Tolerence Iterations",self._model_management.get_convergence_tolerence_iteration()],
-                        ["Inverse Regularization Strength",self._model_management.get_inverse_regularization_strength()]
+                            ["Training Dataset",self._model_management.get_datasetName()],
+                            ["Target Column",self._model_management.get_target_variable()],
+                            ["Target Column Value",self._model_management.get_target_level()],
+                            ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Model Validation",self._model_management.get_validation_method()],
+                            ["Booster Function",self._model_management.get_booster_function()],
+                            ["Learning Rate",self._model_management.get_learning_rate()],
+                            ["Minimum Loss Reduction",self._model_management.get_minimum_loss_reduction()],
+                            ["Maximum Depth",self._model_management.get_max_depth()],
+                            ["Minimum Child Weight",self._model_management.get_minimum_child_weight()],
+                            ["Subsampling Ratio",self._model_management.get_subsampling_ratio()],
+                            ["Subsample of Every Column by each tree",self._model_management.get_subsample_for_each_tree()],
+                            ["Subsample of Every Column by each split",self._model_management.get_subsample_for_each_split()]
 
-                        ]
-
-
+                            ]
 
 
-            lrOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            lrPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
-            lrDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
-            lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-            LR_Overview_Node = NarrativesTree()
-            LR_Overview_Node.set_name("Overview")
-            LR_Performance_Node = NarrativesTree()
-            LR_Performance_Node.set_name("Performance")
-            LR_Deployment_Node = NarrativesTree()
-            LR_Deployment_Node.set_name("Deployment")
-            for card in lrOverviewCards:
-                LR_Overview_Node.add_a_card(card)
-            for card in lrPerformanceCards:
-                LR_Performance_Node.add_a_card(card)
-            for card in lrDeploymentCards:
-                LR_Deployment_Node.add_a_card(card)
-            for card in lrCards:
+            adaboostOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            adaboostPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+            adaboostDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+            adaboostCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            Adaboost_Overview_Node = NarrativesTree()
+            Adaboost_Overview_Node.set_name("Overview")
+            Adaboost_Performance_Node = NarrativesTree()
+            Adaboost_Performance_Node.set_name("Performance")
+            Adaboost_Deployment_Node = NarrativesTree()
+            Adaboost_Deployment_Node.set_name("Deployment")
+            for card in adaboostOverviewCards:
+                Adaboost_Overview_Node.add_a_card(card)
+            for card in adaboostPerformanceCards:
+                Adaboost_Performance_Node.add_a_card(card)
+            for card in adaboostDeploymentCards:
+                Adaboost_Deployment_Node.add_a_card(card)
+            for card in adaboostCards:
                 self._prediction_narrative.add_a_card(card)
 
-            self._result_setter.set_model_summary({"logistic":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_logistic_regression_model_summary(modelSummaryJson)
-            self._result_setter.set_lr_cards(lrCards)
-            self._result_setter.set_lr_nodes([LR_Overview_Node,LR_Performance_Node,LR_Deployment_Node])
-            self._result_setter.set_lr_fail_card({"Algorithm_Name":"LogisticRegression","success":"True"})
+            self._result_setter.set_model_summary({"adaboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_adaboost_model_summary(modelSummaryJson)
+            self._result_setter.set_adab_cards(adaboostCards)
+            self._result_setter.set_adab_nodes([Adaboost_Overview_Node,Adaboost_Performance_Node,Adaboost_Deployment_Node])
+            self._result_setter.set_adab_fail_card({"Algorithm_Name":"adaboost","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-
+            # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
+            # print self._model_summary
+            # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Logistic Regression Scripts",
+                "summary":"Initialized The Adaboost Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Logistic Regression Model Prediction Finished",
+                "summary":"Adaboost Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
@@ -685,6 +676,7 @@ class LogisticRegressionScript(object):
             if score_data_path.startswith("file"):
                 score_data_path = score_data_path[7:]
             trained_model_path = self._dataframe_context.get_model_path()
+            print(trained_model_path)
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
 
             if trained_model_path.startswith("file"):
@@ -692,24 +684,18 @@ class LogisticRegressionScript(object):
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
-            model_columns = self._dataframe_context.get_model_features()
             trained_model = joblib.load(trained_model_path)
-            try:
-                df = self._data_frame.toPandas()
-            except:
-                df = self._data_frame.copy()
-            # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+            #pandas_df = self._data_frame.toPandas()
+            df = self._data_frame#.toPandas()
+            model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+
             pandas_df = pandas_df[trained_model.feature_names]
-            try:
-                y_score = trained_model.best_estimator_.predict(pandas_df)
-                y_prob = trained_model.best_estimator_.predict_proba(pandas_df)
-            except:
-                y_score = trained_model.predict(pandas_df)
-                y_prob = trained_model.predict_proba(pandas_df)
+            y_score = trained_model.predict(pandas_df)
+            y_prob = trained_model.predict_proba(pandas_df)
             y_prob = MLUtils.calculate_predicted_probability(y_prob)
             y_prob=list([round(x,2) for x in y_prob])
             score = {"predicted_class":y_score,"predicted_probability":y_prob}
@@ -724,6 +710,7 @@ class LogisticRegressionScript(object):
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
+
         uidCol = self._dataframe_context.get_uid_column()
         if uidCol == None:
             uidCols = self._metaParser.get_suggested_uid_columns()
@@ -782,19 +769,18 @@ class LogisticRegressionScript(object):
         df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
+
         resultColLevelCount = dict(df[result_column].value_counts())
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
         self._dataframe_context.set_story_on_scored_data(True)
-        if self._pandas_flag:
-            scored_df = df.copy()
-        else:
-            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-            scored_df = SQLctx.createDataFrame(df)
+        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+        spark_scored_df = SQLctx.createDataFrame(df)
+        # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
         self._dataframe_context.update_consider_columns(columns_to_keep)
-        df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
+        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
-        scored_df = df_helper.get_data_frame()
+        spark_scored_df = df_helper.get_data_frame()
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
@@ -840,16 +826,14 @@ class LogisticRegressionScript(object):
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print(narratives_obj)
             except:
                 print("DecisionTree Analysis Failed ")
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
-
             if data_dict["nactual"] > 2:
-                levelCountDict ={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:
@@ -868,7 +852,7 @@ class LogisticRegressionScript(object):
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
             maincardSummary = NarrativesUtils.get_template_output("/apps/",'scorewithoutdtree.html',data_dict)
-
+            print(data_dict)
             main_card = NormalCard()
             main_card_data = []
             main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,"|~NEWBLOCK~|")
@@ -887,4 +871,4 @@ class LogisticRegressionScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card], {})
+            self._result_setter.set_score_dtree_cards([main_card],{})
