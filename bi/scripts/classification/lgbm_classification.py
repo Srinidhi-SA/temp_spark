@@ -57,10 +57,10 @@ class LgbmScript(object):
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._spark = spark
-        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
+        self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["LightGBM"]
+        #self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["LightGBM"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -253,7 +253,8 @@ class LgbmScript(object):
                                  'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
                                  'subsample': uniform(loc=0.2, scale=0.8),
                                  'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                                 'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                                 'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100]
+                                 }
 
                     #              'min_child_samples': randint(100, 500),
                     #              'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
@@ -267,7 +268,7 @@ class LgbmScript(object):
                     #              'max_depth':[7,10,12],
                     #              'bagging_freq':[1],
                     #              'bagging_fraction' :[0.2,0.4,0.6,0.8,1.0]
-                                 }
+
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
@@ -849,6 +850,7 @@ class LgbmScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict = {}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

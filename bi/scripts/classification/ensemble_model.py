@@ -306,7 +306,7 @@ class EnsembleModelScript(object):
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
-                    numFold=10
+                    numFold=4
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
@@ -878,6 +878,7 @@ class EnsembleModelScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict = {}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

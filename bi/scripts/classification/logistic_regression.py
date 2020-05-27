@@ -302,7 +302,10 @@ class LogisticRegressionScript(object):
                         bestEstimator = clf
 
             trainingTime = time.time()-st
-            self._model=bestEstimator.best_estimator_
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)

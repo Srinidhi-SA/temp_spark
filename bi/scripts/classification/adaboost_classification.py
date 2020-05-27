@@ -57,10 +57,10 @@ class AdaboostScript(object):
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._spark = spark
-        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
+        self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["adaboost"]
+        # self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["adaboost"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -288,7 +288,10 @@ class AdaboostScript(object):
 
             # clf.fit(x_train, y_train)
             # bestEstimator = clf
-            self._model=bestEstimator.best_estimator_
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             trainingTime = time.time()-st
             y_score = np.round(bestEstimator.predict(x_test))
             try:
@@ -834,6 +837,7 @@ class AdaboostScript(object):
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
             if data_dict["nactual"] > 2:
+                levelCountDict = {}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:

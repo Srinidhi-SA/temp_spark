@@ -37,6 +37,7 @@ class messages_list(object):
         }
 
         self._score_messages = {
+        "LightGBM": ("Initialized The LightGBM Scripts", "LightGBM Model Prediction Finished"),
         "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Prediction Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Prediction Finished"),
         "Ensemble": ("Initialized The Ensemble Scripts", "Ensemble Model Prediction Finished"),

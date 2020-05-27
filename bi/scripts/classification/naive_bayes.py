@@ -230,7 +230,10 @@ class NBBClassificationModelScript(object):
                         bestEstimator = clf
 
             trainingTime = time.time()-st
-            self._model=bestEstimator.best_estimator_
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
@@ -832,7 +835,10 @@ class NBGClassificationModelScript(object):
                         bestEstimator = clf
 
             trainingTime = time.time()-st
-            self._model=bestEstimator
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
@@ -1625,7 +1631,10 @@ class NBMClassificationModelScript(object):
                         clf.fit(x_train, y_train)
                         bestEstimator = clf
 
-            self._model=bestEstimator.best_estimator_
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:

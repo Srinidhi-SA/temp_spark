@@ -307,7 +307,10 @@ class RFClassificationModelScript(object):
                         clf.fit(x_train, y_train)
                         clf.feature_names = list(x_train.columns.values)
                         bestEstimator = clf
-            self._model= bestEstimator.best_estimator_
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
 

@@ -391,7 +391,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nn_obj = NeuralNetworkScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     nn_obj.Train()
-                    automl_clf_models.append(nn_obj._model)
+                    #automl_clf_models.append(nn_obj._model)
                     print("Neural Network (Sklearn) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network (Sklearn)","success":"False"})
@@ -402,7 +402,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     tf_obj = TensorFlowScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     tf_obj.Train()
-                    automl_clf_models.append(tf_obj._model)
+                    #automl_clf_models.append(tf_obj._model)
                     print("Neural Network (TensorFlow) Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_tf_fail_card({"Algorithm_Name":"Neural Network (TensorFlow)","success":"False"})
@@ -413,7 +413,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nnptc_obj = NNPTClassificationScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     nnptc_obj.Train()
-                    automl_clf_models.append(nnptc_obj._model)
+                    #automl_clf_models.append(nnptc_obj._model)
                     print("Neural Network (PyTorch) trained in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Network (PyTorch)", "success": "False"})
