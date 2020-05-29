@@ -59,6 +59,7 @@ class AdaboostScript(object):
         self._spark = spark
         self._model_summary = MLModelSummary()
         self._score_summary = {}
+        self._pandas_flag = df_context._pandas_flag
         # self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["adaboost"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
@@ -399,9 +400,13 @@ class AdaboostScript(object):
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
             temp_df = pd.DataFrame({'y_test': y_test,'y_score': y_score,'y_prob_for_eval': y_prob_for_eval})
-            pys_df = self._spark.createDataFrame(temp_df)
-            gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
-            gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
+            if self._pandas_flag:
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            else:
+                pys_df = self._spark.createDataFrame(temp_df)
+                gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
+                gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
@@ -769,7 +774,7 @@ class AdaboostScript(object):
             columns_to_drop += ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         columns_to_drop = ["predicted_probability"]
-        df.drop(columns_to_drop, axis=1, inplace=True)
+        #df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
 
@@ -777,13 +782,17 @@ class AdaboostScript(object):
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
         self._dataframe_context.set_story_on_scored_data(True)
-        SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        spark_scored_df = SQLctx.createDataFrame(df)
+        if self._pandas_flag:
+            df = df.drop(columns_to_drop, axis=1)
+            scored_df = df.copy()
+        else:
+            SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
+            scored_df = SQLctx.createDataFrame(df)
         # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
         self._dataframe_context.update_consider_columns(columns_to_keep)
-        df_helper = DataFrameHelper(spark_scored_df, self._dataframe_context,self._metaParser)
+        df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
-        spark_scored_df = df_helper.get_data_frame()
+        scored_df = df_helper.get_data_frame()
         # try:
         #     fs = time.time()
         #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
@@ -829,7 +838,7 @@ class AdaboostScript(object):
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
-                df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
+                df_decision_tree_obj = DecisionTrees(scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
                 print(narratives_obj)
             except:

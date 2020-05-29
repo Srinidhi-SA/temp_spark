@@ -370,7 +370,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     nb_obj = NBMClassificationModelScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
                     nb_obj.Train()
-                    automl_clf_models.append(nb_obj._model)
+                    #automl_clf_models.append(nb_obj._model)
                     print("Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naivebayes",e)
