@@ -612,6 +612,26 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["LightGBM"]:
+                try:
+                    st = time.time()
+                    lgb_obj = LgbmScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    lgb_obj.Train()
+                    print("lightgbm Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lgbm_fail_card({"Algorithm_Name":"LightGBM","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"LightGBM",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["adaboost"]:
+                try:
+                    st = time.time()
+                    adab_obj = AdaboostScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                    adab_obj.Train()
+                    print("Adaboost Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_adab_fail_card({"Algorithm_Name":"Adaboost","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"Adaboost",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]:
                 try:
                     st = time.time()
@@ -1212,6 +1232,22 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"naive bayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+        elif "LightGBM" in selected_model_for_prediction:
+            trainedModel = LgbmScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"LightGBM",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+        elif "adaboost" in selected_model_for_prediction:
+            trainedModel = AdaboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Adaboost",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
         else:
             print("Could Not Load the Model for Scoring")
