@@ -21,7 +21,10 @@ class messages_list(object):
         self._training_messages = {
         "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Training Started", "Logistic Regression Model Training Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Training Started", "Random Forest Model Training Finished"),
+        "Ensemble": ("Initialized The Ensemble Scripts", "Ensemble Model Training Started", "Ensemble Model Training Finished"),
         "XGBoost": ("Initialized The Xgboost Scripts", "Xgboost Model Training Started", "Xgboost Model Training Finished"),
+        "Adaboost": ("Initialized The AdaBoost Scripts", "AdaBoost Model Training Started", "AdaBoost Model Training Finished"),
+        "LightGBM": ("Initialized The LightGBM Scripts", "LightGBM Model Training Started", "LightGBM Model Training Finished"),
         "naive bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Training Started", "Naive Bayes Model Training Finished"),
         "SVM": ("Initialized the SVM Scripts", "SVM Model Training Started", "SVM Model Training Finished"),
         "Neural Network (Sklearn)": ("Initialized The Neural Network (Sklearn) Scripts", "Neural Network (Sklearn) Model Training Started", "Neural Network (Sklearn) Model Training Finished"),
@@ -34,9 +37,12 @@ class messages_list(object):
         }
 
         self._score_messages = {
+        "LightGBM": ("Initialized The LightGBM Scripts", "LightGBM Model Prediction Finished"),
         "Logistic Regression": ("Initialized The Logistic Regression Scripts", "Logistic Regression Model Prediction Finished"),
         "Random Forest": ("Initialized The Random Forest Scripts", "Random Forest Model Prediction Finished"),
+        "Ensemble": ("Initialized The Ensemble Scripts", "Ensemble Model Prediction Finished"),
         "XGBoost": ("Initialized The Xgboost Scripts", "XGBoost Model Prediction Finished"),
+        "Adaboost": ("Initialized The Adaboost Scripts", "AdaBoost Model Prediction Finished"),
         "Naive Bayes": ("Initialized The Naive Bayes Scripts", "Naive Bayes Model Prediction Finished"),
         "SVM": ("Initialized the SVM Scripts", "SVM Model Training Started", "SVM Model Training Finished"),
         "Neural Network (Sklearn)": ("Initialized The Neural Network (Sklearn) Scripts", "Neural Network (Sklearn) Model Prediction Finished"),

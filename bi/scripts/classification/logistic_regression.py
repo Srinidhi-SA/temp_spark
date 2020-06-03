@@ -76,6 +76,7 @@ class LogisticRegressionScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._model=None
 
         self._scriptStages = {
             "initialization":{
@@ -301,6 +302,10 @@ class LogisticRegressionScript(object):
                         bestEstimator = clf
 
             trainingTime = time.time()-st
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)

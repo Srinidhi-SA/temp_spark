@@ -9,7 +9,8 @@ from builtins import object
 from past.utils import old_div
 import json
 import time
-
+import re
+from scipy.stats import randint,uniform
 import humanize
 import numpy as np
 import pandas as pd
@@ -24,7 +25,8 @@ from sklearn.externals import joblib
 from sklearn import metrics
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
-from sklearn.neural_network import MLPClassifier
+import lightgbm as lgb
+from lightgbm import LGBMClassifier
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
@@ -32,15 +34,13 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 from sklearn.model_selection import ParameterGrid
 
-
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
 from bi.common import MLModelSummary,NormalCard,KpiData,C3ChartData,HtmlData,SklearnGridSearchResult,SkleanrKFoldResult
-from bi.algorithms import LogisticRegression
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
-from bi.common import C3ChartData,TableData, NormalCard
+from bi.common import NormalCard, C3ChartData,TableData
 from bi.common import NormalChartData,ChartJson
 from bi.algorithms import DecisionTrees
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
@@ -48,8 +48,7 @@ from bi.common import NarrativesTree
 from bi.settings import setting as GLOBALSETTINGS
 from bi.algorithms import GainLiftKS
 
-
-class NeuralNetworkScript(object):
+class LgbmScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -57,13 +56,12 @@ class NeuralNetworkScript(object):
         self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
-        self._pandas_flag = df_context._pandas_flag
         self._spark = spark
-        self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{}}
+        self._model_summary = MLModelSummary()
         self._score_summary = {}
-        self._column_separator = "|~|"
-        self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
-        self._slug = self._model_slug_map["Neural Network (Sklearn)"]
+        self._pandas_flag = df_context._pandas_flag
+        #self._model_slug_map = GLOBALSETTINGS.MODEL_SLUG_MAPPING
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["LightGBM"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
 
@@ -75,18 +73,19 @@ class NeuralNetworkScript(object):
         self._mlEnv = mlEnvironment
         self._model=None
 
+
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Network (Sklearn) Scripts",
-                "weight":1
+                "summary":"Initialized The Lgbm Scripts",
+                "weight":4
                 },
             "training":{
-                "summary":"Neural Network (Sklearn) Model Training Started",
+                "summary":"Lgbm Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Neural Network (Sklearn) Model Training Finished",
-                "weight":1
+                "summary":"Lgbm Model Training Finished",
+                "weight":4
                 },
             }
 
@@ -127,11 +126,17 @@ class NeuralNetworkScript(object):
             x_train = MLUtils.create_dummy_columns(x_train,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.create_dummy_columns(x_test,[x for x in categorical_columns if x != result_column])
             x_test = MLUtils.fill_missing_columns(x_test,x_train.columns,result_column)
+            x_train.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train.columns.values]
+            x_test.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_test.columns.values]
+
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
             st = time.time()
             levels = df[result_column].unique()
+            clf = lgb.LGBMClassifier(boosting_type='dart', num_leaves=100,learning_rate=1.0, n_estimators=100, max_depth=10,
+                                     reg_lambda=0.2,verbose = -1,random_state =42)
+
 
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
@@ -156,9 +161,11 @@ class NeuralNetworkScript(object):
             print("TARGET LEVEL - ", self._targetLevel)
             print("APP TYPE - ", appType)
             print("="*150)
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
 
-
-            clf = MLPClassifier()
             if algoSetting.is_hyperparameter_tuning_enabled():
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
@@ -173,7 +180,7 @@ class NeuralNetworkScript(object):
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams}
                     clfGrid.set_params(**hyperParamInitParam)
                     modelmanagement_=clfGrid.get_params()
-                    #clfGrid.fit(x_train,y_train)
+                    # clfGrid.fit(x_train,y_train)
                     grid_param={}
                     grid_param['params']=ParameterGrid(params_grid)
                     #bestEstimator = clfGrid.best_estimator_
@@ -220,7 +227,7 @@ class NeuralNetworkScript(object):
 
                     print("BEST MODEL BY CHOSEN METRIC - ", best_model_by_metric_chosen)
                     print(resultArraydf.head(20))
-                    hyper_st=time.time()
+                    hyper_st = time.time()
                     bestEstimator = sklearnHyperParameterResultObj.getBestModel()
                     bestParams = sklearnHyperParameterResultObj.getBestParam()
                     bestEstimator = bestEstimator.set_params(**bestParams)
@@ -230,46 +237,128 @@ class NeuralNetworkScript(object):
                     self._result_setter.set_hyper_parameter_results(self._slug,resultArray)
                     self._result_setter.set_metadata_parallel_coordinates(self._slug,{"ignoreList":sklearnHyperParameterResultObj.get_ignore_list(),"hideColumns":sklearnHyperParameterResultObj.get_hide_columns(),"metricColName":sklearnHyperParameterResultObj.get_comparison_metric_colname(),"columnOrder":sklearnHyperParameterResultObj.get_keep_columns()})
                 elif hyperParamAlgoName == "randomsearchcv":
-                    hyper_st=time.time()
+                    hyper_st = time.time()
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
                     bestEstimator = None
             else:
-                #evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
                 evaluationMetricDict =algoSetting.get_evaluvation_metric(Type="CLASSIFICATION")
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-                algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
-                clf.set_params(**algoParams)
-                modelmanagement_=clf.get_params()
-                print("!"*50)
-                print(algoParams)
-                print(clf.get_params())
-                print("!"*50)
-                if validationDict["name"] == "kFold":
-                    defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
-                    numFold = int(validationDict["value"])
-                    if numFold == 0:
-                        numFold = 3
-                    kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                if len(levels) <= 2:
+                    class_weight = None
+                    pos_ratio = min(y_train.value_counts()) / max(y_train.value_counts())
+                    if pos_ratio < 0.49:
+                        scale_pos_weight = 1
+                    else:
+                        scale_pos_weight = 1
+                else:
+                    scale_pos_weight = 1
+                    class_weight = 'balanced'
+                if automl_enable:
+                    if len(x_train) < 1000:
+                        params_grid = {
+                            'max_depth': randint(4, 7),
+                            'num_leaves': randint(1, 39),
+                            'min_child_samples': randint(20, 120),
+                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'subsample': uniform(loc=0.2, scale=0.8),
+                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'learning_rate': [0.01, 0.005, 0.05],
+                            'scale_pos_weight': [scale_pos_weight],
+                            'class_weight': [class_weight]
+                        }
+                    elif len(x_train) < 10000:
+                        params_grid = {
+                            'max_depth': [5, 7, 10],
+                            'num_leaves': randint(20, 80),
+                            'min_child_samples': randint(100, 500),
+                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'subsample': uniform(loc=0.2, scale=0.8),
+                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'learning_rate': [0.01, 0.03, 1.0],
+                            'scale_pos_weight': [scale_pos_weight],
+                            'class_weight': [class_weight]
+                        }
+                    else:
+                        params_grid = {
+                            'max_depth': [-1, 7, 10, 20],
+                            'num_leaves': randint(40, 300),
+                            'min_child_samples': randint(200, 700),
+                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'subsample': uniform(loc=0.2, scale=0.8),
+                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'learning_rate': [0.01, 0.03, 1.0],
+                            'scale_pos_weight': [scale_pos_weight]
+                        }
+
+
+                    #              'min_child_samples': randint(100, 500),
+                    #              'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                    #              'subsample': uniform(loc=0.2, scale=0.8),
+                    #              'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                    #              'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                    #              'reg_lambda': [0, 1e-1, 1, 5, 10, 20, 50, 100],
+                    #              'boosting_type':['gbdt','dart','goss','rf'],
+                    #              'learning_rate':[0.1,0.5,1.0],
+                    #              'n_estimators':[100,200,400,500],
+                    #              'max_depth':[7,10,12],
+                    #              'bagging_freq':[1],
+                    #              'bagging_fraction' :[0.2,0.4,0.6,0.8,1.0]
+
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 10}
+                    clfRand = RandomizedSearchCV(clf,params_grid)
+                    gridParams = clfRand.get_params()
+                    hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
+                    clfRand.set_params(**hyperParamInitParam)
+                    modelmanagement_=clfRand.get_params()
+                    numFold=10
+                    kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
-                elif validationDict["name"] == "trainAndtest":
-                    clf.fit(x_train, y_train)
-                    clf.feature_names = list(x_train.columns.values)
-                    bestEstimator = clf
+                    print("Lgbm AuTO ML Random CV#######################3")
+                else:
+                    algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
+                    clf.set_params(**algoParams)
+                    modelmanagement_=clf.get_params()
+                    print("!"*50)
+                    print(clf.get_params())
+                    print("!"*50)
+                    if validationDict["name"] == "kFold":
+                        defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
+                        numFold = int(validationDict["value"])
+                        if numFold == 0:
+                            numFold = 3
+                        kFoldClass = SkleanrKFoldResult(numFold,clf,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
+                        kFoldClass.train_and_save_result()
+                        kFoldOutput = kFoldClass.get_kfold_result()
+                        bestEstimator = kFoldClass.get_best_estimator()
+                    elif validationDict["name"] == "trainAndtest":
+                        clf.fit(x_train, y_train)
+                        clf.feature_names = list(x_train.columns.values)
+                        bestEstimator = clf
 
+            # clf.fit(x_train, y_train)
+            # bestEstimator = clf
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             trainingTime = time.time()-st
-            self._model=bestEstimator
-            y_score = bestEstimator.predict(x_test)
+            y_score = np.round(bestEstimator.predict(x_test))
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
             except:
                 y_prob = [0]*len(y_score)
 
+            # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
+            # print overall_precision_recall
             accuracy = metrics.accuracy_score(y_test,y_score)
             if len(levels) <= 2:
                 precision = metrics.precision_score(y_test,y_score,pos_label=posLabel,average="binary")
@@ -282,7 +371,7 @@ class NeuralNetworkScript(object):
                 recall = metrics.recall_score(y_test,y_score,pos_label=posLabel,average="macro")
                 log_loss = metrics.log_loss(y_test,y_prob)
                 F1_score = metrics.f1_score(y_test,y_score,pos_label=posLabel,average="macro")
-                # auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
+                #auc = metrics.roc_auc_score(y_test,y_score,average="weighted")
                 roc_auc = None
 
             y_prob_for_eval = []
@@ -309,6 +398,7 @@ class NeuralNetworkScript(object):
                                     "y_prob" : y_prob,
                                     "positive_label" : posLabel
                                 }
+
                 roc_dataframe = pd.DataFrame(
                                                 {
                                                     "y_score" : y_score,
@@ -326,9 +416,7 @@ class NeuralNetworkScript(object):
                 tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
 
                 rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
-
                 unique_fpr = rounded_roc_df["FPR"].unique()
-
                 final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
                 endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
@@ -374,15 +462,21 @@ class NeuralNetworkScript(object):
                 gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
             else:
                 pys_df = self._spark.createDataFrame(temp_df)
-                gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'y_score', 'y_test', posLabel, self._spark)
-                gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
+                gain_lift_ks_obj = GainLiftKS(pys_df,'y_prob_for_eval','y_score','y_test',posLabel,self._spark)
+                gain_lift_KS_dataframe =  gain_lift_ks_obj.Run().toPandas()
 
             y_score = labelEncoder.inverse_transform(y_score)
             y_test = labelEncoder.inverse_transform(y_test)
 
-            feature_importance = {}
-
+            feature_importance={}
+            try:
+                feature_importance = dict(sorted(zip(x_train.columns,bestEstimator.feature_importances_),key=lambda x: x[1],reverse=True))
+            except:
+                pass
+            for k, v in feature_importance.items():
+                feature_importance[k] = CommonUtils.round_sig(v)
             objs = {"trained_model":bestEstimator,"actual":y_test,"predicted":y_score,"probability":y_prob,"feature_importance":feature_importance,"featureList":list(x_train.columns),"labelMapping":labelMapping}
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
                 modelFilepathArr = model_filepath.split("/")[:-1]
@@ -407,10 +501,10 @@ class NeuralNetworkScript(object):
                 pass
 
             cat_cols = list(set(categorical_columns) - {result_column})
-            overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel=self._targetLevel)
+            overall_precision_recall = MLUtils.calculate_overall_precision_recall(objs["actual"],objs["predicted"],targetLevel = self._targetLevel)
             self._model_summary = MLModelSummary()
-            self._model_summary.set_algorithm_name("Neural Network (Sklearn)")
-            self._model_summary.set_algorithm_display_name("Neural Network (Sklearn)")
+            self._model_summary.set_algorithm_name("LightGBM")
+            self._model_summary.set_algorithm_display_name("LightGBM")
             self._model_summary.set_slug(self._slug)
             self._model_summary.set_training_time(runtime)
             self._model_summary.set_confusion_matrix(MLUtils.calculate_confusion_matrix(objs["actual"],objs["predicted"]))
@@ -432,8 +526,9 @@ class NeuralNetworkScript(object):
             # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
             self._model_summary.set_model_features([col for col in x_train.columns if col != result_column])
             self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns))))
+            self._model_summary.set_num_trees(100)
+            self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
-            # self._model_summary["trained_model_features"] = self._column_separator.join(list(x_train.columns)+[result_column])
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
@@ -469,164 +564,127 @@ class NeuralNetworkScript(object):
                 }
 
             self._model_management = MLModelSummary()
-            print(modelmanagement_)
-            if not algoSetting.is_hyperparameter_tuning_enabled():
-                self._model_management.set_epsilon(data=modelmanagement_['epsilon'])
-                self._model_management.set_activation(data=modelmanagement_['activation'])
-                self._model_management.set_batch_size(data=modelmanagement_['batch_size'])
-                self._model_management.set_alpha(data=modelmanagement_['alpha'])
-                self._model_management.set_early_stopping(data=modelmanagement_['early_stopping'])
-                self._model_management.set_beta_1(data=modelmanagement_['beta_1'])
-                self._model_management.set_beta_2(data=modelmanagement_['beta_2'])
-                self._model_management.set_nesterovs_momentum(data=modelmanagement_['nesterovs_momentum'])
-                self._model_management.set_hidden_layer_sizes(data=modelmanagement_['hidden_layer_sizes'])
-                self._model_management.set_solver_used(data=modelmanagement_['solver'])
-                self._model_management.set_power_t(data=modelmanagement_['power_t'])
-                self._model_management.set_learning_rate_init(data=modelmanagement_['learning_rate_init'])
-                self._model_management.set_shuffle(data=modelmanagement_['shuffle'])
-                self._model_management.set_verbose(data=modelmanagement_['verbose'])
-                self._model_management.set_maximum_solver(data=modelmanagement_['max_iter'])
-                self._model_management.set_random_state(data=modelmanagement_['random_state'])
-                self._model_management.set_n_iter_no_change(data=modelmanagement_['n_iter_no_change'])
+            if not algoSetting.is_hyperparameter_tuning_enabled() and not automl_enable:
+
+                self._model_management.set_booster_function(data=modelmanagement_['booster'])
                 self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
-                self._model_management.set_validation_fraction(data=modelmanagement_['validation_fraction'])
-                self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
-                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['tol'])
-                self._model_management.set_momentum(data=modelmanagement_['momentum'])
+                self._model_management.set_minimum_loss_reduction(data=modelmanagement_['gamma'])
+                self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+                self._model_management.set_minimum_child_weight(data=modelmanagement_['min_child_weight'])
+                self._model_management.set_subsampling_ratio(data=modelmanagement_['subsample'])
+                self._model_management.set_subsample_for_each_tree(data=modelmanagement_['colsample_bytree'])
+                self._model_management.set_subsample_for_each_split(data=modelmanagement_['colsample_bylevel'])
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status
                 self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
                 self._model_management.set_target_level(self._targetLevel) # target column value
                 self._model_management.set_training_time(runtime) # run time
                 self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Neural Network (Sklearn)")#algorithm name
+                self._model_management.set_algorithm_name("LightGBM")#algorithm name
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
                 self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
                 self._model_management.set_datasetName(self._datasetName)
             else:
-                self._model_management.set_epsilon(data=modelmanagement_['param_grid']['epsilon'][0])
-                self._model_management.set_activation(data=modelmanagement_['param_grid']['activation'][0])
-                self._model_management.set_batch_size(data=modelmanagement_['param_grid']['batch_size'][0])
-                self._model_management.set_alpha(data=modelmanagement_['param_grid']['alpha'][0])
-                self._model_management.set_early_stopping(data=modelmanagement_['estimator__early_stopping'])
-                self._model_management.set_beta_1(data=modelmanagement_['estimator__beta_1'])
-                self._model_management.set_beta_2(data=modelmanagement_['estimator__beta_2'])
-                self._model_management.set_nesterovs_momentum(data=modelmanagement_['estimator__nesterovs_momentum'])
-                self._model_management.set_hidden_layer_sizes(data=modelmanagement_['estimator__hidden_layer_sizes'])
-                self._model_management.set_solver_used(data=modelmanagement_['estimator__solver'])
-                self._model_management.set_power_t(data=modelmanagement_['param_grid']['power_t'][0])
-                self._model_management.set_learning_rate_init(data=modelmanagement_['param_grid']['learning_rate_init'][0])
-                self._model_management.set_shuffle(data=modelmanagement_['param_grid']['shuffle'][0])
-                self._model_management.set_verbose(data=modelmanagement_['verbose'])
-                self._model_management.set_maximum_solver(data=modelmanagement_['param_grid']['max_iter'][0])
-                self._model_management.set_random_state(data=modelmanagement_['estimator__random_state'])
-                self._model_management.set_n_iter_no_change(data=modelmanagement_['param_grid']['n_iter_no_change'][0])
-                self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
-                self._model_management.set_validation_fraction(data=modelmanagement_['estimator__validation_fraction'])
-                self._model_management.set_warm_start(data=modelmanagement_['estimator__warm_start'])
-                self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['param_grid']['tol'][0])
-                self._model_management.set_momentum(data=modelmanagement_['estimator__momentum'])
-                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
-                self._model_management.set_training_status(data="completed")# training status
-                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
-                self._model_management.set_target_level(self._targetLevel) # target column value
-                self._model_management.set_training_time(runtime) # run time
-                self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
-                self._model_management.set_algorithm_name("Neural Network (Sklearn)")#algorithm name
-                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
-                self._model_management.set_target_variable(result_column)#target column name
-                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
-                self._model_management.set_datasetName(self._datasetName)
+                def set_model_params(x):
+                    #self._model_management.set_booster_function(data=modelmanagement_[x]['estimator__boosting_type'][0])
+                    # self._model_management.set_learning_rate(data=modelmanagement_['estimator__learning_rate'])
+                    # self._model_management.set_minimum_loss_reduction(data=modelmanagement_[x]['gamma'][0])
+                    # self._model_management.set_max_depth(data=modelmanagement_[x]['max_depth'][0])
+                    # self._model_management.set_minimum_child_weight(data=modelmanagement_['estimator__min_child_weight'])
+                    # self._model_management.set_subsampling_ratio(data=modelmanagement_[x]['subsample'][0])
+                    # self._model_management.set_subsample_for_each_tree(data=modelmanagement_['estimator__colsample_bytree'])
+                    # self._model_management.set_subsample_for_each_split(data=modelmanagement_['estimator__colsample_bylevel'])
+                    self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                    self._model_management.set_training_status(data="completed")# training status
+                    self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                    self._model_management.set_target_level(self._targetLevel) # target column value
+                    self._model_management.set_training_time(runtime) # run time
+                    self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+                    self._model_management.set_algorithm_name("LightGBM")#algorithm name
+                    self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                    self._model_management.set_target_variable(result_column)#target column name
+                    self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
+                    self._model_management.set_datasetName(self._datasetName)
+                try:
+                    set_model_params('param_grid')
+                except:
+                    set_model_params('param_distributions')
 
 
             modelManagementSummaryJson =[
 
-                        ["Project Name",self._model_management.get_job_type()],
-                        ["Algorithm",self._model_management.get_algorithm_name()],
-                        ["Training Status",self._model_management.get_training_status()],
-                        ["Accuracy",self._model_management.get_model_accuracy()],
-                        ["RunTime",self._model_management.get_training_time()],
-                        #["Owner",None],
-                        ["Created On",self._model_management.get_creation_date()]
+                            ["Project Name",self._model_management.get_job_type()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Training Status",self._model_management.get_training_status()],
+                            ["Accuracy",self._model_management.get_model_accuracy()],
+                            ["RunTime",self._model_management.get_training_time()],
+                            #["Owner",None],
+                            ["Created On",self._model_management.get_creation_date()]
 
-                        ]
+                            ]
 
             modelManagementModelSettingsJson =[
 
-                        ["Training Dataset",self._model_management.get_datasetName()],
-                        ["Target Column",self._model_management.get_target_variable()],
-                        ["Target Column Value",self._model_management.get_target_level()],
-                        ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
-                        ["Algorithm",self._model_management.get_algorithm_name()],
-                        ["Model Validation",self._model_management.get_validation_method()],
-                        ["epsilon",str(self._model_management.get_epsilon())],
-                        ["activation",str(self._model_management.get_activation())],
-                        ["batch_size",str(self._model_management.get_batch_size())],
-                        ["alpha",str(self._model_management.get_alpha())],
-                        ["early_stopping",str(self._model_management.get_early_stopping())],
-                        ["beta_1",str(self._model_management.get_beta_1())],
-                        ["beta_2",str(self._model_management.get_beta_2())],
-                        ["nesterovs_momentum",str(self._model_management.get_nesterovs_momentum())],
-                        ["hidden_layer_sizes",str(self._model_management.get_hidden_layer_sizes())],
-                        ["solver_used",str(self._model_management.get_solver_used())],
-                        ["power_t",str(self._model_management.get_power_t())],
-                        ["learning_rate_init",str(self._model_management.get_learning_rate_init())],
-                        ["shuffle",str(self._model_management.get_shuffle())],
-                        ["verbose",str(self._model_management.get_verbose())],
-                        ["maximum_solver",str(self._model_management.get_maximum_solver())],
-                        ["random_state",str(self._model_management.get_random_state())],
-                        ["n_iter_no_change",str(self._model_management.get_n_iter_no_change())],
-                        ["learning_rate",str(self._model_management.get_learning_rate())],
-                        ["validation_fraction",str(self._model_management.get_validation_fraction())],
-                        ["momentum",str(self._model_management.get_momentum())],
-                        ["Warm Start",str(self._model_management.get_warm_start())],
-                        ["Convergence Tolerence Iterations",self._model_management.get_convergence_tolerence_iteration()],
+                            ["Training Dataset",self._model_management.get_datasetName()],
+                            ["Target Column",self._model_management.get_target_variable()],
+                            ["Target Column Value",self._model_management.get_target_level()],
+                            ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Model Validation",self._model_management.get_validation_method()],
+                            ["Booster Function",self._model_management.get_booster_function()],
+                            ["Learning Rate",self._model_management.get_learning_rate()],
+                            ["Minimum Loss Reduction",self._model_management.get_minimum_loss_reduction()],
+                            ["Maximum Depth",self._model_management.get_max_depth()],
+                            ["Minimum Child Weight",self._model_management.get_minimum_child_weight()],
+                            ["Subsampling Ratio",self._model_management.get_subsampling_ratio()],
+                            ["Subsample of Every Column by each tree",self._model_management.get_subsample_for_each_tree()],
+                            ["Subsample of Every Column by each split",self._model_management.get_subsample_for_each_split()]
 
-                        ]
+                            ]
 
 
-
-
-            nnOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-            nnPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
-            nnDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
-            nnCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-            NN_Overview_Node = NarrativesTree()
-            NN_Overview_Node.set_name("Overview")
-            NN_Performance_Node = NarrativesTree()
-            NN_Performance_Node.set_name("Performance")
-            NN_Deployment_Node = NarrativesTree()
-            NN_Deployment_Node.set_name("Deployment")
-            for card in nnOverviewCards:
-                NN_Overview_Node.add_a_card(card)
-            for card in nnPerformanceCards:
-                NN_Performance_Node.add_a_card(card)
-            for card in nnDeploymentCards:
-                NN_Deployment_Node.add_a_card(card)
-            for card in nnCards:
+            lgbmOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+            lgbmPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+            lgbmDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+            lgbmCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+            LGBM_Overview_Node = NarrativesTree()
+            LGBM_Overview_Node.set_name("Overview")
+            LGBM_Performance_Node = NarrativesTree()
+            LGBM_Performance_Node.set_name("Performance")
+            LGBM_Deployment_Node = NarrativesTree()
+            LGBM_Deployment_Node.set_name("Deployment")
+            for card in lgbmOverviewCards:
+                LGBM_Overview_Node.add_a_card(card)
+            for card in lgbmPerformanceCards:
+                LGBM_Performance_Node.add_a_card(card)
+            for card in lgbmDeploymentCards:
+                LGBM_Deployment_Node.add_a_card(card)
+            for card in lgbmCards:
                 self._prediction_narrative.add_a_card(card)
 
-            self._result_setter.set_model_summary({"Neural Network (Sklearn)":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-            self._result_setter.set_nn_model_summary(modelSummaryJson)
-            self._result_setter.set_nn_cards(nnCards)
-            self._result_setter.set_nn_nodes([NN_Overview_Node,NN_Performance_Node,NN_Deployment_Node])
-            self._result_setter.set_nn_fail_card({"Algorithm_Name":"Neural Network (Sklearn)","success":"True"})
+            self._result_setter.set_model_summary({"lgbm":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+            self._result_setter.set_lgbm_model_summary(modelSummaryJson)
+            self._result_setter.set_lgbm_cards(lgbmCards)
+            self._result_setter.set_lgbm_nodes([LGBM_Overview_Node,LGBM_Performance_Node,LGBM_Deployment_Node])
+            self._result_setter.set_lgbm_fail_card({"Algorithm_Name":"lgbm","success":"True"})
 
             CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
-
+            # DataWriter.write_dict_as_json(self._spark, {"modelSummary":json.dumps(self._model_summary)}, summary_filepath)
+            # print self._model_summary
+            # CommonUtils.write_to_file(summary_filepath,json.dumps({"modelSummary":self._model_summary}))
 
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized The Neural Network (Sklearn) Scripts",
+                "summary":"Initialized The Lgbm Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Neural Network (Sklearn) Model Prediction Finished",
+                "summary":"Lgbm Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
@@ -683,6 +741,7 @@ class NeuralNetworkScript(object):
             if score_data_path.startswith("file"):
                 score_data_path = score_data_path[7:]
             trained_model_path = self._dataframe_context.get_model_path()
+            print(trained_model_path)
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
 
             if trained_model_path.startswith("file"):
@@ -690,17 +749,15 @@ class NeuralNetworkScript(object):
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
-            model_columns = self._dataframe_context.get_model_features()
             trained_model = joblib.load(trained_model_path)
-            try:
-                df = self._data_frame.toPandas()
-            except:
-                df = self._data_frame.copy()
-            # pandas_df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
+            # pandas_df = self._data_frame.toPandas()
+            df = self._data_frame#.toPandas()
+            model_columns = self._dataframe_context.get_model_features()
             pandas_df = MLUtils.create_dummy_columns(df,[x for x in categorical_columns if x != result_column])
             pandas_df = MLUtils.fill_missing_columns(pandas_df,model_columns,result_column)
             if uid_col:
                 pandas_df = pandas_df[[x for x in pandas_df.columns if x != uid_col]]
+
             pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
@@ -718,6 +775,7 @@ class NeuralNetworkScript(object):
             df.drop(result_column, axis=1, inplace=True)
         df = df.rename(index=str, columns={"predicted_class": result_column})
         df.to_csv(score_data_path,header=True,index=False)
+
         uidCol = self._dataframe_context.get_uid_column()
         if uidCol == None:
             uidCols = self._metaParser.get_suggested_uid_columns()
@@ -773,18 +831,21 @@ class NeuralNetworkScript(object):
             columns_to_drop += ["predicted_probability"]
         columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
         columns_to_drop = ["predicted_probability"]
-        df.drop(columns_to_drop, axis=1, inplace=True)
+        # df.drop(columns_to_drop, axis=1, inplace=True)
         # # Dropping predicted_probability column
         # df.drop('predicted_probability', axis=1, inplace=True)
+
         resultColLevelCount = dict(df[result_column].value_counts())
         # self._metaParser.update_level_counts(result_column,resultColLevelCount)
         self._metaParser.update_column_dict(result_column,{"LevelCount":resultColLevelCount,"numberOfUniqueValues":len(list(resultColLevelCount.keys()))})
         self._dataframe_context.set_story_on_scored_data(True)
         if self._pandas_flag:
+            df = df.drop(columns_to_drop, axis=1)
             scored_df = df.copy()
         else:
             SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
             scored_df = SQLctx.createDataFrame(df)
+        # spark_scored_df.write.csv(score_data_path+"/data",mode="overwrite",header=True)
         self._dataframe_context.update_consider_columns(columns_to_keep)
         df_helper = DataFrameHelper(scored_df, self._dataframe_context,self._metaParser)
         df_helper.set_params()
@@ -841,9 +902,8 @@ class NeuralNetworkScript(object):
                 print("DecisionTree Analysis Failed ")
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(list(labelMappingDict.values()))}
-
             if data_dict["nactual"] > 2:
-                levelCountDict ={}
+                levelCountDict = {}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in list(resultColLevelCount.items()) if k != predictedClasses[0]])
             else:
@@ -862,7 +922,7 @@ class NeuralNetworkScript(object):
             data_dict["topLevel"] = levelCountTuple[0]
             data_dict["secondLevel"] = levelCountTuple[1]
             maincardSummary = NarrativesUtils.get_template_output("/apps/",'scorewithoutdtree.html',data_dict)
-
+            print(data_dict)
             main_card = NormalCard()
             main_card_data = []
             main_card_narrative = NarrativesUtils.block_splitter(maincardSummary,"|~NEWBLOCK~|")
