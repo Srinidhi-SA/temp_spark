@@ -134,8 +134,8 @@ class LgbmScript(object):
 
             st = time.time()
             levels = df[result_column].unique()
-            clf = lgb.LGBMClassifier(boosting_type='dart', num_leaves=50,learning_rate=1.0, n_estimators=100, max_depth=10,
-                                    bagging_fraction=0.8, feature_fraction=0.9, reg_lambda=0.2,verbose = -1)
+            clf = lgb.LGBMClassifier(boosting_type='dart', num_leaves=100,learning_rate=1.0, n_estimators=100, max_depth=10,
+                                     reg_lambda=0.2,verbose = -1,random_state =42)
 
 
             labelEncoder = preprocessing.LabelEncoder()
@@ -247,15 +247,56 @@ class LgbmScript(object):
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
-
+                if len(levels) <= 2:
+                    class_weight = None
+                    pos_ratio = min(y_train.value_counts()) / max(y_train.value_counts())
+                    if pos_ratio < 0.49:
+                        scale_pos_weight = 1
+                    else:
+                        scale_pos_weight = 1
+                else:
+                    scale_pos_weight = 1
+                    class_weight = 'balanced'
                 if automl_enable:
-                    params_grid={'num_leaves': randint(6, 50),
-                                 'min_child_samples': randint(100, 500),
-                                 'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
-                                 'subsample': uniform(loc=0.2, scale=0.8),
-                                 'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                                 'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100]
-                                 }
+                    if len(x_train) < 1000:
+                        params_grid = {
+                            'max_depth': randint(4, 7),
+                            'num_leaves': randint(1, 39),
+                            'min_child_samples': randint(20, 120),
+                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'subsample': uniform(loc=0.2, scale=0.8),
+                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'learning_rate': [0.01, 0.005, 0.05],
+                            'scale_pos_weight': [scale_pos_weight],
+                            'class_weight': [class_weight]
+                        }
+                    elif len(x_train) < 10000:
+                        params_grid = {
+                            'max_depth': [5, 7, 10],
+                            'num_leaves': randint(20, 80),
+                            'min_child_samples': randint(100, 500),
+                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'subsample': uniform(loc=0.2, scale=0.8),
+                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'learning_rate': [0.01, 0.03, 1.0],
+                            'scale_pos_weight': [scale_pos_weight],
+                            'class_weight': [class_weight]
+                        }
+                    else:
+                        params_grid = {
+                            'max_depth': [-1, 7, 10, 20],
+                            'num_leaves': randint(40, 300),
+                            'min_child_samples': randint(200, 700),
+                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'subsample': uniform(loc=0.2, scale=0.8),
+                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'learning_rate': [0.01, 0.03, 1.0],
+                            'scale_pos_weight': [scale_pos_weight]
+                        }
+
 
                     #              'min_child_samples': randint(100, 500),
                     #              'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],

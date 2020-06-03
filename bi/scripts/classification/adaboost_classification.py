@@ -133,7 +133,7 @@ class AdaboostScript(object):
 
             st = time.time()
             levels = df[result_column].unique()
-            clf =  AdaBoostClassifier(DecisionTreeClassifier(max_depth=5),n_estimators=500,learning_rate=1,algorithm='SAMME.R')
+            clf =  AdaBoostClassifier(DecisionTreeClassifier(max_depth=5),algorithm = "SAMME")
             labelEncoder = preprocessing.LabelEncoder()
             labelEncoder.fit(np.concatenate([y_train,y_test]))
             y_train = pd.Series(labelEncoder.transform(y_train))
@@ -247,13 +247,19 @@ class AdaboostScript(object):
                 if automl_enable:
                     params_grid = {
                                     # "base_estimator": [DecisionTreeClassifier(), RandomForestClassifier()],
-                                    #"n_estimators": [500,800,1000],
+                                    "n_estimators": [500,800,1000],
                                      #"base_estimator__max_depth": [5,10,12],
                                      # "base_estimator__max_features":["auto","sqrt","log2"],
                                      # "base_estimator__n_estimators":[10,20,30,40,50],
-                                    # "learning_rate": [0.1, 0.5, 1],
-                                    "algorithm":["SAMME","SAMME.R"]
+                                    "learning_rate": [0.01,0.5,1],
+                                    # "algorithm":["SAMME","SAMME.R"]
                                  }
+                    if x_train.shape[0] >= 1000:
+                        params_grid['n_estimators'] = [1000]
+                        params_grid['learning_rate'] = [0.01]
+                    elif x_train.shape[0] < 1000:
+                        params_grid['n_estimators'] = [500]
+                        params_grid['learning_rate'] = [0.01]
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
