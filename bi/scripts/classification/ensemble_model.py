@@ -314,7 +314,10 @@ class EnsembleModelScript(object):
 
 
             trainingTime = time.time()-st
-            y_score = bestEstimator.predict(x_test)
+            try:
+                y_score = bestEstimator.best_estimator_.predict(x_test)
+            except:
+                y_score = bestEstimator.predict(x_test)
 
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
