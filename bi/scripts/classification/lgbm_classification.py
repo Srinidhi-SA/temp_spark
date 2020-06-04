@@ -263,10 +263,10 @@ class LgbmScript(object):
                             'max_depth': randint(4, 7),
                             'num_leaves': randint(1, 39),
                             'min_child_samples': randint(20, 120),
-                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'min_child_weight': [ 1e-2, 1e-1, 1, 1e1, 1e2],
                             'subsample': uniform(loc=0.2, scale=0.8),
                             'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'reg_alpha': [0, 1, 2, 100],
                             'learning_rate': [0.01, 0.005, 0.05],
                             'scale_pos_weight': [scale_pos_weight],
                             'class_weight': [class_weight]
@@ -276,10 +276,10 @@ class LgbmScript(object):
                             'max_depth': [5, 7, 10],
                             'num_leaves': randint(20, 80),
                             'min_child_samples': randint(100, 500),
-                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'min_child_weight': [1e-2, 1e-1, 1, 1e1, 1e2],
                             'subsample': uniform(loc=0.2, scale=0.8),
                             'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'reg_alpha': [0,1, 2,100],
                             'learning_rate': [0.01, 0.03, 1.0],
                             'scale_pos_weight': [scale_pos_weight],
                             'class_weight': [class_weight]
@@ -289,10 +289,10 @@ class LgbmScript(object):
                             'max_depth': [-1, 7, 10, 20],
                             'num_leaves': randint(40, 300),
                             'min_child_samples': randint(200, 700),
-                            'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
+                            'min_child_weight': [1e-1, 1, 1e1],
                             'subsample': uniform(loc=0.2, scale=0.8),
                             'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                            'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
+                            'reg_alpha': [0, 1e-1, 1, 2, 100],
                             'learning_rate': [0.01, 0.03, 1.0],
                             'scale_pos_weight': [scale_pos_weight]
                         }
