@@ -41,10 +41,12 @@ joblib==0.14.1
 Keras-Applications==1.0.8
 Keras-Preprocessing==1.1.0
 kiwisolver==1.1.0
+lightgbm==2.3.1
 lxml==4.5.0
 Markdown==3.1.1
 MarkupSafe==1.1.1
 matplotlib==2.2.4
+mlxtend==0.17.2
 more-itertools==8.2.0
 mysqlclient==1.4.6
 nltk==3.4
