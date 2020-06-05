@@ -260,8 +260,8 @@ class LgbmScript(object):
                 if automl_enable:
                     if len(x_train) < 1000:
                         params_grid = {
-                            'max_depth': randint(4, 7),
-                            'num_leaves': randint(1, 39),
+                            #'max_depth': randint(4, 7),
+                            #'num_leaves': randint(1, 39),
                             'min_child_samples': randint(20, 120),
                             'min_child_weight': [ 1e-2, 1e-1, 1, 1e1, 1e2],
                             'subsample': uniform(loc=0.2, scale=0.8),
@@ -273,8 +273,8 @@ class LgbmScript(object):
                         }
                     elif len(x_train) < 10000:
                         params_grid = {
-                            'max_depth': [5, 7, 10],
-                            'num_leaves': randint(20, 80),
+                            #'max_depth': [5, 7, 10],
+                            #'num_leaves': randint(20, 80),
                             'min_child_samples': randint(100, 500),
                             'min_child_weight': [1e-2, 1e-1, 1, 1e1, 1e2],
                             'subsample': uniform(loc=0.2, scale=0.8),
@@ -286,8 +286,8 @@ class LgbmScript(object):
                         }
                     else:
                         params_grid = {
-                            'max_depth': [-1, 7, 10, 20],
-                            'num_leaves': randint(40, 300),
+                            #'max_depth': [-1, 7, 10, 20],
+                            #'num_leaves': randint(40, 300),
                             'min_child_samples': randint(200, 700),
                             'min_child_weight': [1e-1, 1, 1e1],
                             'subsample': uniform(loc=0.2, scale=0.8),

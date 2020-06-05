@@ -186,7 +186,7 @@ class EnsembleModelScript(object):
             appType = self._dataframe_context.get_app_type()
             ensemble_weights=self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,1)
             #clf = VotingClassifier(estimators=model_list, voting='soft',weights=ensemble_weights)
-            clf=EnsembleVoteClassifier(self._automl_clf_models, voting='soft',weights=list(ensemble_weights))
+            clf=EnsembleVoteClassifier(self._automl_clf_models, voting='hard',weights=list(ensemble_weights))
             print("="*150)
             print("TRANSFORMED CLASSES - ", transformed_classes_list)
             print("LEVELS - ", levels)
@@ -299,7 +299,7 @@ class EnsembleModelScript(object):
                     weight1=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.05))
                     weight2=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.5))
                     weight3=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,1.0))
-                    params_grid = {"weights":[weight2]}
+                    params_grid = {"weights":[[1 for i in self._automl_clf_models]]}
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 10}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
