@@ -1,22 +1,19 @@
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
 import json
 import time
 
 try:
-    import pickle as pickle
+    import cPickle as pickle
 except:
     import pickle
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
+from bi.algorithms import DecisionTrees
 from bi.common import DataFrameHelper
 from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
-from bi.common import SklearnGridSearchResult, SkleanrKFoldResult, PySparkTrainTestResult
-from bi.common.mlmodelclasses import PySparkGridSearchResult
+from bi.common import SklearnGridSearchResult, SkleanrKFoldResult
+from bi.common.mlmodelclasses import PySparkGridSearchResult, PySparkTrainTestResult
 from bi.algorithms import DecisionTrees
 
 from bi.stats.frequency_dimensions import FreqDimensions
@@ -25,7 +22,7 @@ from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
-from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.classification import NaiveBayes
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
@@ -33,16 +30,15 @@ from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetr
 from pyspark.ml.feature import IndexToString
 from pyspark.sql.functions import udf
 from pyspark.sql.types import *
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
 from bi.settings import setting as GLOBALSETTINGS
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
 
-from pyspark2pmml import PMMLBuilder
 
 
-
-class RandomForestPysparkScript(object):
+class NaiveBayesPysparkScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter, meta_parser, mlEnvironment="pyspark"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -54,9 +50,9 @@ class RandomForestPysparkScript(object):
         self._spark = spark
         self._model_summary =  MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkrandomforest"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparknaivebayes"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
-
+        self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._completionStatus = self._dataframe_context.get_completion_status()
         print self._completionStatus,"initial completion status"
         self._analysisName = self._slug
@@ -66,19 +62,18 @@ class RandomForestPysparkScript(object):
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Scripts",
+                "summary":"Initialized the Naive Bayes Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Random Forest Model Training Started",
+                "summary":"Naive Bayes Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Random Forest Model Training Finished",
+                "summary":"Naive Bayes Model Training Finished",
                 "weight":4
                 },
             }
-
 
     def Train(self):
         st_global = time.time()
@@ -105,7 +100,7 @@ class RandomForestPysparkScript(object):
         if model_path.startswith("file"):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
-
+        print "model_path",model_path
         pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
@@ -134,20 +129,53 @@ class RandomForestPysparkScript(object):
         labelMapping = {k:v for k, v in enumerate(labelIdx.labels)}
         inverseLabelMapping = {v:float(k) for k, v in enumerate(labelIdx.labels)}
 
-        clf = RandomForestClassifier()
+        clf = NaiveBayes()
         if not algoSetting.is_hyperparameter_tuning_enabled():
             algoParams = algoSetting.get_params_dict()
         else:
             algoParams = algoSetting.get_params_dict_hyperparameter()
+        print "="*100
+        print algoParams
+        print "="*100
         clfParams = [prm.name for prm in clf.params]
         algoParams = {getattr(clf, k):v if isinstance(v, list) else [v] for k,v in algoParams.items() if k in clfParams}
+        print "="*100
+        print algoParams
+        print "="*100
+
+        print "="*143
+        print "ALGOPARAMS - ", algoParams
+        print "="*143
 
         paramGrid = ParamGridBuilder()
+                # if not algoSetting.is_hyperparameter_tuning_enabled():
+                #     for k,v in algoParams.items():
+                #         if v == [None] * len(v):
+                #             continue
+                #         if k.name == 'thresholds':
+                #             paramGrid = paramGrid.addGrid(k,v[0])
+                #         else:
+                #             paramGrid = paramGrid.addGrid(k,v)
+                #     paramGrid = paramGrid.build()
+
+        # if not algoSetting.is_hyperparameter_tuning_enabled():
         for k,v in algoParams.items():
+            print k, v
             if v == [None] * len(v):
                 continue
             paramGrid = paramGrid.addGrid(k,v)
         paramGrid = paramGrid.build()
+        # else:
+        #     for k,v in algoParams.items():
+        #         print k.name, v
+        #         if v[0] == [None] * len(v[0]):
+        #             continue
+        #         paramGrid = paramGrid.addGrid(k,v[0])
+        #     paramGrid = paramGrid.build()
+
+        print "="*143
+        print "PARAMGRID - ", paramGrid
+        print "="*143
 
         if len(paramGrid) > 1:
             hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -183,9 +211,9 @@ class RandomForestPysparkScript(object):
                               estimatorParamMaps=paramGrid,
                               evaluator=BinaryClassificationEvaluator() if levels == 2 else MulticlassClassificationEvaluator(),
                               numFolds=3 if numFold is None else numFold)  # use 3+ folds in practice
-                cvrf = crossval.fit(trainingData)
-                prediction = cvrf.transform(validationData)
-                bestModel = cvrf.bestModel
+                cvnb = crossval.fit(trainingData)
+                prediction = cvnb.transform(validationData)
+                bestModel = cvnb.bestModel
 
         else:
             train_test_ratio = float(self._dataframe_context.get_train_test_split())
@@ -212,18 +240,11 @@ class RandomForestPysparkScript(object):
                 evaluator=BinaryClassificationEvaluator() if levels == 2 else MulticlassClassificationEvaluator(),
                 trainRatio=train_test_ratio)
 
-                tvrf = tvs.fit(trainingData)
-                prediction = tvrf.transform(validationData)
-                bestModel = tvrf.bestModel
+                tvspnb = tvs.fit(trainingData)
+                prediction = tvspnb.transform(validationData)
+                bestModel = tvspnb.bestModel
 
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
-
-        prediction.select(["features", "label", "rawPrediction", "probability", "prediction"]).show()
-        print "$"*143
-        print predsAndLabels.collect()
-        print "$"*143
-
-
         metrics = MulticlassMetrics(predsAndLabels)
         posLabel = inverseLabelMapping[self._targetLevel]
 
@@ -243,10 +264,10 @@ class RandomForestPysparkScript(object):
         recall = metrics.recall(inverseLabelMapping[self._targetLevel])
         accuracy = metrics.accuracy
 
-        feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
+        #feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
 
         objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
-        "probability":prediction.select('probability'),"feature_importance":feature_importance,
+        "probability":prediction.select('probability'),"feature_importance":None,
         "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
 
         # Calculating prediction_split
@@ -255,6 +276,7 @@ class RandomForestPysparkScript(object):
         prediction_split = {}
         total_nos = objs['actual'].count()
         for item in val_cnts:
+            print labelMapping
             classname = labelMapping[item['label']]
             prediction_split[classname] = round(item['count']*100 / float(total_nos), 2)
 
@@ -265,25 +287,14 @@ class RandomForestPysparkScript(object):
             bestModel.save("/".join(modelFilepathArr))
         runtime = round((time.time() - st_global),2)
 
-        try:
-            print pmml_filepath
-            pmmlBuilder = PMMLBuilder(self._spark, trainingData, bestModel).putOption(clf, 'compact', True)
-            pmmlBuilder.buildFile(pmml_filepath)
-            pmmlfile = open(pmml_filepath,"r")
-            pmmlText = pmmlfile.read()
-            pmmlfile.close()
-            self._result_setter.update_pmml_object({self._slug:pmmlText})
-        except:
-            pass
-
         cat_cols = list(set(categorical_columns) - {result_column})
         self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Spark ML Random Forest")
-        self._model_summary.set_algorithm_display_name("Spark ML Random Forest")
+        self._model_summary.set_algorithm_name("Spark ML Naive Bayes")
+        self._model_summary.set_algorithm_display_name("Spark ML Naive Bayes")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(confusion_matrix)
-        self._model_summary.set_feature_importance(objs["feature_importance"])
+        #self._model_summary.set_feature_importance(objs["feature_importance"])
         self._model_summary.set_feature_list(objs["featureList"])
         self._model_summary.set_model_accuracy(accuracy)
         self._model_summary.set_training_time(round((time.time() - st),2))
@@ -297,7 +308,7 @@ class RandomForestPysparkScript(object):
         # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
         self._model_summary.set_model_features(objs["featureList"])
         self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns)) + [result_column]))
-        self._model_summary.set_num_trees(20)# objs['trained_model'].getNumTrees)
+        #self._model_summary.set_num_trees(objs['trained_model'].getNumTrees)
         self._model_summary.set_num_rules(300)
         self._model_summary.set_target_level(self._targetLevel)
 
@@ -334,26 +345,25 @@ class RandomForestPysparkScript(object):
                 "name":self._model_summary.get_algorithm_name()
             }
 
-        rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        for card in rfCards:
+        spnbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        for card in spnbCards:
             self._prediction_narrative.add_a_card(card)
 
-        self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_spark_random_forest_model_summary(modelSummaryJson)
-        self._result_setter.set_rf_cards(rfCards)
+        self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_spark_naive_bayes_model_summary(modelSummaryJson)
+        self._result_setter.set_nb_cards(spnbCards)
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
-
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Random Forest Scripts",
+                "summary":"Initialized the Naive Bayes Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Random Forest Model Prediction Finished",
+                "summary":"Spark ML Naive Bayes Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
@@ -390,7 +400,6 @@ class RandomForestPysparkScript(object):
         categorical_columns = [x for x in categorical_columns if x != result_column]
 
         level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,categorical_columns,self._dataframe_context.get_column_separator(),output_type="dict",dataType="spark")
-
         for key in level_counts_train:
             if key in level_counts_score:
                 if level_counts_train[key] != level_counts_score[key]:
@@ -402,7 +411,7 @@ class RandomForestPysparkScript(object):
         score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
         trained_model_path = self._dataframe_context.get_model_path()
         trained_model_path = "/".join(trained_model_path.split("/")[:-1])+"/"+self._slug+"/"+self._dataframe_context.get_model_for_scoring()
-        score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
+        # score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
 
         pipelineModel = MLUtils.load_pipeline(trained_model_path)
 
@@ -411,10 +420,6 @@ class RandomForestPysparkScript(object):
         label_indexer_dict = MLUtils.read_string_indexer_mapping(trained_model_path,SQLctx)
         prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
         transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
-
-        print "$"*143
-        transformed.show()
-        print "$"*143
 
         if "probability" in transformed.columns:
             probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
@@ -468,32 +473,19 @@ class RandomForestPysparkScript(object):
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
-        # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
 
-
-        print("STARTING DIMENSION ANALYSIS ...")
+        print "STARTING DIMENSION ANALYSIS ..."
         columns_to_keep = []
         columns_to_drop = []
-        # considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
+
         columns_to_keep = self._dataframe_context.get_score_consider_columns()
-        # if considercolumnstype != None:
-        #     if considercolumns != None:
-        #         if considercolumnstype == ["excluding"]:
-        #             columns_to_drop = considercolumns
-        #         elif considercolumnstype == ["including"]:
-        #             columns_to_keep = considercolumns
+
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
             columns_to_drop += ["predicted_probability"]
 
-        # columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
-        # spark_scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
         scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
-        # scored_df = scored_df.drop(','.join(columns_to_drop))
-
-        # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        # spark_scored_df = SQLctx.createDataFrame(scored_df.toPandas())
         columns_to_drop = [x for x in columns_to_drop if x in scored_df.columns]
         modified_df = scored_df.select([x for x in scored_df.columns if x not in columns_to_drop])
         resultColLevelCount = dict(modified_df.groupby(result_column).count().collect())
@@ -505,64 +497,6 @@ class RandomForestPysparkScript(object):
         df_helper = DataFrameHelper(modified_df, self._dataframe_context, self._metaParser)
         df_helper.set_params()
         spark_scored_df = df_helper.get_data_frame()
-        # spark_scored_df.show(5)
-        # try:
-        #     fs = time.time()
-        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-        #     result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-        #     df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-        #     df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-        #     CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-        #     narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
-        #     narratives = CommonUtils.as_dict(narratives_obj)
-        #     CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-        #     print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-        # except:
-        #     print "Frequency Analysis Failed "
-        #
-        # try:
-        #     fs = time.time()
-        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-        #     result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-        #     df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-        #     df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-        #     # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-        #     CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-        #     chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
-        #     # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-        #     CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-        #     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-        # except:
-        #    print "ChiSquare Analysis Failed "
-        df = df_helper.get_data_frame()
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-            result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-            df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            narratives_obj = DimensionColumnNarrative(df, result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
-            narratives = CommonUtils.as_dict(narratives_obj)
-            CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-            print("Frequency Analysis Done in ", time.time() - fs,  " seconds.")
-        except:
-            print("Frequency Analysis Failed ")
-
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-            df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            print('RESULT: %s' % (json.dumps(df_chisquare_result, indent=2)))
-            CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-            print("ChiSquare Analysis Done in ", time.time() - fs, " seconds.")
-        except:
-           print("ChiSquare Analysis Failed ")
 
         if len(predictedClasses) >=2:
             try:

@@ -333,6 +333,8 @@ class NBBClassificationModelScript(object):
             # self._model_summary.set_num_trees(100)
             # self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
+
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
@@ -1810,6 +1812,9 @@ class NBMClassificationModelScript(object):
             self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
             self._model_summary.set_target_level(self._targetLevel)
+
+
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),

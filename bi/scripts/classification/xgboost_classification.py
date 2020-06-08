@@ -479,6 +479,7 @@ class XgboostScript(object):
             self._model_summary.set_num_trees(100)
             self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
@@ -615,6 +616,7 @@ class XgboostScript(object):
 
             self._result_setter.set_model_summary({"xgboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_xgboost_model_summary(modelSummaryJson)
+            self._result_setter.set_xgboost_management_summary(modelManagementJson)
             self._result_setter.set_xgb_cards(xgbCards)
             self._result_setter.set_xgb_nodes([XGB_Overview_Node,XGB_Performance_Node,XGB_Deployment_Node])
             self._result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"True"})
