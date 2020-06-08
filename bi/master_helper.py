@@ -580,7 +580,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
     app_type = GLOBALSETTINGS.APPS_ID_MAP[appid]["type"]
     algosToRun = dataframe_context.get_algorithms_to_run()
     for obj in algosToRun:
-        print '###########################', obj.get_algorithm_name(), obj.get_algorithm_slug(), '#############################'
+        print ('###########################', obj.get_algorithm_name(), obj.get_algorithm_slug(), '#############################')
     scriptWeightDict = dataframe_context.get_ml_model_training_weight()
     scriptStages = {
         "preprocessing":{
