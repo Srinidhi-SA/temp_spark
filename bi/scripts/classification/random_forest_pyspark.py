@@ -58,7 +58,7 @@ class RandomForestPysparkScript(object):
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()
-        print self._completionStatus,"initial completion status"
+        print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
@@ -219,22 +219,22 @@ class RandomForestPysparkScript(object):
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
 
         prediction.select(["features", "label", "rawPrediction", "probability", "prediction"]).show()
-        print "$"*143
-        print predsAndLabels.collect()
-        print "$"*143
+        print("$"*143)
+        print(predsAndLabels.collect())
+        print("$"*143)
 
 
         metrics = MulticlassMetrics(predsAndLabels)
         posLabel = inverseLabelMapping[self._targetLevel]
 
         conf_mat_ar = metrics.confusionMatrix().toArray()
-        print conf_mat_ar
+        print(conf_mat_ar)
         confusion_matrix = {}
         for i in range(len(conf_mat_ar)):
         	confusion_matrix[labelMapping[i]] = {}
         	for j, val in enumerate(conf_mat_ar[i]):
         		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print confusion_matrix
+        print(confusion_matrix)
 
         trainingTime = time.time()-st
 
@@ -266,7 +266,7 @@ class RandomForestPysparkScript(object):
         runtime = round((time.time() - st_global),2)
 
         try:
-            print pmml_filepath
+            print(pmml_filepath)
             pmmlBuilder = PMMLBuilder(self._spark, trainingData, bestModel).putOption(clf, 'compact', True)
             pmmlBuilder.buildFile(pmml_filepath)
             pmmlfile = open(pmml_filepath,"r")
@@ -412,9 +412,9 @@ class RandomForestPysparkScript(object):
         prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
         transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
 
-        print "$"*143
+        print("$"*143)
         transformed.show()
-        print "$"*143
+        print("$"*143)
 
         if "probability" in transformed.columns:
             probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
@@ -569,9 +569,9 @@ class RandomForestPysparkScript(object):
                 fs = time.time()
                 df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
-                print narratives_obj
+                print(narratives_obj)
             except Exception as e:
-                print "DecisionTree Analysis Failed ", str(e)
+                print("DecisionTree Analysis Failed ", str(e))
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
 
@@ -583,7 +583,7 @@ class RandomForestPysparkScript(object):
                 otherClass = list(set(labelMappingDict.values())-set(predictedClasses))[0]
                 levelCountDict[otherClass] = 0
 
-                print levelCountDict
+                print(levelCountDict)
 
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]

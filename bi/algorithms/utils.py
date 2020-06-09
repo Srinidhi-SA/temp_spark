@@ -729,7 +729,7 @@ def get_model_comparison(collated_summary,evaluvation_metric):
     summary = []
 
     algos = list(collated_summary.keys())
-    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random 		Forest","xgboost":"XGBoost","ensemble":"Ensemble","adaboost":"Adaboost","lgbm":"LightGBM","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network (Sklearn)":"Neural Network (Sklearn)","Neural Network (TensorFlow)":"Neural Network (TensorFlow)", "Neural Network (PyTorch)":"Neural Network (PyTorch)","sparkrandomforest": "Spark ML Random Forest",
+    algos_dict = {"naivebayes": "Naive Bayes","randomforest":"Random Forest","xgboost":"XGBoost","ensemble":"Ensemble","adaboost":"Adaboost","lgbm":"LightGBM","logistic":"Logistic Regression","svm":"Support Vector Machine","Neural Network (Sklearn)":"Neural Network (Sklearn)","Neural Network (TensorFlow)":"Neural Network (TensorFlow)", "Neural Network (PyTorch)":"Neural Network (PyTorch)","sparkrandomforest": "Spark ML Random Forest",
                   "sparklogisticregression": "Spark ML Logistic Regression", "naivebayes": "Naive Bayes",
                   "sparkperceptron": "Spark ML Multilayer Perceptron", "sparknaivebayes": "Spark ML Naive Bayes"}
     out = []
@@ -1743,8 +1743,8 @@ def collated_model_summary_card(result_setter, prediction_narrative, appType, ap
                 row[0] = idx + 1
                 allAlgorithmTableModified.append(row)
             allAlgorithmTable = allAlgorithmTableModified
-            print "$" * 100
-            print allAlgorithmTable
+            print("$" * 100)
+            print(allAlgorithmTable)
             bestModel = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Model Id")]
             evalMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index("Metric")]
             bestMetric = allAlgorithmTable[1][allAlgorithmTableHeaderRow.index(evalMetric)]
@@ -1827,7 +1827,7 @@ def collated_model_summary_card(result_setter, prediction_narrative, appType, ap
         # modelResult = CommonUtils.convert_python_object_to_json(modelResult)
 
         modelJsonOutput.set_model_summary(json.loads(modelResult))
-        modelJsonOutput.set_model_management_summary(model_management_summary)
+        #modelJsonOutput.set_model_management_summary(model_management_summary)
         if hyperParameterFlag == True:
             modelJsonOutput.set_model_hyperparameter_summary(model_hyperparameter_summary)
         modelJsonOutput = modelJsonOutput.get_json_data()

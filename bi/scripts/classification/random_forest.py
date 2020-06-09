@@ -635,7 +635,7 @@ class RFClassificationModelScript(object):
                 self._prediction_narrative.add_a_card(card)
             self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_random_forest_model_summary(modelSummaryJson)
-            self._result_setter.set_random_forest_management_summary(modelManagementJson)
+            # self._result_setter.set_random_forest_management_summary(modelManagementJson)
             self._result_setter.set_rf_cards(rfCards)
             self._result_setter.set_rf_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
             self._result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"True"})

@@ -170,7 +170,7 @@ class MultilayerPerceptronPysparkScript(object):
             layer.insert(0, input_feats)
             layer.append(levels)
 
-        print 'layer_param_val =', layer_param_val
+        print('layer_param_val =', layer_param_val)
 
         # if not algoSetting.is_hyperparameter_tuning_enabled():
         #     for k,v in algoParams.items():
@@ -276,13 +276,13 @@ class MultilayerPerceptronPysparkScript(object):
         posLabel = inverseLabelMapping[self._targetLevel]
 
         conf_mat_ar = metrics.confusionMatrix().toArray()
-        print conf_mat_ar
+        print(conf_mat_ar)
         confusion_matrix = {}
         for i in range(len(conf_mat_ar)):
             confusion_matrix[labelMapping[i]] = {}
             for j, val in enumerate(conf_mat_ar[i]):
                 confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print confusion_matrix
+        print(confusion_matrix)
 
         trainingTime = time.time() - st
 
@@ -319,7 +319,7 @@ class MultilayerPerceptronPysparkScript(object):
         runtime = round((time.time() - st_global), 2)
 
         try:
-            print pmml_filepath
+            print(pmml_filepath)
             pmmlBuilder = PMMLBuilder(self._spark, trainingData, bestModel).putOption(clf, 'compact', True)
             pmmlBuilder.buildFile(pmml_filepath)
             pmmlfile = open(pmml_filepath, "r")
@@ -327,7 +327,7 @@ class MultilayerPerceptronPysparkScript(object):
             pmmlfile.close()
             self._result_setter.update_pmml_object({self._slug: pmmlText})
         except Exception as e:
-            print "PMML naa ho paya hai...", str(e)
+            print("PMML failed...", str(e))
             pass
 
         cat_cols = list(set(categorical_columns) - {result_column})
@@ -547,7 +547,7 @@ class MultilayerPerceptronPysparkScript(object):
         CommonUtils.save_progress_message(self._messageURL, progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
-        print "STARTING DIMENSION ANALYSIS ..."
+        print("STARTING DIMENSION ANALYSIS ...")
         columns_to_keep = []
         columns_to_drop = []
 
@@ -584,9 +584,9 @@ class MultilayerPerceptronPysparkScript(object):
                                           self._dataframe_context, self._metaParser, self._result_setter,
                                           story_narrative=None, analysisName=self._analysisName,
                                           scriptWeight=self._scriptWeightDict))
-                print narratives_obj
+                print(narratives_obj)
             except Exception as e:
-                print "DecisionTree Analysis Failed ", str(e)
+                print("DecisionTree Analysis Failed ", str(e))
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
 
@@ -598,7 +598,7 @@ class MultilayerPerceptronPysparkScript(object):
                 otherClass = list(set(labelMappingDict.values()) - set(predictedClasses))[0]
                 levelCountDict[otherClass] = 0
 
-                print levelCountDict
+                print(levelCountDict)
 
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name": k, "count": v, "percentage": humanize.apnumber(v * 100 / total) + "%"}) for

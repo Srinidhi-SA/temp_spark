@@ -219,13 +219,13 @@ class LogisticRegressionPysparkScript(object):
         posLabel = inverseLabelMapping[self._targetLevel]
 
         conf_mat_ar = metrics.confusionMatrix().toArray()
-        print conf_mat_ar
+        print(conf_mat_ar)
         confusion_matrix = {}
         for i in range(len(conf_mat_ar)):
         	confusion_matrix[labelMapping[i]] = {}
         	for j, val in enumerate(conf_mat_ar[i]):
         		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print confusion_matrix
+        print(confusion_matrix)
 
         trainingTime = time.time()-st
 
@@ -255,7 +255,7 @@ class LogisticRegressionPysparkScript(object):
         runtime = round((time.time() - st_global),2)
 
         try:
-            print pmml_filepath
+            print(pmml_filepath)
             pmmlBuilder = PMMLBuilder(self._spark, trainingData, bestModel).putOption(clf, 'compact', True)
             pmmlBuilder.buildFile(pmml_filepath)
             pmmlfile = open(pmml_filepath,"r")
@@ -263,7 +263,7 @@ class LogisticRegressionPysparkScript(object):
             pmmlfile.close()
             self._result_setter.update_pmml_object({self._slug:pmmlText})
         except Exception as e:
-            print "PMML naa ho paya hai...", str(e)
+            print("PMML failed...", str(e))
             pass
 
         cat_cols = list(set(categorical_columns) - {result_column})
@@ -379,10 +379,10 @@ class LogisticRegressionPysparkScript(object):
         categorical_columns = [x for x in categorical_columns if x != result_column]
 
         level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,categorical_columns,self._dataframe_context.get_column_separator(),output_type="dict",dataType="spark")
-        print '+'*100
-        print level_counts_train
-        print level_counts_train
-        print '+'*100
+        print('+'*100)
+        print(level_counts_train)
+        print(level_counts_train)
+        print('+'*100)
         for key in level_counts_train:
             if key in level_counts_score:
                 if level_counts_train[key] != level_counts_score[key]:
@@ -522,7 +522,6 @@ class LogisticRegressionPysparkScript(object):
             print("ChiSquare Analysis Done in ", time.time() - fs, " seconds.")
         except:
            print("ChiSquare Analysis Failed ")
-           
         spark_scored_df = df_helper.get_data_frame()
         # spark_scored_df.show(5)
         # try:
@@ -558,9 +557,9 @@ class LogisticRegressionPysparkScript(object):
                 fs = time.time()
                 df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
-                print narratives_obj
+                print(narratives_obj)
             except Exception as e:
-                print "DecisionTree Analysis Failed ", str(e)
+                print("DecisionTree Analysis Failed ", str(e))
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
 
@@ -572,7 +571,7 @@ class LogisticRegressionPysparkScript(object):
                 otherClass = list(set(labelMappingDict.values())-set(predictedClasses))[0]
                 levelCountDict[otherClass] = 0
 
-                print levelCountDict
+                print(levelCountDict)
 
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]

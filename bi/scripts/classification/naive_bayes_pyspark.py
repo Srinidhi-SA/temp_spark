@@ -54,7 +54,7 @@ class NaiveBayesPysparkScript(object):
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._completionStatus = self._dataframe_context.get_completion_status()
-        print self._completionStatus,"initial completion status"
+        print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
@@ -100,7 +100,7 @@ class NaiveBayesPysparkScript(object):
         if model_path.startswith("file"):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
-        print "model_path",model_path
+        print("model_path",model_path)
         pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
@@ -134,18 +134,14 @@ class NaiveBayesPysparkScript(object):
             algoParams = algoSetting.get_params_dict()
         else:
             algoParams = algoSetting.get_params_dict_hyperparameter()
-        print "="*100
-        print algoParams
-        print "="*100
+        print("="*100)
+        print(algoParams)
+        print("="*100)
         clfParams = [prm.name for prm in clf.params]
         algoParams = {getattr(clf, k):v if isinstance(v, list) else [v] for k,v in algoParams.items() if k in clfParams}
-        print "="*100
-        print algoParams
-        print "="*100
-
-        print "="*143
-        print "ALGOPARAMS - ", algoParams
-        print "="*143
+        print("="*100)
+        print("ALGOPARAMS - ",algoParams)
+        print("="*100)
 
         paramGrid = ParamGridBuilder()
                 # if not algoSetting.is_hyperparameter_tuning_enabled():
@@ -160,7 +156,7 @@ class NaiveBayesPysparkScript(object):
 
         # if not algoSetting.is_hyperparameter_tuning_enabled():
         for k,v in algoParams.items():
-            print k, v
+            print(k, v)
             if v == [None] * len(v):
                 continue
             paramGrid = paramGrid.addGrid(k,v)
@@ -173,9 +169,9 @@ class NaiveBayesPysparkScript(object):
         #         paramGrid = paramGrid.addGrid(k,v[0])
         #     paramGrid = paramGrid.build()
 
-        print "="*143
-        print "PARAMGRID - ", paramGrid
-        print "="*143
+        print("="*143)
+        print("PARAMGRID - ", paramGrid)
+        print("="*143)
 
         if len(paramGrid) > 1:
             hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -249,13 +245,13 @@ class NaiveBayesPysparkScript(object):
         posLabel = inverseLabelMapping[self._targetLevel]
 
         conf_mat_ar = metrics.confusionMatrix().toArray()
-        print conf_mat_ar
+        print(conf_mat_ar)
         confusion_matrix = {}
         for i in range(len(conf_mat_ar)):
         	confusion_matrix[labelMapping[i]] = {}
         	for j, val in enumerate(conf_mat_ar[i]):
         		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print confusion_matrix
+        print(confusion_matrix)
 
         trainingTime = time.time()-st
 
@@ -276,7 +272,7 @@ class NaiveBayesPysparkScript(object):
         prediction_split = {}
         total_nos = objs['actual'].count()
         for item in val_cnts:
-            print labelMapping
+            print(labelMapping)
             classname = labelMapping[item['label']]
             prediction_split[classname] = round(item['count']*100 / float(total_nos), 2)
 
@@ -474,7 +470,7 @@ class NaiveBayesPysparkScript(object):
         self._dataframe_context.update_completion_status(self._completionStatus)
 
 
-        print "STARTING DIMENSION ANALYSIS ..."
+        print("STARTING DIMENSION ANALYSIS ...")
         columns_to_keep = []
         columns_to_drop = []
 
@@ -503,9 +499,9 @@ class NaiveBayesPysparkScript(object):
                 fs = time.time()
                 df_decision_tree_obj = DecisionTrees(spark_scored_df, df_helper, self._dataframe_context,self._spark,self._metaParser,scriptWeight=self._scriptWeightDict, analysisName=self._analysisName).test_all(dimension_columns=[result_column])
                 narratives_obj = CommonUtils.as_dict(DecisionTreeNarrative(result_column, df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,story_narrative=None, analysisName=self._analysisName,scriptWeight=self._scriptWeightDict))
-                print narratives_obj
+                print(narratives_obj)
             except Exception as e:
-                print "DecisionTree Analysis Failed ", str(e)
+                print("DecisionTree Analysis Failed ", str(e))
         else:
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
 
@@ -517,7 +513,7 @@ class NaiveBayesPysparkScript(object):
                 otherClass = list(set(labelMappingDict.values())-set(predictedClasses))[0]
                 levelCountDict[otherClass] = 0
 
-                print levelCountDict
+                print(levelCountDict)
 
             total = float(sum([x for x in levelCountDict.values() if x != None]))
             levelCountTuple = [({"name":k,"count":v,"percentage":humanize.apnumber(v*100/total)+"%"}) for k,v in levelCountDict.items() if v != None]

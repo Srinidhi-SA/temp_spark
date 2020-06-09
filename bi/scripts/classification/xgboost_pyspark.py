@@ -53,7 +53,7 @@ class XGBoostPysparkScript(object):
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._completionStatus = self._dataframe_context.get_completion_status()
-        print self._completionStatus,"initial completion status"
+        print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
@@ -109,16 +109,16 @@ class XGBoostPysparkScript(object):
         if model_path.startswith("file"):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
-        print "model_path",model_path
+        print("model_path",model_path)
         pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
         levels = df.select(result_column).distinct().count()
-        print '+'*100
-        print levels
-        print '+'*100
+        print('+'*100)
+        print(levels)
+        print('+'*100)
 
         appType = self._dataframe_context.get_app_type()
 
@@ -148,11 +148,11 @@ class XGBoostPysparkScript(object):
         else:
             algoParams = algoSetting.get_params_dict_hyperparameter()
         for k, v in algoParams.items():
-            print k, v
+            print(k, v)
         clfParams = [prm.name for prm in clf.params]
         algoParams = {getattr(clf, k):v if type(v)=='list' else [v] for k,v in algoParams.items() if k in clfParams}
         for k, v in algoParams.items():
-            print k.name, v
+            print(k.name, v)
 
         paramGrid = ParamGridBuilder()#.addGrid(clf.objective, ['binary:logistic']).build()
         if not algoSetting.is_hyperparameter_tuning_enabled():
@@ -163,7 +163,7 @@ class XGBoostPysparkScript(object):
             paramGrid = paramGrid.build()
         else:
             for k,v in algoParams.items():
-                print k.name, v
+                print(k.name, v)
                 if v[0] == [None] * len(v[0]):
                     continue
                 paramGrid = paramGrid.addGrid(k,v[0])
@@ -245,13 +245,13 @@ class XGBoostPysparkScript(object):
         posLabel = inverseLabelMapping[self._targetLevel]
 
         conf_mat_ar = metrics.confusionMatrix().toArray()
-        print conf_mat_ar
+        print(conf_mat_ar)
         confusion_matrix = {}
         for i in range(len(conf_mat_ar)):
         	confusion_matrix[labelMapping[i]] = {}
         	for j, val in enumerate(conf_mat_ar[i]):
         		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print confusion_matrix
+        print(confusion_matrix)
 
         trainingTime = time.time()-st
 
@@ -275,7 +275,7 @@ class XGBoostPysparkScript(object):
         prediction_split = {}
         total_nos = objs['actual'].count()
         for item in val_cnts:
-            print labelMapping
+            print(labelMapping)
             classname = labelMapping[item['label']]
             prediction_split[classname] = round(item['count']*100 / float(total_nos), 2)
 

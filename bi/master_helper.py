@@ -618,7 +618,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     sprf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     sprf_obj.Train()
-                    print "Spark ML Random Forest Model Done in ", time.time() - st,  " seconds."
+                    print("Spark ML Random Forest Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -628,7 +628,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     st = time.time()
                     spnb_obj = NaiveBayesPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     spnb_obj .Train()
-                    print "Spark ML Naive Bayes Model Done in ", time.time() - st,  " seconds."
+                    print("Spark ML Naive Bayes Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"sparknaivebayes",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -680,7 +680,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                     lr_obj.Train()
-                    print "Spark ML Logistic Regression Model Done in ", time.time() - st,  " seconds."
+                    print("Spark ML Logistic Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -689,7 +689,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     st = time.time()
                     spxgb_obj = XGBoostPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
                     spxgb_obj.Train()
-                    print "XGBoost Model Done in ", time.time() - st,  " seconds."
+                    print("XGBoost Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkxgboost",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
@@ -1229,7 +1229,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkrandomforest",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            print "Scoring Done in ", time.time() - st,  " seconds."
+            print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "xgboost" in selected_model_for_prediction:
             # df = df.toPandas()
             trainedModel = XgboostScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
