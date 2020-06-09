@@ -24,6 +24,7 @@ from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.algorithms import GainLiftKS
 
 from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
@@ -31,7 +32,7 @@ from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
 from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetrics
 from pyspark.ml.feature import IndexToString
-from pyspark.sql.functions import udf
+from pyspark.sql.functions import udf,col
 from pyspark.sql.types import *
 
 from bi.settings import setting as GLOBALSETTINGS
@@ -54,7 +55,7 @@ class RandomForestPysparkScript(object):
         self._spark = spark
         self._model_summary =  MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkrandomforest"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["randomforest"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
 
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -86,7 +87,7 @@ class RandomForestPysparkScript(object):
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,  self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x: x.get_algorithm_slug()==self._slug,algosToRun)[0]
+        algoSetting = [x for x in algosToRun if x.get_algorithm_slug()==self._slug][0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
 
@@ -216,6 +217,7 @@ class RandomForestPysparkScript(object):
                 prediction = tvrf.transform(validationData)
                 bestModel = tvrf.bestModel
 
+        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
 
         prediction.select(["features", "label", "rawPrediction", "probability", "prediction"]).show()
@@ -242,6 +244,34 @@ class RandomForestPysparkScript(object):
         precision = metrics.precision(inverseLabelMapping[self._targetLevel])
         recall = metrics.recall(inverseLabelMapping[self._targetLevel])
         accuracy = metrics.accuracy
+
+        print(f1_score,precision,recall,accuracy)
+
+        #gain chart implementation
+        def cal_prob_eval(x):
+            if len(x) == 1:
+                if x == posLabel:
+                    return(float(x[1]))
+                else:
+                    return(float(1 - x[1]))
+            else:
+                return(float(x[int(posLabel)]))
+
+
+        column_name= 'probability'
+        def y_prob_for_eval_udf():
+            return udf(lambda x:cal_prob_eval(x))
+        prediction = prediction.withColumn("y_prob_for_eval", y_prob_for_eval_udf()(col(column_name)))
+
+        try:
+            pys_df = prediction.select(['y_prob_for_eval','prediction','label'])
+            gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'prediction', 'label', posLabel, self._spark)
+            gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
+        except:
+            print("gain chant failed")
+            pass
+
+
 
         feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
 

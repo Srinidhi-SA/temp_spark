@@ -39,13 +39,14 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.algorithms import GainLiftKS
 
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
 from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetrics
 from pyspark.ml.feature import IndexToString
-from pyspark.sql.functions import udf
+from pyspark.sql.functions import udf,col
 from pyspark.sql.types import *
 
 from bi.settings import setting as GLOBALSETTINGS
@@ -101,7 +102,7 @@ class MultilayerPerceptronPysparkScript(object):
                                                             weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x: x.get_algorithm_slug() == self._slug, algosToRun)[0]
+        algoSetting = [x for x in algosToRun if x.get_algorithm_slug()==self._slug][0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
 
@@ -271,6 +272,7 @@ class MultilayerPerceptronPysparkScript(object):
                 bestModel = tvrf.bestModel
                 bestModelName = "M" + "0" * (GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH - 1) + "1"
 
+        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
         metrics = MulticlassMetrics(predsAndLabels)
         posLabel = inverseLabelMapping[self._targetLevel]
@@ -296,6 +298,33 @@ class MultilayerPerceptronPysparkScript(object):
             roc_auc = bin_metrics.areaUnderROC
             precision = metrics.precision(inverseLabelMapping[self._targetLevel])
             recall = metrics.recall(inverseLabelMapping[self._targetLevel])
+        print(f1_score,precision,recall,accuracy)
+
+        #gain chart implementation
+        def cal_prob_eval(x):
+            if len(x) == 1:
+                if x == posLabel:
+                    return(float(x[1]))
+                else:
+                    return(float(1 - x[1]))
+            else:
+                return(float(x[int(posLabel)]))
+
+
+        column_name= 'probability'
+        def y_prob_for_eval_udf():
+            return udf(lambda x:cal_prob_eval(x))
+        prediction = prediction.withColumn("y_prob_for_eval", y_prob_for_eval_udf()(col(column_name)))
+
+        try:
+            pys_df = prediction.select(['y_prob_for_eval','prediction','label'])
+            gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'prediction', 'label', posLabel, self._spark)
+            gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
+        except:
+            print("gain chant failed")
+            pass
+
+
 
         objs = {"trained_model": bestModel, "actual": prediction.select('label'),
                 "predicted": prediction.select('prediction'),

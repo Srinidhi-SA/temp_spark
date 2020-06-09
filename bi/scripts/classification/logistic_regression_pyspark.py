@@ -21,7 +21,7 @@ from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml.feature import IndexToString
-from pyspark.sql.functions import udf
+from pyspark.sql.functions import udf,col
 from pyspark.sql.types import *
 
 from pyspark.ml.classification import LogisticRegression, OneVsRest
@@ -39,6 +39,7 @@ from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.algorithms import GainLiftKS
 
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
 from pyspark.ml import Pipeline
@@ -58,7 +59,7 @@ from py4j.protocol import Py4JError
 
 
 class LogisticRegressionPysparkScript(object):
-    def __init__(self, data_frame, df_helper,df_context, spark):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter, meta_parser, mlEnvironment="pyspark"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -69,14 +70,16 @@ class LogisticRegressionPysparkScript(object):
         self._spark = spark
         self._model_summary =  MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparklogisticregression"]
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
+        #self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
 
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._classifier = "lr"
 
         self._scriptStages = {
             "initialization":{
@@ -99,7 +102,7 @@ class LogisticRegressionPysparkScript(object):
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,  self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
         algosToRun = self._dataframe_context.get_algorithms_to_run()
-        algoSetting = filter(lambda x: x.get_algorithm_slug()==self._slug,algosToRun)[0]
+        algoSetting = [x for x in algosToRun if x.get_algorithm_slug()==self._slug][0]
         categorical_columns = self._dataframe_helper.get_string_columns()
         uid_col = self._dataframe_context.get_uid_column()
 
@@ -115,42 +118,74 @@ class LogisticRegressionPysparkScript(object):
         appType = self._dataframe_context.get_app_type()
 
         model_path = self._dataframe_context.get_model_path()
-        pipeline_filepath = model_path+"/LogisticRegression/TrainedModels/pipeline"
-        model_filepath = model_path+"/LogisticRegression/TrainedModels/model"
-        summary_filepath = model_path+"/LogisticRegression/ModelSummary/summary.json"
+        if model_path.startswith("file"):
+            model_path = model_path[7:]
+        validationDict = self._dataframe_context.get_validation_dict()
 
-        df=self._data_frame
-        pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column)
-        pipelineModel = pipeline.fit(df)
-        indexed = pipelineModel.transform(df)
-        MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
-        trainingData,validationData = MLUtils.get_training_and_validation_data(indexed,result_column,0.8)
-        OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-        levels = trainingData.select("label").distinct().collect()
+        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
+
+        df = self._data_frame
+        levels = df.select(result_column).distinct().count()
+
+        appType = self._dataframe_context.get_app_type()
+
+        model_filepath = model_path+"/"+self._slug+"/model"
+        pmml_filepath = str(model_path)+"/"+str(self._slug)+"/traindeModel.pmml"
+
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"training","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+
+        st = time.time()
+        pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns, categorical_columns, result_column)
+
+        trainingData, validationData = MLUtils.get_training_and_validation_data(df ,result_column,0.8)   # indexed
+
+        labelIndexer = StringIndexer(inputCol=result_column, outputCol="label")
+        # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
+
+
+        labelIdx = labelIndexer.fit(trainingData)
+        labelMapping = {k:v for k, v in enumerate(labelIdx.labels)}
+        inverseLabelMapping = {v:float(k) for k, v in enumerate(labelIdx.labels)}
+
 
         if self._classifier == "lr":
-            if len(levels) == 2:
-                lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
-            elif len(levels) > 2:
-                lr = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8,family="multinomial")
-            fit = lr.fit(trainingData)
+            if levels == 2:
+                clf = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
+            elif levels > 2:
+                clf = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8,family="multinomial")
+            #fit = lr.fit(trainingData)
         elif self._classifier == "OneVsRest":
             lr = LogisticRegression()
-            ovr = OneVsRest(classifier=lr)
-            fit = ovr.fit(trainingData)
-        transformed = fit.transform(validationData)
-        MLUtils.save_pipeline_or_model(fit,model_filepath)
+            clf = OneVsRest(classifier=lr)
+            #fit = ovr.fit(trainingData)
+        #transformed = fit.transform(validationData)
 
-        print(fit.coefficientMatrix)
-        print(fit.interceptVector)
 
-        # feature_importance = MLUtils.calculate_sparkml_feature_importance(indexed,fit,categorical_columns,numerical_columns)
-        label_classes = transformed.select("label").distinct().collect()
-        results = transformed.select(["prediction","label"])
-        if len(label_classes) > 2:
-            evaluator = MulticlassClassificationEvaluator(predictionCol="prediction")
-            evaluator.evaluate(results)
-            self._model_summary["model_accuracy"] = evaluator.evaluate(results,{evaluator.metricName: "accuracy"}) # accuracy of the model
+        #print(fit.coefficientMatrix)
+        #print(fit.interceptVector)
+
+
+        self._result_setter.set_hyper_parameter_results(self._slug,None)
+        if not algoSetting.is_hyperparameter_tuning_enabled():
+            algoParams = algoSetting.get_params_dict()
+        else:
+            algoParams = algoSetting.get_params_dict_hyperparameter()
+        clfParams = [prm.name for prm in clf.params]
+        algoParams = {getattr(clf, k):v if isinstance(v, list) else [v] for k,v in algoParams.items() if k in clfParams}
+
+        paramGrid = ParamGridBuilder()
+        for k,v in algoParams.items():
+            if v == [None] * len(v):
+                continue
+            paramGrid = paramGrid.addGrid(k,v)
+        paramGrid = paramGrid.build()
+
+        if len(paramGrid) > 1:
+            hyperParamInitParam = algoSetting.get_hyperparameter_params()
+            evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
+            evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
         else:
             evaluationMetricDict = {"name":GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC}
             evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
@@ -214,8 +249,15 @@ class LogisticRegressionPysparkScript(object):
                 prediction = tvrf.transform(validationData)
                 bestModel = tvrf.bestModel
 
+
+        MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
-        metrics = MulticlassMetrics(predsAndLabels)
+        label_classes = prediction.select("label").distinct().collect()
+        #results = transformed.select(["prediction","label"])
+        if len(label_classes) > 2:
+            metrics = MulticlassMetrics(predsAndLabels) # accuracy of the model
+        else:
+            metrics = BinaryClassificationMetrics(predsAndLabels)
         posLabel = inverseLabelMapping[self._targetLevel]
 
         conf_mat_ar = metrics.confusionMatrix().toArray()
@@ -233,6 +275,32 @@ class LogisticRegressionPysparkScript(object):
         precision = metrics.precision(inverseLabelMapping[self._targetLevel])
         recall = metrics.recall(inverseLabelMapping[self._targetLevel])
         accuracy = metrics.accuracy
+        print(f1_score,precision,recall,accuracy)
+
+        #gain chart implementation
+        def cal_prob_eval(x):
+            if len(x) == 1:
+                if x == posLabel:
+                    return(float(x[1]))
+                else:
+                    return(float(1 - x[1]))
+            else:
+                return(float(x[int(posLabel)]))
+
+
+        column_name= 'probability'
+        def y_prob_for_eval_udf():
+            return udf(lambda x:cal_prob_eval(x))
+        prediction = prediction.withColumn("y_prob_for_eval", y_prob_for_eval_udf()(col(column_name)))
+
+        try:
+            pys_df = prediction.select(['y_prob_for_eval','prediction','label'])
+            gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'prediction', 'label', posLabel, self._spark)
+            gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
+        except:
+            print("gain chant failed")
+            pass
+
 
         objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
         "probability":prediction.select('probability'),"feature_importance":None,
@@ -402,11 +470,11 @@ class LogisticRegressionPysparkScript(object):
         transformed = pipelineModel.transform(df)
         label_indexer_dict = MLUtils.read_string_indexer_mapping(trained_model_path,SQLctx)
         prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
-        transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
+        transformed = transformed.withColumn('label',prediction_to_levels(transformed.prediction))
 
         if "probability" in transformed.columns:
-            probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
-            probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
+            probability_dataframe = transformed.select(["label","probability"]).toPandas()
+            probability_dataframe = probability_dataframe.rename(index=str, columns={"label": "predicted_class"})
             probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
             self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
             self._score_summary["result_column"] = result_column
