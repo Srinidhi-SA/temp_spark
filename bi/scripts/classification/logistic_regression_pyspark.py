@@ -4,6 +4,10 @@ standard_library.install_aliases()
 from builtins import object
 import json
 import time
+from datetime import datetime
+from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
+import pandas as pd
+import numpy as np
 
 try:
     import pickle as pickle
@@ -40,6 +44,7 @@ from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.algorithms import GainLiftKS
+from bi.common import NarrativesTree
 
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
 from pyspark.ml import Pipeline
@@ -73,7 +78,7 @@ class LogisticRegressionPysparkScript(object):
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         #self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
-
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
         self._completionStatus = self._dataframe_context.get_completion_status()
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
@@ -249,7 +254,9 @@ class LogisticRegressionPysparkScript(object):
                 prediction = tvrf.transform(validationData)
                 bestModel = tvrf.bestModel
 
-
+        #modelmanagement={param[0].name:param[1] for param in bestModel.extractParamMap().items()}
+        #print(bestModel.stages[2].__dict__)
+        modelmanagement_={param[0].name:param[1] for param in bestModel.stages[2].extractParamMap().items()}
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
         label_classes = prediction.select("label").distinct().collect()
@@ -302,15 +309,100 @@ class LogisticRegressionPysparkScript(object):
             pass
 
 
-        objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
-        "probability":prediction.select('probability'),"feature_importance":None,
+
+
+
+        act_list = prediction.select('label').collect()
+        actual=[int(row.label) for row in act_list]
+        pred_list = prediction.select('prediction').collect()
+        predicted=[int(row.prediction) for row in pred_list]
+        prob_list = prediction.select('probability').collect()
+        probability=[list(row.probability) for row in prob_list]
+        objs = {"trained_model":bestModel,"actual":actual,"predicted":predicted,
+        "probability":probability,"feature_importance":None,
         "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
+
+        '''ROC CURVE IMPLEMENTATION'''
+        y_prob = probability
+        y_score = predicted
+        y_test = actual
+        logLoss = log_loss(y_test,y_prob)
+        if levels <= 2:
+            positive_label_probs = []
+            for val in y_prob:
+                positive_label_probs.append(val[int(posLabel)])
+
+            roc_data_dict = {
+                                "y_score" : y_score,
+                                "y_test" : y_test,
+                                "positive_label_probs" : positive_label_probs,
+                                "y_prob" : y_prob,
+                                "positive_label" : posLabel
+                            }
+            roc_dataframe = pd.DataFrame(
+                                            {
+                                                "y_score" : y_score,
+                                                "y_test" : y_test,
+                                                "positive_label_probs" : positive_label_probs
+                                            }
+                                        )
+            #roc_dataframe.to_csv("binary_roc_data.csv")
+            fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+
+            unique_fpr = rounded_roc_df["FPR"].unique()
+
+            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
+
+        elif levels > 2:
+            positive_label_probs = []
+            for val in y_prob:
+                positive_label_probs.append(val[int(posLabel)])
+
+            y_test_roc_multi = []
+            for val in y_test:
+                if val != posLabel:
+                    val = posLabel + 1
+                    y_test_roc_multi.append(val)
+                else:
+                    y_test_roc_multi.append(val)
+
+            y_score_roc_multi = []
+            for val in y_score:
+                if val != posLabel:
+                    val = posLabel + 1
+                    y_score_roc_multi.append(val)
+                else:
+                    y_score_roc_multi.append(val)
+
+            roc_auc = roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+
+            fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
+            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+            unique_fpr = rounded_roc_df["FPR"].unique()
+            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
 
         # Calculating prediction_split
         val_cnts = prediction.groupBy('label').count()
         val_cnts = map(lambda row: row.asDict(), val_cnts.collect())
         prediction_split = {}
-        total_nos = objs['actual'].count()
+        total_nos = prediction.select('label').count()
         for item in val_cnts:
             classname = labelMapping[item['label']]
             prediction_split[classname] = round(item['count']*100 / float(total_nos), 2)
@@ -348,6 +440,10 @@ class LogisticRegressionPysparkScript(object):
         self._model_summary.set_precision_recall_stats([precision, recall])
         self._model_summary.set_model_precision(precision)
         self._model_summary.set_model_recall(recall)
+        self._model_summary.set_model_F1_score(f1_score)
+        self._model_summary.set_model_log_loss(logLoss)
+        self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
+        self._model_summary.set_AUC_score(roc_auc)
         self._model_summary.set_target_variable(result_column)
         self._model_summary.set_prediction_split(prediction_split)
         self._model_summary.set_validation_method("KFold")
@@ -391,15 +487,91 @@ class LogisticRegressionPysparkScript(object):
                 "name":self._model_summary.get_algorithm_name()
             }
 
+        self._model_management = MLModelSummary()
+        print(modelmanagement_)
+        self._model_management.set_fit_intercept(data=modelmanagement_['fitIntercept'])
+        self._model_management.set_multiclass_option(data=modelmanagement_['family'])
+        self._model_management.set_maximum_solver(data=modelmanagement_['maxIter'])
+        self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['tol'])
+        self._model_management.set_inverse_regularization_strength(data=modelmanagement_['regParam'])
+        self._model_management.set_elasticNetParam(data=modelmanagement_['elasticNetParam'])
+        self._model_management.set_aggregationDepth(data=modelmanagement_['aggregationDepth'])
+        self._model_management.set_standardization(data=modelmanagement_['standardization'])
+        self._model_management.set_threshold(data=modelmanagement_['threshold'])
+        self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+        self._model_management.set_training_status(data="completed")# training status
+        self._model_management.set_no_of_independent_variables(df) #no of independent varables
+        self._model_management.set_target_level(self._targetLevel) # target column value
+        self._model_management.set_training_time(runtime) # run time
+        self._model_management.set_model_accuracy(round(metrics.accuracy,2))#accuracy
+        self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
+        self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+        self._model_management.set_target_variable(result_column)#target column name
+        self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+        self._model_management.set_datasetName(self._datasetName)
+
+        modelManagementSummaryJson =[
+
+                    ["Project Name",self._model_management.get_job_type()],
+                    ["Algorithm",self._model_management.get_algorithm_name()],
+                    ["Training Status",self._model_management.get_training_status()],
+                    ["Accuracy",self._model_management.get_model_accuracy()],
+                    ["RunTime",self._model_management.get_training_time()],
+                    #["Owner",None],
+                    ["Created On",self._model_management.get_creation_date()]
+
+                    ]
+
+        modelManagementModelSettingsJson =[
+
+                    ["Training Dataset",self._model_management.get_datasetName()],
+                    ["Target Column",self._model_management.get_target_variable()],
+                    ["Target Column Value",self._model_management.get_target_level()],
+                    ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                    ["Algorithm",self._model_management.get_algorithm_name()],
+                    ["Model Validation",self._model_management.get_validation_method()],
+                    ["Fit Intercept",str(self._model_management.get_fit_intercept())],
+                    ["AggregationDepth",self._model_management.get_aggregationDepth()],
+                    ["MultiClass Option",self._model_management.get_multiclass_option()],
+                    ["Maximum Solver Iterations",self._model_management.get_maximum_solver()],
+                    ["elasticNetParam",self._model_management.get_elasticNetParam()],
+                    ["standardization",self._model_management.get_standardization()],
+                    ["threshold",str(self._model_management.get_threshold())],
+                    ["Convergence Tolerence Iterations",self._model_management.get_convergence_tolerence_iteration()],
+                    ["Regularization Strength",self._model_management.get_inverse_regularization_strength()]
+
+                    ]
+
+        lrOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        lrPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+        lrDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
         lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        LR_Overview_Node = NarrativesTree()
+        LR_Overview_Node.set_name("Overview")
+        LR_Performance_Node = NarrativesTree()
+        LR_Performance_Node.set_name("Performance")
+        LR_Deployment_Node = NarrativesTree()
+        LR_Deployment_Node.set_name("Deployment")
+        for card in lrOverviewCards:
+            LR_Overview_Node.add_a_card(card)
+        for card in lrPerformanceCards:
+            LR_Performance_Node.add_a_card(card)
+        for card in lrDeploymentCards:
+            LR_Deployment_Node.add_a_card(card)
         for card in lrCards:
             self._prediction_narrative.add_a_card(card)
 
-        self._result_setter.set_model_summary({"logistic":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_spark_logistic_regression_model_summary(modelSummaryJson)
+        self._result_setter.set_model_summary(
+            {"logistic": json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_logistic_regression_model_summary(modelSummaryJson)
         self._result_setter.set_lr_cards(lrCards)
+        self._result_setter.set_lr_nodes([LR_Overview_Node,LR_Performance_Node,LR_Deployment_Node])
+        self._result_setter.set_lr_fail_card({"Algorithm_Name":"LogisticRegression","success":"True"})
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context, self._scriptWeightDict,
+                                                            self._scriptStages, self._slug, "completion", "info",
+                                                            display=True, emptyBin=False, customMsg=None,
+                                                            weightKey="total")
 
 
     def Predict(self):

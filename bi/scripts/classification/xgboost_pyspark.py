@@ -33,6 +33,7 @@ from pyspark.sql.types import *
 from bi.settings import setting as GLOBALSETTINGS
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
+from pyspark.ml.classification import GBTClassifier, OneVsRest,DecisionTreeClassifier
 
 
 
@@ -83,10 +84,10 @@ class XGBoostPysparkScript(object):
         st_global = time.time()
         # os.environ['PYSPARK_SUBMIT_ARGS'] = "--jars xgboost4j-spark-0.72.jar,xgboost4j-0.72.jar pyspark-shell"
         ##################################################################################################
-        self._spark.sparkContext.addPyFile("/home/keshav/pysparkExternalJars/sparkxgb.zip")
+        #self._spark.sparkContext.addPyFile("/home/alagappan/xgboost_spark/sparkxgb.zip")
         ##################################################################################################
 
-        from sparkxgb import XGBoostEstimator
+        #from sparkxgb import XGBoostEstimator
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,  self._scriptWeightDict,self._scriptStages,self._slug,"initialization","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
@@ -142,7 +143,9 @@ class XGBoostPysparkScript(object):
         labelMapping = {k:v for k, v in enumerate(labelIdx.labels)}
         inverseLabelMapping = {v:float(k) for k, v in enumerate(labelIdx.labels)}
 
-        clf = XGBoostEstimator()
+        #gbt = GBTClassifier()
+        #clf = OneVsRest(classifier=gbt)
+        clf= DecisionTreeClassifier()
 
         if not algoSetting.is_hyperparameter_tuning_enabled():
             algoParams = algoSetting.get_params_dict()
@@ -202,7 +205,7 @@ class XGBoostPysparkScript(object):
             else:
                 crossval = CrossValidator(estimator=estimator,
                               estimatorParamMaps=paramGrid,
-                              evaluator=BinaryClassificationEvaluator().setRawPredictionCol("probabilities") if levels == 2 else MulticlassClassificationEvaluator(),
+                              evaluator=BinaryClassificationEvaluator().setRawPredictionCol("probability") if levels == 2 else MulticlassClassificationEvaluator(),
                               numFolds=3 if numFold is None else numFold)  # use 3+ folds in practice
                 trainingData.show()
                 cvspxgb = crossval.fit(trainingData)
@@ -290,13 +293,13 @@ class XGBoostPysparkScript(object):
 
 
 
-        feature_importance_model = bestModel.stages[-1]
-        boost_obj = feature_importance_model._call_java('booster')
-        scores = boost_obj.getFeatureScore('')
-        featuresVec = str(scores.toVector())
+        #feature_importance_model = bestModel.stages[-1]
+        #boost_obj = feature_importance_model._call_java('booster')
+        #scores = boost_obj.getFeatureScore('')
+        #featuresVec = str(scores.toVector())
         # feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
         objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
-        "probability":prediction.select('probabilities'),"feature_importance":None,
+        "probability":prediction.select('probability'),"feature_importance":None,
         "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
 
         # Calculating prediction_split

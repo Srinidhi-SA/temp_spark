@@ -173,7 +173,25 @@ class MLModelSummary(object):
         self.exp_var_score = None
         self.layer_info=[]
         self.optimizer=None
-
+        self.aggregation_depth=None
+        self.standardization=None
+        self.threshold=None
+    def set_elasticNetParam(self,data):
+        self.elasticNetParam=data
+    def get_elasticNetParam(self):
+        return self.elasticNetParam
+    def set_aggregationDepth(self,data):
+        self.aggregation_depth=data
+    def get_aggregationDepth(self):
+        return self.aggregation_depth
+    def set_standardization(self,data):
+        self.standardization=data
+    def get_standardization(self):
+        return self.standardization
+    def set_threshold(self,data):
+        self.threshold=data
+    def get_threshold(self):
+        return self.threshold
     def set_layer_info(self,data):
         self.layer_info=data
     def get_layer_info(self):
