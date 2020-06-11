@@ -618,27 +618,6 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
 
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkrandomforest"]:
-                try:
-                    st = time.time()
-                    sprf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                    # rf_obj = RandomForestPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-                    sprf_obj.Train()
-                    print("Spark ML Random Forest Model Done in ", time.time() - st,  " seconds.")
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"randomForest",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparknaivebayes"]:
-                try:
-                    st = time.time()
-                    spnb_obj = NaiveBayesPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                    spnb_obj .Train()
-                    print("Spark ML Naive Bayes Model Done in ", time.time() - st,  " seconds.")
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"sparknaivebayes",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["xgboost"]:
                 try:
                     st = time.time()
@@ -678,37 +657,17 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     st = time.time()
                     if pandas_flag:
                         lr_obj = LogisticRegressionScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                        # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                         lr_obj.Train()
                     else:
                         print("##########################SPARK LOG STARTED")
                         lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                        # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
                         lr_obj.Train()
                     print("Logistic Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_lr_fail_card({"Algorithm_Name":"Logistic Regression","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparklogisticregression"]:
-                try:
-                    st = time.time()
-                    lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                    # lr_obj = LogisticRegressionPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter)
-                    lr_obj.Train()
-                    print("Spark ML Logistic Regression Model Done in ", time.time() - st,  " seconds.")
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"logisticRegression",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["sparkxgboost"]:
-                try:
-                    st = time.time()
-                    spxgb_obj = XGBoostPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                    spxgb_obj.Train()
-                    print("XGBoost Model Done in ", time.time() - st,  " seconds.")
-                except Exception as e:
-                    CommonUtils.print_errors_and_store_traceback(LOGGER,"sparkxgboost",e)
-                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
 
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesber"] and obj.get_algorithm_name() == "naivebayesber":
                 try:
@@ -788,15 +747,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
                     result_setter.set_nnptc_fail_card({"Algorithm_Name": "Neural Network (PyTorch)", "success": "False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER, "Neural Network (PyTorch)", e)
                     CommonUtils.save_error_messages(errorURL, APP_NAME, e, ignore=ignoreMsg)
-            # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["svm"]:
-                # try:
-                #     st = time.time()
-                #     svm_obj = SupportVectorMachineScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
-                #     svm_obj.Train()
-                #     print "SVM Model Done in ", time.time() - st,  " seconds."
-                # except Exception as e:
-                #     CommonUtils.print_errors_and_store_traceback(LOGGER,"svm",e)
-                #     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+
     elif app_type == "REGRESSION":
         for obj in algosToRun:
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:

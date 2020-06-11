@@ -261,20 +261,14 @@ class LogisticRegressionPysparkScript(object):
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
         label_classes = prediction.select("label").distinct().collect()
         #results = transformed.select(["prediction","label"])
-        if len(label_classes) > 2:
-            metrics = MulticlassMetrics(predsAndLabels) # accuracy of the model
-        else:
-            metrics = BinaryClassificationMetrics(predsAndLabels)
+        # if len(label_classes) > 2:
+        #     metrics = MulticlassMetrics(predsAndLabels)
+        # else:
+        #     metrics = BinaryClassificationMetrics(predsAndLabels)
         posLabel = inverseLabelMapping[self._targetLevel]
+        metrics = MulticlassMetrics(predsAndLabels)
 
-        conf_mat_ar = metrics.confusionMatrix().toArray()
-        print(conf_mat_ar)
-        confusion_matrix = {}
-        for i in range(len(conf_mat_ar)):
-        	confusion_matrix[labelMapping[i]] = {}
-        	for j, val in enumerate(conf_mat_ar[i]):
-        		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print(confusion_matrix)
+
 
         trainingTime = time.time()-st
 
@@ -322,6 +316,14 @@ class LogisticRegressionPysparkScript(object):
         "probability":probability,"feature_importance":None,
         "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
 
+        conf_mat_ar = metrics.confusionMatrix().toArray()
+        print(conf_mat_ar)
+        confusion_matrix = {}
+        for i in range(len(conf_mat_ar)):
+            confusion_matrix[labelMapping[i]] = {}
+            for j, val in enumerate(conf_mat_ar[i]):
+                confusion_matrix[labelMapping[i]][labelMapping[j]] = val
+        print(confusion_matrix) # accuracy of the model
         '''ROC CURVE IMPLEMENTATION'''
         y_prob = probability
         y_score = predicted
@@ -331,7 +333,7 @@ class LogisticRegressionPysparkScript(object):
             positive_label_probs = []
             for val in y_prob:
                 positive_label_probs.append(val[int(posLabel)])
-
+            roc_auc = roc_auc_score(y_test,y_score)
             roc_data_dict = {
                                 "y_score" : y_score,
                                 "y_test" : y_test,
@@ -428,8 +430,8 @@ class LogisticRegressionPysparkScript(object):
 
         cat_cols = list(set(categorical_columns) - {result_column})
         self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Spark ML Logistic Regression")
-        self._model_summary.set_algorithm_display_name("Spark ML Logistic Regression")
+        self._model_summary.set_algorithm_name("Logistic Regression")
+        self._model_summary.set_algorithm_display_name("Logistic Regression")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(confusion_matrix)

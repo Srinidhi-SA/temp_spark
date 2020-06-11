@@ -1,6 +1,10 @@
 import json
 import time
 import os
+from datetime import datetime
+from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
+import pandas as pd
+import numpy as np
 
 try:
     import cPickle as pickle
@@ -20,6 +24,7 @@ from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
 from bi.algorithms import GainLiftKS
+from bi.common import NarrativesTree
 
 
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
@@ -59,6 +64,7 @@ class XGBoostPysparkScript(object):
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
         self._mlEnv = mlEnvironment
 
         # os.environ['PYSPARK_SUBMIT_ARGS'] = "--jars xgboost4j-spark-0.72.jar,xgboost4j-0.72.jar pyspark-shell"
@@ -243,23 +249,20 @@ class XGBoostPysparkScript(object):
                 tvspxgb = tvs.fit(trainingData)
                 prediction = tvspxgb.transform(validationData)
                 bestModel = tvspxgb.bestModel
-
+        modelmanagement_={param[0].name:param[1] for param in bestModel.stages[2].extractParamMap().items()}
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
+        label_classes = prediction.select("label").distinct().collect()
+        # if len(label_classes) > 2:
+        #     metrics = MulticlassMetrics(predsAndLabels) # accuracy of the model
+        # else:
+        #     metrics = BinaryClassificationEvaluator(predsAndLabels)
         metrics = MulticlassMetrics(predsAndLabels)
         posLabel = inverseLabelMapping[self._targetLevel]
 
-        conf_mat_ar = metrics.confusionMatrix().toArray()
-        print(conf_mat_ar)
-        confusion_matrix = {}
-        for i in range(len(conf_mat_ar)):
-        	confusion_matrix[labelMapping[i]] = {}
-        	for j, val in enumerate(conf_mat_ar[i]):
-        		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print(confusion_matrix)
+
 
         trainingTime = time.time()-st
-
         f1_score = metrics.fMeasure(inverseLabelMapping[self._targetLevel], 1.0)
         precision = metrics.precision(inverseLabelMapping[self._targetLevel])
         recall = metrics.recall(inverseLabelMapping[self._targetLevel])
@@ -293,20 +296,107 @@ class XGBoostPysparkScript(object):
 
 
 
-        #feature_importance_model = bestModel.stages[-1]
-        #boost_obj = feature_importance_model._call_java('booster')
-        #scores = boost_obj.getFeatureScore('')
-        #featuresVec = str(scores.toVector())
-        # feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
-        objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
-        "probability":prediction.select('probability'),"feature_importance":None,
+        act_list = prediction.select('label').collect()
+        actual=[int(row.label) for row in act_list]
+        pred_list = prediction.select('prediction').collect()
+        predicted=[int(row.prediction) for row in pred_list]
+        prob_list = prediction.select('probability').collect()
+        probability=[list(row.probability) for row in prob_list]
+        #feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
+        objs = {"trained_model":bestModel,"actual":actual,"predicted":predicted,
+        "probability":probability,"feature_importance":None,
         "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
 
+        conf_mat_ar = metrics.confusionMatrix().toArray()
+        print(conf_mat_ar)
+        confusion_matrix = {}
+        for i in range(len(conf_mat_ar)):
+            confusion_matrix[labelMapping[i]] = {}
+            for j, val in enumerate(conf_mat_ar[i]):
+                confusion_matrix[labelMapping[i]][labelMapping[j]] = val
+        print(confusion_matrix) # accuracy of the model
+
+        '''ROC CURVE IMPLEMENTATION'''
+        y_prob = probability
+        y_score = predicted
+        y_test = actual
+        logLoss = log_loss(y_test,y_prob)
+        if levels <= 2:
+            positive_label_probs = []
+            for val in y_prob:
+                positive_label_probs.append(val[int(posLabel)])
+            roc_auc = roc_auc_score(y_test,y_score)
+
+            roc_data_dict = {
+                                "y_score" : y_score,
+                                "y_test" : y_test,
+                                "positive_label_probs" : positive_label_probs,
+                                "y_prob" : y_prob,
+                                "positive_label" : posLabel
+                            }
+            roc_dataframe = pd.DataFrame(
+                                            {
+                                                "y_score" : y_score,
+                                                "y_test" : y_test,
+                                                "positive_label_probs" : positive_label_probs
+                                            }
+                                        )
+            #roc_dataframe.to_csv("binary_roc_data.csv")
+            fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+
+            unique_fpr = rounded_roc_df["FPR"].unique()
+
+            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
+
+        elif levels > 2:
+            positive_label_probs = []
+            for val in y_prob:
+                positive_label_probs.append(val[int(posLabel)])
+
+            y_test_roc_multi = []
+            for val in y_test:
+                if val != posLabel:
+                    val = posLabel + 1
+                    y_test_roc_multi.append(val)
+                else:
+                    y_test_roc_multi.append(val)
+
+            y_score_roc_multi = []
+            for val in y_score:
+                if val != posLabel:
+                    val = posLabel + 1
+                    y_score_roc_multi.append(val)
+                else:
+                    y_score_roc_multi.append(val)
+
+            roc_auc = roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+
+            fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
+            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+            unique_fpr = rounded_roc_df["FPR"].unique()
+            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
         # Calculating prediction_split
         val_cnts = prediction.groupBy('label').count()
         val_cnts = map(lambda row: row.asDict(), val_cnts.collect())
         prediction_split = {}
-        total_nos = objs['actual'].count()
+        total_nos = prediction.select('label').count()
         for item in val_cnts:
             print(labelMapping)
             classname = labelMapping[item['label']]
@@ -318,11 +408,22 @@ class XGBoostPysparkScript(object):
             modelFilepathArr.append(modelName)
             objs["trained_model"].save("/".join(modelFilepathArr))
         runtime = round((time.time() - st_global),2)
+        try:
+            print(pmml_filepath)
+            pmmlBuilder = PMMLBuilder(self._spark, trainingData, bestModel).putOption(clf, 'compact', True)
+            pmmlBuilder.buildFile(pmml_filepath)
+            pmmlfile = open(pmml_filepath,"r")
+            pmmlText = pmmlfile.read()
+            pmmlfile.close()
+            self._result_setter.update_pmml_object({self._slug:pmmlText})
+        except Exception as e:
+            print("PMML failed...", str(e))
+            pass
 
         cat_cols = list(set(categorical_columns) - {result_column})
         self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Spark ML XGBoost")
-        self._model_summary.set_algorithm_display_name("Spark ML XGBoost")
+        self._model_summary.set_algorithm_name("XGBoost")
+        self._model_summary.set_algorithm_display_name("XGBoost")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(confusion_matrix)
@@ -333,6 +434,10 @@ class XGBoostPysparkScript(object):
         self._model_summary.set_precision_recall_stats([precision, recall])
         self._model_summary.set_model_precision(precision)
         self._model_summary.set_model_recall(recall)
+        self._model_summary.set_model_F1_score(f1_score)
+        self._model_summary.set_model_log_loss(logLoss)
+        self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
+        self._model_summary.set_AUC_score(roc_auc)
         self._model_summary.set_target_variable(result_column)
         self._model_summary.set_prediction_split(prediction_split)
         self._model_summary.set_validation_method("KFold")
@@ -376,13 +481,80 @@ class XGBoostPysparkScript(object):
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
+        print(modelmanagement_)
+        self._model_management = MLModelSummary()
+        self._model_management.set_cacheNodeIds(data=modelmanagement_['cacheNodeIds'])
+        self._model_management.set_checkpoint_interval(data=modelmanagement_['checkpointInterval'])
+        self._model_management.set_max_bins(data=modelmanagement_['maxBins'])
+        self._model_management.set_impurity(data=modelmanagement_['impurity'])
+        self._model_management.set_max_depth(data=modelmanagement_['maxDepth'])
+        self._model_management.set_min_instances_per_node(data=modelmanagement_['minInstancesPerNode'])
+        self._model_management.set_min_info_gain(data=modelmanagement_['minInfoGain'])
+        self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+        self._model_management.set_training_status(data="completed")# training status
+        self._model_management.set_no_of_independent_variables(data=df) #no of independent varables
+        self._model_management.set_target_level(self._targetLevel) # target column value
+        self._model_management.set_training_time(runtime) # run time
+        self._model_management.set_model_accuracy(round(metrics.accuracy,2))#accuracy
+        self._model_management.set_algorithm_name("XGBoost")#algorithm name
+        self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+        self._model_management.set_target_variable(result_column)#target column name
+        self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+        self._model_management.set_datasetName(self._datasetName)
 
-        spxgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        for card in spxgbCards:
+
+
+        modelManagementSummaryJson = [
+
+                            ["Project Name",self._model_management.get_job_type()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Training Status",self._model_management.get_training_status()],
+                            ["Accuracy",self._model_management.get_model_accuracy()],
+                            ["RunTime",self._model_management.get_training_time()],
+                            ["Created On",self._model_management.get_creation_date()]
+
+                                        ]
+
+        modelManagementModelSettingsJson = [
+
+                                  ["Training Dataset",self._model_management.get_datasetName()],
+                                  ["Target Column",self._model_management.get_target_variable()],
+                                  ["Target Column Value",self._model_management.get_target_level()],
+                                  ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["CacheNodeIds",self._model_management.get_cacheNodeIds()],
+                                  ["Max Bins",self._model_management.get_max_bins()],
+                                  ["Max Depth",self._model_management.get_max_depth()],
+                                  ["Minimum Instances Per Node",self._model_management.get_min_instances_per_node()],
+                                  ["Minimum Information Gain",self._model_management.get_min_info_gain()],
+                                  ["Checkpoint Interval",self._model_management.get_checkpoint_interval()],
+                                  ["Impurity",self._model_management.get_impurity()],
+                                  ["Model Validation",self._model_management.get_validation_method()],]
+
+        xgbOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        xgbPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+        xgbDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+        xgbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        XGB_Overview_Node = NarrativesTree()
+        XGB_Overview_Node.set_name("Overview")
+        XGB_Performance_Node = NarrativesTree()
+        XGB_Performance_Node.set_name("Performance")
+        XGB_Deployment_Node = NarrativesTree()
+        XGB_Deployment_Node.set_name("Deployment")
+        for card in xgbOverviewCards:
+            XGB_Overview_Node.add_a_card(card)
+        for card in xgbPerformanceCards:
+            XGB_Performance_Node.add_a_card(card)
+        for card in xgbDeploymentCards:
+            XGB_Deployment_Node.add_a_card(card)
+        for card in xgbCards:
             self._prediction_narrative.add_a_card(card)
 
         self._result_setter.set_model_summary({"xgboost":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_spark_xgboost_model_summary(modelSummaryJson)
-        self._result_setter.set_xgb_cards(spxgbCards)
+        self._result_setter.set_xgboost_model_summary(modelSummaryJson)
+        # self._result_setter.set_xgboost_management_summary(modelManagementJson)
+        self._result_setter.set_xgb_cards(xgbCards)
+        self._result_setter.set_xgb_nodes([XGB_Overview_Node,XGB_Performance_Node,XGB_Deployment_Node])
+        self._result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"True"})
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")

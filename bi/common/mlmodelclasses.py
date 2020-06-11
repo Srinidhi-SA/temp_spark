@@ -176,6 +176,52 @@ class MLModelSummary(object):
         self.aggregation_depth=None
         self.standardization=None
         self.threshold=None
+        self.maxBins = None
+        self.minInstancesPerNode = None
+        self.minInfoGain = None
+        self.cacheNodeIds = None
+        self.checkpointInterval = None
+        self.impurity = None
+        self.numTrees = None
+        self.featureSubsetStrategy = None
+        self.subsamplingRate = None
+
+    def set_max_bins(self,data):
+        self.maxBins = data
+    def get_max_bins(self):
+        return self.maxBins
+    def set_min_instances_per_node(self,data):
+        self.minInstancesPerNode = data
+    def get_min_instances_per_node(self):
+        return self.minInstancesPerNode
+    def set_min_info_gain(self,data):
+        self.minInfoGain = data
+    def get_min_info_gain(self):
+        return self.minInfoGain
+    def set_cacheNodeIds(self,data):
+        self.cacheNodeIds = data
+    def get_cacheNodeIds(self):
+        return self.cacheNodeIds
+    def set_checkpoint_interval(self,data):
+        self.checkpointInterval = data
+    def get_checkpoint_interval(self):
+        return self.checkpointInterval
+    def set_impurity(self,data):
+        self.impurity = data
+    def get_impurity(self):
+        return self.impurity
+    def set_num_of_trees(self,data):
+        self.numTrees = data
+    def get_num_of_trees(self):
+        return self.numTrees
+    def set_feature_subset_strategy(self,data):
+        self.featureSubsetStrategy = data
+    def get_feature_subset_strategy(self):
+        return self.featureSubsetStrategy
+    def set_subsampling_rate(self,data):
+        self.subsamplingRate = data
+    def get_subsampling_rate(self):
+        return self.subsamplingRate
     def set_elasticNetParam(self,data):
         self.elasticNetParam=data
     def get_elasticNetParam(self):

@@ -4,7 +4,10 @@ standard_library.install_aliases()
 from builtins import object
 import json
 import time
-
+from datetime import datetime
+from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
+import pandas as pd
+import numpy as np
 try:
     import pickle as pickle
 except:
@@ -17,6 +20,7 @@ from bi.common import DataFrameHelper
 from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
 from bi.common import SklearnGridSearchResult, SkleanrKFoldResult, PySparkTrainTestResult
 from bi.common.mlmodelclasses import PySparkGridSearchResult
+from bi.common import NarrativesTree
 from bi.algorithms import DecisionTrees
 
 from bi.stats.frequency_dimensions import FreqDimensions
@@ -64,7 +68,7 @@ class RandomForestPysparkScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
-
+        self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
         self._scriptStages = {
             "initialization":{
                 "summary":"Initialized the Random Forest Scripts",
@@ -216,27 +220,25 @@ class RandomForestPysparkScript(object):
                 tvrf = tvs.fit(trainingData)
                 prediction = tvrf.transform(validationData)
                 bestModel = tvrf.bestModel
-
+        modelmanagement_={param[0].name:param[1] for param in bestModel.stages[2].extractParamMap().items()}
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
+        label_classes = prediction.select("label").distinct().collect()
 
-        prediction.select(["features", "label", "rawPrediction", "probability", "prediction"]).show()
-        print("$"*143)
-        print(predsAndLabels.collect())
-        print("$"*143)
-
-
+        # prediction.select(["features", "label", "rawPrediction", "probability", "prediction"]).show()
+        # print("$"*143)
+        # print(predsAndLabels.collect())
+        # print("$"*143)
+        posLabel = inverseLabelMapping[self._targetLevel]
+        # if len(label_classes) > 2:
+        #     metrics = MulticlassMetrics(predsAndLabels) # accuracy of the model
+        # else:
+        #     metrics = BinaryClassificationEvaluator(predsAndLabels)
         metrics = MulticlassMetrics(predsAndLabels)
+
         posLabel = inverseLabelMapping[self._targetLevel]
 
-        conf_mat_ar = metrics.confusionMatrix().toArray()
-        print(conf_mat_ar)
-        confusion_matrix = {}
-        for i in range(len(conf_mat_ar)):
-        	confusion_matrix[labelMapping[i]] = {}
-        	for j, val in enumerate(conf_mat_ar[i]):
-        		confusion_matrix[labelMapping[i]][labelMapping[j]] = val
-        print(confusion_matrix)
+
 
         trainingTime = time.time()-st
 
@@ -268,22 +270,121 @@ class RandomForestPysparkScript(object):
             gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'prediction', 'label', posLabel, self._spark)
             gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
         except:
-            print("gain chant failed")
+            print("gain chart failed")
             pass
 
 
+        act_list = prediction.select('label').collect()
+        actual=[int(row.label) for row in act_list]
+        pred_list = prediction.select('prediction').collect()
+        predicted=[int(row.prediction) for row in pred_list]
+        prob_list = prediction.select('probability').collect()
+        probability=[list(row.probability) for row in prob_list]
+        try:
+            feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
 
-        feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
+        except:
+            feature_data=MLUtils.ExtractFeatureImp(bestModel.stages[-1].featureImportances, prediction, "features")
+            feature_importance=pd.Series(feature_data.score.values,index=feature_data.name).to_dict()
 
-        objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
-        "probability":prediction.select('probability'),"feature_importance":feature_importance,
+        objs = {"trained_model":bestModel,"actual":actual,"predicted":predicted,
+        "probability":probability,"feature_importance":feature_importance,
         "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
+
+
+
+        conf_mat_ar = metrics.confusionMatrix().toArray()
+        print(conf_mat_ar)
+        confusion_matrix = {}
+        for i in range(len(conf_mat_ar)):
+            confusion_matrix[labelMapping[i]] = {}
+            for j, val in enumerate(conf_mat_ar[i]):
+                confusion_matrix[labelMapping[i]][labelMapping[j]] = val
+        print(confusion_matrix) # accuracy of the model
+
+        '''ROC CURVE IMPLEMENTATION'''
+        y_prob = probability
+        y_score = predicted
+        y_test = actual
+        logLoss = log_loss(y_test,y_prob)
+        if levels <= 2:
+            positive_label_probs = []
+            for val in y_prob:
+                positive_label_probs.append(val[int(posLabel)])
+            roc_auc = roc_auc_score(y_test,y_score)
+
+            roc_data_dict = {
+                                "y_score" : y_score,
+                                "y_test" : y_test,
+                                "positive_label_probs" : positive_label_probs,
+                                "y_prob" : y_prob,
+                                "positive_label" : posLabel
+                            }
+            roc_dataframe = pd.DataFrame(
+                                            {
+                                                "y_score" : y_score,
+                                                "y_test" : y_test,
+                                                "positive_label_probs" : positive_label_probs
+                                            }
+                                        )
+            #roc_dataframe.to_csv("binary_roc_data.csv")
+            fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+
+            unique_fpr = rounded_roc_df["FPR"].unique()
+
+            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
+
+        elif levels > 2:
+            positive_label_probs = []
+            for val in y_prob:
+                positive_label_probs.append(val[int(posLabel)])
+
+            y_test_roc_multi = []
+            for val in y_test:
+                if val != posLabel:
+                    val = posLabel + 1
+                    y_test_roc_multi.append(val)
+                else:
+                    y_test_roc_multi.append(val)
+
+            y_score_roc_multi = []
+            for val in y_score:
+                if val != posLabel:
+                    val = posLabel + 1
+                    y_score_roc_multi.append(val)
+                else:
+                    y_score_roc_multi.append(val)
+
+            roc_auc = roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+
+            fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
+            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+
+            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+
+            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+            unique_fpr = rounded_roc_df["FPR"].unique()
+            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
+
 
         # Calculating prediction_split
         val_cnts = prediction.groupBy('label').count()
         val_cnts = map(lambda row: row.asDict(), val_cnts.collect())
         prediction_split = {}
-        total_nos = objs['actual'].count()
+        total_nos = prediction.select('label').count()
         for item in val_cnts:
             classname = labelMapping[item['label']]
             prediction_split[classname] = round(item['count']*100 / float(total_nos), 2)
@@ -303,13 +404,14 @@ class RandomForestPysparkScript(object):
             pmmlText = pmmlfile.read()
             pmmlfile.close()
             self._result_setter.update_pmml_object({self._slug:pmmlText})
-        except:
+        except Exception as e:
+            print("PMML failed...", str(e))
             pass
 
         cat_cols = list(set(categorical_columns) - {result_column})
         self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Spark ML Random Forest")
-        self._model_summary.set_algorithm_display_name("Spark ML Random Forest")
+        self._model_summary.set_algorithm_name("Random Forest")
+        self._model_summary.set_algorithm_display_name("Random Forest")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(confusion_matrix)
@@ -320,6 +422,10 @@ class RandomForestPysparkScript(object):
         self._model_summary.set_precision_recall_stats([precision, recall])
         self._model_summary.set_model_precision(precision)
         self._model_summary.set_model_recall(recall)
+        self._model_summary.set_model_F1_score(f1_score)
+        self._model_summary.set_model_log_loss(logLoss)
+        self._model_summary.set_gain_lift_KS_data(gain_lift_KS_dataframe)
+        self._model_summary.set_AUC_score(roc_auc)
         self._model_summary.set_target_variable(result_column)
         self._model_summary.set_prediction_split(prediction_split)
         self._model_summary.set_validation_method("KFold")
@@ -363,14 +469,88 @@ class RandomForestPysparkScript(object):
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
+        print(modelmanagement_)
+        self._model_management = MLModelSummary()
+        self._model_management.set_max_bins(data=modelmanagement_['maxBins'])
+        self._model_management.set_max_depth(data=modelmanagement_['maxDepth'])
+        self._model_management.set_min_instances_per_node(data=modelmanagement_['minInstancesPerNode'])
+        self._model_management.set_min_info_gain(data=modelmanagement_['minInfoGain'])
+        self._model_management.set_cacheNodeIds(data=modelmanagement_['cacheNodeIds'])
+        self._model_management.set_checkpoint_interval(data=modelmanagement_['checkpointInterval'])
+        self._model_management.set_impurity(data=modelmanagement_['impurity'])
+        self._model_management.set_num_of_trees(data=modelmanagement_['numTrees'])
+        self._model_management.set_feature_subset_strategy(data=modelmanagement_['featureSubsetStrategy'])
+        self._model_management.set_subsampling_rate(data=modelmanagement_['subsamplingRate'])
+        self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+        self._model_management.set_training_status(data="completed")# training status
+        self._model_management.set_no_of_independent_variables(data=df) #no of independent varables
+        self._model_management.set_target_level(self._targetLevel) # target column value
+        self._model_management.set_training_time(runtime) # run time
+        self._model_management.set_model_accuracy(round(metrics.accuracy,2))#accuracy
+        self._model_management.set_algorithm_name("RandomForest")#algorithm name
+        self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+        self._model_management.set_target_variable(result_column)#target column name
+        self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+        self._model_management.set_datasetName(self._datasetName)
 
+
+
+        modelManagementSummaryJson = [
+
+                            ["Project Name",self._model_management.get_job_type()],
+                            ["Algorithm",self._model_management.get_algorithm_name()],
+                            ["Training Status",self._model_management.get_training_status()],
+                            ["Accuracy",self._model_management.get_model_accuracy()],
+                            ["RunTime",self._model_management.get_training_time()],
+                            ["Created On",self._model_management.get_creation_date()]
+
+                                        ]
+
+        modelManagementModelSettingsJson = [
+
+                                  ["Training Dataset",self._model_management.get_datasetName()],
+                                  ["Target Column",self._model_management.get_target_variable()],
+                                  ["Target Column Value",self._model_management.get_target_level()],
+                                  ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Model Validation",self._model_management.get_validation_method()],
+                                  ["Max Bins",self._model_management.get_max_bins()],
+                                  ["Max Depth",self._model_management.get_max_depth()],
+                                  ["Minimum Instances Per Node",self._model_management.get_min_instances_per_node()],
+                                  ["Minimum Information Gain",self._model_management.get_min_info_gain()],
+                                  ["CacheNodeIds",self._model_management.get_cacheNodeIds()],
+                                  ["Checkpoint Interval",self._model_management.get_checkpoint_interval()],
+                                  ["Impurity",self._model_management.get_impurity()],
+                                  ["No of Trees",str(self._model_management.get_num_of_trees())],
+                                  ["Feature Subset Strategy",self._model_management.get_feature_subset_strategy()],
+                                  ["subsampling_rate",self._model_management.get_subsampling_rate()]
+                                                  ]
+
+        rfOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        rfPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+        rfDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
         rfCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        RF_Overview_Node = NarrativesTree()
+        RF_Overview_Node.set_name("Overview")
+        RF_Performance_Node = NarrativesTree()
+        RF_Performance_Node.set_name("Performance")
+        RF_Deployment_Node = NarrativesTree()
+        RF_Deployment_Node.set_name("Deployment")
+        for card in rfOverviewCards:
+            RF_Overview_Node.add_a_card(card)
+        for card in rfPerformanceCards:
+            RF_Performance_Node.add_a_card(card)
+        for card in rfDeploymentCards:
+            RF_Deployment_Node.add_a_card(card)
         for card in rfCards:
             self._prediction_narrative.add_a_card(card)
 
         self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_spark_random_forest_model_summary(modelSummaryJson)
+        self._result_setter.set_random_forest_model_summary(modelSummaryJson)
+        # self._result_setter.set_random_forest_management_summary(modelManagementJson)
         self._result_setter.set_rf_cards(rfCards)
+        self._result_setter.set_rf_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
+        self._result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"True"})
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
