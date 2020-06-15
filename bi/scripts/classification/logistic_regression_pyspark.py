@@ -644,11 +644,11 @@ class LogisticRegressionPysparkScript(object):
         transformed = pipelineModel.transform(df)
         label_indexer_dict = MLUtils.read_string_indexer_mapping(trained_model_path,SQLctx)
         prediction_to_levels = udf(lambda x:label_indexer_dict[x],StringType())
-        transformed = transformed.withColumn('label',prediction_to_levels(transformed.prediction))
+        transformed = transformed.withColumn(result_column,prediction_to_levels(transformed.prediction))
 
         if "probability" in transformed.columns:
-            probability_dataframe = transformed.select(["label","probability"]).toPandas()
-            probability_dataframe = probability_dataframe.rename(index=str, columns={"label": "predicted_class"})
+            probability_dataframe = transformed.select([result_column,"probability"]).toPandas()
+            probability_dataframe = probability_dataframe.rename(index=str, columns={result_column: "predicted_class"})
             probability_dataframe["predicted_probability"] = probability_dataframe["probability"].apply(lambda x:max(x))
             self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
             self._score_summary["result_column"] = result_column
