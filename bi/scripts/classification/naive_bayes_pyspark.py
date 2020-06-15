@@ -37,6 +37,7 @@ from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.settings import setting as GLOBALSETTINGS
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
+from pyspark2pmml import PMMLBuilder
 
 from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
 import pandas as pd
