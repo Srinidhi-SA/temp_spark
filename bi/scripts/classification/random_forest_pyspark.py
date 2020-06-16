@@ -8,6 +8,8 @@ from datetime import datetime
 from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
 import pandas as pd
 import numpy as np
+from bi.common import NormalChartData, ChartJson, ScatterChartData
+import humanize
 try:
     import pickle as pickle
 except:
@@ -44,6 +46,7 @@ from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
 
 from pyspark2pmml import PMMLBuilder
+from bi.narratives import utils as NarrativesUtils
 
 
 
@@ -744,35 +747,35 @@ class RandomForestPysparkScript(object):
         #     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
         # except:
         #    print "ChiSquare Analysis Failed "
-        df = df_helper.get_data_frame()
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-            result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-            df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-            df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-            CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-            narratives_obj = DimensionColumnNarrative(df, result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
-            narratives = CommonUtils.as_dict(narratives_obj)
-            CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-            print("Frequency Analysis Done in ", time.time() - fs,  " seconds.")
-        except:
-            print("Frequency Analysis Failed ")
-
-        try:
-            fs = time.time()
-            narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-            result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-            df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-            df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            print('RESULT: %s' % (json.dumps(df_chisquare_result, indent=2)))
-            CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-            chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-            CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-            print("ChiSquare Analysis Done in ", time.time() - fs, " seconds.")
-        except:
-           print("ChiSquare Analysis Failed ")
+        # df = df_helper.get_data_frame()
+        # try:
+        #     fs = time.time()
+        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
+        #     result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
+        #     df_freq_dimension_obj = FreqDimensions(df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
+        #     df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
+        #     CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
+        #     narratives_obj = DimensionColumnNarrative(df, result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
+        #     narratives = CommonUtils.as_dict(narratives_obj)
+        #     CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
+        #     print("Frequency Analysis Done in ", time.time() - fs,  " seconds.")
+        # except:
+        #     print("Frequency Analysis Failed ")
+        #
+        # try:
+        #     fs = time.time()
+        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
+        #     result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
+        #     df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
+        #     df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
+        #     print('RESULT: %s' % (json.dumps(df_chisquare_result, indent=2)))
+        #     CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
+        #     chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
+        #     # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
+        #     CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
+        #     print("ChiSquare Analysis Done in ", time.time() - fs, " seconds.")
+        # except:
+        #    print("ChiSquare Analysis Failed ")
 
         if len(predictedClasses) >=2:
             try:
@@ -786,6 +789,7 @@ class RandomForestPysparkScript(object):
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
 
             if data_dict["nactual"] > 2:
+                levelCountDict={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])
             else:
@@ -823,4 +827,4 @@ class RandomForestPysparkScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card])
+            self._result_setter.set_score_dtree_cards([main_card],{})

@@ -1276,7 +1276,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
                         CommonUtils.print_errors_and_store_traceback(LOGGER,"naive bayes",e)
                         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             else:
-                trainedModel = NaiveBayesPysparkScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance)
+                trainedModel = NaiveBayesPysparkScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
                 try:
                     trainedModel.Predict()
                 except Exception as e:

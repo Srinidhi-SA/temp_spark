@@ -1,6 +1,7 @@
 import json
 import time
 from datetime import datetime
+import humanize
 try:
     import cPickle as pickle
 except:
@@ -11,6 +12,7 @@ from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.algorithms import DecisionTrees
 from bi.common import DataFrameHelper
+from bi.common import NormalChartData, ChartJson, ScatterChartData
 from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
 from bi.common import SklearnGridSearchResult, SkleanrKFoldResult
 from bi.common.mlmodelclasses import PySparkGridSearchResult, PySparkTrainTestResult
@@ -23,6 +25,7 @@ from bi.narratives.chisquare import ChiSquareNarratives
 from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.algorithms import GainLiftKS
 from bi.common import NarrativesTree
+from bi.narratives import utils as NarrativesUtils
 
 from pyspark.ml.classification import NaiveBayes
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
@@ -754,4 +757,4 @@ class NaiveBayesPysparkScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card])
+            self._result_setter.set_score_dtree_cards([main_card],{})
