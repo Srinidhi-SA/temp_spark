@@ -366,7 +366,10 @@ class DecisionTrees(object):
         else:
             new_rules = {'name':rules['name'],'fruits':[]}
             target = rules['name'][9:]
-            num_success,num_total,dict_tree = self.extract_rules(rules_list,target)
+            try:
+                num_success,num_total,dict_tree = self.extract_rules(rules_list,target)
+            except:
+                return(None)
             new_rules['fruits']=dict_tree
             vals=list(dict_tree[-1].values())
             new_rules['probability']=round(old_div(max(vals)*100.0,sum(vals)),2)

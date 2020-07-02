@@ -163,9 +163,9 @@ class ChiSquareResult(object):
     """
 
     def __init__(self):
-        self.method = ""
+        #self.method = ""
         self.dof = 0
-        self.nh = ""
+        #self.nh = ""
         self.pv = 0.0
         self.stat = 0.0
         self.contingency_table = {}
@@ -174,18 +174,18 @@ class ChiSquareResult(object):
         self.splits  = None
 
 
-    @accepts(object, ChiSqTestResult)
+    #@accepts(object, ChiSqTestResult)
     def set_params(self, chi_square_result):
         ### TODO: refactor this method into 5 different methods,
         ###     one each for setting method, dof, nh, pv, and stat values.
         ###
         ###     Results should be plain objects with zero knowledge about any external objects.
         ###
-        self.method = chi_square_result.method
-        self.dof = chi_square_result.degreesOfFreedom
-        self.nh = chi_square_result.nullHypothesis
-        self.pv = chi_square_result.pValue
-        self.stat = chi_square_result.statistic
+        #self.method = chi_square_result.method
+        self.dof = chi_square_result[2]
+        #self.nh = chi_square_result.nullHypothesis
+        self.pv = chi_square_result[1]
+        self.stat = chi_square_result[0]
         # self.cramers_v = chi_square_result.cramers_v
 
     def get_pvalue(self):
