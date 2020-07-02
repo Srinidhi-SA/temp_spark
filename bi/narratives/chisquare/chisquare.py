@@ -438,7 +438,7 @@ class ChiSquareAnalysis(object):
                     contributions_val = []
 
                     for key in list(grouped_dict.keys()):
-                        index_list.append(key)
+                        index_list.append(str(key))
                         grouped_list.append(grouped_dict[key])
                         contributions_val.append(contributions_list[key])
                     '''
