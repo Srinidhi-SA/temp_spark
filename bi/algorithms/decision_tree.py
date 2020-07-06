@@ -151,7 +151,7 @@ class DecisionTrees(object):
         return block
 
 
-    def parse_pandas(self, lines, df):
+    def parse_pandas(self, lines, df,check_list=[],n=["."]):
         block = []
         while lines :
 
@@ -168,6 +168,12 @@ class DecisionTrees(object):
                     sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x >= math.ceil(float(bl.split()[-1]))]
                     sub_mappings_string = '(' +  ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
                     bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+                if bl not in check_list:
+                    check_list.append(bl)
+
+                else:
+                    bl = str(n[0])+bl
+                    n[0] =n[0]+"."
                 block.append({'name':bl, 'children':self.parse_pandas(lines, df)})
                 if lines[0].startswith('else'):
 
@@ -178,6 +184,11 @@ class DecisionTrees(object):
                         sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(be.split()[-1]))]
                         sub_mappings_string = '(' + ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
                         be = "%s not in %s" % (feature_mapping, sub_mappings_string)
+                    if be not in check_list:
+                        check_list.append(be)
+                    else:
+                        be = str(n[0]) + be
+                        n[0] =n[0]+"."
                     block.append({'name':be, 'children':self.parse_pandas(lines, df)})
             elif not lines[0].startswith(('if','else')):
                 block2 = lines.pop(0)
@@ -245,7 +256,7 @@ class DecisionTrees(object):
                 dict_tree.append(data_dict)
             elif ' > ' in rule:
                 var,limit = re.split(' > ',rule)
-                DFF.values_above(var,float(limit))
+                DFF.values_above(var.lstrip('0123456789. '),float(limit))
                 data_dict={}
                 for rows in DFF.get_count_result(colname):
                     if rows is not None:
@@ -253,6 +264,7 @@ class DecisionTrees(object):
                 dict_tree.append(data_dict)
             elif ' not in ' in rule:
                 var,levels = rule.split(' not in (')
+                levels = levels.lstrip('0123456789. ')
                 levels=levels[0:-1].split(",")
                 levels1 = [key if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 #levels = [self._alias_dict[x] for x in levels]
@@ -266,7 +278,9 @@ class DecisionTrees(object):
 
             elif ' in ' in rule:
                 var,levels = rule.split(' in (')
+                levels = levels.lstrip('0123456789. ')
                 levels=levels[0:-1].split(",")
+
                 levels1 = [x  if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 #levels = [self._alias_dict[x] for x in levels]
                 DFF.values_in(var,levels1,self._measure_columns)
@@ -366,7 +380,10 @@ class DecisionTrees(object):
         else:
             new_rules = {'name':rules['name'],'fruits':[]}
             target = rules['name'][9:]
-            num_success,num_total,dict_tree = self.extract_rules(rules_list,target)
+            try:
+                num_success,num_total,dict_tree = self.extract_rules(rules_list,target)
+            except:
+                return(None)
             new_rules['fruits']=dict_tree
             vals=list(dict_tree[-1].values())
             new_rules['probability']=round(old_div(max(vals)*100.0,sum(vals)),2)

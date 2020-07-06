@@ -6,7 +6,7 @@ from past.builtins import basestring
 from builtins import object
 import math
 from itertools import chain
-
+from scipy.stats import chi2_contingency
 from pyspark.ml.feature import Bucketizer
 from pyspark.mllib.linalg import Matrices
 from pyspark.mllib.stat import Statistics
@@ -132,13 +132,14 @@ class ChiSquare(object):
             # rdd = pivot_table.rdd.flatMap(lambda x: x).filter(lambda x: str(x).isdigit()).collect()
             rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
             data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns) - 1, rdd)
-        result = Statistics.chiSqTest(data_matrix)
+            data_matrix = data_matrix.toArray().tolist()
+        result = chi2_contingency(data_matrix)
         chisquare_result.set_params(result)
         freq_table = self._get_contingency_table_of_freq(pivot_table, need_sorting = True)
         freq_table.set_tables()
         chisquare_result.set_table_result(freq_table)
         # Cramers V Calculation
-        stat_value = result.statistic
+        stat_value = result[0]
         n = freq_table.get_total()
         t = min(len(freq_table.column_one_values), len(freq_table.column_two_values))
         v_value = math.sqrt(float(stat_value) / (n * float(t)))
@@ -223,14 +224,15 @@ class ChiSquare(object):
         else:
             rdd = list(chain(*list(zip(*pivot_table.drop(pivot_table.columns[0]).collect()))))
             data_matrix = Matrices.dense(pivot_table.count(), len(pivot_table.columns)-1, rdd)
-        result = Statistics.chiSqTest(data_matrix)
+            data_matrix = data_matrix.toArray().tolist()
+        result = chi2_contingency(data_matrix)
         chisquare_result.set_params(result)
         freq_table = self._get_contingency_table_of_freq(pivot_table)
         freq_table.update_col2_names(splits)
         freq_table.set_tables()
         chisquare_result.set_table_result(freq_table)
         # Cramers V Calculation
-        stat_value = result.statistic
+        stat_value = result[0]
         n = freq_table.get_total()
         t = min(len(freq_table.column_one_values), len(freq_table.column_two_values))
 

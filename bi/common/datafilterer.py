@@ -54,6 +54,7 @@ class DataFrameFilterer(object):
                 self._data_frame = self._data_frame.filter(col(colname) >= start_value).filter(col(colname) < end_value)
 
     def dates_between(self,colname,start_value, end_value, greater_than_equal = 1, less_than_equal=1):
+        colname = colname.lstrip('0123456789. ')
         if self._pandas_flag:
             # needs to be a pandas datetime64 type to filter by dates
             if (greater_than_equal == 0) and (less_than_equal==1):
@@ -76,6 +77,7 @@ class DataFrameFilterer(object):
                 self._data_frame = self._data_frame.filter(col(colname) >= start_value).filter(col(colname) < end_value)
 
     def values_above(self,colname, start_value, greater_than_equal=0):
+        colname = colname.lstrip('0123456789. ')
         if self._pandas_flag:
             if greater_than_equal == 0:
                 self._data_frame = self._data_frame[(self._data_frame[colname]  > start_value)]
@@ -88,6 +90,7 @@ class DataFrameFilterer(object):
                 self._data_frame = self._data_frame.filter(col(colname) >= start_value)
 
     def values_below(self, colname, end_value, less_than_equal=1):
+        colname = colname.lstrip('0123456789. ')
         if self._pandas_flag:
             if less_than_equal==0:
                 self._data_frame = self._data_frame[(self._data_frame[colname]  < end_value)]
@@ -100,6 +103,7 @@ class DataFrameFilterer(object):
                 self._data_frame = self._data_frame.filter(col(colname) <= end_value)
 
     def values_in(self, colname, values,measure_columns):
+        colname = colname.lstrip('0123456789. ')
         if type(values) == str:
             values = values[1:-1]
             values = values.split(',')
@@ -111,6 +115,7 @@ class DataFrameFilterer(object):
             self._data_frame = self._data_frame.where(col(colname).isin(values))
 
     def values_not_in(self, colname, values,measure_columns):
+        colname = colname.lstrip('0123456789. ')
         if type(values) == str:
             values = values[1:-1]
             values = values.split(',')
