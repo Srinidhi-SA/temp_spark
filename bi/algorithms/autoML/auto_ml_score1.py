@@ -7,36 +7,37 @@ from bi.algorithms.autoML.feature_selection import FeatureSelection
 from bi.algorithms import utils as MLUtils
 class Scoring(object):
 
-    def __init__(self, df, train_json):
+    def __init__(self, df, train_json, pandas_flag):
         print ("Auto ML score Running "*10)
         self.data_frame = df
         self.train_json = train_json
+        self._pandas_flag = pandas_flag
 
 
     def run(self):
         if len(self.train_json['MeasureColsToDim']) > 0:
-            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
+            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             DataPreprocessingAutoML_obj.dimension_measure_test(self.train_json['MeasureColsToDim'])
             self.data_frame = DataPreprocessingAutoML_obj.data_frame
         if len(self.train_json['MeanImputeCols']) > 0:
-            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
+            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             DataPreprocessingAutoML_obj.measure_col_imputation(self.train_json['MeanImputeCols'])
             self.data_frame = DataPreprocessingAutoML_obj.data_frame
         if len(self.train_json['ModeImputeCols']) > 0:
-            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
+            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             DataPreprocessingAutoML_obj.dim_col_imputation(self.train_json['ModeImputeCols'])
             self.data_frame = DataPreprocessingAutoML_obj.data_frame
         try:
             DataPreprocessingAutoML_obj.test_data_imputation()
         except:
-            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None)
+            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             DataPreprocessingAutoML_obj.test_data_imputation()
         if len(self.train_json['date_column_split']) > 0:
-            FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None)
+            FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             FeatureEngineeringAutoML_obj.date_column_split(self.train_json['date_column_split'])
             self.data_frame = FeatureEngineeringAutoML_obj.data_frame
         if len(self.train_json['one_hot_encoded']) > 0:
-            FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None)
+            FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             FeatureEngineeringAutoML_obj.sk_one_hot_encoding(self.train_json['one_hot_encoded'])
             self.data_frame = FeatureEngineeringAutoML_obj.data_frame
         #score_df = self.data_frame[list(set(self.train_json['SelectedColsTree'])-set(self.train_json['target']))]

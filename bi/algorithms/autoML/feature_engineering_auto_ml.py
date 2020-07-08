@@ -2,11 +2,18 @@ import pandas as pd
 import numpy as np
 import re
 from sklearn.preprocessing import OneHotEncoder
+from pyspark.sql.functions import *
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAssembler
+from pyspark.sql.types import FloatType,IntegerType
+import time as time
+
 class FeatureEngineeringAutoML():
 
-    def __init__(self, data_frame, target, data_change_dict, numeric_cols, dimension_cols, datetime_cols,problem_type):
+    def __init__(self, data_frame, target, data_change_dict, numeric_cols, dimension_cols, datetime_cols,problem_type,pandas_flag):
         self.data_frame = data_frame
         self.target = target
+        self._pandas_flag = pandas_flag
         self.problem_type = problem_type
         self.numeric_cols = numeric_cols
         self.dimension_cols = dimension_cols
@@ -17,19 +24,32 @@ class FeatureEngineeringAutoML():
 
     def date_column_split(self,col_list):
         """Splitting date column"""
-        self.data_frame = self.data_frame.apply(lambda col: pd.to_datetime(col, errors='ignore') if col.dtypes == object else col, axis=0)
-        for col_name in col_list:
-            column = str(col_name)
-            self.data_frame[column + '_day'] = self.data_frame[column].dt.day
-            self.data_frame[column + '_month'] = self.data_frame[column].dt.month
-            self.data_frame[column + '_year'] = self.data_frame[column].dt.year
-            self.data_frame[column + '_quarter'] = self.data_frame[column].dt.quarter
-            self.data_frame[column + '_semester'] = np.where(self.data_frame[column + '_quarter'].isin([1, 2]), 1, 2)
-            self.data_frame[column + '_day_of_the_week'] = self.data_frame[column].dt.dayofweek
-            self.data_frame[column + '_time'] = self.data_frame[column].dt.time
-            self.data_frame[column + '_day_of_the_year'] = self.data_frame[column].dt.dayofyear
-            self.data_frame[column + '_week_of_the_year'] = self.data_frame[column].dt.weekofyear
-            self.data_change_dict['date_column_split'].append(column)
+        if self._pandas_flag:
+            self.data_frame = self.data_frame.apply(lambda col: pd.to_datetime(col, errors='ignore') if col.dtypes == object else col, axis=0)
+            for col_name in col_list:
+                column = str(col_name)
+                self.data_frame[column + '_day'] = self.data_frame[column].dt.day
+                self.data_frame[column + '_month'] = self.data_frame[column].dt.month
+                self.data_frame[column + '_year'] = self.data_frame[column].dt.year
+                self.data_frame[column + '_quarter'] = self.data_frame[column].dt.quarter
+                self.data_frame[column + '_semester'] = np.where(self.data_frame[column + '_quarter'].isin([1, 2]), 1, 2)
+                self.data_frame[column + '_day_of_the_week'] = self.data_frame[column].dt.dayofweek
+                self.data_frame[column + '_time'] = self.data_frame[column].dt.time
+                self.data_frame[column + '_day_of_the_year'] = self.data_frame[column].dt.dayofyear
+                self.data_frame[column + '_week_of_the_year'] = self.data_frame[column].dt.weekofyear
+                self.data_change_dict['date_column_split'].append(column)
+        else:
+            for col_name in col_list:
+                column = str(col_name)
+                self.data_frame = self.data_frame.withColumn(column +'_day',dayofmonth(to_timestamp(column, 'dd/MM/yyyy')))
+                self.data_frame = self.data_frame.withColumn(column +'_month',month(to_timestamp(column, 'dd/MM/yyyy')))
+                self.data_frame = self.data_frame.withColumn(column +'_years',year(to_timestamp(column, 'dd/MM/yyyy')))
+                self.data_frame = self.data_frame.withColumn(column +'_quarter',quarter(to_timestamp(column, 'dd/MM/yyyy')))
+                self.data_frame = self.data_frame.withColumn(column +'_semester',when(self.data_frame[column +'_quarter'].isin([1,2]), 1).otherwise(2))
+                self.data_frame = self.data_frame.withColumn(column +'_dayofweek',dayofweek(column))
+                self.data_frame = self.data_frame.withColumn(column +'_dayofyear',dayofyear(to_timestamp(column, 'dd/MM/yyyy')))
+                self.data_frame = self.data_frame.withColumn(column +'_weekofyear',weekofyear(to_timestamp(column, 'dd/MM/yyyy')))
+                self.data_change_dict['date_column_split'].append(column)
 
     def one_hot_encoding(self, col_list):
         for col in col_list:
@@ -45,10 +65,44 @@ class FeatureEngineeringAutoML():
         self.data_frame.reset_index(drop=True, inplace=True)
         encoded_df.reset_index(drop=True, inplace=True)
         self.data_frame = pd.concat([self.data_frame,encoded_df], axis = 1)
-        self.data_change_dict['one_hot_encoded']=col_list
+        self.data_change_dict['one_hot_encoded'] = col_list
         #print(self.data_frame)
+    def pyspark_one_hot_encoding(self,col_list):
+        for col in col_list:
+            ss = StringIndexer(inputCol=col,outputCol=col+"_indexed")
+            ss_fit = ss.fit(self.data_frame)
+            self.data_frame = ss_fit.transform(self.data_frame)
+            oe = OneHotEncoderEstimator(inputCols=[col+"_indexed"],outputCols=[col+"_indexed_encoded"])
+            oe_fit = oe.fit(self.data_frame)
+            self.data_frame = oe_fit.transform(self.data_frame)
+            ith = udf(lambda v, i: float(v[i]), FloatType())
+            for sidx, oe_col in zip([ss_fit], oe.getOutputCols()):
+                for ii, val in list(enumerate(sidx.labels))[:-1]:
+                    self.data_frame = self.data_frame.withColumn(sidx.getInputCol() + '_' + val, ith(oe_col, lit(ii)).astype(IntegerType()))
+        self.data_frame = self.data_frame.drop(*col_list)
+        cols = [re.sub('\W+','_', col.strip()) for col in self.data_frame.columns]
+        self.data_frame = self.data_frame.toDF(*cols)
+        self.data_change_dict['one_hot_encoded'] = col_list
+
+
+
 
     def feature_engineering_run(self):
         self.date_column_split(self.datetime_cols)
-        self.data_frame = self.data_frame.apply(lambda x: x.mask(x.map(x.value_counts()/x.count())<0.01, 'other') if x.name in self.dimension_cols else x)
-        self.sk_one_hot_encoding(self.dimension_cols)
+        if not self._pandas_flag:
+            def translate(mapping):
+                def translate_(col):
+                    return mapping.get(col)
+                return udf(translate_, FloatType())
+            for column in self.dimension_cols:
+                map_vals = self.data_frame.cube(column).count()
+                map_dict = list(map(lambda row: row.asDict(), map_vals.collect()))
+                if len(map_dict)<100:
+                    mapping = {feature[column]:feature['count']/self.data_frame.count() for feature in map_dict}
+                    self.data_frame = self.data_frame.withColumn("value_created", translate(mapping)(column))
+                    self.data_frame = self.data_frame.withColumn(column,when(self.data_frame.value_created >0.01 ,self.data_frame[column]).otherwise('other'))
+                    self.data_frame = self.data_frame.drop('value_created')
+            self.pyspark_one_hot_encoding(self.dimension_cols)
+        else:
+            self.data_frame = self.data_frame.apply(lambda x: x.mask(x.map(x.value_counts()/x.count())<0.01, 'other') if x.name in self.dimension_cols else x)
+            self.sk_one_hot_encoding(self.dimension_cols)

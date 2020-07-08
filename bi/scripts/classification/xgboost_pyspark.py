@@ -37,7 +37,7 @@ from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetr
 from pyspark.ml.feature import IndexToString
 from pyspark.sql.functions import udf,col
 from pyspark.sql.types import *
-
+from pyspark2pmml import PMMLBuilder
 from bi.settings import setting as GLOBALSETTINGS
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel

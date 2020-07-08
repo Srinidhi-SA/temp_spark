@@ -9,10 +9,11 @@ import pickle
 from validate_email import validate_email
 from scipy import stats
 from bi.algorithms.autoML.utils_automl import *
-
+from pyspark.sql.types import StringType
+from pyspark.sql.functions import *
 class DataPreprocessingAutoML:
 
-    def __init__(self, data_frame, target, data_change_dict, numeric_cols, dimension_cols, datetime_cols,problem_type):
+    def __init__(self, data_frame, target, data_change_dict, numeric_cols, dimension_cols, datetime_cols,problem_type,pandas_flag):
         self.data_frame = data_frame
         self.target = target
         self.problem_type = problem_type
@@ -23,19 +24,31 @@ class DataPreprocessingAutoML:
         self.data_change_dict["MeasureColsToDim"] = []
         self.data_change_dict['MeanImputeCols'] = []
         self.data_change_dict['ModeImputeCols'] = []
-        self.col_with_nulls = list(self.data_frame .loc[:, (self.data_frame.isna().sum() > 0)])
+        self._pandas_flag = pandas_flag
+        if self._pandas_flag:
+            self.col_with_nulls = list(self.data_frame .loc[:, (self.data_frame.isna().sum() > 0)])
+        else:
+            self.col_with_nulls = [col for col in self.data_frame.columns if (self.data_frame.filter((self.data_frame[col] == "") | (self.data_frame[col].isNull())).count())>0]
+
 
     def drop_duplicate_rows(self):
         """Drops Duplicate rows of a dataframe and returns a new dataframe"""
-        self.data_frame = self.data_frame.drop_duplicates()
+        if self._pandas_flag:
+            self.data_frame = self.data_frame.drop_duplicates()
+        else:
+            self.data_frame = self.data_frame.dropDuplicates()
 
     def drop_constant_unique_cols(self):
-        self.data_frame  = self.data_frame .loc[:, (self.data_frame .nunique() != 1)]
-        new_df  = self.data_frame .loc[:, (self.data_frame.nunique() != self.data_frame .shape[0])]
-        if self.target not in new_df.columns:
-            new_df[self.target] = self.data_frame[self.target]
+        if not self._pandas_flag:
+            new_df  = self.data_frame.select([col for col in self.data_frame.columns if 1<self.data_frame.select(col).distinct().count()<self.data_frame.count()])
+            if self.target not in new_df.columns:
+                new_df = new_df.withColumn(self.target, self.data_frame[self.target])
             self.data_frame = new_df
         else:
+            self.data_frame  = self.data_frame.loc[:, (self.data_frame .nunique() != 1)]
+            new_df  = self.data_frame.loc[:, (self.data_frame.nunique() != self.data_frame .shape[0])]
+            if self.target not in new_df.columns:
+                new_df[self.target] = self.data_frame[self.target]
             self.data_frame = new_df
         self.data_change_dict['dropped_columns_list'] = []
         def dropped_col_update(list_element):
@@ -50,7 +63,11 @@ class DataPreprocessingAutoML:
 
     def drop_null_cols(self):
         '''Dropping columns with more than 75% null values'''
-        self.data_frame  = self.data_frame .loc[:, (self.data_frame.isna().sum() < (0.75 * self.data_frame.shape[0]))]
+        if not self._pandas_flag:
+            filter_cols = [col for col in self.data_frame.columns if self.data_frame.filter((self.data_frame[col] == "") | (self.data_frame[col].isNull())).count() < 0.75*self.data_frame.count()]
+            self.data_frame  = self.data_frame.select(filter_cols)
+        else:
+            self.data_frame  = self.data_frame .loc[:, (self.data_frame.isna().sum() < (0.75 * self.data_frame.shape[0]))]
         def dropped_col_update(list_element):
             if list_element["column_name"] not in self.data_frame.columns:
                 list_element["dropped_column_flag"] = True
@@ -66,21 +83,44 @@ class DataPreprocessingAutoML:
             returns a list of columns to be converted to measure and removes the rows which have other than numeric
             for that particular column"""
             # column_val = self.data_frame[column]
-            for column in columns:
-                column_val = self.data_frame[column]
-                updated_row_num = self.data_frame[column].index
-                r1 = random.randint(0, len(updated_row_num) - 1)
-                if re.match("^\d*[.]?\d*$", str(self.data_frame.iloc[r1][column])):
-                    # out=column_val.str.isdigit()
-                    out = column_val.str.contains("^[0-9]+[.]{0,1}[0-9]*\s*$")
-                    if out[out == False].count() <= 0.01 * self.data_frame.shape[0]:
-                        row_index = out.index[out == False].tolist()
-                        self.data_frame = self.data_frame.drop(row_index, axis=0)
-                        self.data_change_dict["MeasureColsToDim"].append(column)
-                        self.dimension_cols.remove(column)
-                        ## below line code change during optimization
-                        self.data_frame[column] = pd.to_numeric(self.data_frame[column])
-                        self.numeric_cols.append(column)
+            print(self.numeric_cols,"=======================")
+            if not self._pandas_flag:
+                for column in columns:
+                    r1 = random.randint(0, self.data_frame.count() - 1)
+                    if re.match("^\d*[.]?\d*$", str(self.data_frame.collect()[r1][column])):
+                        self.data_frame = self.data_frame.withColumn("is_numeric_col",\
+                                        col(column).\
+                                        rlike("^[0-9]+[.]{0,1}[0-9]*\s*$"))
+                        val_count = self.data_frame.cube("is_numeric_col").count()
+                        val_count_list =list(map(lambda row: row.asDict(), val_count.collect()))
+                        dict_vals = {each['is_numeric_col']:each['count']/self.data_frame.count()\
+                                                    for each in val_count_list}
+                        if dict_vals[False] <= 0.01:
+                            self.data_frame = self.data_frame.filter(self.data_frame.is_numeric_col.isin([True]))
+                            self.data_frame = self.data_frame.drop('is_numeric_col')
+                            self.data_change_dict["MeasureColsToDim"].append(column)
+                            self.dimension_cols.remove(column)
+                            ## below line code change during optimization
+                            self.data_frame = self.data_frame.withColumn(column, self.data_frame[column].cast("float"))
+                            self.numeric_cols.append(column)
+            else:
+                for column in columns:
+                    column_val = self.data_frame[column]
+                    updated_row_num = self.data_frame[column].index
+                    r1 = random.randint(0, len(updated_row_num) - 1)
+                    if re.match("^\d*[.]?\d*$", str(self.data_frame.iloc[r1][column])):
+                        # out=column_val.str.isdigit()
+                        out = column_val.str.contains("^[0-9]+[.]{0,1}[0-9]*\s*$")
+                        if out[out == False].count() <= 0.01 * self.data_frame.shape[0]:
+                            row_index = out.index[out == False].tolist()
+
+                            self.data_frame = self.data_frame.drop(row_index, axis=0)
+                            self.data_change_dict["MeasureColsToDim"].append(column)
+                            self.dimension_cols.remove(column)
+                            ## below line code change during optimization
+                            self.data_frame[column] = pd.to_numeric(self.data_frame[column])
+                            self.numeric_cols.append(column)
+            print(self.numeric_cols,self.dimension_cols)
 
     def dimension_measure_test(self, columns):
         for column in columns:
@@ -131,21 +171,33 @@ class DataPreprocessingAutoML:
         median_impute_cols = []
         for column in columns:
             if column in self.col_with_nulls:
-                self.data_frame[column] = self.mean_impute(self.data_frame[column])
+                if not self._pandas_flag:
+                    mean = self.data_frame.agg({column: "mean"}).head()[0]
+                    self.data_frame = self.data_frame.fillna({ column:mean })
+                else:
+                    self.data_frame[column] = self.mean_impute(self.data_frame[column])
                 self.data_change_dict['MeanImputeCols'].append(column)
 
     def dim_col_imputation(self, columns):
         """Does missing value imputation for dimension columns"""
         for column in columns:
             if column in self.col_with_nulls:
-                self.data_frame[column] = self.mode_impute(self.data_frame[column])
+                if not self._pandas_flag:
+                    mode  = self.data_frame.select(column).toPandas().mode().values[0][0]
+                    self.data_frame = self.data_frame.fillna({ column:mode })
+                else:
+                    self.data_frame[column] = self.mode_impute(self.data_frame[column])
                 self.data_change_dict['ModeImputeCols'].append(column)
 
     def date_col_imputation(self, columns):
         """Does missing value imputation for date columns"""
         for column in columns:
             if column in self.col_with_nulls:
-                self.data_frame[column] = self.mode_impute(self.data_frame[column])
+                if not self._pandas_flag:
+                    mode  = self.data_frame.select(column).toPandas().mode().values[0][0]
+                    self.data_frame = self.data_frame.fillna({ column:mode })
+                else:
+                    self.data_frame[column] = self.mode_impute(self.data_frame[column])
                 self.data_change_dict['ModeImputeCols'].append(column)
 
     def test_data_imputation(self):
