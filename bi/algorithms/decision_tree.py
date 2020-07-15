@@ -40,7 +40,7 @@ class DecisionTrees(object):
     # @accepts(object, DataFrame)
     def __init__(self, data_frame, df_helper, df_context, spark, meta_parser,scriptWeight=None, analysisName=None):
         self._spark = spark
-        self._maxDepth = 4
+        self._maxDepth = 3
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -161,19 +161,19 @@ class DecisionTrees(object):
                 feature_mapping = bl.split()[0]
                 if "<=" or "<" in bl:
                     sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(bl.split()[-1]))]
-                    sub_mappings_string = '(' +  ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                    sub_mappings_string = '(' +  ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
                     bl = "%s in %s" % (feature_mapping, sub_mappings_string)
 
                 elif ">=" or ">" in bl:
                     sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x >= math.ceil(float(bl.split()[-1]))]
-                    sub_mappings_string = '(' +  ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                    sub_mappings_string = '(' +  ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
                     bl = "%s in %s" % (feature_mapping, sub_mappings_string)
                 if bl not in check_list:
                     check_list.append(bl)
 
                 else:
                     bl = str(n[0])+bl
-                    n[0] =n[0]+"."
+                    n[0] =n[0]+" "
                 block.append({'name':bl, 'children':self.parse_pandas(lines, df)})
                 if lines[0].startswith('else'):
 
@@ -182,13 +182,13 @@ class DecisionTrees(object):
 
                     if ">" or ">=" in be:
                         sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(be.split()[-1]))]
-                        sub_mappings_string = '(' + ','.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                        sub_mappings_string = '(' + ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
                         be = "%s not in %s" % (feature_mapping, sub_mappings_string)
                     if be not in check_list:
                         check_list.append(be)
                     else:
                         be = str(n[0]) + be
-                        n[0] =n[0]+"."
+                        n[0] =n[0]+" "
                     block.append({'name':be, 'children':self.parse_pandas(lines, df)})
             elif not lines[0].startswith(('if','else')):
                 block2 = lines.pop(0)
@@ -265,7 +265,10 @@ class DecisionTrees(object):
             elif ' not in ' in rule:
                 var,levels = rule.split(' not in (')
                 levels = levels.lstrip('0123456789. ')
-                levels=levels[0:-1].split(",")
+                if self._pandas_flag:
+                    levels=levels[0:-1].split(", ")
+                else:
+                    levels=levels[0:-1].split(",")
                 levels1 = [key if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 #levels = [self._alias_dict[x] for x in levels]
                 DFF.values_not_in(var,levels1,self._measure_columns)
@@ -279,7 +282,10 @@ class DecisionTrees(object):
             elif ' in ' in rule:
                 var,levels = rule.split(' in (')
                 levels = levels.lstrip('0123456789. ')
-                levels=levels[0:-1].split(",")
+                if self._pandas_flag:
+                    levels=levels[0:-1].split(", ")
+                else:
+                    levels=levels[0:-1].split(",")
 
                 levels1 = [x  if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 #levels = [self._alias_dict[x] for x in levels]
@@ -383,6 +389,7 @@ class DecisionTrees(object):
             try:
                 num_success,num_total,dict_tree = self.extract_rules(rules_list,target)
             except:
+                print("ONE RULE EXCEPTION")
                 return(None)
             new_rules['fruits']=dict_tree
             vals=list(dict_tree[-1].values())
@@ -516,7 +523,7 @@ class DecisionTrees(object):
             y = self._data_frame[dimension]
             for i in x.columns:
                 x[i] = x[i].fillna(x[i].mode()[0])
-            model = DecisionTreeClassifier(criterion='gini', max_depth=self._maxDepth)
+            model = DecisionTreeClassifier(criterion='gini', max_depth=self._maxDepth,random_state=42)
             model = model.fit(x,y)
             output_result = self.tree_to_code(model,list(x.columns))
             output_result = list(map(lambda x:x.strip(),output_result))
