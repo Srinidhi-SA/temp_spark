@@ -185,14 +185,16 @@ def main(configJson):
                         if jobType == "training":
                             # if dataframe_context._pandas_flag :
                             #     df = df.toPandas()
+                            fs = time.time()
                             autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
 
                             one_click_json, linear_df, tree_df = autoML_obj.run()
+                            print("Automl Done in ", time.time() - fs, " seconds.")
                         elif jobType == "prediction":
-                            try:
-                                df = df.toPandas()
-                            except:
-                                pass
+                            #try:
+                            #    df = df.toPandas()
+                            #except:
+                            #    pass
                             score_obj =  autoMLScore.Scoring(df, one_click, dataframe_context._pandas_flag)
                             linear_df, tree_df = score_obj.run()
                         # linear

@@ -7,6 +7,7 @@ from pyspark.ml import Pipeline
 from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAssembler
 from pyspark.sql.types import FloatType,IntegerType
 import time as time
+import numpy as np
 
 class FeatureEngineeringAutoML():
 
@@ -21,6 +22,7 @@ class FeatureEngineeringAutoML():
         self.data_change_dict = data_change_dict
         self.data_change_dict['date_column_split'] = []
         self.data_change_dict['one_hot_encoded'] = []
+        self.data_change_dict['label_encoded'] = []
 
     def date_column_split(self,col_list):
         """Splitting date column"""
@@ -83,7 +85,25 @@ class FeatureEngineeringAutoML():
         cols = [re.sub('\W+','_', col.strip()) for col in self.data_frame.columns]
         self.data_frame = self.data_frame.toDF(*cols)
         self.data_change_dict['one_hot_encoded'] = col_list
+    def cat_en_rule(self,cat_col):
+        labels_count = [[len(self.data_frame.select(col).distinct().collect())-1,col] for col in cat_col]
+        labels_count.sort()
+        dum_col = []
+        n,p = self.data_frame.count(),len(self.data_frame.dtypes)
+        for i in range(len(labels_count)):
+            p = p + labels_count[i][0]
+            if(int(np.sqrt(n)))>=p:
+                dum_col.append(labels_count[i][1])
+        label_col =  list(set(cat_col)-set(dum_col))
+        return dum_col,label_col
 
+    def pyspark_label_encoding(self,label_col):
+        for col in label_col:
+            ss = StringIndexer(inputCol=col,outputCol=col+"_labeled")
+            ss_fit = ss.fit(self.data_frame)
+            self.data_frame = ss_fit.transform(self.data_frame)
+        self.data_frame = self.data_frame.drop(*label_col)
+        self.data_change_dict['label_encoded'] = label_col
 
 
 
@@ -102,7 +122,11 @@ class FeatureEngineeringAutoML():
                     self.data_frame = self.data_frame.withColumn("value_created", translate(mapping)(column))
                     self.data_frame = self.data_frame.withColumn(column,when(self.data_frame.value_created >0.01 ,self.data_frame[column]).otherwise('other'))
                     self.data_frame = self.data_frame.drop('value_created')
-            self.pyspark_one_hot_encoding(self.dimension_cols)
+            dum_col,label_col = self.cat_en_rule(self.dimension_cols)
+            if len(dum_col)>0:
+                self.pyspark_one_hot_encoding(dum_col)
+            if len(label_col)>0:
+                self.pyspark_label_encoding(label_col)
         else:
             self.data_frame = self.data_frame.apply(lambda x: x.mask(x.map(x.value_counts()/x.count())<0.01, 'other') if x.name in self.dimension_cols else x)
             self.sk_one_hot_encoding(self.dimension_cols)

@@ -28,6 +28,7 @@ from pyspark.ml.feature import OneHotEncoder
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
 from pyspark.sql import functions as FN
+from pyspark.sql.functions import lit
 from pyspark.sql.functions import mean, stddev, col, count, sum
 from pyspark.sql.functions import monotonically_increasing_id
 from pyspark.sql.types import StringType
@@ -385,7 +386,15 @@ def fill_missing_columns(df, model_columns, result_column):
     df = df[[x for x in model_columns if x != result_column]]
     df = df[model_columns]
     return df
-
+def fill_missing_columns_pys(df, model_columns, result_column, pandas_flag):
+    existing_columns = df.columns
+    new_columns = list(set(existing_columns) - set(model_columns))
+    missing_columns = list(set(model_columns) - set(existing_columns) - set(result_column))
+    for col in missing_columns:
+        df = df.withColumn(col,lit(0))
+    df = df.select([x for x in model_columns if x not in result_column])
+    df = df[model_columns]
+    return df
 
 def transform_feature_importance(feature_importance_dict):
 

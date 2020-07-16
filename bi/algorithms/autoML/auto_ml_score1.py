@@ -32,19 +32,31 @@ class Scoring(object):
         except:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             DataPreprocessingAutoML_obj.test_data_imputation()
+        FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
         if len(self.train_json['date_column_split']) > 0:
-            FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
             FeatureEngineeringAutoML_obj.date_column_split(self.train_json['date_column_split'])
             self.data_frame = FeatureEngineeringAutoML_obj.data_frame
         if len(self.train_json['one_hot_encoded']) > 0:
-            FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(self.data_frame, None, {}, [], [], [], None, self._pandas_flag)
-            FeatureEngineeringAutoML_obj.sk_one_hot_encoding(self.train_json['one_hot_encoded'])
-            self.data_frame = FeatureEngineeringAutoML_obj.data_frame
+            if self._pandas_flag:
+                FeatureEngineeringAutoML_obj.sk_one_hot_encoding(self.train_json['one_hot_encoded'])
+                self.data_frame = FeatureEngineeringAutoML_obj.data_frame
+            else:
+                FeatureEngineeringAutoML_obj.pyspark_one_hot_encoding(self.train_json['one_hot_encoded'])
+                self.data_frame = FeatureEngineeringAutoML_obj.data_frame
+        if len(self.train_json['label_encoded']) > 0:
+            if not self._pandas_flag:
+                FeatureEngineeringAutoML_obj.pyspark_label_encoding(self.train_json['label_encoded'])
+                self.data_frame = FeatureEngineeringAutoML_obj.data_frame
+
         #score_df = self.data_frame[list(set(self.train_json['SelectedColsTree'])-set(self.train_json['target']))]
         final_list_linear=self.train_json['SelectedColsLinear']
         final_list_tree=self.train_json['SelectedColsTree']
         final_list_linear.remove(self.train_json['target'])
         final_list_tree.remove(self.train_json['target'])
-        score_df_linear = MLUtils.fill_missing_columns(self.data_frame,final_list_linear,self.train_json['target'])
-        score_df_tree = MLUtils.fill_missing_columns(self.data_frame,final_list_tree,self.train_json['target'])
+        if self._pandas_flag:
+            score_df_linear = MLUtils.fill_missing_columns(self.data_frame,final_list_linear,self.train_json['target'])
+            score_df_tree = MLUtils.fill_missing_columns(self.data_frame,final_list_tree,self.train_json['target'])
+        else:
+            score_df_linear = MLUtils.fill_missing_columns_pys(self.data_frame,final_list_linear,self.train_json['target'], self._pandas_flag)
+            score_df_tree = MLUtils.fill_missing_columns_pys(self.data_frame,final_list_tree,self.train_json['target'], self._pandas_flag)
         return score_df_linear, score_df_tree

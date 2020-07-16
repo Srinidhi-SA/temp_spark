@@ -70,5 +70,6 @@ class AutoMl:
                 self.linear_df = self.df.select(*[cols_considered_linear])
             self.tree_df=self.df.select(*[cols_considered_tree])
         self.final_json = FeatureSelection_obj.data_change_dict
+        self.final_json["SelectedColsLinear"] = self.linear_df.columns
         self.final_json["target"] = FeatureEngineeringAutoML_obj.target
         return self.final_json, self.linear_df, self.tree_df

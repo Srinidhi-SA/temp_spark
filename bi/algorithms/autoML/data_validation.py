@@ -46,7 +46,7 @@ class DataValidation:
                 if column != self.target and column not in self.datetime_cols:
                     self.dimension_cols.append(column)
         else:
-            if self.data_frame.select(column).dtypes[0][1]!= 'string':
+            if (self.data_frame.select(column).dtypes[0][1] == 'int') | (self.data_frame.select(column).dtypes[0][1] == 'double'):
                 Dict["data_type"] = "{}".format(self.data_frame.select(column).dtypes[0][1])
                 if column != self.target:
                     self.numeric_cols.append(column)

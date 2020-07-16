@@ -38,6 +38,15 @@ class FeatureSelection():
         return (varlist.name.tolist())
 
     def feature_imp_pyspark(self):
+        num_var = [i[0] for i in self.data_frame.dtypes if ((i[1]=='int') | (i[1]=='double')) & (i[0]!=self.target)]
+        num_var = [col for col in num_var if not col.endswith('indexed')]
+        labels_count = [len(self.data_frame.select(col).distinct().collect()) for col in num_var]
+        labels_count.sort()
+        max_count =  labels_count[-1]
+        #one_hot = [col for col in self.data_frame.columns if col.endswith('_indexed_encoded')]
+        #num_var.extend(one_hot)
+        label_indexes = StringIndexer(inputCol = self.target , outputCol = 'label', handleInvalid = 'keep')
+        assembler = VectorAssembler(inputCols = num_var , outputCol = "features")
         if self.problem_type == 'REGRESSION':
             model = RandomForestRegressor(labelCol="label", \
                                      featuresCol="features", seed = 8464,\
@@ -47,14 +56,7 @@ class FeatureSelection():
             model = RandomForestClassifier(labelCol="label", \
                                      featuresCol="features", seed = 8464,\
                                      numTrees=10, cacheNodeIds = True,\
-                                     subsamplingRate = 0.7)
-
-        num_var = [i[0] for i in self.data_frame.dtypes if ((i[1]=='int') | (i[1]=='double')) & (i[0]!=self.target)]
-        num_var = [col for col in num_var if not col.endswith('indexed')]
-        #one_hot = [col for col in self.data_frame.columns if col.endswith('_indexed_encoded')]
-        #num_var.extend(one_hot)
-        label_indexes = StringIndexer(inputCol = self.target , outputCol = 'label', handleInvalid = 'keep')
-        assembler = VectorAssembler(inputCols = num_var , outputCol = "features")
+                                     subsamplingRate = 0.7,maxBins = max_count+2)
         pipe = Pipeline(stages =[assembler, label_indexes, model])
 
         mod_fit = pipe.fit(self.data_frame)
