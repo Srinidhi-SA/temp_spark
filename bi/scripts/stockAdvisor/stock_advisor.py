@@ -708,8 +708,11 @@ class StockAdvisor(object):
                 stockDict[stock_symbol]["keyDays"] = self.get_key_days_and_impactful_articles(self.pandasDf,stockPriceData)
                 stockDict[stock_symbol]["keyArticles"] = self.get_top_articles(self.pandasDf)
 
-                regDf = self.pandasDf[["time","overallSentiment","totalCount"]+[x+"_count" for x in list(self.concepts.keys())]]
-                regDfgrouped = regDf.groupby("time").sum().reset_index()
+                regDf = self.pandasDf[["time"]+[x+"_count" for x in list(self.concepts.keys())]]
+                #regDf = self.pandasDf[["time", "overallSentiment", "totalCount"] + [x + "_sentiment" for x in list(self.concepts.keys())]]
+                regDfcolumns = regDf.columns.tolist()
+                regDfcolumns.remove('time')
+                regDfgrouped = regDf.groupby('time').sum().reset_index()
                 regDfgrouped["date"] = regDfgrouped["time"]
                 #regDfgrouped.index = regDfgrouped["time"]
                 stockDf  = stockPriceData[["close","date"]]
@@ -724,8 +727,9 @@ class StockAdvisor(object):
                 # print stockDf.columns
                 #regDfFinal =  pd.concat([regDfgrouped, stockDf], axis=1, join='inner')
                 regDfFinal.drop(["date"],axis = 1,inplace=True)
-                regDfFinal.columns = ["time","overallSentiment"+"_"+stock_symbol,"totalCount"+"_"+stock_symbol]+[x+"_count" for x in list(self.concepts.keys())]+["close"+"_"+stock_symbol]
+                regDfFinal.columns = ["time"]+regDfcolumns+["close"+"_"+stock_symbol]
                 masterDfDict[stock_symbol] = regDfFinal
+
                 # self.chiSquarePandasDf = self.create_chi_square_df(self.pandasDf,stockPriceData)
                 # self.chiSquareDf = self._sqlContext.createDataFrame(self.chiSquarePandasDf)
                 # self.chiSquareDict = self.calculate_chiSquare(self.chiSquarePandasDf,"dayPriceDiff")
@@ -813,8 +817,7 @@ class StockAdvisor(object):
                                                                              display=True)
                 #CommonUtils.save_progress_message(messageURL, progressMessage, ignore=ignoreMsg)
                 regressionDf = masterDfDict[current_stock]
-                regressionDf = masterDfDict[current_stock]
-                regressionDf.index = regressionDf["time"]
+                regressionDf.set_index('time', inplace=True)
                 remaining_stocks = list(set(self._stockNameList) - {current_stock})
                 # if len(remaining_stocks) > 0:
                 #     for other_stock in remaining_stocks:
@@ -828,6 +831,7 @@ class StockAdvisor(object):
                 # print "-"*100
                 # Run linear regression on the regressionDf dataframe
                 regressionCoeff = self.run_regression(regressionDf,"close"+"_"+current_stock)
+                if 'Intercept' in regressionCoeff: del regressionCoeff['Intercept']
                 regCoeffArray = sorted([{"key":k,"value":v} for k,v in list(regressionCoeff.items())],key=lambda x:abs(x["value"]),reverse=True)
                 stockDict[current_stock]["regCoefficient"] = regCoeffArray
                 # print current_stock , " : regCoeffArray : ", regCoeffArray

@@ -66,6 +66,7 @@ def load_dataset(spark,dataframe_context):
             bool_cols= list(df.select_dtypes(include=['bool']).columns)
             df[bool_cols] =df[bool_cols].astype('object')
             df = df.replace(GLOBALSETTINGS.DEFAULT_NULL_VALUES, np.nan)
+            df = df.replace([' ',','],'_', regex=True)
             print("######## PANDAS ########### STARTED PANDAS FLOW ############# PANDAS ##############")
             dataframe_context._pandas_flag = True
             pyspark=False
