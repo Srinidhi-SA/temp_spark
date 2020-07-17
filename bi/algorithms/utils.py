@@ -1425,10 +1425,10 @@ def collated_model_summary_card(result_setter,prediction_narrative,appType,appid
 
 
 
-        # try:
-        #     featureImportanceC3Object = get_feature_importance(collated_summary)
-        # except:
-        featureImportanceC3Object = None
+        try:
+            featureImportanceC3Object = get_feature_importance(collated_summary)
+        except:
+            featureImportanceC3Object = None
         if featureImportanceC3Object != None:
             card2 = NormalCard()
             card2_elements = get_model_comparison(collated_summary,evaluvation_metric)
