@@ -130,7 +130,9 @@ class ChiSquareNarratives(object):
             target_chisquare_result = self._df_chisquare_result[target_dimension]
             analysed_variables = list(target_chisquare_result.keys())  ## List of all analyzed var.
             # List of significant var out of analyzed var.
-            significant_variables = [dim for dim in list(target_chisquare_result.keys()) if target_chisquare_result[dim].get_pvalue()<=0.05]
+            # significant_variables = [dim for dim in list(target_chisquare_result.keys()) if target_chisquare_result[dim].get_pvalue()<=0.05]
+            significant_variables = [dim for dim in list(target_chisquare_result.keys())]
+
             effect_sizes = [target_chisquare_result[dim].get_effect_size() for dim in significant_variables]
 
             effect_size_dict = dict(list(zip(significant_variables,effect_sizes)))
