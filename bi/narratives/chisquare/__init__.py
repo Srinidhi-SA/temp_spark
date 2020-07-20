@@ -136,7 +136,7 @@ class ChiSquareNarratives(object):
             effect_sizes = [target_chisquare_result[dim].get_effect_size() for dim in significant_variables]
 
             effect_size_dict = dict(list(zip(significant_variables,effect_sizes)))
-            significant_variables = [y for (x,y) in sorted(zip(effect_sizes,significant_variables),reverse=True)]
+            significant_variables = [y for (x,y) in sorted(zip(effect_sizes,significant_variables) ,reverse=True) if round(float(x),2)>0]
             #insignificant_variables = [i for i in self._df_chisquare_result[target_dimension] if i['pv']>0.05]
 
             num_analysed_variables = len(analysed_variables)
@@ -167,7 +167,7 @@ class ChiSquareNarratives(object):
             chartDataValues = []
             for k,v in list(effect_size_dict.items()):
                 "rounding the chart data for keydrivers tab"
-                if v >= 0.01:
+                if round(float(v),2) > 0:
                     chart_data.append({"key":k,"value":round(float(v),2)})
                     chartDataValues.append(round(float(v),2))
             chart_data = sorted(chart_data,key=lambda x:x["value"],reverse=True)
