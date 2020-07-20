@@ -167,8 +167,9 @@ class ChiSquareNarratives(object):
             chartDataValues = []
             for k,v in list(effect_size_dict.items()):
                 "rounding the chart data for keydrivers tab"
-                chart_data.append({"key":k,"value":round(float(v),2)})
-                chartDataValues.append(round(float(v),2))
+                if v >= 0.01:
+                    chart_data.append({"key":k,"value":round(float(v),2)})
+                    chartDataValues.append(round(float(v),2))
             chart_data = sorted(chart_data,key=lambda x:x["value"],reverse=True)
             chart_json = ChartJson()
             chart_json.set_data(chart_data)
