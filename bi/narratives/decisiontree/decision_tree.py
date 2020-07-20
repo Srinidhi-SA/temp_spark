@@ -6,7 +6,7 @@ from builtins import object
 from past.utils import old_div
 import json
 import pandas as pd
-
+from collections import Counter
 import humanize
 
 from bi.common import NormalCard, NarrativesTree, C3ChartData, TableData
@@ -220,10 +220,15 @@ class DecisionTreeNarrative(object):
             probabilityArray = [round(x,2) for x in self.success_percent[target]]
             probabilityArrayAll += probabilityArray
             groupArray = ["strong" if x>=probabilityCutoff else "mixed" for x in probabilityArray]
+
+            grouparry_counter = Counter(groupArray)
             for idx2,obj in enumerate(probabilityGroups):
-                grpCount = len([x for x in probabilityArray if x >= obj["range"][0] and x <= obj["range"][1]])
-                obj["count"] += grpCount
-                probabilityGroups[idx2] = obj
+                if obj["range"][0]>= probabilityCutoff:
+                    obj["count"] += grouparry_counter['strong']
+                    probabilityGroups[idx2] = obj
+                else:
+                    obj["count"] += grouparry_counter['mixed']
+                    probabilityGroups[idx2] = obj
             predictionArray = [target]*len(rulesArray)
             freqArray = self.total_predictions[target]
             success = self.successful_predictions[target]
