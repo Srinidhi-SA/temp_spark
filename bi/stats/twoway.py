@@ -219,7 +219,7 @@ class TwoWayAnova(object):
                     self._dataframe_helper.add_significant_dimension(dimension,effect_size)
                     topLevelAnova = TopLevelDfAnovaStats()
                     levelDf = anovaResult["levelDf"]
-                    toplevelStats = levelDf.ix[levelDf["total"].argmax()]
+                    toplevelStats = levelDf.loc[levelDf["total"].argmax()]
                     print("toplevelStats",toplevelStats)
                     topLevelAnova.set_top_level_stat(toplevelStats)
                     if self._pandas_flag:

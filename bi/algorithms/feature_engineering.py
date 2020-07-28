@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from builtins import object
 from .feature_engineering_helper import FeatureEngineeringHelper
 from .feature_engineering_pandas_helper import FeatureEngineeringHelperPandas
+import re
 
 
 class FeatureEngineering(object):
@@ -99,6 +100,8 @@ class FeatureEngineering(object):
                                 for column in operation['columns']:
                                     if column["standardization_type"] == "normalization":
                                         self._df = feature_engineering_helper_obj.normalize_column(column["name"])
-
+        if not self._pandas_flag:
+            cols = [re.sub('\W+','_', col.strip()) for col in self._df.columns]
+            self._df = self._df.toDF(*cols)
         print("Feature Engineering Operations successfully Performed")
         return self._df
