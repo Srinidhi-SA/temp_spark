@@ -347,7 +347,8 @@ class ChiSquareAnalysis(object):
                   sorted_levels = sorted(zip(second_target_contributions,levels), reverse=True)
 
                   level_differences = [0.0] + [sorted_levels[i][0]-sorted_levels[i+1][0] for i in range(len(sorted_levels)-1)]
-                  second_target_top_dims = [j for i,j in sorted_levels[:level_differences.index(max(level_differences))]]
+                  level_diff_index = level_differences.index(max(level_differences)) if level_differences.index(max(level_differences)) >0 else len(level_differences)##added for pipeline keyerror issue
+                  second_target_top_dims = [j for i,j in sorted_levels[:level_diff_index]]
                   second_target_top_dims_contribution = sum([i for i,j in sorted_levels[:level_differences.index(max(level_differences))]])
                   second_target_bottom_dim = sorted_levels[-1][1]
                   second_target_bottom_dim_contribution = sorted_levels[-1][0]
